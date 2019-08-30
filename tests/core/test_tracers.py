@@ -118,9 +118,9 @@ def test_full_tracer_one_calculation(tracer):
     tracer._exit_calculation()
     assert tracer.stack == []
     assert len(tracer.trees) == 1
-    assert tracer.trees[0]['name'] == 'a'
-    assert tracer.trees[0]['period'] == 2017
-    assert tracer.trees[0]['children'] == []
+    assert tracer.trees[0].name == 'a'
+    assert tracer.trees[0].period == 2017
+    assert tracer.trees[0].children == []
 
 
 def test_full_tracer_2_branches(tracer):
@@ -135,7 +135,7 @@ def test_full_tracer_2_branches(tracer):
     tracer._exit_calculation()
 
     assert len(tracer.trees) == 1
-    assert len(tracer.trees[0]['children']) == 2
+    assert len(tracer.trees[0].children) == 2
 
 
 def test_full_tracer_2_trees(tracer):
@@ -157,8 +157,8 @@ def test_full_tracer_3_generations(tracer):
     tracer._exit_calculation()
 
     assert len(tracer.trees) == 1
-    assert len(tracer.trees[0]['children']) == 1
-    assert len(tracer.trees[0]['children'][0]['children']) == 1
+    assert len(tracer.trees[0].children) == 1
+    assert len(tracer.trees[0].children[0].children) == 1
 
 
 def test_full_tracer_variable_nb_requests(tracer):
@@ -182,7 +182,7 @@ def test_record_calculation_result(tracer):
     tracer.record_calculation_result(np.asarray(100))
     tracer._exit_calculation()
 
-    assert tracer.trees[0]['value'] == 100
+    assert tracer.trees[0].value == 100
 
 
 def test_flat_trace(tracer):
@@ -369,8 +369,8 @@ def check_tracing_params(accessor, param_key):
     tracer._enter_calculation('A', '2015-01')
     tracingParams = TracingParameterNodeAtInstant(parameters('2015-01-01'), tracer)
     param = accessor(tracingParams)
-    assert tracer.trees[0]['parameters'][0]['name'] == param_key
-    assert tracer.trees[0]['parameters'][0]['value'] == approx(param)
+    assert tracer.trees[0].parameters[0].name == param_key
+    assert tracer.trees[0].parameters[0].value == approx(param)
 
 
 @mark.parametrize("test", [

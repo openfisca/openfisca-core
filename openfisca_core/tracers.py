@@ -1,15 +1,20 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import annotations
+
 import os
 import json
 import time
+from dataclasses import dataclass, field
+
 import numpy as np
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Iterator
 from collections import ChainMap
 import importlib.resources as pkg_resources
 
 from openfisca_core.parameters import ParameterNodeAtInstant, VectorialParameterNodeAtInstant, ALLOWED_PARAM_TYPES
 from openfisca_core.indexed_enums import EnumArray
+from openfisca_core.periods import Period
 
 
 class TracingParameterNodeAtInstant:
@@ -62,6 +67,18 @@ class SimpleTracer:
         return self._stack
 
 
+@dataclass
+class TraceNode:
+    name: str
+    period: Period
+    parent: Optional[TraceNode] = None
+    children: List[TraceNode] = field(default_factory = list)
+    parameters: List[TraceNode] = field(default_factory = list)
+    value: np.ndarray = None
+    start: float = 0
+    end: float = 0
+
+
 class FullTracer:
 
     def __init__(self):
@@ -75,24 +92,24 @@ class FullTracer:
         self._record_start_time()
 
     def _enter_calculation(self, variable: str, period):
-        new_node = {'name': variable, 'period': period, 'children': [], 'parent': self._current_node, 'parameters': [], 'value': None}
+        new_node = TraceNode(name = variable, period = period, parent = self._current_node)
         if self._current_node is None:
             self._trees.append(new_node)
         else:
-            self._current_node['children'].append(new_node)
+            self._current_node.children.append(new_node)
         self._current_node = new_node
 
     def record_parameter_access(self, parameter: str, period, value):
-        self._current_node['parameters'].append({'name': parameter, 'period': period, 'value': value})
+        self._current_node.parameters.append(TraceNode(name = parameter, period = period, value = value))
 
     def _record_start_time(self, time_in_s: Optional[float] = None):
         if time_in_s is None:
             time_in_s = self._get_time_in_sec()
 
-        self._current_node['start'] = time_in_s
+        self._current_node.start = time_in_s
 
     def record_calculation_result(self, value: np.ndarray):
-        self._current_node['value'] = value
+        self._current_node.value = value
 
     def record_calculation_end(self):
         self._simple_tracer.record_calculation_end()
@@ -103,10 +120,10 @@ class FullTracer:
         if time_in_s is None:
             time_in_s = self._get_time_in_sec()
 
-        self._current_node['end'] = time_in_s
+        self._current_node.end = time_in_s
 
     def _exit_calculation(self):
-        self._current_node = self._current_node['parent']
+        self._current_node = self._current_node.parent
 
     @property
     def stack(self):
@@ -134,17 +151,17 @@ class FullTracer:
         self.performance_log.generate_graph(dir_path)
 
     def _get_nb_requests(self, tree, variable: str):
-        tree_call = tree['name'] == variable
-        children_calls = sum(self._get_nb_requests(child, variable) for child in tree['children'])
+        tree_call = tree.name == variable
+        children_calls = sum(self._get_nb_requests(child, variable) for child in tree.children)
 
         return tree_call + children_calls
 
     def get_nb_requests(self, variable: str):
         return sum(self._get_nb_requests(tree, variable) for tree in self.trees)
 
-    def key(self, node):
-        name = node['name']
-        period = node['period']
+    def key(self, node: TraceNode) -> str:
+        name = node.name
+        period = node.period
         return f"{name}<{period}>"
 
     def get_flat_trace(self):
@@ -153,7 +170,7 @@ class FullTracer:
             trace = {**self._get_flat_trace(tree), **trace}
         return trace
 
-    def serialize(self, value):
+    def serialize(self, value: np.ndarray) -> List:
         if isinstance(value, EnumArray):
             value = [item.name for item in value.decode()]
         elif isinstance(value, np.ndarray):
@@ -162,20 +179,20 @@ class FullTracer:
                 value = [str(item) for item in value]
         return value
 
-    def _get_flat_trace(self, node: Dict) -> Dict[str, Dict]:
+    def _get_flat_trace(self, node: TraceNode) -> Dict[str, Dict]:
         key = self.key(node)
         node_trace = {
             key: {
                 'dependencies': [
-                    self.key(child) for child in node['children']
+                    self.key(child) for child in node.children
                     ],
                 'parameters': {
-                    self.key(parameter): self.serialize(parameter['value']) for parameter in node['parameters']
+                    self.key(parameter): self.serialize(parameter.value) for parameter in node.parameters
                     },
-                'value': self.serialize(node['value'])
+                'value': self.serialize(node.value)
                 }
             }
-        child_traces = [self._get_flat_trace(child) for child in node['children']]
+        child_traces = [self._get_flat_trace(child) for child in node.children]
         return dict(ChainMap(node_trace, *child_traces))
 
 
@@ -193,7 +210,7 @@ class ComputationLog:
     def _get_node_log(self, node, depth, aggregate) -> List[str]:
 
         def print_line(depth, node) -> str:
-            value = node['value']
+            value = node.value
             if aggregate:
                 try:
                     formatted_value = str({'avg': np.mean(value), 'max': np.max(value), 'min': np.min(value)})
@@ -202,7 +219,7 @@ class ComputationLog:
             else:
                 formatted_value = self.display(value)
 
-            return "{}{}<{}> >> {}".format('  ' * depth, node['name'], node['period'], formatted_value)
+            return "{}{}<{}> >> {}".format('  ' * depth, node.name, node.period, formatted_value)
 
         # if not self.trace.get(node):
         #     return print_line(depth, node, "Calculation aborted due to a circular dependency")
@@ -210,7 +227,7 @@ class ComputationLog:
         node_log = [print_line(depth, node)]
         children_logs = self._flatten(
             self._get_node_log(child, depth + 1, aggregate)
-            for child in node['children']
+            for child in node.children
             )
 
         return node_log + children_logs
@@ -253,6 +270,6 @@ class PerformanceLog:
         return {'name': 'All calculations', 'value': calculations_total_time, 'children': children}
 
     def _json_tree(self, tree):
-        calculation_total_time = tree['end'] - tree['start']
-        children = [self._json_tree(child) for child in tree['children']]
-        return {'name': f"{tree['name']}<{tree['period']}>", 'value': calculation_total_time, 'children': children}
+        calculation_total_time = tree.end - tree.start
+        children = [self._json_tree(child) for child in tree.children]
+        return {'name': f"{tree.name}<{tree.period}>", 'value': calculation_total_time, 'children': children}
