@@ -383,3 +383,21 @@ def check_tracing_params(accessor, param_key):
     ])
 def test_parameters(test):
     check_tracing_params(*test)
+
+
+def test_browse_trace():
+    tracer = FullTracer()
+
+    tracer._enter_calculation("B", 2017)
+    tracer._enter_calculation("C", 2017)
+    tracer._exit_calculation()
+    tracer._exit_calculation()
+    tracer._enter_calculation("D", 2017)
+    tracer._enter_calculation("E", 2017)
+    tracer._exit_calculation()
+    tracer._enter_calculation("F", 2017)
+    tracer._exit_calculation()
+    tracer._exit_calculation()
+
+    browsed_nodes = [node.name for node in tracer.browse_trace()]
+    assert browsed_nodes == ['B', 'C', 'D', 'E', 'F']

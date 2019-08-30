@@ -166,8 +166,8 @@ class FullTracer:
 
     def get_flat_trace(self):
         trace = {}
-        for tree in self._trees:
-            trace = {**self._get_flat_trace(tree), **trace}
+        for node in self.browse_trace():
+            trace = {**self._get_flat_trace(node), **trace}
         return trace
 
     def serialize(self, value: np.ndarray) -> List:
@@ -192,8 +192,17 @@ class FullTracer:
                 'value': self.serialize(node.value)
                 }
             }
-        child_traces = [self._get_flat_trace(child) for child in node.children]
-        return dict(ChainMap(node_trace, *child_traces))
+        return node_trace
+
+    def browse_trace(self) -> Iterator[TraceNode]:
+        def _browse_node(node):
+            yield node
+            for child in node.children:
+                yield from _browse_node(child)
+
+        for node in self._trees:
+            yield from _browse_node(node)
+
 
 
 class ComputationLog:
