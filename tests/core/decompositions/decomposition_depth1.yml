@@ -1,0 +1,7 @@
+variable_name: root
+entity: person
+definition_period: month
+children:
+  - variable_name: income_a
+  - variable_name: tax_a
+    negate: true
