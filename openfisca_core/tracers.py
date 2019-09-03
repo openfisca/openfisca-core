@@ -249,8 +249,8 @@ class PerformanceLog:
 
     def _json(self):
         children = [self._json_tree(tree) for tree in self._full_tracer.trees]
-        simulation_total_time = sum(child['value'] for child in children)
-        return {'name': 'simulation', 'value': simulation_total_time, 'children': children}
+        calculations_total_time = sum(child['value'] for child in children)
+        return {'name': 'All calculations', 'value': calculations_total_time, 'children': children}
 
     def _json_tree(self, tree):
         calculation_total_time = tree['end'] - tree['start']
