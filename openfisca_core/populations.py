@@ -272,7 +272,7 @@ class GroupPopulation(Population):
         This function only caches the map value, to see what the map is used for, see value_nth_person method.
         """
         if self._ordered_members_map is None:
-            return np.argsort(self.members_entity_id)
+            self._ordered_members_map = np.argsort(self.members_entity_id)
         return self._ordered_members_map
 
     def get_role(self, role_name):

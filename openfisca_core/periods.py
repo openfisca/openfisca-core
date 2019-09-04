@@ -8,6 +8,9 @@ A period is a triple (unit, start, size), where unit is either "month" or "year"
 
 Since a period is a triple it can be used as a dictionary key.
 """
+
+from __future__ import annotations
+
 import calendar
 import datetime
 import re
@@ -567,12 +570,10 @@ class Period(tuple):
         """
         return self.__class__((self[0], self[1].offset(offset, self[0] if unit is None else unit), self[2]))
 
-    def contains(self, other):
+    def contains(self, other: Period) -> bool:
         """
             Returns ``True`` if the period contains ``other``. For instance, ``period(2015)`` contains ``period(2015-01)``
         """
-        if not isinstance(other, Period):
-            other = period(other)
         return self.start <= other.start and self.stop >= other.stop
 
     @property
@@ -619,7 +620,7 @@ class Period(tuple):
         raise ValueError("Cannot calculate number of days in {0}".format(unit))
 
     @property
-    def start(self):
+    def start(self) -> Instant:
         """Return the first day of the period as an Instant instance.
 
         >>> period('month', '2012-2-29', 4).start
@@ -628,7 +629,7 @@ class Period(tuple):
         return self[1]
 
     @property
-    def stop(self):
+    def stop(self) -> Instant:
         """Return the last day of the period as an Instant instance.
 
         >>> period('year', 2014).stop

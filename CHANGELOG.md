@@ -1,5 +1,9 @@
 # Changelog
 
+### 34.4.2 [#905](https://github.com/openfisca/openfisca-core/pull/905)
+
+- Fix minor errors that result in operations being uselessly repeated over and over.
+
 ### 34.4.1 [#904](https://github.com/openfisca/openfisca-core/pull/904)
 
 - Improve performance graph introduced in 34.4.0
