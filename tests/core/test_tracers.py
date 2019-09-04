@@ -245,7 +245,7 @@ def test_calculation_time():
     tracer._exit_calculation()
 
     performance_json = tracer.performance_log._json()
-    assert performance_json['name'] == 'simulation'
+    assert performance_json['name'] == 'All calculations'
     assert performance_json['value'] == 1000
 
     simulation_children = performance_json['children']
