@@ -81,13 +81,16 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/spiermar/d3-flame-graph@2.0.3/dist/d3-flamegraph.min.js"></script>
 
     <script type="text/javascript">
+    var data = {{data}}
     var flameGraph = d3.flamegraph()
       .width(960)
       .cellHeight(18)
       .transitionDuration(750)
-      .minFrameSize(5)
+      .minFrameSize(2)
       .transitionEase(d3.easeCubic)
-      .sort(true)
+      .sort(function(a, b) {
+        return (a.data.value < b.data.value) ? 1 : -1;
+      })
       .title("")
       .onClick(onClick)
       .differential(false)
@@ -106,12 +109,9 @@
       return label
     });
 
-    d3.json("performance.json", function(error, data) {
-      if (error) return console.warn(error);
-      d3.select("#chart")
-          .datum(data)
-          .call(flameGraph);
-    });
+    d3.select("#chart")
+      .datum(data)
+      .call(flameGraph);
 
     document.getElementById("form").addEventListener("submit", function(event){
       event.preventDefault();
