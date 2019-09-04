@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import json
 import time
+import csv
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -152,8 +153,21 @@ class FullTracer:
     def print_computation_log(self, aggregate = False):
         self.computation_log.print_log(aggregate)
 
-    def generate_performance_graph(self, dir_path):
+    def generate_performance_graph(self, dir_path: str) -> None:
         self.performance_log.generate_graph(dir_path)
+
+    def generate_performance_table(self, dir_path: str) -> None:
+        csv_row = [
+            {'name': key, 'calculation_time': trace['calculation_time'], 'formula_time': trace['formula_time']}
+            for key, trace in self.get_flat_trace().items()
+            ]
+        fieldnames = ['name', 'calculation_time', 'formula_time']
+
+        with open(os.path.join(dir_path, 'performance_table.csv'), 'w') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames = fieldnames)
+            writer.writeheader()
+            for row in csv_row:
+                writer.writerow(row)
 
     def _get_nb_requests(self, tree, variable: str):
         tree_call = tree.name == variable

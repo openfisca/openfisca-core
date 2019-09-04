@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import json
+import os
+import csv
 import numpy as np
 from pytest import fixture, mark, raises, approx
 
@@ -298,9 +300,21 @@ def test_flat_trace_calc_time(tracer_calc_time):
     assert flat_trace['a<2019>']['calculation_time'] == 1000
     assert flat_trace['b<2019>']['calculation_time'] == 700
     assert flat_trace['c<2019>']['calculation_time'] == 100
-    assert flat_trace['a<2019>']['formula_time'] == 1000 - 700 - 100 - 10
+    assert flat_trace['a<2019>']['formula_time'] == 190  # 1000 - 700 - 100 - 10
     assert flat_trace['b<2019>']['formula_time'] == 700
     assert flat_trace['c<2019>']['formula_time'] == 100
+
+
+def test_generate_performance_table(tracer_calc_time, tmpdir):
+    tracer = tracer_calc_time
+    tracer.generate_performance_table(tmpdir)
+    with open(os.path.join(tmpdir, 'performance_table.csv'), 'r') as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        csv_rows = list(csv_reader)
+    assert len(csv_rows) == 3
+    a_row = next(row for row in csv_rows if row['name'] == 'a<2019>')
+    assert float(a_row['calculation_time']) == 1000
+    assert float(a_row['formula_time']) == 190
 
 
 def test_variable_stats(tracer):
