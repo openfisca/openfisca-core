@@ -319,7 +319,7 @@ class PerformanceLog:
         self._full_tracer = full_tracer
 
     def generate_graph(self, dir_path):
-        with open(os.path.join(dir_path, 'index.html'), 'w') as f:
+        with open(os.path.join(dir_path, 'performance_graph.html'), 'w') as f:
             template = pkg_resources.read_text('openfisca_core.scripts.assets', 'index.html')
             perf_graph_html = template.replace('{{data}}', json.dumps(self._json()))
             f.write(perf_graph_html)

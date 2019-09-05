@@ -143,7 +143,7 @@ def test_performance_option_output():
     test_item = TestItem(test)
     test_item.options = {'performance': True}
 
-    graph_path = "./index.html"
+    graph_path = "./performance_graph.html"
     clean_performance_files(graph_path)
 
     test_item.runtest()
