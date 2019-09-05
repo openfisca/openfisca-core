@@ -155,14 +155,14 @@ class YamlItem(pytest.Item):
             if verbose:
                 self.print_computation_log(tracer)
             if performance:
-                self.generate_performance_graph(tracer)
+                self.generate_performance_details(tracer)
 
     def print_computation_log(self, tracer):
         print("Computation log:")  # noqa T001
         tracer.print_computation_log()
 
-    def generate_performance_graph(self, tracer):
-        tracer.generate_performance_graph('.')
+    def generate_performance_details(self, tracer):
+        tracer.generate_performance_details('.')
 
     def check_output(self):
         output = self.test.get('output')
