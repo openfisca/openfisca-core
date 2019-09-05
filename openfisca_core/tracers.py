@@ -10,7 +10,7 @@ from itertools import groupby
 from dataclasses import dataclass, field
 
 import numpy as np
-from typing import List, Dict, Optional, Iterator
+from typing import List, Dict, Optional, Iterator, Any
 import importlib.resources as pkg_resources
 
 from openfisca_core.parameters import ParameterNodeAtInstant, VectorialParameterNodeAtInstant, ALLOWED_PARAM_TYPES
@@ -176,8 +176,8 @@ class FullTracer:
         self.generate_performance_table(dir_path)
         self.generate_aggregated_performance_table(dir_path)
 
-    def _write_csv(self, path: str, rows: List[Dict]) -> None:
-        fieldnames = rows[0].keys()
+    def _write_csv(self, path: str, rows: List[Dict[str, Any]]) -> None:
+        fieldnames = list(rows[0].keys())
         with open(path, 'w') as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames = fieldnames)
             writer.writeheader()
@@ -226,11 +226,11 @@ class FullTracer:
 
     def serialize(self, value: np.ndarray) -> List:
         if isinstance(value, EnumArray):
-            value = [item.name for item in value.decode()]
-        elif isinstance(value, np.ndarray):
+            value = value.decode_to_str()
+        if isinstance(value, np.ndarray) and np.issubdtype(value.dtype, np.dtype(bytes)):
+            value = value.astype(np.dtype(str))
+        if isinstance(value, np.ndarray):
             value = value.tolist()
-            if len(value) > 0 and isinstance(value[0], bytes):
-                value = [str(item) for item in value]
         return value
 
     def _get_flat_trace(self, node: TraceNode) -> Dict[str, Dict]:
