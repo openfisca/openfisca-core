@@ -158,16 +158,25 @@ class FullTracer:
         self.performance_log.generate_graph(dir_path)
 
     def generate_performance_table(self, dir_path: str) -> None:
-        csv_row = [
+        csv_rows = [
             {'name': key, 'calculation_time': trace['calculation_time'], 'formula_time': trace['formula_time']}
             for key, trace in self.get_flat_trace().items()
             ]
-        fieldnames = ['name', 'calculation_time', 'formula_time']
+        self._write_csv(os.path.join(dir_path, 'performance_table.csv'), csv_rows)
 
-        with open(os.path.join(dir_path, 'performance_table.csv'), 'w') as csv_file:
+    def generate_aggregated_performance_table(self, dir_path: str) -> None:
+        csv_rows = [
+            {'name': key, **aggregated_time}
+            for key, aggregated_time in self.get_aggregated_calculation_times().items()
+            ]
+        self._write_csv(os.path.join(dir_path, 'aggregated_performance_table.csv'), csv_rows)
+
+    def _write_csv(self, path: str, rows: List[Dict]) -> None:
+        fieldnames = rows[0].keys()
+        with open(path, 'w') as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames = fieldnames)
             writer.writeheader()
-            for row in csv_row:
+            for row in rows:
                 writer.writerow(row)
 
     def get_aggregated_calculation_times(self) -> Dict[str, Dict]:
