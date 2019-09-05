@@ -6,6 +6,7 @@ import os
 import json
 import time
 import csv
+from itertools import groupby
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -168,6 +169,26 @@ class FullTracer:
             writer.writeheader()
             for row in csv_row:
                 writer.writerow(row)
+
+    def get_aggregated_calculation_times(self) -> Dict[str, Dict]:
+
+        def _aggregate_calculations(calculations):
+            nof_calculations = len(calculations)
+            calculation_time = sum(calculation[1]['calculation_time'] for calculation in calculations)
+            formula_time = sum(calculation[1]['formula_time'] for calculation in calculations)
+            return {
+                'nof_calculations': nof_calculations,
+                'calculation_time': calculation_time,
+                'formula_time': formula_time,
+                'avg_calculation_time': calculation_time / nof_calculations,
+                'avg_formula_time': formula_time / nof_calculations
+            }
+
+        all_calculations = sorted(self.get_flat_trace().items())
+        return {
+            variable_name: _aggregate_calculations(list(calculations))
+            for variable_name, calculations in groupby(all_calculations, lambda calculation: calculation[0].split('<')[0])
+        }
 
     def _get_nb_requests(self, tree, variable: str):
         tree_call = tree.name == variable
