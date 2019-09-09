@@ -281,6 +281,11 @@ def tracer_calc_time():
     tracer._record_end_time(2500)
     tracer._exit_calculation()
 
+    tracer._enter_calculation('a', 2018)
+    tracer._record_start_time(1800)
+    tracer._record_end_time(1800 + 200)
+    tracer._exit_calculation()
+
     return tracer
 
 
@@ -307,30 +312,27 @@ def test_flat_trace_calc_time(tracer_calc_time):
 
 def test_generate_performance_table(tracer_calc_time, tmpdir):
     tracer = tracer_calc_time
-    tracer.generate_performance_table(tmpdir)
+    tracer.generate_performance_tables(tmpdir)
     with open(os.path.join(tmpdir, 'performance_table.csv'), 'r') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         csv_rows = list(csv_reader)
-    assert len(csv_rows) == 3
+    assert len(csv_rows) == 4
     a_row = next(row for row in csv_rows if row['name'] == 'a<2019>')
     assert float(a_row['calculation_time']) == 1000
     assert float(a_row['formula_time']) == 190
 
+    with open(os.path.join(tmpdir, 'aggregated_performance_table.csv'), 'r') as csv_file:
+        aggregated_csv_reader = csv.DictReader(csv_file)
+        aggregated_csv_rows = list(aggregated_csv_reader)
+    assert len(aggregated_csv_rows) == 3
+    a_row = next(row for row in aggregated_csv_rows if row['name'] == 'a')
+    assert float(a_row['calculation_time']) == 1000 + 200
+    assert float(a_row['formula_time']) == 190 + 200
 
-@fixture
-def tracer_agg_calc_time(tracer_calc_time):
+
+def test_get_aggregated_calculation_times(tracer_calc_time):
     tracer = tracer_calc_time
-    tracer._enter_calculation('a', 2018)
-    tracer._record_start_time(1800)
-    tracer._record_end_time(1800 + 200)
-    tracer._exit_calculation()
-
-    return tracer
-
-
-def test_get_aggregated_calculation_times(tracer_agg_calc_time):
-    tracer = tracer_agg_calc_time
-    aggregated_calculation_times =  tracer.get_aggregated_calculation_times()
+    aggregated_calculation_times =  tracer.aggregate_calculation_times(tracer.get_flat_trace())
 
     assert aggregated_calculation_times['a']['calculation_time'] == 1000 + 200
     assert aggregated_calculation_times['a']['formula_time'] == 190 + 200
@@ -338,16 +340,7 @@ def test_get_aggregated_calculation_times(tracer_agg_calc_time):
     assert aggregated_calculation_times['a']['avg_formula_time'] == (190 + 200) / 2
 
 
-def test_get_aggregated_calculation_times_csv(tracer_agg_calc_time, tmpdir):
-    tracer = tracer_agg_calc_time
-    tracer.generate_aggregated_performance_table(tmpdir)
-    with open(os.path.join(tmpdir, 'aggregated_performance_table.csv'), 'r') as csv_file:
-        csv_reader = csv.DictReader(csv_file)
-        csv_rows = list(csv_reader)
-    assert len(csv_rows) == 3
-    a_row = next(row for row in csv_rows if row['name'] == 'a')
-    assert float(a_row['calculation_time']) == 1000 + 200
-    assert float(a_row['formula_time']) == 190 + 200
+
 
 
 def test_variable_stats(tracer):

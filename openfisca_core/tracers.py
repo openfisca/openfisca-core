@@ -157,24 +157,25 @@ class FullTracer:
     def generate_performance_graph(self, dir_path: str) -> None:
         self.performance_log.generate_graph(dir_path)
 
-    def generate_performance_table(self, dir_path: str) -> None:
+    def generate_performance_tables(self, dir_path: str) -> None:
+        flat_trace = self.get_flat_trace()
+
         csv_rows = [
             {'name': key, 'calculation_time': trace['calculation_time'], 'formula_time': trace['formula_time']}
-            for key, trace in self.get_flat_trace().items()
+            for key, trace in flat_trace.items()
             ]
         self._write_csv(os.path.join(dir_path, 'performance_table.csv'), csv_rows)
 
-    def generate_aggregated_performance_table(self, dir_path: str) -> None:
-        csv_rows = [
+        aggregated_csv_rows = [
             {'name': key, **aggregated_time}
-            for key, aggregated_time in self.get_aggregated_calculation_times().items()
+            for key, aggregated_time in self.aggregate_calculation_times(flat_trace).items()
             ]
-        self._write_csv(os.path.join(dir_path, 'aggregated_performance_table.csv'), csv_rows)
+
+        self._write_csv(os.path.join(dir_path, 'aggregated_performance_table.csv'), aggregated_csv_rows)
 
     def generate_performance_details(self, dir_path: str) -> None:
         self.generate_performance_graph(dir_path)
-        self.generate_performance_table(dir_path)
-        self.generate_aggregated_performance_table(dir_path)
+        self.generate_performance_tables(dir_path)
 
     def _write_csv(self, path: str, rows: List[Dict[str, Any]]) -> None:
         fieldnames = list(rows[0].keys())
@@ -184,7 +185,7 @@ class FullTracer:
             for row in rows:
                 writer.writerow(row)
 
-    def get_aggregated_calculation_times(self) -> Dict[str, Dict]:
+    def aggregate_calculation_times(self, flat_trace: Dict) -> Dict[str, Dict]:
 
         def _aggregate_calculations(calculations):
             nof_calculations = len(calculations)
@@ -198,7 +199,7 @@ class FullTracer:
                 'avg_formula_time': formula_time / nof_calculations
             }
 
-        all_calculations = sorted(self.get_flat_trace().items())
+        all_calculations = sorted(flat_trace.items())
         return {
             variable_name: _aggregate_calculations(list(calculations))
             for variable_name, calculations in groupby(all_calculations, lambda calculation: calculation[0].split('<')[0])
