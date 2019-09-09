@@ -206,7 +206,7 @@ def test_flat_trace_serialize_vectorial_values(tracer):
     tracer.record_calculation_result(np.asarray([10, 20, 30]))
     tracer._exit_calculation()
 
-    trace = tracer.get_flat_trace()
+    trace = tracer.get_serialized_flat_trace()
 
     assert json.dumps(trace['a<2019>']['value'])
     assert json.dumps(trace['a<2019>']['parameters']['x.y.z<2019>'])

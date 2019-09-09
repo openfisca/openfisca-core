@@ -224,6 +224,15 @@ class FullTracer:
             trace = {**self._get_flat_trace(node), **trace}
         return trace
 
+    def get_serialized_flat_trace(self):
+        return {
+            key: {
+                **flat_trace,
+                'value': self.serialize(flat_trace['value'])
+                }
+            for key, flat_trace in self.get_flat_trace().items()
+            }
+
     def serialize(self, value: np.ndarray) -> List:
         if isinstance(value, EnumArray):
             value = value.decode_to_str()
@@ -244,7 +253,7 @@ class FullTracer:
                 'parameters': {
                     self.key(parameter): self.serialize(parameter.value) for parameter in node.parameters
                     },
-                'value': self.serialize(node.value),
+                'value': node.value,
                 'calculation_time': node.calculation_time(),
                 'formula_time': node.formula_time(),
                 },

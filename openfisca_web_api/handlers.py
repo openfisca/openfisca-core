@@ -48,7 +48,7 @@ def trace(tax_benefit_system, input_data):
         requested_calculations.append(f"{variable_name}<{str(period)}>")
         simulation.calculate(variable_name, period)
 
-    trace = simulation.tracer.get_flat_trace()
+    trace = simulation.tracer.get_serialized_flat_trace()
 
     return {
         "trace": trace,
