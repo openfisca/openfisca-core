@@ -7,7 +7,7 @@ import numpy as np
 from pytest import fixture, mark, raises, approx
 
 from openfisca_core.simulations import Simulation, CycleError, SpiralError
-from openfisca_core.tracers import SimpleTracer, FullTracer, TracingParameterNodeAtInstant
+from openfisca_core.tracers import SimpleTracer, FullTracer, TracingParameterNodeAtInstant, TraceNode
 from openfisca_country_template.variables.housing import HousingOccupancyStatus
 from .parameters_fancy_indexing.test_fancy_indexing import parameters
 
@@ -338,6 +338,22 @@ def test_get_aggregated_calculation_times(tracer_calc_time):
     assert aggregated_calculation_times['a']['formula_time'] == 190 + 200
     assert aggregated_calculation_times['a']['avg_calculation_time'] == (1000 + 200) / 2
     assert aggregated_calculation_times['a']['avg_formula_time'] == (190 + 200) / 2
+
+
+def test_rounding():
+
+    node_a = TraceNode('a', 2017)
+    node_a.start = 1.23456789
+    node_a.end = node_a.start + 1.23456789e-03
+
+    assert node_a.calculation_time() == 1.235e-03  # Keep only 3 significant figures
+
+    node_b = TraceNode('b', 2017)
+    node_b.start = node_a.start
+    node_b.end = node_a.end - 1.23456789e-08
+    node_a.children = [node_b]
+
+    assert node_a.formula_time() == 1.235e-08  # The rounding should not prevent from calculating a precise formula_time
 
 
 def test_variable_stats(tracer):
