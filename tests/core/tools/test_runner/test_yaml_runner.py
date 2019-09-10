@@ -1,4 +1,6 @@
 import os
+from typing import List
+
 import pytest
 import numpy as np
 
@@ -143,17 +145,20 @@ def test_performance_option_output():
     test_item = TestItem(test)
     test_item.options = {'performance': True}
 
-    graph_path = "./performance_graph.html"
-    clean_performance_files(graph_path)
+    paths = ["./performance_graph.html", "performance_table.csv", "aggregated_performance_table.csv"]
+
+    clean_performance_files(paths)
 
     test_item.runtest()
 
     assert test_item.simulation.trace
-    assert os.path.isfile(graph_path)
+    for path in paths:
+        assert os.path.isfile(path)
 
-    clean_performance_files(graph_path)
+    clean_performance_files(paths)
 
 
-def clean_performance_files(graph_path):
-    if os.path.isfile(graph_path):
-        os.remove(graph_path)
+def clean_performance_files(paths: List[str]):
+    for path in paths:
+        if os.path.isfile(path):
+            os.remove(path)
