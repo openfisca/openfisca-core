@@ -197,13 +197,13 @@ class FullTracer:
                 'formula_time': formula_time,
                 'avg_calculation_time': calculation_time / nof_calculations,
                 'avg_formula_time': formula_time / nof_calculations
-            }
+                }
 
         all_calculations = sorted(flat_trace.items())
         return {
             variable_name: _aggregate_calculations(list(calculations))
             for variable_name, calculations in groupby(all_calculations, lambda calculation: calculation[0].split('<')[0])
-        }
+            }
 
     def _get_nb_requests(self, tree, variable: str):
         tree_call = tree.name == variable
@@ -222,7 +222,11 @@ class FullTracer:
     def get_flat_trace(self):
         trace = {}
         for node in self.browse_trace():
-            trace = {**self._get_flat_trace(node), **trace}
+            trace.update({  # We don't want cache read to overwrite data about the initial calculation. We therefore use a non-overwriting update.
+                key: node_trace
+                for key, node_trace in self._get_flat_trace(node).items()
+                if key not in trace
+                })
         return trace
 
     def get_serialized_flat_trace(self):
