@@ -1,5 +1,10 @@
 # Changelog
 
+### 34.4.5 [#906](https://github.com/openfisca/openfisca-core/pull/906)
+
+- Make the tracer generate CSV tables containing details about calculation times
+- Make `tracer.get_flat_trace` scale for large populations
+
 ### 34.4.4 [#908](https://github.com/openfisca/openfisca-core/pull/908)
 
 - Make parameter cloning return clones that are truly independant from their source
