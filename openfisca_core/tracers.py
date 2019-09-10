@@ -201,10 +201,10 @@ class FullTracer:
             formula_time = sum(calculation[1]['formula_time'] for calculation in calculations)
             return {
                 'nof_calculations': nof_calculations,
-                'calculation_time': calculation_time,
-                'formula_time': formula_time,
-                'avg_calculation_time': calculation_time / nof_calculations,
-                'avg_formula_time': formula_time / nof_calculations
+                'calculation_time': TraceNode.round(calculation_time),
+                'formula_time': TraceNode.round(formula_time),
+                'avg_calculation_time': TraceNode.round(calculation_time / nof_calculations),
+                'avg_formula_time': TraceNode.round(formula_time / nof_calculations),
                 }
 
         all_calculations = sorted(flat_trace.items())
