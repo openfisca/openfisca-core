@@ -1429,11 +1429,16 @@ For instance:
 
 ```
 from openfisca_core.memory_config import MemoryConfig
+
+simulation = ...  # create a Simulation object
+
 config = MemoryConfig(
     max_memory_occupation = 0.95,  # When 95% of the virtual memory is full, switch to disk storage
-    priority_variables = ['salary', 'age']  # Always store these variables in memory
+    priority_variables = ['salary', 'age'],  # Always store these variables in memory
     variables_to_drop = ['age_elder_for_family_benefit']  # Do not store the value of these variables
     )
+
+simulation.memory_config = config
 ```
 
 ## 21.1.0 [#598](https://github.com/openfisca/openfisca-core/pull/598)
