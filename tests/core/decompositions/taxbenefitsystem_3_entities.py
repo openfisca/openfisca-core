@@ -4,6 +4,26 @@ from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 
 # ENTITIES
 
+Household = build_entity(
+    key = "household",
+    plural = "households",
+    label = 'All the people in a family or group who live together in the same place.',
+    roles = [
+        {
+            'key': 'parent',
+            'plural': 'parents',
+            'label': 'Parents',
+            'max': 2,
+            'subroles': ['first_parent', 'second_parent'],
+            },
+        {
+            'key': 'child',
+            'plural': 'children',
+            'label': 'Child',
+            }
+        ]
+    )
+
 Person = build_entity(
     key = "person",
     plural = "persons",
@@ -11,7 +31,7 @@ Person = build_entity(
     is_person = True,
     )
 
-entities = [Person]
+entities = [Household, Person]
 
 # VARIABLES
 
@@ -19,9 +39,6 @@ class income_a(Variable):
     value_type = float
     entity = Person
     definition_period = MONTH
-
-    def formula(person, period, parameters):
-      return 42.2
 
 
 class tax_a(Variable):
@@ -33,15 +50,37 @@ class tax_a(Variable):
       return 21.1
 
 
-# INTERMEDIATE VARIABLES CORRESPONDING TO DECOMPOSITION NODES
-
-class root(Variable):
+class tax_b(Variable):
     value_type = float
     entity = Person
     definition_period = MONTH
 
     def formula(person, period, parameters):
-      return person("income_a", period) - person("tax_a", period)
+      return 13
+
+
+# INTERMEDIATE VARIABLES CORRESPONDING TO DECOMPOSITION NODES
+
+class root(Variable):
+    value_type = float
+    entity = Household
+    definition_period = MONTH
+
+    def formula(household, period, parameters):
+      income_a_members = household.members("income_a", period)
+      income_a = household.sum(income_a_members)
+      taxes_members = household.members("taxes", period)
+      taxes = household.sum(taxes_members)
+      return income_a - taxes
+
+
+class taxes(Variable):
+    value_type = float
+    entity = Person
+    definition_period = MONTH
+
+    def formula(person, period, parameters):
+      return person("tax_a", period) + person("tax_b", period)
 
 
 # TAXBENEFITSYSTEM
@@ -52,7 +91,7 @@ class TaxBenefitSystemFixture(TaxBenefitSystem):
         super(TaxBenefitSystemFixture, self).__init__(entities)
 
         # We add to our tax and benefit system all the variables
-        self.add_variables(root, income_a, tax_a)
+        self.add_variables(root, income_a, taxes, tax_a, tax_b)
 
         # We add to our tax and benefit system all the legislation parameters defined in the  parameters files
         # param_path = os.path.join(COUNTRY_DIR, 'parameters')

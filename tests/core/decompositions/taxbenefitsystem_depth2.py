@@ -33,6 +33,15 @@ class tax_a(Variable):
       return 21.1
 
 
+class tax_b(Variable):
+    value_type = float
+    entity = Person
+    definition_period = MONTH
+
+    def formula(person, period, parameters):
+      return 13
+
+
 # INTERMEDIATE VARIABLES CORRESPONDING TO DECOMPOSITION NODES
 
 class root(Variable):
@@ -41,7 +50,16 @@ class root(Variable):
     definition_period = MONTH
 
     def formula(person, period, parameters):
-      return person("income_a", period) - person("tax_a", period)
+      return person("income_a", period) - person("taxes", period)
+
+
+class taxes(Variable):
+    value_type = float
+    entity = Person
+    definition_period = MONTH
+
+    def formula(person, period, parameters):
+      return person("tax_a", period) + person("tax_b", period)
 
 
 # TAXBENEFITSYSTEM
@@ -52,7 +70,7 @@ class TaxBenefitSystemFixture(TaxBenefitSystem):
         super(TaxBenefitSystemFixture, self).__init__(entities)
 
         # We add to our tax and benefit system all the variables
-        self.add_variables(root, income_a, tax_a)
+        self.add_variables(root, income_a, taxes, tax_a, tax_b)
 
         # We add to our tax and benefit system all the legislation parameters defined in the  parameters files
         # param_path = os.path.join(COUNTRY_DIR, 'parameters')

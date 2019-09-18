@@ -1,9 +1,11 @@
 variable_name: root
-entity: person
+entity: household
 definition_period: month
 children:
   - variable_name: income_a
+    entity: person
   - variable_name: taxes
+    entity: person
     negate: true
     children:
       - variable_name: tax_a
