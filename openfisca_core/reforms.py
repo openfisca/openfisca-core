@@ -4,6 +4,8 @@ import copy
 
 from openfisca_core.parameters import ParameterNode
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
+from openfisca_core.variables import Variable
+from openfisca_core.periods import Period
 
 
 class Reform(TaxBenefitSystem):
@@ -83,3 +85,22 @@ class Reform(TaxBenefitSystem):
                 )
         self.parameters = reform_parameters
         self._parameters_at_instant_cache = {}
+
+
+def annualize(variable: Variable) -> Variable:
+    new_variable = variable.clone()
+
+    formula = new_variable.get_formula()
+
+    def annual_formula(population, period, parameters):
+        if period.start.month == 1:
+            try:
+                return formula(population, period, parameters)
+            except TypeError:
+                return formula(population, period)
+        else:
+            return population(variable.name, period.this_year.first_month)
+
+    new_variable.formulas['0001-01-01'] = annual_formula
+
+    return new_variable

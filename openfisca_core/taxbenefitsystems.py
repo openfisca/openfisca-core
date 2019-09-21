@@ -146,7 +146,7 @@ class TaxBenefitSystem(object):
             raise VariableNameConflict(
                 'Variable "{}" is already defined. Use `update_variable` to replace it.'.format(name))
 
-        variable = variable_class(baseline_variable = baseline_variable)
+        variable = variable_class(baseline_variable = baseline_variable, enforce_no_unexpected_attr = True)
         self.variables[variable.name] = variable
 
         return variable
