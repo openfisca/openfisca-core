@@ -87,20 +87,27 @@ class Reform(TaxBenefitSystem):
         self._parameters_at_instant_cache = {}
 
 
-def annualize(variable: Variable) -> Variable:
-    new_variable = variable.clone()
+def annualize(variable: Variable, annualization_period = None) -> Variable:
 
-    formula = new_variable.get_formula()
+    def make_annual_formula(original_formula, annualization_period = None):
 
-    def annual_formula(population, period, parameters):
-        if period.start.month == 1:
+        def annual_formula(population, period, parameters):
+            if period.start.month != 1 and (annualization_period is None or annualization_period.contains(period)):
+                return population(variable.name, period.this_year.first_month)
             try:
-                return formula(population, period, parameters)
+                return original_formula(population, period, parameters)
             except TypeError:
-                return formula(population, period)
-        else:
-            return population(variable.name, period.this_year.first_month)
+                return original_formula(population, period)
 
-    new_variable.formulas['0001-01-01'] = annual_formula
+        return annual_formula
+
+    from sortedcontainers.sorteddict import SortedDict
+
+    new_variable = variable.clone()
+    new_variable.formulas = SortedDict({
+        key: make_annual_formula(formula, annualization_period)
+        for key, formula in variable.formulas.items()
+    })
+
 
     return new_variable
