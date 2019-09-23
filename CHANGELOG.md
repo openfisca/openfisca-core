@@ -1,5 +1,9 @@
 # Changelog
 
+### 34.4.3 [#907](https://github.com/openfisca/openfisca-core/pull/907)
+
+- Fix documentation on v.21.2.0
+
 ### 34.4.2 [#905](https://github.com/openfisca/openfisca-core/pull/905)
 
 - Fix minor errors that result in operations being uselessly repeated over and over.
@@ -1429,11 +1433,16 @@ For instance:
 
 ```
 from openfisca_core.memory_config import MemoryConfig
+
+simulation = ...  # create a Simulation object
+
 config = MemoryConfig(
     max_memory_occupation = 0.95,  # When 95% of the virtual memory is full, switch to disk storage
-    priority_variables = ['salary', 'age']  # Always store these variables in memory
+    priority_variables = ['salary', 'age'],  # Always store these variables in memory
     variables_to_drop = ['age_elder_for_family_benefit']  # Do not store the value of these variables
     )
+
+simulation.memory_config = config
 ```
 
 ## 21.1.0 [#598](https://github.com/openfisca/openfisca-core/pull/598)
