@@ -1,5 +1,9 @@
 # Changelog
 
+### 34.4.3 [#907](https://github.com/openfisca/openfisca-core/pull/907)
+
+- Fix documentation on v.21.2.0
+
 ### 34.4.2 [#905](https://github.com/openfisca/openfisca-core/pull/905)
 
 - Fix minor errors that result in operations being uselessly repeated over and over.
