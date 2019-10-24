@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import copy
-from typing import Optional
 
 from openfisca_core.parameters import ParameterNode
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
-from openfisca_core.variables import Variable
-from openfisca_core.periods import Period
 
 
 class Reform(TaxBenefitSystem):
@@ -86,27 +83,3 @@ class Reform(TaxBenefitSystem):
                 )
         self.parameters = reform_parameters
         self._parameters_at_instant_cache = {}
-
-
-def annualize(variable: Variable, annualization_period: Optional[Period] = None) -> Variable:
-
-    def make_annual_formula(original_formula, annualization_period = None):
-
-        def annual_formula(population, period, parameters):
-            if period.start.month != 1 and (annualization_period is None or annualization_period.contains(period)):
-                return population(variable.name, period.this_year.first_month)
-            if original_formula.__code__.co_argcount == 2:
-                return original_formula(population, period)
-            return original_formula(population, period, parameters)
-
-        return annual_formula
-
-    from sortedcontainers.sorteddict import SortedDict
-
-    new_variable = variable.clone()
-    new_variable.formulas = SortedDict({
-        key: make_annual_formula(formula, annualization_period)
-        for key, formula in variable.formulas.items()
-        })
-
-    return new_variable

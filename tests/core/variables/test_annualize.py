@@ -3,8 +3,8 @@ from pytest import fixture
 
 from openfisca_core import periods
 from openfisca_core.model_api import *  # noqa analysis:ignore
-from openfisca_country_template.entities import Household, Person
-from openfisca_core.reforms import annualize
+from openfisca_country_template.entities import Person
+from openfisca_core.variables import get_annualized_variable
 
 
 @fixture
@@ -18,7 +18,6 @@ def monthly_variable():
         def formula(person, period, parameters):
             monthly_variable.nof_call += 1
             return np.asarray([100])
-
 
     variable = monthly_variable()
 
@@ -46,7 +45,7 @@ def test_without_annualize(monthly_variable):
     yearly_sum = sum(
         person('monthly_variable', month)
         for month in period.get_subperiods(MONTH)
-    )
+        )
 
     assert monthly_variable.nof_call == 11
     assert yearly_sum == 1200
@@ -54,28 +53,29 @@ def test_without_annualize(monthly_variable):
 
 def test_with_annualize(monthly_variable):
     period = periods.period(2019)
-    annualized_variable = annualize(monthly_variable)
+    annualized_variable = get_annualized_variable(monthly_variable)
 
     person = PopulationMock(annualized_variable)
 
     yearly_sum = sum(
         person('monthly_variable', month)
         for month in period.get_subperiods(MONTH)
-    )
+        )
 
     assert monthly_variable.nof_call == 0
     assert yearly_sum == 100 * 12
 
+
 def test_with_partial_annualize(monthly_variable):
     period = periods.period('year:2018:2')
-    annualized_variable = annualize(monthly_variable, periods.period(2018))
+    annualized_variable = get_annualized_variable(monthly_variable, periods.period(2018))
 
     person = PopulationMock(annualized_variable)
 
     yearly_sum = sum(
         person('monthly_variable', month)
         for month in period.get_subperiods(MONTH)
-    )
+        )
 
     assert monthly_variable.nof_call == 11
     assert yearly_sum == 100 * 12 * 2
