@@ -4,11 +4,12 @@
 """Handle legislative parameters."""
 
 
+import copy
+from typing import Iterable, Optional, Dict, List, Union
+import logging
 import os
 import sys
-import logging
 import traceback
-from typing import Iterable, Optional
 
 import yaml
 import numpy as np
@@ -133,12 +134,12 @@ class Parameter(object):
     """
 
     def __init__(self, name, data, file_path = None):
-        self.name = name
-        self.file_path = file_path
+        self.name: str = name
+        self.file_path: str = file_path
         _validate_parameter(self, data, data_type = dict)
-        self.description = None
-        self.metadata = {}
-        self.documentation = None
+        self.description: str = None
+        self.metadata: Dict = {}
+        self.documentation: str = None
         self.values_history = self  # Only for backward compatibility
 
         # Normal parameter declaration: the values are declared under the 'values' key: parse the description and metadata.
@@ -178,7 +179,7 @@ class Parameter(object):
             value_at_instant = ParameterAtInstant(value_name, instant_str, data = instant_info, file_path = self.file_path, metadata = self.metadata)
             values_list.append(value_at_instant)
 
-        self.values_list = values_list
+        self.values_list: List[ParameterAtInstant] = values_list
 
     def __repr__(self):
         return os.linesep.join([
@@ -190,6 +191,14 @@ class Parameter(object):
 
     def __call__(self, instant):
         return self.get_at_instant(instant)
+
+    def clone(self):
+        clone = empty_clone(self)
+        clone.__dict__ = self.__dict__.copy()
+
+        clone.metadata = copy.deepcopy(self.metadata)
+        clone.values_list = [parameter_at_instant.clone() for parameter_at_instant in self.values_list]
+        return clone
 
     def get_at_instant(self, instant):
         instant = str(periods.instant(instant))
@@ -281,10 +290,10 @@ class ParameterAtInstant(object):
             :param string instant_str: Date of the value in the format `YYYY-MM-DD`.
             :param dict data: Data, usually loaded from a YAML file.
         """
-        self.name = name
-        self.instant_str = instant_str
-        self.file_path = file_path
-        self.metadata = {}
+        self.name: str = name
+        self.instant_str: str = instant_str
+        self.file_path: str = file_path
+        self.metadata: Dict = {}
 
         # Accept { 2015-01-01: 4000 }
         if not isinstance(data, dict) and isinstance(data, ALLOWED_PARAM_TYPES):
@@ -292,7 +301,7 @@ class ParameterAtInstant(object):
             return
 
         self.validate(data)
-        self.value = data['value']
+        self.value: float = data['value']
 
         if metadata is not None:
             self.metadata.update(metadata)  # Inherit metadata from Parameter
@@ -319,6 +328,12 @@ class ParameterAtInstant(object):
 
     def __repr__(self):
         return "ParameterAtInstant({})".format({self.instant_str: self.value})
+
+    def clone(self):
+        clone = empty_clone(self)
+        clone.__dict__ = self.__dict__.copy()
+        clone.metadata = copy.deepcopy(self.metadata)
+        return clone
 
 
 class ParameterNode(object):
@@ -359,12 +374,12 @@ class ParameterNode(object):
 
         >>> node = ParameterNode('benefits', directory_path = '/path/to/country_package/parameters/benefits')
         """
-        self.name = name
-        self.children = {}
-        self.description = None
-        self.documentation = None
-        self.file_path = None
-        self.metadata = {}
+        self.name: str = name
+        self.children: Dict[str, Union[ParameterNode, Parameter, Scale]] = {}
+        self.description: str = None
+        self.documentation: str = None
+        self.file_path: str = None
+        self.metadata: Dict = {}
 
         if directory_path:
             self.file_path = directory_path
@@ -461,16 +476,18 @@ class ParameterNode(object):
             yield from child.get_descendants()
 
     def clone(self):
-        new = empty_clone(self)
-        new_dict = new.__dict__
+        clone = empty_clone(self)
+        clone.__dict__ = self.__dict__.copy()
 
-        for key, value in self.__dict__.items():
-            if key not in ('children', 'metadata'):
-                new_dict[key] = value
+        clone.metadata = copy.deepcopy(self.metadata)
+        clone.children = {
+            key: child.clone()
+            for key, child in self.children.items()
+            }
+        for child_key, child in clone.children.items():
+            setattr(clone, child_key, child)
 
-        new_dict['children'] = self.children.copy()
-        new_dict['metadata'] = self.metadata.copy()
-        return new
+        return clone
 
 
 class ParameterNodeAtInstant(object):
@@ -700,11 +717,11 @@ class Scale(object):
         :param data: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
         :param file_path: File the parameter was loaded from.
         """
-        self.name = name
-        self.file_path = file_path
+        self.name: str = name
+        self.file_path: str = file_path
         _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
-        self.description = data.get('description')
-        self.metadata = {}
+        self.description: str = data.get('description')
+        self.metadata: Dict = {}
         _set_backward_compatibility_metadata(self, data)
         self.metadata.update(data.get('metadata', {}))
 
@@ -720,7 +737,7 @@ class Scale(object):
             bracket_name = _compose_name(name, item_name = i)
             bracket = Bracket(name = bracket_name, data = bracket_data, file_path = file_path)
             brackets.append(bracket)
-        self.brackets = brackets
+        self.brackets: List[Bracket] = brackets
 
     def __call__(self, instant):
         return self.get_at_instant(instant)
@@ -789,6 +806,15 @@ class Scale(object):
 
     def get_descendants(self):
         return iter(())
+
+    def clone(self):
+        clone = empty_clone(self)
+        clone.__dict__ = self.__dict__.copy()
+
+        clone.brackets = [bracket.clone() for bracket in self.brackets]
+        clone.metadata = copy.deepcopy(self.metadata)
+
+        return clone
 
 
 class Bracket(ParameterNode):
