@@ -1,5 +1,11 @@
 # Changelog
 
+### 34.4.4 [#908](https://github.com/openfisca/openfisca-core/pull/908)
+
+- Make parameter cloning return clones that are truly independant from their source
+  - Before this PR, editing the clone of a parameter tree would change the initial tree
+  - Only impacts reforms that edit parameters tree
+
 ### 34.4.3 [#907](https://github.com/openfisca/openfisca-core/pull/907)
 
 - Fix documentation on v.21.2.0
