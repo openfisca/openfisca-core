@@ -181,7 +181,7 @@ class FullTracer:
 
         self._write_csv(os.path.join(dir_path, 'aggregated_performance_table.csv'), aggregated_csv_rows)
 
-    def generate_performance_details(self, dir_path: str) -> None:
+    def generate_performance_data(self, dir_path: str) -> None:
         self.generate_performance_graph(dir_path)
         self.generate_performance_tables(dir_path)
 
