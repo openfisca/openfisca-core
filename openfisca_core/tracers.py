@@ -196,15 +196,15 @@ class FullTracer:
     def aggregate_calculation_times(self, flat_trace: Dict) -> Dict[str, Dict]:
 
         def _aggregate_calculations(calculations):
-            nof_calculations = len(calculations)
+            calculation_count = len(calculations)
             calculation_time = sum(calculation[1]['calculation_time'] for calculation in calculations)
             formula_time = sum(calculation[1]['formula_time'] for calculation in calculations)
             return {
-                'nof_calculations': nof_calculations,
+                'calculation_count': calculation_count,
                 'calculation_time': TraceNode.round(calculation_time),
                 'formula_time': TraceNode.round(formula_time),
-                'avg_calculation_time': TraceNode.round(calculation_time / nof_calculations),
-                'avg_formula_time': TraceNode.round(formula_time / nof_calculations),
+                'avg_calculation_time': TraceNode.round(calculation_time / calculation_count),
+                'avg_formula_time': TraceNode.round(formula_time / calculation_count),
                 }
 
         all_calculations = sorted(flat_trace.items())
