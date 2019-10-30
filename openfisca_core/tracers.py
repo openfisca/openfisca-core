@@ -156,6 +156,10 @@ class FullTracer:
     def performance_log(self):
         return PerformanceLog(self)
 
+    @property
+    def flat_trace(self):
+        return FlatTrace(self)
+
     def _get_time_in_sec(self) -> float:
         return time.time_ns() / (10**9)
 
@@ -181,14 +185,35 @@ class FullTracer:
     def get_nb_requests(self, variable: str):
         return sum(self._get_nb_requests(tree, variable) for tree in self.trees)
 
+    def get_flat_trace(self):
+        return self.flat_trace.get_trace()
+
+    def get_serialized_flat_trace(self):
+        return self.flat_trace.get_serialized_trace()
+
+    def browse_trace(self) -> Iterator[TraceNode]:
+        def _browse_node(node):
+            yield node
+            for child in node.children:
+                yield from _browse_node(child)
+
+        for node in self._trees:
+            yield from _browse_node(node)
+
+
+class FlatTrace:
+
+    def __init__(self, full_tracer):
+        self._full_tracer = full_tracer
+
     def key(self, node: TraceNode) -> str:
         name = node.name
         period = node.period
         return f"{name}<{period}>"
 
-    def get_flat_trace(self):
+    def get_trace(self):
         trace = {}
-        for node in self.browse_trace():
+        for node in self._full_tracer.browse_trace():
             trace.update({  # We don't want cache read to overwrite data about the initial calculation. We therefore use a non-overwriting update.
                 key: node_trace
                 for key, node_trace in self._get_flat_trace(node).items()
@@ -196,13 +221,13 @@ class FullTracer:
                 })
         return trace
 
-    def get_serialized_flat_trace(self):
+    def get_serialized_trace(self):
         return {
             key: {
                 **flat_trace,
                 'value': self.serialize(flat_trace['value'])
                 }
-            for key, flat_trace in self.get_flat_trace().items()
+            for key, flat_trace in self.get_trace().items()
             }
 
     def serialize(self, value: np.ndarray) -> List:
@@ -231,15 +256,6 @@ class FullTracer:
                 },
             }
         return node_trace
-
-    def browse_trace(self) -> Iterator[TraceNode]:
-        def _browse_node(node):
-            yield node
-            for child in node.children:
-                yield from _browse_node(child)
-
-        for node in self._trees:
-            yield from _browse_node(node)
 
 
 class ComputationLog:
