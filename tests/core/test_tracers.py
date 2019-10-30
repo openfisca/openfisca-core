@@ -331,8 +331,8 @@ def test_generate_performance_table(tracer_calc_time, tmpdir):
 
 
 def test_get_aggregated_calculation_times(tracer_calc_time):
-    tracer = tracer_calc_time
-    aggregated_calculation_times = tracer.aggregate_calculation_times(tracer.get_flat_trace())
+    perf_log = tracer_calc_time.performance_log
+    aggregated_calculation_times = perf_log.aggregate_calculation_times(tracer_calc_time.get_flat_trace())
 
     assert aggregated_calculation_times['a']['calculation_time'] == 1000 + 200
     assert aggregated_calculation_times['a']['formula_time'] == 190 + 200
