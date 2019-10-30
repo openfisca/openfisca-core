@@ -89,6 +89,9 @@ class TraceNode:
         result = self.calculation_time(round_ = False) - sum(child.calculation_time(round_ = False) for child in self.children)
         return self.round(result)
 
+    def append_child(self, node: TraceNode):
+        self.children.append(node)
+
     @staticmethod
     def round(time):
         return float(f'{time:.4g}')  # Keep only 4 significant figures
@@ -111,7 +114,7 @@ class FullTracer:
         if self._current_node is None:
             self._trees.append(new_node)
         else:
-            self._current_node.children.append(new_node)
+            self._current_node.append_child(new_node)
         self._current_node = new_node
 
     def record_parameter_access(self, parameter: str, period, value):
