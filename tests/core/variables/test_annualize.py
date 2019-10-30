@@ -13,10 +13,10 @@ def monthly_variable():
         value_type = int
         entity = Person
         definition_period = MONTH
-        nof_call = 0
+        calculation_count = 0
 
         def formula(person, period, parameters):
-            monthly_variable.nof_call += 1
+            monthly_variable.calculation_count += 1
             return np.asarray([100])
 
     variable = monthly_variable()
@@ -47,7 +47,7 @@ def test_without_annualize(monthly_variable):
         for month in period.get_subperiods(MONTH)
         )
 
-    assert monthly_variable.nof_call == 11
+    assert monthly_variable.calculation_count == 11
     assert yearly_sum == 1200
 
 
@@ -62,7 +62,7 @@ def test_with_annualize(monthly_variable):
         for month in period.get_subperiods(MONTH)
         )
 
-    assert monthly_variable.nof_call == 0
+    assert monthly_variable.calculation_count == 0
     assert yearly_sum == 100 * 12
 
 
@@ -77,5 +77,5 @@ def test_with_partial_annualize(monthly_variable):
         for month in period.get_subperiods(MONTH)
         )
 
-    assert monthly_variable.nof_call == 11
+    assert monthly_variable.calculation_count == 11
     assert yearly_sum == 100 * 12 * 2
