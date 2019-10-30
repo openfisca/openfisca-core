@@ -140,12 +140,30 @@ def test_extensions_order():
     assert xy_tax_benefit_system == yx_tax_benefit_system  # extensions order is ignored in cache
 
 
-def test_performance_option_output():
+def test_performance_graph_option_output():
     test = {'input': {'salary': {'2017-01': 2000}}, 'output': {'salary': {'2017-01': 2000}}}
     test_item = TestItem(test)
-    test_item.options = {'performance': True}
+    test_item.options = {'performance_graph': True}
 
-    paths = ["./performance_graph.html", "performance_table.csv", "aggregated_performance_table.csv"]
+    paths = ["./performance_graph.html"]
+
+    clean_performance_files(paths)
+
+    test_item.runtest()
+
+    assert test_item.simulation.trace
+    for path in paths:
+        assert os.path.isfile(path)
+
+    clean_performance_files(paths)
+
+
+def test_performance_tables_option_output():
+    test = {'input': {'salary': {'2017-01': 2000}}, 'output': {'salary': {'2017-01': 2000}}}
+    test_item = TestItem(test)
+    test_item.options = {'performance_tables': True}
+
+    paths = ["performance_table.csv", "aggregated_performance_table.csv"]
 
     clean_performance_files(paths)
 

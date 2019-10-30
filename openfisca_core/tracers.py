@@ -175,10 +175,6 @@ class FullTracer:
     def generate_performance_tables(self, dir_path: str) -> None:
         self.performance_log.generate_performance_tables(dir_path)
 
-    def generate_performance_data(self, dir_path: str) -> None:
-        self.generate_performance_graph(dir_path)
-        self.generate_performance_tables(dir_path)
-
     def _get_nb_requests(self, tree, variable: str):
         tree_call = tree.name == variable
         children_calls = sum(self._get_nb_requests(child, variable) for child in tree.children)

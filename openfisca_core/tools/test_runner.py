@@ -136,7 +136,8 @@ class YamlItem(pytest.Item):
         input = self.test.get('input', {})
         period = self.test.get('period')
         verbose = self.options.get('verbose')
-        performance = self.options.get('performance')
+        performance_graph = self.options.get('performance_graph')
+        performance_tables = self.options.get('performance_tables')
 
         try:
             builder.set_default_period(period)
@@ -148,21 +149,26 @@ class YamlItem(pytest.Item):
             raise ValueError(error_message).with_traceback(sys.exc_info()[2]) from e  # Keep the stack trace from the root error
 
         try:
-            self.simulation.trace = verbose or performance
+            self.simulation.trace = verbose or performance_graph or performance_tables
             self.check_output()
         finally:
             tracer = self.simulation.tracer
             if verbose:
                 self.print_computation_log(tracer)
-            if performance:
-                self.generate_performance_data(tracer)
+            if performance_graph:
+                self.generate_performance_graph(tracer)
+            if performance_tables:
+                self.generate_performance_tables(tracer)
 
     def print_computation_log(self, tracer):
         print("Computation log:")  # noqa T001
         tracer.print_computation_log()
 
-    def generate_performance_data(self, tracer):
-        tracer.generate_performance_data('.')
+    def generate_performance_graph(self, tracer):
+        tracer.generate_performance_graph('.')
+
+    def generate_performance_tables(self, tracer):
+        tracer.generate_performance_tables('.')
 
     def check_output(self):
         output = self.test.get('output')
