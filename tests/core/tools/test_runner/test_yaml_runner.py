@@ -1,4 +1,6 @@
 import os
+from typing import List
+
 import pytest
 import numpy as np
 
@@ -138,22 +140,43 @@ def test_extensions_order():
     assert xy_tax_benefit_system == yx_tax_benefit_system  # extensions order is ignored in cache
 
 
-def test_performance_option_output():
+def test_performance_graph_option_output():
     test = {'input': {'salary': {'2017-01': 2000}}, 'output': {'salary': {'2017-01': 2000}}}
     test_item = TestItem(test)
-    test_item.options = {'performance': True}
+    test_item.options = {'performance_graph': True}
 
-    graph_path = "./index.html"
-    clean_performance_files(graph_path)
+    paths = ["./performance_graph.html"]
+
+    clean_performance_files(paths)
 
     test_item.runtest()
 
     assert test_item.simulation.trace
-    assert os.path.isfile(graph_path)
+    for path in paths:
+        assert os.path.isfile(path)
 
-    clean_performance_files(graph_path)
+    clean_performance_files(paths)
 
 
-def clean_performance_files(graph_path):
-    if os.path.isfile(graph_path):
-        os.remove(graph_path)
+def test_performance_tables_option_output():
+    test = {'input': {'salary': {'2017-01': 2000}}, 'output': {'salary': {'2017-01': 2000}}}
+    test_item = TestItem(test)
+    test_item.options = {'performance_tables': True}
+
+    paths = ["performance_table.csv", "aggregated_performance_table.csv"]
+
+    clean_performance_files(paths)
+
+    test_item.runtest()
+
+    assert test_item.simulation.trace
+    for path in paths:
+        assert os.path.isfile(path)
+
+    clean_performance_files(paths)
+
+
+def clean_performance_files(paths: List[str]):
+    for path in paths:
+        if os.path.isfile(path):
+            os.remove(path)

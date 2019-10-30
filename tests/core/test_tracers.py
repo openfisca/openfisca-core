@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import json
+import os
+import csv
 import numpy as np
 from pytest import fixture, mark, raises, approx
 
 from openfisca_core.simulations import Simulation, CycleError, SpiralError
-from openfisca_core.tracers import SimpleTracer, FullTracer, TracingParameterNodeAtInstant
+from openfisca_core.tracers import SimpleTracer, FullTracer, TracingParameterNodeAtInstant, TraceNode
 from openfisca_country_template.variables.housing import HousingOccupancyStatus
 from .parameters_fancy_indexing.test_fancy_indexing import parameters
 
@@ -118,9 +120,9 @@ def test_full_tracer_one_calculation(tracer):
     tracer._exit_calculation()
     assert tracer.stack == []
     assert len(tracer.trees) == 1
-    assert tracer.trees[0]['name'] == 'a'
-    assert tracer.trees[0]['period'] == 2017
-    assert tracer.trees[0]['children'] == []
+    assert tracer.trees[0].name == 'a'
+    assert tracer.trees[0].period == 2017
+    assert tracer.trees[0].children == []
 
 
 def test_full_tracer_2_branches(tracer):
@@ -135,7 +137,7 @@ def test_full_tracer_2_branches(tracer):
     tracer._exit_calculation()
 
     assert len(tracer.trees) == 1
-    assert len(tracer.trees[0]['children']) == 2
+    assert len(tracer.trees[0].children) == 2
 
 
 def test_full_tracer_2_trees(tracer):
@@ -157,8 +159,8 @@ def test_full_tracer_3_generations(tracer):
     tracer._exit_calculation()
 
     assert len(tracer.trees) == 1
-    assert len(tracer.trees[0]['children']) == 1
-    assert len(tracer.trees[0]['children'][0]['children']) == 1
+    assert len(tracer.trees[0].children) == 1
+    assert len(tracer.trees[0].children[0].children) == 1
 
 
 def test_full_tracer_variable_nb_requests(tracer):
@@ -182,7 +184,7 @@ def test_record_calculation_result(tracer):
     tracer.record_calculation_result(np.asarray(100))
     tracer._exit_calculation()
 
-    assert tracer.trees[0]['value'] == 100
+    assert tracer.trees[0].value == 100
 
 
 def test_flat_trace(tracer):
@@ -204,7 +206,7 @@ def test_flat_trace_serialize_vectorial_values(tracer):
     tracer.record_calculation_result(np.asarray([10, 20, 30]))
     tracer._exit_calculation()
 
-    trace = tracer.get_flat_trace()
+    trace = tracer.get_serialized_flat_trace()
 
     assert json.dumps(trace['a<2019>']['value'])
     assert json.dumps(trace['a<2019>']['parameters']['x.y.z<2019>'])
@@ -253,7 +255,8 @@ def test_calculation_time():
     assert simulation_children[0]['value'] == 1000
 
 
-def test_calculation_time_with_depth():
+@fixture
+def tracer_calc_time():
     tracer = FullTracer()
 
     tracer._enter_calculation('a', 2019)
@@ -264,14 +267,93 @@ def test_calculation_time_with_depth():
     tracer._record_end_time(2300)
     tracer._exit_calculation()
 
+    tracer._enter_calculation('c', 2019)
+    tracer._record_start_time(2300)
+    tracer._record_end_time(2400)
+    tracer._exit_calculation()
+
+    # Cache call
+    tracer._enter_calculation('c', 2019)
+    tracer._record_start_time(2400)
+    tracer._record_end_time(2410)
+    tracer._exit_calculation()
+
     tracer._record_end_time(2500)
     tracer._exit_calculation()
 
+    tracer._enter_calculation('a', 2018)
+    tracer._record_start_time(1800)
+    tracer._record_end_time(1800 + 200)
+    tracer._exit_calculation()
+
+    return tracer
+
+
+def test_calculation_time_with_depth(tracer_calc_time):
+    tracer = tracer_calc_time
     performance_json = tracer.performance_log._json()
     simulation_grand_children = performance_json['children'][0]['children']
 
     assert simulation_grand_children[0]['name'] == 'b<2019>'
     assert simulation_grand_children[0]['value'] == 700
+
+
+def test_flat_trace_calc_time(tracer_calc_time):
+    tracer = tracer_calc_time
+    flat_trace = tracer.get_flat_trace()
+
+    assert flat_trace['a<2019>']['calculation_time'] == 1000
+    assert flat_trace['b<2019>']['calculation_time'] == 700
+    assert flat_trace['c<2019>']['calculation_time'] == 100
+    assert flat_trace['a<2019>']['formula_time'] == 190  # 1000 - 700 - 100 - 10
+    assert flat_trace['b<2019>']['formula_time'] == 700
+    assert flat_trace['c<2019>']['formula_time'] == 100
+
+
+def test_generate_performance_table(tracer_calc_time, tmpdir):
+    tracer = tracer_calc_time
+    tracer.generate_performance_tables(tmpdir)
+    with open(os.path.join(tmpdir, 'performance_table.csv'), 'r') as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        csv_rows = list(csv_reader)
+    assert len(csv_rows) == 4
+    a_row = next(row for row in csv_rows if row['name'] == 'a<2019>')
+    assert float(a_row['calculation_time']) == 1000
+    assert float(a_row['formula_time']) == 190
+
+    with open(os.path.join(tmpdir, 'aggregated_performance_table.csv'), 'r') as csv_file:
+        aggregated_csv_reader = csv.DictReader(csv_file)
+        aggregated_csv_rows = list(aggregated_csv_reader)
+    assert len(aggregated_csv_rows) == 3
+    a_row = next(row for row in aggregated_csv_rows if row['name'] == 'a')
+    assert float(a_row['calculation_time']) == 1000 + 200
+    assert float(a_row['formula_time']) == 190 + 200
+
+
+def test_get_aggregated_calculation_times(tracer_calc_time):
+    perf_log = tracer_calc_time.performance_log
+    aggregated_calculation_times = perf_log.aggregate_calculation_times(tracer_calc_time.get_flat_trace())
+
+    assert aggregated_calculation_times['a']['calculation_time'] == 1000 + 200
+    assert aggregated_calculation_times['a']['formula_time'] == 190 + 200
+    assert aggregated_calculation_times['a']['avg_calculation_time'] == (1000 + 200) / 2
+    assert aggregated_calculation_times['a']['avg_formula_time'] == (190 + 200) / 2
+
+
+def test_rounding():
+
+    node_a = TraceNode('a', 2017)
+    node_a.start = 1.23456789
+    node_a.end = node_a.start + 1.23456789e-03
+
+    assert node_a.calculation_time() == 1.235e-03  # Keep only 3 significant figures
+
+    node_b = TraceNode('b', 2017)
+    node_b.start = node_a.start
+    node_b.end = node_a.end - 1.23456789e-08
+    node_a.children = [node_b]
+
+    assert node_a.formula_time() == 1.235e-08  # The rounding should not prevent from calculating a precise formula_time
 
 
 def test_variable_stats(tracer):
@@ -369,8 +451,8 @@ def check_tracing_params(accessor, param_key):
     tracer._enter_calculation('A', '2015-01')
     tracingParams = TracingParameterNodeAtInstant(parameters('2015-01-01'), tracer)
     param = accessor(tracingParams)
-    assert tracer.trees[0]['parameters'][0]['name'] == param_key
-    assert tracer.trees[0]['parameters'][0]['value'] == approx(param)
+    assert tracer.trees[0].parameters[0].name == param_key
+    assert tracer.trees[0].parameters[0].value == approx(param)
 
 
 @mark.parametrize("test", [
@@ -383,3 +465,21 @@ def check_tracing_params(accessor, param_key):
     ])
 def test_parameters(test):
     check_tracing_params(*test)
+
+
+def test_browse_trace():
+    tracer = FullTracer()
+
+    tracer._enter_calculation("B", 2017)
+    tracer._enter_calculation("C", 2017)
+    tracer._exit_calculation()
+    tracer._exit_calculation()
+    tracer._enter_calculation("D", 2017)
+    tracer._enter_calculation("E", 2017)
+    tracer._exit_calculation()
+    tracer._enter_calculation("F", 2017)
+    tracer._exit_calculation()
+    tracer._exit_calculation()
+
+    browsed_nodes = [node.name for node in tracer.browse_trace()]
+    assert browsed_nodes == ['B', 'C', 'D', 'E', 'F']

@@ -14,19 +14,19 @@ def test_calculate_full_tracer():
     simulation.calculate('income_tax', '2017-01')
 
     income_tax_node = simulation.tracer.trees[0]
-    assert income_tax_node['name'] == 'income_tax'
-    assert str(income_tax_node['period']) == '2017-01'
-    assert income_tax_node['value'] == 0
+    assert income_tax_node.name == 'income_tax'
+    assert str(income_tax_node.period) == '2017-01'
+    assert income_tax_node.value == 0
 
-    salary_node = income_tax_node['children'][0]
-    assert salary_node['name'] == 'salary'
-    assert str(salary_node['period']) == '2017-01'
-    assert salary_node['parameters'] == []
+    salary_node = income_tax_node.children[0]
+    assert salary_node.name == 'salary'
+    assert str(salary_node.period) == '2017-01'
+    assert salary_node.parameters == []
 
-    assert len(income_tax_node['parameters']) == 1
-    assert income_tax_node['parameters'][0]['name'] == 'taxes.income_tax_rate'
-    assert income_tax_node['parameters'][0]['period'] == '2017-01-01'
-    assert income_tax_node['parameters'][0]['value'] == 0.15
+    assert len(income_tax_node.parameters) == 1
+    assert income_tax_node.parameters[0].name == 'taxes.income_tax_rate'
+    assert income_tax_node.parameters[0].period == '2017-01-01'
+    assert income_tax_node.parameters[0].value == 0.15
 
 
 def test_get_entity_not_found():
