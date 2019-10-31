@@ -9,17 +9,20 @@ from openfisca_core.variables import get_annualized_variable
 
 @fixture
 def monthly_variable():
+
+    calculation_count = 0
+
     class monthly_variable(Variable):
         value_type = int
         entity = Person
         definition_period = MONTH
-        calculation_count = 0
 
         def formula(person, period, parameters):
-            monthly_variable.calculation_count += 1
+            variable.calculation_count += 1
             return np.asarray([100])
 
     variable = monthly_variable()
+    variable.calculation_count = calculation_count
 
     return variable
 

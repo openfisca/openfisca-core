@@ -147,7 +147,7 @@ class Variable(object):
            Free multilines text field describing the variable context and usage.
     """
 
-    def __init__(self, baseline_variable = None, enforce_no_unexpected_attr = False):
+    def __init__(self, baseline_variable = None):
         self.name = self.__class__.__name__
         attr = {
             name: value for name, value in self.__class__.__dict__.items()
@@ -181,7 +181,7 @@ class Variable(object):
         formulas_attr, unexpected_attrs = _partition(attr, lambda name, value: name.startswith(FORMULA_NAME_PREFIX))
         self.formulas = self.set_formulas(formulas_attr)
 
-        if unexpected_attrs and enforce_no_unexpected_attr:
+        if unexpected_attrs:
             raise ValueError(
                 'Unexpected attributes in definition of variable "{}": {!r}'
                 .format(self.name, ', '.join(sorted(unexpected_attrs.keys()))))
