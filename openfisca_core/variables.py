@@ -460,6 +460,10 @@ def get_neutralized_variable(variable):
 
 
 def get_annualized_variable(variable: Variable, annualization_period: Optional[periods.Period] = None) -> Variable:
+    """
+        Returns a clone of ``variable`` that is annualized for the period ``annualization_period``.
+        When annualized, a variable's formula is only called for a January calculation, and the results for other months are assumed to be identical.
+    """
 
     def make_annual_formula(original_formula, annualization_period = None):
 
