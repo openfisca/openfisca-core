@@ -9,7 +9,6 @@ from setuptools import setup, find_packages
 
 general_requirements = [
     'dpath == 1.4.2',
-    'enum34 >= 1.1.6',
     'pytest >= 4.4.1, < 6.0.0',  # For openfisca test
     'numpy >= 1.11, < 1.18',
     'psutil >= 5.4.7, < 6.0.0',
