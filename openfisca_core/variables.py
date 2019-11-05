@@ -4,6 +4,7 @@ import datetime
 import inspect
 import re
 import textwrap
+from typing import Optional
 
 import numpy as np
 from sortedcontainers.sorteddict import SortedDict
@@ -71,7 +72,7 @@ class Variable(object):
 
     Main attributes:
 
-       .. py:attribute: name
+       .. py:attribute:: name
 
            Name of the variable
 
@@ -456,3 +457,31 @@ def get_neutralized_variable(variable):
     result.label = '[Neutralized]' if variable.label is None else '[Neutralized] {}'.format(variable.label),
 
     return result
+
+
+def get_annualized_variable(variable: Variable, annualization_period: Optional[periods.Period] = None) -> Variable:
+    """
+        Returns a clone of ``variable`` that is annualized for the period ``annualization_period``.
+        When annualized, a variable's formula is only called for a January calculation, and the results for other months are assumed to be identical.
+    """
+
+    def make_annual_formula(original_formula, annualization_period = None):
+
+        def annual_formula(population, period, parameters):
+            if period.start.month != 1 and (annualization_period is None or annualization_period.contains(period)):
+                return population(variable.name, period.this_year.first_month)
+            if original_formula.__code__.co_argcount == 2:
+                return original_formula(population, period)
+            return original_formula(population, period, parameters)
+
+        return annual_formula
+
+    from sortedcontainers.sorteddict import SortedDict
+
+    new_variable = variable.clone()
+    new_variable.formulas = SortedDict({
+        key: make_annual_formula(formula, annualization_period)
+        for key, formula in variable.formulas.items()
+        })
+
+    return new_variable

@@ -2,7 +2,7 @@
 
 
 import glob
-from typing import Dict
+from typing import Dict, Optional
 from inspect import isclass
 from os import path, linesep
 from imp import find_module, load_module
@@ -13,11 +13,11 @@ import pkg_resources
 import traceback
 import copy
 
-from openfisca_core import periods
+from openfisca_core.periods import Period, Instant, instant as make_instant
 from openfisca_core.entities import Entity
 from openfisca_core.populations import Population, GroupPopulation
 from openfisca_core.parameters import ParameterNode
-from openfisca_core.variables import Variable, get_neutralized_variable
+from openfisca_core.variables import Variable, get_neutralized_variable, get_annualized_variable
 from openfisca_core.errors import VariableNotFound
 from openfisca_core.commons import empty_clone
 from openfisca_core.simulation_builder import SimulationBuilder
@@ -319,6 +319,9 @@ class TaxBenefitSystem(object):
         """
         self.variables[variable_name] = get_neutralized_variable(self.get_variable(variable_name))
 
+    def annualize_variable(self, variable_name: str, period: Optional[Period] = None):
+        self.variables[variable_name] = get_annualized_variable(self.get_variable(variable_name, period))
+
     def load_parameters(self, path_to_yaml_dir):
         """
         Loads the legislation parameter for a directory containing YAML parameters files.
@@ -351,12 +354,12 @@ class TaxBenefitSystem(object):
         :returns: The parameters of the legislation at a given instant.
         :rtype: :any:`ParameterNodeAtInstant`
         """
-        if isinstance(instant, periods.Period):
+        if isinstance(instant, Period):
             instant = instant.start
         elif isinstance(instant, (str, int)):
-            instant = periods.instant(instant)
+            instant = make_instant(instant)
         else:
-            assert isinstance(instant, periods.Instant), "Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {}.".format(instant)
+            assert isinstance(instant, Instant), "Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {}.".format(instant)
 
         parameters_at_instant = self._parameters_at_instant_cache.get(instant)
         if parameters_at_instant is None and self.parameters is not None:

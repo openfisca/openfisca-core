@@ -1,5 +1,10 @@
 # Changelog
 
+## 34.5.0 [#909](https://github.com/openfisca/openfisca-core/pull/909)
+
+- Introduce `tax_benefit_system.annualize_variable(variable_name, period)` method
+  - Used in reform, this method allows to speed up variable calculations when a month-to-month calculation is not relevant, for instance if the input data are annual.
+
 ### 34.4.5 [#906](https://github.com/openfisca/openfisca-core/pull/906)
 
 - Make the tracer generate CSV tables containing details about calculation times
