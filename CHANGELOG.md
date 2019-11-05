@@ -1,5 +1,12 @@
 # Changelog
 
+## 34.5.1 [#911](https://github.com/openfisca/openfisca-core/pull/911)
+
+- Remove the library `enum34` from requirements
+  - The library `enum34` provides a backport of >= 3.4 `enum` to >= 2.7, < 3.4 Python environments.
+  - The standard `enum` and `enum34` are hence incompatible as installed under the same path.
+  - Since we dropped support for <= 3.6, that library is no longer needed.
+
 ## 34.5.0 [#909](https://github.com/openfisca/openfisca-core/pull/909)
 
 - Introduce `tax_benefit_system.annualize_variable(variable_name, period)` method
