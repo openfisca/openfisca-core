@@ -1,6 +1,13 @@
 # Changelog
 
-## 34.5.1 [#911](https://github.com/openfisca/openfisca-core/pull/911)
+### 34.5.2 [#914](https://github.com/openfisca/openfisca-core/pull/914)
+
+- Refactor the use of the now-deprecated `gunicorn.six` module.
+  - In versions < 20, [gunicorn](http://docs.gunicorn.org/en/19.3/custom.html) provided the `gunicorn.six` module.
+  - In version >= 20, this [gunicorn](http://docs.gunicorn.org/en/stable/custom.html) module has been deprecated.
+  - Adapt `openfisca serve` code to the new gunicorn API.
+
+### 34.5.1 [#911](https://github.com/openfisca/openfisca-core/pull/911)
 
 - Remove the library `enum34` from requirements
   - The library `enum34` provides a backport of >= 3.4 `enum` to >= 2.7, < 3.4 Python environments.
