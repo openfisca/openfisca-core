@@ -20,7 +20,7 @@ general_requirements = [
 api_requirements = [
     'flask == 1.1.1',
     'flask-cors == 3.0.7',
-    'gunicorn >= 19.7.1',
+    'gunicorn >= 20.0.0, < 21.0.0',
     ]
 
 dev_requirements = [
@@ -36,7 +36,7 @@ dev_requirements = [
 
 setup(
     name = 'OpenFisca-Core',
-    version = '34.5.1',
+    version = '34.5.2',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [

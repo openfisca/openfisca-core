@@ -9,7 +9,6 @@ from openfisca_web_api.errors import handle_import_error
 
 try:
     from gunicorn.app.base import BaseApplication
-    from gunicorn.six import iteritems
     from gunicorn import config
 except ImportError as error:
     handle_import_error(error)
@@ -68,7 +67,7 @@ class OpenFiscaWebAPIApplication(BaseApplication):
         super(OpenFiscaWebAPIApplication, self).__init__()
 
     def load_config(self):
-        for key, value in iteritems(self.options):
+        for key, value in self.options.items():
             if key in self.cfg.settings:
                 self.cfg.set(key.lower(), value)
 
