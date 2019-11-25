@@ -1,5 +1,9 @@
 # Changelog
 
+### 34.5.3 [#915](https://github.com/openfisca/openfisca-core/pull/915)
+
+- Rename deprecated doc reference `openfisca-run-test` to `openfisca_test`.
+
 ### 34.5.2 [#914](https://github.com/openfisca/openfisca-core/pull/914)
 
 - Refactor the use of the now-deprecated `gunicorn.six` module.
