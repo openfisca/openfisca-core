@@ -13,6 +13,7 @@ Person = build_entity(
 
 entities = [Person]
 
+
 # VARIABLES
 
 class income_a(Variable):
@@ -21,7 +22,7 @@ class income_a(Variable):
     definition_period = MONTH
 
     def formula(person, period, parameters):
-      return 42.2
+        return 42.2
 
 
 class tax_a(Variable):
@@ -30,7 +31,7 @@ class tax_a(Variable):
     definition_period = MONTH
 
     def formula(person, period, parameters):
-      return 21.1
+        return 21.1
 
 
 # INTERMEDIATE VARIABLES CORRESPONDING TO DECOMPOSITION NODES
@@ -41,7 +42,7 @@ class root(Variable):
     definition_period = MONTH
 
     def formula(person, period, parameters):
-      return person("income_a", period) - person("tax_a", period)
+        return person("income_a", period) - person("tax_a", period)
 
 
 # TAXBENEFITSYSTEM

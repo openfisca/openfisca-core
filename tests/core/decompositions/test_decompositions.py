@@ -1,7 +1,5 @@
-import logging
 import os
 
-import pkg_resources
 import yaml
 from pytest import fixture, raises
 
@@ -16,6 +14,7 @@ from .taxbenefitsystem_depth1 import TaxBenefitSystemFixture as TBSDepth1
 from .taxbenefitsystem_depth2 import TaxBenefitSystemFixture as TBSDepth2
 
 file_dir = os.path.dirname(os.path.realpath(__file__))
+
 
 @fixture
 def decomposition_depth1():
@@ -112,11 +111,11 @@ def test_household_parent_and_person_children(make_isolated_simulation, decompos
         'persons': {
             'Ari': {'income_a': {period: 4000}},
             'Paul': {'income_a': {period: 20}}
-        },
+            },
         'households': {
             'h1': {'parents': ['Ari', 'Paul']},
-        },
-    }
+            },
+        }
 
     tax_benefit_system_a = TBS3Entities()
     simulation_a = make_isolated_simulation(tax_benefit_system_a, test_case)
