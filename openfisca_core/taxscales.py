@@ -51,6 +51,33 @@ class AbstractTaxScale(object):
     def calc(self, base):
         raise NotImplementedError('Method "calc" is not implemented for {}'.format(self.__class__.__name__))
 
+    def compute_bracket_index(self, base, factor = 1, round_base_decimals = None):
+        """
+            Compute the relevant bracket for the given tax bases
+
+            :param numpy.ndarray base: Numpy array of the tax bases.
+            :param float factor: A numerical factor to apply to the thresholds of the tax scale, defaults to 1
+            :param int round_base_decimals: Decimals to keep when rounding thresholds, defaults to None (no rounding) 
+           
+            :returns: An integer numpy.ndarray with the relevant bracket indices for the given tax bases.
+            :rtype: numpy.ndarray
+
+            For instance:
+
+            >>> 
+            >>> 
+
+        """
+
+        base1 = np.tile(base, (len(self.thresholds), 1)).T
+        if isinstance(factor, (float, int)):
+            factor = np.ones(len(base)) * factor
+        # np.finfo(np.float).eps is used to avoid np.nan = 0 * np.inf creation
+        thresholds1 = np.outer(factor + np.finfo(np.float).eps, np.array(self.thresholds + [np.inf]))
+        if round_base_decimals is not None:
+            thresholds1 = np.round(thresholds1, round_base_decimals)
+        return (base1 - thresholds1[:, :-1] >= 0).sum(axis = 1) - 1
+
     def copy(self):
         new = empty_clone(self)
         new.__dict__ = copy.deepcopy(self.__dict__)
@@ -244,6 +271,11 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
         while i <= j:
             self.add_bracket(self.thresholds[i], rate)
             i += 1
+
+    def compute_marginal_rate(self, base, factor = 1, round_base_decimals = None):
+        return np.array(self.rates)[
+            self.compute_bracket_index(base, factor, round_base_decimals)
+            ]
 
     def inverse(self):
         """Returns a new instance of MarginalRateTaxScale

@@ -123,6 +123,19 @@ def test_round_marginal_tax_scale():
         absolute_error_margin = 1e-10,
         )
 
+    marginal_tax_scale.add_bracket(200, 0.2)
+    base = np.array([0, 10, 50, 125, 250])
+    # Test compute_bracket_index
+    assert_near(
+        marginal_tax_scale.compute_bracket_index(base),
+        [0, 0, 0, 1, 2]
+        )
+    # Test compute_marginal_rate
+    assert_near(
+        marginal_tax_scale.compute_marginal_rate(base),
+        [0, 0, 0, 0.1, .2]
+        )
+
 
 def test_inverse_marginal_tax_scale():
     marginal_tax_scale = MarginalRateTaxScale()
