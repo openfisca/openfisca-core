@@ -1,5 +1,11 @@
 # Changelog
 
+### 34.5.4 [#919](https://github.com/openfisca/openfisca-core/pull/919)
+
+#### Technical change
+
+- Update dependency: numpy
+
 ### 34.5.3 [#915](https://github.com/openfisca/openfisca-core/pull/915)
 
 - Rename deprecated doc reference `openfisca-run-test` to `openfisca_test`.
@@ -82,7 +88,6 @@
 2. From the current directory, run a Python web server (here on port `5000`):
 
     `python -m http.server 5000`
-
 
 3. See the flame graph result in your browser at `http://localhost:5000`.
   This interprets the generated `index.html`.
