@@ -31,7 +31,9 @@ log = logging.getLogger(__name__)
 
 
 class AbstractTaxScale(object):
-    """Abstract class for various types of tax scales (amount-based tax scales, rate-based tax scales)
+    """
+    Abstract class for various types of tax scales (amount-based tax scales, rate-based
+    tax scales).
 
     French translations:
       * base: assiette
@@ -112,7 +114,10 @@ class AbstractTaxScale(object):
 
 
 class AbstractRateTaxScale(AbstractTaxScale):
-    """Abstract class for various types of rate-based tax scales (marginal rate, linear average rate)"""
+    """
+    Abstract class for various types of rate-based tax scales (marginal rate, linear
+    average rate).
+    """
     rates = None
 
     def __init__(self, name = None, option = None, unit = None):
@@ -169,10 +174,10 @@ class AbstractRateTaxScale(AbstractTaxScale):
 
 
 class SingleAmountTaxScale(AbstractTaxScale):
-    '''
+    """
     A SingleAmountTaxScale's calc() method matches the input amount to a set of brackets
     and returns the single cell value that fits within that bracket.
-    '''
+    """
     amounts = None
 
     def __init__(self, name = None, option = None, unit = None):
@@ -203,10 +208,11 @@ class SingleAmountTaxScale(AbstractTaxScale):
 
 
 class MarginalAmountTaxScale(SingleAmountTaxScale):
-    '''
-    A MarginalAmountTaxScale's calc() method matches the input amount to a set of brackets
-    and returns the sum of cell values from the lowest bracket to the one containing the input.
-    '''
+    """
+    A MarginalAmountTaxScale's calc() method matches the input amount to a set of
+    brackets and returns the sum of cell values from the lowest bracket to the one
+    containing the input.
+    """
 
     def calc(self, base):
         base1 = tile(base, (len(self.thresholds), 1)).T
@@ -343,30 +349,45 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
             ]
 
     def inverse(self):
-        """Returns a new instance of MarginalRateTaxScale
+        """
+        Returns a new instance of MarginalRateTaxScale.
 
         Invert a taxscale:
-            Assume tax_scale composed of bracket which thresholds are expressed in term of brut revenue.
-            The inverse is another MarginalTaxSclae which thresholds are expressed in terms of net revenue.
-            If net  = revbrut - tax_scale.calc(revbrut) then brut = tax_scale.inverse().calc(net)
+
+            Assume tax_scale composed of bracket which thresholds are expressed in term
+            of brut revenue.
+
+            The inverse is another MarginalTaxSclae which thresholds are expressed in
+            terms of net revenue.
+
+            IF net = revbrut - tax_scale.calc(revbrut)
+            THEN brut = tax_scale.inverse().calc(net)
         """
-        # threshold : threshold of brut revenue
-        # net_threshold: threshold of net revenue
-        # theta : ordonnée à l'origine des segments des différents seuils dans une
-        #         représentation du revenu imposable comme fonction linéaire par
-        #         morceaux du revenu brut
+        # Threshold of net revenue.
+        net_threshold: int = 0
+
+        # Threshold of brut revenue.
+        threshold: int
+
+        # Ordonnée à l'origine des segments des différents seuils dans une
+        # représentation du revenu imposable comme fonction linéaire par morceaux du
+        # revenu brut.
+        theta: int
+
         # Actually 1 / (1- global_rate)
         inverse = self.__class__(name = self.name + "'", option = self.option, unit = self.unit)
-        net_threshold = 0
+
         for threshold, rate in zip(self.thresholds, self.rates):
             if threshold == 0:
                 previous_rate = 0
                 theta = 0
+
             # On calcule le seuil de revenu imposable de la tranche considérée.
             net_threshold = (1 - previous_rate) * threshold + theta
             inverse.add_bracket(net_threshold, 1 / (1 - rate))
             theta = (rate - previous_rate) * threshold + theta
             previous_rate = rate
+
         return inverse
 
     def scale_tax_scales(self, factor):
@@ -394,7 +415,8 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
 
 def combine_tax_scales(node):
     """
-        Combine all the MarginalRateTaxScales in the node into a single MarginalRateTaxScale.
+    Combine all the MarginalRateTaxScales in the node into a single
+    MarginalRateTaxScale.
     """
     combined_tax_scales = None
     for child_name in node:
