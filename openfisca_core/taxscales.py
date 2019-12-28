@@ -61,24 +61,22 @@ class AbstractTaxScale(object):
 
     def __eq__(self, other):
         raise NotImplementedError(
-            'Method "__eq__" is not implemented for {}'.format(self.__class__.__name__),
+            f'Method "__eq__" is not implemented for {self.__class__.__name__}',
             )
 
     def __ne__(self, other):
         raise NotImplementedError(
-            'Method "__ne__" is not implemented for {}'.format(self.__class__.__name__),
+            f'Method "__ne__" is not implemented for {self.__class__.__name__}',
             )
 
     def __repr__(self):
         raise NotImplementedError(
-            'Method "__repr__" is not implemented for {}'.format(
-                self.__class__.__name__,
-                ),
+            f'Method "__repr__" is not implemented for {self.__class__.__name__}',
             )
 
     def calc(self, base):
         raise NotImplementedError(
-            'Method "calc" is not implemented for {}'.format(self.__class__.__name__),
+            f'Method "calc" is not implemented for {self.__class__.__name__}',
             )
 
     def compute_bracket_index(
@@ -144,7 +142,7 @@ class AbstractRateTaxScale(AbstractTaxScale):
         return indent(
             os.linesep.join(
                 [
-                    "- threshold: {}{}  rate: {}".format(threshold, os.linesep, rate)
+                    f"- threshold: {threshold}{os.linesep}  rate: {rate}"
                     for (threshold, rate) in zip(self.thresholds, self.rates)
                     ]
                 )
@@ -230,11 +228,7 @@ class SingleAmountTaxScale(AbstractTaxScale):
         return indent(
             os.linesep.join(
                 [
-                    "- threshold: {}{}  amount: {}".format(
-                        threshold,
-                        os.linesep,
-                        amount,
-                        )
+                    f"- threshold: {threshold}{os.linesep}  amount: {amount}"
                     for (threshold, amount) in zip(self.thresholds, self.amounts)
                     ]
                 )
@@ -296,8 +290,8 @@ class LinearAverageRateTaxScale(AbstractRateTaxScale):
         bracket_average_start_rate = dot(bracket_dummy, rates_array[:-1])
         bracket_threshold = dot(bracket_dummy, thresholds_array[:-1])
 
-        log.info("bracket_average_start_rate :  {}".format(bracket_average_start_rate))
-        log.info("average_rate_slope:  {}".format(average_rate_slope))
+        log.info(f"bracket_average_start_rate :  {bracket_average_start_rate}")
+        log.info(f"average_rate_slope:  {average_rate_slope}")
 
         return base * (
             + bracket_average_start_rate
@@ -527,9 +521,8 @@ def combine_tax_scales(node):
 
         if not isinstance(child, AbstractTaxScale):
             log.info(
-                "Skipping {} with value {} because it is not a tax scale".format(
-                    child_name, child,
-                    ),
+                f"Skipping {child_name} with value {child}",
+                "because it is not a tax scale",
                 )
             continue
 
