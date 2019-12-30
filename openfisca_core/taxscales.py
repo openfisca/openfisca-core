@@ -207,14 +207,14 @@ class AbstractRateTaxScale(AbstractTaxScale):
             self,
             tax_base: ndarray,
             factor: float = 1.0,
-            round_base_decimals: Optional[int] = None,
+            round_decimals: Optional[int] = None,
             ) -> ndarray:
         """
         Compute the relevant bracket indices for the given tax bases.
 
         :param tax_base: Array of the tax bases.
         :param factor: Factor to apply to the thresholds of the tax scales.
-        :param round_base_decimals: Decimals to keep when rounding thresholds.
+        :param round_decimals: Decimals to keep when rounding thresholds.
 
         :returns: Int array with relevant bracket indices for the given tax bases.
 
@@ -231,8 +231,8 @@ class AbstractRateTaxScale(AbstractTaxScale):
         # finfo(float_).eps is used to avoid nan = 0 * inf creation
         thresholds1 = outer(factor + finfo(float_).eps, array(self.thresholds + [inf]))
 
-        if round_base_decimals is not None:
-            thresholds1 = round_(thresholds1, round_base_decimals)
+        if round_decimals is not None:
+            thresholds1 = round_(thresholds1, round_decimals)
 
         return (base1 - thresholds1[:, :-1] >= 0).sum(axis = 1) - 1
 
