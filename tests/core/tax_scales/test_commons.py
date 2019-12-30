@@ -1,8 +1,8 @@
-from pytest import fixture
-
 from openfisca_core.parameters import ParameterNode
 from openfisca_core.taxscales import combine_tax_scales
 from openfisca_core.tools import assert_near
+
+from pytest import fixture
 
 
 @fixture

@@ -1,8 +1,9 @@
-from bisect import bisect_left, bisect_right
 import copy
-import logging
 import itertools
+import logging
 import os
+from bisect import bisect_left, bisect_right
+from typing import Any, List, NoReturn, Optional, Union
 
 from numpy import (
     around,
@@ -21,8 +22,6 @@ from numpy import (
     round as round_,
     tile,
     )
-
-from typing import Any, List, NoReturn, Optional, Union
 
 from openfisca_core.commons import empty_clone
 from openfisca_core.tools import indent

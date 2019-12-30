@@ -1,11 +1,11 @@
-from pytest import fixture
-
 from numpy import array
 
 from openfisca_core.parameters import Scale
 from openfisca_core.periods import Instant
 from openfisca_core.taxscales import SingleAmountTaxScale
 from openfisca_core.tools import assert_near
+
+from pytest import fixture
 
 
 @fixture
