@@ -86,38 +86,16 @@ class AbstractTaxScale:
             f"{self.__class__.__name__}"
             )
 
-    def compute_bracket_index(
+    def bracket_indices(
             self,
             tax_base: ndarray,
             factor: float = 1.0,
             round_base_decimals: Optional[int] = None,
-            ) -> ndarray:
-        """
-        Compute the relevant bracket for the given tax bases.
-
-        :param tax_base: Array of the tax bases.
-        :param factor: Factor to apply to the thresholds of the tax scales.
-        :param round_base_decimals: Decimals to keep when rounding thresholds.
-
-        :returns: Int array with relevant bracket indices for the given tax bases.
-
-        >>> marginal_tax_scale = MarginalRateTaxScale()
-        >>> marginal_tax_scale.add_bracket(0, 0)
-        >>> marginal_tax_scale.add_bracket(100, 0.1)
-        >>> tax_base = array([0, 150])
-        >>> marginal_tax_scale.compute_bracket_index(tax_base)
-        [0, 1]
-        """
-        base1 = tile(tax_base, (len(self.thresholds), 1)).T
-        factor = ones(len(tax_base)) * factor
-
-        # finfo(float_).eps is used to avoid nan = 0 * inf creation
-        thresholds1 = outer(factor + finfo(float_).eps, array(self.thresholds + [inf]))
-
-        if round_base_decimals is not None:
-            thresholds1 = round_(thresholds1, round_base_decimals)
-
-        return (base1 - thresholds1[:, :-1] >= 0).sum(axis = 1) - 1
+            ) -> Any:
+        raise NotImplementedError(
+            f'Method "bracket_indices" is not implemented for'
+            f"{self.__class__.__name__}"
+            )
 
     def copy(self) -> "AbstractTaxScale":
         new = empty_clone(self)
@@ -226,11 +204,44 @@ class AbstractRateTaxScale(AbstractTaxScale):
 
         return new_tax_scale
 
+    def bracket_indices(
+            self,
+            tax_base: ndarray,
+            factor: float = 1.0,
+            round_base_decimals: Optional[int] = None,
+            ) -> ndarray:
+        """
+        Compute the relevant bracket indices for the given tax bases.
+
+        :param tax_base: Array of the tax bases.
+        :param factor: Factor to apply to the thresholds of the tax scales.
+        :param round_base_decimals: Decimals to keep when rounding thresholds.
+
+        :returns: Int array with relevant bracket indices for the given tax bases.
+
+        >>> tax_scale = AbstractRateTaxScale()
+        >>> tax_scale.add_bracket(0, 0)
+        >>> tax_scale.add_bracket(100, 0.1)
+        >>> tax_base = array([0, 150])
+        >>> tax_scale.bracket_indices(tax_base)
+        [0, 1]
+        """
+        base1 = tile(tax_base, (len(self.thresholds), 1)).T
+        factor = ones(len(tax_base)) * factor
+
+        # finfo(float_).eps is used to avoid nan = 0 * inf creation
+        thresholds1 = outer(factor + finfo(float_).eps, array(self.thresholds + [inf]))
+
+        if round_base_decimals is not None:
+            thresholds1 = round_(thresholds1, round_base_decimals)
+
+        return (base1 - thresholds1[:, :-1] >= 0).sum(axis = 1) - 1
+
     def to_dict(self) -> dict:
-        raise ValueError({
+        return {
             str(threshold): self.rates[index]
             for index, threshold in enumerate(self.thresholds)
-            })
+            }
 
 
 class SingleAmountTaxScale(AbstractTaxScale):
@@ -278,10 +289,10 @@ class SingleAmountTaxScale(AbstractTaxScale):
         return guarded_amounts[bracket_indices - 1]
 
     def to_dict(self) -> dict:
-        raise ValueError({
+        return {
             str(threshold): self.amounts[index]
             for index, threshold in enumerate(self.thresholds)
-            })
+            }
 
 
 class MarginalAmountTaxScale(SingleAmountTaxScale):
@@ -390,11 +401,11 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
 
         :returns: Float array with tax amount for the given tax bases.
 
-        >>> marginal_tax_scale = MarginalRateTaxScale()
-        >>> marginal_tax_scale.add_bracket(0, 0)
-        >>> marginal_tax_scale.add_bracket(100, 0.1)
+        >>> tax_scale = MarginalRateTaxScale()
+        >>> tax_scale.add_bracket(0, 0)
+        >>> tax_scale.add_bracket(100, 0.1)
         >>> tax_base = array([0, 150])
-        >>> marginal_tax_scale.calc(tax_base)
+        >>> tax_scale.calc(tax_base)
         [0.0, 5.0]
         """
 
@@ -442,29 +453,29 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
             self.add_bracket(self.thresholds[i], rate)
             i += 1
 
-    def compute_marginal_rate(
+    def marginal_rates(
             self,
             tax_base: ndarray,
             factor: float = 1.0,
             round_base_decimals: Optional[int] = None,
             ) -> ndarray:
         """
-        Compute the marginal tax rate relevant for the given tax bases.
+        Compute the marginal tax rates relevant for the given tax bases.
 
-        :param base: Array of the tax bases.
+        :param tax_base: Array of the tax bases.
         :param factor: Factor to apply to the thresholds of the tax scale.
         :param round_base_decimals: Decimals to keep when rounding thresholds.
 
         :returns: Float array with relevant marginal tax rate for the given tax bases.
 
-        >>> marginal_tax_scale = MarginalRateTaxScale()
-        >>> marginal_tax_scale.add_bracket(0, 0)
-        >>> marginal_tax_scale.add_bracket(100, 0.1)
+        >>> tax_scale = MarginalRateTaxScale()
+        >>> tax_scale.add_bracket(0, 0)
+        >>> tax_scale.add_bracket(100, 0.1)
         >>> tax_base = array([0, 150])
-        >>> marginal_tax_scale.compute_marginal_rate(tax_base)
+        >>> tax_scale.marginal_rates(tax_base)
         [0.0, 0.1]
         """
-        bracket_indices = self.compute_bracket_index(
+        bracket_indices = self.bracket_indices(
             tax_base,
             factor,
             round_base_decimals,
