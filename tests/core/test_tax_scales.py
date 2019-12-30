@@ -1,16 +1,19 @@
-# -*- coding: utf-8 -*-
+from numpy import array, inf
 
+from openfisca_core.taxscales import (
+    SingleAmountTaxScale,
+    MarginalAmountTaxScale,
+    MarginalRateTaxScale,
+    combine_tax_scales,
+    )
 
-import numpy as np
-
-from openfisca_core.taxscales import *
 from openfisca_core.tools import assert_near
 from openfisca_core.parameters import Scale
 from openfisca_core.periods import Instant
 
 
 def test_amount_tax_scale():
-    base = np.array([1, 8, 10])
+    base = array([1, 8, 10])
     amount_tax_scale = MarginalAmountTaxScale()
     amount_tax_scale.add_bracket(6, 0.23)
     amount_tax_scale.add_bracket(9, 0.29)
@@ -19,7 +22,7 @@ def test_amount_tax_scale():
 
 
 def test_single_amount_tax_scale():
-    base = np.array([1, 8, 10, 12])
+    base = array([1, 8, 10, 12])
     tax_scale = SingleAmountTaxScale()
     tax_scale.add_bracket(6, 0.23)
     tax_scale.add_bracket(9, 0.29)
@@ -62,7 +65,7 @@ def test_dispatch_scale_creation_on_type():
 
 
 def test_simple_linear_average_rate_tax_scale():
-    base = np.array([1, 1.5, 2, 2.5, 3.0, 4.0])
+    base = array([1, 1.5, 2, 2.5, 3.0, 4.0])
 
     marginal_tax_scale = MarginalRateTaxScale()
     marginal_tax_scale.add_bracket(0, 0)
@@ -73,7 +76,7 @@ def test_simple_linear_average_rate_tax_scale():
 
 
 def test_linear_average_rate_tax_scale():
-    base = np.array([1, 1.5, 2, 2.5])
+    base = array([1, 1.5, 2, 2.5])
 
     marginal_tax_scale = MarginalRateTaxScale()
     marginal_tax_scale.add_bracket(0, 0)
@@ -84,7 +87,7 @@ def test_linear_average_rate_tax_scale():
     average_tax_scale = marginal_tax_scale.to_average()
     # Note: assert_near doesn't work for inf.
     # assert_near(average_tax_scale.thresholds, [0, 1, 2, np.inf], absolute_error_margin = 0)
-    assert average_tax_scale.thresholds == [0, 1, 2, np.inf]
+    assert average_tax_scale.thresholds == [0, 1, 2, inf]
     assert_near(average_tax_scale.rates, [0, 0, 0.05, 0.2], absolute_error_margin = 0)
     assert_near(average_tax_scale.calc(base), [0, 0.0375, 0.1, 0.125], absolute_error_margin = 1e-10)
 
@@ -96,7 +99,7 @@ def test_linear_average_rate_tax_scale():
 
 def test_round_marginal_tax_scale():
 
-    base = np.array([200, 200.2, 200.002, 200.6, 200.006, 200.5, 200.005])
+    base = array([200, 200.2, 200.002, 200.6, 200.006, 200.5, 200.005])
 
     marginal_tax_scale = MarginalRateTaxScale()
     marginal_tax_scale.add_bracket(0, 0)
@@ -124,7 +127,7 @@ def test_round_marginal_tax_scale():
         )
 
     marginal_tax_scale.add_bracket(200, 0.2)
-    base = np.array([0, 10, 50, 125, 250])
+    base = array([0, 10, 50, 125, 250])
     # Test compute_bracket_index
     assert_near(
         marginal_tax_scale.compute_bracket_index(base),
@@ -143,7 +146,7 @@ def test_inverse_marginal_tax_scale():
     marginal_tax_scale.add_bracket(1, 0.1)
     marginal_tax_scale.add_bracket(3, 0.05)
 
-    brut = np.array([1, 2, 3, 4, 5, 3.28976, 8764])
+    brut = array([1, 2, 3, 4, 5, 3.28976, 8764])
     net = brut - marginal_tax_scale.calc(brut)
     inverse = marginal_tax_scale.inverse()
     assert_near(brut, inverse.calc(net), 1e-15)
@@ -160,12 +163,12 @@ def test_inverse_scaled_marginal_tax_scale():
     marginal_tax_scale.add_bracket(1, 0.1)
     marginal_tax_scale.add_bracket(3, 0.05)
 
-    brut = np.array([1, 2, 3, 4, 5, 6])
+    brut = array([1, 2, 3, 4, 5, 6])
     net = brut - marginal_tax_scale.calc(brut)
     inverse = marginal_tax_scale.inverse()
     assert_near(brut, inverse.calc(net), 1e-15)
 
-    brut = np.array([1, 2, 3, 4, 5, 6])
+    brut = array([1, 2, 3, 4, 5, 6])
     brut_scale = 12.345
     brut_scaled = brut * brut_scale
     scaled_marginal_tax_scale = marginal_tax_scale.scale_tax_scales(brut_scale)
