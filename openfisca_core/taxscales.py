@@ -4,7 +4,6 @@ import logging
 import os
 import traceback
 from bisect import bisect_left, bisect_right
-from sys import getrecursionlimit as recursion_limit
 from typing import Any, List, NoReturn, Optional, Union
 
 from numpy import (
@@ -32,30 +31,37 @@ from openfisca_core.tools import indent
 log = logging.getLogger(__name__)
 
 
-class EmptyTaxScaleError(IndexError):
-    """
-    Exception raised when an operation is run on an empty tax scale (without brackets).
-    """
+class EmptyArgumentError(IndexError):
+    """Exception raised when a method is called with an empty argument."""
 
     message: str
 
-    def __init__(self, message: List[str]) -> None:
-        stacktrace = os.linesep.join(traceback.format_stack(None, recursion_limit()))
+    def __init__(
+            self,
+            class_name: str,
+            method_name: str,
+            arg_name: str,
+            arg_value: ndarray
+            ) -> None:
+        message = [
+            f"'{class_name}.{method_name}' can't be run with an empty '{arg_name}':\n",
+            f">>> {arg_name}",
+            f"{arg_value}\n",
+            f"Here are some hints to help you get this working:\n",
+            f"- Check that '{class_name}' isn't empty (see '{class_name}.add_bracket')",
+            f"- Check that '{arg_name}' is being properly assigned "
+            f"('{arg_name}' should be a non empty '{type(arg_value).__name__}')\n",
+            "For further support, please do not hesitate to:\n",
+            "- Take a look at the official documentation https://openfisca.org/doc",
+            "- Open an issue on https://github.com/openfisca/openfisca-core/issues/new",
+            "- Mention us via https://twitter.com/openfisca",
+            "- Drop us a line to contact@openfisca.org\n",
+            "😃",
+            ]
+        stacktrace = os.linesep.join(traceback.format_stack())
         self.message = os.linesep.join([f"  {line}" for line in message])
         self.message = os.linesep.join([stacktrace, self.message])
-        super(IndexError, self).__init__(self.message)
-
-
-class EmptyTaxBaseError(IndexError):
-    """Exception raised when an operation is is run with an empty tax base."""
-
-    message: str
-
-    def __init__(self, message: List[str]) -> None:
-        stacktrace = os.linesep.join(traceback.format_stack(None, recursion_limit()))
-        self.message = os.linesep.join([f"  {line}" for line in message])
-        self.message = os.linesep.join([stacktrace, self.message])
-        super(IndexError, self).__init__(message)
+        super().__init__(self.message)
 
 
 class AbstractTaxScale:
@@ -144,7 +150,7 @@ class AbstractRateTaxScale(AbstractTaxScale):
     rates: List
 
     def __init__(self, name: Optional[str] = None, option = None, unit = None) -> None:
-        super(AbstractRateTaxScale, self).__init__(
+        super().__init__(
             name = name,
             option = option,
             unit = unit,
@@ -260,22 +266,19 @@ class AbstractRateTaxScale(AbstractTaxScale):
         """
 
         if not size(array(self.thresholds)):
-            raise EmptyTaxScaleError(
-                [
-                    "Method 'bracket_indices' can't be run on an empty "
-                    f"{self.__class__.__name__}:\n",
-                    ">>> self.thresholds",
-                    f"{self.thresholds}",
-                    ],
+            raise EmptyArgumentError(
+                self.__class__.__name__,
+                "bracket_indices",
+                "self.thresholds",
+                self.thresholds,
                 )
 
         if not size(array(tax_base)):
-            raise EmptyTaxBaseError(
-                [
-                    "Method 'bracket_indices' can't be run with an empty tax base:\n",
-                    ">>> tax_base",
-                    f"{tax_base}",
-                    ],
+            raise EmptyArgumentError(
+                self.__class__.__name__,
+                "bracket_indices",
+                "tax_base",
+                tax_base,
                 )
 
         base1 = tile(tax_base, (len(self.thresholds), 1)).T
@@ -305,7 +308,7 @@ class SingleAmountTaxScale(AbstractTaxScale):
     amounts: List
 
     def __init__(self, name: Optional[str] = None, option = None, unit = None) -> None:
-        super(SingleAmountTaxScale, self).__init__(
+        super().__init__(
             name = name,
             option = option,
             unit = unit,
