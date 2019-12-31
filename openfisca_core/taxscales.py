@@ -229,12 +229,12 @@ class AbstractRateTaxScale(AbstractTaxScale):
         factor = ones(len(tax_base)) * factor
 
         # finfo(float_).eps is used to avoid nan = 0 * inf creation
-        thresholds1 = outer(factor + finfo(float_).eps, array(self.thresholds + [inf]))
+        thresholds1 = outer(factor + finfo(float_).eps, array(self.thresholds))
 
         if round_decimals is not None:
             thresholds1 = round_(thresholds1, round_decimals)
 
-        return (base1 - thresholds1[:, :-1] >= 0).sum(axis = 1) - 1
+        return (base1 - thresholds1 >= 0).sum(axis = 1) - 1
 
     def to_dict(self) -> dict:
         return {
