@@ -37,7 +37,7 @@ def test_bracket_indices_with_round_decimals():
 
     result = tax_scale.bracket_indices(tax_base, round_decimals = 0)
 
-    assert_near(result, [0, 0, 0, 1, 1, 2])
+    assert_near(result, [0, 0, 1, 1, 2, 2])
 
 
 def test_bracket_indices_without_tax_base():
