@@ -257,6 +257,8 @@ class AbstractRateTaxScale(AbstractTaxScale):
 
         :returns: Int array with relevant bracket indices for the given tax bases.
 
+        :example:
+
         >>> tax_scale = AbstractRateTaxScale()
         >>> tax_scale.add_bracket(0, 0)
         >>> tax_scale.add_bracket(100, 0.1)
@@ -456,6 +458,8 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
 
         :returns: Float array with tax amount for the given tax bases.
 
+        :example:
+
         >>> tax_scale = MarginalRateTaxScale()
         >>> tax_scale.add_bracket(0, 0)
         >>> tax_scale.add_bracket(100, 0.1)
@@ -522,6 +526,8 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
         :param round_base_decimals: Decimals to keep when rounding thresholds.
 
         :returns: Float array with relevant marginal tax rate for the given tax bases.
+
+        :example:
 
         >>> tax_scale = MarginalRateTaxScale()
         >>> tax_scale.add_bracket(0, 0)

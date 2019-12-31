@@ -1,5 +1,46 @@
 # Changelog
 
+## 34.6.0 [#920](https://github.com/openfisca/openfisca-core/pull/920)
+
+#### New features
+
+- Introduce `AbstractTaxRateScale.bracket_indices`.
+- Introduce `MarginalTaxScale.marginal_rates`.
+- Details:
+  - This new methods allow users to:
+    - Compute the bracket indices relevant for any tax base.
+    - Compute the marginal rates relevant for any tax base.
+
+#### Usage notes
+
+1. To use `AbstractTaxRateScale.bracket_indices`:
+
+    ```py
+    from numpy import array
+
+    from openfisca_core.taxscales import AbstractRateTaxScale
+
+    tax_scale = AbstractRateTaxScale()
+    tax_scale.add_bracket(0, 0)
+    tax_scale.add_bracket(100, 0.1)
+    tax_base = array([0, 150])
+    tax_scale.bracket_indices(tax_base)  # [0, 1]
+    ```
+
+2. To use `MarginalTaxScale.marginal_rates`:
+
+    ```py
+    from numpy import array
+
+    from openfisca_core.taxscales import MarginalRateTaxScale
+
+    tax_scale = MarginalRateTaxScale()
+    tax_scale.add_bracket(0, 0)
+    tax_scale.add_bracket(100, 0.1)
+    tax_base = array([0, 150])
+    tax_scale.marginal_rates(tax_base)  # [0.0, 0.1]
+    ```
+
 ### 34.5.4 [#919](https://github.com/openfisca/openfisca-core/pull/919)
 
 #### Technical change
