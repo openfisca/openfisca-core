@@ -2,7 +2,9 @@ import copy
 import itertools
 import logging
 import os
+import traceback
 from bisect import bisect_left, bisect_right
+from sys import getrecursionlimit as recursion_limit
 from typing import Any, List, NoReturn, Optional, Union
 
 from numpy import (
@@ -20,6 +22,7 @@ from numpy import (
     ones,
     outer,
     round as round_,
+    size,
     tile,
     )
 
@@ -27,6 +30,32 @@ from openfisca_core.commons import empty_clone
 from openfisca_core.tools import indent
 
 log = logging.getLogger(__name__)
+
+
+class EmptyTaxScaleError(IndexError):
+    """
+    Exception raised when an operation is run on an empty tax scale (without brackets).
+    """
+
+    message: str
+
+    def __init__(self, message: List[str]) -> None:
+        stacktrace = os.linesep.join(traceback.format_stack(None, recursion_limit()))
+        self.message = os.linesep.join([f"  {line}" for line in message])
+        self.message = os.linesep.join([stacktrace, self.message])
+        super(IndexError, self).__init__(self.message)
+
+
+class EmptyTaxBaseError(IndexError):
+    """Exception raised when an operation is is run with an empty tax base."""
+
+    message: str
+
+    def __init__(self, message: List[str]) -> None:
+        stacktrace = os.linesep.join(traceback.format_stack(None, recursion_limit()))
+        self.message = os.linesep.join([f"  {line}" for line in message])
+        self.message = os.linesep.join([stacktrace, self.message])
+        super(IndexError, self).__init__(message)
 
 
 class AbstractTaxScale:
@@ -55,22 +84,26 @@ class AbstractTaxScale:
 
     def __eq__(self, _other: object) -> NoReturn:
         raise NotImplementedError(
-            f'Method "__eq__" is not implemented for {self.__class__.__name__}',
+            "Method '__eq__' is not implemented for "
+            f"{self.__class__.__name__}",
             )
 
     def __ne__(self, _other: object) -> NoReturn:
         raise NotImplementedError(
-            f'Method "__ne__" is not implemented for {self.__class__.__name__}',
+            "Method '__ne__' is not implemented for "
+            f"{self.__class__.__name__}",
             )
 
     def __repr__(self) -> Any:
         raise NotImplementedError(
-            f'Method "__repr__" is not implemented for {self.__class__.__name__}',
+            "Method '__repr__' is not implemented for "
+            f"{self.__class__.__name__}",
             )
 
     def calc(self, _tax_base: ndarray, _right: bool) -> Any:
         raise NotImplementedError(
-            f'Method "calc" is not implemented for {self.__class__.__name__}',
+            "Method 'calc' is not implemented for "
+            f"{self.__class__.__name__}",
             )
 
     def multiply_thresholds(
@@ -81,8 +114,8 @@ class AbstractTaxScale:
             new_name: Optional[str] = None,
             ) -> Any:
         raise NotImplementedError(
-            f'Method "multiply_thresholds" is not implemented for'
-            f"{self.__class__.__name__}"
+            f"Method 'multiply_thresholds' is not implemented for "
+            f"{self.__class__.__name__}",
             )
 
     def bracket_indices(
@@ -92,8 +125,8 @@ class AbstractTaxScale:
             round_base_decimals: Optional[int] = None,
             ) -> Any:
         raise NotImplementedError(
-            f'Method "bracket_indices" is not implemented for'
-            f"{self.__class__.__name__}"
+            f"Method 'bracket_indices' is not implemented for "
+            f"{self.__class__.__name__}",
             )
 
     def copy(self) -> "AbstractTaxScale":
@@ -225,6 +258,26 @@ class AbstractRateTaxScale(AbstractTaxScale):
         >>> tax_scale.bracket_indices(tax_base)
         [0, 1]
         """
+
+        if not size(array(self.thresholds)):
+            raise EmptyTaxScaleError(
+                [
+                    "Method 'bracket_indices' can't be run on an empty "
+                    f"{self.__class__.__name__}:\n",
+                    ">>> self.thresholds",
+                    f"{self.thresholds}",
+                    ],
+                )
+
+        if not size(array(tax_base)):
+            raise EmptyTaxBaseError(
+                [
+                    "Method 'bracket_indices' can't be run with an empty tax base:\n",
+                    ">>> tax_base",
+                    f"{tax_base}",
+                    ],
+                )
+
         base1 = tile(tax_base, (len(self.thresholds), 1)).T
         factor = ones(len(tax_base)) * factor
 
@@ -588,8 +641,8 @@ def combine_tax_scales(
             combined_tax_scales.add_tax_scale(child)
         else:
             log.info(
-                f"Skipping {child_name} with value {child}"
-                "because it is not a tax scale"
+                f"Skipping {child_name} with value {child} "
+                "because it is not a tax scale",
                 )
 
     return combined_tax_scales

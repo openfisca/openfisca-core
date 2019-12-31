@@ -1,7 +1,13 @@
 from numpy import array
 
-from openfisca_core.taxscales import AbstractRateTaxScale
+from openfisca_core.taxscales import (
+    AbstractRateTaxScale,
+    EmptyTaxBaseError,
+    EmptyTaxScaleError,
+    )
 from openfisca_core.tools import assert_near
+
+import pytest
 
 
 def test_bracket_indices():
@@ -47,18 +53,16 @@ def test_bracket_indices_without_tax_base():
     tax_scale.add_bracket(2, 0)
     tax_scale.add_bracket(4, 0)
 
-    result = tax_scale.bracket_indices(tax_base)
-
-    assert_near(result, [])
+    with pytest.raises(EmptyTaxBaseError):
+        tax_scale.bracket_indices(tax_base)
 
 
 def test_bracket_indices_without_brackets():
     tax_base = array([0, 1, 2, 3, 4, 5])
     tax_scale = AbstractRateTaxScale()
 
-    result = tax_scale.bracket_indices(tax_base)
-
-    assert_near(result, [0, 0, 0, 0, 0, 0])
+    with pytest.raises(EmptyTaxScaleError):
+        tax_scale.bracket_indices(tax_base)
 
 
 def test_to_dict():
