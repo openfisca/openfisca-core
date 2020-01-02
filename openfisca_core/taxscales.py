@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 import itertools
 import logging
@@ -42,7 +44,7 @@ class EmptyArgumentError(IndexError):
             class_name: str,
             method_name: str,
             arg_name: str,
-            arg_value: ndarray
+            arg_value: Union[List, ndarray]
             ) -> None:
         message = [
             f"'{class_name}.{method_name}' can't be run with an empty '{arg_name}':\n",
@@ -107,7 +109,7 @@ class AbstractTaxScale:
             f"{self.__class__.__name__}",
             )
 
-    def calc(self, _tax_base: ndarray, _right: bool) -> Any:
+    def calc(self, _tax_base: Union[ndarray[int], ndarray[float]], _right: bool) -> Any:
         raise NotImplementedError(
             "Method 'calc' is not implemented for "
             f"{self.__class__.__name__}",
@@ -127,7 +129,7 @@ class AbstractTaxScale:
 
     def bracket_indices(
             self,
-            tax_base: ndarray,
+            tax_base: Union[ndarray[int], ndarray[float]],
             factor: float = 1.0,
             round_base_decimals: Optional[int] = None,
             ) -> Any:
@@ -245,10 +247,10 @@ class AbstractRateTaxScale(AbstractTaxScale):
 
     def bracket_indices(
             self,
-            tax_base: ndarray,
+            tax_base: Union[ndarray[int], ndarray[float]],
             factor: float = 1.0,
             round_decimals: Optional[int] = None,
-            ) -> ndarray:
+            ) -> ndarray[int]:
         """
         Compute the relevant bracket indices for the given tax bases.
 
@@ -340,7 +342,11 @@ class SingleAmountTaxScale(AbstractTaxScale):
             self.thresholds.insert(i, threshold)
             self.amounts.insert(i, amount)
 
-    def calc(self, tax_base: ndarray, right: bool = False) -> ndarray:
+    def calc(
+            self,
+            tax_base: Union[ndarray[int], ndarray[float]],
+            right: bool = False,
+            ) -> ndarray[float]:
         guarded_thresholds = array([-inf] + self.thresholds + [inf])
         bracket_indices = digitize(tax_base, guarded_thresholds, right = right)
         guarded_amounts = array([0] + self.amounts + [0])
@@ -360,7 +366,11 @@ class MarginalAmountTaxScale(SingleAmountTaxScale):
     containing the input.
     """
 
-    def calc(self, tax_base: ndarray, _right: bool = False) -> ndarray:
+    def calc(
+            self,
+            tax_base: Union[ndarray[int], ndarray[float]],
+            _right: bool = False,
+            ) -> ndarray[float]:
         base1 = tile(tax_base, (len(self.thresholds), 1)).T
         thresholds1 = tile(hstack((self.thresholds, inf)), (len(tax_base), 1))
         a = max_(min_(base1, thresholds1[:, 1:]) - thresholds1[:, :-1], 0)
@@ -368,7 +378,11 @@ class MarginalAmountTaxScale(SingleAmountTaxScale):
 
 
 class LinearAverageRateTaxScale(AbstractRateTaxScale):
-    def calc(self, tax_base: ndarray, _right: bool = False) -> ndarray:
+    def calc(
+            self,
+            tax_base: Union[ndarray[int], ndarray[float]],
+            _right: bool = False,
+            ) -> ndarray[float]:
         if len(self.rates) == 1:
             return tax_base * self.rates[0]
 
@@ -446,10 +460,10 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
 
     def calc(
             self,
-            tax_base: ndarray,
+            tax_base: Union[ndarray[int], ndarray[float]],
             factor: float = 1.0,
             round_base_decimals: Optional[int] = None,
-            ) -> ndarray:
+            ) -> ndarray[float]:
         """
         Compute the tax amount for the given tax bases by applying the taxscale.
 
@@ -515,10 +529,10 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
 
     def marginal_rates(
             self,
-            tax_base: ndarray,
+            tax_base: Union[ndarray[int], ndarray[float]],
             factor: float = 1.0,
             round_base_decimals: Optional[int] = None,
-            ) -> ndarray:
+            ) -> ndarray[float]:
         """
         Compute the marginal tax rates relevant for the given tax bases.
 
