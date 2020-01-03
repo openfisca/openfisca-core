@@ -9,41 +9,46 @@ ENUM_ARRAY_DTYPE = np.int16
 
 class Enum(BaseEnum):
     """
-        Enum based on `enum34 <https://pypi.python.org/pypi/enum34/>`_, whose items have an index.
+    Enum based on `enum34 <https://pypi.python.org/pypi/enum34/>`_, whose items have an
+    index.
     """
 
     # Tweak enums to add an index attribute to each enum item
     def __init__(self, name):
-        # When the enum item is initialized, self._member_names_ contains the names of the previously initialized items, so its length is the index of this item.
+        # When the enum item is initialized, self._member_names_ contains the names of
+        # the previously initialized items, so its length is the index of this item.
         self.index = len(self._member_names_)
 
     # Bypass the slow Enum.__eq__
     __eq__ = object.__eq__
 
-    __hash__ = object.__hash__  # In Python 3, __hash__ must be defined if __eq__ is defined to stay hashable
+    # In Python 3, __hash__ must be defined if __eq__ is defined to stay hashable.
+    __hash__ = object.__hash__
 
     @classmethod
     def encode(cls, array):
         """
-            Encode a string numpy array, or an enum item numpy array, into an :any:`EnumArray`. See :any:`EnumArray.decode` for decoding.
+        Encode a string numpy array, an enum item numpy array, or an int numpy array
+        into an :any:`EnumArray`. See :any:`EnumArray.decode` for decoding.
 
-            :param numpy.ndarray array: Numpy array of string identifiers, or of enum items, to encode.
+        :param ndarray array: Array of string identifiers, or of enum items, to encode.
 
-            :returns: An :any:`EnumArray` encoding the input array values.
-            :rtype: :any:`EnumArray`
+        :returns: An :any:`EnumArray` encoding the input array values.
+        :rtype: :any:`EnumArray`
 
-            For instance:
+        For instance:
 
-            >>> string_identifier_array = numpy.asarray(['free_lodger', 'owner'])
-            >>> encoded_array = HousingOccupancyStatus.encode(string_identifier_array)
-            >>> encoded_array[0]
-            >>> 2  # Encoded value
+        >>> string_identifier_array = asarray(['free_lodger', 'owner'])
+        >>> encoded_array = HousingOccupancyStatus.encode(string_identifier_array)
+        >>> encoded_array[0]
+        2  # Encoded value
 
-            >>> enum_item_array = numpy.asarray([HousingOccupancyStatus.free_lodger, HousingOccupancyStatus.owner])
-            >>> encoded_array = HousingOccupancyStatus.encode(enum_item_array)
-            >>> encoded_array[0]
-            >>> 2  # Encoded value
-
+        >>> free_lodger = HousingOccupancyStatus.free_lodger
+        >>> owner = HousingOccupancyStatus.owner
+        >>> enum_item_array = asarray([free_lodger, owner])
+        >>> encoded_array = HousingOccupancyStatus.encode(enum_item_array)
+        >>> encoded_array[0]
+        2  # Encoded value
         """
         if type(array) is EnumArray:
             return array
@@ -51,12 +56,13 @@ class Enum(BaseEnum):
             array = np.select([array == item.name for item in cls], [item.index for item in cls]).astype(ENUM_ARRAY_DTYPE)
         elif array.dtype.kind == 'O':  # Enum items arrays
             # Ensure we are comparing the comparable. The problem this fixes:
-            #  On entering this method "cls" will generally come from variable.possible_values,
-            #  while the array values may come from directly importing a module containing an Enum class.
-            #  However, variables (and hence their possible_values) are loaded by a call to load_module,
-            #  which gives them a different identity from the ones imported in the usual way.
-            #  So, instead of relying on the "cls" passed in, we use only its name to check that
-            #  the values in the array, if non-empty, are of the right type.
+            # On entering this method "cls" will generally come from
+            # variable.possible_values, while the array values may come from directly
+            # importing a module containing an Enum class. However, variables (and
+            # hence their possible_values) are loaded by a call to load_module, which
+            # gives them a different identity from the ones imported in the usual way.
+            # So, instead of relying on the "cls" passed in, we use only its name to
+            # check that the values in the array, if non-empty, are of the right type.
             if len(array) > 0 and cls.__name__ is array[0].__class__.__name__:
                 cls = array[0].__class__
             array = np.select([array == item for item in cls], [item.index for item in cls]).astype(ENUM_ARRAY_DTYPE)
@@ -64,13 +70,14 @@ class Enum(BaseEnum):
 
 
 class EnumArray(np.ndarray):
-    """
-        Numpy array subclass representing an array of enum items.
+    """Numpy array subclass representing an array of enum items.
 
-        EnumArrays are encoded as ``int`` arrays to improve performance
+    EnumArrays are encoded as ``int`` arrays to improve performance
     """
 
-    # Subclassing np.ndarray is a little tricky. To read more about the two following methods, see https://docs.scipy.org/doc/numpy-1.13.0/user/basics.subclassing.html#slightly-more-realistic-example-attribute-added-to-existing-array.
+    # Subclassing ndarray is a little tricky.
+    # To read more about the two following methods, see:
+    # https://docs.scipy.org/doc/numpy-1.13.0/user/basics.subclassing.html#slightly-more-realistic-example-attribute-added-to-existing-array.
     def __new__(cls, input_array, possible_values = None):
         obj = np.asarray(input_array).view(cls)
         obj.possible_values = possible_values
@@ -83,9 +90,12 @@ class EnumArray(np.ndarray):
         self.possible_values = getattr(obj, 'possible_values', None)
 
     def __eq__(self, other):
-        # When comparing to an item of self.possible_values, use the item index to speed up the comparison
+        # When comparing to an item of self.possible_values, use the item index to
+        # speed up the comparison.
         if other.__class__.__name__ is self.possible_values.__name__:
-            return self.view(np.ndarray) == other.index  # use view(np.ndarray) so that the result is a classic ndarray, not an EnumArray
+            # Use view(ndarray) so that the result is a classic ndarray, not an
+            # EnumArray.
+            return self.view(np.ndarray) == other.index
         return self.view(np.ndarray) == other
 
     def __ne__(self, other):
@@ -104,26 +114,28 @@ class EnumArray(np.ndarray):
     __or__ = _forbidden_operation
 
     def decode(self):
-        """
-            Return the array of enum items corresponding to self
+        """Return the array of enum items corresponding to self.
 
-            >>> enum_array = household('housing_occupancy_status', period)
-            >>> enum_array[0]
-            >>> 2  # Encoded value
-            >>> enum_array.decode()[0]
-            >>> <HousingOccupancyStatus.free_lodger: 'Free lodger'>  # Decoded value : enum item
+        For instance:
+
+        >>> enum_array = household('housing_occupancy_status', period)
+        >>> enum_array[0]
+        >>> 2  # Encoded value
+        >>> enum_array.decode()[0]
+        <HousingOccupancyStatus.free_lodger: 'Free lodger'>  # Decoded value : enum item
         """
         return np.select([self == item.index for item in self.possible_values], [item for item in self.possible_values])
 
     def decode_to_str(self):
-        """
-            Return the array of string identifiers corresponding to self
+        """Return the array of string identifiers corresponding to self.
 
-            >>> enum_array = household('housing_occupancy_status', period)
-            >>> enum_array[0]
-            >>> 2  # Encoded value
-            >>> enum_array.decode_to_str()[0]
-            >>> 'free_lodger' # String identifier
+        For instance:
+
+        >>> enum_array = household('housing_occupancy_status', period)
+        >>> enum_array[0]
+        >>> 2  # Encoded value
+        >>> enum_array.decode_to_str()[0]
+        'free_lodger'  # String identifier
         """
         return np.select([self == item.index for item in self.possible_values], [item.name for item in self.possible_values])
 
