@@ -1,5 +1,11 @@
 # Changelog
 
+### 34.6.4 [#929](https://github.com/openfisca/openfisca-core/pull/929)
+
+#### Documentation
+
+- Add more explicit typing annotations for `ndarrays`.
+
 ### 34.6.3 [#928](https://github.com/openfisca/openfisca-core/pull/928)
 
 #### Technical changes
