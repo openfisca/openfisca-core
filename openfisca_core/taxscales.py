@@ -9,6 +9,7 @@ from typing import Any, List, NoReturn, Optional, Union
 from numpy import (
     around,
     array,
+    asarray,
     digitize,
     dot,
     finfo,
@@ -275,7 +276,7 @@ class AbstractRateTaxScale(AbstractTaxScale):
                 self.thresholds,
                 )
 
-        if not size(array(tax_base)):
+        if not size(asarray(tax_base)):
             raise EmptyArgumentError(
                 self.__class__.__name__,
                 "bracket_indices",
