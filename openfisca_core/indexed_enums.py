@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from enum import Enum as BaseEnum
+from typing import Any, NoReturn, Optional, Type, Union
 
 from numpy import (
     asarray,
@@ -18,7 +21,7 @@ class Enum(BaseEnum):
     """
 
     # Tweak enums to add an index attribute to each enum item
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         # When the enum item is initialized, self._member_names_ contains the names of
         # the previously initialized items, so its length is the index of this item.
         self.index = len(self._member_names_)
@@ -30,7 +33,15 @@ class Enum(BaseEnum):
     __hash__ = object.__hash__
 
     @classmethod
-    def encode(cls, array):
+    def encode(
+            cls,
+            array: Union[
+                "EnumArray",
+                ndarray[str],
+                ndarray["Enum"],
+                ndarray[int],
+                ],
+            ) -> "EnumArray":
         """
         Encode a string numpy array, an enum item numpy array, or an int numpy array
         into an :any:`EnumArray`. See :any:`EnumArray.decode` for decoding.
@@ -92,19 +103,23 @@ class EnumArray(ndarray):
     # Subclassing ndarray is a little tricky.
     # To read more about the two following methods, see:
     # https://docs.scipy.org/doc/numpy-1.13.0/user/basics.subclassing.html#slightly-more-realistic-example-attribute-added-to-existing-array.
-    def __new__(cls, input_array, possible_values = None):
+    def __new__(
+            cls,
+            input_array: ndarray[int],
+            possible_values: Optional[Type["Enum"]] = None,
+            ) -> "EnumArray":
         obj = asarray(input_array).view(cls)
         obj.possible_values = possible_values
         return obj
 
     # See previous comment
-    def __array_finalize__(self, obj):
+    def __array_finalize__(self, obj: Optional[ndarray[int]]) -> None:
         if obj is None:
             return
 
         self.possible_values = getattr(obj, "possible_values", None)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         # When comparing to an item of self.possible_values, use the item index to
         # speed up the comparison.
         if other.__class__.__name__ is self.possible_values.__name__:
@@ -114,10 +129,10 @@ class EnumArray(ndarray):
 
         return self.view(ndarray) == other
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         return not_(self == other)
 
-    def _forbidden_operation(self, other):
+    def _forbidden_operation(self, other: Any) -> NoReturn:
         raise TypeError(
             "Forbidden operation. The only operations allowed on EnumArrays are "
             "'==' and '!='.",
@@ -132,7 +147,7 @@ class EnumArray(ndarray):
     __and__ = _forbidden_operation
     __or__ = _forbidden_operation
 
-    def decode(self):
+    def decode(self) -> ndarray["Enum"]:
         """Return the array of enum items corresponding to self.
 
         For instance:
@@ -148,7 +163,7 @@ class EnumArray(ndarray):
             list(self.possible_values),
             )
 
-    def decode_to_str(self):
+    def decode_to_str(self) -> ndarray[str]:
         """Return the array of string identifiers corresponding to self.
 
         For instance:
@@ -164,8 +179,8 @@ class EnumArray(ndarray):
             [item.name for item in self.possible_values],
             )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}({str(self.decode())})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.decode_to_str())

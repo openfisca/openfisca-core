@@ -1,5 +1,13 @@
 # Changelog
 
+### 34.6.7 [#932](https://github.com/openfisca/openfisca-core/pull/932)
+
+#### Documentation
+
+- Add typing to `indexed_enums.py`.
+- Details:
+  - Type-annotate `ndarray` types to help contributors know the actual methods signatures.
+
 ### 34.6.6 [#931](https://github.com/openfisca/openfisca-core/pull/931)
 
 #### Technical changes
