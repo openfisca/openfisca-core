@@ -1,5 +1,14 @@
 # Changelog
 
+### 34.6.2 [#927](https://github.com/openfisca/openfisca-core/pull/927)
+
+#### Documentation
+
+- Improve `taxscales.py` documentation.
+- Details:
+  - Specify the types of the arguments.
+  - Follow the same style as other parts of the documentation.
+
 ### 34.6.1 [#926](https://github.com/openfisca/openfisca-core/pull/926)
 
 #### Technical change
