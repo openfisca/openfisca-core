@@ -1,5 +1,14 @@
 # Changelog
 
+### 34.6.5 [#930](https://github.com/openfisca/openfisca-core/pull/930)
+
+#### Documentation
+
+- Improve `indexed_enums.py` documentation.
+  - Reduce line length.
+  - Fix code examples.
+  - Fix indentation.
+
 ### 34.6.4 [#929](https://github.com/openfisca/openfisca-core/pull/929)
 
 #### Documentation
