@@ -1,10 +1,14 @@
-# -*- coding: utf-8 -*-
-
-
-import numpy as np
 from enum import Enum as BaseEnum
 
-ENUM_ARRAY_DTYPE = np.int16
+from numpy import (
+    asarray,
+    int16,
+    logical_not as not_,
+    ndarray,
+    select,
+    )
+
+ENUM_ARRAY_DTYPE = int16
 
 
 class Enum(BaseEnum):
@@ -52,8 +56,13 @@ class Enum(BaseEnum):
         """
         if type(array) is EnumArray:
             return array
+
         if array.dtype.kind in {'U', 'S'}:  # String array
-            array = np.select([array == item.name for item in cls], [item.index for item in cls]).astype(ENUM_ARRAY_DTYPE)
+            array = select(
+                [array == item.name for item in cls],
+                [item.index for item in cls],
+                ).astype(ENUM_ARRAY_DTYPE)
+
         elif array.dtype.kind == 'O':  # Enum items arrays
             # Ensure we are comparing the comparable. The problem this fixes:
             # On entering this method "cls" will generally come from
@@ -65,11 +74,16 @@ class Enum(BaseEnum):
             # check that the values in the array, if non-empty, are of the right type.
             if len(array) > 0 and cls.__name__ is array[0].__class__.__name__:
                 cls = array[0].__class__
-            array = np.select([array == item for item in cls], [item.index for item in cls]).astype(ENUM_ARRAY_DTYPE)
+
+            array = select(
+                [array == item for item in cls],
+                [item.index for item in cls],
+                ).astype(ENUM_ARRAY_DTYPE)
+
         return EnumArray(array, cls)
 
 
-class EnumArray(np.ndarray):
+class EnumArray(ndarray):
     """Numpy array subclass representing an array of enum items.
 
     EnumArrays are encoded as ``int`` arrays to improve performance
@@ -79,7 +93,7 @@ class EnumArray(np.ndarray):
     # To read more about the two following methods, see:
     # https://docs.scipy.org/doc/numpy-1.13.0/user/basics.subclassing.html#slightly-more-realistic-example-attribute-added-to-existing-array.
     def __new__(cls, input_array, possible_values = None):
-        obj = np.asarray(input_array).view(cls)
+        obj = asarray(input_array).view(cls)
         obj.possible_values = possible_values
         return obj
 
@@ -87,7 +101,8 @@ class EnumArray(np.ndarray):
     def __array_finalize__(self, obj):
         if obj is None:
             return
-        self.possible_values = getattr(obj, 'possible_values', None)
+
+        self.possible_values = getattr(obj, "possible_values", None)
 
     def __eq__(self, other):
         # When comparing to an item of self.possible_values, use the item index to
@@ -95,14 +110,18 @@ class EnumArray(np.ndarray):
         if other.__class__.__name__ is self.possible_values.__name__:
             # Use view(ndarray) so that the result is a classic ndarray, not an
             # EnumArray.
-            return self.view(np.ndarray) == other.index
-        return self.view(np.ndarray) == other
+            return self.view(ndarray) == other.index
+
+        return self.view(ndarray) == other
 
     def __ne__(self, other):
-        return np.logical_not(self == other)
+        return not_(self == other)
 
     def _forbidden_operation(self, other):
-        raise TypeError("Forbidden operation. The only operations allowed on EnumArrays are '==' and '!='.")
+        raise TypeError(
+            "Forbidden operation. The only operations allowed on EnumArrays are "
+            "'==' and '!='.",
+            )
 
     __add__ = _forbidden_operation
     __mul__ = _forbidden_operation
@@ -124,7 +143,10 @@ class EnumArray(np.ndarray):
         >>> enum_array.decode()[0]
         <HousingOccupancyStatus.free_lodger: 'Free lodger'>  # Decoded value : enum item
         """
-        return np.select([self == item.index for item in self.possible_values], [item for item in self.possible_values])
+        return select(
+            [self == item.index for item in self.possible_values],
+            list(self.possible_values),
+            )
 
     def decode_to_str(self):
         """Return the array of string identifiers corresponding to self.
@@ -137,10 +159,13 @@ class EnumArray(np.ndarray):
         >>> enum_array.decode_to_str()[0]
         'free_lodger'  # String identifier
         """
-        return np.select([self == item.index for item in self.possible_values], [item.name for item in self.possible_values])
+        return select(
+            [self == item.index for item in self.possible_values],
+            [item.name for item in self.possible_values],
+            )
 
     def __repr__(self):
-        return '{}({})'.format(self.__class__.__name__, str(self.decode()))
+        return f"{self.__class__.__name__}({str(self.decode())})"
 
     def __str__(self):
         return str(self.decode_to_str())
