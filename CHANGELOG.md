@@ -1,5 +1,15 @@
 # Changelog
 
+### 34.6.6 [#931](https://github.com/openfisca/openfisca-core/pull/931)
+
+#### Technical changes
+
+- Improve `indexed_enums.py` code style.
+  - Remove useless encoding declaration.
+  - Use more explicit imports.
+  - Improve indentation.
+  - Use f-style string interpolation.
+
 ### 34.6.5 [#930](https://github.com/openfisca/openfisca-core/pull/930)
 
 #### Documentation
