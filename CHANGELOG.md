@@ -1,6 +1,17 @@
 # Changelog
 
+### 34.6.1 [#926](https://github.com/openfisca/openfisca-core/pull/926)
+
+#### Technical change
+
+- Downgrade numpy version's upper bound to 1.17
+- Details:
+  - Numpy 1.18 deprecates the use of several of its methods.
+  - Changes in `numpy.select` have impacted other packages depending on OpenFisca Core.
+
 ## 34.6.0 [#920](https://github.com/openfisca/openfisca-core/pull/920)
+
+_Note: this version has been unpublished due to an issue introduced by 34.5.4. Please use 34.6.1 or a more recent version._
 
 #### New features
 
@@ -45,7 +56,9 @@
 
 #### Technical change
 
-- Update dependency: numpy
+_Note: this version has been unpublished due to an issue introduced by it. Please use 34.6.1 or a more recent version._
+
+- Update numpy version's upper bound to 1.18
 
 ### 34.5.3 [#915](https://github.com/openfisca/openfisca-core/pull/915)
 
