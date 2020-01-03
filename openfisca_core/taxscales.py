@@ -251,13 +251,13 @@ class AbstractRateTaxScale(AbstractTaxScale):
         """
         Compute the relevant bracket indices for the given tax bases.
 
-        :param tax_base: Array of the tax bases.
-        :param factor: Factor to apply to the thresholds of the tax scales.
-        :param round_decimals: Decimals to keep when rounding thresholds.
+        :param ndarray tax_base: Array of the tax bases.
+        :param float factor: Factor to apply to the thresholds of the tax scales.
+        :param int round_decimals: Decimals to keep when rounding thresholds.
 
         :returns: Int array with relevant bracket indices for the given tax bases.
 
-        :example:
+        For instance:
 
         >>> tax_scale = AbstractRateTaxScale()
         >>> tax_scale.add_bracket(0, 0)
@@ -452,13 +452,13 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
         """
         Compute the tax amount for the given tax bases by applying the taxscale.
 
-        :param tax_base: Array of the tax bases.
-        :param factor: Factor to apply to the thresholds of the tax scale.
-        :param round_base_decimals: Decimals to keep when rounding thresholds.
+        :param ndarray tax_base: Array of the tax bases.
+        :param float factor: Factor to apply to the thresholds of the tax scale.
+        :param int round_base_decimals: Decimals to keep when rounding thresholds.
 
         :returns: Float array with tax amount for the given tax bases.
 
-        :example:
+        For instance:
 
         >>> tax_scale = MarginalRateTaxScale()
         >>> tax_scale.add_bracket(0, 0)
@@ -521,13 +521,13 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
         """
         Compute the marginal tax rates relevant for the given tax bases.
 
-        :param tax_base: Array of the tax bases.
-        :param factor: Factor to apply to the thresholds of the tax scale.
-        :param round_base_decimals: Decimals to keep when rounding thresholds.
+        :param ndarray tax_base: Array of the tax bases.
+        :param float factor: Factor to apply to the thresholds of the tax scale.
+        :param int round_base_decimals: Decimals to keep when rounding thresholds.
 
         :returns: Float array with relevant marginal tax rate for the given tax bases.
 
-        :example:
+        For instance:
 
         >>> tax_scale = MarginalRateTaxScale()
         >>> tax_scale.add_bracket(0, 0)
