@@ -45,7 +45,7 @@ def test_add_axis_with_group(simulation_builder, persons):
     simulation_builder.add_parallel_axis({'count': 2, 'name': 'salary', 'min': 0, 'max': 3000, 'period': '2018-11'})
     simulation_builder.expand_axes()
     assert simulation_builder.get_count('persons') == 4
-    assert simulation_builder.get_ids('persons') == ['Alicia0', 'Javier1', 'Alicia2', 'Javier3']
+    assert simulation_builder.get_ids('persons') == ['Alicia0', 'Javier0', 'Alicia1', 'Javier1']
 
 
 def test_add_axis_on_group_entity(simulation_builder, persons, group_entity):
@@ -58,8 +58,8 @@ def test_add_axis_on_group_entity(simulation_builder, persons, group_entity):
     simulation_builder.add_parallel_axis({'count': 2, 'name': 'rent', 'min': 0, 'max': 3000, 'period': '2018-11'})
     simulation_builder.expand_axes()
     assert simulation_builder.get_count('households') == 4
-    assert simulation_builder.get_ids('households') == ['housea0', 'houseb1', 'housea2', 'houseb3']
-    assert simulation_builder.get_input('rent', '2018-11') == approx([0, 0, 3000, 0])
+    assert simulation_builder.get_ids('households') == ['housea0', 'houseb0', 'housea1', 'houseb1']
+    assert simulation_builder.get_input('rent', '2018-11') == approx([0, 0, 3000, 3000])
 
 
 def test_axis_on_group_expands_persons(simulation_builder, persons, group_entity):
@@ -146,4 +146,4 @@ def test_simulation_with_axes(simulation_builder):
     data = yaml.safe_load(input_yaml)
     simulation = simulation_builder.build_from_dict(tax_benefit_system, data)
     assert simulation.get_array('salary', '2018-11') == approx([0, 0, 0, 0, 0, 0])
-    assert simulation.get_array('rent', '2018-11') == approx([0, 0, 3000, 0])
+    assert simulation.get_array('rent', '2018-11') == approx([0, 0, 3000, 3000])
