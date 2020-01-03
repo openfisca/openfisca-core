@@ -1,5 +1,13 @@
 # Changelog
 
+### 34.6.3 [#928](https://github.com/openfisca/openfisca-core/pull/928)
+
+#### Technical changes
+
+- Use `asarray` in `taxscales.py` when we know the argument is a `ndarray`.
+- Details:
+  - It prevents `numpy` to copy the array if the `dtype` is compatible.
+
 ### 34.6.2 [#927](https://github.com/openfisca/openfisca-core/pull/927)
 
 #### Documentation
