@@ -1,5 +1,11 @@
 # Changelog
 
+### 34.6.8 [#936](https://github.com/openfisca/openfisca-core/pull/936)
+
+#### Technical change
+
+- Update dependency: numexpr
+
 ### 34.6.7 [#932](https://github.com/openfisca/openfisca-core/pull/932)
 
 #### Documentation
