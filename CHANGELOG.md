@@ -1,5 +1,11 @@
 # Changelog
 
+### 34.6.9 [#925](https://github.com/openfisca/openfisca-core/pull/925)
+
+#### Documentation
+
+- Annotates the expected type of the axis count in `SimulationBuilder`.
+
 ### 34.6.8 [#936](https://github.com/openfisca/openfisca-core/pull/936)
 
 #### Technical change
