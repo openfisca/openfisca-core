@@ -500,7 +500,7 @@ class SimulationBuilder(object):
         if len(self.axes) == 1 and len(self.axes[0]):
             parallel_axes = self.axes[0]
             first_axis = parallel_axes[0]
-            axis_count = first_axis['count']
+            axis_count: int = first_axis['count']
             axis_entity = self.get_variable_entity(first_axis['name'])
             axis_entity_step_size = self.entity_counts[axis_entity.plural]
             # Distribute values along axes
@@ -512,16 +512,23 @@ class SimulationBuilder(object):
                 array = self.get_input(axis_name, axis_period)
                 if array is None:
                     array = variable.default_array(axis_count * axis_entity_step_size)
-                array[axis_index:: axis_entity_step_size] = np.linspace(axis['min'], axis['max'], axis_count)
+                array[axis_index:: axis_entity_step_size] = np.linspace(
+                    axis['min'],
+                    axis['max'],
+                    num = axis_count,
+                    )
                 # Set input
                 self.input_buffer[axis_name][str(axis_period)] = array
         else:
+            first_axes_count: List[int] = (
+                parallel_axes[0]["count"]
+                for parallel_axes
+                in self.axes
+                )
             axes_linspaces = [
-                np.linspace(0, first_axis['count'] - 1, first_axis['count'])
-                for first_axis in (
-                    parallel_axes[0]
-                    for parallel_axes in self.axes
-                    )
+                np.linspace(0, axis_count - 1, num = axis_count)
+                for axis_count
+                in first_axes_count
                 ]
             axes_meshes = np.meshgrid(*axes_linspaces)
             for parallel_axes, mesh in zip(self.axes, axes_meshes):
