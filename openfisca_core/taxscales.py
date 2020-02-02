@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import abc
+import bisect
 import copy
 import itertools
 import logging
 import os
 import traceback
-from bisect import bisect_left, bisect_right
+import warnings
 from typing import Any, List, NoReturn, Optional, Union
 
 from numpy import (
@@ -28,8 +30,8 @@ from numpy import (
     tile,
     )
 
-from openfisca_core.commons import empty_clone
-from openfisca_core.tools import indent
+from openfisca_core import commons
+from openfisca_core import tools
 
 log = logging.getLogger(__name__)
 
@@ -67,29 +69,23 @@ class EmptyArgumentError(IndexError):
         super().__init__(self.message)
 
 
-class AbstractTaxScale:
+class TaxScaleLike(abc.ABC):
     """
-    Abstract class for various types of tax scales (amount-based tax scales, rate-based
-    tax scales).
-
-    French translations:
-      * base: assiette
-      * bracket: tranche
-      * rate: taux
-      * tax scale: barème
-      * threshold: seuil
+    Base class for various types of tax scales: amount-based tax scales, rate-based
+    tax scales...
     """
 
     name: str
-    thresholds: List
     option: None
     unit: None
+    thresholds: List
 
+    @abc.abstractmethod
     def __init__(self, name: Optional[str] = None, option = None, unit = None) -> None:
         self.name = name or "Untitled TaxScale"
-        self.thresholds = []
         self.option = option
         self.unit = unit
+        self.thresholds = []
 
     def __eq__(self, _other: object) -> NoReturn:
         raise NotImplementedError(
@@ -103,65 +99,121 @@ class AbstractTaxScale:
             f"{self.__class__.__name__}",
             )
 
-    def __repr__(self) -> Any:
+    @abc.abstractmethod
+    def __repr__(self) -> str:
+        ...
+
+    @abc.abstractmethod
+    def calc(
+            self,
+            tax_base: Union[ndarray[int], ndarray[float]],
+            right: bool,
+            ) -> ndarray[float]:
+        ...
+
+    @abc.abstractmethod
+    def to_dict(self) -> dict:
+        ...
+
+    def copy(self) -> Any:
+        new = commons.empty_clone(self)
+        new.__dict__ = copy.deepcopy(self.__dict__)
+        return new
+
+
+class AbstractTaxScale(TaxScaleLike):
+    """
+    Base class for various types of tax scales: amount-based tax scales, rate-based
+    tax scales...
+    """
+
+    def __init__(self, name: Optional[str] = None, option = None, unit = None) -> None:
+        message = [
+            "The 'AbstractTaxScale' class has been deprecated since version 34.7.0,",
+            "and will be removed in the future.",
+            ]
+        warnings.warn(" ".join(message), DeprecationWarning)
+        super(AbstractTaxScale, self).__init__(name, option, unit)
+
+    def __repr__(self) -> NoReturn:
         raise NotImplementedError(
             "Method '__repr__' is not implemented for "
             f"{self.__class__.__name__}",
             )
 
-    def calc(self, _tax_base: Union[ndarray[int], ndarray[float]], _right: bool) -> Any:
+    def calc(
+            self,
+            tax_base: Union[ndarray[int], ndarray[float]],
+            right: bool,
+            ) -> NoReturn:
         raise NotImplementedError(
             "Method 'calc' is not implemented for "
             f"{self.__class__.__name__}",
             )
 
-    def multiply_thresholds(
-            self,
-            factor: float,
-            decimals: Optional[int] = None,
-            inplace: bool = True,
-            new_name: Optional[str] = None,
-            ) -> Any:
+    def to_dict(self) -> NoReturn:
         raise NotImplementedError(
-            f"Method 'multiply_thresholds' is not implemented for "
+            f"Method 'to_dict' is not implemented for "
             f"{self.__class__.__name__}",
             )
 
-    def bracket_indices(
-            self,
-            tax_base: Union[ndarray[int], ndarray[float]],
-            factor: float = 1.0,
-            round_base_decimals: Optional[int] = None,
-            ) -> Any:
-        raise NotImplementedError(
-            f"Method 'bracket_indices' is not implemented for "
-            f"{self.__class__.__name__}",
-            )
 
-    def copy(self) -> "AbstractTaxScale":
-        new = empty_clone(self)
-        new.__dict__ = copy.deepcopy(self.__dict__)
-        return new
-
-
-class AbstractRateTaxScale(AbstractTaxScale):
+class AmountTaxScaleLike(TaxScaleLike, abc.ABC):
     """
-    Abstract class for various types of rate-based tax scales (marginal rate, linear
-    average rate).
+    Base class for various types of amount-based tax scales: single amount, marginal
+    amount...
+    """
+
+    amounts: List
+
+    def __init__(self, name: Optional[str] = None, option = None, unit = None) -> None:
+        super(AmountTaxScaleLike, self).__init__(name, option, unit)
+        self.amounts = []
+
+    def __repr__(self) -> str:
+        return tools.indent(
+            os.linesep.join(
+                [
+                    f"- threshold: {threshold}{os.linesep}  amount: {amount}"
+                    for (threshold, amount) in zip(self.thresholds, self.amounts)
+                    ]
+                )
+            )
+
+    def add_bracket(
+            self,
+            threshold: int,
+            amount: Union[int, float],
+            ) -> None:
+        if threshold in self.thresholds:
+            i = self.thresholds.index(threshold)
+            self.amounts[i] += amount
+        else:
+            i = bisect.bisect_left(self.thresholds, threshold)
+            self.thresholds.insert(i, threshold)
+            self.amounts.insert(i, amount)
+
+    def to_dict(self) -> dict:
+        return {
+            str(threshold): self.amounts[index]
+            for index, threshold in enumerate(self.thresholds)
+            }
+
+
+class RateTaxScaleLike(TaxScaleLike, abc.ABC):
+    """
+    Base class for various types of rate-based tax scales: marginal rate, linear
+    average rate...
     """
 
     rates: List
 
     def __init__(self, name: Optional[str] = None, option = None, unit = None) -> None:
-        super().__init__(
-            name = name,
-            option = option,
-            unit = unit,
-            )
+        super(RateTaxScaleLike, self).__init__(name, option, unit)
         self.rates = []
 
     def __repr__(self) -> str:
-        return indent(
+        return tools.indent(
             os.linesep.join(
                 [
                     f"- threshold: {threshold}{os.linesep}  rate: {rate}"
@@ -179,7 +231,7 @@ class AbstractRateTaxScale(AbstractTaxScale):
             i = self.thresholds.index(threshold)
             self.rates[i] += rate
         else:
-            i = bisect_left(self.thresholds, threshold)
+            i = bisect.bisect_left(self.thresholds, threshold)
             self.thresholds.insert(i, threshold)
             self.rates.insert(i, rate)
 
@@ -188,7 +240,7 @@ class AbstractRateTaxScale(AbstractTaxScale):
             factor: float,
             inplace: bool = True,
             new_name: Optional[str] = None,
-            ) -> "AbstractRateTaxScale":
+            ) -> "RateTaxScaleLike":
         if inplace:
             assert new_name is None
 
@@ -215,7 +267,7 @@ class AbstractRateTaxScale(AbstractTaxScale):
             decimals: Optional[int] = None,
             inplace: bool = True,
             new_name: Optional[str] = None,
-            ) -> "AbstractRateTaxScale":
+            ) -> "RateTaxScaleLike":
         if inplace:
             assert new_name is None
 
@@ -262,7 +314,7 @@ class AbstractRateTaxScale(AbstractTaxScale):
 
         For instance:
 
-        >>> tax_scale = AbstractRateTaxScale()
+        >>> tax_scale = LinearAverageRateTaxScale()
         >>> tax_scale.add_bracket(0, 0)
         >>> tax_scale.add_bracket(100, 0.1)
         >>> tax_base = array([0, 150])
@@ -304,84 +356,71 @@ class AbstractRateTaxScale(AbstractTaxScale):
             }
 
 
-class SingleAmountTaxScale(AbstractTaxScale):
+class AbstractRateTaxScale(RateTaxScaleLike):
     """
-    A SingleAmountTaxScale's calc() method matches the input amount to a set of brackets
-    and returns the single cell value that fits within that bracket.
+    Base class for various types of rate-based tax scales: marginal rate, linear
+    average rate...
     """
-
-    amounts: List
 
     def __init__(self, name: Optional[str] = None, option = None, unit = None) -> None:
-        super().__init__(
-            name = name,
-            option = option,
-            unit = unit,
-            )
-        self.amounts = []
+        message = [
+            "The 'AbstractRateTaxScale' class has been deprecated since version",
+            "34.7.0, and will be removed in the future.",
+            ]
+        warnings.warn(" ".join(message), DeprecationWarning)
+        super(AbstractRateTaxScale, self).__init__(name, option, unit)
 
-    def __repr__(self) -> str:
-        # Need to import here to avoid a circular dependency
-        from .parameters import indent
-
-        return indent(
-            os.linesep.join(
-                [
-                    f"- threshold: {threshold}{os.linesep}  amount: {amount}"
-                    for (threshold, amount) in zip(self.thresholds, self.amounts)
-                    ]
-                )
+    def calc(
+            self,
+            tax_base: Union[ndarray[int], ndarray[float]],
+            right: bool,
+            ) -> NoReturn:
+        raise NotImplementedError(
+            "Method 'calc' is not implemented for "
+            f"{self.__class__.__name__}",
             )
 
-    def add_bracket(self, threshold: int, amount: Union[int, float]) -> None:
-        if threshold in self.thresholds:
-            i = self.thresholds.index(threshold)
-            self.amounts[i] += amount
-        else:
-            i = bisect_left(self.thresholds, threshold)
-            self.thresholds.insert(i, threshold)
-            self.amounts.insert(i, amount)
+
+class SingleAmountTaxScale(AmountTaxScaleLike):
 
     def calc(
             self,
             tax_base: Union[ndarray[int], ndarray[float]],
             right: bool = False,
             ) -> ndarray[float]:
+        """
+        Matches the input amount to a set of brackets and returns the single cell value
+        that fits within that bracket.
+        """
         guarded_thresholds = array([-inf] + self.thresholds + [inf])
         bracket_indices = digitize(tax_base, guarded_thresholds, right = right)
         guarded_amounts = array([0] + self.amounts + [0])
         return guarded_amounts[bracket_indices - 1]
 
-    def to_dict(self) -> dict:
-        return {
-            str(threshold): self.amounts[index]
-            for index, threshold in enumerate(self.thresholds)
-            }
 
-
-class MarginalAmountTaxScale(SingleAmountTaxScale):
-    """
-    A MarginalAmountTaxScale's calc() method matches the input amount to a set of
-    brackets and returns the sum of cell values from the lowest bracket to the one
-    containing the input.
-    """
+class MarginalAmountTaxScale(AmountTaxScaleLike):
 
     def calc(
             self,
             tax_base: Union[ndarray[int], ndarray[float]],
-            _right: bool = False,
+            right: bool = False,
             ) -> ndarray[float]:
+        """
+        Matches the input amount to a set of brackets and returns the sum of cell
+        values from the lowest bracket to the one containing the input.
+        """
         base1 = tile(tax_base, (len(self.thresholds), 1)).T
         thresholds1 = tile(hstack((self.thresholds, inf)), (len(tax_base), 1))
         a = max_(min_(base1, thresholds1[:, 1:]) - thresholds1[:, :-1], 0)
         return dot(self.amounts, a.T > 0)
 
 
-class LinearAverageRateTaxScale(AbstractRateTaxScale):
+class LinearAverageRateTaxScale(RateTaxScaleLike):
+
     def calc(
             self,
             tax_base: Union[ndarray[int], ndarray[float]],
-            _right: bool = False,
+            right: bool = False,
             ) -> ndarray[float]:
         if len(self.rates) == 1:
             return tax_base * self.rates[0]
@@ -441,8 +480,9 @@ class LinearAverageRateTaxScale(AbstractRateTaxScale):
         return marginal_tax_scale
 
 
-class MarginalRateTaxScale(AbstractRateTaxScale):
-    def add_tax_scale(self, tax_scale: AbstractRateTaxScale) -> None:
+class MarginalRateTaxScale(RateTaxScaleLike):
+
+    def add_tax_scale(self, tax_scale: RateTaxScaleLike) -> None:
         # Pour ne pas avoir de problèmes avec les barèmes vides
         if (len(tax_scale.thresholds) > 0):
             for threshold_low, threshold_high, rate in zip(
@@ -509,11 +549,11 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
             ) -> None:
         # Insert threshold_low and threshold_high without modifying rates
         if threshold_low not in self.thresholds:
-            index = bisect_right(self.thresholds, threshold_low) - 1
+            index = bisect.bisect_right(self.thresholds, threshold_low) - 1
             self.add_bracket(threshold_low, self.rates[index])
 
         if threshold_high and threshold_high not in self.thresholds:
-            index = bisect_right(self.thresholds, threshold_high) - 1
+            index = bisect.bisect_right(self.thresholds, threshold_high) - 1
             self.add_bracket(threshold_high, self.rates[index])
 
         # Use add_bracket to add rates where they belongs
@@ -654,19 +694,26 @@ def combine_tax_scales(
     Combine all the MarginalRateTaxScales in the node into a single
     MarginalRateTaxScale.
     """
+
+    name = next(iter(node or []), None)
+
+    if name is None:
+        return combined_tax_scales
+
+    if combined_tax_scales is None:
+        combined_tax_scales = MarginalRateTaxScale(name = name)
+        combined_tax_scales.add_bracket(0, 0)
+
     for child_name in node:
         child = node[child_name]
 
-        if isinstance(child, AbstractRateTaxScale):
-            if combined_tax_scales is None:
-                combined_tax_scales = MarginalRateTaxScale(name = child_name)
-                combined_tax_scales.add_bracket(0, 0)
-
+        if isinstance(child, MarginalRateTaxScale):
             combined_tax_scales.add_tax_scale(child)
+
         else:
             log.info(
                 f"Skipping {child_name} with value {child} "
-                "because it is not a tax scale",
+                "because it is not a marginal rate tax scale",
                 )
 
     return combined_tax_scales

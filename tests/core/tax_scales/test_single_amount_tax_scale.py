@@ -1,9 +1,9 @@
-from numpy import array
+import numpy
 
-from openfisca_core.parameters import Scale
-from openfisca_core.periods import Instant
-from openfisca_core.taxscales import SingleAmountTaxScale
-from openfisca_core.tools import assert_near
+from openfisca_core import parameters
+from openfisca_core import periods
+from openfisca_core import taxscales
+from openfisca_core import tools
 
 from pytest import fixture
 
@@ -27,18 +27,18 @@ def data():
 
 
 def test_calc():
-    tax_base = array([1, 8, 10])
-    tax_scale = SingleAmountTaxScale()
+    tax_base = numpy.array([1, 8, 10])
+    tax_scale = taxscales.SingleAmountTaxScale()
     tax_scale.add_bracket(6, 0.23)
     tax_scale.add_bracket(9, 0.29)
 
     result = tax_scale.calc(tax_base)
 
-    assert_near(result, [0, 0.23, 0.29])
+    tools.assert_near(result, [0, 0.23, 0.29])
 
 
 def test_to_dict():
-    tax_scale = SingleAmountTaxScale()
+    tax_scale = taxscales.SingleAmountTaxScale()
     tax_scale.add_bracket(6, 0.23)
     tax_scale.add_bracket(9, 0.29)
 
@@ -49,8 +49,8 @@ def test_to_dict():
 
 # TODO: move, as we're testing Scale, not SingleAmountTaxScale
 def test_assign_thresholds_on_creation(data):
-    scale = Scale("amount_scale", data, "")
-    first_jan = Instant((2017, 11, 1))
+    scale = parameters.Scale("amount_scale", data, "")
+    first_jan = periods.Instant((2017, 11, 1))
     scale_at_instant = scale.get_at_instant(first_jan)
 
     result = scale_at_instant.thresholds
@@ -60,8 +60,8 @@ def test_assign_thresholds_on_creation(data):
 
 # TODO: move, as we're testing Scale, not SingleAmountTaxScale
 def test_assign_amounts_on_creation(data):
-    scale = Scale("amount_scale", data, "")
-    first_jan = Instant((2017, 11, 1))
+    scale = parameters.Scale("amount_scale", data, "")
+    first_jan = periods.Instant((2017, 11, 1))
     scale_at_instant = scale.get_at_instant(first_jan)
 
     result = scale_at_instant.amounts
@@ -71,9 +71,9 @@ def test_assign_amounts_on_creation(data):
 
 # TODO: move, as we're testing Scale, not SingleAmountTaxScale
 def test_dispatch_scale_type_on_creation(data):
-    scale = Scale("amount_scale", data, "")
-    first_jan = Instant((2017, 11, 1))
+    scale = parameters.Scale("amount_scale", data, "")
+    first_jan = periods.Instant((2017, 11, 1))
 
     result = scale.get_at_instant(first_jan)
 
-    assert isinstance(result, SingleAmountTaxScale)
+    assert isinstance(result, taxscales.SingleAmountTaxScale)

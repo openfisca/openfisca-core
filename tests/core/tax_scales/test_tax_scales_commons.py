@@ -1,13 +1,13 @@
-from openfisca_core.parameters import ParameterNode
-from openfisca_core.taxscales import combine_tax_scales
-from openfisca_core.tools import assert_near
+from openfisca_core import parameters
+from openfisca_core import taxscales
+from openfisca_core import tools
 
-from pytest import fixture
+import pytest
 
 
-@fixture
+@pytest.fixture
 def node():
-    return ParameterNode(
+    return parameters.ParameterNode(
         "baremes",
         data = {
             "health": {
@@ -27,7 +27,7 @@ def node():
 
 
 def test_combine_tax_scales(node):
-    result = combine_tax_scales(node)
+    result = taxscales.combine_tax_scales(node)
 
-    assert_near(result.thresholds, [0, 2000, 3000])
-    assert_near(result.rates, [0.07, 0.12, 0.14], 1e-13)
+    tools.assert_near(result.thresholds, [0, 2000, 3000])
+    tools.assert_near(result.rates, [0.07, 0.12, 0.14], 1e-13)

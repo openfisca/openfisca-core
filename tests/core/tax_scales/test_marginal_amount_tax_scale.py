@@ -1,9 +1,9 @@
 from numpy import array
 
-from openfisca_core.parameters import Scale
-from openfisca_core.periods import Instant
-from openfisca_core.taxscales import MarginalAmountTaxScale
-from openfisca_core.tools import assert_near
+from openfisca_core import parameters
+from openfisca_core import periods
+from openfisca_core import taxscales
+from openfisca_core import tools
 
 from pytest import fixture
 
@@ -24,20 +24,20 @@ def data():
 
 def test_calc():
     tax_base = array([1, 8, 10])
-    tax_scale = MarginalAmountTaxScale()
+    tax_scale = taxscales.MarginalAmountTaxScale()
     tax_scale.add_bracket(6, 0.23)
     tax_scale.add_bracket(9, 0.29)
 
     result = tax_scale.calc(tax_base)
 
-    assert_near(result, [0, 0.23, 0.52])
+    tools.assert_near(result, [0, 0.23, 0.52])
 
 
 # TODO: move, as we're testing Scale, not MarginalAmountTaxScale
 def test_dispatch_scale_type_on_creation(data):
-    scale = Scale("amount_scale", data, "")
-    first_jan = Instant((2017, 11, 1))
+    scale = parameters.Scale("amount_scale", data, "")
+    first_jan = periods.Instant((2017, 11, 1))
 
     result = scale.get_at_instant(first_jan)
 
-    assert isinstance(result, MarginalAmountTaxScale)
+    assert isinstance(result, taxscales.MarginalAmountTaxScale)
