@@ -1,5 +1,11 @@
 # Changelog
 
+### 34.7.1 [#940](https://github.com/openfisca/openfisca-core/pull/940)
+
+#### Technical changes
+
+- Update dependencies: dpath, autopep8
+
 ## 34.7.0 [#943](https://github.com/openfisca/openfisca-core/pull/943)
 
 #### Deprecations
