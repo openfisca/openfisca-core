@@ -12,7 +12,7 @@ from openfisca_web_api import handlers
 try:
     from flask import Flask, jsonify, abort, request, make_response
     from flask_cors import CORS
-    from werkzeug.contrib.fixers import ProxyFix
+    from werkzeug.middleware.proxy_fix import ProxyFix
 except ImportError as error:
     handle_import_error(error)
 
