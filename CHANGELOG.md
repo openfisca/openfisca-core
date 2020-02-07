@@ -1,5 +1,12 @@
 # Changelog
 
+### 34.6.10 [#946](https://github.com/openfisca/openfisca-core/pull/946)
+
+#### Technical changes
+
+- Fix `Werkzeug` library version
+  - Temporarily fix Web API loading disturbed by some `Werkzeug` deprecations
+
 ### 34.6.9 [#925](https://github.com/openfisca/openfisca-core/pull/925)
 
 #### Documentation
