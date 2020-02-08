@@ -47,3 +47,12 @@ def test_get(storage, value, period):
     result = storage.get(period)
 
     assert result == value
+
+
+def test_get_when_is_eternal(eternal_storage, value):
+    storage = eternal_storage()
+    storage.put(value, "foo")
+
+    result = storage.get("bar")
+
+    assert result == value
