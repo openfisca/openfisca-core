@@ -1,5 +1,14 @@
 # Changelog
 
+### 34.6.11 [#945](https://github.com/openfisca/openfisca-core/pull/945)
+
+#### Technical changes
+
+- Fixes web api loading to match latest `Werkzeug` dependency revision (`1.0.0`)
+- Details:
+  - Preserve not merging double slashes by default.
+  - Update `ProxyFix` module loading and initialising arguments.
+
 ### 34.6.10 [#946](https://github.com/openfisca/openfisca-core/pull/946)
 
 #### Technical changes
