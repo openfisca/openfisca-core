@@ -54,19 +54,20 @@ class InMemoryStorage(object):
 
     def get_memory_usage(self):
         if not self._arrays:
-            return dict(
-                nb_arrays = 0,
-                total_nb_bytes = 0,
-                cell_size = np.nan,
-                )
+            return {
+                "nb_arrays": 0,
+                "total_nb_bytes": 0,
+                "cell_size": np.nan,
+                }
 
         nb_arrays = len(self._arrays)
         array = next(iter(self._arrays.values()))
-        return dict(
-            nb_arrays = nb_arrays,
-            total_nb_bytes = array.nbytes * nb_arrays,
-            cell_size = array.itemsize,
-            )
+
+        return {
+            "nb_arrays": nb_arrays,
+            "total_nb_bytes": array.nbytes * nb_arrays,
+            "cell_size": array.itemsize,
+            }
 
 
 class OnDiskStorage(object):
