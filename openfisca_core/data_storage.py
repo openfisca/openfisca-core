@@ -1,11 +1,10 @@
 import os
 import shutil
 
-import numpy as np
+import numpy
 
+from openfisca_core import indexed_enums
 from openfisca_core import periods
-from openfisca_core.indexed_enums import EnumArray
-from openfisca_core.periods import ETERNITY
 
 
 class InMemoryStorage(object):
@@ -19,7 +18,7 @@ class InMemoryStorage(object):
 
     def get(self, period):
         if self.is_eternal:
-            period = periods.period(ETERNITY)
+            period = periods.period(periods.ETERNITY)
         period = periods.period(period)
 
         values = self._arrays.get(period)
@@ -29,7 +28,7 @@ class InMemoryStorage(object):
 
     def put(self, value, period):
         if self.is_eternal:
-            period = periods.period(ETERNITY)
+            period = periods.period(periods.ETERNITY)
         period = periods.period(period)
 
         self._arrays[period] = value
@@ -40,7 +39,7 @@ class InMemoryStorage(object):
             return
 
         if self.is_eternal:
-            period = periods.period(ETERNITY)
+            period = periods.period(periods.ETERNITY)
         period = periods.period(period)
 
         self._arrays = {
@@ -57,7 +56,7 @@ class InMemoryStorage(object):
             return {
                 "nb_arrays": 0,
                 "total_nb_bytes": 0,
-                "cell_size": np.nan,
+                "cell_size": numpy.nan,
                 }
 
         nb_arrays = len(self._arrays)
@@ -85,13 +84,13 @@ class OnDiskStorage(object):
     def _decode_file(self, file):
         enum = self._enums.get(file)
         if enum is not None:
-            return EnumArray(np.load(file), enum)
+            return indexed_enums.EnumArray(numpy.load(file), enum)
         else:
-            return np.load(file)
+            return numpy.load(file)
 
     def get(self, period):
         if self.is_eternal:
-            period = periods.period(ETERNITY)
+            period = periods.period(periods.ETERNITY)
         period = periods.period(period)
 
         values = self._files.get(period)
@@ -101,15 +100,15 @@ class OnDiskStorage(object):
 
     def put(self, value, period):
         if self.is_eternal:
-            period = periods.period(ETERNITY)
+            period = periods.period(periods.ETERNITY)
         period = periods.period(period)
 
         filename = str(period)
         path = os.path.join(self.storage_dir, filename) + '.npy'
-        if isinstance(value, EnumArray):
+        if isinstance(value, indexed_enums.EnumArray):
             self._enums[path] = value.possible_values
-            value = value.view(np.ndarray)
-        np.save(path, value)
+            value = value.view(numpy.ndarray)
+        numpy.save(path, value)
         self._files[period] = path
 
     def delete(self, period = None):
@@ -118,7 +117,7 @@ class OnDiskStorage(object):
             return
 
         if self.is_eternal:
-            period = periods.period(ETERNITY)
+            period = periods.period(indexed_enums.ETERNITY)
         period = periods.period(period)
 
         if period is not None:
