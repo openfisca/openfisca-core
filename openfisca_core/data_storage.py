@@ -7,12 +7,15 @@ from openfisca_core import indexed_enums
 from openfisca_core import periods
 
 
-class InMemoryStorage(object):
+class InMemoryStorage():
     """
-    Low-level class responsible for storing and retrieving calculated vectors in memory
+    Low-level class responsible for storing and retrieving calculated vectors in memory.
     """
 
-    def __init__(self, is_eternal = False):
+    _arrays: dict
+    is_eternal: bool
+
+    def __init__(self, is_eternal: bool = False) -> None:
         self._arrays = {}
         self.is_eternal = is_eternal
 
@@ -74,7 +77,18 @@ class OnDiskStorage(object):
     Low-level class responsible for storing and retrieving calculated vectors on disk
     """
 
-    def __init__(self, storage_dir, is_eternal = False, preserve_storage_dir = False):
+    _files: dict
+    _enums: dict
+    is_eternal: bool
+    preserve_storage_dir: bool
+    storage_dir: str
+
+    def __init__(
+            self,
+            storage_dir: str,
+            is_eternal: bool = False,
+            preserve_storage_dir: bool = False,
+            ) -> None:
         self._files = {}
         self._enums = {}
         self.is_eternal = is_eternal
