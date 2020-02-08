@@ -1,5 +1,17 @@
 # Changelog
 
+## 34.7.0 [#943](https://github.com/openfisca/openfisca-core/pull/943)
+
+#### Deprecations
+
+- Deprecate `Dummy`.
+  - The functionality is now directly provided by `empty_clone`.
+
+#### Technical changes
+
+- Refactor abstract scales to use Python's `abc` lib.
+  - This allows for consistent inheritance, which wasn't the case before.
+
 ### 34.6.11 [#945](https://github.com/openfisca/openfisca-core/pull/945)
 
 #### Technical changes
