@@ -8,7 +8,7 @@ from setuptools import setup, find_packages
 # functional and integration breaks caused by external code updates.
 
 general_requirements = [
-    'dpath == 1.5.0',
+    'dpath == 2.0.1',
     'pytest >= 4.4.1, < 6.0.0',  # For openfisca test
     'numpy >= 1.11, < 1.18',
     'psutil >= 5.4.7, < 6.0.0',
@@ -25,7 +25,7 @@ api_requirements = [
     ]
 
 dev_requirements = [
-    'autopep8 >= 1.4.0, < 1.5.0',
+    'autopep8 >= 1.4.0, < 1.6.0',
     'flake8 >= 3.7.0, < 3.8.0',
     'flake8-bugbear >= 19.3.0, < 20.0.0',
     'flake8-print >= 3.1.0, < 4.0.0',
@@ -37,7 +37,7 @@ dev_requirements = [
 
 setup(
     name = 'OpenFisca-Core',
-    version = '34.7.0',
+    version = '34.7.1',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [
