@@ -89,3 +89,12 @@ def test_delete_when_is_eternal(eternal_storage, value):
     result = storage.get("qwerty"), storage.get("azerty")
 
     assert result == (None, None)
+
+
+def test_get_known_periods(storage, value, period):
+    storage = storage()
+    storage.put(value, period)
+
+    result = storage.get_known_periods()
+
+    assert result == [period]
