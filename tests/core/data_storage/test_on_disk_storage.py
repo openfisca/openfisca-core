@@ -25,7 +25,7 @@ def value():
 
 @pytest.fixture
 def period():
-    return periods.Instant((2020, 1, 1))
+    return periods.period("2020")
 
 
 def test___init__(storage):
@@ -46,7 +46,7 @@ def test__init__when_preserve_storage_dir(storage):
     assert result.preserve_storage_dir
 
 
-def test_get(storage, value, period):
+def test_put(storage, value, period):
     storage = storage()
     storage.put(value, period)
 
@@ -55,10 +55,43 @@ def test_get(storage, value, period):
     assert result == value
 
 
-def test_get_when_is_eternal(eternal_storage, value):
+def test_put_when_is_eternal(eternal_storage, value):
     storage = eternal_storage()
     storage.put(value, "foo")
 
     result = storage.get("bar")
 
     assert result == value
+
+
+def test_delete(storage, value, period):
+    storage = storage()
+    storage.put(value, period)
+    storage.put(value, period.last_year)
+    storage.delete()
+
+    result = storage.get(period)
+
+    assert not result
+
+
+def test_delete_when_period_is_specified(storage, value, period):
+    storage = storage()
+    storage.put(value, period)
+    storage.put(value, period.last_year)
+    storage.delete(period)
+
+    result = storage.get(period), storage.get(period.last_year)
+
+    assert result == (None, value)
+
+
+def test_delete_when_is_eternal(eternal_storage, value):
+    storage = eternal_storage()
+    storage.put(value, "qwerty")
+    storage.put(value, "azerty")
+    storage.delete("asdf1234")
+
+    result = storage.get("qwerty"), storage.get("azerty")
+
+    assert result == (None, None)

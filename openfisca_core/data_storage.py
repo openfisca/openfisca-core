@@ -1,6 +1,7 @@
 import abc
 import os
 import shutil
+from typing import Optional
 
 import numpy
 
@@ -18,6 +19,10 @@ class StorageLike(Protocol):
 
     @abc.abstractmethod
     def put(self, value: numpy.ndarray, period: periods.Period) -> None:
+        ...
+
+    @abc.abstractmethod
+    def delete(self, period: Optional[periods.Period] = None) -> None:
         ...
 
 
@@ -50,20 +55,22 @@ class InMemoryStorage(StorageLike):
 
         self._arrays[period] = value
 
-    def delete(self, period = None):
+    def delete(self, period: Optional[periods.Period] = None) -> None:
         if period is None:
             self._arrays = {}
             return
 
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
+
         period = periods.period(period)
 
-        self._arrays = {
-            period_item: value
-            for period_item, value in self._arrays.items()
-            if not period.contains(period_item)
-            }
+        if period is not None:
+            self._arrays = {
+                period_item: value
+                for period_item, value in self._arrays.items()
+                if not period.contains(period_item)
+                }
 
     def get_known_periods(self):
         return self._arrays.keys()
@@ -139,13 +146,14 @@ class OnDiskStorage(StorageLike):
         numpy.save(path, value)
         self._files[period] = path
 
-    def delete(self, period = None):
+    def delete(self, period: Optional[periods.Period] = None) -> None:
         if period is None:
             self._files = {}
             return
 
         if self.is_eternal:
-            period = periods.period(indexed_enums.ETERNITY)
+            period = periods.period(periods.ETERNITY)
+
         period = periods.period(period)
 
         if period is not None:
