@@ -1,3 +1,4 @@
+import abc
 import os
 import shutil
 
@@ -6,8 +7,21 @@ import numpy
 from openfisca_core import indexed_enums
 from openfisca_core import periods
 
+from typing_extensions import Protocol
 
-class InMemoryStorage():
+
+class StorageLike(Protocol):
+
+    @abc.abstractmethod
+    def get(self, period: periods.Period) -> numpy.ndarray:
+        ...
+
+    @abc.abstractmethod
+    def put(self, value: numpy.ndarray, period: periods.Period) -> None:
+        ...
+
+
+class InMemoryStorage(StorageLike):
     """
     Low-level class responsible for storing and retrieving calculated vectors in memory.
     """
@@ -19,7 +33,7 @@ class InMemoryStorage():
         self._arrays = {}
         self.is_eternal = is_eternal
 
-    def get(self, period):
+    def get(self, period: periods.Period) -> numpy.ndarray:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
         period = periods.period(period)
@@ -72,9 +86,9 @@ class InMemoryStorage():
             }
 
 
-class OnDiskStorage(object):
+class OnDiskStorage(StorageLike):
     """
-    Low-level class responsible for storing and retrieving calculated vectors on disk
+    Low-level class responsible for storing and retrieving calculated vectors on disk.
     """
 
     _files: dict
@@ -102,7 +116,7 @@ class OnDiskStorage(object):
         else:
             return numpy.load(file)
 
-    def get(self, period):
+    def get(self, period: periods.Period) -> numpy.ndarray:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
         period = periods.period(period)
@@ -112,7 +126,7 @@ class OnDiskStorage(object):
             return None
         return self._decode_file(values)
 
-    def put(self, value, period):
+    def put(self, value: numpy.ndarray, period: periods.Period) -> None:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
         period = periods.period(period)
