@@ -12,7 +12,7 @@ from openfisca_web_api import handlers
 try:
     from flask import Flask, jsonify, abort, request, make_response
     from flask_cors import CORS
-    from werkzeug.contrib.fixers import ProxyFix
+    from werkzeug.middleware.proxy_fix import ProxyFix
 except ImportError as error:
     handle_import_error(error)
 
@@ -50,11 +50,13 @@ def create_app(tax_benefit_system,
         tracker = init_tracker(tracker_url, tracker_idsite, tracker_token)
 
     app = Flask(__name__)
-    app.wsgi_app = ProxyFix(app.wsgi_app, num_proxies = 1)  # Fix request.remote_addr to get the real client IP address
+    # Fix request.remote_addr to get the real client IP address
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for = 1, x_host = 1)
     CORS(app, origins = '*')
 
     app.config['JSON_AS_ASCII'] = False  # When False, lets jsonify encode to utf-8
     app.url_map.strict_slashes = False  # Accept url like /parameters/
+    app.url_map.merge_slashes = False  # Do not eliminate // in paths
     app.config['JSON_SORT_KEYS'] = False  # Don't sort JSON keys in the Web API
 
     data = build_data(tax_benefit_system)
