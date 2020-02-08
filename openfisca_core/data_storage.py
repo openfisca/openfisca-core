@@ -25,25 +25,13 @@ class StorageLike(Protocol):
     def delete(self, period: Optional[periods.Period] = None) -> None:
         ...
 
+    @abc.abstractmethod
     def get_known_periods(self) -> List[periods.Period]:
         ...
 
-    def get_memory_usage(self):
-        if not self._arrays:
-            return {
-                "nb_arrays": 0,
-                "total_nb_bytes": 0,
-                "cell_size": numpy.nan,
-                }
-
-        nb_arrays = len(self._arrays)
-        array = next(iter(self._arrays.values()))
-
-        return {
-            "nb_arrays": nb_arrays,
-            "total_nb_bytes": array.nbytes * nb_arrays,
-            "cell_size": array.itemsize,
-            }
+    @abc.abstractmethod
+    def get_memory_usage(self) -> dict:
+        ...
 
 
 class InMemoryStorage(StorageLike):
@@ -96,6 +84,23 @@ class InMemoryStorage(StorageLike):
 
     def get_known_periods(self) -> List[periods.Period]:
         return list(self._arrays.keys())
+
+    def get_memory_usage(self) -> dict:
+        if not self._arrays:
+            return {
+                "nb_arrays": 0,
+                "total_nb_bytes": 0,
+                "cell_size": numpy.nan,
+                }
+
+        nb_arrays = len(self._arrays)
+        array = next(iter(self._arrays.values()))
+
+        return {
+            "nb_arrays": nb_arrays,
+            "total_nb_bytes": array.nbytes * nb_arrays,
+            "cell_size": array.itemsize,
+            }
 
 
 class OnDiskStorage(StorageLike):
@@ -175,9 +180,28 @@ class OnDiskStorage(StorageLike):
     def get_known_periods(self) -> List[periods.Period]:
         return list(self._files.keys())
 
+    def get_memory_usage(self) -> dict:
+        if not self._files:
+            return {
+                "nb_files": 0,
+                "total_nb_bytes": 0,
+                "cell_size": numpy.nan,
+                }
+
+        nb_files = len(self._files)
+        file = next(iter(self._files.values()))
+        size = os.path.getsize(file)
+        array = self._decode_file(file)
+
+        return {
+            "nb_files": nb_files,
+            "total_nb_bytes": size * nb_files,
+            "cell_size": array.itemsize,
+            }
+
     def restore(self):
         self._files = files = {}
-        # Restore self._arrays from content of storage_dir.
+        # Restore self._files from content of storage_dir.
         for filename in os.listdir(self.storage_dir):
             if not filename.endswith('.npy'):
                 continue

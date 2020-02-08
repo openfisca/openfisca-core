@@ -98,3 +98,16 @@ def test_get_known_periods(storage, value, period):
     result = storage.get_known_periods()
 
     assert result == [period]
+
+
+def test_get_memory_usage(storage, value, period):
+    storage = storage()
+    storage.put(value, period)
+
+    result = storage.get_memory_usage()
+
+    assert result == {
+        "nb_arrays": 1,
+        "total_nb_bytes": 8,
+        "cell_size": 8,
+        }
