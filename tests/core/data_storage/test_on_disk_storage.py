@@ -19,13 +19,28 @@ def eternal_storage(storage):
 
 
 @pytest.fixture
+def period():
+    return periods.period("2020")
+
+
+@pytest.fixture
+def eternal_period():
+    return periods.period(periods.ETERNITY)
+
+
+@pytest.fixture
 def value():
     return numpy.array([1])
 
 
 @pytest.fixture
-def period():
-    return periods.period("2020")
+def file(storage, period):
+    return f"{storage().storage_dir}/{period}.npy"
+
+
+@pytest.fixture
+def eternal_file(storage, eternal_period):
+    return f"{storage().storage_dir}/{str(eternal_period)}.npy"
 
 
 def test___init__(storage):
@@ -46,74 +61,114 @@ def test__init__when_preserve_storage_dir(storage):
     assert result.preserve_storage_dir
 
 
-def test_put(storage, value, period):
+def test_get(storage, period, file, mocker):
     storage = storage()
-    storage.put(value, period)
+    files = {period: file}
+    mocker.patch.dict(storage._files, files)
+    mocker.patch.object(storage, "_decode_file", autospec = True)
+    storage.get(period)
 
-    result = storage.get(period)
+    result = files.get(period)
 
-    assert result == value
+    storage._decode_file.assert_called_once_with(result)
 
 
-def test_put_when_is_eternal(eternal_storage, value):
+def test_get_when_is_eternal(eternal_storage, period, eternal_period, file, mocker):
     storage = eternal_storage()
-    storage.put(value, "foo")
+    files = {period: file, eternal_period: file}
+    mocker.patch.dict(storage._files, files)
+    mocker.patch.object(storage, "_decode_file", autospec = True)
+    storage.get(period)
 
-    result = storage.get("bar")
+    result = files.get(eternal_period)
 
-    assert result == value
+    storage._decode_file.assert_called_once_with(result)
 
 
-def test_delete(storage, value, period):
+def test_get_when_cache_is_empty(storage, period):
     storage = storage()
-    storage.put(value, period)
-    storage.put(value, period.last_year)
-    storage.delete()
 
     result = storage.get(period)
 
     assert not result
 
 
-def test_delete_when_period_is_specified(storage, value, period):
+def test_put(storage, period, value, file, mocker):
     storage = storage()
+    mocker.patch("numpy.save")
     storage.put(value, period)
-    storage.put(value, period.last_year)
+
+    result = file, value
+
+    numpy.save.assert_called_once_with(*result)
+
+
+def test_put_when_is_eternal(eternal_storage, period, value, eternal_file, mocker):
+    storage = eternal_storage()
+    mocker.patch("numpy.save")
+    storage.put(value, period)
+
+    result = eternal_file, value
+
+    numpy.save.assert_called_once_with(*result)
+
+
+def test_delete(storage, period, file, mocker):
+    storage = storage()
+    files = {period: file, period.last_year: file}
+    mocker.patch.dict(storage._files, files)
+    mocker.patch.object(storage, "_pop", autospec = True)
     storage.delete(period)
 
+    result = period, list(files.items())
+
+    storage._pop.assert_called_once_with(*result)
+
+
+def test_delete_when_period_is_not_specified(storage, period, file, mocker):
+    storage = storage()
+    files = {period: file, period.last_year: file}
+    mocker.patch.dict(storage._files, files)
+    storage.delete()
+
     result = storage.get(period), storage.get(period.last_year)
-
-    assert result == (None, value)
-
-
-def test_delete_when_is_eternal(eternal_storage, value):
-    storage = eternal_storage()
-    storage.put(value, "qwerty")
-    storage.put(value, "azerty")
-    storage.delete("asdf1234")
-
-    result = storage.get("qwerty"), storage.get("azerty")
 
     assert result == (None, None)
 
 
-def test_get_known_periods(storage, value, period):
+def test_delete_when_is_eternal(eternal_storage, value, eternal_period, mocker):
+    storage = eternal_storage()
+    files = {period: file, eternal_period: file}
+    mocker.patch.dict(storage._files, files)
+    mocker.patch.object(storage, "_pop", autospec = True)
+    storage.delete(period)
+
+    result = eternal_period, list(files.items())
+
+    storage._pop.assert_called_once_with(*result)
+
+
+def test_get_known_periods(storage, period, file, mocker):
     storage = storage()
-    storage.put(value, period)
+    files = {period: file}
+    mocker.patch.dict(storage._files, files)
 
     result = storage.get_known_periods()
 
     assert result == [period]
 
 
-def test_get_memory_usage(storage, value, period):
+def test_get_memory_usage(storage, period, eternal_period, file, value, mocker):
     storage = storage()
-    storage.put(value, period)
+    files = {period: file, eternal_period: file}
+    mocker.patch.dict(storage._files, files)
+    mocker.patch("os.path.getsize", return_value = 8)
+    mocker.patch.object(storage, "_decode_file", return_value = value)
 
     result = storage.get_memory_usage()
 
     assert result == {
-        "nb_files": 1,
-        "total_nb_bytes": 136,
+        "nb_files": 2,
+        "total_nb_bytes": 16,
         "cell_size": 8,
         }

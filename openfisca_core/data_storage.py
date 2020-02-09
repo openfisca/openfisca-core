@@ -1,7 +1,7 @@
 import abc
 import os
 import shutil
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import numpy
 
@@ -30,8 +30,11 @@ class StorageLike(Protocol):
         ...
 
     @abc.abstractmethod
-    def get_memory_usage(self) -> dict:
+    def get_memory_usage(self) -> Dict[str, int]:
         ...
+
+    def _pop(self, period: periods.Period, items: list) -> dict:
+        return {item: value for item, value in items if not period.contains(item)}
 
 
 class InMemoryStorage(StorageLike):
@@ -76,16 +79,12 @@ class InMemoryStorage(StorageLike):
         period = periods.period(period)
 
         if period is not None:
-            self._arrays = {
-                period_item: value
-                for period_item, value in self._arrays.items()
-                if not period.contains(period_item)
-                }
+            self._arrays = self._pop(period, list(self._arrays.items()))
 
     def get_known_periods(self) -> List[periods.Period]:
         return list(self._arrays.keys())
 
-    def get_memory_usage(self) -> dict:
+    def get_memory_usage(self) -> Dict[str, int]:
         if not self._arrays:
             return {
                 "nb_arrays": 0,
@@ -164,16 +163,12 @@ class OnDiskStorage(StorageLike):
         period = periods.period(period)
 
         if period is not None:
-            self._files = {
-                period_item: value
-                for period_item, value in self._files.items()
-                if not period.contains(period_item)
-                }
+            self._files = self._pop(period, list(self._files.items()))
 
     def get_known_periods(self) -> List[periods.Period]:
         return list(self._files.keys())
 
-    def get_memory_usage(self) -> dict:
+    def get_memory_usage(self) -> Dict[str, int]:
         if not self._files:
             return {
                 "nb_files": 0,

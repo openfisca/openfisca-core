@@ -19,13 +19,13 @@ def eternal_storage(storage):
 
 
 @pytest.fixture
-def value():
-    return numpy.array([1])
+def period():
+    return periods.period("2020")
 
 
 @pytest.fixture
-def period():
-    return periods.period("2020")
+def value():
+    return numpy.array([1])
 
 
 def test___init__(storage):
@@ -40,7 +40,7 @@ def test___init__when_is_eternal(eternal_storage):
     assert result.is_eternal
 
 
-def test_put(storage, value, period):
+def test_put(storage, period, value):
     storage = storage()
     storage.put(value, period)
 
@@ -58,18 +58,7 @@ def test_put_when_is_eternal(eternal_storage, value):
     assert result == value
 
 
-def test_delete(storage, value, period):
-    storage = storage()
-    storage.put(value, period)
-    storage.put(value, period.last_year)
-    storage.delete()
-
-    result = storage.get(period)
-
-    assert not result
-
-
-def test_delete_when_period_is_specified(storage, value, period):
+def test_delete(storage, period, value):
     storage = storage()
     storage.put(value, period)
     storage.put(value, period.last_year)
@@ -78,6 +67,17 @@ def test_delete_when_period_is_specified(storage, value, period):
     result = storage.get(period), storage.get(period.last_year)
 
     assert result == (None, value)
+
+
+def test_delete_when_period_is_not_specified(storage, period, value):
+    storage = storage()
+    storage.put(value, period)
+    storage.put(value, period.last_year)
+    storage.delete()
+
+    result = storage.get(period)
+
+    assert not result
 
 
 def test_delete_when_is_eternal(eternal_storage, value):
@@ -91,7 +91,7 @@ def test_delete_when_is_eternal(eternal_storage, value):
     assert result == (None, None)
 
 
-def test_get_known_periods(storage, value, period):
+def test_get_known_periods(storage, period, value):
     storage = storage()
     storage.put(value, period)
 
@@ -100,7 +100,7 @@ def test_get_known_periods(storage, value, period):
     assert result == [period]
 
 
-def test_get_memory_usage(storage, value, period):
+def test_get_memory_usage(storage, period, value):
     storage = storage()
     storage.put(value, period)
 
