@@ -2,7 +2,7 @@ import functools
 
 import numpy
 
-from openfisca_core import data_storage
+from openfisca_core import caching
 from openfisca_core import periods
 
 import pytest
@@ -10,7 +10,7 @@ import pytest
 
 @pytest.fixture
 def storage():
-    return functools.partial(data_storage.OnDiskStorage, storage_dir = "/tmp")
+    return functools.partial(caching.DiskCaching, storage_dir = "/tmp")
 
 
 @pytest.fixture
@@ -148,24 +148,24 @@ def test_delete_when_is_eternal(eternal_storage, value, eternal_period, mocker):
     storage._pop.assert_called_once_with(*result)
 
 
-def test_get_known_periods(storage, period, file, mocker):
+def test_known_periods(storage, period, file, mocker):
     storage = storage()
     files = {period: file}
     mocker.patch.dict(storage._files, files)
 
-    result = storage.get_known_periods()
+    result = storage.known_periods()
 
     assert result == [period]
 
 
-def test_get_memory_usage(storage, period, eternal_period, file, value, mocker):
+def test_memory_usage(storage, period, eternal_period, file, value, mocker):
     storage = storage()
     files = {period: file, eternal_period: file}
     mocker.patch.dict(storage._files, files)
     mocker.patch("os.path.getsize", return_value = 8)
     mocker.patch.object(storage, "_decode_file", return_value = value)
 
-    result = storage.get_memory_usage()
+    result = storage.memory_usage()
 
     assert result == {
         "nb_files": 2,

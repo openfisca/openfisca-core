@@ -340,7 +340,7 @@ class Simulation(object):
         """
         return self.get_variable_population(variable_name).get_holder(variable_name)
 
-    def get_memory_usage(self, variables = None):
+    def memory_usage(self, variables = None):
         """
             Get data about the virtual memory usage of the simulation
         """
@@ -349,7 +349,7 @@ class Simulation(object):
             by_variable = {}
             )
         for entity in self.populations.values():
-            entity_memory_usage = entity.get_memory_usage(variables = variables)
+            entity_memory_usage = entity.memory_usage(variables = variables)
             result['total_nb_bytes'] += entity_memory_usage['total_nb_bytes']
             result['by_variable'].update(entity_memory_usage['by_variable'])
         return result
@@ -385,7 +385,7 @@ class Simulation(object):
         """
         self.get_holder(variable).delete_arrays(period)
 
-    def get_known_periods(self, variable):
+    def known_periods(self, variable):
         """
             Get a list variable's known period, i.e. the periods where a value has been initialized and
 
@@ -397,11 +397,11 @@ class Simulation(object):
             >>> simulation = Simulation(CountryTaxBenefitSystem())
             >>> simulation.set_input('age', '2018-04', [12, 14])
             >>> simulation.set_input('age', '2018-05', [13, 14])
-            >>> simulation.get_known_periods('age')
+            >>> simulation.known_periods('age')
             [Period((u'month', Instant((2018, 5, 1)), 1)), Period((u'month', Instant((2018, 4, 1)), 1))]
 
         """
-        return self.get_holder(variable).get_known_periods()
+        return self.get_holder(variable).known_periods()
 
     def set_input(self, variable_name, period, value):
         """

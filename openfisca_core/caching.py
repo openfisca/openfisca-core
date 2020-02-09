@@ -11,7 +11,14 @@ from openfisca_core import periods
 from typing_extensions import Protocol
 
 
-class StorageLike(Protocol):
+class SupportsPeriod(Protocol):
+
+    @abc.abstractmethod
+    def period(self, period: periods.Period) -> periods.Period:
+        ...
+
+
+class SupportsCaching(Protocol):
 
     @abc.abstractmethod
     def get(self, period: periods.Period) -> numpy.ndarray:
@@ -25,19 +32,37 @@ class StorageLike(Protocol):
     def delete(self, period: Optional[periods.Period] = None) -> None:
         ...
 
-    @abc.abstractmethod
-    def get_known_periods(self) -> List[periods.Period]:
-        ...
-
-    @abc.abstractmethod
-    def get_memory_usage(self) -> Dict[str, int]:
-        ...
-
     def _pop(self, period: periods.Period, items: list) -> dict:
         return {item: value for item, value in items if not period.contains(item)}
 
 
-class InMemoryStorage(StorageLike):
+class SupportsKnownPeriods(Protocol):
+
+    @abc.abstractmethod
+    def known_periods(self) -> List[periods.Period]:
+        ...
+
+
+class SupportsMemoryUsage(Protocol):
+
+    @abc.abstractmethod
+    def memory_usage(self) -> Dict[str, int]:
+        ...
+
+
+class SpecificCaching(SupportsPeriod):
+
+    def period(self, period: periods.Period) -> periods.Period:
+        return periods.period(period)
+
+
+class EternalCaching(SupportsPeriod):
+
+    def period(self, period: periods.Period) -> periods.Period:
+        return periods.period(periods.ETERNITY)
+
+
+class MemoryCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsage):
     """
     Low-level class responsible for storing and retrieving calculated vectors in memory.
     """
@@ -81,10 +106,10 @@ class InMemoryStorage(StorageLike):
         if period is not None:
             self._arrays = self._pop(period, list(self._arrays.items()))
 
-    def get_known_periods(self) -> List[periods.Period]:
+    def known_periods(self) -> List[periods.Period]:
         return list(self._arrays.keys())
 
-    def get_memory_usage(self) -> Dict[str, int]:
+    def memory_usage(self) -> Dict[str, int]:
         if not self._arrays:
             return {
                 "nb_arrays": 0,
@@ -102,7 +127,7 @@ class InMemoryStorage(StorageLike):
             }
 
 
-class OnDiskStorage(StorageLike):
+class DiskCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsage):
     """
     Low-level class responsible for storing and retrieving calculated vectors on disk.
     """
@@ -165,10 +190,10 @@ class OnDiskStorage(StorageLike):
         if period is not None:
             self._files = self._pop(period, list(self._files.items()))
 
-    def get_known_periods(self) -> List[periods.Period]:
+    def known_periods(self) -> List[periods.Period]:
         return list(self._files.keys())
 
-    def get_memory_usage(self) -> Dict[str, int]:
+    def memory_usage(self) -> Dict[str, int]:
         if not self._files:
             return {
                 "nb_files": 0,

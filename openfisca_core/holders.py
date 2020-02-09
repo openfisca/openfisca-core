@@ -9,7 +9,7 @@ import psutil
 
 from openfisca_core import periods
 from openfisca_core.commons import empty_clone
-from openfisca_core.data_storage import InMemoryStorage, OnDiskStorage
+from openfisca_core.caching import MemoryCaching, DiskCaching
 from openfisca_core.errors import PeriodMismatchError
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import MONTH, YEAR, ETERNITY
@@ -27,7 +27,7 @@ class Holder(object):
         self.population = population
         self.variable = variable
         self.simulation = population.simulation
-        self._memory_storage = InMemoryStorage(is_eternal = (self.variable.definition_period == ETERNITY))
+        self._memory_storage = MemoryCaching(is_eternal = (self.variable.definition_period == ETERNITY))
 
         # By default, do not activate on-disk storage, or variable dropping
         self._disk_storage = None
@@ -62,7 +62,7 @@ class Holder(object):
         storage_dir = os.path.join(directory, self.variable.name)
         if not os.path.isdir(storage_dir):
             os.mkdir(storage_dir)
-        return OnDiskStorage(
+        return DiskCaching(
             storage_dir,
             is_eternal = (self.variable.definition_period == ETERNITY),
             preserve_storage_dir = preserve
@@ -94,7 +94,7 @@ class Holder(object):
         if self._disk_storage:
             return self._disk_storage.get(period)
 
-    def get_memory_usage(self):
+    def memory_usage(self):
         """
             Get data about the virtual memory usage of the holder.
 
@@ -103,7 +103,7 @@ class Holder(object):
 
             Example:
 
-            >>> holder.get_memory_usage()
+            >>> holder.memory_usage()
             >>> {
             >>>    'nb_arrays': 12,  # The holder contains the variable values for 12 different periods
             >>>    'nb_cells_by_array': 100, # There are 100 entities (e.g. persons) in our simulation
@@ -120,7 +120,7 @@ class Holder(object):
             dtype = self.variable.dtype,
             )
 
-        usage.update(self._memory_storage.get_memory_usage())
+        usage.update(self._memory_storage.memory_usage())
 
         if self.simulation.trace:
             nb_requests = self.simulation.tracer.get_nb_requests(self.variable.name)
@@ -131,13 +131,13 @@ class Holder(object):
 
         return usage
 
-    def get_known_periods(self):
+    def known_periods(self):
         """
             Get the list of periods the variable value is known for.
         """
 
-        return list(self._memory_storage.get_known_periods()) + list((
-            self._disk_storage.get_known_periods() if self._disk_storage else []))
+        return list(self._memory_storage.known_periods()) + list((
+            self._disk_storage.known_periods() if self._disk_storage else []))
 
     def set_input(self, period, array):
         """
