@@ -1,7 +1,7 @@
 import abc
 import os
 import shutil
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import numpy
 
@@ -50,7 +50,7 @@ class SupportsMemoryUsage(Protocol):
         ...
 
 
-class SpecificCaching(SupportsPeriod):
+class ExactCaching(SupportsPeriod):
 
     def period(self, period: periods.Period) -> periods.Period:
         return periods.period(period)
@@ -75,10 +75,6 @@ class MemoryCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsage):
         self.is_eternal = is_eternal
 
     def get(self, period: periods.Period) -> numpy.ndarray:
-        if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
-
-        period = periods.period(period)
         values = self._arrays.get(period)
 
         if values is None:
@@ -87,21 +83,12 @@ class MemoryCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsage):
         return values
 
     def put(self, value, period):
-        if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
-
-        period = periods.period(period)
         self._arrays[period] = value
 
     def delete(self, period: Optional[periods.Period] = None) -> None:
         if period is None:
             self._arrays = {}
             return
-
-        if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
-
-        period = periods.period(period)
 
         if period is not None:
             self._arrays = self._pop(period, list(self._arrays.items()))
@@ -127,7 +114,7 @@ class MemoryCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsage):
             }
 
 
-class DiskCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsage):
+class PersistentCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsage):
     """
     Low-level class responsible for storing and retrieving calculated vectors on disk.
     """
@@ -151,10 +138,6 @@ class DiskCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsage):
         self.storage_dir = storage_dir
 
     def get(self, period: periods.Period) -> numpy.ndarray:
-        if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
-
-        period = periods.period(period)
         values = self._files.get(period)
 
         if values is None:
@@ -163,10 +146,6 @@ class DiskCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsage):
         return self._decode_file(values)
 
     def put(self, value: numpy.ndarray, period: periods.Period) -> None:
-        if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
-
-        period = periods.period(period)
         filename = str(period)
         path = os.path.join(self.storage_dir, filename) + '.npy'
 
@@ -181,11 +160,6 @@ class DiskCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsage):
         if period is None:
             self._files = {}
             return None
-
-        if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
-
-        period = periods.period(period)
 
         if period is not None:
             self._files = self._pop(period, list(self._files.items()))
@@ -238,3 +212,16 @@ class DiskCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsage):
         parent_dir = os.path.abspath(os.path.join(self.storage_dir, os.pardir))
         if not os.listdir(parent_dir):
             shutil.rmtree(parent_dir)
+
+
+class Cache:
+
+    TimeType = Union[ExactCaching, EternalCaching]
+    StoreType = Union[MemoryCaching, PersistentCaching]
+
+    time: TimeType
+    store: StoreType
+
+    def __init__(self, time: TimeType, store: StoreType) -> None:
+        self.time = time
+        self.store = store

@@ -6,7 +6,7 @@ import pytest
 
 @pytest.fixture
 def cache():
-    return caching.SpecificCaching()
+    return caching.ExactCaching()
 
 
 @pytest.fixture

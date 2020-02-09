@@ -6,7 +6,7 @@ import os
 import numpy as np
 
 from openfisca_core.simulations import Simulation
-from openfisca_core.caching import DiskCaching
+from openfisca_core.caching import PersistentCaching
 from openfisca_core.periods import ETERNITY
 
 
@@ -107,7 +107,7 @@ def _restore_entity(population, directory):
 def _restore_holder(simulation, variable, directory):
     storage_dir = os.path.join(directory, variable)
     is_variable_eternal = simulation.tax_benefit_system.get_variable(variable).definition_period == ETERNITY
-    disk_storage = DiskCaching(
+    disk_storage = PersistentCaching(
         storage_dir,
         is_eternal = is_variable_eternal,
         preserve_storage_dir = True

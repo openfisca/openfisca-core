@@ -9,7 +9,7 @@ import psutil
 
 from openfisca_core import periods
 from openfisca_core.commons import empty_clone
-from openfisca_core.caching import MemoryCaching, DiskCaching
+from openfisca_core.caching import MemoryCaching, PersistentCaching
 from openfisca_core.errors import PeriodMismatchError
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import MONTH, YEAR, ETERNITY
@@ -62,7 +62,7 @@ class Holder(object):
         storage_dir = os.path.join(directory, self.variable.name)
         if not os.path.isdir(storage_dir):
             os.mkdir(storage_dir)
-        return DiskCaching(
+        return PersistentCaching(
             storage_dir,
             is_eternal = (self.variable.definition_period == ETERNITY),
             preserve_storage_dir = preserve

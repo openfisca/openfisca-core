@@ -10,7 +10,7 @@ def cache():
 
 
 @pytest.fixture
-def specific_period():
+def exact_period():
     return periods.period("2020")
 
 
@@ -19,7 +19,7 @@ def eternal_period():
     return periods.period(periods.ETERNITY)
 
 
-def test_period(cache, specific_period, eternal_period):
-    result = cache.period(specific_period)
+def test_period(cache, exact_period, eternal_period):
+    result = cache.period(exact_period)
 
     assert result == eternal_period
