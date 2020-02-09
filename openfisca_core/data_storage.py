@@ -126,13 +126,6 @@ class OnDiskStorage(StorageLike):
         self.preserve_storage_dir = preserve_storage_dir
         self.storage_dir = storage_dir
 
-    def _decode_file(self, file):
-        enum = self._enums.get(file)
-        if enum is not None:
-            return indexed_enums.EnumArray(numpy.load(file), enum)
-        else:
-            return numpy.load(file)
-
     def get(self, period: periods.Period) -> numpy.ndarray:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
@@ -209,6 +202,13 @@ class OnDiskStorage(StorageLike):
             filename_core = filename.rsplit('.', 1)[0]
             period = periods.period(filename_core)
             files[period] = path
+
+    def _decode_file(self, file):
+        enum = self._enums.get(file)
+        if enum is not None:
+            return indexed_enums.EnumArray(numpy.load(file), enum)
+        else:
+            return numpy.load(file)
 
     def __del__(self):
         if self.preserve_storage_dir:
