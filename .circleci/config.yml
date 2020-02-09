@@ -24,25 +24,25 @@ jobs:
             # pip install --editable git+https://github.com/openfisca/country-template.git@BRANCH_NAME#egg=OpenFisca-Country-Template  # use a specific branch of OpenFisca-Country-Template
             # pip install --editable git+https://github.com/openfisca/extension-template.git@BRANCH_NAME#egg=OpenFisca-Extension-Template  # use a specific branch of OpenFisca-Extension-Template
 
-      - save_cache:
-          key: v1-py3-{{ .Branch }}-{{ checksum "setup.py" }}
-          paths:
-            - /tmp/venv/openfisca_core
-
-      - run:
-          name: Run Core tests
-          command: env PYTEST_ADDOPTS="--exitfirst" make test
-
-      - persist_to_workspace:
-          root: .
-          paths:
-            - .coverage
-
       - run:
           name: Run Country Template tests
           command: |
             COUNTRY_TEMPLATE_PATH=`python -c "import openfisca_country_template; print(openfisca_country_template.CountryTaxBenefitSystem().get_package_metadata()['location'])"`
             openfisca test $COUNTRY_TEMPLATE_PATH/openfisca_country_template/tests/
+
+      - run:
+          name: Run Core tests
+          command: env PYTEST_ADDOPTS="--exitfirst" make test
+
+      - save_cache:
+          key: v1-py3-{{ .Revision }}-coverage
+          paths:
+            - .coverage
+
+      - save_cache:
+          key: v1-py3-{{ .Branch }}-{{ checksum "setup.py" }}
+          paths:
+            - /tmp/venv/openfisca_core
 
   check_version:
     docker:
@@ -64,8 +64,8 @@ jobs:
     steps:
       - checkout
 
-      - attach_workspace:
-          at: .
+      - restore_cache:
+          key: v1-py3-{{ .Revision }}-coverage
 
       - restore_cache:
           key: v1-py3-{{ .Branch }}-{{ checksum "setup.py" }}
