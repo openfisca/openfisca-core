@@ -1,7 +1,7 @@
 import abc
 import os
 import shutil
-from typing import Any, Dict, ItemsView, KeysView, Optional
+from typing import Any, Dict, KeysView, Optional
 
 import numpy
 
@@ -87,6 +87,79 @@ class MemoryStorage(StorageLike):
         return state
 
 
+class DiskStorage(StorageLike):
+    """Responsible for storing and retrieving values on disk."""
+    directory: str
+    preserve: bool
+
+    def __init__(self, directory: str, preserve: bool) -> None:
+        self.directory = directory
+        self.preserve = preserve
+
+    def get(self, state: Dict[Period, Any], key: Period) -> Any:
+        file = state.get(key)
+
+        if file is None:
+            return None
+
+        filepath, value = file
+
+        if value is None:
+            return numpy.load(filepath)
+
+        return EnumArray(numpy.load(filepath), value)
+
+    def put(self, state: StateType, key: Period, value: Any) -> StateType:
+        filename = str(key)
+        filepath = os.path.join(self.directory, filename) + ".npy"
+
+        if isinstance(value, EnumArray):
+            state[key] = filepath, value.possible_values
+            value = value.view(numpy.ndarray)
+
+        else:
+            state[key] = filepath, None
+
+        numpy.save(filepath, value)
+
+        return state
+
+    def delete(self, state: StateType, key: Period) -> StateType:
+        return {item: value for item, value in state.items() if not key.contains(item)}
+
+    def delete_all(self, state: StateType) -> dict:
+        state.clear()
+        return state
+
+    def restore(self, state: StateType) -> StateType:
+        state = self.delete_all(state)
+
+        # Restore files from content of directory.
+        for filename in os.listdir(self.directory):
+            if not filename.endswith('.npy'):
+                continue
+
+            filepath = os.path.join(self.directory, filename)
+            filename_core = filename.rsplit('.', 1)[0]
+            period = periods.period(filename_core)
+            state[period] = filepath, None
+
+        return state
+
+    def __del__(self) -> None:
+        if self.preserve:
+            return
+
+        # Remove the holder temporary files
+        shutil.rmtree(self.directory)
+
+        # If the simulation temporary directory is empty, remove it
+        parent_dir = os.path.abspath(os.path.join(self.directory, os.pardir))
+
+        if not os.listdir(parent_dir):
+            shutil.rmtree(parent_dir)
+
+
 class InMemoryStorage(CachingLike, SupportsPeriodCasting):
     """
     Low-level class responsible for storing and retrieving calculated vectors in memory.
@@ -119,9 +192,11 @@ class InMemoryStorage(CachingLike, SupportsPeriodCasting):
         casted: Period = self.cast_period(period, self.is_eternal)
         self._arrays = self.storage.delete(self._arrays, casted)
 
+    # TODO: decide what to do with this.
     def get_known_periods(self) -> KeysView[Period]:
         return self._arrays.keys()
 
+    # TODO: decide what to do with this.
     def get_memory_usage(self) -> Dict[str, int]:
         if not self._arrays:
             return {
@@ -140,7 +215,7 @@ class InMemoryStorage(CachingLike, SupportsPeriodCasting):
             }
 
 
-class OnDiskStorage(CachingLike):
+class OnDiskStorage(CachingLike, SupportsPeriodCasting):
     """
     Low-level class responsible for storing and retrieving calculated vectors on disk.
 
@@ -148,10 +223,8 @@ class OnDiskStorage(CachingLike):
     """
 
     _files: dict
-    _enums: dict
     is_eternal: bool
-    preserve_storage_dir: bool
-    storage_dir: str
+    storage: DiskStorage
 
     def __init__(
             self,
@@ -160,52 +233,30 @@ class OnDiskStorage(CachingLike):
             preserve_storage_dir: bool = False,
             ) -> None:
         self._files = {}
-        self._enums = {}
         self.is_eternal = is_eternal
-        self.preserve_storage_dir = preserve_storage_dir
-        self.storage_dir = storage_dir
+        self.storage = DiskStorage(storage_dir, preserve_storage_dir)
 
     def get(self, period: Period) -> Any:
-        if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
-
-        period = periods.period(period)
-        values = self._files.get(period)
-
-        if values is None:
-            return None
-
-        return self._decode_file(values)
+        casted: Period = self.cast_period(period, self.is_eternal)
+        return self.storage.get(self._files, casted)
 
     def put(self, value: Any, period: Period) -> None:
-        if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
-
-        period = periods.period(period)
-        filename = str(period)
-        path = os.path.join(self.storage_dir, filename) + '.npy'
-
-        if isinstance(value, EnumArray):
-            self._enums[path] = value.possible_values
-            value = value.view(numpy.ndarray)
-
-        numpy.save(path, value)
-        self._files[period] = path
+        casted: Period = self.cast_period(period, self.is_eternal)
+        self._files = self.storage.put(self._files, casted, value)
 
     def delete(self, period: Optional[Period] = None) -> None:
         if period is None:
-            self._files = {}
+            self._files = self.storage.delete_all(self._files)
             return
 
-        if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
+        casted: Period = self.cast_period(period, self.is_eternal)
+        self._files = self.storage.delete(self._files, casted)
 
-        casted: Period = periods.period(period)
-        self._files = self._pop(casted, self._files.items())
-
+    # TODO: decide what to do with this.
     def get_known_periods(self) -> KeysView[Period]:
         return self._files.keys()
 
+    # TODO: decide what to do with this.
     def get_memory_usage(self) -> Dict[str, int]:
         if not self._files:
             return {
@@ -225,32 +276,10 @@ class OnDiskStorage(CachingLike):
             "cell_size": array.itemsize,
             }
 
-    def restore(self):
-        self._files = files = {}
-        # Restore self._files from content of storage_dir.
-        for filename in os.listdir(self.storage_dir):
-            if not filename.endswith('.npy'):
-                continue
-            path = os.path.join(self.storage_dir, filename)
-            filename_core = filename.rsplit('.', 1)[0]
-            period = periods.period(filename_core)
-            files[period] = path
-
+    #  TODO: remove this method.
     def _decode_file(self, file):
         enum = self._enums.get(file)
         if enum is not None:
             return EnumArray(numpy.load(file), enum)
         else:
             return numpy.load(file)
-
-    def _pop(self, period: Period, items: ItemsView[Period, Any]) -> Dict[Period, Any]:
-        return {item: value for item, value in items if not period.contains(item)}
-
-    def __del__(self):
-        if self.preserve_storage_dir:
-            return
-        shutil.rmtree(self.storage_dir)  # Remove the holder temporary files
-        # If the simulation temporary directory is empty, remove it
-        parent_dir = os.path.abspath(os.path.join(self.storage_dir, os.pardir))
-        if not os.listdir(parent_dir):
-            shutil.rmtree(parent_dir)

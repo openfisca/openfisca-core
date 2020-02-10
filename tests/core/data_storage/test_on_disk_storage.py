@@ -4,6 +4,7 @@ import numpy
 
 from openfisca_core import periods
 from openfisca_core.data_storage import OnDiskStorage
+from openfisca_core.indexed_enums import Enum, EnumArray
 
 import pytest
 
@@ -35,12 +36,26 @@ def value():
 
 @pytest.fixture
 def file(storage, period):
-    return f"{storage().storage_dir}/{period}.npy"
+    return f"{storage().storage.directory}/{period}.npy"
 
 
 @pytest.fixture
 def eternal_file(storage, eternal_period):
-    return f"{storage().storage_dir}/{str(eternal_period)}.npy"
+    return f"{storage().storage.directory}/{str(eternal_period)}.npy"
+
+
+@pytest.fixture
+def my_enum():
+    class MyEnum(Enum):
+        foo = "foo"
+        bar = "bar"
+
+    return MyEnum
+
+
+@pytest.fixture
+def enum_array(value, my_enum):
+    return EnumArray(value, my_enum)
 
 
 def test___init__(storage):
@@ -58,32 +73,32 @@ def test___init__when_is_eternal(eternal_storage):
 def test__init__when_preserve_storage_dir(storage):
     result = storage(preserve_storage_dir = True)
 
-    assert result.preserve_storage_dir
+    assert result.storage.preserve
 
 
-def test_get(storage, period, file, mocker):
+def test_get(storage, period, file, enum_array, mocker):
     storage = storage()
-    files = {period: file}
+    files = {period: (file, enum_array)}
     mocker.patch.dict(storage._files, files)
-    mocker.patch.object(storage, "_decode_file", autospec = True)
+    mocker.patch.object(storage.storage, "get", autospec = True)
     storage.get(period)
 
-    result = files.get(period)
+    result = files, period
 
-    storage._decode_file.assert_called_once_with(result)
+    storage.storage.get.assert_called_once_with(*result)
 
 
 def test_get_when_is_eternal(eternal_storage, period, eternal_period, file, mocker):
     """When it is eternal, periods are actually ignored"""
     storage = eternal_storage()
-    files = {period: file, eternal_period: file}
+    files = {period: (file, None)}
     mocker.patch.dict(storage._files, files)
-    mocker.patch.object(storage, "_decode_file", autospec = True)
+    mocker.patch.object(storage.storage, "get", autospec = True)
     storage.get(period)
 
-    result = files.get(eternal_period)
+    result = files, eternal_period
 
-    storage._decode_file.assert_called_once_with(result)
+    storage.storage.get.assert_called_once_with(*result)
 
 
 def test_get_when_cache_is_empty(storage, period):
@@ -119,12 +134,12 @@ def test_delete(storage, period, file, mocker):
     storage = storage()
     files = {period: file, period.last_year: file}
     mocker.patch.dict(storage._files, files)
-    mocker.patch.object(storage, "_pop", autospec = True)
+    mocker.patch.object(storage.storage, "delete", autospec = True)
     storage.delete(period)
 
-    result = period, files.items()
+    result = files, period
 
-    storage._pop.assert_called_once_with(*result)
+    storage.storage.delete.assert_called_once_with(*result)
 
 
 def test_delete_when_period_is_not_specified(storage, period, file, mocker):
@@ -143,12 +158,12 @@ def test_delete_when_is_eternal(eternal_storage, value, eternal_period, mocker):
     storage = eternal_storage()
     files = {period: file, eternal_period: file}
     mocker.patch.dict(storage._files, files)
-    mocker.patch.object(storage, "_pop", autospec = True)
+    mocker.patch.object(storage.storage, "delete", autospec = True)
     storage.delete(period)
 
-    result = eternal_period, files.items()
+    result = files, eternal_period
 
-    storage._pop.assert_called_once_with(*result)
+    storage.storage.delete.assert_called_once_with(*result)
 
 
 def test_get_known_periods(storage, period, file, mocker):

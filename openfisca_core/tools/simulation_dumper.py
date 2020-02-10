@@ -112,7 +112,9 @@ def _restore_holder(simulation, variable, directory):
         is_eternal = is_variable_eternal,
         preserve_storage_dir = True
         )
-    disk_storage.restore()
+
+    # TODO: decide whether to turn this variable public
+    disk_storage._files = disk_storage.storage.restore(disk_storage._files)
 
     holder = simulation.get_holder(variable)
 
