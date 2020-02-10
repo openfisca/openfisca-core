@@ -118,6 +118,6 @@ def _restore_holder(simulation, variable, directory):
 
     holder = simulation.get_holder(variable)
 
-    for period in disk_storage.get_known_periods():
+    for period in disk_storage.known_periods():
         value = disk_storage.get(period)
         holder.put_in_cache(value, period)

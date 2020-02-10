@@ -30,6 +30,10 @@ class StorageLike(abc.ABC):
     def delete_all(self, state: StateType) -> dict:
         ...
 
+    @abc.abstractmethod
+    def memory_usage(self, state: StateType) -> Dict[str, int]:
+        ...
+
 
 class CachingLike(abc.ABC):
     """Blueprint for an explicit Cache API."""
@@ -47,11 +51,11 @@ class CachingLike(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def get_known_periods(self) -> KeysView[Period]:
+    def known_periods(self) -> KeysView[Period]:
         ...
 
     @abc.abstractmethod
-    def get_memory_usage(self) -> Dict[str, int]:
+    def memory_usage(self) -> Dict[str, int]:
         ...
 
 
@@ -85,6 +89,24 @@ class MemoryStorage(StorageLike):
     def delete_all(self, state: StateType) -> dict:
         state.clear()
         return state
+
+    # TODO: test
+    def memory_usage(self, state: StateType) -> Dict[str, int]:
+        if not state:
+            return {
+                "nb_arrays": 0,
+                "total_nb_bytes": 0,
+                "cell_size": numpy.nan,
+                }
+
+        nb_arrays = len(state)
+        array = next(iter(state.values()))
+
+        return {
+            "nb_arrays": nb_arrays,
+            "total_nb_bytes": array.nbytes * nb_arrays,
+            "cell_size": array.itemsize,
+            }
 
 
 class DiskStorage(StorageLike):
@@ -130,6 +152,27 @@ class DiskStorage(StorageLike):
     def delete_all(self, state: StateType) -> dict:
         state.clear()
         return state
+
+    # TODO: test
+    def memory_usage(self, state: StateType) -> Dict[str, int]:
+        if not state:
+            return {
+                "nb_files": 0,
+                "total_nb_bytes": 0,
+                "cell_size": numpy.nan,
+                }
+
+        filename, _ = next(iter(state.values()))
+        nb_files = len(state)
+        period = next(iter(state.keys()))
+        array = self.get(state, period)
+        size = os.path.getsize(filename)
+
+        return {
+            "nb_files": nb_files,
+            "total_nb_bytes": size * nb_files,
+            "cell_size": array.itemsize,
+            }
 
     def restore(self, state: StateType) -> StateType:
         state = self.delete_all(state)
@@ -192,27 +235,20 @@ class InMemoryStorage(CachingLike, SupportsPeriodCasting):
         casted: Period = self.cast_period(period, self.is_eternal)
         self.state = self.storage.delete(self.state, casted)
 
-    # TODO: decide what to do with this.
-    def get_known_periods(self) -> KeysView[Period]:
+    # TODO: test
+    def known_periods(self) -> KeysView[Period]:
         return self.state.keys()
+
+    # TODO: test
+    def memory_usage(self) -> Dict[str, int]:
+        return self.storage.memory_usage(self.state)
+
+    def get_known_periods(self) -> KeysView[Period]:
+        raise ValueError("TODO: add a deprecation warning")
 
     # TODO: decide what to do with this.
     def get_memory_usage(self) -> Dict[str, int]:
-        if not self.state:
-            return {
-                "nb_arrays": 0,
-                "total_nb_bytes": 0,
-                "cell_size": numpy.nan,
-                }
-
-        nb_arrays = len(self.state)
-        array = next(iter(self.state.values()))
-
-        return {
-            "nb_arrays": nb_arrays,
-            "total_nb_bytes": array.nbytes * nb_arrays,
-            "cell_size": array.itemsize,
-            }
+        raise ValueError("TODO: add a deprecation warning")
 
 
 class OnDiskStorage(CachingLike, SupportsPeriodCasting):
@@ -252,34 +288,22 @@ class OnDiskStorage(CachingLike, SupportsPeriodCasting):
         casted: Period = self.cast_period(period, self.is_eternal)
         self.state = self.storage.delete(self.state, casted)
 
-    # TODO: decide what to do with this.
-    def get_known_periods(self) -> KeysView[Period]:
+    # TODO: test
+    def known_periods(self) -> KeysView[Period]:
         return self.state.keys()
 
-    # TODO: decide what to do with this.
+    # TODO: test
+    def memory_usage(self) -> Dict[str, int]:
+        return self.storage.memory_usage(self.state)
+
+    def get_known_periods(self) -> KeysView[Period]:
+        raise ValueError("TODO: add a deprecation warning")
+
     def get_memory_usage(self) -> Dict[str, int]:
-        if not self.state:
-            return {
-                "nb_files": 0,
-                "total_nb_bytes": 0,
-                "cell_size": numpy.nan,
-                }
+        raise ValueError("TODO: add a deprecation warning")
 
-        nb_files = len(self.state)
-        file = next(iter(self.state.values()))
-        size = os.path.getsize(file)
-        array = self._decode_file(file)
+    def restore(self, state: StateType) -> StateType:
+        raise ValueError("TODO: add a deprecation warning")
 
-        return {
-            "nb_files": nb_files,
-            "total_nb_bytes": size * nb_files,
-            "cell_size": array.itemsize,
-            }
-
-    #  TODO: remove this method.
-    def _decode_file(self, file):
-        enum = self._enums.get(file)
-        if enum is not None:
-            return EnumArray(numpy.load(file), enum)
-        else:
-            return numpy.load(file)
+    def __del__(self) -> None:
+        raise ValueError("TODO: add a deprecation warning")

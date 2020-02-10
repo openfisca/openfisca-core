@@ -120,7 +120,7 @@ class Holder(object):
             dtype = self.variable.dtype,
             )
 
-        usage.update(self._memory_storage.get_memory_usage())
+        usage.update(self._memory_storage.memory_usage())
 
         if self.simulation.trace:
             nb_requests = self.simulation.tracer.get_nb_requests(self.variable.name)
@@ -136,8 +136,8 @@ class Holder(object):
             Get the list of periods the variable value is known for.
         """
 
-        return list(self._memory_storage.get_known_periods()) + list((
-            self._disk_storage.get_known_periods() if self._disk_storage else []))
+        return list(self._memory_storage.known_periods()) + list((
+            self._disk_storage.known_periods() if self._disk_storage else []))
 
     def set_input(self, period, array):
         """

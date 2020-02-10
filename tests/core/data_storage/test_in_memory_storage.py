@@ -93,20 +93,20 @@ def test_delete_when_is_eternal(eternal_storage, period):
     assert result == (None, None)
 
 
-def test_get_known_periods(storage, period, value):
+def test_known_periods(storage, period, value):
     storage = storage()
     storage.put(value, period)
 
-    result = storage.get_known_periods()
+    result = storage.known_periods()
 
     assert list(result) == [period]
 
 
-def test_get_memory_usage(storage, period, value):
+def test_memory_usage(storage, period, value):
     storage = storage()
     storage.put(value, period)
 
-    result = storage.get_memory_usage()
+    result = storage.memory_usage()
 
     assert result == {
         "nb_arrays": 1,

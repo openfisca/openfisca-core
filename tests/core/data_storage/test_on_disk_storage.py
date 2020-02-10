@@ -76,6 +76,7 @@ def test__init__when_preserve_storage_dir(storage):
     assert result.storage.preserve
 
 
+# TODO : refactor into one unit and one integration test
 def test_get(storage, period, file, enum_array, mocker):
     storage = storage()
     state = {period: (file, enum_array)}
@@ -88,6 +89,7 @@ def test_get(storage, period, file, enum_array, mocker):
     storage.storage.get.assert_called_once_with(*result)
 
 
+# TODO : refactor into one unit and one integration test
 def test_get_when_is_eternal(eternal_storage, period, eternal_period, file, mocker):
     """When it is eternal, periods are actually ignored"""
     storage = eternal_storage()
@@ -109,6 +111,7 @@ def test_get_when_cache_is_empty(storage, period):
     assert not result
 
 
+# TODO : refactor into one unit and one integration test
 def test_put(storage, period, value, file, mocker):
     storage = storage()
     mocker.patch("numpy.save")
@@ -119,6 +122,7 @@ def test_put(storage, period, value, file, mocker):
     numpy.save.assert_called_once_with(*result)
 
 
+# TODO : refactor into one unit and one integration test
 def test_put_when_is_eternal(eternal_storage, period, value, eternal_file, mocker):
     """When it is eternal, periods are actually ignored"""
     storage = eternal_storage()
@@ -130,9 +134,10 @@ def test_put_when_is_eternal(eternal_storage, period, value, eternal_file, mocke
     numpy.save.assert_called_once_with(*result)
 
 
+# TODO : refactor into one unit and one integration test
 def test_delete(storage, period, file, mocker):
     storage = storage()
-    state = {period: file, period.last_year: file}
+    state = {period: (file, None), period.last_year: (file, None)}
     mocker.patch.dict(storage.state, state)
     mocker.patch.object(storage.storage, "delete", autospec = True)
     storage.delete(period)
@@ -142,9 +147,10 @@ def test_delete(storage, period, file, mocker):
     storage.storage.delete.assert_called_once_with(*result)
 
 
-def test_delete_when_period_is_not_specified(storage, period, file, mocker):
+# TODO : refactor into one unit and one integration test
+def test_delete_when_period_is_not_specified(storage, period, file, enum_array, mocker):
     storage = storage()
-    state = {period: file, period.last_year: file}
+    state = {period: (file, enum_array), period.last_year: (file, None)}
     mocker.patch.dict(storage.state, state)
     storage.delete()
 
@@ -153,10 +159,11 @@ def test_delete_when_period_is_not_specified(storage, period, file, mocker):
     assert result == (None, None)
 
 
+# TODO : refactor into one unit and one integration test
 def test_delete_when_is_eternal(eternal_storage, value, eternal_period, mocker):
     """When it is eternal, periods are actually ignored"""
     storage = eternal_storage()
-    state = {period: file, eternal_period: file}
+    state = {period: (file, None), eternal_period: (file, None)}
     mocker.patch.dict(storage.state, state)
     mocker.patch.object(storage.storage, "delete", autospec = True)
     storage.delete(period)
@@ -166,24 +173,26 @@ def test_delete_when_is_eternal(eternal_storage, value, eternal_period, mocker):
     storage.storage.delete.assert_called_once_with(*result)
 
 
+# TODO : refactor into one unit and one integration test
 def test_get_known_periods(storage, period, file, mocker):
     storage = storage()
-    state = {period: file}
+    state = {period: (file, None)}
     mocker.patch.dict(storage.state, state)
 
-    result = storage.get_known_periods()
+    result = storage.known_periods()
 
     assert list(result) == [period]
 
 
+# TODO : refactor into one unit and one integration test
 def test_get_memory_usage(storage, period, eternal_period, file, value, mocker):
     storage = storage()
-    state = {period: file, eternal_period: file}
+    state = {period: (file, None), eternal_period: (file, None)}
     mocker.patch.dict(storage.state, state)
     mocker.patch("os.path.getsize", return_value = 8)
-    mocker.patch.object(storage, "_decode_file", return_value = value)
+    mocker.patch.object(storage.storage, "get", return_value = value)
 
-    result = storage.get_memory_usage()
+    result = storage.memory_usage()
 
     assert result == {
         "nb_files": 2,
