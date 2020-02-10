@@ -287,3 +287,32 @@ def test_str_variable():
     response = subject.post('/calculate', data = simulation_json, content_type = 'application/json')
 
     assert response.status_code == OK
+
+def test_periods():
+    simulation_json = json.dumps({
+        "persons": {
+            "bill": {}
+            },
+        "households": {
+            "_": {
+                "parents": ["bill"],
+                "housing_tax": {
+                    "2017": None
+                    },
+                "housing_occupancy_status": {
+                    "2017-01": None
+                    }
+                }
+            }
+        })
+
+    response = post_json(simulation_json)
+    assert response.status_code == OK
+
+    response_json = json.loads(response.data.decode('utf-8'))
+
+    yearly_variable = dpath.get(response_json, 'households/_/housing_tax') # web api year is an int
+    assert yearly_variable == {'2017': 200.0}
+    
+    monthly_variable = dpath.get(response_json, 'households/_/housing_occupancy_status') # web api month is a string
+    assert monthly_variable == {'2017-01': 'tenant'}
