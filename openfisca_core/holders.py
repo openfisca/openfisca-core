@@ -9,7 +9,7 @@ import psutil
 
 from openfisca_core import periods
 from openfisca_core.commons import empty_clone
-from openfisca_core.data_storage import InMemoryStorage, OnDiskStorage
+from openfisca_core.data_storage import Cache, DiskStorage, MemoryStorage
 from openfisca_core.errors import PeriodMismatchError
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import MONTH, YEAR, ETERNITY
@@ -27,7 +27,7 @@ class Holder(object):
         self.population = population
         self.variable = variable
         self.simulation = population.simulation
-        self._memory_storage = InMemoryStorage(is_eternal = (self.variable.definition_period == ETERNITY))
+        self._memory_storage = Cache(MemoryStorage(), is_eternal = (self.variable.definition_period == ETERNITY))
 
         # By default, do not activate on-disk storage, or variable dropping
         self._disk_storage = None
@@ -60,13 +60,13 @@ class Holder(object):
         if directory is None:
             directory = self.simulation.data_storage_dir
         storage_dir = os.path.join(directory, self.variable.name)
+
         if not os.path.isdir(storage_dir):
             os.mkdir(storage_dir)
-        return OnDiskStorage(
-            storage_dir,
-            is_eternal = (self.variable.definition_period == ETERNITY),
-            preserve_storage_dir = preserve
-            )
+
+        storage = DiskStorage(storage_dir, preserve)
+
+        return Cache(storage, is_eternal = (self.variable.definition_period == ETERNITY))
 
     def delete_arrays(self, period = None):
         """

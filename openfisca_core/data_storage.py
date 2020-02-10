@@ -1,7 +1,7 @@
 import abc
 import os
 import shutil
-from typing import Any, Dict, KeysView, Optional
+from typing import Any, Dict, KeysView, Optional, Union
 
 import numpy
 
@@ -51,11 +51,11 @@ class CachingLike(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def known_periods(self) -> KeysView[Period]:
+    def memory_usage(self) -> Dict[str, int]:
         ...
 
     @abc.abstractmethod
-    def memory_usage(self) -> Dict[str, int]:
+    def known_periods(self) -> KeysView[Period]:
         ...
 
 
@@ -74,7 +74,7 @@ class SupportsPeriodCasting(abc.ABC):
 
 
 class MemoryStorage(StorageLike):
-    """Responsible for storing and retrieving values in memory."""
+    """Low-level class responsible for storing and retrieving values in memory."""
 
     def get(self, state: Dict[Period, Any], key: Period) -> Any:
         return state.get(key)
@@ -90,7 +90,6 @@ class MemoryStorage(StorageLike):
         state.clear()
         return state
 
-    # TODO: test
     def memory_usage(self, state: StateType) -> Dict[str, int]:
         if not state:
             return {
@@ -110,13 +109,16 @@ class MemoryStorage(StorageLike):
 
 
 class DiskStorage(StorageLike):
-    """Responsible for storing and retrieving values on disk."""
+    """Low-level class responsible for storing and retrieving values on disk."""
     directory: str
     preserve: bool
 
     def __init__(self, directory: str, preserve: bool) -> None:
         self.directory = directory
         self.preserve = preserve
+
+        if not os.path.isdir(self.directory):
+            os.makedirs(self.directory, exist_ok = True)
 
     def get(self, state: Dict[Period, Any], key: Period) -> Any:
         file = state.get(key)
@@ -153,7 +155,6 @@ class DiskStorage(StorageLike):
         state.clear()
         return state
 
-    # TODO: test
     def memory_usage(self, state: StateType) -> Dict[str, int]:
         if not state:
             return {
@@ -203,21 +204,26 @@ class DiskStorage(StorageLike):
             shutil.rmtree(parent_dir)
 
 
-class InMemoryStorage(CachingLike, SupportsPeriodCasting):
-    """
-    Low-level class responsible for storing and retrieving calculated vectors in memory.
+StorageType = Union[MemoryStorage, DiskStorage]
 
-    TODO: separate concerns between the caching API and the storing API.
+
+class Cache(CachingLike, SupportsPeriodCasting):
+    """
+    Explicit Cache API responsible of:
+
+    * keeping cache state
+    * reading from storages
+    * writing to storages
     """
 
     state: StateType
+    storage: StorageType
     is_eternal: bool
-    storage: MemoryStorage
 
-    def __init__(self, is_eternal: bool = False) -> None:
+    def __init__(self, storage: StorageType, is_eternal: bool = False) -> None:
         self.state = {}
+        self.storage = storage
         self.is_eternal = is_eternal
-        self.storage = MemoryStorage()
 
     def get(self, period: Period) -> Any:
         casted: Period = self.cast_period(period, self.is_eternal)
@@ -235,75 +241,20 @@ class InMemoryStorage(CachingLike, SupportsPeriodCasting):
         casted: Period = self.cast_period(period, self.is_eternal)
         self.state = self.storage.delete(self.state, casted)
 
-    # TODO: test
-    def known_periods(self) -> KeysView[Period]:
-        return self.state.keys()
-
-    # TODO: test
     def memory_usage(self) -> Dict[str, int]:
         return self.storage.memory_usage(self.state)
 
-    def get_known_periods(self) -> KeysView[Period]:
-        raise ValueError("TODO: add a deprecation warning")
-
-    # TODO: decide what to do with this.
-    def get_memory_usage(self) -> Dict[str, int]:
-        raise ValueError("TODO: add a deprecation warning")
-
-
-class OnDiskStorage(CachingLike, SupportsPeriodCasting):
-    """
-    Low-level class responsible for storing and retrieving calculated vectors on disk.
-
-    TODO: separate concerns between the caching API and the storing API.
-    """
-
-    state: StateType
-    is_eternal: bool
-    storage: DiskStorage
-
-    def __init__(
-            self,
-            storage_dir: str,
-            is_eternal: bool = False,
-            preserve_storage_dir: bool = False,
-            ) -> None:
-        self.state = {}
-        self.is_eternal = is_eternal
-        self.storage = DiskStorage(storage_dir, preserve_storage_dir)
-
-    def get(self, period: Period) -> Any:
-        casted: Period = self.cast_period(period, self.is_eternal)
-        return self.storage.get(self.state, casted)
-
-    def put(self, value: Any, period: Period) -> None:
-        casted: Period = self.cast_period(period, self.is_eternal)
-        self.state = self.storage.put(self.state, casted, value)
-
-    def delete(self, period: Optional[Period] = None) -> None:
-        if period is None:
-            self.state = self.storage.delete_all(self.state)
-            return
-
-        casted: Period = self.cast_period(period, self.is_eternal)
-        self.state = self.storage.delete(self.state, casted)
-
-    # TODO: test
     def known_periods(self) -> KeysView[Period]:
         return self.state.keys()
 
-    # TODO: test
-    def memory_usage(self) -> Dict[str, int]:
-        return self.storage.memory_usage(self.state)
-
+    # TODO : test
     def get_known_periods(self) -> KeysView[Period]:
         raise ValueError("TODO: add a deprecation warning")
 
+    # TODO : test
     def get_memory_usage(self) -> Dict[str, int]:
         raise ValueError("TODO: add a deprecation warning")
 
+    # TODO : test
     def restore(self, state: StateType) -> StateType:
-        raise ValueError("TODO: add a deprecation warning")
-
-    def __del__(self) -> None:
         raise ValueError("TODO: add a deprecation warning")
