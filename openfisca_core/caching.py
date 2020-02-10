@@ -1,7 +1,8 @@
 import abc
+import enum
 import os
 import shutil
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 import numpy
 
@@ -70,7 +71,7 @@ class MemoryCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsage):
 
     _arrays: dict
 
-    def __init__(self) -> None:
+    def __init__(self, *_) -> None:
         self._arrays = {}
 
     def get(self, period: periods.Period) -> Any:
@@ -192,9 +193,9 @@ class PersistentCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsa
         return {item: value for item, value in items if not period.contains(item)}
 
     def _decode_file(self, file):
-        enum = self._enums.get(file)
-        if enum is not None:
-            return indexed_enums.EnumArray(numpy.load(file), enum)
+        indexed_enum = self._enums.get(file)
+        if indexed_enum is not None:
+            return indexed_enums.EnumArray(numpy.load(file), indexed_enum)
         else:
             return numpy.load(file)
 
@@ -235,3 +236,64 @@ class Cache(SupportsCaching):
 
     def delete_all(self) -> None:
         self.storage.delete_all()
+
+
+class TimeEnumMeta(enum.EnumMeta):
+
+    def __getitem__(self, name):
+        try:
+            return super(TimeEnumMeta, self).__getitem__(name.lower())
+        except KeyError:
+            return super(TimeEnumMeta, self).__getitem__("exact")
+
+
+@enum.unique
+class TimeEnum(enum.Enum, metaclass = TimeEnumMeta):
+
+    exact = ExactCaching
+    eternity = EternalCaching
+
+
+@enum.unique
+class StoreEnum(enum.Enum):
+
+    memory = MemoryCaching
+    persistent = PersistentCaching
+
+
+class CreateTimeService:
+
+    period: periods.Period
+
+    def __init__(self, period: periods.Period) -> None:
+        self.period = period
+
+    def __call__(self) -> TimeType:
+        return TimeEnum[str(self.period)].value()
+
+
+class CreateStoreService:
+
+    name: str
+
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+    def __call__(self, folder: Optional[str] = None, persist: bool = False) -> TimeType:
+        return StoreEnum[self.name].value(folder, persist)
+
+
+class CreateCacheService:
+
+    name: str
+    period: periods.Period
+
+    def __init__(self, name: str, period: periods.Period) -> None:
+        self.name = name
+        self.period = period
+
+    def __call__(self, folder: Optional[str] = None, persist: bool = False) -> TimeType:
+        timeness = TimeEnum[str(self.period)].value()
+        storage = StoreEnum[self.name].value(folder, persist)
+
+        return Cache(timeness, storage)

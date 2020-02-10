@@ -58,12 +58,12 @@ class Holder(object):
         return new
 
     def create_memory_storage(self) -> caching.StoreType:
-        timeness = self._create_timeness()
-        storage = caching.MemoryCaching()
-
-        return caching.Cache(timeness, storage)
+        period = self.variable.definition_period
+        return caching.CreateCacheService("memory", period)()
 
     def create_disk_storage(self, directory = None, preserve = False) -> caching.StoreType:
+        period = self.variable.definition_period
+
         if directory is None:
             directory = self.simulation.data_storage_dir
 
@@ -72,15 +72,7 @@ class Holder(object):
         if not os.path.isdir(storage_dir):
             os.mkdir(storage_dir)
 
-        timeness = self._create_timeness()
-        storage = caching.PersistentCaching(storage_dir, preserve)
-
-        return caching.Cache(timeness, storage)
-
-    def _create_timeness(self) -> caching.TimeType:
-        # Explicit caching object
-        is_eternal = self.variable.definition_period == ETERNITY
-        return (caching.ExactCaching, caching.EternalCaching)[is_eternal]()
+        return caching.CreateCacheService("persistent", period)(storage_dir, preserve)
 
     def delete_arrays(self, period: Optional[periods.Period]) -> None:
         """
