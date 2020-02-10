@@ -111,9 +111,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         self._holders[variable_name] = holder = Holder(variable, self)
         return holder
 
-    def memory_usage(self, variables = None):
+    def get_memory_usage(self, variables = None):
         holders_memory_usage = {
-            variable_name: holder.memory_usage()
+            variable_name: holder.get_memory_usage()
             for variable_name, holder in self._holders.items()
             if variables is None or variable_name in variables
             }

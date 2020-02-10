@@ -87,7 +87,7 @@ def test_neutralization_optimization(make_simulation):
 
     # As basic_income is neutralized, it should not be cached
     basic_income_holder = simulation.persons.get_holder('basic_income')
-    assert basic_income_holder.known_periods() == []
+    assert basic_income_holder.get_known_periods() == []
 
 
 def test_input_variable_neutralization(make_simulation):

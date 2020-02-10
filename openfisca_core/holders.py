@@ -28,11 +28,7 @@ class Holder(object):
         self.population = population
         self.variable = variable
         self.simulation = population.simulation
-
-        # Explicit caching object
-        is_eternal = self.variable.definition_period == ETERNITY
-        timeness = (caching.ExactCaching, caching.EternalCaching)[is_eternal]()
-        self._memory_cache = self.create_memory_cache(timeness)
+        self._memory_cache = self.create_memory_storage()
 
         # By default, do not activate on-disk storage, or variable dropping
         self._persistent_cache = None
@@ -40,7 +36,7 @@ class Holder(object):
         self._do_not_store = False
         if self.simulation and self.simulation.memory_config:
             if self.variable.name not in self.simulation.memory_config.priority_variables:
-                self._persistent_cache = self.create_persistent_cache(timeness)
+                self._persistent_cache = self.create_disk_storage()
                 self._on_disk_storable = True
             if self.variable.name in self.simulation.memory_config.variables_to_drop:
                 self._do_not_store = True
@@ -61,10 +57,13 @@ class Holder(object):
 
         return new
 
-    def create_memory_cache(self, timeness):
-        return caching.Cache(timeness, caching.MemoryCaching())
+    def create_memory_storage(self) -> caching.StoreType:
+        timeness = self._create_timeness()
+        storage = caching.MemoryCaching()
 
-    def create_persistent_cache(self, timeness, directory = None, preserve = False):
+        return caching.Cache(timeness, storage)
+
+    def create_disk_storage(self, directory = None, preserve = False) -> caching.StoreType:
         if directory is None:
             directory = self.simulation.data_storage_dir
 
@@ -73,7 +72,15 @@ class Holder(object):
         if not os.path.isdir(storage_dir):
             os.mkdir(storage_dir)
 
-        return caching.Cache(timeness, caching.PersistentCaching(storage_dir, preserve))
+        timeness = self._create_timeness()
+        storage = caching.PersistentCaching(storage_dir, preserve)
+
+        return caching.Cache(timeness, storage)
+
+    def _create_timeness(self) -> caching.TimeType:
+        # Explicit caching object
+        is_eternal = self.variable.definition_period == ETERNITY
+        return (caching.ExactCaching, caching.EternalCaching)[is_eternal]()
 
     def delete_arrays(self, period: Optional[periods.Period]) -> None:
         """
@@ -111,7 +118,7 @@ class Holder(object):
         if self._persistent_cache:
             return self._persistent_cache.get(period)
 
-    def memory_usage(self):
+    def get_memory_usage(self):
         """
             Get data about the virtual memory usage of the holder.
 
@@ -120,7 +127,7 @@ class Holder(object):
 
             Example:
 
-            >>> holder.memory_usage()
+            >>> holder.get_memory_usage()
             >>> {
             >>>    'nb_arrays': 12,  # The holder contains the variable values for 12 different periods
             >>>    'nb_cells_by_array': 100, # There are 100 entities (e.g. persons) in our simulation
@@ -148,7 +155,7 @@ class Holder(object):
 
         return usage
 
-    def known_periods(self):
+    def get_known_periods(self):
         """
             Get the list of periods the variable value is known for.
         """

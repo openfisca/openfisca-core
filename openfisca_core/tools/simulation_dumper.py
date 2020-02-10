@@ -61,11 +61,9 @@ def restore_simulation(directory, tax_benefit_system, **kwargs):
 
 
 def _dump_holder(holder, directory):
-    is_eternal = holder.variable.definition_period == ETERNITY
-    timeness = (caching.ExactCaching, caching.EternalCaching)[is_eternal]()
-    persistent_cache = holder.create_persistent_cache(timeness, directory, preserve = True)
+    persistent_cache = holder.create_disk_storage(directory, preserve = True)
 
-    for period in holder.known_periods():
+    for period in holder.get_known_periods():
         value = holder.get_array(period)
         persistent_cache.put(value, period)
 
@@ -108,7 +106,6 @@ def _restore_entity(population, directory):
 
 
 def _restore_holder(simulation, variable, directory):
-    # Explicit caching object
     storage_dir = os.path.join(directory, variable)
     is_eternal = simulation.tax_benefit_system.get_variable(variable).definition_period == ETERNITY
     timeness = (caching.ExactCaching, caching.EternalCaching)[is_eternal]()

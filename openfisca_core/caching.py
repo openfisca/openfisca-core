@@ -208,10 +208,11 @@ class PersistentCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsa
             shutil.rmtree(parent_dir)
 
 
-class Cache(SupportsCaching):
+TimeType = Union[ExactCaching, EternalCaching]
+StoreType = Union[MemoryCaching, PersistentCaching]
 
-    TimeType = Union[ExactCaching, EternalCaching]
-    StoreType = Union[MemoryCaching, PersistentCaching]
+
+class Cache(SupportsCaching):
 
     timeness: TimeType
     storage: StoreType

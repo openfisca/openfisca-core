@@ -120,13 +120,13 @@ def test_delete_all_arrays(single):
     assert not simulation.person('salary', '2018-01')
 
 
-def test_memory_usage(single):
+def test_get_memory_usage(single):
     simulation = single
     salary_holder = simulation.person.get_holder('salary')
-    memory_usage = salary_holder.memory_usage()
+    memory_usage = salary_holder.get_memory_usage()
     assert memory_usage['total_nb_bytes'] == 0
     salary_holder.set_input(make_period(2017), np.asarray([30000]))
-    memory_usage = salary_holder.memory_usage()
+    memory_usage = salary_holder.get_memory_usage()
     assert memory_usage['nb_cells_by_array'] == 1
     assert memory_usage['cell_size'] == 4  # float 32
     assert memory_usage['nb_cells_by_array'] == 1  # one person
@@ -134,7 +134,7 @@ def test_memory_usage(single):
     assert memory_usage['total_nb_bytes'] == 4 * 12 * 1
 
 
-def test_memory_usage_with_trace(single):
+def test_get_memory_usage_with_trace(single):
     simulation = single
     simulation.trace = True
     salary_holder = simulation.person.get_holder('salary')
@@ -143,7 +143,7 @@ def test_memory_usage_with_trace(single):
     simulation.calculate('salary', '2017-01')
     simulation.calculate('salary', '2017-02')
     simulation.calculate_add('salary', '2017')  # 12 calculations
-    memory_usage = salary_holder.memory_usage()
+    memory_usage = salary_holder.get_memory_usage()
     assert memory_usage['nb_requests'] == 15
     assert memory_usage['nb_requests_by_array'] == 1.25  # 15 calculations / 12 arrays
 
@@ -196,7 +196,7 @@ def test_known_periods(couple):
     holder.put_in_cache(data, month)
     holder._memory_cache.put(data, month_2)
 
-    assert sorted(holder.known_periods()), [month == month_2]
+    assert sorted(holder.get_known_periods()), [month == month_2]
 
 
 def test_cache_enum_on_disk(single):

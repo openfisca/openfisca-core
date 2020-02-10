@@ -425,12 +425,12 @@ def test_sum_following_bug_ipp_2():
     assert_near(nb_eligibles_by_household, [2, 0])
 
 
-def test_memory_usage():
+def test_get_memory_usage():
     test_case = deepcopy(single)
     test_case["persons"]["Alicia"]["salary"] = {"2017-01": 0}
     simulation = SimulationBuilder().build_from_dict(tax_benefit_system, test_case)
     simulation.calculate('disposable_income', '2017-01')
-    memory_usage = simulation.person.memory_usage(variables = ['salary'])
+    memory_usage = simulation.person.get_memory_usage(variables = ['salary'])
     assert(memory_usage['total_nb_bytes'] > 0)
     assert(len(memory_usage['by_variable']) == 1)
 
