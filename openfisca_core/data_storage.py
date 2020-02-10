@@ -77,10 +77,8 @@ class InMemoryStorage(StorageLike):
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
 
-        period = periods.period(period)
-
-        if period is not None:
-            self._arrays = self._pop(period, list(self._arrays.items()))
+        casted: Period = periods.period(period)
+        self._arrays = self._pop(casted, list(self._arrays.items()))
 
     def get_known_periods(self) -> List[Period]:
         return list(self._arrays.keys())
@@ -156,15 +154,13 @@ class OnDiskStorage(StorageLike):
     def delete(self, period: Optional[Period] = None) -> None:
         if period is None:
             self._files = {}
-            return None
+            return
 
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
 
-        period = periods.period(period)
-
-        if period is not None:
-            self._files = self._pop(period, list(self._files.items()))
+        casted: Period = periods.period(period)
+        self._files = self._pop(casted, list(self._files.items()))
 
     def get_known_periods(self) -> List[Period]:
         return list(self._files.keys())
