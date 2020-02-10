@@ -75,9 +75,9 @@ def test_delete_when_period_is_not_specified(storage, period, value):
     storage.put(value, period.last_year)
     storage.delete()
 
-    result = storage.get(period)
+    result = storage.get(period), storage.get(period.last_year)
 
-    assert not result
+    assert result == (None, None)
 
 
 def test_delete_when_is_eternal(eternal_storage, value):
