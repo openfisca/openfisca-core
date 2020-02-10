@@ -1,7 +1,7 @@
 import abc
 import os
 import shutil
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import numpy
 
@@ -15,11 +15,11 @@ from typing_extensions import Protocol
 class StorageLike(Protocol):
 
     @abc.abstractmethod
-    def get(self, period: Period) -> numpy.ndarray:
+    def get(self, period: Period) -> Any:
         ...
 
     @abc.abstractmethod
-    def put(self, value: numpy.ndarray, period: Period) -> None:
+    def put(self, value: Any, period: Period) -> None:
         ...
 
     @abc.abstractmethod
@@ -50,7 +50,7 @@ class InMemoryStorage(StorageLike):
         self._arrays = {}
         self.is_eternal = is_eternal
 
-    def get(self, period: Period) -> numpy.ndarray:
+    def get(self, period: Period) -> Any:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
 
@@ -62,7 +62,7 @@ class InMemoryStorage(StorageLike):
 
         return values
 
-    def put(self, value, period):
+    def put(self, value: Any, period: Period) -> None:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
 
@@ -124,7 +124,7 @@ class OnDiskStorage(StorageLike):
         self.preserve_storage_dir = preserve_storage_dir
         self.storage_dir = storage_dir
 
-    def get(self, period: Period) -> numpy.ndarray:
+    def get(self, period: Period) -> Any:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
 
@@ -136,7 +136,7 @@ class OnDiskStorage(StorageLike):
 
         return self._decode_file(values)
 
-    def put(self, value: numpy.ndarray, period: Period) -> None:
+    def put(self, value: Any, period: Period) -> None:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
 
