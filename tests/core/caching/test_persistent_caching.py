@@ -82,11 +82,11 @@ def test_delete(storage, period, file, mocker):
     storage._pop.assert_called_once_with(*result)
 
 
-def test_delete_when_period_is_not_specified(storage, period, file, mocker):
+def test_delete_all(storage, period, file, mocker):
     storage = storage()
     files = {period: file, period.last_year: file}
     mocker.patch.dict(storage._files, files)
-    storage.delete()
+    storage.delete_all()
 
     result = storage.get(period), storage.get(period.last_year)
 

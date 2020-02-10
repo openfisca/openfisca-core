@@ -1,7 +1,7 @@
 import abc
 import os
 import shutil
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 
 import numpy
 
@@ -11,29 +11,23 @@ from openfisca_core import periods
 from typing_extensions import Protocol
 
 
-class SupportsPeriod(Protocol):
-
-    @abc.abstractmethod
-    def period(self, period: periods.Period) -> periods.Period:
-        ...
-
-
 class SupportsCaching(Protocol):
 
     @abc.abstractmethod
-    def get(self, period: periods.Period) -> numpy.ndarray:
+    def get(self, period: periods.Period) -> Any:
         ...
 
     @abc.abstractmethod
-    def put(self, value: numpy.ndarray, period: periods.Period) -> None:
+    def put(self, value: Any, period: periods.Period) -> None:
         ...
 
     @abc.abstractmethod
-    def delete(self, period: Optional[periods.Period] = None) -> None:
+    def delete(self, period: periods.Period) -> None:
         ...
 
-    def _pop(self, period: periods.Period, items: list) -> dict:
-        return {item: value for item, value in items if not period.contains(item)}
+    @abc.abstractmethod
+    def delete_all(self) -> None:
+        ...
 
 
 class SupportsKnownPeriods(Protocol):
@@ -47,6 +41,13 @@ class SupportsMemoryUsage(Protocol):
 
     @abc.abstractmethod
     def memory_usage(self) -> Dict[str, int]:
+        ...
+
+
+class SupportsPeriod(Protocol):
+
+    @abc.abstractmethod
+    def period(self, period: periods.Period) -> periods.Period:
         ...
 
 
@@ -68,13 +69,11 @@ class MemoryCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsage):
     """
 
     _arrays: dict
-    is_eternal: bool
 
-    def __init__(self, is_eternal: bool = False) -> None:
+    def __init__(self) -> None:
         self._arrays = {}
-        self.is_eternal = is_eternal
 
-    def get(self, period: periods.Period) -> numpy.ndarray:
+    def get(self, period: periods.Period) -> Any:
         values = self._arrays.get(period)
 
         if values is None:
@@ -82,16 +81,14 @@ class MemoryCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsage):
 
         return values
 
-    def put(self, value, period):
+    def put(self, value: Any, period: periods.Period) -> None:
         self._arrays[period] = value
 
-    def delete(self, period: Optional[periods.Period] = None) -> None:
-        if period is None:
-            self._arrays = {}
-            return
+    def delete(self, period: periods.Period) -> None:
+        self._arrays = self._pop(period, list(self._arrays.items()))
 
-        if period is not None:
-            self._arrays = self._pop(period, list(self._arrays.items()))
+    def delete_all(self) -> None:
+        self._arrays = {}
 
     def known_periods(self) -> List[periods.Period]:
         return list(self._arrays.keys())
@@ -113,6 +110,9 @@ class MemoryCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsage):
             "cell_size": array.itemsize,
             }
 
+    def _pop(self, period: periods.Period, items: list) -> dict:
+        return {item: value for item, value in items if not period.contains(item)}
+
 
 class PersistentCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsage):
     """
@@ -121,23 +121,16 @@ class PersistentCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsa
 
     _files: dict
     _enums: dict
-    is_eternal: bool
-    preserve_storage_dir: bool
     storage_dir: str
+    preserve_storage_dir: bool
 
-    def __init__(
-            self,
-            storage_dir: str,
-            is_eternal: bool = False,
-            preserve_storage_dir: bool = False,
-            ) -> None:
+    def __init__(self, storage_dir: str, preserve_storage_dir: bool = False) -> None:
         self._files = {}
         self._enums = {}
-        self.is_eternal = is_eternal
-        self.preserve_storage_dir = preserve_storage_dir
         self.storage_dir = storage_dir
+        self.preserve_storage_dir = preserve_storage_dir
 
-    def get(self, period: periods.Period) -> numpy.ndarray:
+    def get(self, period: periods.Period) -> Any:
         values = self._files.get(period)
 
         if values is None:
@@ -145,7 +138,7 @@ class PersistentCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsa
 
         return self._decode_file(values)
 
-    def put(self, value: numpy.ndarray, period: periods.Period) -> None:
+    def put(self, value: Any, period: periods.Period) -> None:
         filename = str(period)
         path = os.path.join(self.storage_dir, filename) + '.npy'
 
@@ -156,13 +149,11 @@ class PersistentCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsa
         numpy.save(path, value)
         self._files[period] = path
 
-    def delete(self, period: Optional[periods.Period] = None) -> None:
-        if period is None:
-            self._files = {}
-            return None
+    def delete(self, period: periods.Period) -> None:
+        self._files = self._pop(period, list(self._files.items()))
 
-        if period is not None:
-            self._files = self._pop(period, list(self._files.items()))
+    def delete_all(self) -> None:
+        self._files = {}
 
     def known_periods(self) -> List[periods.Period]:
         return list(self._files.keys())
@@ -197,6 +188,9 @@ class PersistentCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsa
             period = periods.period(filename_core)
             files[period] = path
 
+    def _pop(self, period: periods.Period, items: list) -> dict:
+        return {item: value for item, value in items if not period.contains(item)}
+
     def _decode_file(self, file):
         enum = self._enums.get(file)
         if enum is not None:
@@ -214,14 +208,35 @@ class PersistentCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsa
             shutil.rmtree(parent_dir)
 
 
-class Cache:
+class Cache(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsage):
 
     TimeType = Union[ExactCaching, EternalCaching]
     StoreType = Union[MemoryCaching, PersistentCaching]
 
-    time: TimeType
-    store: StoreType
+    timeness: TimeType
+    storage: StoreType
 
-    def __init__(self, time: TimeType, store: StoreType) -> None:
-        self.time = time
-        self.store = store
+    def __init__(self, timeness: TimeType, storage: StoreType) -> None:
+        self.timeness = timeness
+        self.storage = storage
+
+    def get(self, period: periods.Period) -> Any:
+        period = self.timeness.period(period)
+        return self.storage.get(period)
+
+    def put(self, value: Any, period: periods.Period) -> None:
+        period = self.timeness.period(period)
+        self.storage.put(value, period)
+
+    def delete(self, period: periods.Period) -> None:
+        period = self.timeness.period(period)
+        self.storage.delete(period)
+
+    def delete_all(self) -> None:
+        self.storage.delete_all()
+
+    def known_periods(self) -> List[periods.Period]:
+        return self.storage.known_periods()
+
+    def memory_usage(self) -> Dict[str, int]:
+        return self.storage.memory_usage()

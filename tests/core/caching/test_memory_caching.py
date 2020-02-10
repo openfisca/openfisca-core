@@ -47,11 +47,11 @@ def test_delete(storage, period, value):
     assert result == (None, value)
 
 
-def test_delete_when_period_is_not_specified(storage, period, value):
+def test_delete_all(storage, period, value):
     storage = storage()
     storage.put(value, period)
     storage.put(value, period.last_year)
-    storage.delete()
+    storage.delete_all()
 
     result = storage.get(period)
 

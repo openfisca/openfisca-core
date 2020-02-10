@@ -7,9 +7,9 @@ import warnings
 import numpy as np
 import psutil
 
+from openfisca_core import caching
 from openfisca_core import periods
 from openfisca_core.commons import empty_clone
-from openfisca_core.caching import MemoryCaching, PersistentCaching
 from openfisca_core.errors import PeriodMismatchError
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import MONTH, YEAR, ETERNITY
@@ -27,15 +27,19 @@ class Holder(object):
         self.population = population
         self.variable = variable
         self.simulation = population.simulation
-        self._memory_storage = MemoryCaching(is_eternal = (self.variable.definition_period == ETERNITY))
+
+        # Explicit caching object
+        is_eternal = self.variable.definition_period == ETERNITY
+        timeness = (caching.ExactCaching, caching.EternalCaching)[is_eternal]()
+        self._memory_cache = self.create_memory_cache(timeness)
 
         # By default, do not activate on-disk storage, or variable dropping
-        self._disk_storage = None
+        self._persistent_cache = None
         self._on_disk_storable = False
         self._do_not_store = False
         if self.simulation and self.simulation.memory_config:
             if self.variable.name not in self.simulation.memory_config.priority_variables:
-                self._disk_storage = self.create_disk_storage()
+                self._persistent_cache = self.create_persistent_cache(timeness)
                 self._on_disk_storable = True
             if self.variable.name in self.simulation.memory_config.variables_to_drop:
                 self._do_not_store = True
@@ -56,17 +60,19 @@ class Holder(object):
 
         return new
 
-    def create_disk_storage(self, directory = None, preserve = False):
+    def create_memory_cache(self, timeness):
+        return caching.Cache(timeness, caching.MemoryCaching())
+
+    def create_persistent_cache(self, timeness, directory = None, preserve = False):
         if directory is None:
             directory = self.simulation.data_storage_dir
+
         storage_dir = os.path.join(directory, self.variable.name)
+
         if not os.path.isdir(storage_dir):
             os.mkdir(storage_dir)
-        return PersistentCaching(
-            storage_dir,
-            is_eternal = (self.variable.definition_period == ETERNITY),
-            preserve_storage_dir = preserve
-            )
+
+        return caching.Cache(timeness, caching.PersistentCaching(storage_dir, preserve))
 
     def delete_arrays(self, period = None):
         """
@@ -76,9 +82,19 @@ class Holder(object):
 
         """
 
-        self._memory_storage.delete(period)
-        if self._disk_storage:
-            self._disk_storage.delete(period)
+        if period is None:
+            return self.delete_all_arrays()
+
+        self._memory_cache.delete(period)
+
+        if self._persistent_cache:
+            self._persistent_cache.delete(period)
+
+    def delete_all_arrays(self):
+        self._memory_cache.delete_all()
+
+        if self._persistent_cache:
+            self._persistent_cache.delete_all()
 
     def get_array(self, period):
         """
@@ -86,13 +102,14 @@ class Holder(object):
 
             If the value is not known, return ``None``.
         """
+
         if self.variable.is_neutralized:
             return self.default_array()
-        value = self._memory_storage.get(period)
+        value = self._memory_cache.get(period)
         if value is not None:
             return value
-        if self._disk_storage:
-            return self._disk_storage.get(period)
+        if self._persistent_cache:
+            return self._persistent_cache.get(period)
 
     def memory_usage(self):
         """
@@ -120,7 +137,7 @@ class Holder(object):
             dtype = self.variable.dtype,
             )
 
-        usage.update(self._memory_storage.memory_usage())
+        usage.update(self._memory_cache.memory_usage())
 
         if self.simulation.trace:
             nb_requests = self.simulation.tracer.get_nb_requests(self.variable.name)
@@ -136,8 +153,8 @@ class Holder(object):
             Get the list of periods the variable value is known for.
         """
 
-        return list(self._memory_storage.known_periods()) + list((
-            self._disk_storage.known_periods() if self._disk_storage else []))
+        return list(self._memory_cache.known_periods()) + list((
+            self._persistent_cache.known_periods() if self._persistent_cache else []))
 
     def set_input(self, period, array):
         """
@@ -227,14 +244,14 @@ class Holder(object):
 
         should_store_on_disk = (
             self._on_disk_storable and
-            self._memory_storage.get(period) is None and  # If there is already a value in memory, replace it and don't put a new value in the disk storage
+            self._memory_cache.get(period) is None and  # If there is already a value in memory, replace it and don't put a new value in the disk storage
             psutil.virtual_memory().percent >= self.simulation.memory_config.max_memory_occupation_pc
             )
 
         if should_store_on_disk:
-            self._disk_storage.put(value, period)
+            self._persistent_cache.put(value, period)
         else:
-            self._memory_storage.put(value, period)
+            self._memory_cache.put(value, period)
 
     def put_in_cache(self, value, period):
         if self._do_not_store:
