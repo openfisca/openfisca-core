@@ -114,7 +114,7 @@ def _restore_holder(simulation, variable, directory):
         )
 
     # TODO: decide whether to turn this variable public
-    disk_storage._files = disk_storage.storage.restore(disk_storage._files)
+    disk_storage.state = disk_storage.storage.restore(disk_storage.state)
 
     holder = simulation.get_holder(variable)
 

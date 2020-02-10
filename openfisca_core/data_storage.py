@@ -167,46 +167,46 @@ class InMemoryStorage(CachingLike, SupportsPeriodCasting):
     TODO: separate concerns between the caching API and the storing API.
     """
 
-    _arrays: dict
+    state: StateType
     is_eternal: bool
     storage: MemoryStorage
 
     def __init__(self, is_eternal: bool = False) -> None:
-        self._arrays = {}
+        self.state = {}
         self.is_eternal = is_eternal
         self.storage = MemoryStorage()
 
     def get(self, period: Period) -> Any:
         casted: Period = self.cast_period(period, self.is_eternal)
-        return self.storage.get(self._arrays, casted)
+        return self.storage.get(self.state, casted)
 
     def put(self, value: Any, period: Period) -> None:
         casted: Period = self.cast_period(period, self.is_eternal)
-        self._arrays = self.storage.put(self._arrays, casted, value)
+        self.state = self.storage.put(self.state, casted, value)
 
     def delete(self, period: Optional[Period] = None) -> None:
         if period is None:
-            self._arrays = self.storage.delete_all(self._arrays)
+            self.state = self.storage.delete_all(self.state)
             return
 
         casted: Period = self.cast_period(period, self.is_eternal)
-        self._arrays = self.storage.delete(self._arrays, casted)
+        self.state = self.storage.delete(self.state, casted)
 
     # TODO: decide what to do with this.
     def get_known_periods(self) -> KeysView[Period]:
-        return self._arrays.keys()
+        return self.state.keys()
 
     # TODO: decide what to do with this.
     def get_memory_usage(self) -> Dict[str, int]:
-        if not self._arrays:
+        if not self.state:
             return {
                 "nb_arrays": 0,
                 "total_nb_bytes": 0,
                 "cell_size": numpy.nan,
                 }
 
-        nb_arrays = len(self._arrays)
-        array = next(iter(self._arrays.values()))
+        nb_arrays = len(self.state)
+        array = next(iter(self.state.values()))
 
         return {
             "nb_arrays": nb_arrays,
@@ -222,7 +222,7 @@ class OnDiskStorage(CachingLike, SupportsPeriodCasting):
     TODO: separate concerns between the caching API and the storing API.
     """
 
-    _files: dict
+    state: StateType
     is_eternal: bool
     storage: DiskStorage
 
@@ -232,41 +232,41 @@ class OnDiskStorage(CachingLike, SupportsPeriodCasting):
             is_eternal: bool = False,
             preserve_storage_dir: bool = False,
             ) -> None:
-        self._files = {}
+        self.state = {}
         self.is_eternal = is_eternal
         self.storage = DiskStorage(storage_dir, preserve_storage_dir)
 
     def get(self, period: Period) -> Any:
         casted: Period = self.cast_period(period, self.is_eternal)
-        return self.storage.get(self._files, casted)
+        return self.storage.get(self.state, casted)
 
     def put(self, value: Any, period: Period) -> None:
         casted: Period = self.cast_period(period, self.is_eternal)
-        self._files = self.storage.put(self._files, casted, value)
+        self.state = self.storage.put(self.state, casted, value)
 
     def delete(self, period: Optional[Period] = None) -> None:
         if period is None:
-            self._files = self.storage.delete_all(self._files)
+            self.state = self.storage.delete_all(self.state)
             return
 
         casted: Period = self.cast_period(period, self.is_eternal)
-        self._files = self.storage.delete(self._files, casted)
+        self.state = self.storage.delete(self.state, casted)
 
     # TODO: decide what to do with this.
     def get_known_periods(self) -> KeysView[Period]:
-        return self._files.keys()
+        return self.state.keys()
 
     # TODO: decide what to do with this.
     def get_memory_usage(self) -> Dict[str, int]:
-        if not self._files:
+        if not self.state:
             return {
                 "nb_files": 0,
                 "total_nb_bytes": 0,
                 "cell_size": numpy.nan,
                 }
 
-        nb_files = len(self._files)
-        file = next(iter(self._files.values()))
+        nb_files = len(self.state)
+        file = next(iter(self.state.values()))
         size = os.path.getsize(file)
         array = self._decode_file(file)
 

@@ -78,12 +78,12 @@ def test__init__when_preserve_storage_dir(storage):
 
 def test_get(storage, period, file, enum_array, mocker):
     storage = storage()
-    files = {period: (file, enum_array)}
-    mocker.patch.dict(storage._files, files)
+    state = {period: (file, enum_array)}
+    mocker.patch.dict(storage.state, state)
     mocker.patch.object(storage.storage, "get", autospec = True)
     storage.get(period)
 
-    result = files, period
+    result = state, period
 
     storage.storage.get.assert_called_once_with(*result)
 
@@ -91,12 +91,12 @@ def test_get(storage, period, file, enum_array, mocker):
 def test_get_when_is_eternal(eternal_storage, period, eternal_period, file, mocker):
     """When it is eternal, periods are actually ignored"""
     storage = eternal_storage()
-    files = {period: (file, None)}
-    mocker.patch.dict(storage._files, files)
+    state = {period: (file, None)}
+    mocker.patch.dict(storage.state, state)
     mocker.patch.object(storage.storage, "get", autospec = True)
     storage.get(period)
 
-    result = files, eternal_period
+    result = state, eternal_period
 
     storage.storage.get.assert_called_once_with(*result)
 
@@ -132,20 +132,20 @@ def test_put_when_is_eternal(eternal_storage, period, value, eternal_file, mocke
 
 def test_delete(storage, period, file, mocker):
     storage = storage()
-    files = {period: file, period.last_year: file}
-    mocker.patch.dict(storage._files, files)
+    state = {period: file, period.last_year: file}
+    mocker.patch.dict(storage.state, state)
     mocker.patch.object(storage.storage, "delete", autospec = True)
     storage.delete(period)
 
-    result = files, period
+    result = state, period
 
     storage.storage.delete.assert_called_once_with(*result)
 
 
 def test_delete_when_period_is_not_specified(storage, period, file, mocker):
     storage = storage()
-    files = {period: file, period.last_year: file}
-    mocker.patch.dict(storage._files, files)
+    state = {period: file, period.last_year: file}
+    mocker.patch.dict(storage.state, state)
     storage.delete()
 
     result = storage.get(period), storage.get(period.last_year)
@@ -156,20 +156,20 @@ def test_delete_when_period_is_not_specified(storage, period, file, mocker):
 def test_delete_when_is_eternal(eternal_storage, value, eternal_period, mocker):
     """When it is eternal, periods are actually ignored"""
     storage = eternal_storage()
-    files = {period: file, eternal_period: file}
-    mocker.patch.dict(storage._files, files)
+    state = {period: file, eternal_period: file}
+    mocker.patch.dict(storage.state, state)
     mocker.patch.object(storage.storage, "delete", autospec = True)
     storage.delete(period)
 
-    result = files, eternal_period
+    result = state, eternal_period
 
     storage.storage.delete.assert_called_once_with(*result)
 
 
 def test_get_known_periods(storage, period, file, mocker):
     storage = storage()
-    files = {period: file}
-    mocker.patch.dict(storage._files, files)
+    state = {period: file}
+    mocker.patch.dict(storage.state, state)
 
     result = storage.get_known_periods()
 
@@ -178,8 +178,8 @@ def test_get_known_periods(storage, period, file, mocker):
 
 def test_get_memory_usage(storage, period, eternal_period, file, value, mocker):
     storage = storage()
-    files = {period: file, eternal_period: file}
-    mocker.patch.dict(storage._files, files)
+    state = {period: file, eternal_period: file}
+    mocker.patch.dict(storage.state, state)
     mocker.patch("os.path.getsize", return_value = 8)
     mocker.patch.object(storage, "_decode_file", return_value = value)
 
