@@ -9,8 +9,30 @@ from openfisca_core import periods
 from openfisca_core.indexed_enums import EnumArray
 from openfisca_core.periods import Period
 
+StateType = Dict[Period, Any]
+
 
 class StorageLike(abc.ABC):
+    """Blueprint for an explicit Storage API."""
+    @abc.abstractmethod
+    def get(self, state: StateType, key: Period) -> Any:
+        ...
+
+    @abc.abstractmethod
+    def put(self, state: StateType, key: Period, value: Any) -> StateType:
+        ...
+
+    @abc.abstractmethod
+    def delete(self, state: StateType, key: Period) -> StateType:
+        ...
+
+    @abc.abstractmethod
+    def delete_all(self, state: StateType) -> dict:
+        ...
+
+
+class CachingLike(abc.ABC):
+    """Blueprint for an explicit Cache API."""
 
     @abc.abstractmethod
     def get(self, period: Period) -> Any:
@@ -32,52 +54,66 @@ class StorageLike(abc.ABC):
     def get_memory_usage(self) -> Dict[str, int]:
         ...
 
-    @abc.abstractmethod
-    def _pop(self, period: Period, items: ItemsView[Period, Any]) -> Dict[Period, Any]:
-        ...
+
+class MemoryStorage(StorageLike):
+    """Responsible for storing and retrieving values in memory."""
+
+    def get(self, state: Dict[Period, Any], key: Period) -> Any:
+        return state.get(key)
+
+    def put(self, state: StateType, key: Period, value: Any) -> StateType:
+        state[key] = value
+        return state
+
+    def delete(self, state: StateType, key: Period) -> StateType:
+        return {item: value for item, value in state.items() if not key.contains(item)}
+
+    def delete_all(self, state: StateType) -> dict:
+        state.clear()
+        return state
 
 
-class InMemoryStorage(StorageLike):
+class InMemoryStorage(CachingLike):
     """
     Low-level class responsible for storing and retrieving calculated vectors in memory.
+
+    TODO: separate concerns between the caching API and the storing API.
     """
 
     _arrays: dict
     is_eternal: bool
+    storage: MemoryStorage
 
     def __init__(self, is_eternal: bool = False) -> None:
         self._arrays = {}
         self.is_eternal = is_eternal
+        self.storage = MemoryStorage()
 
     def get(self, period: Period) -> Any:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
 
         period = periods.period(period)
-        values = self._arrays.get(period)
 
-        if values is None:
-            return None
-
-        return values
+        return self.storage.get(self._arrays, period)
 
     def put(self, value: Any, period: Period) -> None:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
 
         period = periods.period(period)
-        self._arrays[period] = value
+        self._arrays = self.storage.put(self._arrays, period, value)
 
     def delete(self, period: Optional[Period] = None) -> None:
         if period is None:
-            self._arrays = {}
+            self._arrays = self.storage.delete_all(self._arrays)
             return
 
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
 
         casted: Period = periods.period(period)
-        self._arrays = self._pop(casted, self._arrays.items())
+        self._arrays = self.storage.delete(self._arrays, casted)
 
     def get_known_periods(self) -> KeysView[Period]:
         return self._arrays.keys()
@@ -99,13 +135,12 @@ class InMemoryStorage(StorageLike):
             "cell_size": array.itemsize,
             }
 
-    def _pop(self, period: Period, items: ItemsView[Period, Any]) -> Dict[Period, Any]:
-        return {item: value for item, value in items if not period.contains(item)}
 
-
-class OnDiskStorage(StorageLike):
+class OnDiskStorage(CachingLike):
     """
     Low-level class responsible for storing and retrieving calculated vectors on disk.
+
+    TODO: separate concerns between the caching API and the storing API.
     """
 
     _files: dict
