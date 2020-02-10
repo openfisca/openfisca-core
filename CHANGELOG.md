@@ -1,6 +1,15 @@
 # Changelog
 
+### 34.7.2 [#948](https://github.com/openfisca/openfisca-core/pull/948)
+
+#### Technical changes
+
+- Revert `dpath` dependency bump introduced by [#940](https://github.com/openfisca/openfisca-core/pull/940) 
+  - Fix bug in period interpretation by Web API ([openfisca-france#1413](https://github.com/openfisca/openfisca-france/issues/1413))
+
 ### 34.7.1 [#940](https://github.com/openfisca/openfisca-core/pull/940)
+
+_Note: this version has been unpublished due to an issue introduced by dpath upgrade. Please use 34.7.2 or a more recent version._
 
 #### Technical changes
 
