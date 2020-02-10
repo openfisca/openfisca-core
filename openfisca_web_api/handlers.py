@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import dpath.util
+import dpath
 
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.indexed_enums import Enum
@@ -31,7 +31,7 @@ def calculate(tax_benefit_system, input_data):
 
         dpath.util.new(computation_results, path, entity_result)
 
-    dpath.util.merge(input_data, computation_results)
+    dpath.merge(input_data, computation_results)
 
     return input_data
 

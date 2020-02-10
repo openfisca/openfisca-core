@@ -6,7 +6,7 @@ from http.client import BAD_REQUEST, OK, NOT_FOUND
 from copy import deepcopy
 
 import pytest
-import dpath.util
+import dpath
 
 from openfisca_country_template.situation_examples import couple
 
@@ -104,12 +104,12 @@ def test_basic_calculation():
     response = post_json(simulation_json)
     assert response.status_code == OK
     response_json = json.loads(response.data.decode('utf-8'))
-    assert dpath.util.get(response_json, 'persons/bill/basic_income/2017-12') == 600  # Universal basic income
-    assert dpath.util.get(response_json, 'persons/bill/income_tax/2017-12') == 300  # 15% of the salary
-    assert dpath.util.get(response_json, 'persons/bill/age/2017-12') == 37  # 15% of the salary
-    assert dpath.util.get(response_json, 'persons/bob/basic_income/2017-12') == 600
-    assert dpath.util.get(response_json, 'persons/bob/social_security_contribution/2017-12') == 816  # From social_security_contribution.yaml test
-    assert dpath.util.get(response_json, 'households/first_household/housing_tax/2017') == 3000
+    assert dpath.get(response_json, 'persons/bill/basic_income/2017-12') == 600  # Universal basic income
+    assert dpath.get(response_json, 'persons/bill/income_tax/2017-12') == 300  # 15% of the salary
+    assert dpath.get(response_json, 'persons/bill/age/2017-12') == 37  # 15% of the salary
+    assert dpath.get(response_json, 'persons/bob/basic_income/2017-12') == 600
+    assert dpath.get(response_json, 'persons/bob/social_security_contribution/2017-12') == 816  # From social_security_contribution.yaml test
+    assert dpath.get(response_json, 'households/first_household/housing_tax/2017') == 3000
 
 
 def test_enums_sending_identifier():
@@ -136,7 +136,7 @@ def test_enums_sending_identifier():
     response = post_json(simulation_json)
     assert response.status_code == OK
     response_json = json.loads(response.data.decode('utf-8'))
-    assert dpath.util.get(response_json, 'households/_/housing_tax/2017') == 0
+    assert dpath.get(response_json, 'households/_/housing_tax/2017') == 0
 
 
 def test_enum_output():
@@ -157,7 +157,7 @@ def test_enum_output():
     response = post_json(simulation_json)
     assert response.status_code == OK
     response_json = json.loads(response.data.decode('utf-8'))
-    assert dpath.util.get(response_json, "households/_/housing_occupancy_status/2017-01") == "tenant"
+    assert dpath.get(response_json, "households/_/housing_occupancy_status/2017-01") == "tenant"
 
 
 def test_enum_wrong_value():
@@ -179,7 +179,7 @@ def test_enum_wrong_value():
     assert response.status_code == BAD_REQUEST
     response_json = json.loads(response.data.decode('utf-8'))
     message = "Possible values are ['owner', 'tenant', 'free_lodger', 'homeless']"
-    text = dpath.util.get(response_json, "households/_/housing_occupancy_status/2017-01")
+    text = dpath.get(response_json, "households/_/housing_occupancy_status/2017-01")
     assert message in text
 
 
@@ -206,7 +206,7 @@ def test_encoding_variable_value():
     assert response.status_code == BAD_REQUEST, response.data.decode('utf-8')
     response_json = json.loads(response.data.decode('utf-8'))
     message = "'Locataire ou sous-locataire d‘un logement loué vide non-HLM' is not a known value for 'housing_occupancy_status'. Possible values are "
-    text = dpath.util.get(response_json, 'households/_/housing_occupancy_status/2017-07')
+    text = dpath.get(response_json, 'households/_/housing_occupancy_status/2017-07')
     assert message in text
 
 

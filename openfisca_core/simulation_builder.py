@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from typing import Dict, List, Iterable
 
-import dpath.util
+import dpath
 import numpy as np
 from copy import deepcopy
 
@@ -428,7 +428,7 @@ class SimulationBuilder(object):
         # It is only raised when we consume the buffer. We thus don't know which exact key caused the error.
         # We do a basic research to find the culprit path
         culprit_path = next(
-            dpath.util.search(json, "*/{}/{}".format(e.variable_name, str(e.period)), yielded = True),
+            dpath.search(json, "*/{}/{}".format(e.variable_name, str(e.period)), yielded = True),
             None)
         if culprit_path:
             path = [entity.plural] + culprit_path[0].split('/')
