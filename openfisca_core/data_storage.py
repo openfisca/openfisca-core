@@ -55,6 +55,20 @@ class CachingLike(abc.ABC):
         ...
 
 
+class SupportsPeriodCasting(abc.ABC):
+    """
+    Extracting eternal period resolution.
+
+    TODO: get rid of.
+    """
+
+    def cast_period(self, period: Optional[Period], eternal: bool) -> Period:
+        if eternal:
+            return periods.period(periods.ETERNITY)
+
+        return periods.period(period)
+
+
 class MemoryStorage(StorageLike):
     """Responsible for storing and retrieving values in memory."""
 
@@ -73,7 +87,7 @@ class MemoryStorage(StorageLike):
         return state
 
 
-class InMemoryStorage(CachingLike):
+class InMemoryStorage(CachingLike, SupportsPeriodCasting):
     """
     Low-level class responsible for storing and retrieving calculated vectors in memory.
 
@@ -90,29 +104,19 @@ class InMemoryStorage(CachingLike):
         self.storage = MemoryStorage()
 
     def get(self, period: Period) -> Any:
-        if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
-
-        period = periods.period(period)
-
-        return self.storage.get(self._arrays, period)
+        casted: Period = self.cast_period(period, self.is_eternal)
+        return self.storage.get(self._arrays, casted)
 
     def put(self, value: Any, period: Period) -> None:
-        if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
-
-        period = periods.period(period)
-        self._arrays = self.storage.put(self._arrays, period, value)
+        casted: Period = self.cast_period(period, self.is_eternal)
+        self._arrays = self.storage.put(self._arrays, casted, value)
 
     def delete(self, period: Optional[Period] = None) -> None:
         if period is None:
             self._arrays = self.storage.delete_all(self._arrays)
             return
 
-        if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
-
-        casted: Period = periods.period(period)
+        casted: Period = self.cast_period(period, self.is_eternal)
         self._arrays = self.storage.delete(self._arrays, casted)
 
     def get_known_periods(self) -> KeysView[Period]:
