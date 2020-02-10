@@ -5,8 +5,9 @@ from typing import Dict, List, Optional
 
 import numpy
 
-from openfisca_core import indexed_enums
 from openfisca_core import periods
+from openfisca_core.indexed_enums import EnumArray
+from openfisca_core.periods import Period
 
 from typing_extensions import Protocol
 
@@ -14,26 +15,26 @@ from typing_extensions import Protocol
 class StorageLike(Protocol):
 
     @abc.abstractmethod
-    def get(self, period: periods.Period) -> numpy.ndarray:
+    def get(self, period: Period) -> numpy.ndarray:
         ...
 
     @abc.abstractmethod
-    def put(self, value: numpy.ndarray, period: periods.Period) -> None:
+    def put(self, value: numpy.ndarray, period: Period) -> None:
         ...
 
     @abc.abstractmethod
-    def delete(self, period: Optional[periods.Period] = None) -> None:
+    def delete(self, period: Optional[Period] = None) -> None:
         ...
 
     @abc.abstractmethod
-    def get_known_periods(self) -> List[periods.Period]:
+    def get_known_periods(self) -> List[Period]:
         ...
 
     @abc.abstractmethod
     def get_memory_usage(self) -> Dict[str, int]:
         ...
 
-    def _pop(self, period: periods.Period, items: list) -> dict:
+    def _pop(self, period: Period, items: list) -> dict:
         return {item: value for item, value in items if not period.contains(item)}
 
 
@@ -49,7 +50,7 @@ class InMemoryStorage(StorageLike):
         self._arrays = {}
         self.is_eternal = is_eternal
 
-    def get(self, period: periods.Period) -> numpy.ndarray:
+    def get(self, period: Period) -> numpy.ndarray:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
 
@@ -68,7 +69,7 @@ class InMemoryStorage(StorageLike):
         period = periods.period(period)
         self._arrays[period] = value
 
-    def delete(self, period: Optional[periods.Period] = None) -> None:
+    def delete(self, period: Optional[Period] = None) -> None:
         if period is None:
             self._arrays = {}
             return
@@ -81,7 +82,7 @@ class InMemoryStorage(StorageLike):
         if period is not None:
             self._arrays = self._pop(period, list(self._arrays.items()))
 
-    def get_known_periods(self) -> List[periods.Period]:
+    def get_known_periods(self) -> List[Period]:
         return list(self._arrays.keys())
 
     def get_memory_usage(self) -> Dict[str, int]:
@@ -125,7 +126,7 @@ class OnDiskStorage(StorageLike):
         self.preserve_storage_dir = preserve_storage_dir
         self.storage_dir = storage_dir
 
-    def get(self, period: periods.Period) -> numpy.ndarray:
+    def get(self, period: Period) -> numpy.ndarray:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
 
@@ -137,7 +138,7 @@ class OnDiskStorage(StorageLike):
 
         return self._decode_file(values)
 
-    def put(self, value: numpy.ndarray, period: periods.Period) -> None:
+    def put(self, value: numpy.ndarray, period: Period) -> None:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
 
@@ -145,14 +146,14 @@ class OnDiskStorage(StorageLike):
         filename = str(period)
         path = os.path.join(self.storage_dir, filename) + '.npy'
 
-        if isinstance(value, indexed_enums.EnumArray):
+        if isinstance(value, EnumArray):
             self._enums[path] = value.possible_values
             value = value.view(numpy.ndarray)
 
         numpy.save(path, value)
         self._files[period] = path
 
-    def delete(self, period: Optional[periods.Period] = None) -> None:
+    def delete(self, period: Optional[Period] = None) -> None:
         if period is None:
             self._files = {}
             return None
@@ -165,7 +166,7 @@ class OnDiskStorage(StorageLike):
         if period is not None:
             self._files = self._pop(period, list(self._files.items()))
 
-    def get_known_periods(self) -> List[periods.Period]:
+    def get_known_periods(self) -> List[Period]:
         return list(self._files.keys())
 
     def get_memory_usage(self) -> Dict[str, int]:
@@ -201,7 +202,7 @@ class OnDiskStorage(StorageLike):
     def _decode_file(self, file):
         enum = self._enums.get(file)
         if enum is not None:
-            return indexed_enums.EnumArray(numpy.load(file), enum)
+            return EnumArray(numpy.load(file), enum)
         else:
             return numpy.load(file)
 

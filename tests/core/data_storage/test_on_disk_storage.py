@@ -2,15 +2,15 @@ import functools
 
 import numpy
 
-from openfisca_core import data_storage
 from openfisca_core import periods
+from openfisca_core.data_storage import OnDiskStorage
 
 import pytest
 
 
 @pytest.fixture
 def storage():
-    return functools.partial(data_storage.OnDiskStorage, storage_dir = "/tmp")
+    return functools.partial(OnDiskStorage, storage_dir = "/tmp")
 
 
 @pytest.fixture

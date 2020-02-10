@@ -2,15 +2,15 @@ import functools
 
 import numpy
 
-from openfisca_core import data_storage
 from openfisca_core import periods
+from openfisca_core.data_storage import InMemoryStorage
 
 import pytest
 
 
 @pytest.fixture
 def storage():
-    return data_storage.InMemoryStorage
+    return InMemoryStorage
 
 
 @pytest.fixture
