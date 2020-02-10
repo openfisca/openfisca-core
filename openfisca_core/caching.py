@@ -208,7 +208,7 @@ class PersistentCaching(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsa
             shutil.rmtree(parent_dir)
 
 
-class Cache(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsage):
+class Cache(SupportsCaching):
 
     TimeType = Union[ExactCaching, EternalCaching]
     StoreType = Union[MemoryCaching, PersistentCaching]
@@ -234,9 +234,3 @@ class Cache(SupportsCaching, SupportsKnownPeriods, SupportsMemoryUsage):
 
     def delete_all(self) -> None:
         self.storage.delete_all()
-
-    def known_periods(self) -> List[periods.Period]:
-        return self.storage.known_periods()
-
-    def memory_usage(self) -> Dict[str, int]:
-        return self.storage.memory_usage()
