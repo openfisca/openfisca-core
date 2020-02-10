@@ -3,6 +3,7 @@
 import logging
 import os
 import warnings
+from typing import Optional
 
 import numpy as np
 import psutil
@@ -74,14 +75,13 @@ class Holder(object):
 
         return caching.Cache(timeness, caching.PersistentCaching(storage_dir, preserve))
 
-    def delete_arrays(self, period = None):
+    def delete_arrays(self, period: Optional[periods.Period]) -> None:
         """
             If ``period`` is ``None``, remove all known values of the variable.
 
             If ``period`` is not ``None``, only remove all values for any period included in period (e.g. if period is "2017", values for "2017-01", "2017-07", etc. would be removed)
 
         """
-
         if period is None:
             return self.delete_all_arrays()
 
@@ -90,7 +90,7 @@ class Holder(object):
         if self._persistent_cache:
             self._persistent_cache.delete(period)
 
-    def delete_all_arrays(self):
+    def delete_all_arrays(self) -> None:
         self._memory_cache.delete_all()
 
         if self._persistent_cache:

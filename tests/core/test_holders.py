@@ -108,6 +108,18 @@ def test_delete_arrays(single):
     assert simulation.person('salary', '2018-01') == 1250
 
 
+def test_delete_all_arrays(single):
+    simulation = single
+    salary_holder = simulation.person.get_holder('salary')
+    salary_holder.set_input(make_period(2017), np.asarray([30000]))
+    salary_holder.set_input(make_period(2018), np.asarray([60000]))
+    assert simulation.person('salary', '2017-01') == 2500
+    assert simulation.person('salary', '2018-01') == 5000
+    salary_holder.delete_all_arrays()
+    assert not simulation.person('salary', '2017-01')
+    assert not simulation.person('salary', '2018-01')
+
+
 def test_memory_usage(single):
     simulation = single
     salary_holder = simulation.person.get_holder('salary')
