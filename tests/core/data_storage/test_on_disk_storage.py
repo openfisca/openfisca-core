@@ -120,7 +120,7 @@ def test_delete(storage, period, file, mocker):
     mocker.patch.object(storage, "_pop", autospec = True)
     storage.delete(period)
 
-    result = period, list(files.items())
+    result = period, files.items()
 
     storage._pop.assert_called_once_with(*result)
 
@@ -143,7 +143,7 @@ def test_delete_when_is_eternal(eternal_storage, value, eternal_period, mocker):
     mocker.patch.object(storage, "_pop", autospec = True)
     storage.delete(period)
 
-    result = eternal_period, list(files.items())
+    result = eternal_period, files.items()
 
     storage._pop.assert_called_once_with(*result)
 
@@ -155,7 +155,7 @@ def test_get_known_periods(storage, period, file, mocker):
 
     result = storage.get_known_periods()
 
-    assert result == [period]
+    assert list(result) == [period]
 
 
 def test_get_memory_usage(storage, period, eternal_period, file, value, mocker):

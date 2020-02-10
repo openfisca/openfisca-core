@@ -97,7 +97,7 @@ def test_get_known_periods(storage, period, value):
 
     result = storage.get_known_periods()
 
-    assert result == [period]
+    assert list(result) == [period]
 
 
 def test_get_memory_usage(storage, period, value):

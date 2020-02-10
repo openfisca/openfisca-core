@@ -1,7 +1,7 @@
 import abc
 import os
 import shutil
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, ItemsView, KeysView, Optional
 
 import numpy
 
@@ -25,7 +25,7 @@ class StorageLike(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def get_known_periods(self) -> List[Period]:
+    def get_known_periods(self) -> KeysView[Period]:
         ...
 
     @abc.abstractmethod
@@ -33,7 +33,7 @@ class StorageLike(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def _pop(self, period: Period, items: list) -> dict:
+    def _pop(self, period: Period, items: ItemsView[Period, Any]) -> Dict[Period, Any]:
         ...
 
 
@@ -77,10 +77,10 @@ class InMemoryStorage(StorageLike):
             period = periods.period(periods.ETERNITY)
 
         casted: Period = periods.period(period)
-        self._arrays = self._pop(casted, list(self._arrays.items()))
+        self._arrays = self._pop(casted, self._arrays.items())
 
-    def get_known_periods(self) -> List[Period]:
-        return list(self._arrays.keys())
+    def get_known_periods(self) -> KeysView[Period]:
+        return self._arrays.keys()
 
     def get_memory_usage(self) -> Dict[str, int]:
         if not self._arrays:
@@ -99,7 +99,7 @@ class InMemoryStorage(StorageLike):
             "cell_size": array.itemsize,
             }
 
-    def _pop(self, period: Period, items: list) -> dict:
+    def _pop(self, period: Period, items: ItemsView[Period, Any]) -> Dict[Period, Any]:
         return {item: value for item, value in items if not period.contains(item)}
 
 
@@ -162,10 +162,10 @@ class OnDiskStorage(StorageLike):
             period = periods.period(periods.ETERNITY)
 
         casted: Period = periods.period(period)
-        self._files = self._pop(casted, list(self._files.items()))
+        self._files = self._pop(casted, self._files.items())
 
-    def get_known_periods(self) -> List[Period]:
-        return list(self._files.keys())
+    def get_known_periods(self) -> KeysView[Period]:
+        return self._files.keys()
 
     def get_memory_usage(self) -> Dict[str, int]:
         if not self._files:
@@ -204,7 +204,7 @@ class OnDiskStorage(StorageLike):
         else:
             return numpy.load(file)
 
-    def _pop(self, period: Period, items: list) -> dict:
+    def _pop(self, period: Period, items: ItemsView[Period, Any]) -> Dict[Period, Any]:
         return {item: value for item, value in items if not period.contains(item)}
 
     def __del__(self):
