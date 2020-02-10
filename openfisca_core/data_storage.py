@@ -9,10 +9,8 @@ from openfisca_core import periods
 from openfisca_core.indexed_enums import EnumArray
 from openfisca_core.periods import Period
 
-from typing_extensions import Protocol
 
-
-class StorageLike(Protocol):
+class StorageLike(abc.ABC):
 
     @abc.abstractmethod
     def get(self, period: Period) -> Any:
@@ -34,8 +32,9 @@ class StorageLike(Protocol):
     def get_memory_usage(self) -> Dict[str, int]:
         ...
 
+    @abc.abstractmethod
     def _pop(self, period: Period, items: list) -> dict:
-        return {item: value for item, value in items if not period.contains(item)}
+        ...
 
 
 class InMemoryStorage(StorageLike):
@@ -99,6 +98,9 @@ class InMemoryStorage(StorageLike):
             "total_nb_bytes": array.nbytes * nb_arrays,
             "cell_size": array.itemsize,
             }
+
+    def _pop(self, period: Period, items: list) -> dict:
+        return {item: value for item, value in items if not period.contains(item)}
 
 
 class OnDiskStorage(StorageLike):
@@ -201,6 +203,9 @@ class OnDiskStorage(StorageLike):
             return EnumArray(numpy.load(file), enum)
         else:
             return numpy.load(file)
+
+    def _pop(self, period: Period, items: list) -> dict:
+        return {item: value for item, value in items if not period.contains(item)}
 
     def __del__(self):
         if self.preserve_storage_dir:
