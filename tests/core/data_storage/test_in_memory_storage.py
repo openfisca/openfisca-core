@@ -49,11 +49,12 @@ def test_put(storage, period, value):
     assert result == value
 
 
-def test_put_when_is_eternal(eternal_storage, value):
+def test_put_when_is_eternal(eternal_storage, period, value):
+    """When it is eternal, periods are actually ignored"""
     storage = eternal_storage()
-    storage.put(value, "foo")
+    storage.put(value, period)
 
-    result = storage.get("bar")
+    result = storage.get(period.last_year)
 
     assert result == value
 
@@ -80,13 +81,14 @@ def test_delete_when_period_is_not_specified(storage, period, value):
     assert result == (None, None)
 
 
-def test_delete_when_is_eternal(eternal_storage, value):
+def test_delete_when_is_eternal(eternal_storage, period):
+    """When it is eternal, periods are actually ignored"""
     storage = eternal_storage()
-    storage.put(value, "qwerty")
-    storage.put(value, "azerty")
-    storage.delete("asdf1234")
+    storage.put("qwerty", period)
+    storage.put("azerty", period.last_year)
+    storage.delete(period.n_2)
 
-    result = storage.get("qwerty"), storage.get("azerty")
+    result = storage.get(period), storage.get(period.last_year)
 
     assert result == (None, None)
 

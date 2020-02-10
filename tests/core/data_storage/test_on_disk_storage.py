@@ -74,6 +74,7 @@ def test_get(storage, period, file, mocker):
 
 
 def test_get_when_is_eternal(eternal_storage, period, eternal_period, file, mocker):
+    """When it is eternal, periods are actually ignored"""
     storage = eternal_storage()
     files = {period: file, eternal_period: file}
     mocker.patch.dict(storage._files, files)
@@ -104,6 +105,7 @@ def test_put(storage, period, value, file, mocker):
 
 
 def test_put_when_is_eternal(eternal_storage, period, value, eternal_file, mocker):
+    """When it is eternal, periods are actually ignored"""
     storage = eternal_storage()
     mocker.patch("numpy.save")
     storage.put(value, period)
@@ -137,6 +139,7 @@ def test_delete_when_period_is_not_specified(storage, period, file, mocker):
 
 
 def test_delete_when_is_eternal(eternal_storage, value, eternal_period, mocker):
+    """When it is eternal, periods are actually ignored"""
     storage = eternal_storage()
     files = {period: file, eternal_period: file}
     mocker.patch.dict(storage._files, files)
