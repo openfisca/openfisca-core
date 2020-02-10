@@ -100,7 +100,7 @@ def test_delete_when_is_eternal(cache, storage, period, eternal_period, mocker):
     storage.delete.assert_called_once_with(*result)
 
 
-def test_get_memory_usage(cache, storage, mocker):
+def test_memory_usage(cache, storage, mocker):
     mocker.patch.object(storage, "memory_usage")
     cache.memory_usage()
 
@@ -115,3 +115,29 @@ def test_known_periods(cache, period, array):
     result = cache.known_periods()
 
     assert period in result
+
+
+def test_get_known_periods(cache, mocker):
+    mocker.patch.object(cache, "known_periods")
+
+    with pytest.warns(DeprecationWarning):
+        cache.get_known_periods()  # act
+        cache.known_periods.assert_called_once()
+
+
+def test_get_memory_usage(cache, storage, mocker):
+    mocker.patch.object(storage, "memory_usage")
+
+    with pytest.warns(DeprecationWarning):
+        cache.get_memory_usage()
+        result = {}
+        storage.memory_usage.assert_called_once_with(result)
+
+
+def test_restore(cache, storage, mocker):
+    mocker.patch.object(storage, "restore")
+
+    with pytest.warns(DeprecationWarning):
+        cache.restore()
+        result = {}
+        storage.restore.assert_called_once_with(result)

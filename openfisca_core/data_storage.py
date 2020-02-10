@@ -1,6 +1,7 @@
 import abc
 import os
 import shutil
+import warnings
 from typing import Any, Dict, KeysView, Optional, Union
 
 import numpy
@@ -51,11 +52,11 @@ class CachingLike(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def memory_usage(self) -> Dict[str, int]:
+    def known_periods(self) -> KeysView[Period]:
         ...
 
     @abc.abstractmethod
-    def known_periods(self) -> KeysView[Period]:
+    def memory_usage(self) -> Dict[str, int]:
         ...
 
 
@@ -107,9 +108,13 @@ class MemoryStorage(StorageLike):
             "cell_size": array.itemsize,
             }
 
+    def restore(self, state: StateType) -> StateType:
+        ...
+
 
 class DiskStorage(StorageLike):
     """Low-level class responsible for storing and retrieving values on disk."""
+
     directory: str
     preserve: bool
 
@@ -120,7 +125,7 @@ class DiskStorage(StorageLike):
         if not os.path.isdir(self.directory):
             os.makedirs(self.directory, exist_ok = True)
 
-    def get(self, state: Dict[Period, Any], key: Period) -> Any:
+    def get(self, state: StateType, key: Period) -> Any:
         file = state.get(key)
 
         if file is None:
@@ -241,20 +246,35 @@ class Cache(CachingLike, SupportsPeriodCasting):
         casted: Period = self.cast_period(period, self.is_eternal)
         self.state = self.storage.delete(self.state, casted)
 
-    def memory_usage(self) -> Dict[str, int]:
-        return self.storage.memory_usage(self.state)
-
     def known_periods(self) -> KeysView[Period]:
         return self.state.keys()
 
-    # TODO : test
+    def memory_usage(self) -> Dict[str, int]:
+        return self.storage.memory_usage(self.state)
+
     def get_known_periods(self) -> KeysView[Period]:
-        raise ValueError("TODO: add a deprecation warning")
+        message = [
+            "The 'Cache.get_known_periods' method has been deprecated since version",
+            "34.8.0, and will be removed in the future. Henceforth, please prefer",
+            "Cache.known_periods.",
+            ]
+        warnings.warn(" ".join(message), DeprecationWarning)
+        return self.known_periods()
 
-    # TODO : test
     def get_memory_usage(self) -> Dict[str, int]:
-        raise ValueError("TODO: add a deprecation warning")
+        message = [
+            "The 'Cache.get_memory_usage' method has been deprecated since version",
+            "34.8.0, and will be removed in the future. Henceforth, please prefer",
+            "Cache.memory_usage.",
+            ]
+        warnings.warn(" ".join(message), DeprecationWarning)
+        return self.memory_usage()
 
-    # TODO : test
-    def restore(self, state: StateType) -> StateType:
-        raise ValueError("TODO: add a deprecation warning")
+    def restore(self) -> StateType:
+        message = [
+            "The 'Cache.restore' method has been deprecated since version",
+            "34.8.0, and will be removed in the future. Henceforth, please prefer",
+            "DiskStorage.restore.",
+            ]
+        warnings.warn(" ".join(message), DeprecationWarning)
+        return self.storage.restore(self.state)
