@@ -73,13 +73,15 @@ def build_variable(variable, country_package_metadata, tax_benefit_system):
         'defaultValue': get_default_value(variable),
         'definitionPeriod': variable.definition_period.upper(),
         'entity': variable.entity.key,
-        'source': build_source_url(
+        }
+
+    if source_code:
+        result['source'] = build_source_url(
             country_package_metadata,
             source_file_path,
             start_line_number,
             source_code
-            ),
-        }
+            )
 
     if variable.documentation:
         result['documentation'] = variable.documentation.strip()
