@@ -1,5 +1,11 @@
 # Changelog
 
+### 34.7.3 [#953](https://github.com/openfisca/openfisca-core/pull/953)
+
+#### Technical changes
+
+- Update dependencies: flask
+
 ### 34.7.2 [#948](https://github.com/openfisca/openfisca-core/pull/948)
 
 #### Technical changes
