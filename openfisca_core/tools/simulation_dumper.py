@@ -77,10 +77,15 @@ def _dump_entity(population, directory):
 
     np.save(os.path.join(path, "members_position.npy"), population.members_position)
     np.save(os.path.join(path, "members_entity_id.npy"), population.members_entity_id)
-    encoded_roles = np.select(
-        [population.members_role == role for role in population.entity.flattened_roles],
-        [role.key for role in population.entity.flattened_roles],
-        )
+
+    flattened_roles = population.entity.flattened_roles
+    if len(flattened_roles) == 0:
+        encoded_roles = np.int64(0)
+    else:
+        encoded_roles = np.select(
+            [population.members_role == role for role in population.entity.flattened_roles],
+            [role.key for role in population.entity.flattened_roles],
+            )
     np.save(os.path.join(path, "members_role.npy"), encoded_roles)
 
 
