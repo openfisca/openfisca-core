@@ -83,8 +83,8 @@ def _dump_entity(population, directory):
         encoded_roles = np.int64(0)
     else:
         encoded_roles = np.select(
-            [population.members_role == role for role in population.entity.flattened_roles],
-            [role.key for role in population.entity.flattened_roles],
+            [population.members_role == role for role in flattened_roles],
+            [role.key for role in flattened_roles],
             )
     np.save(os.path.join(path, "members_role.npy"), encoded_roles)
 
@@ -100,10 +100,15 @@ def _restore_entity(population, directory):
     population.members_position = np.load(os.path.join(path, "members_position.npy"))
     population.members_entity_id = np.load(os.path.join(path, "members_entity_id.npy"))
     encoded_roles = np.load(os.path.join(path, "members_role.npy"))
-    population.members_role = np.select(
-        [encoded_roles == role.key for role in population.entity.flattened_roles],
-        [role for role in population.entity.flattened_roles],
-        )
+
+    flattened_roles = population.entity.flattened_roles
+    if len(flattened_roles) == 0:
+        population.members_role = np.int64(0)
+    else:
+        population.members_role = np.select(
+            [encoded_roles == role.key for role in flattened_roles],
+            [role for role in flattened_roles],
+            )
     person_count = len(population.members_entity_id)
     population.count = max(population.members_entity_id) + 1
     return person_count
