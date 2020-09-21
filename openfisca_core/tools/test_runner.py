@@ -97,9 +97,13 @@ class YamlFile(pytest.File):
 
         if not isinstance(tests, list):
             tests: List[Dict] = [tests]
+
         for test in tests:
             if not self.should_ignore(test):
-                yield YamlItem('', self, self.tax_benefit_system, test, self.options)
+                yield YamlItem.from_parent(self,
+                    name = '', 
+                    baseline_tax_benefit_system = self.tax_benefit_system,
+                    test = test, options = self.options)
 
     def should_ignore(self, test):
         name_filter = self.options.get('name_filter')
