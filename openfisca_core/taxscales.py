@@ -52,7 +52,7 @@ class EmptyArgumentError(IndexError):
             f"'{class_name}.{method_name}' can't be run with an empty '{arg_name}':\n",
             f">>> {arg_name}",
             f"{arg_value}\n",
-            f"Here are some hints to help you get this working:\n",
+            "Here are some hints to help you get this working:\n",
             f"- Check that '{class_name}' isn't empty (see '{class_name}.add_bracket')",
             f"- Check that '{arg_name}' is being properly assigned "
             f"('{arg_name}' should be a non empty '{type(arg_value).__name__}')\n",

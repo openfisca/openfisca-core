@@ -9,7 +9,7 @@ from numpy import (   # noqa analysis:ignore
     round as round_,
     select,
     where,
-)
+    )
 
 from openfisca_core.holders import (  # noqa analysis:ignore
     set_input_dispatch_by_period,
