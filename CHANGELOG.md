@@ -1,5 +1,11 @@
 # Changelog
 
+### 34.7.4 [#955](https://github.com/openfisca/openfisca-core/pull/955)
+
+#### Technical changes
+
+- Update dependencies: flake8 (style consistency enforcement)
+
 ### 34.7.3 [#953](https://github.com/openfisca/openfisca-core/pull/953)
 
 #### Technical changes
