@@ -101,7 +101,7 @@ class YamlFile(pytest.File):
         for test in tests:
             if not self.should_ignore(test):
                 yield YamlItem.from_parent(self,
-                    name = '', 
+                    name = '',
                     baseline_tax_benefit_system = self.tax_benefit_system,
                     test = test, options = self.options)
 
