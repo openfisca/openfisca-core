@@ -1,5 +1,11 @@
 # Changelog
 
+### TODO
+
+#### Technical changes
+
+- Fix `PytestDeprecationWarning` on `openfisca test` command
+
 ### 34.7.4 [#955](https://github.com/openfisca/openfisca-core/pull/955)
 
 #### Technical changes
