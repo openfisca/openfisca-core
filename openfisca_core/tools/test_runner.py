@@ -5,7 +5,7 @@ import sys
 import os
 import traceback
 import textwrap
-from typing import Dict
+from typing import Dict, List
 
 import pytest
 
@@ -80,7 +80,7 @@ def run_tests(tax_benefit_system, paths, options = None):
 
 class YamlFile(pytest.File):
 
-    def __init__(self, path, parent, tax_benefit_system, options):
+    def __init__(self, path, fspath, parent, tax_benefit_system, options):
         super(YamlFile, self).__init__(path, parent)
         self.tax_benefit_system = tax_benefit_system
         self.options = options
@@ -96,10 +96,14 @@ class YamlFile(pytest.File):
             raise ValueError(message)
 
         if not isinstance(tests, list):
-            tests = [tests]
+            tests: List[Dict] = [tests]
+
         for test in tests:
             if not self.should_ignore(test):
-                yield YamlItem('', self, self.tax_benefit_system, test, self.options)
+                yield YamlItem.from_parent(self,
+                    name = '',
+                    baseline_tax_benefit_system = self.tax_benefit_system,
+                    test = test, options = self.options)
 
     def should_ignore(self, test):
         name_filter = self.options.get('name_filter')
@@ -112,6 +116,9 @@ class YamlFile(pytest.File):
 
 
 class YamlItem(pytest.Item):
+    """
+    Terminal nodes of the test collection tree.
+    """
 
     def __init__(self, name, parent, baseline_tax_benefit_system, test, options):
         super(YamlItem, self).__init__(name, parent)
@@ -241,8 +248,14 @@ class OpenFiscaPlugin(object):
         self.options = options
 
     def pytest_collect_file(self, parent, path):
+        """
+        Called by pytest for all plugins.
+        :return: The collector for test methods.
+        """
         if path.ext in [".yaml", ".yml"]:
-            return YamlFile(path, parent, self.tax_benefit_system, self.options)
+            return YamlFile.from_parent(parent, path = path, fspath = path,
+                tax_benefit_system = self.tax_benefit_system,
+                options = self.options)
 
 
 def _get_tax_benefit_system(baseline, reforms, extensions):
