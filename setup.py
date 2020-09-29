@@ -13,7 +13,7 @@ general_requirements = [
     'numpy >= 1.11, < 1.18',
     'psutil >= 5.4.7, < 6.0.0',
     'PyYAML >= 3.10',
-    'sortedcontainers == 2.1.0',
+    'sortedcontainers == 2.2.2',
     'numexpr >= 2.7.0, <= 3.0',
     ]
 
