@@ -3,7 +3,7 @@
 import numpy
 import pytest
 
-from openfisca_core.formula_helpers import apply_thresholds as apply_thresholds
+from openfisca_core.formula_helpers import apply_thresholds
 from openfisca_core.tools import assert_near
 
 
