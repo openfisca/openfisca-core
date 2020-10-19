@@ -1,5 +1,11 @@
 # Changelog
 
+### 34.7.6 [#957](https://github.com/openfisca/openfisca-core/pull/957)
+
+#### Technical changes
+
+- Update dependencies: `sortedcontainers`
+
 ### 34.7.5 [#958](https://github.com/openfisca/openfisca-core/pull/958)
 
 #### Technical changes
@@ -22,7 +28,7 @@
 
 #### Technical changes
 
-- Revert `dpath` dependency bump introduced by [#940](https://github.com/openfisca/openfisca-core/pull/940) 
+- Revert `dpath` dependency bump introduced by [#940](https://github.com/openfisca/openfisca-core/pull/940)
   - Fix bug in period interpretation by Web API ([openfisca-france#1413](https://github.com/openfisca/openfisca-france/issues/1413))
 
 ### 34.7.1 [#940](https://github.com/openfisca/openfisca-core/pull/940)
