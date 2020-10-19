@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from copy import deepcopy
 import os
 import yaml
-from copy import deepcopy
 
 import dpath
 

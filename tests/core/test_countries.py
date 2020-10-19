@@ -2,6 +2,8 @@
 
 from pytest import fixture, raises
 
+from openfisca_country_template import CountryTaxBenefitSystem
+
 from openfisca_core import periods
 from openfisca_core.variables import Variable
 from openfisca_core.periods import MONTH
@@ -9,8 +11,6 @@ from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.taxbenefitsystems import VariableNameConflict, VariableNotFound
 from openfisca_core.populations import DIVIDE
 from openfisca_core.tools import assert_near
-from openfisca_country_template import CountryTaxBenefitSystem
-
 
 tax_benefit_system = CountryTaxBenefitSystem()
 

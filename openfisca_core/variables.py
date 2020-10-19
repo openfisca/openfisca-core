@@ -6,9 +6,9 @@ import re
 import textwrap
 from typing import Optional
 
+from datetime import date
 import numpy as np
 from sortedcontainers.sorteddict import SortedDict
-from datetime import date
 
 from openfisca_core import periods
 from openfisca_core.entities import Entity

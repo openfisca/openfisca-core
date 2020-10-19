@@ -11,8 +11,8 @@ or just (output is written in a directory called `yaml_parameters`):
 import sys
 import os
 
-from . import xml_to_yaml
 import openfisca_extension_template
+from . import xml_to_yaml
 
 if len(sys.argv) > 1:
     target_path = sys.argv[1]

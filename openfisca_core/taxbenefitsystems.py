@@ -9,9 +9,9 @@ from imp import find_module, load_module
 import importlib
 import logging
 import inspect
-import pkg_resources
 import traceback
 import copy
+import pkg_resources
 
 from openfisca_core.periods import Period, Instant, instant as make_instant
 from openfisca_core.entities import Entity

@@ -1,7 +1,7 @@
 # flake8: noqa T001
 
-import numpy as np
 import timeit
+import numpy as np
 from openfisca_france import CountryTaxBenefitSystem
 from openfisca_core.model_api import *  # noqa analysis:ignore
 

@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+from pytest import fixture
 
 import openfisca_country_template.situation_examples
 from openfisca_country_template.variables.housing import HousingOccupancyStatus
@@ -12,8 +13,6 @@ from openfisca_core.memory_config import MemoryConfig
 from openfisca_core.holders import Holder, set_input_dispatch_by_period
 from openfisca_core.errors import PeriodMismatchError
 from .test_countries import tax_benefit_system
-
-from pytest import fixture
 
 
 @fixture

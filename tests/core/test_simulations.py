@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 
-from openfisca_core.simulation_builder import SimulationBuilder
-
 from openfisca_country_template.situation_examples import single
+
+from openfisca_core.simulation_builder import SimulationBuilder
 
 from .test_countries import tax_benefit_system
 

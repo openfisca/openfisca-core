@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from typing import Dict, List, Iterable
 
+from copy import deepcopy
 import dpath
 import numpy as np
-from copy import deepcopy
 
 from openfisca_core.entities import Entity
 from openfisca_core.populations import Population

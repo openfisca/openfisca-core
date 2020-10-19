@@ -9,9 +9,9 @@ import csv
 from itertools import groupby
 from dataclasses import dataclass, field
 
-import numpy as np
-from typing import List, Dict, Optional, Iterator, Any
 import importlib.resources as pkg_resources
+from typing import List, Dict, Optional, Iterator, Any
+import numpy as np
 
 from openfisca_core.parameters import ParameterNodeAtInstant, VectorialParameterNodeAtInstant, ALLOWED_PARAM_TYPES
 from openfisca_core.indexed_enums import EnumArray

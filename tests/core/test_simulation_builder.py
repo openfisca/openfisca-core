@@ -7,6 +7,9 @@ from datetime import date
 
 from pytest import raises, fixture, approx
 
+from openfisca_country_template.entities import Household
+from openfisca_country_template.situation_examples import couple
+
 from openfisca_core.simulation_builder import SimulationBuilder, Simulation
 from openfisca_core.tools import assert_near
 from openfisca_core.tools.test_runner import yaml
@@ -16,9 +19,6 @@ from openfisca_core.variables import Variable
 from openfisca_core.errors import SituationParsingError
 from openfisca_core.periods import ETERNITY
 from openfisca_core.indexed_enums import Enum as OFEnum
-from openfisca_country_template.entities import Household
-from openfisca_country_template.situation_examples import couple
-
 
 from .test_countries import tax_benefit_system
 

@@ -1,12 +1,12 @@
-from openfisca_core.model_api import *  # noqa analysis:ignore
-from openfisca_core.simulation_builder import SimulationBuilder
-from openfisca_core.tools import assert_near
+from pytest import fixture, raises
 
 from openfisca_country_template import CountryTaxBenefitSystem
 from openfisca_country_template.entities import *  # noqa analysis:ignore
 from openfisca_country_template.situation_examples import single
 
-from pytest import fixture, raises
+from openfisca_core.model_api import *  # noqa analysis:ignore
+from openfisca_core.simulation_builder import SimulationBuilder
+from openfisca_core.tools import assert_near
 
 
 @fixture
