@@ -7,8 +7,8 @@ import tempfile
 from numpy.testing import assert_array_equal
 
 from openfisca_core.simulation_builder import SimulationBuilder
-from openfisca_country_template.situation_examples import couple
 from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
+from openfisca_country_template.situation_examples import couple
 
 from .test_countries import tax_benefit_system
 

@@ -9,8 +9,8 @@ from openfisca_core.periods import Instant
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.tools import assert_near
 from openfisca_core.parameters import ValuesHistory, ParameterNode
-from openfisca_country_template.entities import Household, Person
 from openfisca_core.model_api import *  # noqa analysis:ignore
+from openfisca_country_template.entities import Household, Person
 from openfisca_country_template import CountryTaxBenefitSystem
 tax_benefit_system = CountryTaxBenefitSystem()
 

@@ -3,8 +3,8 @@ from pytest import fixture
 
 from openfisca_core import periods
 from openfisca_core.model_api import *  # noqa analysis:ignore
-from openfisca_country_template.entities import Person
 from openfisca_core.variables import get_annualized_variable
+from openfisca_country_template.entities import Person
 
 
 @fixture

@@ -5,10 +5,10 @@ from openfisca_core.periods import MONTH
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.simulations import CycleError
 from openfisca_core.variables import Variable
+from openfisca_core.tools import assert_near
 
 from openfisca_country_template import CountryTaxBenefitSystem
 from openfisca_country_template.entities import Person
-from openfisca_core.tools import assert_near
 
 from pytest import fixture, raises
 

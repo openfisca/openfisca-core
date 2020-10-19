@@ -13,11 +13,11 @@ from openfisca_core.tools.test_runner import yaml
 from openfisca_core.entities import Entity, GroupEntity
 from openfisca_core.populations import Population
 from openfisca_core.variables import Variable
-from openfisca_country_template.entities import Household
-from openfisca_country_template.situation_examples import couple
 from openfisca_core.errors import SituationParsingError
 from openfisca_core.periods import ETERNITY
 from openfisca_core.indexed_enums import Enum as OFEnum
+from openfisca_country_template.entities import Household
+from openfisca_country_template.situation_examples import couple
 
 
 from .test_countries import tax_benefit_system
