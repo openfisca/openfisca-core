@@ -594,9 +594,9 @@ class Period(tuple):
         >>> period('year', '2012', 1).size_in_months
         12
         """
-        if (self[0] == MONTH):
+        if self[0] == MONTH:
             return self[2]
-        if(self[0] == YEAR):
+        if self[0] == YEAR:
             return self[2] * 12
         raise ValueError("Cannot calculate number of months in {0}".format(self[0]))
 

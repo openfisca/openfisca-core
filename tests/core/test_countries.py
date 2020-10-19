@@ -110,7 +110,7 @@ def test_variable_with_reference(make_isolated_simulation):
     simulation_base = make_isolated_simulation(tax_benefit_system, {'salary': 4000})
 
     revenu_disponible_avant_reforme = simulation_base.calculate('disposable_income', "2016-01")
-    assert(revenu_disponible_avant_reforme > 0)
+    assert revenu_disponible_avant_reforme > 0
 
     class disposable_income(Variable):
         definition_period = MONTH
@@ -123,7 +123,7 @@ def test_variable_with_reference(make_isolated_simulation):
     simulation_reform = make_isolated_simulation(tax_benefit_system, {'salary': 4000})
     revenu_disponible_apres_reforme = simulation_reform.calculate('disposable_income', "2016-01")
 
-    assert(revenu_disponible_apres_reforme == 0)
+    assert revenu_disponible_apres_reforme == 0
 
 
 def test_variable_name_conflict():

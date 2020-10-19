@@ -484,7 +484,7 @@ class MarginalRateTaxScale(RateTaxScaleLike):
 
     def add_tax_scale(self, tax_scale: RateTaxScaleLike) -> None:
         # Pour ne pas avoir de problèmes avec les barèmes vides
-        if (len(tax_scale.thresholds) > 0):
+        if len(tax_scale.thresholds) > 0:
             for threshold_low, threshold_high, rate in zip(
                     tax_scale.thresholds[:-1],
                     tax_scale.thresholds[1:],

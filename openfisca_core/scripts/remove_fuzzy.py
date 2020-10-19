@@ -7,7 +7,7 @@ import sys
 
 import numpy as np
 
-assert(len(sys.argv) == 2)
+assert len(sys.argv) == 2
 filename = sys.argv[1]
 
 with open(filename, 'r') as f:

@@ -41,10 +41,10 @@ def new_simulation(test_case, period = MONTH):
 def test_role_index_and_positions():
     simulation = new_simulation(TEST_CASE)
     assert_near(simulation.household.members_entity_id, [0, 0, 0, 0, 1, 1])
-    assert((simulation.household.members_role == [FIRST_PARENT, SECOND_PARENT, CHILD, CHILD, FIRST_PARENT, CHILD]).all())
+    assert (simulation.household.members_role == [FIRST_PARENT, SECOND_PARENT, CHILD, CHILD, FIRST_PARENT, CHILD]).all()
     assert_near(simulation.household.members_position, [0, 1, 2, 3, 0, 1])
-    assert(simulation.person.ids == ["ind0", "ind1", "ind2", "ind3", "ind4", "ind5"])
-    assert(simulation.household.ids == ['h1', 'h2'])
+    assert simulation.person.ids == ["ind0", "ind1", "ind2", "ind3", "ind4", "ind5"]
+    assert simulation.household.ids == ['h1', 'h2']
 
 
 def test_entity_structure_with_constructor():
@@ -73,7 +73,7 @@ def test_entity_structure_with_constructor():
     household = simulation.household
 
     assert_near(household.members_entity_id, [0, 0, 1, 0, 0])
-    assert((household.members_role == [FIRST_PARENT, SECOND_PARENT, FIRST_PARENT, CHILD, CHILD]).all())
+    assert (household.members_role == [FIRST_PARENT, SECOND_PARENT, FIRST_PARENT, CHILD, CHILD]).all()
     assert_near(household.members_position, [0, 1, 0, 2, 3])
 
 
@@ -370,15 +370,15 @@ def test_projectors_methods():
     person = simulation.person
 
     projected_vector = household.first_parent.has_role(Household.FIRST_PARENT)
-    assert(len(projected_vector) == 1)  # Must be of a household dimension
+    assert len(projected_vector) == 1  # Must be of a household dimension
 
     salary_i = person.household.members('salary', '2017-01')
-    assert(len(person.household.sum(salary_i)) == 2)  # Must be of a person dimension
-    assert(len(person.household.max(salary_i)) == 2)  # Must be of a person dimension
-    assert(len(person.household.min(salary_i)) == 2)  # Must be of a person dimension
-    assert(len(person.household.all(salary_i)) == 2)  # Must be of a person dimension
-    assert(len(person.household.any(salary_i)) == 2)  # Must be of a person dimension
-    assert(len(household.first_parent.get_rank(household, salary_i)) == 1)  # Must be of a person dimension
+    assert len(person.household.sum(salary_i)) == 2  # Must be of a person dimension
+    assert len(person.household.max(salary_i)) == 2  # Must be of a person dimension
+    assert len(person.household.min(salary_i)) == 2  # Must be of a person dimension
+    assert len(person.household.all(salary_i)) == 2  # Must be of a person dimension
+    assert len(person.household.any(salary_i)) == 2  # Must be of a person dimension
+    assert len(household.first_parent.get_rank(household, salary_i)) == 1  # Must be of a person dimension
 
 
 def test_sum_following_bug_ipp_1():
@@ -431,8 +431,8 @@ def test_get_memory_usage():
     simulation = SimulationBuilder().build_from_dict(tax_benefit_system, test_case)
     simulation.calculate('disposable_income', '2017-01')
     memory_usage = simulation.person.get_memory_usage(variables = ['salary'])
-    assert(memory_usage['total_nb_bytes'] > 0)
-    assert(len(memory_usage['by_variable']) == 1)
+    assert memory_usage['total_nb_bytes'] > 0
+    assert len(memory_usage['by_variable']) == 1
 
 
 def test_unordered_persons():

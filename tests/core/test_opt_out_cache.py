@@ -71,7 +71,7 @@ def test_without_cache_opt_out(make_isolated_simulation, month):
     simulation = make_isolated_simulation(tax_benefit_system, {'input': 1})
     simulation.calculate('output', period = month)
     intermediate_cache = simulation.persons.get_holder('intermediate')
-    assert(intermediate_cache.get_array(month) is not None)
+    assert intermediate_cache.get_array(month) is not None
 
 
 def test_with_cache_opt_out(make_isolated_simulation, month):
@@ -80,7 +80,7 @@ def test_with_cache_opt_out(make_isolated_simulation, month):
     simulation.opt_out_cache = True
     simulation.calculate('output', period = month)
     intermediate_cache = simulation.persons.get_holder('intermediate')
-    assert(intermediate_cache.get_array(month) is None)
+    assert intermediate_cache.get_array(month) is None
 
 
 tax_benefit_system2 = get_filled_tbs()
@@ -90,4 +90,4 @@ def test_with_no_blacklist(make_isolated_simulation, month):
     simulation = make_isolated_simulation(tax_benefit_system2, {'input': 1})
     simulation.calculate('output', period = month)
     intermediate_cache = simulation.persons.get_holder('intermediate')
-    assert(intermediate_cache.get_array(month) is not None)
+    assert intermediate_cache.get_array(month) is not None

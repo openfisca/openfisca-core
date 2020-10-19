@@ -301,7 +301,7 @@ def test_update_variable(make_simulation):
 
     disposable_income2 = reform_simulation.calculate('disposable_income', period = '2017-01')
     # Before 2018, the former formula is used
-    assert(disposable_income2 > 100)
+    assert disposable_income2 > 100
 
 
 def test_replace_variable():
