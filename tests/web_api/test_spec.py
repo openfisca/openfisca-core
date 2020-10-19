@@ -41,7 +41,7 @@ def test_entity_definition():
     assert 'children' in dpath.get(body, 'definitions/Household/properties')
     assert 'salary' in dpath.get(body, 'definitions/Person/properties')
     assert 'rent' in dpath.get(body, 'definitions/Household/properties')
-    assert 'number' == dpath.get(body, 'definitions/Person/properties/salary/additionalProperties/type')
+    assert dpath.get(body, 'definitions/Person/properties/salary/additionalProperties/type') == 'number'
 
 
 def test_situation_definition():
@@ -50,8 +50,8 @@ def test_situation_definition():
     for situation in situation_input, situation_output:
         assert 'households' in dpath.get(situation, '/properties')
         assert 'persons' in dpath.get(situation, '/properties')
-        assert "#/definitions/Household" == dpath.get(situation, '/properties/households/additionalProperties/$ref')
-        assert "#/definitions/Person" == dpath.get(situation, '/properties/persons/additionalProperties/$ref')
+        assert dpath.get(situation, '/properties/households/additionalProperties/$ref') == "#/definitions/Household"
+        assert dpath.get(situation, '/properties/persons/additionalProperties/$ref') == "#/definitions/Person"
 
 
 def test_host():
