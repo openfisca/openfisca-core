@@ -1,26 +1,27 @@
 # -*- coding: utf-8 -*-
 
 
+import copy
 import glob
-from typing import Dict, Optional
-from inspect import isclass
-from os import path, linesep
 from imp import find_module, load_module
 import importlib
-import logging
 import inspect
+from inspect import isclass
+import logging
+from os import linesep, path
 import traceback
-import copy
+from typing import Dict, Optional
+
 import pkg_resources
 
-from openfisca_core.periods import Period, Instant, instant as make_instant
-from openfisca_core.entities import Entity
-from openfisca_core.populations import Population, GroupPopulation
-from openfisca_core.parameters import ParameterNode
-from openfisca_core.variables import Variable, get_neutralized_variable, get_annualized_variable
-from openfisca_core.errors import VariableNotFound
 from openfisca_core.commons import empty_clone
+from openfisca_core.entities import Entity
+from openfisca_core.errors import VariableNotFound
+from openfisca_core.parameters import ParameterNode
+from openfisca_core.periods import Instant, instant as make_instant, Period
+from openfisca_core.populations import GroupPopulation, Population
 from openfisca_core.simulation_builder import SimulationBuilder
+from openfisca_core.variables import get_annualized_variable, get_neutralized_variable, Variable
 
 
 log = logging.getLogger(__name__)

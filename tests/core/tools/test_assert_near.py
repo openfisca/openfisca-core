@@ -2,7 +2,6 @@
 import numpy as np
 
 from openfisca_core.tools import assert_near
-
 from ..test_countries import tax_benefit_system
 
 

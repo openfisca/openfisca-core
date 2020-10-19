@@ -13,8 +13,8 @@ from __future__ import annotations
 
 import calendar
 import datetime
-import re
 from os import linesep
+import re
 from typing import Dict
 
 

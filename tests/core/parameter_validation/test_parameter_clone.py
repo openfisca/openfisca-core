@@ -2,7 +2,6 @@
 import os
 
 from openfisca_core.parameters import ParameterNode
-
 from ..test_countries import tax_benefit_system
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

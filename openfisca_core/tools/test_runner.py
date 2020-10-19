@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import sys
 import os
-import traceback
+import sys
 import textwrap
+import traceback
 from typing import Dict, List
 
 import pytest
 
-from openfisca_core.tools import assert_near
-from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.errors import SituationParsingError, VariableNotFound
+from openfisca_core.simulation_builder import SimulationBuilder
+from openfisca_core.tools import assert_near
 
 log = logging.getLogger(__name__)
 

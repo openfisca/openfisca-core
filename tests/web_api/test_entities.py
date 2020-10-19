@@ -2,7 +2,9 @@
 
 from http.client import OK
 import json
+
 import openfisca_country_template
+
 from . import subject
 
 entities_response = subject.get('/entities')

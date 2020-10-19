@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import textwrap
 from os import linesep
+import textwrap
 
 
 class Role(object):

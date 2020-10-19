@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
-
-from openfisca_web_api.loader.parameters import build_parameters
-from openfisca_web_api.loader.variables import build_variables
 from openfisca_web_api.loader.entities import build_entities
+from openfisca_web_api.loader.parameters import build_parameters
 from openfisca_web_api.loader.spec import build_openAPI_specification
+from openfisca_web_api.loader.variables import build_variables
 
 
 def build_data(tax_benefit_system):

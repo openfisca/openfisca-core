@@ -3,12 +3,11 @@
 from copy import deepcopy
 
 from openfisca_country_template.entities import Household
-from openfisca_country_template.situation_examples import single, couple
+from openfisca_country_template.situation_examples import couple, single
 
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.tools import assert_near
 from openfisca_core.tools.test_runner import yaml
-
 from .test_countries import tax_benefit_system
 
 TEST_CASE = {

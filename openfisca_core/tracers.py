@@ -2,19 +2,19 @@
 
 from __future__ import annotations
 
-import os
-import json
-import time
 import csv
-from itertools import groupby
 from dataclasses import dataclass, field
-
 import importlib.resources as pkg_resources
-from typing import List, Dict, Optional, Iterator, Any
+from itertools import groupby
+import json
+import os
+import time
+from typing import Any, Dict, Iterator, List, Optional
+
 import numpy as np
 
-from openfisca_core.parameters import ParameterNodeAtInstant, VectorialParameterNodeAtInstant, ALLOWED_PARAM_TYPES
 from openfisca_core.indexed_enums import EnumArray
+from openfisca_core.parameters import ALLOWED_PARAM_TYPES, ParameterNodeAtInstant, VectorialParameterNodeAtInstant
 from openfisca_core.periods import Period
 
 

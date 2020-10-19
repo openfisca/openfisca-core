@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from pytest import fixture, approx
+from pytest import approx, fixture
 
 from openfisca_core.simulation_builder import SimulationBuilder
-from .test_simulation_builder import *  # noqa: F401
+from .test_simulation_builder import *
 
 
 @fixture

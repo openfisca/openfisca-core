@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
-from typing import Dict, List, Iterable
-
 from copy import deepcopy
+from typing import Dict, Iterable, List
+
 import dpath
 import numpy as np
 
 from openfisca_core.entities import Entity
+from openfisca_core.errors import PeriodMismatchError, SituationParsingError, VariableNotFound
+from openfisca_core.periods import key_period_size, period
 from openfisca_core.populations import Population
-from openfisca_core.variables import Variable
-
-from openfisca_core.errors import VariableNotFound, SituationParsingError, PeriodMismatchError
-from openfisca_core.periods import period, key_period_size
 from openfisca_core.simulations import Simulation
+from openfisca_core.variables import Variable
 
 
 class SimulationBuilder(object):

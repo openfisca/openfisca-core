@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+from datetime import date
 import inspect
 import re
 import textwrap
 from typing import Optional
 
-from datetime import date
 import numpy as np
 from sortedcontainers.sorteddict import SortedDict
 
 from openfisca_core import periods
 from openfisca_core.entities import Entity
-from openfisca_core.indexed_enums import Enum, EnumArray, ENUM_ARRAY_DTYPE
-from openfisca_core.periods import DAY, MONTH, YEAR, ETERNITY
+from openfisca_core.indexed_enums import Enum, ENUM_ARRAY_DTYPE, EnumArray
+from openfisca_core.periods import DAY, ETERNITY, MONTH, YEAR
 from openfisca_core.tools import eval_expression
 
 

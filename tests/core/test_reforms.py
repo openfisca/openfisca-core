@@ -4,15 +4,15 @@ import warnings
 
 from pytest import fixture, raises
 
-from openfisca_country_template.entities import Household, Person
 from openfisca_country_template import CountryTaxBenefitSystem
+from openfisca_country_template.entities import Household, Person
 
 from openfisca_core import periods
+from openfisca_core.model_api import *
+from openfisca_core.parameters import ParameterNode, ValuesHistory
 from openfisca_core.periods import Instant
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.tools import assert_near
-from openfisca_core.parameters import ValuesHistory, ParameterNode
-from openfisca_core.model_api import *  # noqa analysis:ignore
 tax_benefit_system = CountryTaxBenefitSystem()
 
 

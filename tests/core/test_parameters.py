@@ -4,7 +4,7 @@ import tempfile
 
 import pytest
 
-from openfisca_core.parameters import ParameterNotFound, ParameterNode, ParameterNodeAtInstant, load_parameter_file
+from openfisca_core.parameters import load_parameter_file, ParameterNode, ParameterNodeAtInstant, ParameterNotFound
 from .test_countries import tax_benefit_system
 
 

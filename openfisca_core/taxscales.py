@@ -7,8 +7,8 @@ import itertools
 import logging
 import os
 import traceback
-import warnings
 from typing import Any, List, NoReturn, Optional, Union
+import warnings
 
 from numpy import (
     around,

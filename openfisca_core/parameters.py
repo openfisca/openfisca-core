@@ -5,21 +5,21 @@
 
 
 import copy
-from typing import Iterable, Optional, Dict, List, Union
 import logging
 import os
 import sys
 import traceback
+from typing import Dict, Iterable, List, Optional, Union
 
-import yaml
 import numpy as np
+import yaml
 
-from openfisca_core import taxscales
 from openfisca_core import periods
+from openfisca_core import taxscales
+from openfisca_core.commons import empty_clone
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import INSTANT_PATTERN
 from openfisca_core.tools import indent
-from openfisca_core.commons import empty_clone
 
 log = logging.getLogger(__name__)
 

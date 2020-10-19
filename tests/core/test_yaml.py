@@ -2,13 +2,13 @@
 
 import os
 import subprocess
-import pkg_resources
 
+import pkg_resources
 import pytest
+
 import openfisca_extension_template
 
 from openfisca_core.tools.test_runner import run_tests
-
 from .test_countries import tax_benefit_system
 
 

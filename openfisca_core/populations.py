@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import traceback
-
 from typing import Iterable
 
 import numpy as np
 
 from openfisca_core.entities import Role
-from openfisca_core.indexed_enums import EnumArray
 from openfisca_core.holders import Holder
+from openfisca_core.indexed_enums import EnumArray
 
 
 ADD = 'add'

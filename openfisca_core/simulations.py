@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import tempfile
 import logging
+import tempfile
 
 import numpy as np
 
 from openfisca_core import periods
 from openfisca_core.commons import empty_clone
-from openfisca_core.tracers import TracingParameterNodeAtInstant, SimpleTracer, FullTracer
 from openfisca_core.indexed_enums import Enum, EnumArray
+from openfisca_core.tracers import FullTracer, SimpleTracer, TracingParameterNodeAtInstant
 
 
 log = logging.getLogger(__name__)

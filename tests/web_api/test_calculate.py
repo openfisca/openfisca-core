@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import os
-import json
-from http.client import BAD_REQUEST, OK, NOT_FOUND
 from copy import deepcopy
+from http.client import BAD_REQUEST, NOT_FOUND, OK
+import json
+import os
 
-import pytest
 import dpath
+import pytest
 
 from openfisca_country_template.situation_examples import couple
 

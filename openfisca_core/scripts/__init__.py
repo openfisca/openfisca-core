@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import traceback
 import importlib
 import logging
-import pkgutil
 from os import linesep
+import pkgutil
+import traceback
 
 log = logging.getLogger(__name__)
 

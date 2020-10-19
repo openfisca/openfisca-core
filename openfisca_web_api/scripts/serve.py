@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import sys
 import logging
+import sys
 
 from openfisca_core.scripts import build_tax_benefit_system
 from openfisca_web_api.app import create_app

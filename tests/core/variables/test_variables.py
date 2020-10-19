@@ -2,14 +2,14 @@
 
 import datetime
 
-from pytest import fixture, raises, mark
+from pytest import fixture, mark, raises
 
 import openfisca_country_template as country_template
-import openfisca_country_template.situation_examples
 from openfisca_country_template.entities import Person
+import openfisca_country_template.situation_examples
 
 from openfisca_core.model_api import Variable
-from openfisca_core.periods import MONTH, ETERNITY
+from openfisca_core.periods import ETERNITY, MONTH
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.tools import assert_near
 

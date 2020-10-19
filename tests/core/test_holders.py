@@ -6,12 +6,13 @@ from pytest import fixture
 
 import openfisca_country_template.situation_examples
 from openfisca_country_template.variables.housing import HousingOccupancyStatus
-from openfisca_core.simulation_builder import SimulationBuilder
-from openfisca_core.periods import period as make_period, ETERNITY
-from openfisca_core.tools import assert_near
-from openfisca_core.memory_config import MemoryConfig
-from openfisca_core.holders import Holder, set_input_dispatch_by_period
+
 from openfisca_core.errors import PeriodMismatchError
+from openfisca_core.holders import Holder, set_input_dispatch_by_period
+from openfisca_core.memory_config import MemoryConfig
+from openfisca_core.periods import ETERNITY, period as make_period
+from openfisca_core.simulation_builder import SimulationBuilder
+from openfisca_core.tools import assert_near
 from .test_countries import tax_benefit_system
 
 

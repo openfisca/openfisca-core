@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import json
 from copy import deepcopy
-
 from http.client import OK
+import json
+
 import dpath
-from openfisca_country_template.situation_examples import single, couple
+
+from openfisca_country_template.situation_examples import couple, single
 
 from . import subject
 

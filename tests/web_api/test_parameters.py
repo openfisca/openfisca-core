@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from http.client import OK, NOT_FOUND
+from http.client import NOT_FOUND, OK
 import json
 import re
 
 import pytest
+
 from . import subject
 
 # /parameters

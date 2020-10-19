@@ -5,9 +5,9 @@ import os
 
 import numpy as np
 
-from openfisca_core.simulations import Simulation
 from openfisca_core.data_storage import OnDiskStorage
 from openfisca_core.periods import ETERNITY
+from openfisca_core.simulations import Simulation
 
 
 def dump_simulation(simulation, directory):
