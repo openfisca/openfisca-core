@@ -402,7 +402,7 @@ class SimulationBuilder(object):
         if plural_key in self.memberships:
             population.members_entity_id = np.array(self.get_memberships(plural_key))
             population.members_role = np.array(self.get_roles(plural_key))
-        for variable_name in self.input_buffer.keys():
+        for variable_name in self.input_buffer:
             try:
                 holder = population.get_holder(variable_name)
             except ValueError:  # Wrong entity, we can just ignore that
@@ -474,7 +474,7 @@ class SimulationBuilder(object):
             cell_count *= axis_count
 
         # Scale the "prototype" situation, repeating it cell_count times
-        for entity_name in self.entity_counts.keys():
+        for entity_name in self.entity_counts:
             # Adjust counts
             self.axes_entity_counts[entity_name] = self.get_count(entity_name) * cell_count
             # Adjust ids
