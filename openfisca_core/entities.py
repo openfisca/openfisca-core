@@ -36,7 +36,7 @@ class Entity(object):
         self._tax_benefit_system = tax_benefit_system
 
     def check_role_validity(self, role):
-        if role is not None and not type(role) == Role:
+        if role is not None and not isinstance(role, Role):
             raise ValueError("{} is not a valid role".format(role))
 
     def get_variable(self, variable_name, check_existence = False):

@@ -65,7 +65,7 @@ class Enum(BaseEnum):
         >>> encoded_array[0]
         2  # Encoded value
         """
-        if type(array) is EnumArray:
+        if isinstance(array, EnumArray):
             return array
 
         if array.dtype.kind in {'U', 'S'}:  # String array

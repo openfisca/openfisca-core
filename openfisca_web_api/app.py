@@ -182,7 +182,7 @@ def create_app(tax_benefit_system,
     @app.errorhandler(500)
     def internal_server_error(e):
         message = str(e.args[0])
-        if type(e) == UnicodeEncodeError or type(e) == UnicodeDecodeError:
+        if isinstance(e, (UnicodeEncodeError, UnicodeDecodeError)):
             response = jsonify({"error": "Internal server error: '" + e[1] + "' is not a valid ASCII value."})
         elif message:
             response = jsonify({"error": "Internal server error: " + message.strip(os.linesep).replace(os.linesep, ' ')})

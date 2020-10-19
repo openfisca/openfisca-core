@@ -16,7 +16,7 @@ def test_empty_clone():
 
     result = commons.empty_clone(dummy)
 
-    assert type(result) == dummy_class
+    assert isinstance(result, dummy_class)
 
 
 def test_stringify_array():
