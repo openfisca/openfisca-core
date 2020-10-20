@@ -6,7 +6,7 @@ from openfisca_web_api import app
 
 TEST_COUNTRY_PACKAGE_NAME = "openfisca_country_template"
 TEST_REFORMS_PATHS = [
-    "tests.web_api.case_with_reform.dynamic_reform.add_dynamic_variable",
+    f"{TEST_COUNTRY_PACKAGE_NAME}.reforms.add_dynamic_variable.add_dynamic_variable",
     f"{TEST_COUNTRY_PACKAGE_NAME}.reforms.add_new_tax.add_new_tax",
     ]
 
