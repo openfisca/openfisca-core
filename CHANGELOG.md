@@ -1,5 +1,12 @@
 # Changelog
 
+### 34.7.7 [#951](https://github.com/openfisca/openfisca-core/pull/951)
+
+#### Technical changes
+
+- Avoid Web API failure with _dynamic_ variable generation
+- Using reforms to create _dynamic_ variables can lead to a failure to start the API because introspection is failing to get a `source code` section
+
 ### 34.7.6 [#957](https://github.com/openfisca/openfisca-core/pull/957)
 
 #### Technical changes
