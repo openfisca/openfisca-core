@@ -1,4 +1,5 @@
 import http
+
 import pytest
 
 from openfisca_core import scripts
@@ -6,11 +7,14 @@ from openfisca_web_api import app
 
 TEST_COUNTRY_PACKAGE_NAME = "openfisca_country_template"
 TEST_REFORMS_PATHS = [
-    f"{TEST_COUNTRY_PACKAGE_NAME}.reforms.add_dynamic_variable.add_dynamic_variable",
-    f"{TEST_COUNTRY_PACKAGE_NAME}.reforms.add_new_tax.add_new_tax",
-    f"{TEST_COUNTRY_PACKAGE_NAME}.reforms.flat_social_security_contribution.flat_social_security_contribution",
-    f"{TEST_COUNTRY_PACKAGE_NAME}.reforms.modify_social_security_taxation.modify_social_security_taxation",
-    f"{TEST_COUNTRY_PACKAGE_NAME}.reforms.removal_basic_income.removal_basic_income",
+    f"{TEST_COUNTRY_PACKAGE_NAME}.reforms.{reform}.{reform}"
+    for reform in [
+        "add_dynamic_variable",
+        "add_new_tax",
+        "flat_social_security_contribution",
+        "modify_social_security_taxation",
+        "removal_basic_income",
+        ]
     ]
 
 
