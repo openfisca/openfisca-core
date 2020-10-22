@@ -6,6 +6,7 @@ uninstall:
 install:
 	pip install --upgrade pip twine wheel
 	pip install --editable .[dev] --upgrade
+	pip install --editable .[scripts] --upgrade
 
 clean:
 	rm -rf build dist

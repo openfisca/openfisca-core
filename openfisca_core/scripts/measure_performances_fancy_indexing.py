@@ -8,15 +8,15 @@ from openfisca_core.model_api import *
 
 tbs = CountryTaxBenefitSystem()
 N = 200000
-al_plaf_acc = tbs.get_parameters_at_instant('2015-01-01').prestations.al_plaf_acc
+al_plafonds_accession = tbs.get_parameters_at_instant('2015-01-01').prestations.al_plafonds_accession
 zone_apl = np.random.choice([1, 2, 3], N)
 al_nb_pac = np.random.choice(6, N)
 couple = np.random.choice([True, False], N)
-formatted_zone = concat('plafond_pour_accession_a_la_propriete_zone_', zone_apl)  # zone_apl returns 1, 2 or 3 but the parameters have a long name
+formatted_zone = concat('zone_', zone_apl)  # zone_apl returns 1, 2 or 3 but the parameters have a long name
 
 
 def formula_with():
-    plafonds = al_plaf_acc[formatted_zone]
+    plafonds = al_plafonds_accession[formatted_zone]
 
     result = (
         plafonds.personne_isolee_sans_enfant * not_(couple) * (al_nb_pac == 0)
@@ -33,9 +33,9 @@ def formula_with():
 
 
 def formula_without():
-    z1 = al_plaf_acc.plafond_pour_accession_a_la_propriete_zone_1
-    z2 = al_plaf_acc.plafond_pour_accession_a_la_propriete_zone_2
-    z3 = al_plaf_acc.plafond_pour_accession_a_la_propriete_zone_3
+    z1 = al_plafonds_accession.zone_1
+    z2 = al_plafonds_accession.zone_2
+    z3 = al_plafonds_accession.zone_3
 
     return (zone_apl == 1) * (
         z1.personne_isolee_sans_enfant * not_(couple) * (al_nb_pac == 0)

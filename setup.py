@@ -37,6 +37,12 @@ dev_requirements = [
     'openfisca-extension-template >= 1.2.0rc0, < 2.0.0'
     ] + api_requirements
 
+scripts_requirements = [
+    "beautifulsoup4 >= 4.9.0, < 5.0.0",
+    "openfisca-france >= 48.15.0, < 49.0.0",
+    "ruamel.yaml >= 0.16.0, < 1.0.0",
+    ]
+
 setup(
     name = 'OpenFisca-Core',
     version = '34.7.7',
@@ -57,7 +63,10 @@ setup(
     url = 'https://github.com/openfisca/openfisca-core',
 
     data_files = [
-        ('share/openfisca/openfisca-core', ['CHANGELOG.md', 'LICENSE', 'README.md']),
+        (
+            'share/openfisca/openfisca-core',
+            ['CHANGELOG.md', 'LICENSE', 'README.md'],
+            ),
         ],
     entry_points = {
         'console_scripts': [
@@ -68,9 +77,8 @@ setup(
     extras_require = {
         'web-api': api_requirements,
         'dev': dev_requirements,
-        'tracker': [
-            'openfisca-tracker == 0.4.0',
-            ],
+        'scripts': scripts_requirements,
+        'tracker': ['openfisca-tracker == 0.4.0'],
         },
     include_package_data = True,  # Will read MANIFEST.in
     install_requires = general_requirements,
