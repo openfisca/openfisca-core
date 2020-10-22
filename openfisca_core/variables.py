@@ -270,6 +270,7 @@ class Variable(object):
         formulas = SortedDict()
         for formula_name, formula in formulas_attr.items():
             starting_date = self.parse_formula_name(formula_name)
+            formula = self.parse_formula(formula)
 
             if self.end is not None and starting_date > self.end:
                 raise ValueError('You declared that "{}" ends on "{}", but you wrote a formula to calculate it from "{}" ({}). The "end" attribute of a variable must be posterior to the start dates of all its formulas.'
@@ -319,6 +320,15 @@ class Variable(object):
             return datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
         except ValueError:  # formula_2005_99_99 for instance
             raise_error()
+
+    def parse_formula(self, formula):
+        """
+        It can be a function, or a descriptor.
+        """
+        if isinstance(formula, (classmethod, staticmethod)):
+            return formula.__func__
+
+        return formula
 
     # ----- Methods ----- #
 

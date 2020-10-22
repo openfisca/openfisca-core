@@ -24,6 +24,7 @@ class uses_multiplication(Variable):
     label = 'Variable with formula that uses multiplication'
     definition_period = MONTH
 
+    @staticmethod
     def formula(person, period):
         choice = person('choice', period)
         result = (choice == 1) * 80 + (choice == 2) * 90
@@ -36,6 +37,7 @@ class returns_scalar(Variable):
     label = 'Variable with formula that returns a scalar value'
     definition_period = MONTH
 
+    @staticmethod
     def formula(person, period):
         return 666
 
@@ -46,6 +48,7 @@ class uses_switch(Variable):
     label = 'Variable with formula that uses switch'
     definition_period = MONTH
 
+    @staticmethod
     def formula(person, period):
         choice = person('choice', period)
         result = switch(

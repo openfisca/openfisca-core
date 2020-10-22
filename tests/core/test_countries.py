@@ -115,6 +115,7 @@ def test_variable_with_reference(make_isolated_simulation):
     class disposable_income(Variable):
         definition_period = MONTH
 
+        @staticmethod
         def formula(household, period):
             return household.empty_array()
 
@@ -131,6 +132,7 @@ def test_variable_name_conflict():
         reference = 'disposable_income'
         definition_period = MONTH
 
+        @staticmethod
         def formula(household, period):
             return household.empty_array()
     with raises(VariableNameConflict):

@@ -37,6 +37,7 @@ class intermediate(Variable):
     label = "Intermediate result that don't need to be cached"
     definition_period = MONTH
 
+    @staticmethod
     def formula(person, period):
         return person('input', period)
 
@@ -47,6 +48,7 @@ class output(Variable):
     label = 'Output variable'
     definition_period = MONTH
 
+    @staticmethod
     def formula(person, period):
         return person('intermediate', period)
 

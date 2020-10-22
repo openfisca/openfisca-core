@@ -18,6 +18,7 @@ def monthly_variable():
         entity = Person
         definition_period = MONTH
 
+        @staticmethod
         def formula(person, period, parameters):
             variable.calculation_count += 1
             return np.asarray([100])

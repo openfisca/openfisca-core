@@ -132,6 +132,7 @@ class end_attribute__one_simple_formula(Variable):
     label = "Variable with end attribute, one formula without date."
     end = '1989-12-31'
 
+    @staticmethod
     def formula(individu, period):
         return vectorize(individu, 100)
 
@@ -174,6 +175,7 @@ class no_end_attribute__one_formula__strange_name(Variable):
     definition_period = MONTH
     label = "Variable without end attribute, one stangely named formula."
 
+    @staticmethod
     def formula_2015_toto(individu, period):
         return vectorize(individu, 100)
 
@@ -191,6 +193,7 @@ class no_end_attribute__one_formula__start(Variable):
     definition_period = MONTH
     label = "Variable without end attribute, one dated formula."
 
+    @staticmethod
     def formula_2000_01_01(individu, period):
         return vectorize(individu, 100)
 
@@ -223,6 +226,7 @@ class no_end_attribute__one_formula__eternity(Variable):
     definition_period = ETERNITY  # For this entity, this variable shouldn't evolve through time
     label = "Variable without end attribute, one dated formula."
 
+    @staticmethod
     def formula_2000_01_01(individu, period):
         return vectorize(individu, 100)
 
@@ -259,9 +263,11 @@ class no_end_attribute__formulas__start_formats(Variable):
     definition_period = MONTH
     label = "Variable without end attribute, multiple dated formulas."
 
+    @staticmethod
     def formula_2000(individu, period):
         return vectorize(individu, 100)
 
+    @staticmethod
     def formula_2010_01(individu, period):
         return vectorize(individu, 200)
 
@@ -311,9 +317,11 @@ class no_attribute__formulas__different_names__dates_overlap(Variable):
     definition_period = MONTH
     label = "Variable, no end attribute, multiple dated formulas with different names but same dates."
 
+    @staticmethod
     def formula_2000(individu, period):
         return vectorize(individu, 100)
 
+    @staticmethod
     def formula_2000_01_01(individu, period):
         return vectorize(individu, 200)
 
@@ -331,9 +339,11 @@ class no_attribute__formulas__different_names__no_overlap(Variable):
     definition_period = MONTH
     label = "Variable, no end attribute, multiple dated formulas with different names and no date overlap."
 
+    @staticmethod
     def formula_2000_01_01(individu, period):
         return vectorize(individu, 100)
 
+    @staticmethod
     def formula_2010_01_01(individu, period):
         return vectorize(individu, 200)
 
@@ -361,6 +371,7 @@ class end_attribute__one_formula__start(Variable):
     label = "Variable with end attribute, one dated formula."
     end = '2001-12-31'
 
+    @staticmethod
     def formula_2000_01_01(individu, period):
         return vectorize(individu, 100)
 
@@ -388,6 +399,7 @@ class stop_attribute_before__one_formula__start(Variable):
     label = "Variable with stop attribute only coming before formula start."
     end = '1990-01-01'
 
+    @staticmethod
     def formula_2000_01_01(individu, period):
         return vectorize(individu, 0)
 
@@ -405,6 +417,7 @@ class end_attribute_restrictive__one_formula(Variable):
     label = "Variable with end attribute, one dated formula and dates intervals overlap."
     end = '2001-01-01'
 
+    @staticmethod
     def formula_2001_01_01(individu, period):
         return vectorize(individu, 100)
 
@@ -432,12 +445,15 @@ class end_attribute__formulas__different_names(Variable):
     label = "Variable with end attribute, multiple dated formulas with different names."
     end = '2010-12-31'
 
+    @staticmethod
     def formula_2000_01_01(individu, period):
         return vectorize(individu, 100)
 
+    @staticmethod
     def formula_2005_01_01(individu, period):
         return vectorize(individu, 200)
 
+    @staticmethod
     def formula_2010_01_01(individu, period):
         return vectorize(individu, 300)
 

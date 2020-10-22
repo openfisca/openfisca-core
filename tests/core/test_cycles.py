@@ -29,6 +29,7 @@ class variable1(Variable):
     entity = Person
     definition_period = MONTH
 
+    @staticmethod
     def formula(person, period):
         return person('variable2', period)
 
@@ -38,6 +39,7 @@ class variable2(Variable):
     entity = Person
     definition_period = MONTH
 
+    @staticmethod
     def formula(person, period):
         return person('variable1', period)
 
@@ -48,6 +50,7 @@ class variable3(Variable):
     entity = Person
     definition_period = MONTH
 
+    @staticmethod
     def formula(person, period):
         return person('variable4', period.last_month)
 
@@ -57,6 +60,7 @@ class variable4(Variable):
     entity = Person
     definition_period = MONTH
 
+    @staticmethod
     def formula(person, period):
         return person('variable3', period)
 
@@ -68,6 +72,7 @@ class variable5(Variable):
     entity = Person
     definition_period = MONTH
 
+    @staticmethod
     def formula(person, period):
         variable6 = person('variable6', period.last_month)
         return 5 + variable6
@@ -78,6 +83,7 @@ class variable6(Variable):
     entity = Person
     definition_period = MONTH
 
+    @staticmethod
     def formula(person, period):
         variable5 = person('variable5', period)
         return 6 + variable5
@@ -88,6 +94,7 @@ class variable7(Variable):
     entity = Person
     definition_period = MONTH
 
+    @staticmethod
     def formula(person, period):
         variable5 = person('variable5', period)
         return 7 + variable5
@@ -99,6 +106,7 @@ class cotisation(Variable):
     entity = Person
     definition_period = MONTH
 
+    @staticmethod
     def formula(person, period):
         if period.start.month == 12:
             return 2 * person('cotisation', period.last_month)

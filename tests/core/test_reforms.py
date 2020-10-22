@@ -231,6 +231,7 @@ def test_add_variable(make_simulation):
         entity = Household
         definition_period = MONTH
 
+        @staticmethod
         def formula(household, period):
             return household.empty_array() + 10
 
@@ -255,9 +256,11 @@ def test_add_dated_variable(make_simulation):
         entity = Household
         definition_period = MONTH
 
+        @staticmethod
         def formula_2010_01_01(household, period):
             return household.empty_array() + 10
 
+        @staticmethod
         def formula_2011_01_01(household, period):
             return household.empty_array() + 15
 
@@ -278,6 +281,7 @@ def test_update_variable(make_simulation):
     class disposable_income(Variable):
         definition_period = MONTH
 
+        @staticmethod
         def formula_2018(household, period):
             return household.empty_array() + 10
 
@@ -312,6 +316,7 @@ def test_replace_variable():
         label = "Disposable income"
         value_type = float
 
+        @staticmethod
         def formula_2018(household, period):
             return household.empty_array() + 10
 
