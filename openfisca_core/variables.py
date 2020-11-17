@@ -187,6 +187,38 @@ class Variable(object):
                 .format(self.name, ', '.join(sorted(unexpected_attrs.keys()))))
 
         self.is_neutralized = False
+        self._deps = []
+
+    # ----- properties ----- #
+    @property
+    def dependencies(self):
+        """
+        Returns the variables this variable depends on. For this to work
+        the formula must use constant strings as the first input to entity when
+        retrieving the variable.
+
+        Please be mindful that this function simply checks all the constant strings defined
+        in the formula, so avoid using a constant string that collides with a variable
+        name, as it'll lead to incorrect dependencies being reported.
+
+        Input variables return an empty list.
+        """
+        if is_input_variable() or self._deps:
+            return self._deps
+        code = self.get_formula().__code__
+        consts = code.co_consts
+        for c in consts:
+            if not isinstance(c, str):
+                pass
+            if self.entity.check_variable_defined_for_entity(c):
+                self._deps.append(self.entity.get_variable(c))
+        return self._deps
+             
+
+
+        
+
+
 
     # ----- Setters used to build the variable ----- #
 

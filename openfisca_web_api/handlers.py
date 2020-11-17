@@ -4,7 +4,7 @@ import dpath
 
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.indexed_enums import Enum
-
+from collections import defaultdict
 
 def calculate(tax_benefit_system, input_data):
     simulation = SimulationBuilder().build_from_entities(tax_benefit_system, input_data)
@@ -16,10 +16,14 @@ def calculate(tax_benefit_system, input_data):
         path = computation[0]
         entity_plural, entity_id, variable_name, period = path.split('/')
         variable = tax_benefit_system.get_variable(variable_name)
+        introspection = variable.get_introspection_data(tax_benefit_system)
+        members = inspect.getmembers(variable)
+        code = variable.get_formula().__code__
+
         result = simulation.calculate(variable_name, period)
         population = simulation.get_population(entity_plural)
         entity_index = population.get_index(entity_id)
-
+        
         if variable.value_type == Enum:
             entity_result = result.decode()[entity_index].name
         elif variable.value_type == float:
@@ -35,6 +39,35 @@ def calculate(tax_benefit_system, input_data):
 
     return input_data
 
+def dependencies(tax_benefit_system, input_data):
+    simulation = SimulationBuilder().build_from_entities(tax_benefit_system, input_data)
+
+    requested_computations = dpath.util.search(input_data, '*/*/*/*', afilter = lambda t: t is None, yielded = True)
+    computation_results = {}
+
+    
+    dep_vars = defaultdict(int)
+
+    for computation in requested_computations:
+        path = computation[0]
+        entity_plural, entity_id, variable_name, period = path.split('/')
+        variable = tax_benefit_system.get_variable(variable_name)
+        get_dependencies(dep_vars, variable)
+
+    return dep_vars
+
+def get_dependencies(dep_vars, variable):
+    """
+    recursively find input variables for variables with formulas.
+    """
+    for dep in variable.dependencies:
+        if dep.is_input_variable():
+            dep_vars[dep] += 1
+        else:
+            get_dependencies(dep_vars, dep)
+
+
+
 
 def trace(tax_benefit_system, input_data):
     simulation = SimulationBuilder().build_from_entities(tax_benefit_system, input_data)
@@ -47,7 +80,6 @@ def trace(tax_benefit_system, input_data):
         entity_plural, entity_id, variable_name, period = path.split('/')
         requested_calculations.append(f"{variable_name}<{str(period)}>")
         simulation.calculate(variable_name, period)
-
     trace = simulation.tracer.get_serialized_flat_trace()
 
     return {
