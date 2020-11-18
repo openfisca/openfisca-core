@@ -35,7 +35,7 @@ paths:
       summary: "Find the dependent input variables of an OpenFisca Variable. This simply looks for constant strings and checks if they are variables in the entity. It will not work if you construct the strings programatically."
       tags:
         - Calculations
-      operationId: "calculate"
+      operationId: "dependencies"
       consumes:
         - "application/json"
       produces:
@@ -43,7 +43,7 @@ paths:
       parameters:
       - in: "body"
         name: "Situation"
-        description: 'Describe the situation (persons and entities). Add the variable you wish to calculate in the proper entity, with null as the value. Learn more in our official documentation: https://openfisca.org/doc/openfisca-web-api/input-output-data.html'
+        description: 'Describe the situation (persons and entities). Add the variable you wish to get the dependencies of in the entity, with null as the value. Learn more in our official documentation: https://openfisca.org/doc/openfisca-web-api/input-output-data.html'
         required: true
         schema:
           $ref: '#/definitions/SituationInput'
