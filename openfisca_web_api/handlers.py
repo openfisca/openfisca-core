@@ -6,6 +6,7 @@ from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.indexed_enums import Enum
 from collections import defaultdict
 
+
 def calculate(tax_benefit_system, input_data):
     simulation = SimulationBuilder().build_from_entities(tax_benefit_system, input_data)
 
@@ -16,14 +17,11 @@ def calculate(tax_benefit_system, input_data):
         path = computation[0]
         entity_plural, entity_id, variable_name, period = path.split('/')
         variable = tax_benefit_system.get_variable(variable_name)
-        introspection = variable.get_introspection_data(tax_benefit_system)
-        members = inspect.getmembers(variable)
-        code = variable.get_formula().__code__
 
         result = simulation.calculate(variable_name, period)
         population = simulation.get_population(entity_plural)
         entity_index = population.get_index(entity_id)
-        
+
         if variable.value_type == Enum:
             entity_result = result.decode()[entity_index].name
         elif variable.value_type == float:
@@ -39,22 +37,21 @@ def calculate(tax_benefit_system, input_data):
 
     return input_data
 
+
 def dependencies(tax_benefit_system, input_data):
     simulation = SimulationBuilder().build_from_entities(tax_benefit_system, input_data)
-
-    requested_computations = dpath.util.search(input_data, '*/*/*/*', afilter = lambda t: t is None, yielded = True)
-    computation_results = {}
-
-    
+    requested_computations = dpath.util.search(input_data,
+            '*/*/*/*', afilter = lambda t: t is None, yielded = True)
     dep_vars = defaultdict(int)
 
     for computation in requested_computations:
         path = computation[0]
         entity_plural, entity_id, variable_name, period = path.split('/')
         variable = tax_benefit_system.get_variable(variable_name)
+        variable.entity.set_tax_benefit_system(tax_benefit_system)
         get_dependencies(dep_vars, variable)
-
     return dep_vars
+
 
 def get_dependencies(dep_vars, variable):
     """
@@ -62,11 +59,9 @@ def get_dependencies(dep_vars, variable):
     """
     for dep in variable.dependencies:
         if dep.is_input_variable():
-            dep_vars[dep] += 1
+            dep_vars[dep.name] += 1
         else:
             get_dependencies(dep_vars, dep)
-
-
 
 
 def trace(tax_benefit_system, input_data):
