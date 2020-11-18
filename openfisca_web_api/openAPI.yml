@@ -32,7 +32,7 @@ tags:
 paths:
   /dependencies:
     post:
-      summary: "Find the dependent input variables of an OpenFisca Variable "
+      summary: "Find the dependent input variables of an OpenFisca Variable. This simply looks for constant strings and checks if they are variables in the entity. It will not work if you construct the strings programatically."
       tags:
         - Calculations
       operationId: "calculate"
@@ -192,7 +192,7 @@ paths:
             $ref: "#/definitions/Entities"
   /trace:
     post:
-      summary: "Explore a simulation's steps in details."
+      summary: "Return every variable accessed/executed in order to calculate this simulation."
       tags:
         - Calculations
       operationId: "trace"

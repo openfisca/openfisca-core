@@ -9,11 +9,10 @@ from typing import Optional
 import numpy as np
 from sortedcontainers.sorteddict import SortedDict
 from datetime import date
-from copy import deepcopy
 
 from openfisca_core import periods
 from openfisca_core.entities import Entity
-from openfisca_core import errors 
+from openfisca_core import errors
 from openfisca_core.indexed_enums import Enum, EnumArray, ENUM_ARRAY_DTYPE
 from openfisca_core.periods import DAY, MONTH, YEAR, ETERNITY
 from openfisca_core.tools import eval_expression
@@ -208,10 +207,10 @@ class Variable(object):
         if self.is_input_variable() or self._deps:
             return self._deps
         code = self.get_formula().__code__
-        consts = deepcopy(code.co_consts)
+        consts = code.co_consts
         for con in consts:
             if not isinstance(con, str):
-               continue 
+                continue
             try:
                 self.entity.check_variable_defined_for_entity(con)
             except errors.VariableNotFound:

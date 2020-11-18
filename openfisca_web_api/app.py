@@ -156,8 +156,6 @@ def create_app(tax_benefit_system,
             abort(make_response(jsonify({"error": "'" + e[1] + "' is not a valid ASCII value."}), 400))
         return jsonify(result)
 
-
-
     @app.route('/trace', methods=['POST'])
     def trace():
         tax_benefit_system = data['tax_benefit_system']
