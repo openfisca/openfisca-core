@@ -39,7 +39,7 @@ def calculate(tax_benefit_system, input_data):
 
 
 def dependencies(tax_benefit_system, input_data):
-    simulation = SimulationBuilder().build_from_entities(tax_benefit_system, input_data)
+    SimulationBuilder().build_from_entities(tax_benefit_system, input_data)
     requested_computations = dpath.util.search(input_data,
             '*/*/*/*', afilter = lambda t: t is None, yielded = True)
     dep_vars = defaultdict(int)

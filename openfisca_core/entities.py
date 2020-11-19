@@ -40,17 +40,12 @@ class Entity(object):
             raise ValueError("{} is not a valid role".format(role))
 
     def get_variable(self, variable_name, check_existence = False):
+        if not self._tax_benefit_system:
+            raise ValueError("No tax_benefit_system set. Please set it using set_tax_benefit_system")
         return self._tax_benefit_system.get_variable(variable_name, check_existence)
 
     def check_variable_defined_for_entity(self, variable_name):
-        try:
-            variable_entity = self.get_variable(variable_name, check_existence = True).entity
-        except AttributeError as e:
-            import sys
-            import traceback
-            traceback.print_tb(sys.exc_info()[2])
-            print(e)
-            raise ValueError("FIXME: tax_benefit_system is null")
+        variable_entity = self.get_variable(variable_name, check_existence = True).entity
         # Should be this:
         # if variable_entity is not self:
         if variable_entity.key != self.key:
