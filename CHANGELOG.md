@@ -1,5 +1,14 @@
 # Changelog
 
+### 34.8.0 [#964](https://github.com/openfisca/openfisca-core/pull/9646464646464)
+
+
+#### Technical changes
+
+- Added new _dependencies_ API end point to find the dependent input variables of a variable
+- Added a new property in variables.py to enable this.
+- Clarified API documentation for _trace_ endpoint
+
 ### 34.7.7 [#951](https://github.com/openfisca/openfisca-core/pull/951)
 
 #### Technical changes
