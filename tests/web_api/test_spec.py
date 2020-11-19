@@ -31,6 +31,7 @@ def test_paths():
         "/entities",
         "/trace",
         "/calculate",
+        "/dependencies",
         "/spec"]
         )
 
