@@ -1,5 +1,30 @@
 # Changelog
 
+# 35.0.0 [#954](https://github.com/openfisca/openfisca-core/pull/954)
+
+#### Breaking changes
+
+- Update Numpy version's upper bound to 1.18
+  - Numpy 1.18 [expires a list of old deprecations](https://numpy.org/devdocs/release/1.18.0-notes.html#expired-deprecations) that might be used in openfisca country models.
+
+#### Migration details
+
+You might need to change your code if any of the [Numpy expired deprecations](https://numpy.org/devdocs/release/1.18.0-notes.html#expired-deprecations) is used in your model formulas.
+
+Here is a subset of the deprecations that you might find in your model with some checks and migration steps (where `np` stands for `numpy`):
+
+* `Removed deprecated support for boolean and empty condition lists in np.select.`
+  * Before `np.select([], [])` result was `0` (for a `default` argument value set to `0`).
+    * Now, we have to check for empty conditions and, return `0` or the defined default argument value when we want to keep the same behavior.
+  * Before, integer conditions where transformed to booleans.
+    * For example, `np.select([0, 1, 0], ['a', 'b', 'c'])` result was `array('b', dtype='<U21')`. Now, we have to update such code to: `np.select(np.array([0, 1, 0]).astype(bool), ['a', 'b', 'c'])`.
+* `np.linspace parameter num must be an integer.`
+  * No surprise here, update the `num` parameter in [np.linspace](https://numpy.org/doc/1.18/reference/generated/numpy.linspace.html) in order to get an integer.
+* `Array order only accepts ‘C’, ‘F’, ‘A’, and ‘K’.`
+  * Check that [numpy.array](https://numpy.org/doc/1.18/reference/generated/numpy.array.html) `order` argument gets one of the allowed values listed above.
+* `UFuncs with multiple outputs must use a tuple for the out kwarg.`
+  * Update the output type of any used [universal function](https://numpy.org/doc/1.18/reference/ufuncs.html) to get a tuple.
+
 ### 34.7.7 [#951](https://github.com/openfisca/openfisca-core/pull/951)
 
 #### Technical changes
