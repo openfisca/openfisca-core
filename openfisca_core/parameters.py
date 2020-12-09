@@ -847,7 +847,12 @@ def load_parameter_file(file_path, name = ''):
         raise ValueError("{} doest not exist".format(file_path))
     if os.path.isdir(file_path):
         return ParameterNode(name, directory_path = file_path)
-    data = _load_yaml_file(file_path)
+    try:
+        data = _load_yaml_file(file_path)
+    except Exception as e:
+        print("Problem when loading parameters file {}".format(file_path))
+        raise e
+
     return _parse_child(name, data, file_path)
 
 
