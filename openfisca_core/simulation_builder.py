@@ -195,7 +195,10 @@ class SimulationBuilder(object):
         if np.issubdtype(roles_array.dtype, np.integer):
             group_population.members_role = np.array(flattened_roles)[roles_array]
         else:
-            group_population.members_role = np.select([roles_array == role.key for role in flattened_roles], flattened_roles)
+            if len(flattened_roles) == 0:
+                group_population.members_role = np.int64(0)
+            else:
+                group_population.members_role = np.select([roles_array == role.key for role in flattened_roles], flattened_roles)
 
     def build(self, tax_benefit_system):
         return Simulation(tax_benefit_system, self.populations)

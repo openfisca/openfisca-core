@@ -10,7 +10,7 @@ from setuptools import setup, find_packages
 general_requirements = [
     'dpath >= 1.5.0, < 2.0.0',
     'pytest >= 4.4.1, < 6.0.0',  # For openfisca test
-    'numpy >= 1.11, < 1.18',
+    'numpy >= 1.11, < 1.19',
     'psutil >= 5.4.7, < 6.0.0',
     'PyYAML >= 3.10',
     'sortedcontainers == 2.2.2',
@@ -37,7 +37,7 @@ dev_requirements = [
 
 setup(
     name = 'OpenFisca-Core',
-    version = '34.7.7',
+    version = '35.0.0',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [
