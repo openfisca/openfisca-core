@@ -43,9 +43,23 @@ def test_add_axis_with_group(simulation_builder, persons):
     simulation_builder.add_person_entity(persons, {'Alicia': {}, 'Javier': {}})
     simulation_builder.register_variable('salary', persons)
     simulation_builder.add_parallel_axis({'count': 2, 'name': 'salary', 'min': 0, 'max': 3000, 'period': '2018-11'})
+    simulation_builder.add_parallel_axis({'count': 2, 'name': 'salary', 'min': 0, 'max': 3000, 'period': '2018-11', 'index': 1})
     simulation_builder.expand_axes()
     assert simulation_builder.get_count('persons') == 4
     assert simulation_builder.get_ids('persons') == ['Alicia0', 'Javier1', 'Alicia2', 'Javier3']
+    assert simulation_builder.get_input('salary', '2018-11') == approx([0, 0, 3000, 3000])
+
+
+def test_add_axis_with_group_int_period(simulation_builder, persons):
+    simulation_builder.add_person_entity(persons, {'Alicia': {}, 'Javier': {}})
+    simulation_builder.register_variable('salary', persons)
+    simulation_builder.add_parallel_axis({'count': 2, 'name': 'salary', 'min': 0, 'max': 3000, 'period': 2018})
+    simulation_builder.add_parallel_axis({'count': 2, 'name': 'salary', 'min': 0, 'max': 3000, 'period': 2018, 'index': 1})
+    simulation_builder.expand_axes()
+    assert simulation_builder.get_count('persons') == 4
+    assert simulation_builder.get_ids('persons') == ['Alicia0', 'Javier1', 'Alicia2', 'Javier3']
+    assert simulation_builder.get_input('salary', '2018') == approx([0, 0, 3000, 3000])
+
 
 
 def test_add_axis_on_group_entity(simulation_builder, persons, group_entity):
