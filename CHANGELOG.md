@@ -1,5 +1,12 @@
 # Changelog
 
+# 35.0.0 [#968](https://github.com/openfisca/openfisca-core/pull/968)
+
+#### Technical changes
+
+- Fix a bug when using axes with an integer year period
+  - Always index periods in the inpt_buffer by their string representation
+
 # 35.0.0 [#954](https://github.com/openfisca/openfisca-core/pull/954)
 
 #### Breaking changes
