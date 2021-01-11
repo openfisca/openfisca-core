@@ -61,7 +61,6 @@ def test_add_axis_with_group_int_period(simulation_builder, persons):
     assert simulation_builder.get_input('salary', '2018') == approx([0, 0, 3000, 3000])
 
 
-
 def test_add_axis_on_group_entity(simulation_builder, persons, group_entity):
     simulation_builder.add_person_entity(persons, {'Alicia': {}, 'Javier': {}, 'Tom': {}})
     simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Tom'], group_entity, {
