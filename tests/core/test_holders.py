@@ -11,18 +11,17 @@ from openfisca_core.tools import assert_near
 from openfisca_core.memory_config import MemoryConfig
 from openfisca_core.holders import Holder, set_input_dispatch_by_period
 from openfisca_core.errors import PeriodMismatchError
-from .test_countries import tax_benefit_system
 
 from pytest import fixture
 
 
 @fixture
-def single():
+def single(tax_benefit_system):
     return SimulationBuilder().build_from_entities(tax_benefit_system, openfisca_country_template.situation_examples.single)
 
 
 @fixture
-def couple():
+def couple(tax_benefit_system):
     return SimulationBuilder().build_from_entities(tax_benefit_system, openfisca_country_template.situation_examples.couple)
 
 
