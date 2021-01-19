@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from openfisca_country_template.situation_examples import single
-
-
 def test_calculate_full_tracer(tax_benefit_system, simulation_builder):
     simulation = simulation_builder.build_default_simulation(tax_benefit_system)
     simulation.trace = True
@@ -58,7 +55,7 @@ def test_clone(tax_benefit_system, simulation_builder):
     assert salary_holder_clone.population == simulation_clone.persons
 
 
-def test_get_memory_usage(tax_benefit_system, simulation_builder):
+def test_get_memory_usage(tax_benefit_system, simulation_builder, single):
     simulation = simulation_builder.build_from_entities(tax_benefit_system, single)
     simulation.calculate('disposable_income', '2017-01')
     memory_usage = simulation.get_memory_usage(variables = ['salary'])

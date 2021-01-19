@@ -137,3 +137,23 @@ def group_entity():
 
     return Household("household", "households", "", "", roles)
 
+
+@fixture
+def single():
+    return {
+	"persons": {
+	    "Alicia": {
+		"birth": {
+		    "2017-01": None 
+		},
+		"disposable_income": {
+		    "2017-01": None
+		}
+	    }
+	},
+	"households": {
+	    "_": {
+		"parents": ["Alicia"]
+	    }
+	}
+    }
