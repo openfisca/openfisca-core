@@ -29,31 +29,43 @@ def tax_benefit_system():
 
 
 @fixture
+def simulation_builder():
+    return SimulationBuilder()
+
+
+@fixture
 def period():
     return "2016-01"
 
 
 @fixture
-def make_simulation(tax_benefit_system, period):
+def make_simulation(tax_benefit_system, simulation_builder, period):
     def _make_simulation(data):
-        builder = SimulationBuilder()
-        builder.default_period = period
-        return builder.build_from_variables(tax_benefit_system, data)
+        simulation_builder.default_period = period
+        return simulation_builder.build_from_variables(tax_benefit_system, data)
     return _make_simulation
 
 
 @fixture
-def make_isolated_simulation(period):
+def make_isolated_simulation(simulation_builder, period):
     def _make_simulation(tbs, data):
-        builder = SimulationBuilder()
-        builder.default_period = period
-        return builder.build_from_variables(tbs, data)
+        simulation_builder.default_period = period
+        return simulation_builder.build_from_variables(tbs, data)
     return _make_simulation
 
 
 @fixture
-def simulation_builder():
-    return SimulationBuilder()
+def persons():
+    class TestPersonEntity(Entity):
+        def get_variable(self, variable_name):
+            result = TestVariable(self)
+            result.name = variable_name
+            return result
+
+        def check_variable_defined_for_entity(self, variable_name):
+            return True
+
+    return TestPersonEntity("person", "persons", "", "")
 
 
 @fixture
@@ -101,20 +113,6 @@ def enum_variable():
             pass
 
     return TestEnum()
-
-
-@fixture
-def persons():
-    class TestPersonEntity(Entity):
-        def get_variable(self, variable_name):
-            result = TestVariable(self)
-            result.name = variable_name
-            return result
-
-        def check_variable_defined_for_entity(self, variable_name):
-            return True
-
-    return TestPersonEntity("person", "persons", "", "")
 
 
 @fixture
