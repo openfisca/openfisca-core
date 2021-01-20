@@ -8,7 +8,6 @@ from openfisca_core.tools import assert_near
 from openfisca_core.tools.test_runner import yaml
 from openfisca_core.populations import Population
 from openfisca_country_template.entities import Household
-from openfisca_country_template.situation_examples import couple
 from openfisca_core.errors import SituationParsingError
 
 
@@ -373,7 +372,7 @@ def test_vectorial_input(tax_benefit_system, simulation_builder):
     simulation.calculate("total_taxes", "2016-10")
 
 
-def test_fully_specified_entities(tax_benefit_system, simulation_builder):
+def test_fully_specified_entities(tax_benefit_system, simulation_builder, couple):
     simulation = simulation_builder.build_from_dict(tax_benefit_system, couple)
     assert simulation.household.count == 1
     assert simulation.persons.count == 2
