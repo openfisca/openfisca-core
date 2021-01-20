@@ -2,7 +2,6 @@
 
 from openfisca_core import periods
 from openfisca_core.periods import MONTH
-from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.simulations import CycleError
 from openfisca_core.variables import Variable
 
