@@ -197,3 +197,12 @@ def couple():
         }
     }
 }
+
+@fixture
+def simulation_single(simulation_builder, tax_benefit_system, single):
+    return simulation_builder.build_from_entities(tax_benefit_system, single)
+
+
+@fixture
+def simulation_couple(simulation_builder, tax_benefit_system, couple):
+    return simulation_builder.build_from_entities(tax_benefit_system, couple)
