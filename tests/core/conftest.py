@@ -10,7 +10,6 @@ from openfisca_country_template import CountryTaxBenefitSystem
 from openfisca_core.variables import Variable
 from openfisca_core.periods import ETERNITY
 from openfisca_core.entities import Entity, GroupEntity
-from openfisca_country_template.entities import Household
 from openfisca_core.indexed_enums import Enum as OFEnum
 
 
@@ -141,19 +140,19 @@ def group_entity():
 @fixture
 def single():
     return {
-	"persons": {
-	    "Alicia": {
-		"birth": {
-		    "2017-01": None 
-		},
-		"disposable_income": {
-		    "2017-01": None
-		}
-	    }
-	},
-	"households": {
-	    "_": {
-		"parents": ["Alicia"]
-	    }
-	}
-    }
+        "persons": {
+            "Alicia": {
+                "birth": {
+                    "2017-01": None
+                    },
+                "disposable_income": {
+                    "2017-01": None
+                    }
+                }
+            },
+        "households": {
+            "_": {
+                "parents": ["Alicia"]
+                }
+            }
+        }
