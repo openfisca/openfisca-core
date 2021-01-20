@@ -4,13 +4,12 @@ from openfisca_core.tools import assert_near
 
 from openfisca_country_template import CountryTaxBenefitSystem
 from openfisca_country_template.entities import *  # noqa analysis:ignore
-from openfisca_country_template.situation_examples import single
 
 from pytest import fixture, raises
 
 
 @fixture
-def simulation():
+def simulation(single):
     return SimulationBuilder().build_from_entities(tax_benefit_system, single)
 
 
