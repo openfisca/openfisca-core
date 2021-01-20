@@ -244,3 +244,94 @@ def simulation_single_with_variables(simulation_builder, tax_benefit_system, sin
         variable_with_calculate_output_divide
         )
     return simulation_builder.build_from_entities(tax_benefit_system, single)
+
+
+
+# 1 <--> 2 with same period
+class variable1(Variable):
+    value_type = int
+    entity = Person
+    definition_period = MONTH
+
+    def formula(person, period):
+        return person('variable2', period)
+
+
+class variable2(Variable):
+    value_type = int
+    entity = Person
+    definition_period = MONTH
+
+    def formula(person, period):
+        return person('variable1', period)
+
+
+# 3 <--> 4 with a period offset
+class variable3(Variable):
+    value_type = int
+    entity = Person
+    definition_period = MONTH
+
+    def formula(person, period):
+        return person('variable4', period.last_month)
+
+
+class variable4(Variable):
+    value_type = int
+    entity = Person
+    definition_period = MONTH
+
+    def formula(person, period):
+        return person('variable3', period)
+
+
+# 5 -f-> 6 with a period offset
+#   <---
+class variable5(Variable):
+    value_type = int
+    entity = Person
+    definition_period = MONTH
+
+    def formula(person, period):
+        variable6 = person('variable6', period.last_month)
+        return 5 + variable6
+
+
+class variable6(Variable):
+    value_type = int
+    entity = Person
+    definition_period = MONTH
+
+    def formula(person, period):
+        variable5 = person('variable5', period)
+        return 6 + variable5
+
+
+class variable7(Variable):
+    value_type = int
+    entity = Person
+    definition_period = MONTH
+
+    def formula(person, period):
+        variable5 = person('variable5', period)
+        return 7 + variable5
+
+
+# december cotisation depending on november value
+class cotisation(Variable):
+    value_type = int
+    entity = Person
+    definition_period = MONTH
+
+    def formula(person, period):
+        if period.start.month == 12:
+            return 2 * person('cotisation', period.last_month)
+        else:
+            return person.empty_array() + 1
+
+
+@fixture
+def simulation_with_variables(tax_benefit_system, simulation_builder):
+    tax_benefit_system.add_variables(variable1, variable2, variable3, variable4,
+        variable5, variable6, variable7, cotisation)
+    return SimulationBuilder().build_default_simulation(tax_benefit_system)
