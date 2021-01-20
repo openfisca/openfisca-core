@@ -6,7 +6,6 @@ from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.tools import assert_near
 from openfisca_core.tools.test_runner import yaml
 from openfisca_country_template.entities import Household
-from openfisca_country_template.situation_examples import couple
 
 TEST_CASE = {
     'persons': {'ind0': {}, 'ind1': {}, 'ind2': {}, 'ind3': {}, 'ind4': {}, 'ind5': {}},
@@ -362,7 +361,7 @@ def test_value_from_first_person(tax_benefit_system):
     assert_near(salary_first_person, [1000, 3000])
 
 
-def test_projectors_methods(tax_benefit_system):
+def test_projectors_methods(tax_benefit_system, couple):
     simulation = SimulationBuilder().build_from_dict(tax_benefit_system, couple)
     household = simulation.household
     person = simulation.person
