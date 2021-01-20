@@ -18,11 +18,6 @@ def reference_period():
     return periods.period('2013-01')
 
 
-@fixture
-def simulation(reference_period):
-    return SimulationBuilder().build_default_simulation(tax_benefit_system)
-
-
 # 1 <--> 2 with same period
 class variable1(Variable):
     value_type = int

@@ -36,6 +36,11 @@ def simulation_builder():
 
 
 @fixture
+def simulation(tax_benefit_system, simulation_builder):
+    return SimulationBuilder().build_default_simulation(tax_benefit_system)
+
+
+@fixture
 def period():
     return "2016-01"
 
