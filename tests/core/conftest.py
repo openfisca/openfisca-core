@@ -12,6 +12,9 @@ from openfisca_core.periods import ETERNITY
 from openfisca_core.entities import Entity, GroupEntity
 from openfisca_core.indexed_enums import Enum as OFEnum
 
+from openfisca_core.model_api import *  # noqa analysis:ignore
+from openfisca_country_template.entities import *  # noqa analysis:ignore
+
 
 class TestVariable(Variable):
     definition_period = ETERNITY
@@ -206,3 +209,33 @@ def simulation_single(simulation_builder, tax_benefit_system, single):
 @fixture
 def simulation_couple(simulation_builder, tax_benefit_system, couple):
     return simulation_builder.build_from_entities(tax_benefit_system, couple)
+
+
+class simple_variable(Variable):
+    entity = Person
+    definition_period = MONTH
+    value_type = int
+
+
+class variable_with_calculate_output_add(Variable):
+    entity = Person
+    definition_period = MONTH
+    value_type = int
+    calculate_output = calculate_output_add
+
+
+class variable_with_calculate_output_divide(Variable):
+    entity = Person
+    definition_period = YEAR
+    value_type = int
+    calculate_output = calculate_output_divide
+
+
+@fixture
+def simulation_single_with_variables(simulation_builder, tax_benefit_system, single):
+    tax_benefit_system.add_variables(
+        simple_variable,
+        variable_with_calculate_output_add,
+        variable_with_calculate_output_divide
+        )
+    return simulation_builder.build_from_entities(tax_benefit_system, single)
