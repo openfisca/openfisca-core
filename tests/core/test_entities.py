@@ -361,10 +361,9 @@ def test_value_from_first_person(tax_benefit_system):
     assert_near(salary_first_person, [1000, 3000])
 
 
-def test_projectors_methods(tax_benefit_system, couple):
-    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, couple)
-    household = simulation.household
-    person = simulation.person
+def test_projectors_methods(simulation_couple):
+    household = simulation_couple.household
+    person = simulation_couple.person
 
     projected_vector = household.first_parent.has_role(Household.FIRST_PARENT)
     assert(len(projected_vector) == 1)  # Must be of a household dimension
