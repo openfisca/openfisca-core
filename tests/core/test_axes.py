@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-from pytest import fixture, approx
-
-from openfisca_core.simulation_builder import SimulationBuilder
-from .test_simulation_builder import *  # noqa: F401
-
-
-@fixture
-def simulation_builder():
-    return SimulationBuilder()
+from pytest import approx
 
 
 def test_add_axis_on_persons(simulation_builder, persons):
