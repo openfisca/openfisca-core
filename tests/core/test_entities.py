@@ -41,10 +41,10 @@ def make_simulation_from_yaml(tax_benefit_system, simulation_builder):
 
 @fixture 
 def make_simulation_from_entities(tax_benefit_system, simulation_builder, period):
-    def _make_simulation_from_enties(entities, period=period):
+    def _make_simulation_from_entities(entities, period=period):
         simulation_builder.set_default_period(period)
         return simulation_builder.build_from_entities(tax_benefit_system, entities)
-    return _make_simulation_from_enties
+    return _make_simulation_from_entities
 
 @fixture
 def simulation_case(make_simulation_from_entities, case):
