@@ -32,19 +32,20 @@ PARENT = Household.PARENT
 CHILD = Household.CHILD
 
 
-@fixture 
+@fixture
 def make_simulation_from_yaml(tax_benefit_system, simulation_builder):
     def _make_simulation_from_yaml(simulation_yaml):
         return simulation_builder.build_from_dict(tax_benefit_system, yaml.safe_load(simulation_yaml))
     return _make_simulation_from_yaml
 
 
-@fixture 
+@fixture
 def make_simulation_from_entities(tax_benefit_system, simulation_builder, period):
     def _make_simulation_from_entities(entities, period=period):
         simulation_builder.set_default_period(period)
         return simulation_builder.build_from_entities(tax_benefit_system, entities)
     return _make_simulation_from_entities
+
 
 @fixture
 def simulation_case(make_simulation_from_entities, case):
@@ -60,7 +61,7 @@ def test_role_index_and_positions(simulation_case):
 
 
 def test_entity_structure_with_constructor(make_simulation_from_yaml):
-    simulation  = make_simulation_from_yaml("""
+    simulation = make_simulation_from_yaml("""
         persons:
           bill: {}
           bob: {}
@@ -298,7 +299,7 @@ def test_min(make_simulation_from_entities, ages_case, period):
 
 
 def test_value_nth_person(make_simulation_from_entities, ages_case, period):
-    simulation = make_simulation_from_entities(test_case, ages_case)
+    simulation = make_simulation_from_entities(ages_case)
     household = simulation.household
     array = household.members('age', period)
 
@@ -418,7 +419,7 @@ def test_sum_following_bug_ipp_2(make_simulation_from_entities, period):
     assert_near(nb_eligibles_by_household, [2, 0])
 
 
-def test_get_memory_usage(tax_benefit_system, single):
+def test_get_memory_usage(tax_benefit_system, simulation_builder, single):
     single["persons"]["Alicia"]["salary"] = {"2017-01": 0}
     simulation = simulation_builder.build_from_dict(tax_benefit_system, single)
     simulation.calculate('disposable_income', '2017-01')
