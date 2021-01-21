@@ -46,6 +46,11 @@ def period():
 
 
 @fixture
+def year_period():
+    return "2016"
+
+
+@fixture
 def make_simulation(tax_benefit_system, simulation_builder, period):
     def _make_simulation(data):
         simulation_builder.default_period = period

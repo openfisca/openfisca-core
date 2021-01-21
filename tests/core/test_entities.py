@@ -6,6 +6,7 @@ from openfisca_core.tools import assert_near
 from openfisca_core.tools.test_runner import yaml
 from openfisca_country_template.entities import Household
 
+
 @fixture
 def case():
     return {
@@ -16,6 +17,7 @@ def case():
             },
         }
 
+
 @fixture
 def ages_case(case):
     AGES = [40, 37, 7, 9, 54, 20]
@@ -23,13 +25,12 @@ def ages_case(case):
         individu['age'] = age
     return case
 
+
 FIRST_PARENT = Household.FIRST_PARENT
 SECOND_PARENT = Household.SECOND_PARENT
 PARENT = Household.PARENT
 CHILD = Household.CHILD
 
-YEAR = 2016
-MONTH = "2016-01"
 
 @fixture 
 def make_simulation_from_yaml(tax_benefit_system, simulation_builder):
@@ -198,13 +199,13 @@ def test_has_role_with_subrole(simulation_case):
     assert_near(individu.has_role(SECOND_PARENT), [False, True, False, False, False, False])
 
 
-def test_project(make_simulation_from_entities, case):
+def test_project(make_simulation_from_entities, case, year_period):
     case['households']['h1']['housing_tax'] = 20000
 
-    simulation = make_simulation_from_entities(case, YEAR)
+    simulation = make_simulation_from_entities(case, year_period)
     household = simulation.household
 
-    housing_tax = household('housing_tax', YEAR)
+    housing_tax = household('housing_tax', year_period)
     projected_housing_tax = household.project(housing_tax)
 
     assert_near(projected_housing_tax, [20000, 20000, 20000, 20000, 0, 0])
@@ -213,23 +214,23 @@ def test_project(make_simulation_from_entities, case):
     assert_near(housing_tax_projected_on_parents, [20000, 20000, 0, 0, 0, 0])
 
 
-def test_implicit_projection(make_simulation_from_entities, case):
+def test_implicit_projection(make_simulation_from_entities, case, year_period):
     case['households']['h1']['housing_tax'] = 20000
 
-    simulation = make_simulation_from_entities(case, YEAR)
+    simulation = make_simulation_from_entities(case, year_period)
     individu = simulation.person
-    housing_tax = individu.household('housing_tax', YEAR)
+    housing_tax = individu.household('housing_tax', year_period)
 
     assert_near(housing_tax, [20000, 20000, 20000, 20000, 0, 0])
 
 
-def test_sum(make_simulation_from_entities, case):
+def test_sum(make_simulation_from_entities, case, period):
     case['persons']['ind0']['salary'] = 1000
     case['persons']['ind1']['salary'] = 1500
     case['persons']['ind4']['salary'] = 3000
     case['persons']['ind5']['salary'] = 500
 
-    simulation = make_simulation_from_entities(case, MONTH)
+    simulation = make_simulation_from_entities(case, period)
     household = simulation.household
 
     salary = household.members('salary', "2016-01")
@@ -242,11 +243,11 @@ def test_sum(make_simulation_from_entities, case):
     assert_near(total_salary_parents_by_household, [2500, 3000])
 
 
-def test_any(make_simulation_from_entities, ages_case):
+def test_any(make_simulation_from_entities, ages_case, period):
     simulation = make_simulation_from_entities(ages_case)
     household = simulation.household
 
-    age = household.members('age', period = MONTH)
+    age = household.members('age', period = period)
     condition_age = (age <= 18)
     has_household_member_with_age_inf_18 = household.any(condition_age)
     assert_near(has_household_member_with_age_inf_18, [True, False])
@@ -256,11 +257,11 @@ def test_any(make_simulation_from_entities, ages_case):
     assert_near(has_household_CHILD_with_age_sup_18, [False, True])
 
 
-def test_all(make_simulation_from_entities, ages_case):
+def test_all(make_simulation_from_entities, ages_case, period):
     simulation = make_simulation_from_entities(ages_case)
     household = simulation.household
 
-    age = household.members('age', period = MONTH)
+    age = household.members('age', period = period)
 
     condition_age = (age >= 18)
     all_persons_age_sup_18 = household.all(condition_age)
@@ -270,11 +271,11 @@ def test_all(make_simulation_from_entities, ages_case):
     assert_near(all_parents_age_sup_18, [True, True])
 
 
-def test_max(make_simulation_from_entities, ages_case):
+def test_max(make_simulation_from_entities, ages_case, period):
     simulation = make_simulation_from_entities(ages_case)
     household = simulation.household
 
-    age = household.members('age', period = MONTH)
+    age = household.members('age', period = period)
 
     age_max = household.max(age)
     assert_near(age_max, [40, 54])
@@ -283,11 +284,11 @@ def test_max(make_simulation_from_entities, ages_case):
     assert_near(age_max_child, [9, 20])
 
 
-def test_min(make_simulation_from_entities, ages_case):
+def test_min(make_simulation_from_entities, ages_case, period):
     simulation = make_simulation_from_entities(ages_case)
     household = simulation.household
 
-    age = household.members('age', period = MONTH)
+    age = household.members('age', period = period)
 
     age_min = household.min(age)
     assert_near(age_min, [7, 20])
@@ -296,10 +297,10 @@ def test_min(make_simulation_from_entities, ages_case):
     assert_near(age_min_parents, [37, 54])
 
 
-def test_value_nth_person(make_simulation_from_entities, ages_case):
+def test_value_nth_person(make_simulation_from_entities, ages_case, period):
     simulation = make_simulation_from_entities(test_case, ages_case)
     household = simulation.household
-    array = household.members('age', MONTH)
+    array = household.members('age', period)
 
     result0 = household.value_nth_person(0, array, default=-1)
     assert_near(result0, [40, 54])
@@ -314,11 +315,11 @@ def test_value_nth_person(make_simulation_from_entities, ages_case):
     assert_near(result3, [9, -1])
 
 
-def test_rank(make_simulation_from_entities, ages_case):
+def test_rank(make_simulation_from_entities, ages_case, period):
     simulation = make_simulation_from_entities(ages_case)
     person = simulation.person
 
-    age = person('age', MONTH)  # [40, 37, 7, 9, 54, 20]
+    age = person('age', period)  # [40, 37, 7, 9, 54, 20]
     rank = person.get_rank(person.household, age)
     assert_near(rank, [3, 2, 0, 1, 1, 0])
 
@@ -326,7 +327,7 @@ def test_rank(make_simulation_from_entities, ages_case):
     assert_near(rank_in_siblings, [-1, -1, 1, 0, -1, 0])
 
 
-def test_partner(make_simulation_from_entities, case):
+def test_partner(make_simulation_from_entities, case, period):
     case['persons']['ind0']['salary'] = 1000
     case['persons']['ind1']['salary'] = 1500
     case['persons']['ind4']['salary'] = 3000
@@ -335,14 +336,14 @@ def test_partner(make_simulation_from_entities, case):
     simulation = make_simulation_from_entities(case)
     persons = simulation.persons
 
-    salary = persons('salary', period = MONTH)
+    salary = persons('salary', period = period)
 
     salary_second_parent = persons.value_from_partner(salary, persons.household, PARENT)
 
     assert_near(salary_second_parent, [1500, 1000, 0, 0, 0, 0])
 
 
-def test_value_from_first_person(make_simulation_from_entities, case):
+def test_value_from_first_person(make_simulation_from_entities, case, period):
     case['persons']['ind0']['salary'] = 1000
     case['persons']['ind1']['salary'] = 1500
     case['persons']['ind4']['salary'] = 3000
@@ -351,7 +352,7 @@ def test_value_from_first_person(make_simulation_from_entities, case):
     simulation = make_simulation_from_entities(case)
     household = simulation.household
 
-    salaries = household.members('salary', period = MONTH)
+    salaries = household.members('salary', period = period)
     salary_first_person = household.value_from_first_person(salaries)
 
     assert_near(salary_first_person, [1000, 3000])
@@ -373,7 +374,7 @@ def test_projectors_methods(simulation_couple):
     assert(len(household.first_parent.get_rank(household, salary_i)) == 1)  # Must be of a person dimension
 
 
-def test_sum_following_bug_ipp_1(make_simulation_from_entities):
+def test_sum_following_bug_ipp_1(make_simulation_from_entities, period):
     new_case = {
         'persons': {'ind0': {}, 'ind1': {}, 'ind2': {}, 'ind3': {}},
         'households': {
@@ -389,13 +390,13 @@ def test_sum_following_bug_ipp_1(make_simulation_from_entities):
     simulation = make_simulation_from_entities(new_case)
     household = simulation.household
 
-    eligible_i = household.members('salary', period = MONTH) < 1500
+    eligible_i = household.members('salary', period = period) < 1500
     nb_eligibles_by_household = household.sum(eligible_i, role = CHILD)
 
     assert_near(nb_eligibles_by_household, [0, 2])
 
 
-def test_sum_following_bug_ipp_2(make_simulation_from_entities):
+def test_sum_following_bug_ipp_2(make_simulation_from_entities, period):
     new_case = {
         'persons': {'ind0': {}, 'ind1': {}, 'ind2': {}, 'ind3': {}},
         'households': {
@@ -411,7 +412,7 @@ def test_sum_following_bug_ipp_2(make_simulation_from_entities):
     simulation = make_simulation_from_entities(new_case)
     household = simulation.household
 
-    eligible_i = household.members('salary', period = MONTH) < 1500
+    eligible_i = household.members('salary', period = period) < 1500
     nb_eligibles_by_household = household.sum(eligible_i, role = CHILD)
 
     assert_near(nb_eligibles_by_household, [2, 0])
@@ -426,7 +427,7 @@ def test_get_memory_usage(tax_benefit_system, single):
     assert(len(memory_usage['by_variable']) == 1)
 
 
-def test_unordered_persons(make_simulation_from_entities):
+def test_unordered_persons(make_simulation_from_entities, period):
     new_case = {
         'persons': {'ind4': {}, 'ind3': {}, 'ind1': {}, 'ind2': {}, 'ind5': {}, 'ind0': {}},
         'households': {
@@ -447,7 +448,7 @@ def test_unordered_persons(make_simulation_from_entities):
 
     # household.members_entity_id == [1, 0, 0, 0, 1, 0]
 
-    simulation = make_simulation_from_entities(new_case, MONTH)
+    simulation = make_simulation_from_entities(new_case, period)
     household = simulation.household
     person = simulation.person
 
