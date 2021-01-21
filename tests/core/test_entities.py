@@ -3,7 +3,6 @@
 from pytest import fixture
 
 from openfisca_core.tools import assert_near
-from openfisca_core.tools.test_runner import yaml
 from openfisca_country_template.entities import Household
 
 
@@ -30,13 +29,6 @@ FIRST_PARENT = Household.FIRST_PARENT
 SECOND_PARENT = Household.SECOND_PARENT
 PARENT = Household.PARENT
 CHILD = Household.CHILD
-
-
-@fixture
-def make_simulation_from_yaml(tax_benefit_system, simulation_builder):
-    def _make_simulation_from_yaml(simulation_yaml):
-        return simulation_builder.build_from_dict(tax_benefit_system, yaml.safe_load(simulation_yaml))
-    return _make_simulation_from_yaml
 
 
 @fixture

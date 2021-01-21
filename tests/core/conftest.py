@@ -4,16 +4,16 @@ from enum import Enum
 from datetime import date
 from pytest import fixture
 
-from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_country_template import CountryTaxBenefitSystem
+from openfisca_country_template.entities import *  # noqa analysis:ignore
 
+from openfisca_core.simulation_builder import SimulationBuilder
+from openfisca_core.tools.test_runner import yaml
 from openfisca_core.variables import Variable
 from openfisca_core.periods import ETERNITY
 from openfisca_core.entities import Entity, GroupEntity
 from openfisca_core.indexed_enums import Enum as OFEnum
-
 from openfisca_core.model_api import *  # noqa analysis:ignore
-from openfisca_country_template.entities import *  # noqa analysis:ignore
 
 
 class TestVariable(Variable):
@@ -64,6 +64,13 @@ def make_isolated_simulation(simulation_builder, period):
         simulation_builder.default_period = period
         return simulation_builder.build_from_variables(tbs, data)
     return _make_simulation
+
+
+@fixture
+def make_simulation_from_yaml(tax_benefit_system, simulation_builder):
+    def _make_simulation_from_yaml(simulation_yaml):
+        return simulation_builder.build_from_dict(tax_benefit_system, yaml.safe_load(simulation_yaml))
+    return _make_simulation_from_yaml
 
 
 @fixture

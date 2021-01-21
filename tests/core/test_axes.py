@@ -126,8 +126,8 @@ def test_add_perpendicular_axes(simulation_builder, persons):
 # Integration test
 
 
-def test_simulation_with_axes(tax_benefit_system, simulation_builder):
-    input_yaml = """
+def test_simulation_with_axes(make_simulation_from_yaml):
+    simulation = make_simulation_from_yaml("""
         persons:
           Alicia: {salary: {2018-11: 0}}
           Javier: {}
@@ -144,8 +144,6 @@ def test_simulation_with_axes(tax_benefit_system, simulation_builder):
                   min: 0
                   max: 3000
                   period: 2018-11
-    """
-    data = yaml.safe_load(input_yaml)
-    simulation = simulation_builder.build_from_dict(tax_benefit_system, data)
+    """)
     assert simulation.get_array('salary', '2018-11') == approx([0, 0, 0, 0, 0, 0])
     assert simulation.get_array('rent', '2018-11') == approx([0, 0, 3000, 0])
