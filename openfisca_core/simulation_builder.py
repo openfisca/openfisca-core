@@ -512,7 +512,7 @@ class SimulationBuilder(object):
                 axis_period = axis.get('period', self.default_period)
                 axis_name = axis['name']
                 variable = axis_entity.get_variable(axis_name)
-                array = self.get_input(axis_name, axis_period)
+                array = self.get_input(axis_name, str(axis_period))
                 if array is None:
                     array = variable.default_array(axis_count * axis_entity_step_size)
                 array[axis_index:: axis_entity_step_size] = np.linspace(
@@ -545,7 +545,7 @@ class SimulationBuilder(object):
                     axis_period = axis['period'] or self.default_period
                     axis_name = axis['name']
                     variable = axis_entity.get_variable(axis_name)
-                    array = self.get_input(axis_name, axis_period)
+                    array = self.get_input(axis_name, str(axis_period))
                     if array is None:
                         array = variable.default_array(cell_count * axis_entity_step_size)
                     array[axis_index:: axis_entity_step_size] = axis['min'] \
