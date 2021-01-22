@@ -181,42 +181,43 @@ def single():
 @fixture
 def couple():
     return {
-    "persons": {
-        "Alicia": {
-            "birth": {
-                "ETERNITY": "1980-01-01"
+        "persons": {
+            "Alicia": {
+                "birth": {
+                    "ETERNITY": "1980-01-01"
+                    },
+                "salary": {
+                    "2017-01": 4000
+                    },
+                "disposable_income": {
+                    "2017-01": None
+                    }
+                },
+            "Javier": {
+                "birth": {
+                    "ETERNITY": "1984-01-01"
+                    },
+                "salary": {
+                    "2017-01": 2500
+                    },
+                "disposable_income": {
+                    "2017-01": None
+                    }
+                }
             },
-            "salary": {
-                "2017-01": 4000
-            },
-            "disposable_income": {
-                "2017-01": None
-            }
-        },
-        "Javier": {
-            "birth": {
-                "ETERNITY": "1984-01-01"
-            },
-            "salary": {
-                "2017-01": 2500
-            },
-            "disposable_income": {
-                "2017-01": None
+        "households": {
+            "_": {
+                "parents": ["Alicia", "Javier"],
+                "total_benefits": {
+                    "2017-01": None
+                    },
+                "total_taxes": {
+                    "2017-01": None
+                    }
+                }
             }
         }
-    },
-    "households": {
-        "_": {
-            "parents": ["Alicia", "Javier"],
-            "total_benefits": {
-                "2017-01": None
-            },
-            "total_taxes": {
-                "2017-01": None
-            }
-        }
-    }
-}
+
 
 @fixture
 def simulation_single(simulation_builder, tax_benefit_system, single):
@@ -256,7 +257,6 @@ def simulation_single_with_variables(simulation_builder, tax_benefit_system, sin
         variable_with_calculate_output_divide
         )
     return simulation_builder.build_from_entities(tax_benefit_system, single)
-
 
 
 # 1 <--> 2 with same period
