@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import tempfile
-
 import pytest
 
 from openfisca_core.parameters import ParameterNotFound, ParameterNode, ParameterNodeAtInstant, load_parameter_file
@@ -58,13 +56,12 @@ def test_wrong_value(tax_benefit_system):
         income_tax_rate("test")
 
 
-def test_parameter_repr(tax_benefit_system):
+def test_parameter_repr(tax_benefit_system, tmp_path):
+    path = tmp_path / 'parameters'
     parameters = tax_benefit_system.parameters
-    tf = tempfile.NamedTemporaryFile(delete = False)
-    tf.write(repr(parameters).encode('utf-8'))
-    tf.close()
-    tf_parameters = load_parameter_file(file_path = tf.name)
-    assert repr(parameters) == repr(tf_parameters)
+    path.write_bytes(repr(parameters).encode('utf-8'))
+    tmp_parameters = load_parameter_file(file_path = path)
+    assert repr(parameters) == repr(tmp_parameters)
 
 
 def test_parameters_metadata(tax_benefit_system):
