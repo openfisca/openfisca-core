@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-def test_calculate_full_tracer(tax_benefit_system, simulation_builder):
-    simulation = simulation_builder.build_default_simulation(tax_benefit_system)
+def test_calculate_full_tracer(simulation):
     simulation.trace = True
     simulation.calculate('income_tax', '2017-01')
 
@@ -21,8 +20,7 @@ def test_calculate_full_tracer(tax_benefit_system, simulation_builder):
     assert income_tax_node.parameters[0].value == 0.15
 
 
-def test_get_entity_not_found(tax_benefit_system, simulation_builder):
-    simulation = simulation_builder.build_default_simulation(tax_benefit_system)
+def test_get_entity_not_found(simulation):
     assert simulation.get_entity(plural = "no_such_entities") is None
 
 
@@ -55,9 +53,8 @@ def test_clone(tax_benefit_system, simulation_builder):
     assert salary_holder_clone.population == simulation_clone.persons
 
 
-def test_get_memory_usage(tax_benefit_system, simulation_builder, single):
-    simulation = simulation_builder.build_from_entities(tax_benefit_system, single)
-    simulation.calculate('disposable_income', '2017-01')
-    memory_usage = simulation.get_memory_usage(variables = ['salary'])
+def test_get_memory_usage(simulation_single):
+    simulation_single.calculate('disposable_income', '2017-01')
+    memory_usage = simulation_single.get_memory_usage(variables = ['salary'])
     assert(memory_usage['total_nb_bytes'] > 0)
     assert(len(memory_usage['by_variable']) == 1)
