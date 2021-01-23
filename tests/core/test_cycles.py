@@ -12,6 +12,45 @@ def reference_period():
     return periods.period('2013-01')
 
 
+# december cotisation depending on november value
+@fixture
+def cotisation(make_variable):
+    variable = make_variable('cotisation')
+
+    def formula(person, period):
+        if period.start.month == 12:
+            return 2 * person('cotisation', period.last_month)
+        else:
+            return person.empty_array() + 1
+    variable.formula = formula
+    return variable
+
+
+@fixture
+def cycle_variables(make_variable, cotisation):
+    variables = [
+        # 1 <--> 2 with same period
+        make_variable('variable1', formula = lambda person, period: person('variable2', period)),
+        make_variable('variable2', formula = lambda person, period: person('variable1', period)),
+        # 3 <--> 4 with a period offset
+        make_variable('variable3', formula = lambda person, period: person('variable4', period.last_month)),
+        make_variable('variable4', formula = lambda person, period: person('variable3', period)),
+        # 5 -f-> 6 with a period offset
+        #   <---
+        make_variable('variable5', formula = lambda person, period: 5 + person('variable6', period.last_month)),
+        make_variable('variable6', formula = lambda person, period: 6 + person('variable5', period)),
+        make_variable('variable7', formula = lambda person, period: 7 + person('variable5', period)),
+        cotisation
+        ]
+    return variables
+
+
+@fixture
+def simulation_with_variables(tax_benefit_system, simulation_builder, cycle_variables):
+    tax_benefit_system.add_variables(*cycle_variables)
+    return simulation_builder.build_default_simulation(tax_benefit_system)
+
+
 def test_pure_cycle(simulation_with_variables, reference_period):
     with raises(CycleError):
         simulation_with_variables.calculate('variable1', period = reference_period)

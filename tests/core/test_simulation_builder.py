@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from typing import Iterable
-from pytest import raises, approx
+from pytest import fixture, raises, approx
+from datetime import date
+from enum import Enum
 
 from openfisca_core.simulation_builder import Simulation
 from openfisca_core.tools import assert_near
@@ -9,6 +11,56 @@ from openfisca_core.tools.test_runner import yaml
 from openfisca_core.populations import Population
 from openfisca_country_template.entities import Household
 from openfisca_core.errors import SituationParsingError
+from openfisca_core.variables import Variable
+from openfisca_core.periods import ETERNITY
+from openfisca_core.indexed_enums import Enum as OFEnum
+
+
+@fixture
+def enum_variable_instance():
+
+    class TestEnum(Variable):
+        definition_period = ETERNITY
+        value_type = OFEnum
+        dtype = 'O'
+        default_value = '0'
+        is_neutralized = False
+        set_input = None
+        possible_values = Enum('foo', 'bar')
+        name = "enum"
+
+        def __init__(self):
+            pass
+
+    return TestEnum()
+
+
+@fixture
+def int_variable_instance(persons):
+
+    class intvar(Variable):
+        definition_period = ETERNITY
+        value_type = int
+        entity = persons
+
+        def __init__(self):
+            super().__init__()
+
+    return intvar()
+
+
+@fixture
+def date_variable_instance(persons):
+
+    class datevar(Variable):
+        definition_period = ETERNITY
+        value_type = date
+        entity = persons
+
+        def __init__(self):
+            super().__init__()
+
+    return datevar()
 
 
 def test_build_default_simulation(tax_benefit_system, simulation_builder):
@@ -124,27 +176,27 @@ def test_fail_on_ill_formed_expression(simulation_builder, persons):
     assert excinfo.value.error == {'persons': {'Alicia': {'salary': {'2018-11': "I couldn't understand '2 * / 1000' as a value for 'salary'"}}}}
 
 
-def test_fail_on_integer_overflow(simulation_builder, persons, int_variable):
+def test_fail_on_integer_overflow(simulation_builder, persons, int_variable_instance):
     instance_index = 0
     simulation_builder.entity_counts['persons'] = 1
     with raises(SituationParsingError) as excinfo:
-        simulation_builder.add_variable_value(persons, int_variable, instance_index, 'Alicia', '2018-11', 9223372036854775808)
+        simulation_builder.add_variable_value(persons, int_variable_instance, instance_index, 'Alicia', '2018-11', 9223372036854775808)
     assert excinfo.value.error == {'persons': {'Alicia': {'intvar': {'2018-11': "Can't deal with value: '9223372036854775808', it's too large for type 'integer'."}}}}
 
 
-def test_fail_on_date_parsing(simulation_builder, persons, date_variable):
+def test_fail_on_date_parsing(simulation_builder, persons, date_variable_instance):
     instance_index = 0
     simulation_builder.entity_counts['persons'] = 1
     with raises(SituationParsingError) as excinfo:
-        simulation_builder.add_variable_value(persons, date_variable, instance_index, 'Alicia', '2018-11', '2019-02-30')
+        simulation_builder.add_variable_value(persons, date_variable_instance, instance_index, 'Alicia', '2018-11', '2019-02-30')
     assert excinfo.value.error == {'persons': {'Alicia': {'datevar': {'2018-11': "Can't deal with date: '2019-02-30'."}}}}
 
 
-def test_add_unknown_enum_variable_value(simulation_builder, persons, enum_variable):
+def test_add_unknown_enum_variable_value(simulation_builder, persons, enum_variable_instance):
     instance_index = 0
     simulation_builder.entity_counts['persons'] = 1
     with raises(SituationParsingError):
-        simulation_builder.add_variable_value(persons, enum_variable, instance_index, 'Alicia', '2018-11', 'baz')
+        simulation_builder.add_variable_value(persons, enum_variable_instance, instance_index, 'Alicia', '2018-11', 'baz')
 
 
 def test_finalize_person_entity(simulation_builder, persons):

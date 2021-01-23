@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from pytest import raises
+from pytest import fixture, raises
 
 from openfisca_core.variables import Variable
 from openfisca_core.periods import MONTH
@@ -8,6 +8,14 @@ from openfisca_core.taxbenefitsystems import VariableNameConflict, VariableNotFo
 from openfisca_core import periods
 from openfisca_core.populations import DIVIDE
 from openfisca_core.tools import assert_near
+
+
+@fixture
+def make_simulation(tax_benefit_system, simulation_builder, period):
+    def _make_simulation(variables):
+        simulation_builder.default_period = period
+        return simulation_builder.build_from_variables(tax_benefit_system, variables)
+    return _make_simulation
 
 
 def test_input_variable(make_simulation, period):
@@ -76,8 +84,8 @@ def test_input_with_wrong_period(make_simulation):
         make_simulation({'basic_income': {2015: 12000}})
 
 
-def test_variable_with_reference(tax_benefit_system, make_isolated_simulation):
-    simulation_base = make_isolated_simulation(tax_benefit_system, {'salary': 4000})
+def test_variable_with_reference(tax_benefit_system, make_simulation_from_tbs_and_variables):
+    simulation_base = make_simulation_from_tbs_and_variables(tax_benefit_system, {'salary': 4000})
 
     revenu_disponible_avant_reforme = simulation_base.calculate('disposable_income', "2016-01")
     assert(revenu_disponible_avant_reforme > 0)
@@ -90,7 +98,7 @@ def test_variable_with_reference(tax_benefit_system, make_isolated_simulation):
 
     tax_benefit_system.update_variable(disposable_income)
 
-    simulation_reform = make_isolated_simulation(tax_benefit_system, {'salary': 4000})
+    simulation_reform = make_simulation_from_tbs_and_variables(tax_benefit_system, {'salary': 4000})
     revenu_disponible_apres_reforme = simulation_reform.calculate('disposable_income', "2016-01")
 
     assert(revenu_disponible_apres_reforme == 0)

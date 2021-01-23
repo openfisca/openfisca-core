@@ -7,6 +7,11 @@ from openfisca_country_template.entities import Household
 
 
 @fixture
+def year_period():
+    return "2016"
+
+
+@fixture
 def case():
     return {
         'persons': {'ind0': {}, 'ind1': {}, 'ind2': {}, 'ind3': {}, 'ind4': {}, 'ind5': {}},

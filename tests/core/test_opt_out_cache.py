@@ -40,10 +40,10 @@ class output(Variable):
 
 
 @fixture
-def simulation(tax_benefit_system, make_isolated_simulation):
+def simulation(tax_benefit_system, make_simulation_from_tbs_and_variables):
     tax_benefit_system.cache_blacklist = set(['intermediate'])
     tax_benefit_system.add_variables(input, intermediate, output)
-    return make_isolated_simulation(tax_benefit_system, {'input': 1})
+    return make_simulation_from_tbs_and_variables(tax_benefit_system, {'input': 1})
 
 
 def test_without_cache_opt_out(simulation, month):
