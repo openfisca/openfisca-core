@@ -5,7 +5,6 @@ uninstall:
 
 install:
 	pip install --upgrade pip twine wheel
-	# pip install --editable .[dev] --upgrade
 	pip install -e '.[dev]' --upgrade --use-deprecated=legacy-resolver
 
 clean:
