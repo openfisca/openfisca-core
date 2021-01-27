@@ -8,6 +8,8 @@ from . import subject
 
 
 def assert_items_equal(x, y):
+    print(sorted(x))
+    print(sorted(y))
     assert sorted(x) == sorted(y)
 
 
@@ -22,9 +24,9 @@ body = json.loads(openAPI_response.data.decode('utf-8'))
 
 
 def test_paths():
-    assert_items_equal(
-        body['paths'],
-        ["/parameter/{parameterID}",
+    res = list(body['paths'].keys())
+    res.sort()
+    expected = ["/parameter/{parameterID}",
         "/parameters",
         "/variable/{variableID}",
         "/variables",
@@ -33,7 +35,11 @@ def test_paths():
         "/calculate",
         "/dependencies",
         "/spec"]
-        )
+    expected.sort()
+    print(res)
+    print(expected)
+
+    assert_items_equal(res, expected)
 
 
 def test_entity_definition():
