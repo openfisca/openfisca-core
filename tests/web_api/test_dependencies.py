@@ -3,12 +3,9 @@
 import os
 import json
 from http.client import BAD_REQUEST, OK, NOT_FOUND
-from copy import deepcopy
 
 import pytest
 import dpath
-
-from openfisca_country_template.situation_examples import couple
 
 from . import subject
 
@@ -110,36 +107,3 @@ def test_basic_variable_deps():
     assert dpath.get(response_json, 'birth') == 3
     assert dpath.get(response_json, 'housing_occupancy_status') == 1
     assert dpath.get(response_json, 'salary') == 4
-
-
-"""
-def test_basic_variable_deps():
-    simulation_json = json.dumps({
-    {
-      "persons": {
-            "joe": {
-                    "basic_income": {
-                            "2020-1": None
-                    },
-                    "housing_allowance": {
-                            "2020-1": None
-                    }
-            },
-            "titled_properties": {
-            },
-            "families": {
-            }
-    }}})
-
-    response = post_json(simulation_json)
-    assert response.status_code == OK
-    response_json = json.loads(response.data.decode('utf-8'))
-    assert dpath.get(response_json, 'persons/bill/basic_income/2017-12') == 600  # Universal basic income
-    assert dpath.get(response_json, 'persons/bill/income_tax/2017-12') == 300  # 15% of the salary
-    assert dpath.get(response_json, 'persons/bill/age/2017-12') == 37  # 15% of the salary
-    assert dpath.get(response_json, 'persons/bob/basic_income/2017-12') == 600
-    assert dpath.get(response_json, 'persons/bob/social_security_contribution/2017-12') == 816  # From social_security_contribution.yaml test
-    assert dpath.get(response_json, 'households/first_household/housing_tax/2017') == 3000
-
-"""
-

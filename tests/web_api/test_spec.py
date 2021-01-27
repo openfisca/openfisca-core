@@ -8,8 +8,6 @@ from . import subject
 
 
 def assert_items_equal(x, y):
-    print(sorted(x))
-    print(sorted(y))
     assert sorted(x) == sorted(y)
 
 
@@ -36,9 +34,6 @@ def test_paths():
         "/dependencies",
         "/spec"]
     expected.sort()
-    print(res)
-    print(expected)
-
     assert_items_equal(res, expected)
 
 
