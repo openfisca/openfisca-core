@@ -40,6 +40,8 @@ def switch(conditions, value_by_condition):
         >>> switch(np.array([1, 1, 1, 2]), {1: 80, 2: 90})
         array([80, 80, 80, 90])
     '''
+    assert len(value_by_condition) > 0, \
+        "switch must be called with at least one value"
     condlist = [
         conditions == condition
         for condition in value_by_condition.keys()

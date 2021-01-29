@@ -27,7 +27,7 @@ If you want to contribute to OpenFisca-Core itself, welcome! To install it local
 ```bash
 git clone https://github.com/openfisca/openfisca-core.git
 cd openfisca-core
-pip install --editable .[dev]
+pip install --editable .[dev] --use-deprecated=legacy-resolver
 ```
 
 ## Testing
@@ -110,7 +110,7 @@ The OpenFisca Web API comes with an [optional tracker](https://github.com/openfi
 The tracker is not installed by default. To install it, run:
 
 ```sh
-pip install openfisca_core[tracker]  # Or `pip install --editable ".[tracker]"` for an editable installation
+pip install openfisca_core[tracker] --use-deprecated=legacy-resolver # Or `pip install --editable ".[tracker]"` for an editable installation
 ```
 
 
