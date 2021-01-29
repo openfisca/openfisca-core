@@ -31,7 +31,7 @@ dev_requirements = [
     'flake8-print >= 3.1.0, < 4.0.0',
     'pytest-cov >= 2.6.1, < 3.0.0',
     'mypy >= 0.701, < 0.800',
-    'openfisca-country-template >= 3.10.0, < 4.0.0'
+    'openfisca-country-template >= 3.10.0, < 4.0.0',
     'openfisca-extension-template >= 1.2.0rc0, < 2.0.0'
     ] + api_requirements
 
