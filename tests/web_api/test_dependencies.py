@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import os
 import json
-from http.client import BAD_REQUEST, OK, NOT_FOUND
+import os
+from http.client import BAD_REQUEST, NOT_FOUND, OK
+
+import dpath
 
 import pytest
-import dpath
 
 from . import subject
 
@@ -107,3 +108,57 @@ def test_basic_variable_deps():
     assert dpath.get(response_json, 'birth') == 3
     assert dpath.get(response_json, 'housing_occupancy_status') == 1
     assert dpath.get(response_json, 'salary') == 4
+
+
+def test_parenting_payment():
+    simulation_json = json.dumps({
+        "persons": {
+            "Phil": {
+                "birth": {
+                    "1981-10": "1981-10-01"
+                    },
+                "salary": {
+                    "2020-12": 200
+                    }
+                },
+            "Saz": {
+                "birth": {
+                    "1980-10": "1980-10-01"
+                    },
+                "salary": {
+                    "2020-12": 210
+                    }
+                },
+            "Caz": {
+                "birth": {
+                    "2010-10": "2010-10-01"
+                    }
+                },
+            "Eille": {
+                "birth": {
+                    "2012-10": "2012-10-01"
+                    }
+                },
+            "Nimasay": {
+                "birth": {
+                    "2018-10": "2018-10-01"
+                    },
+                }
+            },
+        "households": {
+            "first_household": {
+                "parents": ['Phil', 'Saz'],
+                "children": ['Caz', 'Eille', 'Nimasay'],
+                "parenting_allowance": {
+                    "2020": None
+                    },
+                },
+            }
+        })
+
+    response = post_json(simulation_json)
+    assert response.status_code == OK
+    response_json = json.loads(response.data.decode('utf-8'))
+    # response_json = {'salary': 1, 'birth': 1}
+    assert dpath.get(response_json, 'salary') == 1
+    assert dpath.get(response_json, 'birth') == 1

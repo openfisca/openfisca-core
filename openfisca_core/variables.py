@@ -212,7 +212,8 @@ class Variable(object):
             if not isinstance(con, str):
                 continue
             try:
-                self.entity.check_variable_defined_for_entity(con)
+                self.entity.get_variable(con,
+                            check_existence = True).entity
             except errors.VariableNotFound:
                 continue
             self._deps.append(self.entity.get_variable(con))

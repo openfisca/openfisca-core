@@ -48,6 +48,9 @@ class Entity(object):
         variable_entity = self.get_variable(variable_name, check_existence = True).entity
         # Should be this:
         # if variable_entity is not self:
+        print("---" + variable_name + "---")
+        print(variable_entity.key)
+        print(self.key)
         if variable_entity.key != self.key:
             message = linesep.join([
                 "You tried to compute the variable '{0}' for the entity '{1}';".format(variable_name, self.plural),
