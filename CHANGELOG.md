@@ -1,6 +1,20 @@
 # Changelog
 
-# 35.0.1 [#968](https://github.com/openfisca/openfisca-core/pull/968)
+### 35.0.3 [#961](https://github.com/openfisca/openfisca-core/pull/961)
+
+#### Technical changes
+
+- Merge `flake8` and `pep8` configurations as they are redundant.
+- Details:
+  - Use `flake8` configuration for `flake8` and `autopep8` dependencies.
+
+### 35.0.2 [#967](https://github.com/openfisca/openfisca-core/pull/967)
+
+#### Technical changes
+
+- Update dependency: `flask-cors` (`Flask` extension for Cross Origin Resouce Sharing)
+
+### 35.0.1 [#968](https://github.com/openfisca/openfisca-core/pull/968)
 
 #### Technical changes
 
