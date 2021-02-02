@@ -1,5 +1,11 @@
 # Changelog
 
+### 35.0.4 [#965](https://github.com/openfisca/openfisca-core/pull/965)
+
+#### Technical changes
+
+- Improve error message when laoding parameters file to detect the problematic file
+
 ### 35.0.3 [#961](https://github.com/openfisca/openfisca-core/pull/961)
 
 #### Technical changes
@@ -19,7 +25,7 @@
 #### Technical changes
 
 - Fix a bug when using axes with an integer year period
-  - Always index periods by their string representation in the memory of known input values of a simulation 
+  - Always index periods by their string representation in the memory of known input values of a simulation
 
 # 35.0.0 [#954](https://github.com/openfisca/openfisca-core/pull/954)
 
