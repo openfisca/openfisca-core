@@ -835,7 +835,13 @@ def _load_yaml_file(file_path):
                 file_path,
                 stack_trace
                 )
-
+        except Exception:
+            stack_trace = traceback.format_exc()
+            raise ParameterParsingError(
+                "Invalid parameter file content. Check the traceback above for more details.",
+                file_path,
+                stack_trace
+                )
 
 def load_parameter_file(file_path, name = ''):
     """
@@ -847,12 +853,7 @@ def load_parameter_file(file_path, name = ''):
         raise ValueError("{} doest not exist".format(file_path))
     if os.path.isdir(file_path):
         return ParameterNode(name, directory_path = file_path)
-    try:
-        data = _load_yaml_file(file_path)
-    except Exception as e:
-        print("Problem when loading parameters file {}".format(file_path))
-        raise e
-
+    data = _load_yaml_file(file_path)
     return _parse_child(name, data, file_path)
 
 
