@@ -843,6 +843,7 @@ def _load_yaml_file(file_path):
                 stack_trace
                 )
 
+
 def load_parameter_file(file_path, name = ''):
     """
     Load parameters from a YAML file (or a directory containing YAML files).
