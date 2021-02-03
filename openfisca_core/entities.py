@@ -40,6 +40,8 @@ class Entity(object):
             raise ValueError("{} is not a valid role".format(role))
 
     def get_variable(self, variable_name, check_existence = False):
+        if not self._tax_benefit_system:
+            raise ValueError("No tax_benefit_system set. Please set it using set_tax_benefit_system")
         return self._tax_benefit_system.get_variable(variable_name, check_existence)
 
     def check_variable_defined_for_entity(self, variable_name):

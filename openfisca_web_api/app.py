@@ -143,6 +143,19 @@ def create_app(tax_benefit_system,
             abort(make_response(jsonify({"error": "'" + e[1] + "' is not a valid ASCII value."}), 400))
         return jsonify(result)
 
+    @app.route('/dependencies', methods=['POST'])
+    def dependencies():
+        tax_benefit_system = data['tax_benefit_system']
+        request.on_json_loading_failed = handle_invalid_json
+        input_data = request.get_json()
+        try:
+            result = handlers.dependencies(tax_benefit_system, input_data)
+        except SituationParsingError as e:
+            abort(make_response(jsonify(e.error), e.code or 400))
+        except UnicodeEncodeError as e:
+            abort(make_response(jsonify({"error": "'" + e[1] + "' is not a valid ASCII value."}), 400))
+        return jsonify(result)
+
     @app.route('/trace', methods=['POST'])
     def trace():
         tax_benefit_system = data['tax_benefit_system']

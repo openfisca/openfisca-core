@@ -78,7 +78,8 @@ def test_parameter_node():
         )
     assert parameter['subparams'] == {
         'housing_allowance': {'description': 'Housing allowance amount (as a fraction of the rent)'},
-        'basic_income': {'description': 'Amount of the basic income'}
+        'basic_income': {'description': 'Amount of the basic income'},
+        'parenting_allowance': {'description': 'parameters relating to parenting payment'}
         }, parameter['subparams']
 
 

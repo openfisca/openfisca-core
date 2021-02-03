@@ -12,6 +12,7 @@ from datetime import date
 
 from openfisca_core import periods
 from openfisca_core.entities import Entity
+from openfisca_core import errors
 from openfisca_core.indexed_enums import Enum, EnumArray, ENUM_ARRAY_DTYPE
 from openfisca_core.periods import DAY, MONTH, YEAR, ETERNITY
 from openfisca_core.tools import eval_expression
@@ -187,6 +188,37 @@ class Variable(object):
                 .format(self.name, ', '.join(sorted(unexpected_attrs.keys()))))
 
         self.is_neutralized = False
+        self._deps = []
+
+    # ----- properties ----- #
+    @property
+    def dependencies(self):
+        """
+        Returns the variables this variable depends on. For this to work
+        the formula must use constant strings as the first input to entity when
+        retrieving the variable.
+
+        Please be mindful that this function simply checks all the constant strings defined
+        in the formula, so avoid using a constant string that collides with a variable
+        name, as it'll lead to incorrect dependencies being reported.
+
+        Input variables return an empty list.
+        """
+        if self.is_input_variable() or self._deps:
+            return self._deps
+        code = self.get_formula().__code__
+        consts = code.co_consts
+        for con in consts:
+            if not isinstance(con, str):
+                continue
+            try:
+                self.entity.get_variable(con,
+                            check_existence = True).entity
+            except errors.VariableNotFound:
+                continue
+            self._deps.append(self.entity.get_variable(con))
+
+        return self._deps
 
     # ----- Setters used to build the variable ----- #
 
