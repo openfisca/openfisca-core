@@ -30,6 +30,39 @@ tags:
   - name: "Calculations"
   - name: "Documentation"
 paths:
+  /dependencies:
+    post:
+      summary: "Find the dependent input variables of an OpenFisca Variable. This simply looks for constant strings and checks if they are variables in the entity. It will not work if you construct the strings programatically."
+      tags:
+        - Calculations
+      operationId: "dependencies"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+      - in: "body"
+        name: "Situation"
+        description: 'Describe the situation (persons and entities). Add the variable you wish to get the dependencies of in the entity, with null as the value. Learn more in our official documentation: https://openfisca.org/doc/openfisca-web-api/input-output-data.html'
+        required: true
+        schema:
+          $ref: '#/definitions/SituationInput'
+      responses:
+        200:
+          description: "The calculation result is sent back in the response body"
+          headers:
+            $ref: '#/commons/Headers'
+          schema:
+            $ref: '#/definitions/SituationOutput'
+        404:
+          description: "A variable mentioned in the input situation does not exist in the loaded tax and benefit system. Details are sent back in the response body"
+          headers:
+            $ref: '#/commons/Headers'
+        400:
+          description: "The request is invalid. Details about the error are sent back in the response body"
+          headers:
+            $ref: '#/commons/Headers'
+
   /calculate:
     post:
       summary: "Run a simulation"
@@ -159,7 +192,7 @@ paths:
             $ref: "#/definitions/Entities"
   /trace:
     post:
-      summary: "Explore a simulation's steps in details."
+      summary: "Return every variable accessed/executed in order to calculate this simulation."
       tags:
         - Calculations
       operationId: "trace"

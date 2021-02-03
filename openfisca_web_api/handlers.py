@@ -4,6 +4,7 @@ import dpath
 
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.indexed_enums import Enum
+from collections import defaultdict
 
 
 def calculate(tax_benefit_system, input_data):
@@ -16,6 +17,7 @@ def calculate(tax_benefit_system, input_data):
         path = computation[0]
         entity_plural, entity_id, variable_name, period = path.split('/')
         variable = tax_benefit_system.get_variable(variable_name)
+
         result = simulation.calculate(variable_name, period)
         population = simulation.get_population(entity_plural)
         entity_index = population.get_index(entity_id)
@@ -36,6 +38,32 @@ def calculate(tax_benefit_system, input_data):
     return input_data
 
 
+def dependencies(tax_benefit_system, input_data):
+    SimulationBuilder().build_from_entities(tax_benefit_system, input_data)
+    requested_computations = dpath.util.search(input_data,
+            '*/*/*/*', afilter = lambda t: t is None, yielded = True)
+    dep_vars = defaultdict(int)
+
+    for computation in requested_computations:
+        path = computation[0]
+        entity_plural, entity_id, variable_name, period = path.split('/')
+        variable = tax_benefit_system.get_variable(variable_name)
+        get_dependencies(dep_vars, variable, tax_benefit_system)
+    return dep_vars
+
+
+def get_dependencies(dep_vars, variable, tax_benefit_system):
+    """
+    recursively find input variables for variables with formulas.
+    """
+    variable.entity.set_tax_benefit_system(tax_benefit_system)
+    for dep in variable.dependencies:
+        if dep.is_input_variable():
+            dep_vars[dep.name] += 1
+        else:
+            get_dependencies(dep_vars, dep, tax_benefit_system)
+
+
 def trace(tax_benefit_system, input_data):
     simulation = SimulationBuilder().build_from_entities(tax_benefit_system, input_data)
     simulation.trace = True
@@ -47,7 +75,6 @@ def trace(tax_benefit_system, input_data):
         entity_plural, entity_id, variable_name, period = path.split('/')
         requested_calculations.append(f"{variable_name}<{str(period)}>")
         simulation.calculate(variable_name, period)
-
     trace = simulation.tracer.get_serialized_flat_trace()
 
     return {
