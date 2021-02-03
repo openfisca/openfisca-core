@@ -835,6 +835,13 @@ def _load_yaml_file(file_path):
                 file_path,
                 stack_trace
                 )
+        except Exception:
+            stack_trace = traceback.format_exc()
+            raise ParameterParsingError(
+                "Invalid parameter file content. Check the traceback above for more details.",
+                file_path,
+                stack_trace
+                )
 
 
 def load_parameter_file(file_path, name = ''):

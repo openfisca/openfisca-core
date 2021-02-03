@@ -10,10 +10,33 @@
 
 # 35.0.1 [#968](https://github.com/openfisca/openfisca-core/pull/968)
 
+### 35.0.4 [#965](https://github.com/openfisca/openfisca-core/pull/965)
+
+#### Technical changes
+
+- Improve error message when laoding parameters file to detect the problematic file
+
+### 35.0.3 [#961](https://github.com/openfisca/openfisca-core/pull/961)
+
+#### Technical changes
+
+- Merge `flake8` and `pep8` configurations as they are redundant.
+- Details:
+  - Use `flake8` configuration for `flake8` and `autopep8` dependencies.
+
+### 35.0.2 [#967](https://github.com/openfisca/openfisca-core/pull/967)
+
+#### Technical changes
+
+- Update dependency: `flask-cors` (`Flask` extension for Cross Origin Resouce Sharing)
+
+### 35.0.1 [#968](https://github.com/openfisca/openfisca-core/pull/968)
+
+
 #### Technical changes
 
 - Fix a bug when using axes with an integer year period
-  - Always index periods by their string representation in the memory of known input values of a simulation 
+  - Always index periods by their string representation in the memory of known input values of a simulation
 
 # 35.0.0 [#954](https://github.com/openfisca/openfisca-core/pull/954)
 
