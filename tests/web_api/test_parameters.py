@@ -77,15 +77,13 @@ def test_parameter_node():
         "\nsuch as food and shelter.\n(See https://en.wikipedia.org/wiki/Welfare)"
         )
 
-    tbs_benefits = tax_benefit_system.parameters.benefits
-    benefits_names = tbs_benefits.children.keys()
-    assert parameter['subparams'].keys() == benefits_names, parameter['subparams'].keys()
+    model_benefits = tax_benefit_system.parameters.benefits
+    assert parameter['subparams'].keys() == model_benefits.children.keys(), parameter['subparams'].keys()
 
-    benefit_example = next(iter(benefits_names))
-    model_benefit_example = tbs_benefits.children[benefit_example]
-    api_benefit_example = parameter['subparams'][benefit_example]
-    assert 'description' in api_benefit_example
-    assert api_benefit_example['description'] == getattr(model_benefit_example, "description", None)
+    assert 'description' in parameter['subparams']['basic_income']
+    assert parameter['subparams']['basic_income']['description'] == getattr(
+        model_benefits.basic_income, "description", None
+        ), parameter['subparams']['basic_income']['description']
 
 
 def test_stopped_parameter_values():
