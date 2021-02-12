@@ -1,5 +1,13 @@
 # Changelog
 
+### 35.0.5 [#974](https://github.com/openfisca/openfisca-core/pull/974)
+
+#### Technical changes
+
+- Fix web api test for a parameter node request with `/parameter` endpoint.
+- Details:
+  - Untie the test from `OpenFisca-Country-Template` parameters list.
+
 ### 35.0.4 [#965](https://github.com/openfisca/openfisca-core/pull/965)
 
 #### Technical changes
