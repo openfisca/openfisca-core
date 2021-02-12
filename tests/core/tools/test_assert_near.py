@@ -22,5 +22,3 @@ def test_enum_2():
     value = possible_values.encode(np.array(['tenant', 'owner']))
     expected_value = ['tenant', 'owner']
     assert_near(value, expected_value)
-
-
