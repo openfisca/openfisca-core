@@ -5,7 +5,7 @@ import json
 import re
 
 import pytest
-from . import subject
+from . import tax_benefit_system, subject
 
 # /parameters
 
@@ -76,10 +76,16 @@ def test_parameter_node():
         "\nbut usually it is intended to ensure that everyone can meet their basic human needs "
         "\nsuch as food and shelter.\n(See https://en.wikipedia.org/wiki/Welfare)"
         )
-    assert parameter['subparams'] == {
-        'housing_allowance': {'description': 'Housing allowance amount (as a fraction of the rent)'},
-        'basic_income': {'description': 'Amount of the basic income'}
-        }, parameter['subparams']
+
+    tbs_benefits = tax_benefit_system.parameters.benefits
+    benefits_names = tbs_benefits.children.keys()
+    assert parameter['subparams'].keys() == benefits_names, parameter['subparams'].keys()
+
+    benefit_example = next(iter(benefits_names))
+    model_benefit_example = tbs_benefits.children[benefit_example]
+    api_benefit_example = parameter['subparams'][benefit_example]
+    assert 'description' in api_benefit_example
+    assert api_benefit_example['description'] == getattr(model_benefit_example, "description", None)
 
 
 def test_stopped_parameter_values():
