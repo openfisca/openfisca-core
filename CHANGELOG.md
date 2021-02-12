@@ -1,5 +1,10 @@
 # Changelog
 
+### 35.1.0 [#973](https://github.com/openfisca/openfisca-core/pull/973)
+
+#### Technical changes
+
+- Extend assert_near so it is able to compare dates.
 ### 35.0.5 [#974](https://github.com/openfisca/openfisca-core/pull/974)
 
 #### Technical changes
