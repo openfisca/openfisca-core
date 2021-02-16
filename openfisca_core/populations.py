@@ -2,37 +2,38 @@
 
 import traceback
 
-from typing import Iterable
+from typing import Iterable, Optional, Dict, Callable
 
 import numpy as np
 
-from openfisca_core.entities import Role
+from openfisca_core.entities import Role, Entity
 from openfisca_core.indexed_enums import EnumArray
 from openfisca_core.holders import Holder
+from openfisca_core.simulations import Simulation
 
 
 ADD = 'add'
 DIVIDE = 'divide'
 
 
-def projectable(function):
+def projectable(function:Callable)->Callable:
     """
     Decorator to indicate that when called on a projector, the outcome of the function must be projected.
     For instance person.household.sum(...) must be projected on person, while it would not make sense for person.household.get_holder.
     """
-    function.projectable = True
+    function.projectable:bool = True
     return function
 
 
 class Population(object):
-    def __init__(self, entity):
-        self.simulation = None
-        self.entity = entity
-        self._holders = {}
-        self.count = 0
+    def __init__(self, entity:Entity)->None:
+        self.simulation:Optional[Simulation] = None
+        self.entity:Entity = entity
+        self._holders:Dict[str, Holder] = {}
+        self.count:int = 0
         self.ids = []
 
-    def clone(self, simulation):
+    def clone(self, simulation:Simulation):
         result = Population(self.entity)
         result.simulation = simulation
         result._holders = {variable: holder.clone(result) for (variable, holder) in self._holders.items()}
@@ -40,10 +41,10 @@ class Population(object):
         result.ids = self.ids
         return result
 
-    def empty_array(self):
+    def empty_array(self)->np.array:
         return np.zeros(self.count)
 
-    def filled_array(self, value, dtype = None):
+    def filled_array(self, value, dtype = None)->np.array:
         return np.full(self.count, value, dtype)
 
     def __getattr__(self, attribute):
@@ -57,12 +58,12 @@ class Population(object):
 
     # Calculations
 
-    def check_array_compatible_with_entity(self, array):
+    def check_array_compatible_with_entity(self, array:np.array):
         if not self.count == array.size:
             raise ValueError("Input {} is not a valid value for the entity {} (size = {} != {} = count)".format(
                 array, self.key, array.size, self.count))
 
-    def check_period_validity(self, variable_name, period):
+    def check_period_validity(self, variable_name:str, period):
         if period is None:
             stack = traceback.extract_stack()
             filename, line_number, function_name, line_of_code = stack[-3]
@@ -74,7 +75,7 @@ When you request the computation of a variable within a formula, you must always
 See more information at <https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-variable-definition>.
 '''.format(variable_name, filename, line_number, line_of_code))
 
-    def __call__(self, variable_name, period = None, options = None):
+    def __call__(self, variable_name:str, period = None, options:Optional[List[str]] = None)->np.array:
         """
             Calculate the variable ``variable_name`` for the entity and the period ``period``, using the variable formula if it exists.
 
@@ -102,7 +103,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
     # Helpers
 
-    def get_holder(self, variable_name):
+    def get_holder(self, variable_name:str)->Holder:
         self.entity.check_variable_defined_for_entity(variable_name)
         holder = self._holders.get(variable_name)
         if holder:
@@ -111,7 +112,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         self._holders[variable_name] = holder = Holder(variable, self)
         return holder
 
-    def get_memory_usage(self, variables = None):
+    def get_memory_usage(self, variables:Optional[Dict[str, Variable]] = None):
         holders_memory_usage = {
             variable_name: holder.get_memory_usage()
             for variable_name, holder in self._holders.items()
@@ -128,7 +129,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             )
 
     @projectable
-    def has_role(self, role):
+    def has_role(self, role:Role)->np.array:
         """
             Check if a person has a given role within its :any:`GroupEntity`
 
@@ -145,7 +146,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             return group_population.members_role == role
 
     @projectable
-    def value_from_partner(self, array, entity, role):
+    def value_from_partner(self, array:np.array, entity:Entity, role:Role)->np.array:
         self.check_array_compatible_with_entity(array)
         self.entity.check_role_validity(role)
 
@@ -162,7 +163,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             )
 
     @projectable
-    def get_rank(self, entity, criteria, condition = True):
+    def get_rank(self, entity:Entity, criteria:np.array, condition:bool = True)->np.array:
         """
         Get the rank of a person within an entity according to a criteria.
         The person with rank 0 has the minimum value of criteria.
