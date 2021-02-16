@@ -15,7 +15,7 @@ import calendar
 import datetime
 import re
 from os import linesep
-from typing import Dict
+from typing import Dict, Union, List, Optional
 
 
 DAY = 'day'
@@ -34,9 +34,19 @@ date_by_instant_cache: Dict = {}
 str_by_instant_cache: Dict = {}
 year_or_month_or_day_re = re.compile(r'(18|19|20)\d{2}(-(0?[1-9]|1[0-2])(-([0-2]?\d|3[0-1]))?)?$')
 
+class PeriodValueError(ValueError):
+
+    def __init__(self, value):
+        message = linesep.join([
+            "Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: '{}'.".format(value),
+            "Learn more about legal period formats in OpenFisca:",
+            "<https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-simulations>."
+            ])
+        super().__init__(message)
+
 
 class Instant(tuple):
-    def __repr__(self):
+    def __repr__(self)->str:
         """Transform instant to to its Python representation as a string.
 
         >>> repr(instant(2014))
@@ -48,7 +58,7 @@ class Instant(tuple):
         """
         return '{}({})'.format(self.__class__.__name__, super(Instant, self).__repr__())
 
-    def __str__(self):
+    def __str__(self)->str:
         """Transform instant to a string.
 
         >>> str(instant(2014))
@@ -81,7 +91,7 @@ class Instant(tuple):
         return instant_date
 
     @property
-    def day(self):
+    def day(self)->int:
         """Extract day from instant.
 
         >>> instant(2014).day
@@ -94,7 +104,7 @@ class Instant(tuple):
         return self[2]
 
     @property
-    def month(self):
+    def month(self)->int:
         """Extract month from instant.
 
         >>> instant(2014).month
@@ -106,7 +116,7 @@ class Instant(tuple):
         """
         return self[1]
 
-    def period(self, unit, size = 1):
+    def period(self, unit:str, size:int = 1)->Period:
         """Create a new period starting at instant.
 
         >>> instant(2014).period('month')
@@ -120,7 +130,7 @@ class Instant(tuple):
         assert isinstance(size, int) and size >= 1, 'Invalid size: {} of type {}'.format(size, type(size))
         return Period((unit, self, size))
 
-    def offset(self, offset, unit):
+    def offset(self, offset:int, unit:str)->'Instant':
         """Increment (or decrement) the given instant with offset units.
 
         >>> instant(2014).offset(1, 'day')
@@ -257,7 +267,7 @@ class Instant(tuple):
         return self.__class__((year, month, day))
 
     @property
-    def year(self):
+    def year(self)->int:
         """Extract year from instant.
 
         >>> instant(2014).year
@@ -271,7 +281,7 @@ class Instant(tuple):
 
 
 class Period(tuple):
-    def __repr__(self):
+    def __repr__(self)->str:
         """Transform period to to its Python representation as a string.
 
         >>> repr(period('year', 2014))
@@ -283,7 +293,7 @@ class Period(tuple):
         """
         return '{}({})'.format(self.__class__.__name__, super(Period, self).__repr__())
 
-    def __str__(self):
+    def __str__(self)->str:
         """Transform period to a string.
 
         >>> str(period(YEAR, 2014))
@@ -344,7 +354,7 @@ class Period(tuple):
         return self.start.date
 
     @property
-    def days(self):
+    def days(self)->int:
         """Count the number of days in period.
 
         >>> period('day', 2014).days
@@ -410,7 +420,7 @@ class Period(tuple):
             (intersection_stop.date - intersection_start.date).days + 1,
             ))
 
-    def get_subperiods(self, unit):
+    def get_subperiods(self, unit:str):
         """
             Return the list of all the periods of unit ``unit`` contained in self.
 
@@ -786,7 +796,7 @@ def instant_date(instant):
     return instant_date
 
 
-def period(value):
+def period(value:Union[str, Period, Instant, int])->Period:
     """Return a new period, aka a triple (unit, start_instant, size).
 
     >>> period('2014')
@@ -810,7 +820,7 @@ def period(value):
     if isinstance(value, Instant):
         return Period((DAY, value, 1))
 
-    def parse_simple_period(value):
+    def parse_simple_period(value:str)->Optional[Period]:
         """
         Parses simple periods respecting the ISO format, such as 2012 or 2015-03
         """
@@ -867,7 +877,7 @@ def period(value):
     # middle component must be a valid iso period
     base_period = parse_simple_period(components[1])
     if not base_period:
-        raise_error(value)
+        raise PeriodValueError(value)
 
     # period like year:2015-03 have a size of 1
     if len(components) == 2:
@@ -889,7 +899,7 @@ def period(value):
     return Period((unit, base_period.start, size))
 
 
-def key_period_size(period):
+def key_period_size(period:Period)->str:
     """
     Defines a key in order to sort periods by length. It uses two aspects : first unit then size
 
@@ -910,7 +920,7 @@ def key_period_size(period):
     return '{}_{}'.format(unit_weight(unit), size)
 
 
-def unit_weights():
+def unit_weights()->Dict[str,int]:
     return {
         DAY: 100,
         MONTH: 200,
@@ -919,5 +929,5 @@ def unit_weights():
         }
 
 
-def unit_weight(unit):
+def unit_weight(unit:str)->int:
     return unit_weights()[unit]
