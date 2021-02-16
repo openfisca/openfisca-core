@@ -4,7 +4,7 @@ import datetime
 import inspect
 import re
 import textwrap
-from typing import Optional
+from typing import Optional, List, Callable, Type, Dict, KeysView, Tuple, Union
 
 import numpy as np
 from sortedcontainers.sorteddict import SortedDict
@@ -147,7 +147,7 @@ class Variable(object):
            Free multilines text field describing the variable context and usage.
     """
 
-    def __init__(self, baseline_variable = None):
+    def __init__(self, baseline_variable:Optional['Variable'] = None):
         self.name = self.__class__.__name__
         attr = {
             name: value for name, value in self.__class__.__dict__.items()
@@ -190,7 +190,8 @@ class Variable(object):
 
     # ----- Setters used to build the variable ----- #
 
-    def set(self, attributes, attribute_name, required = False, allowed_values = None, allowed_type = None, setter = None, default = None):
+    def set(self, attributes, attribute_name:str, required:bool = False, allowed_values:Optional[Union[List, KeysView, Tuple]] = None, 
+            allowed_type:Optional[Union[Type, Tuple[Type, ...]]] = None, setter:Optional[Callable] = None, default = None):
         value = attributes.pop(attribute_name, None)
         if value is None and self.baseline_variable:
             return getattr(self.baseline_variable, attribute_name)
@@ -211,12 +212,12 @@ class Variable(object):
             return default
         return value
 
-    def set_entity(self, entity):
+    def set_entity(self, entity:Entity)->Entity:
         if not isinstance(entity, Entity):
             raise ValueError(f"Invalid value '{entity}' for attribute 'entity' in variable '{self.name}'. Must be an instance of Entity.")
         return entity
 
-    def set_possible_values(self, possible_values):
+    def set_possible_values(self, possible_values:Type[Enum]):
         if not issubclass(possible_values, Enum):
             raise ValueError("Invalid value '{}' for attribute 'possible_values' in variable '{}'. Must be a subclass of {}."
             .format(possible_values, self.name, Enum))
@@ -266,7 +267,7 @@ class Variable(object):
             return self.baseline_variable.calculate_output
         return calculate_output
 
-    def set_formulas(self, formulas_attr):
+    def set_formulas(self, formulas_attr:Dict[str, Callable])->Dict[str, Callable]:
         formulas = SortedDict()
         for formula_name, formula in formulas_attr.items():
             starting_date = self.parse_formula_name(formula_name)
@@ -322,7 +323,7 @@ class Variable(object):
 
     # ----- Methods ----- #
 
-    def is_input_variable(self):
+    def is_input_variable(self)->bool:
         """
             Returns True if the variable is an input variable.
         """
@@ -388,7 +389,7 @@ class Variable(object):
 
         return None
 
-    def clone(self):
+    def clone(self)->Variable:
         clone = self.__class__()
         return clone
 
@@ -447,7 +448,7 @@ def _partition(dict, predicate):
     return true_dict, false_dict
 
 
-def get_neutralized_variable(variable):
+def get_neutralized_variable(variable:Variable)->Variable:
     """
         Return a new neutralized variable (to be used by reforms).
         A neutralized variable always returns its default value, and does not cache anything.
