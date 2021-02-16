@@ -6,16 +6,28 @@ import warnings
 
 import numpy as np
 import psutil
+from typing import TYPE_CHECKING, List, Union, Any, Optional, Dict
 
 from openfisca_core import periods
 from openfisca_core.commons import empty_clone
 from openfisca_core.data_storage import InMemoryStorage, OnDiskStorage
 from openfisca_core.errors import PeriodMismatchError
 from openfisca_core.indexed_enums import Enum
-from openfisca_core.periods import MONTH, YEAR, ETERNITY
+from openfisca_core.periods import MONTH, YEAR, ETERNITY, Period
 from openfisca_core.tools import eval_expression
 
+
+if TYPE_CHECKING:
+    from openfisca_core.populations import Population
+    from openfisca_core.variables import Variable
+    from openfisca_core.simulations import Simulation
+
+
 log = logging.getLogger(__name__)
+
+
+#TODO change with a more specific type
+ArrayLike = Any
 
 
 class Holder(object):
@@ -23,16 +35,20 @@ class Holder(object):
         A holder keeps tracks of a variable values after they have been calculated, or set as an input.
     """
 
-    def __init__(self, variable, population):
-        self.population = population
-        self.variable = variable
-        self.simulation = population.simulation
-        self._memory_storage = InMemoryStorage(is_eternal = (self.variable.definition_period == ETERNITY))
+    def __init__(self, variable:'Variable', population:'Population'):
+        self.population:'Population' = population
+        self.variable:'Variable' = variable
+        # TODO change once decided if simulation is needed or not
+        if population.simulation is None:
+            raise Exception('You need a simulation attached to the population')
+        else:
+            self.simulation:'Simulation' = population.simulation
+        self._memory_storage:InMemoryStorage = InMemoryStorage(is_eternal = (self.variable.definition_period == ETERNITY))
 
         # By default, do not activate on-disk storage, or variable dropping
-        self._disk_storage = None
-        self._on_disk_storable = False
-        self._do_not_store = False
+        self._disk_storage:Optional[OnDiskStorage] = None
+        self._on_disk_storable:bool = False
+        self._do_not_store:bool = False
         if self.simulation and self.simulation.memory_config:
             if self.variable.name not in self.simulation.memory_config.priority_variables:
                 self._disk_storage = self.create_disk_storage()
@@ -40,7 +56,7 @@ class Holder(object):
             if self.variable.name in self.simulation.memory_config.variables_to_drop:
                 self._do_not_store = True
 
-    def clone(self, population):
+    def clone(self, population:'Population')->'Holder':
         """
             Copy the holder just enough to be able to run a new simulation without modifying the original simulation.
         """
@@ -56,7 +72,7 @@ class Holder(object):
 
         return new
 
-    def create_disk_storage(self, directory = None, preserve = False):
+    def create_disk_storage(self, directory:Optional[str] = None, preserve:bool = False)->OnDiskStorage:
         if directory is None:
             directory = self.simulation.data_storage_dir
         storage_dir = os.path.join(directory, self.variable.name)
@@ -68,7 +84,7 @@ class Holder(object):
             preserve_storage_dir = preserve
             )
 
-    def delete_arrays(self, period = None):
+    def delete_arrays(self, period:Optional[Union[str, Period]] = None)->None:
         """
             If ``period`` is ``None``, remove all known values of the variable.
 
@@ -94,7 +110,7 @@ class Holder(object):
         if self._disk_storage:
             return self._disk_storage.get(period)
 
-    def get_memory_usage(self):
+    def get_memory_usage(self)->Dict[str, Union[int, np.dtype]]:
         """
             Get data about the virtual memory usage of the holder.
 
@@ -131,7 +147,7 @@ class Holder(object):
 
         return usage
 
-    def get_known_periods(self):
+    def get_known_periods(self)->List[Period]:
         """
             Get the list of periods the variable value is known for.
         """
@@ -139,7 +155,7 @@ class Holder(object):
         return list(self._memory_storage.get_known_periods()) + list((
             self._disk_storage.get_known_periods() if self._disk_storage else []))
 
-    def set_input(self, period, array):
+    def set_input(self, period:Union[str, Period], array: ArrayLike):
         """
             Set a variable's value (``array``) for a given period (``period``)
 
@@ -183,7 +199,7 @@ class Holder(object):
             return self.variable.set_input(self, period, array)
         return self._set(period, array)
 
-    def _to_array(self, value):
+    def _to_array(self, value:ArrayLike)->np.array:
         if not isinstance(value, np.ndarray):
             value = np.asarray(value)
         if value.ndim == 0:
@@ -204,7 +220,7 @@ class Holder(object):
                     .format(value, self.variable.name, self.variable.dtype, value.dtype))
         return value
 
-    def _set(self, period, value):
+    def _set(self, period:Union[Period, None], value:ArrayLike)->None:
         value = self._to_array(value)
         if self.variable.definition_period != ETERNITY:
             if period is None:
@@ -236,7 +252,7 @@ class Holder(object):
         else:
             self._memory_storage.put(value, period)
 
-    def put_in_cache(self, value, period):
+    def put_in_cache(self, value:ArrayLike, period:Period)->None:
         if self._do_not_store:
             return
 
@@ -255,7 +271,7 @@ class Holder(object):
         return self.variable.default_array(self.population.count)
 
 
-def set_input_dispatch_by_period(holder, period, array):
+def set_input_dispatch_by_period(holder:'Holder', period:Period, array):
     """
         This function can be declared as a ``set_input`` attribute of a variable.
 
@@ -290,7 +306,7 @@ def set_input_dispatch_by_period(holder, period, array):
         sub_period = sub_period.offset(1)
 
 
-def set_input_divide_by_period(holder, period, array):
+def set_input_divide_by_period(holder:Holder, period:Period, array)->None:
     """
         This function can be declared as a ``set_input`` attribute of a variable.
 
