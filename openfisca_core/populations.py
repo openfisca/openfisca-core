@@ -11,8 +11,8 @@ from openfisca_core.indexed_enums import EnumArray
 from openfisca_core.holders import Holder
 
 
-ADD = 'add'
-DIVIDE = 'divide'
+ADD = "add"
+DIVIDE = "divide"
 
 
 def projectable(function):
@@ -35,7 +35,10 @@ class Population(object):
     def clone(self, simulation):
         result = Population(self.entity)
         result.simulation = simulation
-        result._holders = {variable: holder.clone(result) for (variable, holder) in self._holders.items()}
+        result._holders = {
+            variable: holder.clone(result)
+            for (variable, holder) in self._holders.items()
+        }
         result.count = self.count
         result.ids = self.ids
         return result
@@ -43,13 +46,17 @@ class Population(object):
     def empty_array(self):
         return np.zeros(self.count)
 
-    def filled_array(self, value, dtype = None):
+    def filled_array(self, value, dtype=None):
         return np.full(self.count, value, dtype)
 
     def __getattr__(self, attribute):
         projector = get_projector_from_shortcut(self, attribute)
         if not projector:
-            raise AttributeError("You tried to use the '{}' of '{}' but that is not a known attribute.".format(attribute, self.entity.key))
+            raise AttributeError(
+                "You tried to use the '{}' of '{}' but that is not a known attribute.".format(
+                    attribute, self.entity.key
+                )
+            )
         return projector
 
     def get_index(self, id):
@@ -59,31 +66,38 @@ class Population(object):
 
     def check_array_compatible_with_entity(self, array):
         if not self.count == array.size:
-            raise ValueError("Input {} is not a valid value for the entity {} (size = {} != {} = count)".format(
-                array, self.key, array.size, self.count))
+            raise ValueError(
+                "Input {} is not a valid value for the entity {} (size = {} != {} = count)".format(
+                    array, self.key, array.size, self.count
+                )
+            )
 
     def check_period_validity(self, variable_name, period):
         if period is None:
             stack = traceback.extract_stack()
             filename, line_number, function_name, line_of_code = stack[-3]
-            raise ValueError('''
+            raise ValueError(
+                """
 You requested computation of variable "{}", but you did not specify on which period in "{}:{}":
     {}
 When you request the computation of a variable within a formula, you must always specify the period as the second parameter. The convention is to call this parameter "period". For example:
     computed_salary = person('salary', period).
 See more information at <https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-variable-definition>.
-'''.format(variable_name, filename, line_number, line_of_code))
+""".format(
+                    variable_name, filename, line_number, line_of_code
+                )
+            )
 
-    def __call__(self, variable_name, period = None, options = None):
+    def __call__(self, variable_name, period=None, options=None):
         """
-            Calculate the variable ``variable_name`` for the entity and the period ``period``, using the variable formula if it exists.
+        Calculate the variable ``variable_name`` for the entity and the period ``period``, using the variable formula if it exists.
 
-            Example:
+        Example:
 
-            >>> person('salary', '2017-04')
-            >>> array([300.])
+        >>> person('salary', '2017-04')
+        >>> array([300.])
 
-            :returns: A numpy array containing the result of the calculation
+        :returns: A numpy array containing the result of the calculation
         """
         self.entity.check_variable_defined_for_entity(variable_name)
         self.check_period_validity(variable_name, period)
@@ -92,7 +106,13 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             options = []
 
         if ADD in options and DIVIDE in options:
-            raise ValueError('Options ADD and DIVIDE are incompatible (trying to compute variable {})'.format(variable_name).encode('utf-8'))
+            raise ValueError(
+                "Options ADD and DIVIDE are incompatible (trying to compute variable {})".format(
+                    variable_name
+                ).encode(
+                    "utf-8"
+                )
+            )
         elif ADD in options:
             return self.simulation.calculate_add(variable_name, period)
         elif DIVIDE in options:
@@ -111,36 +131,36 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         self._holders[variable_name] = holder = Holder(variable, self)
         return holder
 
-    def get_memory_usage(self, variables = None):
+    def get_memory_usage(self, variables=None):
         holders_memory_usage = {
             variable_name: holder.get_memory_usage()
             for variable_name, holder in self._holders.items()
             if variables is None or variable_name in variables
-            }
+        }
 
         total_memory_usage = sum(
-            holder_memory_usage['total_nb_bytes'] for holder_memory_usage in holders_memory_usage.values()
-            )
+            holder_memory_usage["total_nb_bytes"]
+            for holder_memory_usage in holders_memory_usage.values()
+        )
 
-        return dict(
-            total_nb_bytes = total_memory_usage,
-            by_variable = holders_memory_usage
-            )
+        return dict(total_nb_bytes=total_memory_usage, by_variable=holders_memory_usage)
 
     @projectable
     def has_role(self, role):
         """
-            Check if a person has a given role within its :any:`GroupEntity`
+        Check if a person has a given role within its :any:`GroupEntity`
 
-            Example:
+        Example:
 
-            >>> person.has_role(Household.CHILD)
-            >>> array([False])
+        >>> person.has_role(Household.CHILD)
+        >>> array([False])
         """
         self.entity.check_role_validity(role)
         group_population = self.simulation.get_population(role.entity.plural)
         if role.subroles:
-            return np.logical_or.reduce([group_population.members_role == subrole for subrole in role.subroles])
+            return np.logical_or.reduce(
+                [group_population.members_role == subrole for subrole in role.subroles]
+            )
         else:
             return group_population.members_role == role
 
@@ -150,7 +170,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         self.entity.check_role_validity(role)
 
         if not role.subroles or not len(role.subroles) == 2:
-            raise Exception('Projection to partner is only implemented for roles having exactly two subroles.')
+            raise Exception(
+                "Projection to partner is only implemented for roles having exactly two subroles."
+            )
 
         [subrole_1, subrole_2] = role.subroles
         value_subrole_1 = entity.value_from_person(array, subrole_1)
@@ -159,10 +181,10 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         return np.select(
             [self.has_role(subrole_1), self.has_role(subrole_2)],
             [value_subrole_2, value_subrole_1],
-            )
+        )
 
     @projectable
-    def get_rank(self, entity, criteria, condition = True):
+    def get_rank(self, entity, criteria, condition=True):
         """
         Get the rank of a person within an entity according to a criteria.
         The person with rank 0 has the minimum value of criteria.
@@ -180,7 +202,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         """
 
         # If entity is for instance 'person.household', we get the reference entity 'household' behind the projector
-        entity = entity if not isinstance(entity, Projector) else entity.reference_entity
+        entity = (
+            entity if not isinstance(entity, Projector) else entity.reference_entity
+        )
 
         positions = entity.members_position
         biggest_entity_size = np.max(positions) + 1
@@ -188,10 +212,12 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         ids = entity.members_entity_id
 
         # Matrix: the value in line i and column j is the value of criteria for the jth person of the ith entity
-        matrix = np.asarray([
-            entity.value_nth_person(k, filtered_criteria, default = np.inf)
-            for k in range(biggest_entity_size)
-            ]).transpose()
+        matrix = np.asarray(
+            [
+                entity.value_nth_person(k, filtered_criteria, default=np.inf)
+                for k in range(biggest_entity_size)
+            ]
+        ).transpose()
 
         # We double-argsort all lines of the matrix.
         # Double-argsorting gets the rank of each value once sorted
@@ -217,7 +243,9 @@ class GroupPopulation(Population):
     def clone(self, simulation):
         result = GroupPopulation(self.entity, self.members)
         result.simulation = simulation
-        result._holders = {variable: holder.clone(self) for (variable, holder) in self._holders.items()}
+        result._holders = {
+            variable: holder.clone(self) for (variable, holder) in self._holders.items()
+        }
         result.count = self.count
         result.ids = self.ids
         result._members_entity_id = self._members_entity_id
@@ -276,24 +304,27 @@ class GroupPopulation(Population):
         return self._ordered_members_map
 
     def get_role(self, role_name):
-        return next((role for role in self.entity.flattened_roles if role.key == role_name), None)
+        return next(
+            (role for role in self.entity.flattened_roles if role.key == role_name),
+            None,
+        )
 
     #  Aggregation persons -> entity
 
     @projectable
-    def sum(self, array, role = None):
+    def sum(self, array, role=None):
         """
-            Return the sum of ``array`` for the members of the entity.
+        Return the sum of ``array`` for the members of the entity.
 
-            ``array`` must have the dimension of the number of persons in the simulation
+        ``array`` must have the dimension of the number of persons in the simulation
 
-            If ``role`` is provided, only the entity member with the given role are taken into account.
+        If ``role`` is provided, only the entity member with the given role are taken into account.
 
-            Example:
+        Example:
 
-            >>> salaries = household.members('salary', '2018-01')  # e.g. [2000, 1500, 0, 0, 0]
-            >>> household.sum(salaries)
-            >>> array([3500])
+        >>> salaries = household.members('salary', '2018-01')  # e.g. [2000, 1500, 0, 0, 0]
+        >>> household.sum(salaries)
+        >>> array([3500])
         """
         self.entity.check_role_validity(role)
         self.members.check_array_compatible_with_entity(array)
@@ -301,112 +332,123 @@ class GroupPopulation(Population):
             role_filter = self.members.has_role(role)
             return np.bincount(
                 self.members_entity_id[role_filter],
-                weights = array[role_filter],
-                minlength = self.count)
+                weights=array[role_filter],
+                minlength=self.count,
+            )
         else:
-            return np.bincount(self.members_entity_id, weights = array)
+            return np.bincount(self.members_entity_id, weights=array)
 
     @projectable
-    def any(self, array, role = None):
+    def any(self, array, role=None):
         """
-            Return ``True`` if ``array`` is ``True`` for any members of the entity.
+        Return ``True`` if ``array`` is ``True`` for any members of the entity.
 
-            ``array`` must have the dimension of the number of persons in the simulation
+        ``array`` must have the dimension of the number of persons in the simulation
 
-            If ``role`` is provided, only the entity member with the given role are taken into account.
+        If ``role`` is provided, only the entity member with the given role are taken into account.
 
-            Example:
+        Example:
 
-            >>> salaries = household.members('salary', '2018-01')  # e.g. [2000, 1500, 0, 0, 0]
-            >>> household.any(salaries >= 1800)
-            >>> array([True])
+        >>> salaries = household.members('salary', '2018-01')  # e.g. [2000, 1500, 0, 0, 0]
+        >>> household.any(salaries >= 1800)
+        >>> array([True])
         """
-        sum_in_entity = self.sum(array, role = role)
-        return (sum_in_entity > 0)
+        sum_in_entity = self.sum(array, role=role)
+        return sum_in_entity > 0
 
     @projectable
-    def reduce(self, array, reducer, neutral_element, role = None):
+    def reduce(self, array, reducer, neutral_element, role=None):
         self.members.check_array_compatible_with_entity(array)
         self.entity.check_role_validity(role)
         position_in_entity = self.members_position
         role_filter = self.members.has_role(role) if role is not None else True
         filtered_array = np.where(role_filter, array, neutral_element)
 
-        result = self.filled_array(neutral_element)  # Neutral value that will be returned if no one with the given role exists.
+        result = self.filled_array(
+            neutral_element
+        )  # Neutral value that will be returned if no one with the given role exists.
 
         # We loop over the positions in the entity
         # Looping over the entities is tempting, but potentielly slow if there are a lot of entities
         biggest_entity_size = np.max(position_in_entity) + 1
 
         for p in range(biggest_entity_size):
-            values = self.value_nth_person(p, filtered_array, default = neutral_element)
+            values = self.value_nth_person(p, filtered_array, default=neutral_element)
             result = reducer(result, values)
 
         return result
 
     @projectable
-    def all(self, array, role = None):
+    def all(self, array, role=None):
         """
-            Return ``True`` if ``array`` is ``True`` for all members of the entity.
+        Return ``True`` if ``array`` is ``True`` for all members of the entity.
 
-            ``array`` must have the dimension of the number of persons in the simulation
+        ``array`` must have the dimension of the number of persons in the simulation
 
-            If ``role`` is provided, only the entity member with the given role are taken into account.
+        If ``role`` is provided, only the entity member with the given role are taken into account.
 
-            Example:
+        Example:
 
-            >>> salaries = household.members('salary', '2018-01')  # e.g. [2000, 1500, 0, 0, 0]
-            >>> household.all(salaries >= 1800)
-            >>> array([False])
+        >>> salaries = household.members('salary', '2018-01')  # e.g. [2000, 1500, 0, 0, 0]
+        >>> household.all(salaries >= 1800)
+        >>> array([False])
         """
-        return self.reduce(array, reducer = np.logical_and, neutral_element = True, role = role)
+        return self.reduce(
+            array, reducer=np.logical_and, neutral_element=True, role=role
+        )
 
     @projectable
-    def max(self, array, role = None):
+    def max(self, array, role=None):
         """
-            Return the maximum value of ``array`` for the entity members.
+        Return the maximum value of ``array`` for the entity members.
 
-            ``array`` must have the dimension of the number of persons in the simulation
+        ``array`` must have the dimension of the number of persons in the simulation
 
-            If ``role`` is provided, only the entity member with the given role are taken into account.
+        If ``role`` is provided, only the entity member with the given role are taken into account.
 
-            Example:
+        Example:
 
-            >>> salaries = household.members('salary', '2018-01')  # e.g. [2000, 1500, 0, 0, 0]
-            >>> household.max(salaries)
-            >>> array([2000])
+        >>> salaries = household.members('salary', '2018-01')  # e.g. [2000, 1500, 0, 0, 0]
+        >>> household.max(salaries)
+        >>> array([2000])
         """
-        return self.reduce(array, reducer = np.maximum, neutral_element = - np.infty, role = role)
+        return self.reduce(
+            array, reducer=np.maximum, neutral_element=-np.infty, role=role
+        )
 
     @projectable
-    def min(self, array, role = None):
+    def min(self, array, role=None):
         """
-            Return the minimum value of ``array`` for the entity members.
+        Return the minimum value of ``array`` for the entity members.
 
-            ``array`` must have the dimension of the number of persons in the simulation
+        ``array`` must have the dimension of the number of persons in the simulation
 
-            If ``role`` is provided, only the entity member with the given role are taken into account.
+        If ``role`` is provided, only the entity member with the given role are taken into account.
 
-            Example:
+        Example:
 
-            >>> salaries = household.members('salary', '2018-01')  # e.g. [2000, 1500, 0, 0, 0]
-            >>> household.min(salaries)
-            >>> array([0])
-            >>> household.min(salaries, role = Household.PARENT)  # Assuming the 1st two persons are parents
-            >>> array([1500])
+        >>> salaries = household.members('salary', '2018-01')  # e.g. [2000, 1500, 0, 0, 0]
+        >>> household.min(salaries)
+        >>> array([0])
+        >>> household.min(salaries, role = Household.PARENT)  # Assuming the 1st two persons are parents
+        >>> array([1500])
         """
-        return self.reduce(array, reducer = np.minimum, neutral_element = np.infty, role = role)
+        return self.reduce(
+            array, reducer=np.minimum, neutral_element=np.infty, role=role
+        )
 
     @projectable
-    def nb_persons(self, role = None):
+    def nb_persons(self, role=None):
         """
-            Returns the number of persons contained in the entity.
+        Returns the number of persons contained in the entity.
 
-            If ``role`` is provided, only the entity member with the given role are taken into account.
+        If ``role`` is provided, only the entity member with the given role are taken into account.
         """
         if role:
             if role.subroles:
-                role_condition = np.logical_or.reduce([self.members_role == subrole for subrole in role.subroles])
+                role_condition = np.logical_or.reduce(
+                    [self.members_role == subrole for subrole in role.subroles]
+                )
             else:
                 role_condition = self.members_role == role
             return self.sum(role_condition)
@@ -416,25 +458,26 @@ class GroupPopulation(Population):
     # Projection person -> entity
 
     @projectable
-    def value_from_person(self, array, role, default = 0):
+    def value_from_person(self, array, role, default=0):
         """
-            Get the value of ``array`` for the person with the unique role ``role``.
+        Get the value of ``array`` for the person with the unique role ``role``.
 
-            ``array`` must have the dimension of the number of persons in the simulation
+        ``array`` must have the dimension of the number of persons in the simulation
 
-            If such a person does not exist, return ``default`` instead
+        If such a person does not exist, return ``default`` instead
 
-            The result is a vector which dimension is the number of entities
+        The result is a vector which dimension is the number of entities
         """
         self.entity.check_role_validity(role)
         if role.max != 1:
             raise Exception(
-                'You can only use value_from_person with a role that is unique in {}. Role {} is not unique.'
-                .format(self.key, role.key)
+                "You can only use value_from_person with a role that is unique in {}. Role {} is not unique.".format(
+                    self.key, role.key
                 )
+            )
         self.members.check_array_compatible_with_entity(array)
         members_map = self.ordered_members_map
-        result = self.filled_array(default, dtype = array.dtype)
+        result = self.filled_array(default, dtype=array.dtype)
         if isinstance(array, EnumArray):
             result = EnumArray(result, array.possible_values)
         role_filter = self.members.has_role(role)
@@ -445,24 +488,26 @@ class GroupPopulation(Population):
         return result
 
     @projectable
-    def value_nth_person(self, n, array, default = 0):
+    def value_nth_person(self, n, array, default=0):
         """
-            Get the value of array for the person whose position in the entity is n.
+        Get the value of array for the person whose position in the entity is n.
 
-            Note that this position is arbitrary, and that members are not sorted.
+        Note that this position is arbitrary, and that members are not sorted.
 
-            If the nth person does not exist, return  ``default`` instead.
+        If the nth person does not exist, return  ``default`` instead.
 
-            The result is a vector which dimension is the number of entities.
+        The result is a vector which dimension is the number of entities.
         """
         self.members.check_array_compatible_with_entity(array)
         positions = self.members_position
         nb_persons_per_entity = self.nb_persons()
         members_map = self.ordered_members_map
-        result = self.filled_array(default, dtype = array.dtype)
+        result = self.filled_array(default, dtype=array.dtype)
         # For households that have at least n persons, set the result as the value of criteria for the person for which the position is n.
         # The map is needed b/c the order of the nth persons of each household in the persons vector is not necessarily the same than the household order.
-        result[nb_persons_per_entity > n] = array[members_map][positions[members_map] == n]
+        result[nb_persons_per_entity > n] = array[members_map][
+            positions[members_map] == n
+        ]
 
         return result
 
@@ -472,7 +517,7 @@ class GroupPopulation(Population):
 
     # Projection entity -> person(s)
 
-    def project(self, array, role = None):
+    def project(self, array, role=None):
         self.check_array_compatible_with_entity(array)
         self.entity.check_role_validity(role)
         if role is None:
@@ -487,12 +532,14 @@ class Projector(object):
     parent = None
 
     def __getattr__(self, attribute):
-        projector = get_projector_from_shortcut(self.reference_entity, attribute, parent = self)
+        projector = get_projector_from_shortcut(
+            self.reference_entity, attribute, parent=self
+        )
         if projector:
             return projector
 
         reference_attr = getattr(self.reference_entity, attribute)
-        if not hasattr(reference_attr, 'projectable'):
+        if not hasattr(reference_attr, "projectable"):
             return reference_attr
 
         def projector_function(*args, **kwargs):
@@ -518,8 +565,7 @@ class Projector(object):
 
 # For instance person.family
 class EntityToPersonProjector(Projector):
-
-    def __init__(self, entity, parent = None):
+    def __init__(self, entity, parent=None):
         self.reference_entity = entity
         self.parent = parent
 
@@ -529,8 +575,7 @@ class EntityToPersonProjector(Projector):
 
 # For instance famille.first_person
 class FirstPersonToEntityProjector(Projector):
-
-    def __init__(self, entity, parent = None):
+    def __init__(self, entity, parent=None):
         self.target_entity = entity
         self.reference_entity = entity.members
         self.parent = parent
@@ -541,8 +586,7 @@ class FirstPersonToEntityProjector(Projector):
 
 # For instance famille.declarant_principal
 class UniqueRoleToEntityProjector(Projector):
-
-    def __init__(self, entity, role, parent = None):
+    def __init__(self, entity, role, parent=None):
         self.target_entity = entity
         self.reference_entity = entity.members
         self.parent = parent
@@ -552,14 +596,21 @@ class UniqueRoleToEntityProjector(Projector):
         return self.target_entity.value_from_person(result, self.role)
 
 
-def get_projector_from_shortcut(population, shortcut, parent = None):
+def get_projector_from_shortcut(population, shortcut, parent=None):
     if population.entity.is_person:
         if shortcut in population.simulation.populations:
             entity_2 = population.simulation.populations[shortcut]
             return EntityToPersonProjector(entity_2, parent)
     else:
-        if shortcut == 'first_person':
+        if shortcut == "first_person":
             return FirstPersonToEntityProjector(population, parent)
-        role = next((role for role in population.entity.flattened_roles if (role.max == 1) and (role.key == shortcut)), None)
+        role = next(
+            (
+                role
+                for role in population.entity.flattened_roles
+                if (role.max == 1) and (role.key == shortcut)
+            ),
+            None,
+        )
         if role:
             return UniqueRoleToEntityProjector(population, role, parent)

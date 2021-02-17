@@ -26,33 +26,30 @@ def apply_thresholds(input, thresholds, choices):
     if len(condlist) == len(choices) - 1:
         # If a choice is provided for input > highest threshold, last condition must be true to return it.
         condlist += [True]
-    assert len(condlist) == len(choices), \
-        "apply_thresholds must be called with the same number of thresholds than choices, or one more choice"
+    assert len(condlist) == len(
+        choices
+    ), "apply_thresholds must be called with the same number of thresholds than choices, or one more choice"
     return np.select(condlist, choices)
 
 
 def switch(conditions, value_by_condition):
-    '''
+    """
     Reproduces a switch statement: given an array of conditions, return an array of the same size replacing each
     condition item by the corresponding given value.
 
     Example:
         >>> switch(np.array([1, 1, 1, 2]), {1: 80, 2: 90})
         array([80, 80, 80, 90])
-    '''
-    assert len(value_by_condition) > 0, \
-        "switch must be called with at least one value"
-    condlist = [
-        conditions == condition
-        for condition in value_by_condition.keys()
-        ]
+    """
+    assert len(value_by_condition) > 0, "switch must be called with at least one value"
+    condlist = [conditions == condition for condition in value_by_condition.keys()]
     return np.select(condlist, value_by_condition.values())
 
 
 def concat(this, that):
     if isinstance(this, np.ndarray) and not np.issubdtype(this.dtype, np.str):
-        this = this.astype('str')
+        this = this.astype("str")
     if isinstance(that, np.ndarray) and not np.issubdtype(that.dtype, np.str):
-        that = that.astype('str')
+        that = that.astype("str")
 
     return np.core.defchararray.add(this, that)

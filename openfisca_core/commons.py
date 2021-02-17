@@ -10,13 +10,14 @@ class Dummy(object):
         message = [
             "The 'Dummy' class has been deprecated since version 34.7.0,",
             "and will be removed in the future.",
-            ]
+        ]
         warnings.warn(" ".join(message), DeprecationWarning)
         pass
 
 
 def empty_clone(original):
     """Create a new empty instance of the same class of the original object."""
+
     class Dummy(original.__class__):
         def __init__(self) -> None:
             pass

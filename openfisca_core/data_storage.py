@@ -15,7 +15,7 @@ class InMemoryStorage(object):
     Low-level class responsible for storing and retrieving calculated vectors in memory
     """
 
-    def __init__(self, is_eternal = False):
+    def __init__(self, is_eternal=False):
         self._arrays = {}
         self.is_eternal = is_eternal
 
@@ -36,7 +36,7 @@ class InMemoryStorage(object):
 
         self._arrays[period] = value
 
-    def delete(self, period = None):
+    def delete(self, period=None):
         if period is None:
             self._arrays = {}
             return
@@ -49,7 +49,7 @@ class InMemoryStorage(object):
             period_item: value
             for period_item, value in self._arrays.items()
             if not period.contains(period_item)
-            }
+        }
 
     def get_known_periods(self):
         return self._arrays.keys()
@@ -57,18 +57,18 @@ class InMemoryStorage(object):
     def get_memory_usage(self):
         if not self._arrays:
             return dict(
-                nb_arrays = 0,
-                total_nb_bytes = 0,
-                cell_size = np.nan,
-                )
+                nb_arrays=0,
+                total_nb_bytes=0,
+                cell_size=np.nan,
+            )
 
         nb_arrays = len(self._arrays)
         array = next(iter(self._arrays.values()))
         return dict(
-            nb_arrays = nb_arrays,
-            total_nb_bytes = array.nbytes * nb_arrays,
-            cell_size = array.itemsize,
-            )
+            nb_arrays=nb_arrays,
+            total_nb_bytes=array.nbytes * nb_arrays,
+            cell_size=array.itemsize,
+        )
 
 
 class OnDiskStorage(object):
@@ -76,7 +76,7 @@ class OnDiskStorage(object):
     Low-level class responsible for storing and retrieving calculated vectors on disk
     """
 
-    def __init__(self, storage_dir, is_eternal = False, preserve_storage_dir = False):
+    def __init__(self, storage_dir, is_eternal=False, preserve_storage_dir=False):
         self._files = {}
         self._enums = {}
         self.is_eternal = is_eternal
@@ -106,14 +106,14 @@ class OnDiskStorage(object):
         period = periods.period(period)
 
         filename = str(period)
-        path = os.path.join(self.storage_dir, filename) + '.npy'
+        path = os.path.join(self.storage_dir, filename) + ".npy"
         if isinstance(value, EnumArray):
             self._enums[path] = value.possible_values
             value = value.view(np.ndarray)
         np.save(path, value)
         self._files[period] = path
 
-    def delete(self, period = None):
+    def delete(self, period=None):
         if period is None:
             self._files = {}
             return
@@ -127,7 +127,7 @@ class OnDiskStorage(object):
                 period_item: value
                 for period_item, value in self._files.items()
                 if not period.contains(period_item)
-                }
+            }
 
     def get_known_periods(self):
         return self._files.keys()
@@ -136,10 +136,10 @@ class OnDiskStorage(object):
         self._files = files = {}
         # Restore self._files from content of storage_dir.
         for filename in os.listdir(self.storage_dir):
-            if not filename.endswith('.npy'):
+            if not filename.endswith(".npy"):
                 continue
             path = os.path.join(self.storage_dir, filename)
-            filename_core = filename.rsplit('.', 1)[0]
+            filename_core = filename.rsplit(".", 1)[0]
             period = periods.period(filename_core)
             files[period] = path
 

@@ -17,7 +17,11 @@ from openfisca_core.periods import Period, Instant, instant as make_instant
 from openfisca_core.entities import Entity
 from openfisca_core.populations import Population, GroupPopulation
 from openfisca_core.parameters import ParameterNode
-from openfisca_core.variables import Variable, get_neutralized_variable, get_annualized_variable
+from openfisca_core.variables import (
+    Variable,
+    get_neutralized_variable,
+    get_annualized_variable,
+)
 from openfisca_core.errors import VariableNotFound
 from openfisca_core.commons import empty_clone
 from openfisca_core.simulation_builder import SimulationBuilder
@@ -30,6 +34,7 @@ class VariableNameConflict(Exception):
     """
     Exception raised when two variables with the same name are added to a tax and benefit system.
     """
+
     pass
 
 
@@ -47,6 +52,7 @@ class TaxBenefitSystem(object):
 
        :any:`ParameterNode` containing the legislation parameters
     """
+
     _base_tax_benefit_system = None
     _parameters_at_instant_cache = None
     person_key_plural = None
@@ -66,7 +72,9 @@ class TaxBenefitSystem(object):
             raise Exception("A tax and benefit sytem must have at least an entity.")
         self.entities = [copy.copy(entity) for entity in entities]
         self.person_entity = [entity for entity in self.entities if entity.is_person][0]
-        self.group_entities = [entity for entity in self.entities if not entity.is_person]
+        self.group_entities = [
+            entity for entity in self.entities if not entity.is_person
+        ]
         for entity in self.entities:
             entity.set_tax_benefit_system(self)
 
@@ -77,7 +85,9 @@ class TaxBenefitSystem(object):
             baseline = self.baseline
             if baseline is None:
                 return self
-            self._base_tax_benefit_system = base_tax_benefit_system = baseline.base_tax_benefit_system
+            self._base_tax_benefit_system = (
+                base_tax_benefit_system
+            ) = baseline.base_tax_benefit_system
         return base_tax_benefit_system
 
     def instantiate_entities(self):
@@ -103,10 +113,12 @@ class TaxBenefitSystem(object):
             def init_from_dict(self, dict):
                 self.attributes = None
                 self.dict = dict
-                self.period = dict.pop('period')
+                self.period = dict.pop("period")
                 return self
 
-            def new_simulation(self, debug = False, opt_out_cache = False, use_baseline = False, trace = False):
+            def new_simulation(
+                self, debug=False, opt_out_cache=False, use_baseline=False, trace=False
+            ):
                 # Legacy from scenarios, used in reforms
                 tax_benefit_system = self.tax_benefit_system
                 if use_baseline:
@@ -118,13 +130,17 @@ class TaxBenefitSystem(object):
 
                 builder = SimulationBuilder()
                 if self.attributes:
-                    variables = self.attributes.get('input_variables') or {}
-                    period = self.attributes.get('period')
+                    variables = self.attributes.get("input_variables") or {}
+                    period = self.attributes.get("period")
                     builder.set_default_period(period)
-                    simulation = builder.build_from_variables(tax_benefit_system, variables)
+                    simulation = builder.build_from_variables(
+                        tax_benefit_system, variables
+                    )
                 else:
                     builder.set_default_period(self.period)
-                    simulation = builder.build_from_entities(tax_benefit_system, self.dict)
+                    simulation = builder.build_from_entities(
+                        tax_benefit_system, self.dict
+                    )
 
                 simulation.trace = trace
                 simulation.debug = debug
@@ -137,16 +153,19 @@ class TaxBenefitSystem(object):
     def prefill_cache(self):
         pass
 
-    def load_variable(self, variable_class, update = False):
+    def load_variable(self, variable_class, update=False):
         name = variable_class.__name__
 
         # Check if a Variable with the same name is already registered.
         baseline_variable = self.get_variable(name)
         if baseline_variable and not update:
             raise VariableNameConflict(
-                'Variable "{}" is already defined. Use `update_variable` to replace it.'.format(name))
+                'Variable "{}" is already defined. Use `update_variable` to replace it.'.format(
+                    name
+                )
+            )
 
-        variable = variable_class(baseline_variable = baseline_variable)
+        variable = variable_class(baseline_variable=baseline_variable)
         self.variables[variable.name] = variable
 
         return variable
@@ -159,7 +178,7 @@ class TaxBenefitSystem(object):
 
         :raises: :any:`VariableNameConflict` if a variable with the same name have previously been added to the tax and benefit system.
         """
-        return self.load_variable(variable, update = False)
+        return self.load_variable(variable, update=False)
 
     def replace_variable(self, variable):
         """
@@ -174,7 +193,7 @@ class TaxBenefitSystem(object):
         name = variable.__name__
         if self.variables.get(name) is not None:
             del self.variables[name]
-        self.load_variable(variable, update = False)
+        self.load_variable(variable, update=False)
 
     def update_variable(self, variable):
         """
@@ -188,7 +207,7 @@ class TaxBenefitSystem(object):
 
         :param Variable variable: Variable to add. Must be a subclass of Variable.
         """
-        return self.load_variable(variable, update = True)
+        return self.load_variable(variable, update=True)
 
     def add_variables_from_file(self, file_path):
         """
@@ -200,21 +219,38 @@ class TaxBenefitSystem(object):
             #  As Python remembers loaded modules by name, in order to prevent collisions, we need to make sure that:
             #  - Files with the same name, but located in different directories, have a different module names. Hence the file path hash in the module name.
             #  - The same file, loaded by different tax and benefit systems, has distinct module names. Hence the `id(self)` in the module name.
-            module_name = '{}_{}_{}'.format(id(self), hash(path.abspath(file_path)), file_name)
+            module_name = "{}_{}_{}".format(
+                id(self), hash(path.abspath(file_path)), file_name
+            )
 
             module_directory = path.dirname(file_path)
             try:
-                module = load_module(module_name, *find_module(file_name, [module_directory]))
+                module = load_module(
+                    module_name, *find_module(file_name, [module_directory])
+                )
             except NameError as e:
-                logging.error(str(e) + ": if this code used to work, this error might be due to a major change in OpenFisca-Core. Checkout the changelog to learn more: <https://github.com/openfisca/openfisca-core/blob/master/CHANGELOG.md>")
+                logging.error(
+                    str(e)
+                    + ": if this code used to work, this error might be due to a major change in OpenFisca-Core. Checkout the changelog to learn more: <https://github.com/openfisca/openfisca-core/blob/master/CHANGELOG.md>"
+                )
                 raise
-            potential_variables = [getattr(module, item) for item in dir(module) if not item.startswith('__')]
+            potential_variables = [
+                getattr(module, item)
+                for item in dir(module)
+                if not item.startswith("__")
+            ]
             for pot_variable in potential_variables:
                 # We only want to get the module classes defined in this module (not imported)
-                if isclass(pot_variable) and issubclass(pot_variable, Variable) and pot_variable.__module__ == module_name:
+                if (
+                    isclass(pot_variable)
+                    and issubclass(pot_variable, Variable)
+                    and pot_variable.__module__ == module_name
+                ):
                     self.add_variable(pot_variable)
         except Exception:
-            log.error('Unable to load OpenFisca variables from file "{}"'.format(file_path))
+            log.error(
+                'Unable to load OpenFisca variables from file "{}"'.format(file_path)
+            )
             raise
 
     def add_variables_from_directory(self, directory):
@@ -249,16 +285,22 @@ class TaxBenefitSystem(object):
             package = importlib.import_module(extension)
             extension_directory = package.__path__[0]
         except ImportError:
-            message = linesep.join([traceback.format_exc(),
-                                    'Error loading extension: `{}` is neither a directory, nor a package.'.format(extension),
-                                    'Are you sure it is installed in your environment? If so, look at the stack trace above to determine the origin of this error.',
-                                    'See more at <https://github.com/openfisca/openfisca-extension-template#installing>.'])
+            message = linesep.join(
+                [
+                    traceback.format_exc(),
+                    "Error loading extension: `{}` is neither a directory, nor a package.".format(
+                        extension
+                    ),
+                    "Are you sure it is installed in your environment? If so, look at the stack trace above to determine the origin of this error.",
+                    "See more at <https://github.com/openfisca/openfisca-extension-template#installing>.",
+                ]
+            )
             raise ValueError(message)
 
         self.add_variables_from_directory(extension_directory)
-        param_dir = path.join(extension_directory, 'parameters')
+        param_dir = path.join(extension_directory, "parameters")
         if path.isdir(param_dir):
-            extension_parameters = ParameterNode(directory_path = param_dir)
+            extension_parameters = ParameterNode(directory_path=param_dir)
             self.parameters.merge(extension_parameters)
 
     def apply_reform(self, reform_path):
@@ -277,26 +319,39 @@ class TaxBenefitSystem(object):
 
         """
         from openfisca_core.reforms import Reform
+
         try:
-            reform_package, reform_name = reform_path.rsplit('.', 1)
+            reform_package, reform_name = reform_path.rsplit(".", 1)
         except ValueError:
-            raise ValueError('`{}` does not seem to be a path pointing to a reform. A path looks like `some_country_package.reforms.some_reform.`'.format(reform_path))
+            raise ValueError(
+                "`{}` does not seem to be a path pointing to a reform. A path looks like `some_country_package.reforms.some_reform.`".format(
+                    reform_path
+                )
+            )
         try:
             reform_module = importlib.import_module(reform_package)
         except ImportError:
-            message = linesep.join([traceback.format_exc(),
-                                    'Could not import `{}`.'.format(reform_package),
-                                    'Are you sure of this reform module name? If so, look at the stack trace above to determine the origin of this error.'])
+            message = linesep.join(
+                [
+                    traceback.format_exc(),
+                    "Could not import `{}`.".format(reform_package),
+                    "Are you sure of this reform module name? If so, look at the stack trace above to determine the origin of this error.",
+                ]
+            )
             raise ValueError(message)
         reform = getattr(reform_module, reform_name, None)
         if reform is None:
-            raise ValueError('{} has no attribute {}'.format(reform_package, reform_name))
+            raise ValueError(
+                "{} has no attribute {}".format(reform_package, reform_name)
+            )
         if not issubclass(reform, Reform):
-            raise ValueError('`{}` does not seem to be a valid Openfisca reform.'.format(reform_path))
+            raise ValueError(
+                "`{}` does not seem to be a valid Openfisca reform.".format(reform_path)
+            )
 
         return reform(self)
 
-    def get_variable(self, variable_name, check_existence = False):
+    def get_variable(self, variable_name, check_existence=False):
         """
         Get a variable from the tax and benefit system.
 
@@ -317,10 +372,14 @@ class TaxBenefitSystem(object):
 
         Trying to set inputs for a neutralized variable has no effect except raising a warning.
         """
-        self.variables[variable_name] = get_neutralized_variable(self.get_variable(variable_name))
+        self.variables[variable_name] = get_neutralized_variable(
+            self.get_variable(variable_name)
+        )
 
     def annualize_variable(self, variable_name: str, period: Optional[Period] = None):
-        self.variables[variable_name] = get_annualized_variable(self.get_variable(variable_name, period))
+        self.variables[variable_name] = get_annualized_variable(
+            self.get_variable(variable_name, period)
+        )
 
     def load_parameters(self, path_to_yaml_dir):
         """
@@ -333,7 +392,7 @@ class TaxBenefitSystem(object):
         >>> self.load_parameters('/path/to/yaml/parameters/dir')
         """
 
-        parameters = ParameterNode('', directory_path = path_to_yaml_dir)
+        parameters = ParameterNode("", directory_path=path_to_yaml_dir)
 
         if self.preprocess_parameters is not None:
             parameters = self.preprocess_parameters(parameters)
@@ -359,7 +418,11 @@ class TaxBenefitSystem(object):
         elif isinstance(instant, (str, int)):
             instant = make_instant(instant)
         else:
-            assert isinstance(instant, Instant), "Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {}.".format(instant)
+            assert isinstance(
+                instant, Instant
+            ), "Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {}.".format(
+                instant
+            )
 
         parameters_at_instant = self._parameters_at_instant_cache.get(instant)
         if parameters_at_instant is None and self.parameters is not None:
@@ -369,56 +432,57 @@ class TaxBenefitSystem(object):
 
     def get_package_metadata(self):
         """
-            Gets metatada relative to the country package the tax and benefit system is built from.
+        Gets metatada relative to the country package the tax and benefit system is built from.
 
-            :returns: Country package metadata
-            :rtype: dict
+        :returns: Country package metadata
+        :rtype: dict
 
-            Example:
+        Example:
 
-            >>> tax_benefit_system.get_package_metadata()
-            >>> {
-            >>>    'location': '/path/to/dir/containing/package',
-            >>>    'name': 'openfisca-france',
-            >>>    'repository_url': 'https://github.com/openfisca/openfisca-france',
-            >>>    'version': '17.2.0'
-            >>>    }
+        >>> tax_benefit_system.get_package_metadata()
+        >>> {
+        >>>    'location': '/path/to/dir/containing/package',
+        >>>    'name': 'openfisca-france',
+        >>>    'repository_url': 'https://github.com/openfisca/openfisca-france',
+        >>>    'version': '17.2.0'
+        >>>    }
         """
         # Handle reforms
         if self.baseline:
             return self.baseline.get_package_metadata()
 
         fallback_metadata = {
-            'name': self.__class__.__name__,
-            'version': '',
-            'repository_url': '',
-            'location': '',
-            }
+            "name": self.__class__.__name__,
+            "version": "",
+            "repository_url": "",
+            "location": "",
+        }
 
         module = inspect.getmodule(self)
         if not module.__package__:
             return fallback_metadata
-        package_name = module.__package__.split('.')[0]
+        package_name = module.__package__.split(".")[0]
         try:
             distribution = pkg_resources.get_distribution(package_name)
         except pkg_resources.DistributionNotFound:
             return fallback_metadata
 
-        location = inspect.getsourcefile(module).split(package_name)[0].rstrip('/')
+        location = inspect.getsourcefile(module).split(package_name)[0].rstrip("/")
 
         home_page_metadatas = [
-            metadata.split(':', 1)[1].strip(' ')
-            for metadata in distribution._get_metadata(distribution.PKG_INFO) if 'Home-page' in metadata
-            ]
-        repository_url = home_page_metadatas[0] if home_page_metadatas else ''
+            metadata.split(":", 1)[1].strip(" ")
+            for metadata in distribution._get_metadata(distribution.PKG_INFO)
+            if "Home-page" in metadata
+        ]
+        repository_url = home_page_metadatas[0] if home_page_metadatas else ""
         return {
-            'name': distribution.key,
-            'version': distribution.version,
-            'repository_url': repository_url,
-            'location': location,
-            }
+            "name": distribution.key,
+            "version": distribution.version,
+            "repository_url": repository_url,
+            "location": location,
+        }
 
-    def get_variables(self, entity = None):
+    def get_variables(self, entity=None):
         """
         Gets all variables contained in a tax and benefit system.
 
@@ -436,22 +500,27 @@ class TaxBenefitSystem(object):
                 for variable_name, variable in self.variables.items()
                 # TODO - because entities are copied (see constructor) they can't be compared
                 if variable.entity.key == entity.key
-                }
+            }
 
     def clone(self):
         new = empty_clone(self)
         new_dict = new.__dict__
 
         for key, value in self.__dict__.items():
-            if key not in ('parameters', '_parameters_at_instant_cache', 'variables', 'open_api_config'):
+            if key not in (
+                "parameters",
+                "_parameters_at_instant_cache",
+                "variables",
+                "open_api_config",
+            ):
                 new_dict[key] = value
-        for entity in new_dict['entities']:
+        for entity in new_dict["entities"]:
             entity.set_tax_benefit_system(new)
 
-        new_dict['parameters'] = self.parameters.clone()
-        new_dict['_parameters_at_instant_cache'] = {}
-        new_dict['variables'] = self.variables.copy()
-        new_dict['open_api_config'] = self.open_api_config.copy()
+        new_dict["parameters"] = self.parameters.clone()
+        new_dict["_parameters_at_instant_cache"] = {}
+        new_dict["variables"] = self.variables.copy()
+        new_dict["open_api_config"] = self.open_api_config.copy()
         return new
 
     def entities_plural(self):

@@ -9,7 +9,7 @@ from numpy import (
     logical_not as not_,
     ndarray,
     select,
-    )
+)
 
 ENUM_ARRAY_DTYPE = int16
 
@@ -34,14 +34,14 @@ class Enum(BaseEnum):
 
     @classmethod
     def encode(
-            cls,
-            array: Union[
-                "EnumArray",
-                ndarray[str],
-                ndarray["Enum"],
-                ndarray[int],
-                ],
-            ) -> "EnumArray":
+        cls,
+        array: Union[
+            "EnumArray",
+            ndarray[str],
+            ndarray["Enum"],
+            ndarray[int],
+        ],
+    ) -> "EnumArray":
         """
         Encode a string numpy array, an enum item numpy array, or an int numpy array
         into an :any:`EnumArray`. See :any:`EnumArray.decode` for decoding.
@@ -68,13 +68,13 @@ class Enum(BaseEnum):
         if type(array) is EnumArray:
             return array
 
-        if array.dtype.kind in {'U', 'S'}:  # String array
+        if array.dtype.kind in {"U", "S"}:  # String array
             array = select(
                 [array == item.name for item in cls],
                 [item.index for item in cls],
-                ).astype(ENUM_ARRAY_DTYPE)
+            ).astype(ENUM_ARRAY_DTYPE)
 
-        elif array.dtype.kind == 'O':  # Enum items arrays
+        elif array.dtype.kind == "O":  # Enum items arrays
             # Ensure we are comparing the comparable. The problem this fixes:
             # On entering this method "cls" will generally come from
             # variable.possible_values, while the array values may come from directly
@@ -89,7 +89,7 @@ class Enum(BaseEnum):
             array = select(
                 [array == item for item in cls],
                 [item.index for item in cls],
-                ).astype(ENUM_ARRAY_DTYPE)
+            ).astype(ENUM_ARRAY_DTYPE)
 
         return EnumArray(array, cls)
 
@@ -104,10 +104,10 @@ class EnumArray(ndarray):
     # To read more about the two following methods, see:
     # https://docs.scipy.org/doc/numpy-1.13.0/user/basics.subclassing.html#slightly-more-realistic-example-attribute-added-to-existing-array.
     def __new__(
-            cls,
-            input_array: ndarray[int],
-            possible_values: Optional[Type["Enum"]] = None,
-            ) -> "EnumArray":
+        cls,
+        input_array: ndarray[int],
+        possible_values: Optional[Type["Enum"]] = None,
+    ) -> "EnumArray":
         obj = asarray(input_array).view(cls)
         obj.possible_values = possible_values
         return obj
@@ -136,7 +136,7 @@ class EnumArray(ndarray):
         raise TypeError(
             "Forbidden operation. The only operations allowed on EnumArrays are "
             "'==' and '!='.",
-            )
+        )
 
     __add__ = _forbidden_operation
     __mul__ = _forbidden_operation
@@ -161,7 +161,7 @@ class EnumArray(ndarray):
         return select(
             [self == item.index for item in self.possible_values],
             list(self.possible_values),
-            )
+        )
 
     def decode_to_str(self) -> ndarray[str]:
         """Return the array of string identifiers corresponding to self.
@@ -177,7 +177,7 @@ class EnumArray(ndarray):
         return select(
             [self == item.index for item in self.possible_values],
             [item.name for item in self.possible_values],
-            )
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({str(self.decode())})"
