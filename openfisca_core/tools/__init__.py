@@ -17,7 +17,7 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
       :param message: Error message to be displayed if the test fails
       :param relative_error_margin: Relative error margin authorized
 
-      Limit : This function cannot be used to assert near dates or periods.
+      Limit : This function cannot be used to assert near periods.
 
     '''
 
@@ -29,6 +29,9 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
         value = np.array(value)
     if isinstance(value, EnumArray):
         return assert_enum_equals(value, target_value, message)
+    if np.issubdtype(value.dtype, np.datetime64):
+        target_value = np.array(target_value, dtype = value.dtype)
+        assert_datetime_equals(value, target_value, message)
     if isinstance(target_value, str):
         target_value = eval_expression(target_value)
 
@@ -44,6 +47,10 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
         assert (diff <= abs(relative_error_margin * target_value)).all(), \
             '{}{} differs from {} with a relative margin {} > {}'.format(message, value, target_value,
                 diff, abs(relative_error_margin * target_value))
+
+
+def assert_datetime_equals(value, target_value, message = ''):
+    assert (value == target_value).all(), '{}{} differs from {}.'.format(message, value, target_value)
 
 
 def assert_enum_equals(value, target_value, message = ''):
