@@ -35,6 +35,11 @@ dev_requirements = [
     'openfisca-extension-template >= 1.2.0rc0, < 2.0.0'
     ] + api_requirements
 
+debug_requirements = [
+    'ipython >= 7.21.0, < 8.0.0',
+    'line_profiler >= 3.1.0, < 4.0.0',
+    ]
+
 setup(
     name = 'OpenFisca-Core',
     version = '35.1.0',
@@ -66,6 +71,7 @@ setup(
     extras_require = {
         'web-api': api_requirements,
         'dev': dev_requirements,
+        'debug': debug_requirements,
         'tracker': [
             'openfisca-tracker == 0.4.0',
             ],
