@@ -16,21 +16,21 @@ from .test_countries import tax_benefit_system
 openfisca_core_dir = pkg_resources.get_distribution('OpenFisca-Core').location
 yaml_tests_dir = os.path.join(openfisca_core_dir, 'tests', 'core', 'yaml_tests')
 EXIT_OK = 0
-EXIT_TESTSFAILED = 1
+EXIT_KO = 1
 
 
 @mark.parametrize("path, options, expected", [
     ("test_success.yaml", {}, EXIT_OK),
-    ("test_failure.yaml", {}, EXIT_TESTSFAILED),
+    ("test_failure.yaml", {}, EXIT_KO),
     ("test_relative_error_margin.yaml", {}, EXIT_OK),
-    ("failing_test_relative_error_margin.yaml", {}, EXIT_TESTSFAILED),
+    ("failing_test_relative_error_margin.yaml", {}, EXIT_KO),
     ("test_absolute_error_margin.yaml", {}, EXIT_OK),
-    ("failing_test_absolute_error_margin.yaml", {}, EXIT_TESTSFAILED),
+    ("failing_test_absolute_error_margin.yaml", {}, EXIT_KO),
     (os.path.join(yaml_tests_dir, "directory"), {}, EXIT_OK),
     ("test_with_reform.yaml", {}, EXIT_OK),
     ("test_with_extension.yaml", {}, EXIT_OK),
     ("test_with_anchors.yaml", {}, EXIT_OK),
-    (yaml_tests_dir, {}, EXIT_TESTSFAILED),
+    (yaml_tests_dir, {}, EXIT_KO),
     (yaml_tests_dir, {"name_filter": "success"}, EXIT_OK),
     ])
 def test_yaml(path, options, expected):
