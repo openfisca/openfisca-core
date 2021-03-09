@@ -13,8 +13,8 @@ from openfisca_core.tools.test_runner import run_tests
 from .test_countries import tax_benefit_system
 
 
-openfisca_core_dir = pkg_resources.get_distribution('OpenFisca-Core').location
-yaml_tests_dir = os.path.join(openfisca_core_dir, 'tests', 'core', 'yaml_tests')
+openfisca_core_dir = pkg_resources.get_distribution("OpenFisca-Core").location
+yaml_tests_dir = os.path.join(openfisca_core_dir, "tests", "core", "yaml_tests")
 EXIT_OK = 0
 EXIT_KO = 1
 
@@ -40,29 +40,36 @@ def test_yaml(path, options, expected):
 
 
 def test_shell_script():
-    yaml_path = os.path.join(yaml_tests_dir, 'test_success.yaml')
-    command = ['openfisca', 'test', yaml_path, '-c', 'openfisca_country_template']
-    with open(os.devnull, 'wb') as devnull:
-        subprocess.check_call(command, stdout = devnull, stderr = devnull)
+    yaml_path = os.path.join(yaml_tests_dir, "test_success.yaml")
+    command = ["openfisca", "test", yaml_path, "-c", "openfisca_country_template"]
+
+    with open(os.devnull, "wb") as devnull:
+        result = subprocess.call(command, stdout = devnull, stderr = devnull)
+        assert result == EXIT_OK
 
 
 def test_failing_shell_script():
-    yaml_path = os.path.join(yaml_tests_dir, 'test_failure.yaml')
-    command = ['openfisca', 'test', yaml_path, '-c', 'openfisca_dummy_country']
-    with open(os.devnull, 'wb') as devnull:
-        with raises(subprocess.CalledProcessError):
-            subprocess.check_call(command, stdout = devnull, stderr = devnull)
+    yaml_path = os.path.join(yaml_tests_dir, "test_failure.yaml")
+    command = ["openfisca", "test", yaml_path, "-c", "openfisca_dummy_country"]
+
+    with open(os.devnull, "wb") as devnull:
+        result = subprocess.call(command, stdout = devnull, stderr = devnull)
+        assert result == EXIT_KO
 
 
 def test_shell_script_with_reform():
-    yaml_path = os.path.join(yaml_tests_dir, 'test_with_reform_2.yaml')
-    command = ['openfisca', 'test', yaml_path, '-c', 'openfisca_country_template', '-r', 'openfisca_country_template.reforms.removal_basic_income.removal_basic_income']
-    with open(os.devnull, 'wb') as devnull:
-        subprocess.check_call(command, stdout = devnull, stderr = devnull)
+    yaml_path = os.path.join(yaml_tests_dir, "test_with_reform_2.yaml")
+    command = ["openfisca", "test", yaml_path, "-c", "openfisca_country_template", "-r", "openfisca_country_template.reforms.removal_basic_income.removal_basic_income"]
+
+    with open(os.devnull, "wb") as devnull:
+        result = subprocess.call(command, stdout = devnull, stderr = devnull)
+        assert result == EXIT_OK
 
 
 def test_shell_script_with_extension():
-    tests_dir = os.path.join(openfisca_extension_template.__path__[0], 'tests')
-    command = ['openfisca', 'test', tests_dir, '-c', 'openfisca_country_template', '-e', 'openfisca_extension_template']
-    with open(os.devnull, 'wb') as devnull:
-        subprocess.check_call(command, stdout = devnull, stderr = devnull)
+    tests_dir = os.path.join(openfisca_extension_template.__path__[0], "tests")
+    command = ["openfisca", "test", tests_dir, "-c", "openfisca_country_template", "-e", "openfisca_extension_template"]
+
+    with open(os.devnull, "wb") as devnull:
+        result = subprocess.call(command, stdout = devnull, stderr = devnull)
+        assert result == EXIT_OK
