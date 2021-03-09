@@ -15,9 +15,10 @@ def test_openfisca(cli_runner):
 def test_openfisca_serve(mocker, cli_runner):
     run_serve = mocker.patch("openfisca_cli.commands.run_serve")
     cli_runner.invoke(serve)
-    run_serve.assert_called_once
+    assert run_serve.call_count == 1
 
 
-def test_openfisca_test(cli_runner):
-    result = cli_runner.invoke(test)
-    assert result.exit_code == 0
+def test_openfisca_test(mocker, cli_runner):
+    run_test = mocker.patch("openfisca_cli.commands.run_test")
+    cli_runner.invoke(test)
+    assert run_test.call_count == 1
