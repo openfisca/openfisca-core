@@ -33,6 +33,10 @@ def create_gunicorn_parser() -> ArgumentParser:
     return config.Config().parser()
 
 
+def parse_args(parser: ArgumentParser, args: list) -> dict:
+    return vars(parser.parse_args(args))
+
+
 def read_user_configuration(configuration, parser):
     user_args, unknown_args = parser.parse_known_args()
 
@@ -47,9 +51,9 @@ def read_user_configuration(configuration, parser):
 
     # Command line configuration overloads all configuration
     gunicorn_parser = create_gunicorn_parser()
-    gunicorn_args = gunicorn_parser.parse_args(unknown_args)
+    gunicorn_args = parse_args(gunicorn_parser, unknown_args)
     configuration = update(configuration, vars(user_args))
-    configuration = update(configuration, vars(gunicorn_args))
+    configuration = update(configuration, gunicorn_args)
 
     if configuration["args"]:
         parser.print_help()
