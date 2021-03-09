@@ -4,16 +4,18 @@ from openfisca_cli.commands import openfisca, serve, test
 
 
 def test_openfisca(cli_runner):
-    result = cli_runner.invoke(openfisca).output
-    assert "Usage: openfisca [OPTIONS] COMMAND [ARGS]" in result
-    assert "-h, --help  Show this message and exit." in result
-    assert "serve  Run the OpenFisca Web API" in result
-    assert "test   Run OpenFisca YAML tests" in result
+    result = cli_runner.invoke(openfisca)
+    output = result.output
+    assert "Usage: openfisca [OPTIONS] COMMAND [ARGS]" in output
+    assert "-h, --help  Show this message and exit." in output
+    assert "serve  Run the OpenFisca Web API" in output
+    assert "test   Run OpenFisca YAML tests" in output
 
 
-def test_openfisca_serve(cli_runner):
-    result = cli_runner.invoke(serve)
-    assert result.exit_code == 0
+def test_openfisca_serve(mocker, cli_runner):
+    run_serve = mocker.patch("openfisca_cli.commands.run_serve")
+    cli_runner.invoke(serve)
+    run_serve.assert_called_once
 
 
 def test_openfisca_test(cli_runner):

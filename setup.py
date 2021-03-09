@@ -48,8 +48,11 @@ dev_requirements = [
     'types-click >= 0.1.4, < 1.0.0',
     ] + web_api_requirements
 
-profile_requirements = [
+debug_requirements = [
     'ipython >= 7.21.0, < 8.0.0',
+    ]
+
+profile_requirements = [
     'line_profiler >= 3.1.0, < 4.0.0',
     ]
 
@@ -87,6 +90,7 @@ setup(
     extras_require = {
         'web-api': web_api_requirements,
         'dev': dev_requirements,
+        'debug': debug_requirements,
         'profile': profile_requirements,
         'tracker': [
             'openfisca-tracker == 0.4.0',
