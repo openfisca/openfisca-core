@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import sys
+from argparse import ArgumentParser, Namespace
+
 import logging
+import sys
 
 from openfisca_core.scripts import build_tax_benefit_system
 from openfisca_web_api.app import create_app
@@ -27,6 +29,10 @@ DEFAULT_TIMEOUT = 120
 log = logging.getLogger(__name__)
 
 
+def create_gunicorn_parser() -> ArgumentParser:
+    return config.Config().parser()
+
+
 def read_user_configuration(configuration, parser):
     user_args, unknown_args = parser.parse_known_args()
 
@@ -40,7 +46,7 @@ def read_user_configuration(configuration, parser):
         update(configuration, file_configuration)
 
     # Command line configuration overloads all configuration
-    gunicorn_parser = config.Config().parser()
+    gunicorn_parser = create_gunicorn_parser()
     gunicorn_args = gunicorn_parser.parse_args(unknown_args)
     configuration = update(configuration, vars(user_args))
     configuration = update(configuration, vars(gunicorn_args))
