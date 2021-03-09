@@ -8,12 +8,12 @@ def openfisca() -> None:
     pass
 
 
-@openfisca.command(help = "Run the OpenFisca Web API")
+@openfisca.command(help = "Run the OpenFisca Web API.")
 def serve() -> None:
     pass
 
 
-@openfisca.command(help = "Run OpenFisca YAML tests")
+@openfisca.command(help = "Run OpenFisca YAML tests.")
 def test() -> None:
     pass
 

@@ -1,34 +1,21 @@
-from click.testing import CliRunner
 from pytest import fixture
 
 from openfisca_cli.commands import openfisca, serve, test
 
 
-@fixture
-def runner():
-    return CliRunner()
+def test_openfisca(cli_runner):
+    result = cli_runner.invoke(openfisca).output
+    assert "Usage: openfisca [OPTIONS] COMMAND [ARGS]" in result
+    assert "-h, --help  Show this message and exit." in result
+    assert "serve  Run the OpenFisca Web API" in result
+    assert "test   Run OpenFisca YAML tests" in result
 
 
-def test_openfisca(runner):
-    result = runner.invoke(openfisca)
+def test_openfisca_serve(cli_runner):
+    result = cli_runner.invoke(serve)
     assert result.exit_code == 0
 
 
-def test_serve(runner):
-    result = runner.invoke(serve)
+def test_openfisca_test(cli_runner):
+    result = cli_runner.invoke(test)
     assert result.exit_code == 0
-
-
-def test_serve_help(runner):
-    result = runner.invoke(serve, ["--help"])
-    assert "Run the OpenFisca Web API" in result.output
-
-
-def test_test(runner):
-    result = runner.invoke(test)
-    assert result.exit_code == 0
-
-
-def test_test_help(runner):
-    result = runner.invoke(test, ["--help"])
-    assert "Run OpenFisca YAML tests" in result.output
