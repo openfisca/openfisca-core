@@ -8,10 +8,6 @@ from pytest import fixture, mark
 
 import openfisca_extension_template
 
-from openfisca_core.tools.test_runner import run_tests
-
-from .test_countries import tax_benefit_system
-
 
 core_dir = pkg_resources.get_distribution("OpenFisca-Core").location
 yaml_dir = os.path.join(core_dir, "tests", "core", "yaml_tests")
@@ -32,25 +28,6 @@ def make_call():
             return subprocess.call(command, stdout = devnull, stderr = devnull)
 
         yield _make_call
-
-
-@mark.parametrize("expected, path, options", [
-    (EXIT_OK, (yaml_dir, "test_success.yaml"), {}),
-    (EXIT_KO, (yaml_dir, "test_failure.yaml"), {}),
-    (EXIT_OK, (yaml_dir, "test_relative_error_margin.yaml"), {}),
-    (EXIT_KO, (yaml_dir, "failing_test_relative_error_margin.yaml"), {}),
-    (EXIT_OK, (yaml_dir, "test_absolute_error_margin.yaml"), {}),
-    (EXIT_KO, (yaml_dir, "failing_test_absolute_error_margin.yaml"), {}),
-    (EXIT_OK, (yaml_dir, os.path.join(yaml_dir, "directory")), {}),
-    (EXIT_OK, (yaml_dir, "test_with_reform.yaml"), {}),
-    (EXIT_OK, (yaml_dir, "test_with_extension.yaml"), {}),
-    (EXIT_OK, (yaml_dir, "test_with_anchors.yaml"), {}),
-    (EXIT_KO, (yaml_dir, yaml_dir), {}),
-    (EXIT_OK, (yaml_dir, yaml_dir), {"name_filter": "success"}),
-    ], indirect = ["path"])
-def test_yaml(path, options, expected):
-    result = run_tests(tax_benefit_system, path, options)
-    assert result == expected
 
 
 @mark.parametrize("expected, path, make_command", [
