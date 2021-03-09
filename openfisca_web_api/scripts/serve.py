@@ -27,13 +27,13 @@ DEFAULT_TIMEOUT = 120
 log = logging.getLogger(__name__)
 
 
-def read_user_configuration(default_configuration, command_line_parser):
-    configuration = default_configuration
-    args, unknown_args = command_line_parser.parse_known_args()
+def read_user_configuration(configuration, parser):
+    user_args, unknown_args = parser.parse_known_args()
 
-    if args.configuration_file:
+    if user_args.configuration_file:
         file_configuration = {}
-        with open(args.configuration_file, "r") as file:
+
+        with open(user_args.configuration_file, "r") as file:
             exec(file.read(), {}, file_configuration)
 
         # Configuration file overloads default configuration
@@ -41,11 +41,13 @@ def read_user_configuration(default_configuration, command_line_parser):
 
     # Command line configuration overloads all configuration
     gunicorn_parser = config.Config().parser()
-    configuration = update(configuration, vars(args))
-    configuration = update(configuration, vars(gunicorn_parser.parse_args(unknown_args)))
-    if configuration['args']:
-        command_line_parser.print_help()
-        log.error('Unexpected positional argument {}'.format(configuration['args']))
+    gunicorn_args = gunicorn_parser.parse_args(unknown_args)
+    configuration = update(configuration, vars(user_args))
+    configuration = update(configuration, vars(gunicorn_args))
+
+    if configuration["args"]:
+        parser.print_help()
+        log.error(f"Unexpected positional argument {configuration['args']}")
         sys.exit(1)
 
     return configuration
@@ -57,18 +59,19 @@ def update(configuration, new_options):
             configuration[key] = value
             if key == "port":
                 configuration['bind'] = configuration['bind'][:-4] + str(configuration['port'])
+
     return configuration
 
 
 class OpenFiscaWebAPIApplication(BaseApplication):
 
-    def __init__(self, options):
+    def __init__(self, options = {}):
         self.options = options
-        super(OpenFiscaWebAPIApplication, self).__init__()
+        super().__init__()
 
     def load_config(self):
         for key, value in self.options.items():
-            if key in self.cfg.settings:
+            if key in self.cfg.settings and value is not None:
                 self.cfg.set(key.lower(), value)
 
     def load(self):
