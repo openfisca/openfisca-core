@@ -94,8 +94,9 @@ def test_variable_formula_github_link():
 
 
 def test_variable_formula_content():
-    formula_code = "def formula(person, period, parameters):\n    return person('salary', period) * parameters(period).taxes.income_tax_rate\n"
-    assert variable['formulas']['0001-01-01']['content'] == formula_code
+    content = variable['formulas']['0001-01-01']['content']
+    assert "def formula(person, period, parameters):" in content
+    assert "return person(\"salary\", period) * parameters(period).taxes.income_tax_rate" in content
 
 
 def test_null_values_are_dropped():
@@ -157,4 +158,6 @@ def test_variable_documentation():
     variable = json.loads(response.data.decode('utf-8'))
     assert variable['documentation'] == "This allowance was introduced on the 1st of Jan 1980.\nIt disappeared in Dec 2016."
 
-    assert variable['formulas']['1980-01-01']['documentation'] == "\nTo compute this allowance, the 'rent' value must be provided for the same month, but 'housing_occupancy_status' is not necessary.\n"
+    formula_documentation = variable['formulas']['1980-01-01']['documentation']
+    assert "Housing allowance." in formula_documentation
+    assert "Calculating it before this date will always return the variable default value, 0." in formula_documentation
