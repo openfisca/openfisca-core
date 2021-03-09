@@ -7,9 +7,14 @@ from setuptools import setup, find_packages
 # Please make sure to cap all dependency versions, in order to avoid unwanted
 # functional and integration breaks caused by external code updates.
 
-general_requirements = [
+# For openfisca serve, openfisca test
+cli_requirements = [
+    'click >= 7.1.2, < 8.0.0',
+    'pytest >= 4.4.1, < 6.0.0',
+    ]
+
+core_requirements = [
     'dpath >= 1.5.0, < 2.0.0',
-    'pytest >= 4.4.1, < 6.0.0',  # For openfisca test
     'numpy >= 1.11, < 1.19',
     'psutil >= 5.4.7, < 6.0.0',
     'PyYAML >= 3.10',
@@ -17,7 +22,12 @@ general_requirements = [
     'numexpr >= 2.7.0, <= 3.0',
     ]
 
-api_requirements = [
+install_requirements = (
+    cli_requirements
+    + core_requirements
+    )
+
+web_api_requirements = [
     'werkzeug >= 1.0.0, < 2.0.0',
     'flask == 1.1.2',
     'flask-cors == 3.0.10',
@@ -29,13 +39,14 @@ dev_requirements = [
     'flake8 >= 3.7.0, < 3.9.0',
     'flake8-bugbear >= 19.3.0, < 20.0.0',
     'flake8-print >= 3.1.0, < 4.0.0',
+    'pytest-click >= 1.0.2, < 2.0.0',
     'pytest-cov >= 2.6.1, < 3.0.0',
     'mypy >= 0.701, < 0.800',
     'openfisca-country-template >= 3.10.0, < 4.0.0',
-    'openfisca-extension-template >= 1.2.0rc0, < 2.0.0'
-    ] + api_requirements
+    'openfisca-extension-template >= 1.2.0rc0, < 2.0.0',
+    ] + web_api_requirements
 
-debug_requirements = [
+profile_requirements = [
     'ipython >= 7.21.0, < 8.0.0',
     'line_profiler >= 3.1.0, < 4.0.0',
     ]
@@ -60,7 +71,10 @@ setup(
     url = 'https://github.com/openfisca/openfisca-core',
 
     data_files = [
-        ('share/openfisca/openfisca-core', ['CHANGELOG.md', 'LICENSE', 'README.md']),
+        (
+            'share/openfisca/openfisca-core',
+            ['CHANGELOG.md', 'LICENSE', 'README.md'],
+            ),
         ],
     entry_points = {
         'console_scripts': [
@@ -69,15 +83,15 @@ setup(
             ],
         },
     extras_require = {
-        'web-api': api_requirements,
+        'web-api': web_api_requirements,
         'dev': dev_requirements,
-        'debug': debug_requirements,
+        'profile': profile_requirements,
         'tracker': [
             'openfisca-tracker == 0.4.0',
             ],
         },
     include_package_data = True,  # Will read MANIFEST.in
-    install_requires = general_requirements,
+    install_requires = install_requirements,
     message_extractors = {
         'openfisca_core': [
             ('**.py', 'python', None),
