@@ -1,5 +1,3 @@
-from pytest import fixture
-
 from openfisca_cli.commands import openfisca, serve, test
 
 
