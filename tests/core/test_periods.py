@@ -151,11 +151,11 @@ def test_wrong_syntax_several_days():
 
 
 def test_day_size_in_days():
-    assert Period(('day', Instant((2014, 12, 31)), 1)).size_in_days == 1
+    assert Period((DAY, Instant((2014, 12, 31)), 1)).size_in_days == 1
 
 
 def test_3_day_size_in_days():
-    assert Period(('day', Instant((2014, 12, 31)), 3)).size_in_days == 3
+    assert Period((DAY, Instant((2014, 12, 31)), 3)).size_in_days == 3
 
 
 def test_month_size_in_days():
