@@ -23,6 +23,7 @@ YEAR = 'year'
 MONTH = 'month'
 DAY = 'day'
 WEEK = 'week'
+WEEKDAY = 'weekday'
 
 INSTANT_PATTERN = re.compile(r'^\d{4}(?:-\d{1,2}){0,2}$')  # matches '2015', '2015-01', '2015-01-01'
 
@@ -321,7 +322,7 @@ class Period(tuple):
             return 'ETERNITY'
 
         year, month, day = start_instant
-        _, week, _ = datetime.date(year, month, day).isocalendar()
+        _, week, weekday = datetime.date(year, month, day).isocalendar()
 
         # 1 year long period
         if (unit == MONTH and size == 12 or unit == YEAR and size == 1):
@@ -347,12 +348,20 @@ class Period(tuple):
                 return '{}:{}-{:02d}-{:02d}:{}'.format(unit, year, month, day, size)
 
         # 1 week
-        if (unit == WEEK and size == 1 and year and month):
+        if (unit == WEEK and size == 1):
             return f'{year}-W{week}'
 
         # several weeks
-        if (unit == WEEK and size > 1 and year and month):
+        if (unit == WEEK and size > 1):
             return f'{unit}:{year}-W{week}:{size}'
+
+        # 1 weekday
+        if (unit == WEEKDAY and size == 1):
+            return f'{year}-W{week}-{weekday}'
+
+        # several weekdays
+        if (unit == WEEKDAY and size > 1):
+            return f'{unit}:{year}-W{week}-{weekday}:{size}'
 
         # complex period
         return '{}:{}-{:02d}:{}'.format(unit, year, month, size)

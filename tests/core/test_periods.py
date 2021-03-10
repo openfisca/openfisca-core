@@ -3,7 +3,7 @@
 
 from pytest import fixture, mark, raises
 
-from openfisca_core.periods import Period, Instant, YEAR, MONTH, WEEK, DAY, period
+from openfisca_core.periods import Period, Instant, YEAR, MONTH, DAY, WEEK, WEEKDAY, period
 
 
 @fixture
@@ -78,6 +78,19 @@ def test_week(first_jan, first_march):
 def test_several_weeks(first_jan, first_march):
     assert str(Period((WEEK, first_jan, 3))) == 'week:2014-W1:3'
     assert str(Period((WEEK, first_march, 3))) == 'week:2014-W9:3'
+
+
+# Weekdays
+
+
+def test_weekday(first_jan, first_march):
+    assert str(Period((WEEKDAY, first_jan, 1))) == '2014-W1-3'
+    assert str(Period((WEEKDAY, first_march, 1))) == '2014-W9-6'
+
+
+def test_several_weekdays(first_jan, first_march):
+    assert str(Period((WEEKDAY, first_jan, 3))) == 'weekday:2014-W1-3:3'
+    assert str(Period((WEEKDAY, first_march, 3))) == 'weekday:2014-W9-6:3'
 
 
 '''
