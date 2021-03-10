@@ -44,9 +44,9 @@ def parse_args(parser: ArgumentParser, args: list) -> dict:
     return vars(parser.parse_args(args))
 
 
-def read_user_configuration(config: dict, user_args: dict, server_args: dict) -> dict:
+def read_user_config(config: dict, user_args: dict, server_args: dict) -> dict:
     if user_args.get("configuration_file"):
-        file_config = {}
+        file_config: dict = {}
 
         with open(user_args["configuration_file"], "r") as file:
             exec(file.read(), {}, file_config)
@@ -65,7 +65,7 @@ def read_user_configuration(config: dict, user_args: dict, server_args: dict) ->
     return config
 
 
-def update(config, args):
+def update(config: dict, args: dict) -> dict:
     for key, value in args.items():
         if value is not None:
             config[key] = value
@@ -112,6 +112,6 @@ def main(user_parser: ArgumentParser) -> None:
     known_args = server_parser.parse_args(unknown_args)
     server_args = vars(known_args)
 
-    config = read_user_configuration(DEFAULT_CONFIG, user_args, server_args)
+    config = read_user_config(DEFAULT_CONFIG, user_args, server_args)
 
     OpenFiscaWebAPIApplication(config).run()
