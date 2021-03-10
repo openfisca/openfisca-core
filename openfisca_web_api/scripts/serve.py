@@ -44,7 +44,7 @@ def parse_args(parser: ArgumentParser, args: list) -> dict:
     return vars(parser.parse_args(args))
 
 
-def read_user_config(config: dict, user_args: dict, server_args: dict) -> dict:
+def read_config(config: dict, user_args: dict, server_args: dict) -> dict:
     if user_args.get("configuration_file"):
         file_config: dict = {}
 
@@ -52,11 +52,11 @@ def read_user_config(config: dict, user_args: dict, server_args: dict) -> dict:
             exec(file.read(), {}, file_config)
 
         # Configuration file overloads default configuration
-        update(config, file_config)
+        update_config(config, file_config)
 
     # Command line configuration overloads all configuration
-    config = update(config, user_args)
-    config = update(config, server_args)
+    config = update_config(config, user_args)
+    config = update_config(config, server_args)
 
     if config.get("args"):
         log.error(f"Unexpected positional argument {config['args']}")
@@ -65,7 +65,7 @@ def read_user_config(config: dict, user_args: dict, server_args: dict) -> dict:
     return config
 
 
-def update(config: dict, args: dict) -> dict:
+def update_config(config: dict, args: dict) -> dict:
     for key, value in args.items():
         if value is not None:
             config[key] = value
@@ -112,6 +112,6 @@ def main(user_parser: ArgumentParser) -> None:
     known_args = server_parser.parse_args(unknown_args)
     server_args = vars(known_args)
 
-    config = read_user_config(DEFAULT_CONFIG, user_args, server_args)
+    config = read_config(DEFAULT_CONFIG, user_args, server_args)
 
     OpenFiscaWebAPIApplication(config).run()
