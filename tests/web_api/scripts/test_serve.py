@@ -18,13 +18,13 @@ def parser():
 
 @fixture
 def vector(mocker):
+    # To avoid passing pytest arguments to argparse
     return mocker.patch("openfisca_web_api.scripts.serve.sys.argv", [])
 
 
 @fixture
 def make_args(mocker, parser, vector):
     def _make_args(args = None):
-        # To avoid passing pytest arguments to argparse
         nonlocal vector
 
         if args is not None:
