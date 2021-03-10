@@ -20,16 +20,23 @@ except ImportError as error:
     Define the `openfisca serve` command line interface.
 """
 
-DEFAULT_PORT = '5000'
-HOST = '127.0.0.1'
-DEFAULT_WORKERS_NUMBER = '3'
+DEFAULT_PORT = "5000"
+DEFAULT_HOST = "127.0.0.1"
+DEFAULT_WORKERS = "3"
 DEFAULT_TIMEOUT = 120
+
+DEFAULT_CONFIG = {
+    "port": DEFAULT_PORT,
+    "bind": f"{DEFAULT_HOST}:{DEFAULT_PORT}",
+    "workers": DEFAULT_WORKERS,
+    "timeout": DEFAULT_TIMEOUT,
+    }
 
 
 log = logging.getLogger(__name__)
 
 
-def create_gunicorn_parser() -> ArgumentParser:
+def create_server_parser() -> ArgumentParser:
     return config.Config().parser()
 
 
@@ -37,30 +44,25 @@ def parse_args(parser: ArgumentParser, args: list) -> dict:
     return vars(parser.parse_args(args))
 
 
-def read_user_configuration(configuration, parser):
-    user_args, unknown_args = parser.parse_known_args()
+def read_user_configuration(config: dict, user_args: dict, server_args: dict) -> dict:
+    if user_args.get("configuration_file"):
+        file_config = {}
 
-    if user_args.configuration_file:
-        file_configuration = {}
-
-        with open(user_args.configuration_file, "r") as file:
-            exec(file.read(), {}, file_configuration)
+        with open(user_args["configuration_file"], "r") as file:
+            exec(file.read(), {}, file_config)
 
         # Configuration file overloads default configuration
-        update(configuration, file_configuration)
+        update(config, file_config)
 
     # Command line configuration overloads all configuration
-    gunicorn_parser = create_gunicorn_parser()
-    gunicorn_args = parse_args(gunicorn_parser, unknown_args)
-    configuration = update(configuration, vars(user_args))
-    configuration = update(configuration, gunicorn_args)
+    config = update(config, user_args)
+    config = update(config, server_args)
 
-    if configuration["args"]:
-        parser.print_help()
-        log.error(f"Unexpected positional argument {configuration['args']}")
+    if config.get("args"):
+        log.error(f"Unexpected positional argument {config['args']}")
         sys.exit(1)
 
-    return configuration
+    return config
 
 
 def update(configuration, new_options):
@@ -99,12 +101,17 @@ class OpenFiscaWebAPIApplication(BaseApplication):
             )
 
 
-def main(parser):
-    configuration = {
-        'port': DEFAULT_PORT,
-        'bind': '{}:{}'.format(HOST, DEFAULT_PORT),
-        'workers': DEFAULT_WORKERS_NUMBER,
-        'timeout': DEFAULT_TIMEOUT,
-        }
-    configuration = read_user_configuration(configuration, parser)
-    OpenFiscaWebAPIApplication(configuration).run()
+def main(user_parser: ArgumentParser) -> None:
+    known_args: Namespace
+    unknown_args: list
+
+    known_args, unknown_args = user_parser.parse_known_args()
+    user_args = vars(known_args)
+
+    server_parser = create_server_parser()
+    known_args = server_parser.parse_args(unknown_args)
+    server_args = vars(known_args)
+
+    config = read_user_configuration(DEFAULT_CONFIG, user_args, server_args)
+
+    OpenFiscaWebAPIApplication(config).run()
