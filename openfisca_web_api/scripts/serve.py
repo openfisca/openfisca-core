@@ -2,7 +2,8 @@
 
 from argparse import ArgumentParser, Namespace
 
-import logging
+from errno import EINVAL
+from logging import getLogger
 import sys
 
 from openfisca_core.scripts import build_tax_benefit_system
@@ -11,7 +12,7 @@ from openfisca_web_api.errors import handle_import_error
 
 try:
     from gunicorn.app.base import BaseApplication
-    from gunicorn import config
+    from gunicorn.config import Config
 except ImportError as error:
     handle_import_error(error)
 
@@ -33,15 +34,7 @@ DEFAULT_CONFIG = {
     }
 
 
-log = logging.getLogger(__name__)
-
-
-def create_server_parser() -> ArgumentParser:
-    return config.Config().parser()
-
-
-def parse_args(parser: ArgumentParser, args: list) -> dict:
-    return vars(parser.parse_args(args))
+log = getLogger(__name__)
 
 
 def read_config(config: dict, user_args: dict, server_args: dict) -> dict:
@@ -58,10 +51,6 @@ def read_config(config: dict, user_args: dict, server_args: dict) -> dict:
     config = update_config(config, user_args)
     config = update_config(config, server_args)
 
-    if config.get("args"):
-        log.error(f"Unexpected positional argument {config['args']}")
-        sys.exit(1)
-
     return config
 
 
@@ -77,8 +66,8 @@ def update_config(config: dict, args: dict) -> dict:
 
 class OpenFiscaWebAPIApplication(BaseApplication):
 
-    def __init__(self, options = {}):
-        self.options = options
+    def __init__(self, options = None):
+        self.options = options or {}
         super().__init__()
 
     def load_config(self):
@@ -108,10 +97,15 @@ def main(user_parser: ArgumentParser) -> None:
     known_args, unknown_args = user_parser.parse_known_args()
     user_args = vars(known_args)
 
-    server_parser = create_server_parser()
+    server_parser = Config().parser()
     known_args = server_parser.parse_args(unknown_args)
     server_args = vars(known_args)
 
     config = read_config(DEFAULT_CONFIG, user_args, server_args)
+
+    if config.get("args"):
+        user_parser.print_help()
+        log.error(f"\nUnexpected positional argument {config['args']}")
+        sys.exit(EINVAL)
 
     OpenFiscaWebAPIApplication(config).run()
