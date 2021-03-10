@@ -54,14 +54,6 @@ def test_several_months(first_jan, first_march):
     assert str(Period((MONTH, first_march, 3))) == 'month:2014-03:3'
 
 
-# Weeks
-
-
-def test_week(first_jan, first_march):
-    assert str(Period((WEEK, first_jan, 1))) == '2014-W1'
-    assert str(Period((WEEK, first_march, 1))) == '2014-W9'
-
-
 # Days
 
 
@@ -73,6 +65,19 @@ def test_day(first_jan, first_march):
 def test_several_days(first_jan, first_march):
     assert str(Period((DAY, first_jan, 3))) == 'day:2014-01-01:3'
     assert str(Period((DAY, first_march, 3))) == 'day:2014-03-01:3'
+
+
+# Weeks
+
+
+def test_week(first_jan, first_march):
+    assert str(Period((WEEK, first_jan, 1))) == '2014-W1'
+    assert str(Period((WEEK, first_march, 1))) == '2014-W9'
+
+
+def test_several_weeks(first_jan, first_march):
+    assert str(Period((WEEK, first_jan, 3))) == 'week:2014-W1:3'
+    assert str(Period((WEEK, first_march, 3))) == 'week:2014-W9:3'
 
 
 '''

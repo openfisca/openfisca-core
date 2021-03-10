@@ -18,11 +18,11 @@ from os import linesep
 from typing import Dict
 
 
+ETERNITY = 'eternity'
+YEAR = 'year'
+MONTH = 'month'
 DAY = 'day'
 WEEK = 'week'
-MONTH = 'month'
-YEAR = 'year'
-ETERNITY = 'eternity'
 
 INSTANT_PATTERN = re.compile(r'^\d{4}(?:-\d{1,2}){0,2}$')  # matches '2015', '2015-01', '2015-01-01'
 
@@ -321,6 +321,7 @@ class Period(tuple):
             return 'ETERNITY'
 
         year, month, day = start_instant
+        _, week, _ = datetime.date(year, month, day).isocalendar()
 
         # 1 year long period
         if (unit == MONTH and size == 12 or unit == YEAR and size == 1):
@@ -339,16 +340,19 @@ class Period(tuple):
         if unit == YEAR and month == 1:
             return '{}:{}:{}'.format(unit, year, size)
 
-        # 1 week
-        if (unit == WEEK and size == 1 and year and month and day):
-            year, week, _ = datetime.date(year, month, day).isocalendar()
-            return f'{year}-W{week}'
-
         if unit == DAY:
             if size == 1:
                 return '{}-{:02d}-{:02d}'.format(year, month, day)
             else:
                 return '{}:{}-{:02d}-{:02d}:{}'.format(unit, year, month, day, size)
+
+        # 1 week
+        if (unit == WEEK and size == 1 and year and month):
+            return f'{year}-W{week}'
+
+        # several weeks
+        if (unit == WEEK and size > 1 and year and month):
+            return f'{unit}:{year}-W{week}:{size}'
 
         # complex period
         return '{}:{}-{:02d}:{}'.format(unit, year, month, size)
