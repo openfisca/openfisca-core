@@ -6,6 +6,7 @@ from openfisca_web_api.scripts.serve import (
     create_server_parser,
     parse_args,
     read_user_configuration,
+    update,
     )
 
 
@@ -24,5 +25,9 @@ def test_parse_args(parser):
 
 
 def test_read_user_configuration():
-    result = read_user_configuration({}, {}, {})
-    assert not result
+    assert not read_user_configuration({}, {}, {})
+
+
+def test_update():
+    result = update({"bind": "localhost:1234"}, {"port": 2345})
+    assert result == {"bind": "localhost:2345", "port": 2345}

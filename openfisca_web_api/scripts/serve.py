@@ -65,14 +65,14 @@ def read_user_configuration(config: dict, user_args: dict, server_args: dict) ->
     return config
 
 
-def update(configuration, new_options):
-    for key, value in new_options.items():
+def update(config, args):
+    for key, value in args.items():
         if value is not None:
-            configuration[key] = value
+            config[key] = value
             if key == "port":
-                configuration['bind'] = configuration['bind'][:-4] + str(configuration['port'])
+                config["bind"] = config["bind"][:-4] + str(config["port"])
 
-    return configuration
+    return config
 
 
 class OpenFiscaWebAPIApplication(BaseApplication):
