@@ -859,6 +859,40 @@ def period(value):
         else:
             return Period((YEAR, Instant((date.year, date.month, 1)), 1))
 
+    def parse_week_period(value):
+        """
+        Parses ISO week date periods, such as 2010-W3 or 2012-W5-7.
+        """
+
+        # If it's complex, next!
+        if len(value.split(':')) != 1:
+            return None
+
+        # If it's just a year, next!
+        if len(value.split('-')) == 1:
+            return None
+
+        # If there are no weeks, next!
+        if value.find("W") == -1:
+            return None
+
+        value = value.replace("W", "")
+        components = list(map(int, value.split("-")))
+
+        # If it has no weekdays return a week period
+        if len(components) == 2:
+            year, week = components
+            date = datetime.date.fromisocalendar(year, week, 1)
+            return Period((WEEK, Instant((date.year, date.month, date.day)), 1))
+
+        # If it has weekdays return a weekday period
+        if len(components) == 3:
+            year, week, day = components
+            date = datetime.date.fromisocalendar(year, week, day)
+            return Period((WEEKDAY, Instant((date.year, date.month, date.day)), 1))
+
+        return None
+
     def raise_error(value):
         message = linesep.join([
             "Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: '{}'.".format(value),
@@ -873,11 +907,19 @@ def period(value):
     # check the type
     if isinstance(value, int):
         return Period((YEAR, Instant((value, 1, 1)), 1))
+
     if not isinstance(value, str):
         raise_error(value)
 
     # try to parse as a simple period
     period = parse_simple_period(value)
+
+    if period is not None:
+        return period
+
+    # try to parse as a week period
+    period = parse_week_period(value)
+
     if period is not None:
         return period
 
@@ -889,23 +931,30 @@ def period(value):
 
     # left-most component must be a valid unit
     unit = components[0]
-    if unit not in (DAY, MONTH, YEAR):
+    if unit not in (WEEKDAY, WEEK, DAY, MONTH, YEAR):
         raise_error(value)
 
     # middle component must be a valid iso period
     base_period = parse_simple_period(components[1])
+
     if not base_period:
-        raise_error(value)
+        # or a valid week/day period
+        base_period = parse_week_period(components[1])
+
+        if not base_period:
+            raise_error(value)
 
     # period like year:2015-03 have a size of 1
     if len(components) == 2:
         size = 1
+
     # if provided, make sure the size is an integer
     elif len(components) == 3:
         try:
             size = int(components[2])
         except ValueError:
             raise_error(value)
+
     # if there is more than 2 ":" in the string, the period is invalid
     else:
         raise_error(value)
@@ -940,10 +989,12 @@ def key_period_size(period):
 
 def unit_weights():
     return {
-        DAY: 100,
-        MONTH: 200,
-        YEAR: 300,
-        ETERNITY: 400,
+        WEEKDAY: 100,
+        WEEK: 200,
+        DAY: 300,
+        MONTH: 400,
+        YEAR: 500,
+        ETERNITY: 600,
         }
 
 

@@ -16,6 +16,16 @@ def first_march():
     return Instant((2014, 3, 1))
 
 
+@fixture
+def first_week():
+    return Instant((2013, 12, 30))
+
+
+@fixture
+def ninetieth_week():
+    return Instant((2014, 2, 24))
+
+
 '''
 Test Period -> String
 '''
@@ -184,6 +194,22 @@ def test_leap_year_size_in_days():
 
 def test_2_years_size_in_days():
     assert Period((YEAR, Instant((2014, 1, 1)), 2)).size_in_days == 730
+
+
+# Weeks
+
+
+def test_parsing_week(first_week):
+    assert period('2014-W1') == Period((WEEK, first_week, 1))
+
+
+def test_parsing_several_weeks(ninetieth_week):
+    assert period('week:2014-W9:3') == Period((WEEK, ninetieth_week, 3))
+
+
+def test_wrong_syntax_several_weeks():
+    with raises(ValueError):
+        period('2014-W3:3')
 
 
 # Misc
