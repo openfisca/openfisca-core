@@ -1,12 +1,19 @@
 # -*- coding: utf-8 -*-
 
 
-import pytest
+from pytest import fixture, mark, raises
 
 from openfisca_core.periods import Period, Instant, YEAR, MONTH, DAY, period
 
-first_jan = Instant((2014, 1, 1))
-first_march = Instant((2014, 3, 1))
+
+@fixture
+def first_jan():
+    return Instant((2014, 1, 1))
+
+
+@fixture
+def first_march():
+    return Instant((2014, 3, 1))
 
 
 '''
@@ -16,42 +23,44 @@ Test Period -> String
 
 # Years
 
-def test_year():
+def test_year(first_jan):
     assert str(Period((YEAR, first_jan, 1))) == '2014'
 
 
-def test_12_months_is_a_year():
+def test_12_months_is_a_year(first_jan):
     assert str(Period((MONTH, first_jan, 12))) == '2014'
 
 
-def test_rolling_year():
+def test_rolling_year(first_march):
     assert str(Period((MONTH, first_march, 12))) == 'year:2014-03'
     assert str(Period((YEAR, first_march, 1))) == 'year:2014-03'
 
 
-def test_several_years():
+def test_several_years(first_jan, first_march):
     assert str(Period((YEAR, first_jan, 3))) == 'year:2014:3'
     assert str(Period((YEAR, first_march, 3))) == 'year:2014-03:3'
 
 
 # Months
 
-def test_month():
+
+def test_month(first_jan):
     assert str(Period((MONTH, first_jan, 1))) == '2014-01'
 
 
-def test_several_months():
+def test_several_months(first_jan, first_march):
     assert str(Period((MONTH, first_jan, 3))) == 'month:2014-01:3'
     assert str(Period((MONTH, first_march, 3))) == 'month:2014-03:3'
 
 
 # Days
 
-def test_day():
+
+def test_day(first_jan):
     assert str(Period((DAY, first_jan, 1))) == '2014-01-01'
 
 
-def test_several_days():
+def test_several_days(first_jan, first_march):
     assert str(Period((DAY, first_jan, 3))) == 'day:2014-01-01:3'
     assert str(Period((DAY, first_march, 3))) == 'day:2014-03-01:3'
 
@@ -63,50 +72,53 @@ Test String -> Period
 
 # Years
 
-def test_parsing_year():
+
+def test_parsing_year(first_jan):
     assert period('2014') == Period((YEAR, first_jan, 1))
 
 
-def test_parsing_rolling_year():
+def test_parsing_rolling_year(first_march):
     assert period('year:2014-03') == Period((YEAR, first_march, 1))
 
 
-def test_parsing_several_years():
+def test_parsing_several_years(first_jan):
     assert period('year:2014:2') == Period((YEAR, first_jan, 2))
 
 
 def test_wrong_syntax_several_years():
-    with pytest.raises(ValueError):
+    with raises(ValueError):
         period('2014:2')
 
 
 # Months
 
-def test_parsing_month():
+
+def test_parsing_month(first_jan):
     assert period('2014-01') == Period((MONTH, first_jan, 1))
 
 
-def test_parsing_several_months():
+def test_parsing_several_months(first_march):
     assert period('month:2014-03:3') == Period((MONTH, first_march, 3))
 
 
 def test_wrong_syntax_several_months():
-    with pytest.raises(ValueError):
+    with raises(ValueError):
         period('2014-3:3')
 
 
 # Days
 
-def test_parsing_day():
+
+def test_parsing_day(first_jan):
     assert period('2014-01-01') == Period((DAY, first_jan, 1))
 
 
-def test_parsing_several_days():
+def test_parsing_several_days(first_march):
     assert period('day:2014-03-01:3') == Period((DAY, first_march, 3))
 
 
 def test_wrong_syntax_several_days():
-    with pytest.raises(ValueError):
+    with raises(ValueError):
         period('2014-2-3:2')
 
 
@@ -145,40 +157,41 @@ def test_leap_year_size_in_days():
 def test_2_years_size_in_days():
     assert Period(('year', Instant((2014, 1, 1)), 2)).size_in_days == 730
 
+
 # Misc
 
 
 def test_ambiguous_period():
-    with pytest.raises(ValueError):
+    with raises(ValueError):
         period('month:2014')
 
 
 def test_deprecated_signature():
-    with pytest.raises(TypeError):
+    with raises(TypeError):
         period(MONTH, 2014)
 
 
 def test_wrong_argument():
-    with pytest.raises(ValueError):
+    with raises(ValueError):
         period({})
 
 
 def test_wrong_argument_1():
-    with pytest.raises(ValueError):
+    with raises(ValueError):
         period([])
 
 
 def test_none():
-    with pytest.raises(ValueError):
+    with raises(ValueError):
         period(None)
 
 
 def test_empty_string():
-    with pytest.raises(ValueError):
+    with raises(ValueError):
         period('')
 
 
-@pytest.mark.parametrize("period, unit, length, first, last", [
+@mark.parametrize('period, unit, length, first, last', [
     (period('year:2014:2'), YEAR, 2, period('2014'), period('2015')),
     (period(2017), MONTH, 12, period('2017-01'), period('2017-12')),
     (period('year:2014:2'), MONTH, 24, period('2014-01'), period('2015-12')),
