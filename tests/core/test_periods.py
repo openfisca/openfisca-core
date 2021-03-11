@@ -212,6 +212,22 @@ def test_wrong_syntax_several_weeks():
         period('2014-W3:3')
 
 
+# Weekdays
+
+
+def test_parsing_weekday(first_jan):
+    assert period('2014-W1-3') == Period((WEEKDAY, first_jan, 1))
+
+
+def test_parsing_several_weekdays(first_march):
+    assert period('weekday:2014-W9-6:3') == Period((WEEKDAY, first_march, 3))
+
+
+def test_wrong_syntax_several_weekdays():
+    with raises(ValueError):
+        period('2014-W3-7:3')
+
+
 # Misc
 
 
