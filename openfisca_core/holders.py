@@ -12,7 +12,7 @@ from openfisca_core.commons import empty_clone
 from openfisca_core.data_storage import InMemoryStorage, OnDiskStorage
 from openfisca_core.errors import PeriodMismatchError
 from openfisca_core.indexed_enums import Enum
-from openfisca_core.periods import MONTH, YEAR, ETERNITY
+from openfisca_core.periods import WEEK, MONTH, YEAR, ETERNITY
 from openfisca_core.tools import eval_expression
 
 log = logging.getLogger(__name__)
@@ -157,6 +157,7 @@ class Holder(object):
         """
 
         period = periods.period(period)
+
         if period.unit == ETERNITY and self.variable.definition_period != ETERNITY:
             error_message = os.linesep.join([
                 'Unable to set a value for variable {0} for ETERNITY.',
@@ -171,16 +172,20 @@ class Holder(object):
                 self.variable.definition_period,
                 error_message
                 )
+
         if self.variable.is_neutralized:
             warning_message = "You cannot set a value for the variable {}, as it has been neutralized. The value you provided ({}) will be ignored.".format(self.variable.name, array)
             return warnings.warn(
                 warning_message,
                 Warning
                 )
+
         if self.variable.value_type in (float, int) and isinstance(array, str):
             array = eval_expression(array)
+
         if self.variable.set_input:
             return self.variable.set_input(self, period, array)
+
         return self._set(period, array)
 
     def _to_array(self, value):
@@ -209,6 +214,7 @@ class Holder(object):
         if self.variable.definition_period != ETERNITY:
             if period is None:
                 raise ValueError('A period must be specified to set values, except for variables with ETERNITY as as period_definition.')
+
             if (self.variable.definition_period != period.unit or period.size > 1):
                 name = self.variable.name
                 period_size_adj = f'{period.unit}' if (period.size == 1) else f'{period.size}-{period.unit}s'
@@ -300,13 +306,19 @@ def set_input_divide_by_period(holder, period, array):
     """
     if not isinstance(array, np.ndarray):
         array = np.array(array)
+
     period_size = period.size
     period_unit = period.unit
 
+    if holder.variable.definition_period == WEEK:
+        cached_period_unit = periods.WEEK
+
     if holder.variable.definition_period == MONTH:
         cached_period_unit = periods.MONTH
+
     elif holder.variable.definition_period == YEAR:
         cached_period_unit = periods.YEAR
+
     else:
         raise ValueError('set_input_divide_by_period can be used only for yearly or monthly variables.')
 
