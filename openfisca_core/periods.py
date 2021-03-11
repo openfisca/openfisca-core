@@ -203,7 +203,7 @@ class Instant(tuple):
         Instant((2014, 12, 31))
         """
         year, month, day = self
-        assert unit in (DAY, MONTH, YEAR), 'Invalid unit: {} of type {}'.format(unit, type(unit))
+        assert unit in (WEEKDAY, WEEK, DAY, MONTH, YEAR), 'Invalid unit: {} of type {}'.format(unit, type(unit))
         if offset == 'first-of':
             if unit == MONTH:
                 day = 1
