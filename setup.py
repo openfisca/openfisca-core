@@ -26,7 +26,7 @@ api_requirements = [
 
 dev_requirements = [
     'autopep8 >= 1.4.0, < 1.6.0',
-    'flake8 >= 3.7.0, < 3.9.0',
+    'flake8 >= 3.9.0, < 4.0.0',
     'flake8-bugbear >= 19.3.0, < 20.0.0',
     'flake8-print >= 3.1.0, < 4.0.0',
     'pytest-cov >= 2.6.1, < 3.0.0',
