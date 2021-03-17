@@ -8,7 +8,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 year = 2016
 
 
-def check(file_name, keywords):
+def check_fails_with_message(file_name, keywords):
     path = os.path.join(BASE_DIR, file_name) + '.yaml'
     try:
         load_parameter_file(path, file_name)
@@ -37,7 +37,12 @@ def check(file_name, keywords):
     ])
 def test_parsing_errors(test):
     with pytest.raises(ParameterParsingError):
-        check(*test)
+        check_fails_with_message(*test)
+
+
+def test_array_type():
+    path = os.path.join(BASE_DIR, 'array_type.yaml')
+    load_parameter_file(path, 'array_type')
 
 
 def test_filesystem_hierarchy():
