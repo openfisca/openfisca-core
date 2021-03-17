@@ -22,7 +22,7 @@ def check(file_name, keywords):
 @pytest.mark.parametrize("test", [
     ('indentation', {'Invalid YAML', 'indentation.yaml', 'line 2', 'mapping values are not allowed'}),
     ('wrong_scale', {'Unexpected property', 'scale[1]', 'treshold'}),
-    ('wrong_value', {'Invalid value', 'wrong_value[2015-12-01]', '1A'}),
+    ('wrong_value', {'not one of the allowed types', 'wrong_value[2015-12-01]', '1A'}),
     ('unexpected_key_in_parameter', {'Unexpected property', 'unexpected_key'}),
     ('wrong_type_in_parameter', {'must be of type object'}),
     ('wrong_type_in_value_history', {'must be of type object'}),

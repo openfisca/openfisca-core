@@ -319,7 +319,7 @@ class ParameterAtInstant(object):
                 )
         if not isinstance(value, ALLOWED_PARAM_TYPES):
             raise ParameterParsingError(
-                "Invalid value in {} : {}".format(self.name, value),
+                "Value in {} has type {}, which is not one of the allowed types ({}): {}".format(self.name, type(value), ALLOWED_PARAM_TYPES, value),
                 self.file_path
                 )
 
