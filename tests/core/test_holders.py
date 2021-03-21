@@ -11,6 +11,9 @@ from openfisca_core.tools import assert_near
 from openfisca_core.memory_config import MemoryConfig
 from openfisca_core.holders import Holder, set_input_dispatch_by_period
 from openfisca_core.errors import PeriodMismatchError
+from openfisca_core.entities import build_entity
+from openfisca_core.variables import Variable
+from openfisca_core.populations import Population
 from .test_countries import tax_benefit_system
 
 from pytest import fixture
@@ -212,3 +215,38 @@ def test_set_input_float_to_int(single):
     simulation.person.get_holder('age').set_input(period, age)
     result = simulation.calculate('age', period)
     assert result == np.asarray([50])
+
+
+# Unit tests - Set Input / Periods
+
+
+ENTITY = build_entity(
+    key = "martian",
+    plural = "martians",
+    label = "People from Mars",
+    is_person = True,
+    )
+
+
+@fixture
+def variable():
+    class EternalVariable(Variable):
+        value_type = bool
+        entity = ENTITY
+        definition_period = ETERNITY
+
+    return EternalVariable()
+
+
+@fixture
+def population():
+    return Population(ENTITY)
+
+
+@fixture
+def holder(variable, population):
+    return Holder(variable, population)
+
+
+def test_holder(holder):
+    assert holder
