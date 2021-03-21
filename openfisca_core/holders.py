@@ -310,9 +310,6 @@ def set_input_divide_by_period(holder, period, array):
     period_size = period.size
     period_unit = period.unit
 
-    if holder.variable.definition_period == WEEK:
-        cached_period_unit = periods.WEEK
-
     if holder.variable.definition_period == MONTH:
         cached_period_unit = periods.MONTH
 
