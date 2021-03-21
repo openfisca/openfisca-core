@@ -13,7 +13,7 @@ from datetime import date
 from openfisca_core import periods
 from openfisca_core.entities import Entity
 from openfisca_core.indexed_enums import Enum, EnumArray, ENUM_ARRAY_DTYPE
-from openfisca_core.periods import DAY, MONTH, YEAR, ETERNITY
+from openfisca_core.periods import ETERNITY, YEAR, MONTH, DAY, WEEK, WEEKDAY
 from openfisca_core.tools import eval_expression
 
 
@@ -61,6 +61,7 @@ VALUE_TYPES = {
         },
     }
 
+ALLOWED_DEFINITION_PERIODS = (ETERNITY, YEAR, MONTH, DAY, WEEK, WEEKDAY)
 
 FORMULA_NAME_PREFIX = 'formula'
 
@@ -167,7 +168,7 @@ class Variable(object):
         else:
             self.default_value = self.set(attr, 'default_value', allowed_type = self.value_type, default = VALUE_TYPES[self.value_type].get('default'))
         self.entity = self.set(attr, 'entity', required = True, setter = self.set_entity)
-        self.definition_period = self.set(attr, 'definition_period', required = True, allowed_values = (DAY, MONTH, YEAR, ETERNITY))
+        self.definition_period = self.set(attr, 'definition_period', required = True, allowed_values = ALLOWED_DEFINITION_PERIODS)
         self.label = self.set(attr, 'label', allowed_type = str, setter = self.set_label)
         self.end = self.set(attr, 'end', allowed_type = str, setter = self.set_end)
         self.reference = self.set(attr, 'reference', setter = self.set_reference)
