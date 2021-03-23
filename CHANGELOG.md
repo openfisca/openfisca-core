@@ -1,6 +1,6 @@
 # Changelog
 
-### 35.2.0 [#982](https://github.com/openfisca/openfisca-core/pull/982)
+## 35.2.0 [#982](https://github.com/openfisca/openfisca-core/pull/982)
 
 #### Technical changes
 
@@ -12,7 +12,7 @@
 
 - Fix false negative web API test following an update in the country template used for testing.
 
-### 35.1.0 [#973](https://github.com/openfisca/openfisca-core/pull/973)
+## 35.1.0 [#973](https://github.com/openfisca/openfisca-core/pull/973)
 
 #### Technical changes
 
