@@ -303,10 +303,11 @@ definitions:
       format: "float"
 
   Values:
+    description: All keys are ISO dates. Values can be numbers, booleans, or arrays of a single type (number, boolean or string).
     type: "object"
-    additionalProperties:
-      type: "number"
-      format: "float"
+    additionalProperties: true
+#    propertyNames:  # this keyword is part of JSON Schema but is not supported in OpenAPI Specification at the time of writing, see https://swagger.io/docs/specification/data-models/keywords/#unsupported
+#      pattern: "^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$"  # all keys are ISO dates
 
   Entities:
     type: "object"
