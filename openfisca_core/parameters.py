@@ -36,7 +36,7 @@ FILE_EXTENSIONS = {'.yaml', '.yml'}
 # 'unit' and 'reference' are only listed here for backward compatibility.
 #  It is now recommended to include them in metadata, until a common consensus emerges.
 COMMON_KEYS = {'description', 'metadata', 'unit', 'reference', 'documentation'}
-ALLOWED_PARAM_TYPES = (float, int, bool, type(None))
+ALLOWED_PARAM_TYPES = (float, int, bool, type(None), List)
 
 
 def date_constructor(loader, node):
@@ -319,7 +319,7 @@ class ParameterAtInstant(object):
                 )
         if not isinstance(value, ALLOWED_PARAM_TYPES):
             raise ParameterParsingError(
-                "Invalid value in {} : {}".format(self.name, value),
+                "Value in {} has type {}, which is not one of the allowed types ({}): {}".format(self.name, type(value), ALLOWED_PARAM_TYPES, value),
                 self.file_path
                 )
 
@@ -851,7 +851,7 @@ def load_parameter_file(file_path, name = ''):
     :returns: An instance of :any:`ParameterNode` or :any:`Scale` or :any:`Parameter`.
     """
     if not os.path.exists(file_path):
-        raise ValueError("{} doest not exist".format(file_path))
+        raise ValueError("{} does not exist".format(file_path))
     if os.path.isdir(file_path):
         return ParameterNode(name, directory_path = file_path)
     data = _load_yaml_file(file_path)

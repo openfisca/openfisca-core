@@ -8,7 +8,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 year = 2016
 
 
-def check(file_name, keywords):
+def check_fails_with_message(file_name, keywords):
     path = os.path.join(BASE_DIR, file_name) + '.yaml'
     try:
         load_parameter_file(path, file_name)
@@ -22,7 +22,7 @@ def check(file_name, keywords):
 @pytest.mark.parametrize("test", [
     ('indentation', {'Invalid YAML', 'indentation.yaml', 'line 2', 'mapping values are not allowed'}),
     ('wrong_scale', {'Unexpected property', 'scale[1]', 'treshold'}),
-    ('wrong_value', {'Invalid value', 'wrong_value[2015-12-01]', '1A'}),
+    ('wrong_value', {'not one of the allowed types', 'wrong_value[2015-12-01]', '1A'}),
     ('unexpected_key_in_parameter', {'Unexpected property', 'unexpected_key'}),
     ('wrong_type_in_parameter', {'must be of type object'}),
     ('wrong_type_in_value_history', {'must be of type object'}),
@@ -37,7 +37,12 @@ def check(file_name, keywords):
     ])
 def test_parsing_errors(test):
     with pytest.raises(ParameterParsingError):
-        check(*test)
+        check_fails_with_message(*test)
+
+
+def test_array_type():
+    path = os.path.join(BASE_DIR, 'array_type.yaml')
+    load_parameter_file(path, 'array_type')
 
 
 def test_filesystem_hierarchy():
