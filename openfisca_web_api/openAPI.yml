@@ -34,12 +34,12 @@ paths:
     post:
       summary: "Run a simulation"
       tags:
-        - Calculations
+      - Calculations
       operationId: "calculate"
       consumes:
-        - "application/json"
+      - "application/json"
       produces:
-        - "application/json"
+      - "application/json"
       parameters:
       - in: "body"
         name: "Situation"
@@ -65,11 +65,11 @@ paths:
   /parameters:
     get:
       tags:
-        - "Parameters"
+      - "Parameters"
       summary: "List all available parameters"
       operationId: "getParameters"
       produces:
-        - "application/json"
+      - "application/json"
       responses:
         200:
           description: "The list of parameters is sent back in the response body"
@@ -161,12 +161,12 @@ paths:
     post:
       summary: "Explore a simulation's steps in details."
       tags:
-        - Calculations
+      - Calculations
       operationId: "trace"
       consumes:
-        - "application/json"
+      - "application/json"
       produces:
-        - "application/json"
+      - "application/json"
       parameters:
       - in: "body"
         name: "Situation"
@@ -193,10 +193,10 @@ paths:
     get:
       summary: Provide the API documentation in an OpenAPI format
       tags:
-        - Documentation
+      - Documentation
       operationId: spec
       produces:
-        - application/json
+      - application/json
       responses:
         200:
           description: The API documentation is sent back in the response body
