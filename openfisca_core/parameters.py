@@ -852,7 +852,7 @@ def load_parameter_file(file_path, name = ''):
     :returns: An instance of :any:`ParameterNode` or :any:`Scale` or :any:`Parameter`.
     """
     if not os.path.exists(file_path):
-        raise ValueError("{} doest not exist".format(file_path))
+        raise ValueError("{} does not exist".format(file_path))
     if os.path.isdir(file_path):
         return ParameterNode(name, directory_path = file_path)
     data = _load_yaml_file(file_path)
