@@ -1,5 +1,11 @@
 # Changelog
 
+### 35.2.0 [#982](https://github.com/openfisca/openfisca-core/pull/982)
+
+#### Technical changes
+
+- Allow parameters to be arrays.
+
 ### 35.1.1 [#981](https://github.com/openfisca/openfisca-core/pull/981)
 
 #### Technical changes
