@@ -1,10 +1,17 @@
 # Changelog
 
+### 35.1.1 [#981](https://github.com/openfisca/openfisca-core/pull/981)
+
+#### Technical changes
+
+- Fix false negative web API test following an update in the country template used for testing.
+
 ### 35.1.0 [#973](https://github.com/openfisca/openfisca-core/pull/973)
 
 #### Technical changes
 
 - Extend assert_near so it is able to compare dates.
+
 ### 35.0.5 [#974](https://github.com/openfisca/openfisca-core/pull/974)
 
 #### Technical changes
