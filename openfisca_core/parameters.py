@@ -10,7 +10,6 @@ import logging
 import os
 import sys
 import traceback
-import typing
 
 import yaml
 import numpy as np
@@ -37,7 +36,7 @@ FILE_EXTENSIONS = {'.yaml', '.yml'}
 # 'unit' and 'reference' are only listed here for backward compatibility.
 #  It is now recommended to include them in metadata, until a common consensus emerges.
 COMMON_KEYS = {'description', 'metadata', 'unit', 'reference', 'documentation'}
-ALLOWED_PARAM_TYPES = (float, int, bool, type(None), typing.List)
+ALLOWED_PARAM_TYPES = (float, int, bool, type(None), List)
 
 
 def date_constructor(loader, node):
