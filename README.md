@@ -17,10 +17,9 @@ This package contains the core features of OpenFisca, which are meant to be used
 
 OpenFisca runs on Python 3.7. More recent versions should work, but are not tested.
 
-
 ## Installation
 
-If you're developping your own country package, you don't need to explicitly install OpenFisca-Core. It just needs to appear [in your package dependencies](https://github.com/openfisca/openfisca-france/blob/18.2.1/setup.py#L53).
+If you're developing your own country package, you don't need to explicitly install OpenFisca-Core. It just needs to appear [in your package dependencies](https://github.com/openfisca/openfisca-france/blob/18.2.1/setup.py#L53).
 
 If you want to contribute to OpenFisca-Core itself, welcome! To install it locally in development mode run the following commands:
 
