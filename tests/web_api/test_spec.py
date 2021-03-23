@@ -3,7 +3,7 @@ import json
 import pytest
 from http import client
 
-from openapi_spec_validator import validate_v2_spec
+from openapi_spec_validator import validate_v3_spec
 
 
 def assert_items_equal(x, y):
@@ -58,4 +58,4 @@ def test_host(body):
 
 
 def test_respects_spec():
-    validate_v2_spec(body)
+    validate_v3_spec(body)
