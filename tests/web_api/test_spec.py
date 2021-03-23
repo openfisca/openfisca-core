@@ -3,6 +3,8 @@ import json
 import pytest
 from http import client
 
+from openapi_spec_validator import validate_v2_spec
+
 
 def assert_items_equal(x, y):
     assert sorted(x) == sorted(y)
@@ -53,3 +55,7 @@ def test_situation_definition(body):
 
 def test_host(body):
     assert 'http' not in body['host']
+
+
+def test_respects_spec():
+    validate_v2_spec(body)
