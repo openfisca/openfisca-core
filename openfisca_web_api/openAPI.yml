@@ -51,17 +51,17 @@ paths:
         200:
           description: "The calculation result is sent back in the response body"
           headers:
-            $ref: "#/commons/Headers"
+            $ref: "#/components/headers"
           schema:
             $ref: "#/definitions/SituationOutput"
         404:
           description: "A variable mentioned in the input situation does not exist in the loaded tax and benefit system. Details are sent back in the response body"
           headers:
-            $ref: "#/commons/Headers"
+            $ref: "#/components/headers"
         400:
           description: "The request is invalid. Details about the error are sent back in the response body"
           headers:
-            $ref: "#/commons/Headers"
+            $ref: "#/components/headers"
   /parameters:
     get:
       tags:
@@ -74,7 +74,7 @@ paths:
         200:
           description: "The list of parameters is sent back in the response body"
           headers:
-            $ref: "#/commons/Headers"
+            $ref: "#/components/headers"
           schema:
             $ref: "#/definitions/Parameters"
   /parameter/{parameterID}:
@@ -95,13 +95,13 @@ paths:
         200:
           description: "The requested parameter's information is sent back in the response body"
           headers:
-            $ref: "#/commons/Headers"
+            $ref: "#/components/headers"
           schema:
             $ref: "#/definitions/Parameter"
         404:
           description: "The requested parameter does not exist"
           headers:
-            $ref: "#/commons/Headers"
+            $ref: "#/components/headers"
   /variables:
     get:
       tags:
@@ -114,7 +114,7 @@ paths:
         200:
           description: "The list of variables is sent back in the response body"
           headers:
-            $ref: "#/commons/Headers"
+            $ref: "#/components/headers"
           schema:
             $ref: "#/definitions/Variables"
   /variable/{variableID}:
@@ -135,13 +135,13 @@ paths:
         200:
           description: "The requested variable's information is sent back in the response body"
           headers:
-            $ref: "#/commons/Headers"
+            $ref: "#/components/headers"
           schema:
             $ref: "#/definitions/Variable"
         404:
           description: "The requested variable does not exist"
           headers:
-            $ref: "#/commons/Headers"
+            $ref: "#/components/headers"
   /entities:
     get:
       tags:
@@ -154,7 +154,7 @@ paths:
         200:
           description: "The list of the entities as well as their information is sent back in the response body"
           headers:
-            $ref: "#/commons/Headers"
+            $ref: "#/components/headers"
           schema:
             $ref: "#/definitions/Entities"
   /trace:
@@ -178,17 +178,17 @@ paths:
         200:
           description: "The calculation details are sent back in the response body"
           headers:
-            $ref: "#/commons/Headers"
+            $ref: "#/components/headers"
           schema:
             $ref: "#/definitions/Trace"
         404:
           description: "A variable mentioned in the input situation does not exist in the loaded tax and benefit system. Details are sent back in the response body"
           headers:
-            $ref: "#/commons/Headers"
+            $ref: "#/components/headers"
         400:
           description: "The request is invalid. Details about the error are sent back in the response body"
           headers:
-            $ref: "#/commons/Headers"
+            $ref: "#/components/headers"
   /spec:
     get:
       summary: Provide the API documentation in an OpenAPI format
@@ -201,7 +201,7 @@ paths:
         200:
           description: The API documentation is sent back in the response body
           headers:
-            $ref: "#/commons/Headers"
+            $ref: "#/components/headers"
 
 definitions:
   Parameter:
@@ -377,8 +377,8 @@ definitions:
 
     example: null
 
-commons:
-  Headers:
+components:
+  headers:
     Country-Package:
       description: "The name of the country package currently loaded in this API server"
       type: "string"
