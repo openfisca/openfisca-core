@@ -7,23 +7,28 @@ import numpy
 
 from openfisca_core.indexed_enums import config, EnumArray
 
+if typing.TYPE_CHECKING:
+    IndexedEnumArray = numpy.object_
+
 
 class Enum(enum.Enum):
     """
-    Enum based on `enum34 <https://pypi.python.org/pypi/enum34/>`_, whose items have an
-    index.
+    Enum based on `enum34 <https://pypi.python.org/pypi/enum34/>`_, whose items
+    have an index.
     """
 
     # Tweak enums to add an index attribute to each enum item
     def __init__(self, name: str) -> None:
-        # When the enum item is initialized, self._member_names_ contains the names of
-        # the previously initialized items, so its length is the index of this item.
+        # When the enum item is initialized, self._member_names_ contains the
+        # names of the previously initialized items, so its length is the index
+        # of this item.
         self.index = len(self._member_names_)
 
     # Bypass the slow Enum.__eq__
     __eq__ = object.__eq__
 
-    # In Python 3, __hash__ must be defined if __eq__ is defined to stay hashable.
+    # In Python 3, __hash__ must be defined if __eq__ is defined to stay
+    # hashable.
     __hash__ = object.__hash__
 
     @classmethod
@@ -31,16 +36,18 @@ class Enum(enum.Enum):
             cls,
             array: typing.Union[
                 EnumArray,
-                numpy.ndarray[int],
-                numpy.ndarray[str],
-                numpy.ndarray[Enum],
+                numpy.int_,
+                numpy.float_,
+                IndexedEnumArray,
                 ],
             ) -> EnumArray:
         """
-        Encode a string numpy array, an enum item numpy array, or an int numpy array
-        into an :any:`EnumArray`. See :any:`EnumArray.decode` for decoding.
+        Encode a string numpy array, an enum item numpy array, or an int numpy
+        array into an :any:`EnumArray`. See :any:`EnumArray.decode` for
+        decoding.
 
-        :param ndarray array: Array of string identifiers, or of enum items, to encode.
+        :param ndarray array: Array of string identifiers, or of enum items, to
+                              encode.
 
         :returns: An :any:`EnumArray` encoding the input array values.
         :rtype: :any:`EnumArray`
@@ -59,24 +66,31 @@ class Enum(enum.Enum):
         >>> encoded_array[0]
         2  # Encoded value
         """
-        if type(array) is EnumArray:
+        if isinstance(array, EnumArray):
             return array
 
-        if array.dtype.kind in {'U', 'S'}:  # String array
+        # String array
+        if isinstance(array, numpy.ndarray) and \
+                array.dtype.kind in {'U', 'S'}:
             array = numpy.select(
                 [array == item.name for item in cls],
                 [item.index for item in cls],
                 ).astype(config.ENUM_ARRAY_DTYPE)
 
-        elif array.dtype.kind == 'O':  # Enum items arrays
+        # Enum items arrays
+        elif isinstance(array, numpy.ndarray) and \
+                array.dtype.kind == 'O':
             # Ensure we are comparing the comparable. The problem this fixes:
             # On entering this method "cls" will generally come from
-            # variable.possible_values, while the array values may come from directly
-            # importing a module containing an Enum class. However, variables (and
-            # hence their possible_values) are loaded by a call to load_module, which
-            # gives them a different identity from the ones imported in the usual way.
-            # So, instead of relying on the "cls" passed in, we use only its name to
-            # check that the values in the array, if non-empty, are of the right type.
+            # variable.possible_values, while the array values may come from
+            # directly importing a module containing an Enum class. However,
+            # variables (and hence their possible_values) are loaded by a call
+            # to load_module, which gives them a different identity from the
+            # ones imported in the usual way.
+            #
+            # So, instead of relying on the "cls" passed in, we use only its
+            # name to check that the values in the array, if non-empty, are of
+            # the right type.
             if len(array) > 0 and cls.__name__ is array[0].__class__.__name__:
                 cls = array[0].__class__
 
