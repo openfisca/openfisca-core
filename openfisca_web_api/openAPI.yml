@@ -34,49 +34,49 @@ paths:
     post:
       summary: "Run a simulation"
       tags:
-        - Calculations
+      - Calculations
       operationId: "calculate"
       consumes:
-        - "application/json"
+      - "application/json"
       produces:
-        - "application/json"
+      - "application/json"
       parameters:
       - in: "body"
         name: "Situation"
-        description: 'Describe the situation (persons and entities). Add the variable you wish to calculate in the proper entity, with null as the value. Learn more in our official documentation: https://openfisca.org/doc/openfisca-web-api/input-output-data.html'
+        description: "Describe the situation (persons and entities). Add the variable you wish to calculate in the proper entity, with null as the value. Learn more in our official documentation: https://openfisca.org/doc/openfisca-web-api/input-output-data.html"
         required: true
         schema:
-          $ref: '#/definitions/SituationInput'
+          $ref: "#/definitions/SituationInput"
       responses:
         200:
           description: "The calculation result is sent back in the response body"
           headers:
-            $ref: '#/commons/Headers'
+            $ref: "#/commons/Headers"
           schema:
-            $ref: '#/definitions/SituationOutput'
+            $ref: "#/definitions/SituationOutput"
         404:
           description: "A variable mentioned in the input situation does not exist in the loaded tax and benefit system. Details are sent back in the response body"
           headers:
-            $ref: '#/commons/Headers'
+            $ref: "#/commons/Headers"
         400:
           description: "The request is invalid. Details about the error are sent back in the response body"
           headers:
-            $ref: '#/commons/Headers'
+            $ref: "#/commons/Headers"
   /parameters:
     get:
       tags:
-        - "Parameters"
+      - "Parameters"
       summary: "List all available parameters"
       operationId: "getParameters"
       produces:
-        - "application/json"
+      - "application/json"
       responses:
         200:
           description: "The list of parameters is sent back in the response body"
           headers:
-            $ref: '#/commons/Headers'
+            $ref: "#/commons/Headers"
           schema:
-            $ref: '#/definitions/Parameters'
+            $ref: "#/definitions/Parameters"
   /parameter/{parameterID}:
     get:
       tags:
@@ -95,13 +95,13 @@ paths:
         200:
           description: "The requested parameter's information is sent back in the response body"
           headers:
-            $ref: '#/commons/Headers'
+            $ref: "#/commons/Headers"
           schema:
             $ref: "#/definitions/Parameter"
         404:
           description: "The requested parameter does not exist"
           headers:
-            $ref: '#/commons/Headers'
+            $ref: "#/commons/Headers"
   /variables:
     get:
       tags:
@@ -114,7 +114,7 @@ paths:
         200:
           description: "The list of variables is sent back in the response body"
           headers:
-            $ref: '#/commons/Headers'
+            $ref: "#/commons/Headers"
           schema:
             $ref: "#/definitions/Variables"
   /variable/{variableID}:
@@ -135,13 +135,13 @@ paths:
         200:
           description: "The requested variable's information is sent back in the response body"
           headers:
-            $ref: '#/commons/Headers'
+            $ref: "#/commons/Headers"
           schema:
             $ref: "#/definitions/Variable"
         404:
           description: "The requested variable does not exist"
           headers:
-            $ref: '#/commons/Headers'
+            $ref: "#/commons/Headers"
   /entities:
     get:
       tags:
@@ -154,61 +154,61 @@ paths:
         200:
           description: "The list of the entities as well as their information is sent back in the response body"
           headers:
-            $ref: '#/commons/Headers'
+            $ref: "#/commons/Headers"
           schema:
             $ref: "#/definitions/Entities"
   /trace:
     post:
       summary: "Explore a simulation's steps in details."
       tags:
-        - Calculations
+      - Calculations
       operationId: "trace"
       consumes:
-        - "application/json"
+      - "application/json"
       produces:
-        - "application/json"
+      - "application/json"
       parameters:
       - in: "body"
         name: "Situation"
-        description: 'Describe the situation (persons and entities). Add the variable you wish to calculate in the proper entity, with null as the value.'
+        description: "Describe the situation (persons and entities). Add the variable you wish to calculate in the proper entity, with null as the value."
         required: true
         schema:
-          $ref: '#/definitions/SituationInput'
+          $ref: "#/definitions/SituationInput"
       responses:
         200:
           description: "The calculation details are sent back in the response body"
           headers:
-            $ref: '#/commons/Headers'
+            $ref: "#/commons/Headers"
           schema:
-            $ref: '#/definitions/Trace'
+            $ref: "#/definitions/Trace"
         404:
           description: "A variable mentioned in the input situation does not exist in the loaded tax and benefit system. Details are sent back in the response body"
           headers:
-            $ref: '#/commons/Headers'
+            $ref: "#/commons/Headers"
         400:
           description: "The request is invalid. Details about the error are sent back in the response body"
           headers:
-            $ref: '#/commons/Headers'
+            $ref: "#/commons/Headers"
   /spec:
     get:
       summary: Provide the API documentation in an OpenAPI format
       tags:
-        - Documentation
+      - Documentation
       operationId: spec
       produces:
-        - application/json
+      - application/json
       responses:
         200:
           description: The API documentation is sent back in the response body
           headers:
-            $ref: '#/commons/Headers'
+            $ref: "#/commons/Headers"
 
 definitions:
   Parameter:
     type: "object"
     properties:
       values:
-        $ref: '#/definitions/Values'
+        $ref: "#/definitions/Values"
       brackets:
         type: "object"
         additionalProperties:
@@ -219,7 +219,7 @@ definitions:
           type: "object"
           properties:
             definition:
-              type: 'string'
+              type: "string"
       metadata:
         type: "object"
       description:
@@ -237,9 +237,9 @@ definitions:
       type: "object"
       properties:
         description:
-          type: 'string'
+          type: "string"
         href:
-          type: 'string'
+          type: "string"
 
   Variable:
     type: "object"
@@ -284,9 +284,9 @@ definitions:
       type: "object"
       properties:
         description:
-          type: 'string'
+          type: "string"
         href:
-          type: 'string'
+          type: "string"
 
   Formula:
     type: "object"
@@ -303,10 +303,11 @@ definitions:
       format: "float"
 
   Values:
+    description: All keys are ISO dates. Values can be numbers, booleans, or arrays of a single type (number, boolean or string).
     type: "object"
-    additionalProperties:
-      type: "number"
-      format: "float"
+    additionalProperties: true
+#    propertyNames:  # this keyword is part of JSON Schema but is not supported in OpenAPI Specification at the time of writing, see https://swagger.io/docs/specification/data-models/keywords/#unsupported
+#      pattern: "^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$"  # all keys are ISO dates
 
   Entities:
     type: "object"
