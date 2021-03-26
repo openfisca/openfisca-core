@@ -9,14 +9,19 @@ from openfisca_core.taxscales import TaxScaleLike
 
 class AmountTaxScaleLike(TaxScaleLike, abc.ABC):
     """
-    Base class for various types of amount-based tax scales: single amount, marginal
-    amount...
+    Base class for various types of amount-based tax scales: single amount,
+    marginal amount...
     """
 
     amounts: typing.List
 
-    def __init__(self, name: typing.Optional[str] = None, option = None, unit = None) -> None:
-        super(AmountTaxScaleLike, self).__init__(name, option, unit)
+    def __init__(
+            self,
+            name: typing.Optional[str] = None,
+            option: typing.Any = None,
+            unit: typing.Any = None,
+            ) -> None:
+        super().__init__(name, option, unit)
         self.amounts = []
 
     def __repr__(self) -> str:
@@ -24,7 +29,8 @@ class AmountTaxScaleLike(TaxScaleLike, abc.ABC):
             os.linesep.join(
                 [
                     f"- threshold: {threshold}{os.linesep}  amount: {amount}"
-                    for (threshold, amount) in zip(self.thresholds, self.amounts)
+                    for (threshold, amount)
+                    in zip(self.thresholds, self.amounts)
                     ]
                 )
             )
@@ -37,6 +43,7 @@ class AmountTaxScaleLike(TaxScaleLike, abc.ABC):
         if threshold in self.thresholds:
             i = self.thresholds.index(threshold)
             self.amounts[i] += amount
+
         else:
             i = bisect.bisect_left(self.thresholds, threshold)
             self.thresholds.insert(i, threshold)
@@ -45,5 +52,6 @@ class AmountTaxScaleLike(TaxScaleLike, abc.ABC):
     def to_dict(self) -> dict:
         return {
             str(threshold): self.amounts[index]
-            for index, threshold in enumerate(self.thresholds)
+            for index, threshold
+            in enumerate(self.thresholds)
             }

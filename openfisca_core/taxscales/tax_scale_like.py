@@ -8,20 +8,28 @@ import numpy
 
 from openfisca_core import commons
 
+if typing.TYPE_CHECKING:
+    NumericalArray = typing.Union[numpy.int_, numpy.float_]
+
 
 class TaxScaleLike(abc.ABC):
     """
-    Base class for various types of tax scales: amount-based tax scales, rate-based
-    tax scales...
+    Base class for various types of tax scales: amount-based tax scales,
+    rate-based tax scales...
     """
 
-    name: str
-    option: None
-    unit: None
+    name: typing.Optional[str]
+    option: typing.Any
+    unit: typing.Any
     thresholds: typing.List
 
     @abc.abstractmethod
-    def __init__(self, name: typing.Optional[str] = None, option = None, unit = None) -> None:
+    def __init__(
+            self,
+            name: typing.Optional[str] = None,
+            option: typing.Any = None,
+            unit: typing.Any = None,
+            ) -> None:
         self.name = name or "Untitled TaxScale"
         self.option = option
         self.unit = unit
@@ -46,9 +54,9 @@ class TaxScaleLike(abc.ABC):
     @abc.abstractmethod
     def calc(
             self,
-            tax_base: typing.Union[numpy.ndarray[int], numpy.ndarray[float]],
+            tax_base: NumericalArray,
             right: bool,
-            ) -> numpy.ndarray[float]:
+            ) -> numpy.float_:
         ...
 
     @abc.abstractmethod
