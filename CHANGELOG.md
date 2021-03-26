@@ -1,5 +1,12 @@
 # Changelog
 
+## 35.3.0 [#985](https://github.com/openfisca/openfisca-core/pull/985)
+
+#### New features
+
+- Introduce max_spiral_loops option in YAML test files
+  - Allows for control of spiral depth for every test
+
 ## 35.2.0 [#982](https://github.com/openfisca/openfisca-core/pull/982)
 
 #### Technical changes
