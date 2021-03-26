@@ -31,7 +31,7 @@ def import_yaml():
     return yaml, Loader
 
 
-TEST_KEYWORDS = {'absolute_error_margin', 'description', 'extensions', 'ignore_variables', 'input', 'keywords', 'name', 'only_variables', 'output', 'period', 'reforms', 'relative_error_margin'}
+TEST_KEYWORDS = {'absolute_error_margin', 'description', 'extensions', 'ignore_variables', 'input', 'keywords', 'max_spiral_loops', 'name', 'only_variables', 'output', 'period', 'reforms', 'relative_error_margin'}
 
 yaml, Loader = import_yaml()
 
@@ -142,6 +142,7 @@ class YamlItem(pytest.Item):
         builder = SimulationBuilder()
         input = self.test.get('input', {})
         period = self.test.get('period')
+        max_spiral_loops = self.test.get('max_spiral_loops')
         verbose = self.options.get('verbose')
         performance_graph = self.options.get('performance_graph')
         performance_tables = self.options.get('performance_tables')
@@ -154,6 +155,9 @@ class YamlItem(pytest.Item):
         except Exception as e:
             error_message = os.linesep.join([str(e), '', f"Unexpected error raised while parsing '{self.fspath}'"])
             raise ValueError(error_message).with_traceback(sys.exc_info()[2]) from e  # Keep the stack trace from the root error
+
+        if max_spiral_loops:
+            self.simulation.max_spiral_loops = max_spiral_loops
 
         try:
             self.simulation.trace = verbose or performance_graph or performance_tables
