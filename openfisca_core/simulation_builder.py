@@ -12,6 +12,8 @@ from openfisca_core.variables import Variable
 from openfisca_core.errors import VariableNotFound, SituationParsingError, PeriodMismatchError
 from openfisca_core.periods import period, key_period_size
 from openfisca_core.simulations import Simulation
+from .taxbenefitsystems import TaxBenefitSystem
+from .simulations import Simulation
 
 
 class SimulationBuilder(object):
@@ -40,7 +42,7 @@ class SimulationBuilder(object):
         self.axes_memberships: Dict[Entity.plural, List[int]] = {}
         self.axes_roles: Dict[Entity.plural, List[int]] = {}
 
-    def build_from_dict(self, tax_benefit_system, input_dict):
+    def build_from_dict(self, tax_benefit_system:TaxBenefitSystem, input_dict)->Simulation:
         """
             Build a simulation from ``input_dict``
 
@@ -56,7 +58,7 @@ class SimulationBuilder(object):
         else:
             return self.build_from_variables(tax_benefit_system, input_dict)
 
-    def build_from_entities(self, tax_benefit_system, input_dict):
+    def build_from_entities(self, tax_benefit_system:TaxBenefitSystem, input_dict)->Simulation:
         """
             Build a simulation from a Python dict ``input_dict`` fully specifying entities.
 

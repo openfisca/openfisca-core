@@ -2,6 +2,7 @@
 
 import tempfile
 import logging
+from typing import Set, Tuple, Union
 
 import numpy as np
 
@@ -9,6 +10,7 @@ from openfisca_core import periods
 from openfisca_core.commons import empty_clone
 from openfisca_core.tracers import TracingParameterNodeAtInstant, SimpleTracer, FullTracer
 from openfisca_core.indexed_enums import Enum, EnumArray
+from .taxbenefitstysms import TaxBenefitSystem
 
 
 log = logging.getLogger(__name__)
@@ -36,7 +38,7 @@ class Simulation(object):
 
     def __init__(
             self,
-            tax_benefit_system,
+            tax_benefit_system:TaxBenefitSystem,
             populations
             ):
         """
@@ -44,7 +46,7 @@ class Simulation(object):
             which is the preferred way to obtain a Simulation initialized with a consistent
             set of Entities.
         """
-        self.tax_benefit_system = tax_benefit_system
+        self.tax_benefit_system:TaxBenefitSystem = tax_benefit_system
         assert tax_benefit_system is not None
 
         self.populations = populations
@@ -52,11 +54,11 @@ class Simulation(object):
         self.link_to_entities_instances()
         self.create_shortcuts()
 
-        self.invalidated_caches = set()
+        self.invalidated_caches:Set[Tuple[str, str]] = set()
 
-        self.debug = False
-        self.trace = False
-        self.tracer = SimpleTracer()
+        self.debug:bool = False
+        self.trace:bool = False
+        self.tracer:Union[SimpleTracer, FullTracer] = SimpleTracer()
         self.opt_out_cache = False
 
         # controls the spirals detection; check for performance impact if > 1
@@ -65,22 +67,22 @@ class Simulation(object):
         self._data_storage_dir = None
 
     @property
-    def trace(self):
+    def trace(self)->bool:
         return self._trace
 
     @trace.setter
-    def trace(self, trace):
+    def trace(self, trace:bool)->None:
         self._trace = trace
         if trace:
             self.tracer = FullTracer()
         else:
             self.tracer = SimpleTracer()
 
-    def link_to_entities_instances(self):
+    def link_to_entities_instances(self)->None:
         for _key, entity_instance in self.populations.items():
             entity_instance.simulation = self
 
-    def create_shortcuts(self):
+    def create_shortcuts(self)->None:
         for _key, population in self.populations.items():
             # create shortcut simulation.person and simulation.household (for instance)
             setattr(self, population.entity.key, population)
@@ -115,7 +117,7 @@ class Simulation(object):
             self.tracer.record_calculation_end()
             self.purge_cache_of_invalid_values()
 
-    def _calculate(self, variable_name, period: periods.Period):
+    def _calculate(self, variable_name:str, period: periods.Period)->np.array:
         """
             Calculate the variable ``variable_name`` for the period ``period``, using the variable formula if it exists.
 
@@ -158,7 +160,7 @@ class Simulation(object):
         for (_name, _period) in self.invalidated_caches:
             holder = self.get_holder(_name)
             holder.delete_arrays(_period)
-        self.invalidated_caches = set()
+        self.invalidated_caches:Set[Tuple[str, str]] = set()
 
     def calculate_add(self, variable_name, period):
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
@@ -306,7 +308,7 @@ class Simulation(object):
             message = "Quasicircular definition detected on formula {}@{} involving {}".format(variable, period, self.tracer.stack)
             raise SpiralError(message, variable)
 
-    def invalidate_cache_entry(self, variable: str, period):
+    def invalidate_cache_entry(self, variable: str, period:str):
         self.invalidated_caches.add((variable, period))
 
     def invalidate_spiral_variables(self, variable: str):

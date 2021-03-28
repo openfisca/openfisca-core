@@ -12,6 +12,7 @@ import inspect
 import pkg_resources
 import traceback
 import copy
+from typing import Type
 
 from openfisca_core.periods import Period, Instant, instant as make_instant
 from openfisca_core.entities import Entity
@@ -24,6 +25,7 @@ from openfisca_core.simulation_builder import SimulationBuilder
 
 
 log = logging.getLogger(__name__)
+
 
 
 class VariableNameConflict(Exception):
@@ -59,7 +61,7 @@ class TaxBenefitSystem(object):
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
         self.parameters = None
         self._parameters_at_instant_cache = {}  # weakref.WeakValueDictionary()
-        self.variables = {}
+        self.variables:Dict[str, Variable] = {}
         self.open_api_config = {}
         # Tax benefit systems are mutable, so entities (which need to know about our variables) can't be shared among them
         if entities is None or len(entities) == 0:
@@ -137,7 +139,7 @@ class TaxBenefitSystem(object):
     def prefill_cache(self):
         pass
 
-    def load_variable(self, variable_class, update = False):
+    def load_variable(self, variable_class:Type[Variable], update:bool = False)->Variable:
         name = variable_class.__name__
 
         # Check if a Variable with the same name is already registered.
@@ -151,7 +153,7 @@ class TaxBenefitSystem(object):
 
         return variable
 
-    def add_variable(self, variable):
+    def add_variable(self, variable:Type[Variable])->Variable:
         """
         Adds an OpenFisca variable to the tax and benefit system.
 
@@ -161,7 +163,7 @@ class TaxBenefitSystem(object):
         """
         return self.load_variable(variable, update = False)
 
-    def replace_variable(self, variable):
+    def replace_variable(self, variable:Type[Variable])->None:
         """
         Replaces an existing OpenFisca variable in the tax and benefit system by a new one.
 
@@ -176,7 +178,7 @@ class TaxBenefitSystem(object):
             del self.variables[name]
         self.load_variable(variable, update = False)
 
-    def update_variable(self, variable):
+    def update_variable(self, variable:Type[Variable])->Variable:
         """
         Updates an existing OpenFisca variable in the tax and benefit system.
 
@@ -190,7 +192,7 @@ class TaxBenefitSystem(object):
         """
         return self.load_variable(variable, update = True)
 
-    def add_variables_from_file(self, file_path):
+    def add_variables_from_file(self, file_path:str)->None:
         """
         Adds all OpenFisca variables contained in a given file to the tax and benefit system.
         """
@@ -217,7 +219,7 @@ class TaxBenefitSystem(object):
             log.error('Unable to load OpenFisca variables from file "{}"'.format(file_path))
             raise
 
-    def add_variables_from_directory(self, directory):
+    def add_variables_from_directory(self, directory:str)->None:
         """
         Recursively explores a directory, and adds all OpenFisca variables found there to the tax and benefit system.
         """
@@ -228,7 +230,7 @@ class TaxBenefitSystem(object):
         for subdirectory in subdirectories:
             self.add_variables_from_directory(subdirectory)
 
-    def add_variables(self, *variables):
+    def add_variables(self, *variables:Type[Variable])->None:
         """
         Adds a list of OpenFisca Variables to the `TaxBenefitSystem`.
 
@@ -237,7 +239,7 @@ class TaxBenefitSystem(object):
         for variable in variables:
             self.add_variable(variable)
 
-    def load_extension(self, extension):
+    def load_extension(self, extension)->None:
         """
         Loads an extension to the tax and benefit system.
 
@@ -261,7 +263,7 @@ class TaxBenefitSystem(object):
             extension_parameters = ParameterNode(directory_path = param_dir)
             self.parameters.merge(extension_parameters)
 
-    def apply_reform(self, reform_path):
+    def apply_reform(self, reform_path:str)->Reform:
         """
         Generates a new tax and benefit system applying a reform to the tax and benefit system.
 
@@ -296,7 +298,7 @@ class TaxBenefitSystem(object):
 
         return reform(self)
 
-    def get_variable(self, variable_name, check_existence = False):
+    def get_variable(self, variable_name:str, check_existence:bool = False)->Variable:
         """
         Get a variable from the tax and benefit system.
 
@@ -309,7 +311,7 @@ class TaxBenefitSystem(object):
             raise VariableNotFound(variable_name, self)
         return found
 
-    def neutralize_variable(self, variable_name):
+    def neutralize_variable(self, variable_name:str)->None:
         """
         Neutralizes an OpenFisca variable existing in the tax and benefit system.
 
@@ -319,10 +321,10 @@ class TaxBenefitSystem(object):
         """
         self.variables[variable_name] = get_neutralized_variable(self.get_variable(variable_name))
 
-    def annualize_variable(self, variable_name: str, period: Optional[Period] = None):
+    def annualize_variable(self, variable_name: str, period: Optional[Period] = None)->None:
         self.variables[variable_name] = get_annualized_variable(self.get_variable(variable_name, period))
 
-    def load_parameters(self, path_to_yaml_dir):
+    def load_parameters(self, path_to_yaml_dir:str)->ParameterNode:
         """
         Loads the legislation parameter for a directory containing YAML parameters files.
 
@@ -346,11 +348,10 @@ class TaxBenefitSystem(object):
             return self.get_parameters_at_instant(instant)
         return baseline._get_baseline_parameters_at_instant(instant)
 
-    def get_parameters_at_instant(self, instant):
+    def get_parameters_at_instant(self, instant:Union[str, Instant]):
         """
         Get the parameters of the legislation at a given instant
 
-        :param instant: string of the format 'YYYY-MM-DD' or `openfisca_core.periods.Instant` instance.
         :returns: The parameters of the legislation at a given instant.
         :rtype: :any:`ParameterNodeAtInstant`
         """
@@ -367,7 +368,7 @@ class TaxBenefitSystem(object):
             self._parameters_at_instant_cache[instant] = parameters_at_instant
         return parameters_at_instant
 
-    def get_package_metadata(self):
+    def get_package_metadata(self)->Dict[str, str]:
         """
             Gets metatada relative to the country package the tax and benefit system is built from.
 
@@ -418,7 +419,7 @@ class TaxBenefitSystem(object):
             'location': location,
             }
 
-    def get_variables(self, entity = None):
+    def get_variables(self, entity = None)->Dict[str, Variable]:
         """
         Gets all variables contained in a tax and benefit system.
 
@@ -454,8 +455,8 @@ class TaxBenefitSystem(object):
         new_dict['open_api_config'] = self.open_api_config.copy()
         return new
 
-    def entities_plural(self):
+    def entities_plural(self)->Dict[str, Entity]:
         return {entity.plural for entity in self.entities}
 
-    def entities_by_singular(self):
+    def entities_by_singular(self)->Dict[str, Entity]:
         return {entity.key: entity for entity in self.entities}
