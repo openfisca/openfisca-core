@@ -1,77 +1,12 @@
-# -*- coding: utf-8 -*-
-
-import shutil
 import os
+import shutil
 
-import numpy as np
+import numpy
 
-from openfisca_core import periods
-from openfisca_core.periods import ETERNITY
-from openfisca_core.indexed_enums import EnumArray
-
-
-class InMemoryStorage(object):
-    """
-    Low-level class responsible for storing and retrieving calculated vectors in memory
-    """
-
-    def __init__(self, is_eternal = False):
-        self._arrays = {}
-        self.is_eternal = is_eternal
-
-    def get(self, period):
-        if self.is_eternal:
-            period = periods.period(ETERNITY)
-        period = periods.period(period)
-
-        values = self._arrays.get(period)
-        if values is None:
-            return None
-        return values
-
-    def put(self, value, period):
-        if self.is_eternal:
-            period = periods.period(ETERNITY)
-        period = periods.period(period)
-
-        self._arrays[period] = value
-
-    def delete(self, period = None):
-        if period is None:
-            self._arrays = {}
-            return
-
-        if self.is_eternal:
-            period = periods.period(ETERNITY)
-        period = periods.period(period)
-
-        self._arrays = {
-            period_item: value
-            for period_item, value in self._arrays.items()
-            if not period.contains(period_item)
-            }
-
-    def get_known_periods(self):
-        return self._arrays.keys()
-
-    def get_memory_usage(self):
-        if not self._arrays:
-            return dict(
-                nb_arrays = 0,
-                total_nb_bytes = 0,
-                cell_size = np.nan,
-                )
-
-        nb_arrays = len(self._arrays)
-        array = next(iter(self._arrays.values()))
-        return dict(
-            nb_arrays = nb_arrays,
-            total_nb_bytes = array.nbytes * nb_arrays,
-            cell_size = array.itemsize,
-            )
+from openfisca_core import indexed_enums, periods
 
 
-class OnDiskStorage(object):
+class OnDiskStorage:
     """
     Low-level class responsible for storing and retrieving calculated vectors on disk
     """
@@ -86,13 +21,13 @@ class OnDiskStorage(object):
     def _decode_file(self, file):
         enum = self._enums.get(file)
         if enum is not None:
-            return EnumArray(np.load(file), enum)
+            return indexed_enums.EnumArray(numpy.load(file), enum)
         else:
-            return np.load(file)
+            return numpy.load(file)
 
     def get(self, period):
         if self.is_eternal:
-            period = periods.period(ETERNITY)
+            period = periods.period(periods.ETERNITY)
         period = periods.period(period)
 
         values = self._files.get(period)
@@ -102,15 +37,15 @@ class OnDiskStorage(object):
 
     def put(self, value, period):
         if self.is_eternal:
-            period = periods.period(ETERNITY)
+            period = periods.period(periods.ETERNITY)
         period = periods.period(period)
 
         filename = str(period)
         path = os.path.join(self.storage_dir, filename) + '.npy'
-        if isinstance(value, EnumArray):
+        if isinstance(value, indexed_enums.EnumArray):
             self._enums[path] = value.possible_values
-            value = value.view(np.ndarray)
-        np.save(path, value)
+            value = value.view(numpy.ndarray)
+        numpy.save(path, value)
         self._files[period] = path
 
     def delete(self, period = None):
@@ -119,7 +54,7 @@ class OnDiskStorage(object):
             return
 
         if self.is_eternal:
-            period = periods.period(ETERNITY)
+            period = periods.period(periods.ETERNITY)
         period = periods.period(period)
 
         if period is not None:
