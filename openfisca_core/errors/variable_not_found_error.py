@@ -1,14 +1,9 @@
-# -*- coding: utf-8 -*-
-
-
 import os
 
-import dpath
 
-
-class VariableNotFound(Exception):
+class VariableNotFoundError(Exception):
     """
-        Exception raised when a variable has been queried but is not defined in the TaxBenefitSystem.
+    Exception raised when a variable has been queried but is not defined in the TaxBenefitSystem.
     """
 
     def __init__(self, variable_name, tax_benefit_system):
@@ -33,33 +28,3 @@ class VariableNotFound(Exception):
         self.message = message
         self.variable_name = variable_name
         Exception.__init__(self, self.message)
-
-
-class SituationParsingError(Exception):
-    """
-        Exception raised when the situation provided as an input for a simulation cannot be parsed
-    """
-
-    def __init__(self, path, message, code = None):
-        self.error = {}
-        dpath_path = '/'.join([str(item) for item in path])
-        message = str(message).strip(os.linesep).replace(os.linesep, ' ')
-        dpath.util.new(self.error, dpath_path, message)
-        self.code = code
-        Exception.__init__(self, str(self.error))
-
-    def __str__(self):
-        return str(self.error)
-
-
-class PeriodMismatchError(ValueError):
-    """
-        Exception raised when one tries to set a variable value for a period that doesn't match its definition period
-    """
-
-    def __init__(self, variable_name, period, definition_period, message):
-        self.variable_name = variable_name
-        self.period = period
-        self.definition_period = definition_period
-        self.message = message
-        ValueError.__init__(self, self.message)
