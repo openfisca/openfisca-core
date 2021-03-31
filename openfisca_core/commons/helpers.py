@@ -1,18 +1,4 @@
-import warnings
-
 import numpy
-
-
-class Dummy(object):
-    """A class that does nothing."""
-
-    def __init__(self) -> None:
-        message = [
-            "The 'Dummy' class has been deprecated since version 34.7.0,",
-            "and will be removed in the future.",
-            ]
-        warnings.warn(" ".join(message), DeprecationWarning)
-        pass
 
 
 def empty_clone(original):
