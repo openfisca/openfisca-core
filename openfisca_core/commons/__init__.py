@@ -22,4 +22,11 @@
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
 from .dummy import Dummy  # noqa: F401
-from .helpers import empty_clone, stringify_array  # noqa: F401
+
+from .helpers import (  # noqa: F401
+    apply_thresholds,
+    concat,
+    empty_clone,
+    stringify_array,
+    switch,
+    )
