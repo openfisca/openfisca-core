@@ -3,7 +3,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class MemoryConfig(object):
+class MemoryConfig:
 
     def __init__(self,
       max_memory_occupation,
