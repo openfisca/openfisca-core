@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
-
 import copy
 
-from openfisca_core.parameters import ParameterNode
-from openfisca_core.taxbenefitsystems import TaxBenefitSystem
+from openfisca_core import parameters, taxbenefitsystems
 
 
-class Reform(TaxBenefitSystem):
+class Reform(taxbenefitsystems.TaxBenefitSystem):
     """
         A modified TaxBenefitSystem
 
@@ -76,7 +73,7 @@ class Reform(TaxBenefitSystem):
         baseline_parameters = self.baseline.parameters
         baseline_parameters_copy = copy.deepcopy(baseline_parameters)
         reform_parameters = modifier_function(baseline_parameters_copy)
-        if not isinstance(reform_parameters, ParameterNode):
+        if not isinstance(reform_parameters, parameters.ParameterNode):
             return ValueError(
                 'modifier_function {} in module {} must return a ParameterNode'
                 .format(modifier_function.__name__, modifier_function.__module__,)
