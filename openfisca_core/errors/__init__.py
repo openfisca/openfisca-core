@@ -29,4 +29,5 @@ from .parameter_parsing_error import ParameterParsingError  # noqa: F401
 from .period_mismatch_error import PeriodMismatchError  # noqa: F401
 from .situation_parsing_error import SituationParsingError  # noqa: F401
 from .spiral_error import SpiralError  # noqa: F401
+from .variable_name_config_error import VariableNameConflictError, VariableNameConflictError as VariableNameConflict  # noqa: F401
 from .variable_not_found_error import VariableNotFoundError, VariableNotFoundError as VariableNotFound  # noqa: F401
