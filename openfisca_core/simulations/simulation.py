@@ -1,37 +1,16 @@
-# -*- coding: utf-8 -*-
-
 import tempfile
 import logging
 
-import numpy as np
+import numpy
 
-from openfisca_core import periods
-from openfisca_core.commons import empty_clone
-from openfisca_core.tracers import TracingParameterNodeAtInstant, SimpleTracer, FullTracer
-from openfisca_core.indexed_enums import Enum, EnumArray
-
+from openfisca_core import commons, errors, indexed_enums, periods, tracers
 
 log = logging.getLogger(__name__)
 
 
-# Exceptions
-
-
-class NaNCreationError(Exception):
-    pass
-
-
-class CycleError(Exception):
-    pass
-
-
-class SpiralError(Exception):
-    pass
-
-
-class Simulation(object):
+class Simulation:
     """
-        Represents a simulation, and handles the calculation logic
+    Represents a simulation, and handles the calculation logic
     """
 
     def __init__(
@@ -40,9 +19,9 @@ class Simulation(object):
             populations
             ):
         """
-            This constructor is reserved for internal use; see :any:`SimulationBuilder`,
-            which is the preferred way to obtain a Simulation initialized with a consistent
-            set of Entities.
+        This constructor is reserved for internal use; see :any:`SimulationBuilder`,
+        which is the preferred way to obtain a Simulation initialized with a consistent
+        set of Entities.
         """
         self.tax_benefit_system = tax_benefit_system
         assert tax_benefit_system is not None
@@ -56,7 +35,7 @@ class Simulation(object):
 
         self.debug = False
         self.trace = False
-        self.tracer = SimpleTracer()
+        self.tracer = tracers.SimpleTracer()
         self.opt_out_cache = False
 
         # controls the spirals detection; check for performance impact if > 1
@@ -72,9 +51,9 @@ class Simulation(object):
     def trace(self, trace):
         self._trace = trace
         if trace:
-            self.tracer = FullTracer()
+            self.tracer = tracers.FullTracer()
         else:
-            self.tracer = SimpleTracer()
+            self.tracer = tracers.SimpleTracer()
 
     def link_to_entities_instances(self):
         for _key, entity_instance in self.populations.items():
@@ -117,9 +96,9 @@ class Simulation(object):
 
     def _calculate(self, variable_name, period: periods.Period):
         """
-            Calculate the variable ``variable_name`` for the period ``period``, using the variable formula if it exists.
+        Calculate the variable ``variable_name`` for the period ``period``, using the variable formula if it exists.
 
-            :returns: A numpy array containing the result of the calculation
+        :returns: A numpy array containing the result of the calculation
         """
         population = self.get_variable_population(variable_name)
         holder = population.get_holder(variable_name)
@@ -146,7 +125,7 @@ class Simulation(object):
             array = self._cast_formula_result(array, variable)
             holder.put_in_cache(array, period)
 
-        except SpiralError:
+        except errors.SpiralError:
             array = holder.default_array()
 
         return array
@@ -211,7 +190,7 @@ class Simulation(object):
 
     def calculate_output(self, variable_name, period):
         """
-            Calculate the value of a variable using the ``calculate_output`` attribute of the variable.
+        Calculate the value of a variable using the ``calculate_output`` attribute of the variable.
         """
 
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
@@ -222,14 +201,14 @@ class Simulation(object):
         return variable.calculate_output(self, variable_name, period)
 
     def trace_parameters_at_instant(self, formula_period):
-        return TracingParameterNodeAtInstant(
+        return tracers.TracingParameterNodeAtInstant(
             self.tax_benefit_system.get_parameters_at_instant(formula_period),
             self.tracer
             )
 
     def _run_formula(self, variable, population, period):
         """
-            Find the ``variable`` formula for the given ``period`` if it exists, and apply it to ``population``.
+        Find the ``variable`` formula for the given ``period`` if it exists, and apply it to ``population``.
         """
 
         formula = variable.get_formula(period)
@@ -250,7 +229,7 @@ class Simulation(object):
 
     def _check_period_consistency(self, period, variable):
         """
-            Check that a period matches the variable definition_period
+        Check that a period matches the variable definition_period
         """
         if variable.definition_period == periods.ETERNITY:
             return  # For variables which values are constant in time, all periods are accepted
@@ -275,10 +254,10 @@ class Simulation(object):
                 ))
 
     def _cast_formula_result(self, value, variable):
-        if variable.value_type == Enum and not isinstance(value, EnumArray):
+        if variable.value_type == indexed_enums.Enum and not isinstance(value, indexed_enums.EnumArray):
             return variable.possible_values.encode(value)
 
-        if not isinstance(value, np.ndarray):
+        if not isinstance(value, numpy.ndarray):
             population = self.get_variable_population(variable.name)
             value = population.filled_array(value)
 
@@ -299,12 +278,12 @@ class Simulation(object):
         # The last frame is the current calculation, so it should be ignored from cycle detection
         previous_periods = [frame['period'] for frame in self.tracer.stack[:-1] if frame['name'] == variable]
         if period in previous_periods:
-            raise CycleError("Circular definition detected on formula {}@{}".format(variable, period))
+            raise errors.CycleError("Circular definition detected on formula {}@{}".format(variable, period))
         spiral = len(previous_periods) >= self.max_spiral_loops
         if spiral:
             self.invalidate_spiral_variables(variable)
             message = "Quasicircular definition detected on formula {}@{} involving {}".format(variable, period, self.tracer.stack)
-            raise SpiralError(message, variable)
+            raise errors.SpiralError(message, variable)
 
     def invalidate_cache_entry(self, variable: str, period):
         self.invalidated_caches.add((variable, period))
@@ -326,9 +305,9 @@ class Simulation(object):
 
     def get_array(self, variable_name, period):
         """
-            Return the value of ``variable_name`` for ``period``, if this value is alreay in the cache (if it has been set as an input or previously calculated).
+        Return the value of ``variable_name`` for ``period``, if this value is alreay in the cache (if it has been set as an input or previously calculated).
 
-            Unlike :any:`calculate`, this method *does not* trigger calculations and *does not* use any formula.
+        Unlike :any:`calculate`, this method *does not* trigger calculations and *does not* use any formula.
         """
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
@@ -336,13 +315,13 @@ class Simulation(object):
 
     def get_holder(self, variable_name):
         """
-            Get the :any:`Holder` associated with the variable ``variable_name`` for the simulation
+        Get the :any:`Holder` associated with the variable ``variable_name`` for the simulation
         """
         return self.get_variable_population(variable_name).get_holder(variable_name)
 
     def get_memory_usage(self, variables = None):
         """
-            Get data about the virtual memory usage of the simulation
+        Get data about the virtual memory usage of the simulation
         """
         result = dict(
             total_nb_bytes = 0,
@@ -358,67 +337,66 @@ class Simulation(object):
 
     def delete_arrays(self, variable, period = None):
         """
-            Delete a variable's value for a given period
+        Delete a variable's value for a given period
 
-            :param variable: the variable to be set
-            :param period: the period for which the value should be deleted
+        :param variable: the variable to be set
+        :param period: the period for which the value should be deleted
 
-            Example:
+        Example:
 
-            >>> from openfisca_country_template import CountryTaxBenefitSystem
-            >>> simulation = Simulation(CountryTaxBenefitSystem())
-            >>> simulation.set_input('age', '2018-04', [12, 14])
-            >>> simulation.set_input('age', '2018-05', [13, 14])
-            >>> simulation.get_array('age', '2018-05')
-            array([13, 14], dtype=int32)
-            >>> simulation.delete_arrays('age', '2018-05')
-            >>> simulation.get_array('age', '2018-04')
-            array([12, 14], dtype=int32)
-            >>> simulation.get_array('age', '2018-05') is None
-            True
-            >>> simulation.set_input('age', '2018-05', [13, 14])
-            >>> simulation.delete_arrays('age')
-            >>> simulation.get_array('age', '2018-04') is None
-            True
-            >>> simulation.get_array('age', '2018-05') is None
-            True
+        >>> from openfisca_country_template import CountryTaxBenefitSystem
+        >>> simulation = Simulation(CountryTaxBenefitSystem())
+        >>> simulation.set_input('age', '2018-04', [12, 14])
+        >>> simulation.set_input('age', '2018-05', [13, 14])
+        >>> simulation.get_array('age', '2018-05')
+        array([13, 14], dtype=int32)
+        >>> simulation.delete_arrays('age', '2018-05')
+        >>> simulation.get_array('age', '2018-04')
+        array([12, 14], dtype=int32)
+        >>> simulation.get_array('age', '2018-05') is None
+        True
+        >>> simulation.set_input('age', '2018-05', [13, 14])
+        >>> simulation.delete_arrays('age')
+        >>> simulation.get_array('age', '2018-04') is None
+        True
+        >>> simulation.get_array('age', '2018-05') is None
+        True
         """
         self.get_holder(variable).delete_arrays(period)
 
     def get_known_periods(self, variable):
         """
-            Get a list variable's known period, i.e. the periods where a value has been initialized and
+        Get a list variable's known period, i.e. the periods where a value has been initialized and
 
-            :param variable: the variable to be set
+        :param variable: the variable to be set
 
-            Example:
+        Example:
 
-            >>> from openfisca_country_template import CountryTaxBenefitSystem
-            >>> simulation = Simulation(CountryTaxBenefitSystem())
-            >>> simulation.set_input('age', '2018-04', [12, 14])
-            >>> simulation.set_input('age', '2018-05', [13, 14])
-            >>> simulation.get_known_periods('age')
-            [Period((u'month', Instant((2018, 5, 1)), 1)), Period((u'month', Instant((2018, 4, 1)), 1))]
-
+        >>> from openfisca_country_template import CountryTaxBenefitSystem
+        >>> simulation = Simulation(CountryTaxBenefitSystem())
+        >>> simulation.set_input('age', '2018-04', [12, 14])
+        >>> simulation.set_input('age', '2018-05', [13, 14])
+        >>> simulation.get_known_periods('age')
+        [Period((u'month', Instant((2018, 5, 1)), 1)), Period((u'month', Instant((2018, 4, 1)), 1))]
         """
         return self.get_holder(variable).get_known_periods()
 
     def set_input(self, variable_name, period, value):
         """
-            Set a variable's value for a given period
+        Set a variable's value for a given period
 
-            :param variable: the variable to be set
-            :param value: the input value for the variable
-            :param period: the period for which the value is setted
+        :param variable: the variable to be set
+        :param value: the input value for the variable
+        :param period: the period for which the value is setted
 
-            Example:
-            >>> from openfisca_country_template import CountryTaxBenefitSystem
-            >>> simulation = Simulation(CountryTaxBenefitSystem())
-            >>> simulation.set_input('age', '2018-04', [12, 14])
-            >>> simulation.get_array('age', '2018-04')
-            array([12, 14], dtype=int32)
+        Example:
+        >>> from openfisca_country_template import CountryTaxBenefitSystem
+        >>> simulation = Simulation(CountryTaxBenefitSystem())
+        >>> simulation.set_input('age', '2018-04', [12, 14])
+        >>> simulation.get_array('age', '2018-04')
+        array([12, 14], dtype=int32)
 
-            If a ``set_input`` property has been set for the variable, this method may accept inputs for periods not matching the ``definition_period`` of the variable. To read more about this, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#automatically-process-variable-inputs-defined-for-periods-not-matching-the-definitionperiod>`_.
+        If a ``set_input`` property has been set for the variable, this method may accept inputs for periods not matching the ``definition_period`` of the variable. To read more about this, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#automatically-process-variable-inputs-defined-for-periods-not-matching-the-definitionperiod>`_.
         """
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
         period = periods.period(period)
@@ -442,9 +420,9 @@ class Simulation(object):
 
     def clone(self, debug = False, trace = False):
         """
-            Copy the simulation just enough to be able to run the copy without modifying the original simulation
+        Copy the simulation just enough to be able to run the copy without modifying the original simulation
         """
-        new = empty_clone(self)
+        new = commons.empty_clone(self)
         new_dict = new.__dict__
 
         for key, value in self.__dict__.items():
@@ -464,11 +442,3 @@ class Simulation(object):
         new.trace = trace
 
         return new
-
-
-def calculate_output_add(simulation, variable_name, period):
-    return simulation.calculate_add(variable_name, period)
-
-
-def calculate_output_divide(simulation, variable_name, period):
-    return simulation.calculate_divide(variable_name, period)
