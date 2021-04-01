@@ -1,5 +1,25 @@
 # Changelog
 
+### 35.3.2 [#992](https://github.com/openfisca/openfisca-core/pull/992)
+
+#### Technical improvements
+
+- Render all OpenFisca Core components modular and sandboxed
+  - Allows for simpler contribution
+  - Allows for better unit testing
+  - Allows for dealing with circular dependencies
+  - Allows for more explicit contracts between components
+
+#### Future deprecations
+
+- Reorganise `formula_helpers`, `memory_config`, `rates`, `simulation_builder`.
+  - Their functionalities are still there, just moved around
+  - Transitional `__init__.py` files added to make transition smooth
+
+- Rename of some errors for consistency
+  - Added the suffix `Error` to all errors
+  - They're still exposed publicly as they were before
+
 ### 35.3.1 [#993](https://github.com/openfisca/openfisca-core/pull/993)
 
 #### Bug fix
