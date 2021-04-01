@@ -1,5 +1,13 @@
 # Changelog
 
+### 35.3.1 [#993](https://github.com/openfisca/openfisca-core/pull/993)
+
+#### Bug fix
+
+- [Web API] Gracefully handle unexpected errors 
+  - The exception signature expected by the internal server error handler was not the good one
+  - Henceforth no response was being given to the user, when a 500 with an explanation was expected
+
 ## 35.3.0 [#985](https://github.com/openfisca/openfisca-core/pull/985)
 
 #### New features
