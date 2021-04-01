@@ -56,6 +56,36 @@ def test_responses(test):
     check_response(*test)
 
 
+def test_invalid_parameter_period_FAILING_TEST():
+    simulation_json = json.dumps({
+        "persons": {
+            "bill": {
+                "birth": {
+                    "2017-12": "1980-01-01"
+                    },
+                "salary": {
+                    "2017-12": 2000
+                    },
+                },
+            },
+        "households": {
+            "first_household": {
+                "parents": ['bill'],
+                "housing_tax": {
+                    "2009": None  # relies on `parameters(period).taxes.housing_tax` which is only defined from 2010 onwards
+                    },
+                "accommodation_size": {
+                    "2017-01": 300
+                    }
+                },
+            }
+        })
+
+    response = post_json(simulation_json)
+
+    assert response.status_code  # Assert that some response is created and sent to the client...
+
+
 def test_basic_calculation():
     simulation_json = json.dumps({
         "persons": {
