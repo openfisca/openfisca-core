@@ -1,15 +1,15 @@
-from __future__ import annotations
-
 import datetime
 import inspect
 import re
 import textwrap
-import typing
-from sortedcontainers import sorteddict
+import sortedcontainers
 
 import numpy
 
-from openfisca_core import entities, indexed_enums, periods, tools
+from openfisca_core import periods, tools
+from openfisca_core.entities import Entity
+from openfisca_core.indexed_enums import Enum, EnumArray
+from openfisca_core.periods import Period
 from openfisca_core.variables import config, helpers
 
 
@@ -103,13 +103,13 @@ class Variable:
         self.value_type = self.set(attr, 'value_type', required = True, allowed_values = config.VALUE_TYPES.keys())
         self.dtype = config.VALUE_TYPES[self.value_type]['dtype']
         self.json_type = config.VALUE_TYPES[self.value_type]['json_type']
-        if self.value_type == indexed_enums.Enum:
+        if self.value_type == Enum:
             self.possible_values = self.set(attr, 'possible_values', required = True, setter = self.set_possible_values)
         if self.value_type == str:
             self.max_length = self.set(attr, 'max_length', allowed_type = int)
             if self.max_length:
                 self.dtype = '|S{}'.format(self.max_length)
-        if self.value_type == indexed_enums.Enum:
+        if self.value_type == Enum:
             self.default_value = self.set(attr, 'default_value', allowed_type = self.possible_values, required = True)
         else:
             self.default_value = self.set(attr, 'default_value', allowed_type = self.value_type, default = config.VALUE_TYPES[self.value_type].get('default'))
@@ -135,46 +135,6 @@ class Variable:
 
         self.is_neutralized = False
 
-    # ----- Helpers ----- #
-
-    @staticmethod
-    def get_annualized_variable(variable: Variable, annualization_period: typing.Optional[periods.Period] = None) -> Variable:
-        """
-        Returns a clone of ``variable`` that is annualized for the period ``annualization_period``.
-        When annualized, a variable's formula is only called for a January calculation, and the results for other months are assumed to be identical.
-        """
-
-        def make_annual_formula(original_formula, annualization_period = None):
-
-            def annual_formula(population, period, parameters):
-                if period.start.month != 1 and (annualization_period is None or annualization_period.contains(period)):
-                    return population(variable.name, period.this_year.first_month)
-                if original_formula.__code__.co_argcount == 2:
-                    return original_formula(population, period)
-                return original_formula(population, period, parameters)
-
-            return annual_formula
-
-        new_variable = variable.clone()
-        new_variable.formulas = sorteddict.SortedDict({
-            key: make_annual_formula(formula, annualization_period)
-            for key, formula in variable.formulas.items()
-            })
-
-        return new_variable
-
-    @staticmethod
-    def get_neutralized_variable(variable):
-        """
-        Return a new neutralized variable (to be used by reforms).
-        A neutralized variable always returns its default value, and does not cache anything.
-        """
-        result = variable.clone()
-        result.is_neutralized = True
-        result.label = '[Neutralized]' if variable.label is None else '[Neutralized] {}'.format(variable.label),
-
-        return result
-
     # ----- Setters used to build the variable ----- #
 
     def set(self, attributes, attribute_name, required = False, allowed_values = None, allowed_type = None, setter = None, default = None):
@@ -199,14 +159,14 @@ class Variable:
         return value
 
     def set_entity(self, entity):
-        if not isinstance(entity, entities.Entity):
+        if not isinstance(entity, Entity):
             raise ValueError(f"Invalid value '{entity}' for attribute 'entity' in variable '{self.name}'. Must be an instance of Entity.")
         return entity
 
     def set_possible_values(self, possible_values):
-        if not issubclass(possible_values, indexed_enums.Enum):
+        if not issubclass(possible_values, Enum):
             raise ValueError("Invalid value '{}' for attribute 'possible_values' in variable '{}'. Must be a subclass of {}."
-            .format(possible_values, self.name, indexed_enums.Enum))
+            .format(possible_values, self.name, Enum))
         return possible_values
 
     def set_label(self, label):
@@ -254,7 +214,7 @@ class Variable:
         return calculate_output
 
     def set_formulas(self, formulas_attr):
-        formulas = sorteddict.SortedDict()
+        formulas = sortedcontainers.sorteddict.SortedDict()
         for formula_name, formula in formulas_attr.items():
             starting_date = self.parse_formula_name(formula_name)
 
@@ -357,7 +317,7 @@ class Variable:
         if period is None:
             return self.formulas.peekitem(index = 0)[1]  # peekitem gets the 1st key-value tuple (the oldest start_date and formula). Return the formula.
 
-        if isinstance(period, periods.Period):
+        if isinstance(period, Period):
             instant = period.start
         else:
             try:
@@ -380,7 +340,7 @@ class Variable:
         return clone
 
     def check_set_value(self, value):
-        if self.value_type == indexed_enums.Enum and isinstance(value, str):
+        if self.value_type == Enum and isinstance(value, str):
             try:
                 value = self.possible_values[value].index
             except KeyError:
@@ -414,8 +374,8 @@ class Variable:
 
     def default_array(self, array_size):
         array = numpy.empty(array_size, dtype = self.dtype)
-        if self.value_type == indexed_enums.Enum:
+        if self.value_type == Enum:
             array.fill(self.default_value.index)
-            return indexed_enums.EnumArray(array, self.possible_values)
+            return EnumArray(array, self.possible_values)
         array.fill(self.default_value)
         return array

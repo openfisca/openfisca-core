@@ -2,11 +2,18 @@ import copy
 import os
 import typing
 
-from openfisca_core import commons, errors, parameters, taxscales, tools
-from openfisca_core.parameters import config, helpers
+from openfisca_core import commons, parameters, tools
+from openfisca_core.errors import ParameterParsingError
+from openfisca_core.parameters import config, helpers, AtInstantLike
+from openfisca_core.taxscales import (
+    LinearAverageRateTaxScale,
+    MarginalAmountTaxScale,
+    MarginalRateTaxScale,
+    SingleAmountTaxScale,
+    )
 
 
-class ParameterScale(parameters.AtInstantLike):
+class ParameterScale(AtInstantLike):
     """
     A parameter scale (for instance a  marginal scale).
     """
@@ -29,7 +36,7 @@ class ParameterScale(parameters.AtInstantLike):
         self.metadata.update(data.get('metadata', {}))
 
         if not isinstance(data.get('brackets', []), list):
-            raise errors.ParameterParsingError(
+            raise ParameterParsingError(
                 "Property 'brackets' of scale '{}' must be of type array."
                 .format(self.name),
                 self.file_path
@@ -70,7 +77,7 @@ class ParameterScale(parameters.AtInstantLike):
         brackets = [bracket.get_at_instant(instant) for bracket in self.brackets]
 
         if self.metadata.get('type') == 'single_amount':
-            scale = taxscales.SingleAmountTaxScale()
+            scale = SingleAmountTaxScale()
             for bracket in brackets:
                 if 'amount' in bracket._children and 'threshold' in bracket._children:
                     amount = bracket.amount
@@ -78,7 +85,7 @@ class ParameterScale(parameters.AtInstantLike):
                     scale.add_bracket(threshold, amount)
             return scale
         elif any('amount' in bracket._children for bracket in brackets):
-            scale = taxscales.MarginalAmountTaxScale()
+            scale = MarginalAmountTaxScale()
             for bracket in brackets:
                 if 'amount' in bracket._children and 'threshold' in bracket._children:
                     amount = bracket.amount
@@ -86,7 +93,7 @@ class ParameterScale(parameters.AtInstantLike):
                     scale.add_bracket(threshold, amount)
             return scale
         elif any('average_rate' in bracket._children for bracket in brackets):
-            scale = taxscales.LinearAverageRateTaxScale()
+            scale = LinearAverageRateTaxScale()
 
             for bracket in brackets:
                 if 'base' in bracket._children:
@@ -99,7 +106,7 @@ class ParameterScale(parameters.AtInstantLike):
                     scale.add_bracket(threshold, average_rate * base)
             return scale
         else:
-            scale = taxscales.MarginalRateTaxScale()
+            scale = MarginalRateTaxScale()
 
             for bracket in brackets:
                 if 'base' in bracket._children:

@@ -1,7 +1,7 @@
-from openfisca_core import parameters
+from openfisca_core.parameters import ParameterNode
 
 
-class ParameterScaleBracket(parameters.ParameterNode):
+class ParameterScaleBracket(ParameterNode):
     """
     A parameter scale bracket.
     """

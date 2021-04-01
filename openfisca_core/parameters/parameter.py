@@ -2,11 +2,12 @@ import copy
 import os
 import typing
 
-from openfisca_core import commons, errors, parameters, periods
-from openfisca_core.parameters import config, helpers
+from openfisca_core import commons, periods
+from openfisca_core.errors import ParameterParsingError
+from openfisca_core.parameters import config, helpers, AtInstantLike, ParameterAtInstant
 
 
-class Parameter(parameters.AtInstantLike):
+class Parameter(AtInstantLike):
     """
     A parameter of the legislation. Parameters can change over time.
 
@@ -69,7 +70,7 @@ class Parameter(parameters.AtInstantLike):
         values_list = []
         for instant_str in instants:
             if not periods.INSTANT_PATTERN.match(instant_str):
-                raise errors.ParameterParsingError(
+                raise ParameterParsingError(
                     "Invalid property '{}' in '{}'. Properties must be valid YYYY-MM-DD instants, such as 2017-01-15."
                     .format(instant_str, self.name),
                     file_path)
@@ -81,10 +82,10 @@ class Parameter(parameters.AtInstantLike):
                 continue
 
             value_name = helpers._compose_name(name, item_name = instant_str)
-            value_at_instant = parameters.ParameterAtInstant(value_name, instant_str, data = instant_info, file_path = self.file_path, metadata = self.metadata)
+            value_at_instant = ParameterAtInstant(value_name, instant_str, data = instant_info, file_path = self.file_path, metadata = self.metadata)
             values_list.append(value_at_instant)
 
-        self.values_list: typing.List[parameters.ParameterAtInstant] = values_list
+        self.values_list: typing.List[ParameterAtInstant] = values_list
 
     def __repr__(self):
         return os.linesep.join([
@@ -142,16 +143,16 @@ class Parameter(parameters.AtInstantLike):
                 if i < n:
                     overlapped_value = old_values[i].value
                     value_name = helpers._compose_name(self.name, item_name = stop_str)
-                    new_interval = parameters.ParameterAtInstant(value_name, stop_str, data = {'value': overlapped_value})
+                    new_interval = ParameterAtInstant(value_name, stop_str, data = {'value': overlapped_value})
                     new_values.append(new_interval)
                 else:
                     value_name = helpers._compose_name(self.name, item_name = stop_str)
-                    new_interval = parameters.ParameterAtInstant(value_name, stop_str, data = {'value': None})
+                    new_interval = ParameterAtInstant(value_name, stop_str, data = {'value': None})
                     new_values.append(new_interval)
 
         # Insert new interval
         value_name = helpers._compose_name(self.name, item_name = start_str)
-        new_interval = parameters.ParameterAtInstant(value_name, start_str, data = {'value': value})
+        new_interval = ParameterAtInstant(value_name, start_str, data = {'value': value})
         new_values.append(new_interval)
 
         # Remove covered intervals

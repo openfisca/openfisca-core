@@ -7,10 +7,12 @@ import typing
 
 import numpy
 
-from openfisca_core import errors, taxscales, tools
+from openfisca_core import tools
+from openfisca_core.errors import EmptyArgumentError
+from openfisca_core.taxscales import TaxScaleLike
 
 
-class RateTaxScaleLike(taxscales.TaxScaleLike, abc.ABC):
+class RateTaxScaleLike(TaxScaleLike, abc.ABC):
     """
     Base class for various types of rate-based tax scales: marginal rate, linear
     average rate...
@@ -133,7 +135,7 @@ class RateTaxScaleLike(taxscales.TaxScaleLike, abc.ABC):
         """
 
         if not numpy.size(numpy.array(self.thresholds)):
-            raise errors.EmptyArgumentError(
+            raise EmptyArgumentError(
                 self.__class__.__name__,
                 "bracket_indices",
                 "self.thresholds",
@@ -141,7 +143,7 @@ class RateTaxScaleLike(taxscales.TaxScaleLike, abc.ABC):
                 )
 
         if not numpy.size(numpy.asarray(tax_base)):
-            raise errors.EmptyArgumentError(
+            raise EmptyArgumentError(
                 self.__class__.__name__,
                 "bracket_indices",
                 "tax_base",

@@ -3,6 +3,7 @@ import datetime
 import numpy
 
 from openfisca_core import indexed_enums
+from openfisca_core.indexed_enums import Enum
 
 
 VALUE_TYPES = {
@@ -34,7 +35,7 @@ VALUE_TYPES = {
         'formatted_value_type': 'String',
         'is_period_size_independent': True
         },
-    indexed_enums.Enum: {
+    Enum: {
         'dtype': indexed_enums.ENUM_ARRAY_DTYPE,
         'json_type': 'string',
         'formatted_value_type': 'String',

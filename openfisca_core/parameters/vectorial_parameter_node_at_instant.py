@@ -1,6 +1,8 @@
 import numpy
 
-from openfisca_core import errors, indexed_enums, parameters
+from openfisca_core import parameters
+from openfisca_core.errors import ParameterNotFoundError
+from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.parameters import helpers
 
 
@@ -144,10 +146,10 @@ class VectorialParameterNodeAtInstant:
         elif isinstance(key, numpy.ndarray):
             if not numpy.issubdtype(key.dtype, numpy.str_):
                 # In case the key is not a string vector, stringify it
-                if key.dtype == object and issubclass(type(key[0]), indexed_enums.Enum):
+                if key.dtype == object and issubclass(type(key[0]), Enum):
                     enum = type(key[0])
                     key = numpy.select([key == item for item in enum], [item.name for item in enum])
-                elif isinstance(key, indexed_enums.EnumArray):
+                elif isinstance(key, EnumArray):
                     enum = key.possible_values
                     key = numpy.select([key == item.index for item in enum], [item.name for item in enum])
                 else:
@@ -159,7 +161,7 @@ class VectorialParameterNodeAtInstant:
             result = numpy.select(conditions, values, default)
             if helpers.contains_nan(result):
                 unexpected_key = set(key).difference(self.vector.dtype.names).pop()
-                raise errors.ParameterNotFoundError('.'.join([self._name, unexpected_key]), self._instant_str)
+                raise ParameterNotFoundError('.'.join([self._name, unexpected_key]), self._instant_str)
 
             # If the result is not a leaf, wrap the result in a vectorial node.
             if numpy.issubdtype(result.dtype, numpy.record):

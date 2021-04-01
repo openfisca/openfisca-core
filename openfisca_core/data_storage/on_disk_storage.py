@@ -3,7 +3,8 @@ import shutil
 
 import numpy
 
-from openfisca_core import indexed_enums, periods
+from openfisca_core import periods
+from openfisca_core.indexed_enums import EnumArray
 
 
 class OnDiskStorage:
@@ -21,7 +22,7 @@ class OnDiskStorage:
     def _decode_file(self, file):
         enum = self._enums.get(file)
         if enum is not None:
-            return indexed_enums.EnumArray(numpy.load(file), enum)
+            return EnumArray(numpy.load(file), enum)
         else:
             return numpy.load(file)
 
@@ -42,7 +43,7 @@ class OnDiskStorage:
 
         filename = str(period)
         path = os.path.join(self.storage_dir, filename) + '.npy'
-        if isinstance(value, indexed_enums.EnumArray):
+        if isinstance(value, EnumArray):
             self._enums[path] = value.possible_values
             value = value.view(numpy.ndarray)
         numpy.save(path, value)

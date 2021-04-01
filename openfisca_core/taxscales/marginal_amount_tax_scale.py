@@ -4,10 +4,10 @@ import typing
 
 import numpy
 
-from openfisca_core import taxscales
+from openfisca_core.taxscales import AmountTaxScaleLike
 
 
-class MarginalAmountTaxScale(taxscales.AmountTaxScaleLike):
+class MarginalAmountTaxScale(AmountTaxScaleLike):
 
     def calc(
             self,

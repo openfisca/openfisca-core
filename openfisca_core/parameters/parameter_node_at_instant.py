@@ -3,7 +3,8 @@ import sys
 
 import numpy
 
-from openfisca_core import errors, parameters, tools
+from openfisca_core import parameters, tools
+from openfisca_core.errors import ParameterNotFoundError
 from openfisca_core.parameters import helpers
 
 
@@ -35,7 +36,7 @@ class ParameterNodeAtInstant:
 
     def __getattr__(self, key):
         param_name = helpers._compose_name(self._name, item_name = key)
-        raise errors.ParameterNotFoundError(param_name, self._instant_str)
+        raise ParameterNotFoundError(param_name, self._instant_str)
 
     def __getitem__(self, key):
         # If fancy indexing is used, cast to a vectorial node

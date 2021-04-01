@@ -1,8 +1,13 @@
+from __future__ import annotations
+
 import typing
 
 import numpy
 
-from openfisca_core import indexed_enums, tracers
+from openfisca_core.indexed_enums import EnumArray
+
+if typing.TYPE_CHECKING:
+    from openfisca_core.tracers import TraceNode
 
 
 class FlatTrace:
@@ -10,7 +15,7 @@ class FlatTrace:
     def __init__(self, full_tracer):
         self._full_tracer = full_tracer
 
-    def key(self, node: tracers.TraceNode) -> str:
+    def key(self, node: TraceNode) -> str:
         name = node.name
         period = node.period
         return f"{name}<{period}>"
@@ -35,7 +40,7 @@ class FlatTrace:
             }
 
     def serialize(self, value: numpy.ndarray) -> typing.List:
-        if isinstance(value, indexed_enums.EnumArray):
+        if isinstance(value, EnumArray):
             value = value.decode_to_str()
         if isinstance(value, numpy.ndarray) and numpy.issubdtype(value.dtype, numpy.dtype(bytes)):
             value = value.astype(numpy.dtype(str))
@@ -43,7 +48,7 @@ class FlatTrace:
             value = value.tolist()
         return value
 
-    def _get_flat_trace(self, node: tracers.TraceNode) -> typing.Dict[str, typing.Dict]:
+    def _get_flat_trace(self, node: TraceNode) -> typing.Dict[str, typing.Dict]:
         key = self.key(node)
 
         node_trace = {

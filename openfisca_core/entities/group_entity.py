@@ -1,7 +1,7 @@
-from openfisca_core import entities
+from openfisca_core.entities import Entity, Role
 
 
-class GroupEntity(entities.Entity):
+class GroupEntity(Entity):
     """
     Represents an entity composed of several persons with different roles, on which calculations are run.
     """
@@ -11,13 +11,13 @@ class GroupEntity(entities.Entity):
         self.roles_description = roles
         self.roles = []
         for role_description in roles:
-            role = entities.Role(role_description, self)
+            role = Role(role_description, self)
             setattr(self, role.key.upper(), role)
             self.roles.append(role)
             if role_description.get('subroles'):
                 role.subroles = []
                 for subrole_key in role_description['subroles']:
-                    subrole = entities.Role({'key': subrole_key, 'max': 1}, self)
+                    subrole = Role({'key': subrole_key, 'max': 1}, self)
                     setattr(self, subrole.key.upper(), subrole)
                     role.subroles.append(subrole)
                 role.max = len(role.subroles)

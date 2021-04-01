@@ -2,7 +2,7 @@ import typing
 
 import numpy
 
-from openfisca_core import indexed_enums
+from openfisca_core.indexed_enums import EnumArray
 
 
 class ComputationLog:
@@ -11,7 +11,7 @@ class ComputationLog:
         self._full_tracer = full_tracer
 
     def display(self, value):
-        if isinstance(value, indexed_enums.EnumArray):
+        if isinstance(value, EnumArray):
             value = value.decode_to_str()
 
         return numpy.array2string(value, max_line_width = float("inf"))

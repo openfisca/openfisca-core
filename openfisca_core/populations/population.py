@@ -2,8 +2,10 @@ import traceback
 
 import numpy
 
-from openfisca_core import holders, projectors
+from openfisca_core import projectors
+from openfisca_core.holders import Holder
 from openfisca_core.populations import config
+from openfisca_core.projectors import Projector
 
 
 class Population:
@@ -90,7 +92,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         if holder:
             return holder
         variable = self.entity.get_variable(variable_name)
-        self._holders[variable_name] = holder = holders.Holder(variable, self)
+        self._holders[variable_name] = holder = Holder(variable, self)
         return holder
 
     def get_memory_usage(self, variables = None):
@@ -162,7 +164,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         """
 
         # If entity is for instance 'person.household', we get the reference entity 'household' behind the projector
-        entity = entity if not isinstance(entity, projectors.Projector) else entity.reference_entity
+        entity = entity if not isinstance(entity, Projector) else entity.reference_entity
 
         positions = entity.members_position
         biggest_entity_size = numpy.max(positions) + 1

@@ -1,7 +1,10 @@
 import numpy
 
-from openfisca_core import parameters
-from openfisca_core.parameters import config
+from openfisca_core.parameters import (
+    config,
+    ParameterNodeAtInstant,
+    VectorialParameterNodeAtInstant,
+    )
 
 
 class TracingParameterNodeAtInstant:
@@ -20,9 +23,9 @@ class TracingParameterNodeAtInstant:
 
     def get_traced_child(self, child, key):
         period = self.parameter_node_at_instant._instant_str
-        if isinstance(child, (parameters.ParameterNodeAtInstant, parameters.VectorialParameterNodeAtInstant)):
+        if isinstance(child, (ParameterNodeAtInstant, VectorialParameterNodeAtInstant)):
             return TracingParameterNodeAtInstant(child, self.tracer)
-        if not isinstance(key, str) or isinstance(self.parameter_node_at_instant, parameters.VectorialParameterNodeAtInstant):
+        if not isinstance(key, str) or isinstance(self.parameter_node_at_instant, VectorialParameterNodeAtInstant):
             # In case of vectorization, we keep the parent node name as, for instance, rate[status].zone1 is best described as the value of "rate"
             name = self.parameter_node_at_instant._name
         else:

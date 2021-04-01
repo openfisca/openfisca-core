@@ -5,13 +5,13 @@ import typing
 
 import numpy
 
-from openfisca_core import periods
+from openfisca_core.periods import Period
 
 
 @dataclasses.dataclass
 class TraceNode:
     name: str
-    period: periods.Period
+    period: Period
     parent: typing.Optional[TraceNode] = None
     children: typing.List[TraceNode] = dataclasses.field(default_factory = list)
     parameters: typing.List[TraceNode] = dataclasses.field(default_factory = list)

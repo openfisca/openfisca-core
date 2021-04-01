@@ -1,7 +1,7 @@
-from openfisca_core import projectors
+from openfisca_core.projectors import Projector
 
 
-class UniqueRoleToEntityProjector(projectors.Projector):
+class UniqueRoleToEntityProjector(Projector):
     """ For instance famille.declarant_principal."""
 
     def __init__(self, entity, role, parent = None):

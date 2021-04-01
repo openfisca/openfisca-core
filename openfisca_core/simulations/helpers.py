@@ -1,4 +1,4 @@
-from openfisca_core import errors
+from openfisca_core.errors import SituationParsingError
 
 
 def calculate_output_add(simulation, variable_name, period):
@@ -20,7 +20,7 @@ def check_type(input, input_type, path = None):
         path = []
 
     if not isinstance(input, input_type):
-        raise errors.SituationParsingError(path,
+        raise SituationParsingError(path,
             "Invalid type: must be of type '{}'.".format(json_type_map[input_type]))
 
 

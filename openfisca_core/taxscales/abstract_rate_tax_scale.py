@@ -5,10 +5,10 @@ import warnings
 
 import numpy
 
-from openfisca_core import taxscales
+from openfisca_core.taxscales import RateTaxScaleLike
 
 
-class AbstractRateTaxScale(taxscales.RateTaxScaleLike):
+class AbstractRateTaxScale(RateTaxScaleLike):
     """
     Base class for various types of rate-based tax scales: marginal rate, linear
     average rate...

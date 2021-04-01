@@ -4,7 +4,8 @@ import typing
 
 import numpy
 
-from openfisca_core import indexed_enums
+if typing.TYPE_CHECKING:
+    from openfisca_core.indexed_enums import Enum
 
 
 class EnumArray(numpy.ndarray):
@@ -20,7 +21,7 @@ class EnumArray(numpy.ndarray):
     def __new__(
             cls,
             input_array: numpy.ndarray[int],
-            possible_values: typing.Optional[typing.Type[indexed_enums.Enum]] = None,
+            possible_values: typing.Optional[typing.Type[Enum]] = None,
             ) -> EnumArray:
         obj = numpy.asarray(input_array).view(cls)
         obj.possible_values = possible_values
@@ -61,7 +62,7 @@ class EnumArray(numpy.ndarray):
     __and__ = _forbidden_operation
     __or__ = _forbidden_operation
 
-    def decode(self) -> numpy.ndarray[indexed_enums.Enum]:
+    def decode(self) -> numpy.ndarray[Enum]:
         """
         Return the array of enum items corresponding to self.
 

@@ -5,8 +5,7 @@ import typing
 
 import numpy
 
-from openfisca_core import indexed_enums
-from openfisca_core.indexed_enums import config
+from openfisca_core.indexed_enums import config, EnumArray
 
 
 class Enum(enum.Enum):
@@ -31,12 +30,12 @@ class Enum(enum.Enum):
     def encode(
             cls,
             array: typing.Union[
-                indexed_enums.EnumArray,
+                EnumArray,
                 numpy.ndarray[int],
                 numpy.ndarray[str],
                 numpy.ndarray[Enum],
                 ],
-            ) -> indexed_enums.EnumArray:
+            ) -> EnumArray:
         """
         Encode a string numpy array, an enum item numpy array, or an int numpy array
         into an :any:`EnumArray`. See :any:`EnumArray.decode` for decoding.
@@ -60,7 +59,7 @@ class Enum(enum.Enum):
         >>> encoded_array[0]
         2  # Encoded value
         """
-        if type(array) is indexed_enums.EnumArray:
+        if type(array) is EnumArray:
             return array
 
         if array.dtype.kind in {'U', 'S'}:  # String array
@@ -86,4 +85,4 @@ class Enum(enum.Enum):
                 [item.index for item in cls],
                 ).astype(config.ENUM_ARRAY_DTYPE)
 
-        return indexed_enums.EnumArray(array, cls)
+        return EnumArray(array, cls)

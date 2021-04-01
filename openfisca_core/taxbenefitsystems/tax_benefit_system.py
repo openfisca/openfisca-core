@@ -9,9 +9,11 @@ import traceback
 import typing
 from imp import find_module, load_module
 
-from openfisca_core import commons, errors, periods, variables
+from openfisca_core import commons, periods, variables
 from openfisca_core.entities import Entity
+from openfisca_core.errors import VariableNameConflictError, VariableNotFoundError
 from openfisca_core.parameters import ParameterNode
+from openfisca_core.periods import Instant, Period
 from openfisca_core.populations import Population, GroupPopulation
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.variables import Variable
@@ -129,7 +131,7 @@ class TaxBenefitSystem:
         # Check if a Variable with the same name is already registered.
         baseline_variable = self.get_variable(name)
         if baseline_variable and not update:
-            raise errors.VariableNameConflictError(
+            raise VariableNameConflictError(
                 'Variable "{}" is already defined. Use `update_variable` to replace it.'.format(name))
 
         variable = variable_class(baseline_variable = baseline_variable)
@@ -292,7 +294,7 @@ class TaxBenefitSystem:
         variables = self.variables
         found = variables.get(variable_name)
         if not found and check_existence:
-            raise errors.VariableNotFoundError(variable_name, self)
+            raise VariableNotFoundError(variable_name, self)
         return found
 
     def neutralize_variable(self, variable_name):
@@ -305,7 +307,7 @@ class TaxBenefitSystem:
         """
         self.variables[variable_name] = variables.get_neutralized_variable(self.get_variable(variable_name))
 
-    def annualize_variable(self, variable_name: str, period: typing.Optional[periods.Period] = None):
+    def annualize_variable(self, variable_name: str, period: typing.Optional[Period] = None):
         self.variables[variable_name] = variables.get_annualized_variable(self.get_variable(variable_name, period))
 
     def load_parameters(self, path_to_yaml_dir):
@@ -340,12 +342,12 @@ class TaxBenefitSystem:
         :returns: The parameters of the legislation at a given instant.
         :rtype: :any:`ParameterNodeAtInstant`
         """
-        if isinstance(instant, periods.Period):
+        if isinstance(instant, Period):
             instant = instant.start
         elif isinstance(instant, (str, int)):
             instant = periods.instant(instant)
         else:
-            assert isinstance(instant, periods.Instant), "Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {}.".format(instant)
+            assert isinstance(instant, Instant), "Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {}.".format(instant)
 
         parameters_at_instant = self._parameters_at_instant_cache.get(instant)
         if parameters_at_instant is None and self.parameters is not None:

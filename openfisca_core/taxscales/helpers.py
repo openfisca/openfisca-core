@@ -1,13 +1,18 @@
+from __future__ import annotations
+
 import logging
 import typing
 
-from openfisca_core import parameters, taxscales
+from openfisca_core import taxscales
 
 log = logging.getLogger(__name__)
 
+if typing.TYPE_CHECKING:
+    from openfisca_core.parameters import ParameterNodeAtInstant
+
 
 def combine_tax_scales(
-        node: parameters.ParameterNodeAtInstant,  # node: ParameterNodeAtInstant
+        node: ParameterNodeAtInstant,
         combined_tax_scales: typing.Optional[taxscales.MarginalRateTaxScale] = None,
         ) -> typing.Optional[taxscales.MarginalRateTaxScale]:
     """

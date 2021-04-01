@@ -1,7 +1,7 @@
-from openfisca_core import parameters
+from openfisca_core.parameters import Parameter
 
 
-class ValuesHistory(parameters.Parameter):
+class ValuesHistory(Parameter):
     """
     Only for backward compatibility.
     """

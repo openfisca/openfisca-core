@@ -16,8 +16,8 @@
 #
 # And for classes:
 #
-#   >>> from openfisca_core import module
-#   >>> module.Symbol()
+#   >>> from openfisca_core.module import Symbol
+#   >>> Symbol()
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 

@@ -3,7 +3,11 @@ import logging
 
 import numpy
 
-from openfisca_core import commons, errors, indexed_enums, periods, tracers
+from openfisca_core import commons, periods
+from openfisca_core.errors import CycleError, SpiralError
+from openfisca_core.indexed_enums import Enum, EnumArray
+from openfisca_core.periods import Period
+from openfisca_core.tracers import FullTracer, SimpleTracer, TracingParameterNodeAtInstant
 
 log = logging.getLogger(__name__)
 
@@ -35,7 +39,7 @@ class Simulation:
 
         self.debug = False
         self.trace = False
-        self.tracer = tracers.SimpleTracer()
+        self.tracer = SimpleTracer()
         self.opt_out_cache = False
 
         # controls the spirals detection; check for performance impact if > 1
@@ -51,9 +55,9 @@ class Simulation:
     def trace(self, trace):
         self._trace = trace
         if trace:
-            self.tracer = tracers.FullTracer()
+            self.tracer = FullTracer()
         else:
-            self.tracer = tracers.SimpleTracer()
+            self.tracer = SimpleTracer()
 
     def link_to_entities_instances(self):
         for _key, entity_instance in self.populations.items():
@@ -80,7 +84,7 @@ class Simulation:
     # ----- Calculation methods ----- #
 
     def calculate(self, variable_name, period):
-        if period is not None and not isinstance(period, periods.Period):
+        if period is not None and not isinstance(period, Period):
             period = periods.period(period)
 
         self.tracer.record_calculation_start(variable_name, period)
@@ -94,7 +98,7 @@ class Simulation:
             self.tracer.record_calculation_end()
             self.purge_cache_of_invalid_values()
 
-    def _calculate(self, variable_name, period: periods.Period):
+    def _calculate(self, variable_name, period: Period):
         """
         Calculate the variable ``variable_name`` for the period ``period``, using the variable formula if it exists.
 
@@ -125,7 +129,7 @@ class Simulation:
             array = self._cast_formula_result(array, variable)
             holder.put_in_cache(array, period)
 
-        except errors.SpiralError:
+        except SpiralError:
             array = holder.default_array()
 
         return array
@@ -142,7 +146,7 @@ class Simulation:
     def calculate_add(self, variable_name, period):
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
 
-        if period is not None and not isinstance(period, periods.Period):
+        if period is not None and not isinstance(period, Period):
             period = periods.period(period)
 
         # Check that the requested period matches definition_period
@@ -166,7 +170,7 @@ class Simulation:
     def calculate_divide(self, variable_name, period):
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
 
-        if period is not None and not isinstance(period, periods.Period):
+        if period is not None and not isinstance(period, Period):
             period = periods.period(period)
 
         # Check that the requested period matches definition_period
@@ -201,7 +205,7 @@ class Simulation:
         return variable.calculate_output(self, variable_name, period)
 
     def trace_parameters_at_instant(self, formula_period):
-        return tracers.TracingParameterNodeAtInstant(
+        return TracingParameterNodeAtInstant(
             self.tax_benefit_system.get_parameters_at_instant(formula_period),
             self.tracer
             )
@@ -254,7 +258,7 @@ class Simulation:
                 ))
 
     def _cast_formula_result(self, value, variable):
-        if variable.value_type == indexed_enums.Enum and not isinstance(value, indexed_enums.EnumArray):
+        if variable.value_type == Enum and not isinstance(value, EnumArray):
             return variable.possible_values.encode(value)
 
         if not isinstance(value, numpy.ndarray):
@@ -278,12 +282,12 @@ class Simulation:
         # The last frame is the current calculation, so it should be ignored from cycle detection
         previous_periods = [frame['period'] for frame in self.tracer.stack[:-1] if frame['name'] == variable]
         if period in previous_periods:
-            raise errors.CycleError("Circular definition detected on formula {}@{}".format(variable, period))
+            raise CycleError("Circular definition detected on formula {}@{}".format(variable, period))
         spiral = len(previous_periods) >= self.max_spiral_loops
         if spiral:
             self.invalidate_spiral_variables(variable)
             message = "Quasicircular definition detected on formula {}@{} involving {}".format(variable, period, self.tracer.stack)
-            raise errors.SpiralError(message, variable)
+            raise SpiralError(message, variable)
 
     def invalidate_cache_entry(self, variable: str, period):
         self.invalidated_caches.add((variable, period))
@@ -309,7 +313,7 @@ class Simulation:
 
         Unlike :any:`calculate`, this method *does not* trigger calculations and *does not* use any formula.
         """
-        if period is not None and not isinstance(period, periods.Period):
+        if period is not None and not isinstance(period, Period):
             period = periods.period(period)
         return self.get_holder(variable_name).get_array(period)
 

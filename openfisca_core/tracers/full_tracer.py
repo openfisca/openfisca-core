@@ -3,13 +3,20 @@ import typing
 
 import numpy
 
-from openfisca_core import tracers
+# from openfisca_core import tracers
+from openfisca_core.tracers import (
+    ComputationLog,
+    FlatTrace,
+    PerformanceLog,
+    SimpleTracer,
+    TraceNode,
+    )
 
 
 class FullTracer:
 
     def __init__(self):
-        self._simple_tracer = tracers.SimpleTracer()
+        self._simple_tracer = SimpleTracer()
         self._trees = []
         self._current_node = None
 
@@ -19,7 +26,7 @@ class FullTracer:
         self._record_start_time()
 
     def _enter_calculation(self, variable: str, period):
-        new_node = tracers.TraceNode(name = variable, period = period, parent = self._current_node)
+        new_node = TraceNode(name = variable, period = period, parent = self._current_node)
         if self._current_node is None:
             self._trees.append(new_node)
         else:
@@ -27,7 +34,7 @@ class FullTracer:
         self._current_node = new_node
 
     def record_parameter_access(self, parameter: str, period, value):
-        self._current_node.parameters.append(tracers.TraceNode(name = parameter, period = period, value = value))
+        self._current_node.parameters.append(TraceNode(name = parameter, period = period, value = value))
 
     def _record_start_time(self, time_in_s: typing.Optional[float] = None):
         if time_in_s is None:
@@ -62,15 +69,15 @@ class FullTracer:
 
     @property
     def computation_log(self):
-        return tracers.ComputationLog(self)
+        return ComputationLog(self)
 
     @property
     def performance_log(self):
-        return tracers.PerformanceLog(self)
+        return PerformanceLog(self)
 
     @property
     def flat_trace(self):
-        return tracers.FlatTrace(self)
+        return FlatTrace(self)
 
     def _get_time_in_sec(self) -> float:
         return time.time_ns() / (10**9)
@@ -99,7 +106,7 @@ class FullTracer:
     def get_serialized_flat_trace(self):
         return self.flat_trace.get_serialized_trace()
 
-    def browse_trace(self) -> typing.Iterator[tracers.TraceNode]:
+    def browse_trace(self) -> typing.Iterator[TraceNode]:
         def _browse_node(node):
             yield node
             for child in node.children:

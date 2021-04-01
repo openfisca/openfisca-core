@@ -1,7 +1,7 @@
-from openfisca_core import projectors
+from openfisca_core.projectors import Projector
 
 
-class EntityToPersonProjector(projectors.Projector):
+class EntityToPersonProjector(Projector):
     """For instance person.family."""
 
     def __init__(self, entity, parent = None):

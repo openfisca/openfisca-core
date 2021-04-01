@@ -3,7 +3,8 @@ import traceback
 
 import numpy
 
-from openfisca_core import errors, parameters, periods
+from openfisca_core import parameters, periods
+from openfisca_core.errors import ParameterParsingError
 from openfisca_core.parameters import config
 
 
@@ -43,14 +44,14 @@ def _load_yaml_file(file_path):
             return config.yaml.load(f, Loader = config.Loader)
         except (config.yaml.scanner.ScannerError, config.yaml.parser.ParserError):
             stack_trace = traceback.format_exc()
-            raise errors.ParameterParsingError(
+            raise ParameterParsingError(
                 "Invalid YAML. Check the traceback above for more details.",
                 file_path,
                 stack_trace
                 )
         except Exception:
             stack_trace = traceback.format_exc()
-            raise errors.ParameterParsingError(
+            raise ParameterParsingError(
                 "Invalid parameter file content. Check the traceback above for more details.",
                 file_path,
                 stack_trace
@@ -82,7 +83,7 @@ def _validate_parameter(parameter, data, data_type = None, allowed_keys = None):
         }
 
     if data_type is not None and not isinstance(data, data_type):
-        raise errors.ParameterParsingError(
+        raise ParameterParsingError(
             "'{}' must be of type {}.".format(parameter.name, type_map[data_type]),
             parameter.file_path
             )
@@ -91,7 +92,7 @@ def _validate_parameter(parameter, data, data_type = None, allowed_keys = None):
         keys = data.keys()
         for key in keys:
             if key not in allowed_keys:
-                raise errors.ParameterParsingError(
+                raise ParameterParsingError(
                     "Unexpected property '{}' in '{}'. Allowed properties are {}."
                     .format(key, parameter.name, list(allowed_keys)),
                     parameter.file_path

@@ -1,11 +1,11 @@
 import csv
-import importlib.resources as pkg_resources
+import importlib.resources
 import itertools
 import json
 import os
 import typing
 
-from openfisca_core import tracers
+from openfisca_core.tracers import TraceNode
 
 
 class PerformanceLog:
@@ -15,7 +15,7 @@ class PerformanceLog:
 
     def generate_graph(self, dir_path):
         with open(os.path.join(dir_path, 'performance_graph.html'), 'w') as f:
-            template = pkg_resources.read_text('openfisca_core.scripts.assets', 'index.html')
+            template = importlib.resources.read_text('openfisca_core.scripts.assets', 'index.html')
             perf_graph_html = template.replace('{{data}}', json.dumps(self._json()))
             f.write(perf_graph_html)
 
@@ -44,10 +44,10 @@ class PerformanceLog:
             formula_time = sum(calculation[1]['formula_time'] for calculation in calculations)
             return {
                 'calculation_count': calculation_count,
-                'calculation_time': tracers.TraceNode.round(calculation_time),
-                'formula_time': tracers.TraceNode.round(formula_time),
-                'avg_calculation_time': tracers.TraceNode.round(calculation_time / calculation_count),
-                'avg_formula_time': tracers.TraceNode.round(formula_time / calculation_count),
+                'calculation_time': TraceNode.round(calculation_time),
+                'formula_time': TraceNode.round(formula_time),
+                'avg_calculation_time': TraceNode.round(calculation_time / calculation_count),
+                'avg_formula_time': TraceNode.round(formula_time / calculation_count),
                 }
 
         all_calculations = sorted(flat_trace.items())
@@ -61,7 +61,7 @@ class PerformanceLog:
         calculations_total_time = sum(child['value'] for child in children)
         return {'name': 'All calculations', 'value': calculations_total_time, 'children': children}
 
-    def _json_tree(self, tree: tracers.TraceNode):
+    def _json_tree(self, tree: TraceNode):
         calculation_total_time = tree.calculation_time()
         children = [self._json_tree(child) for child in tree.children]
         return {'name': f"{tree.name}<{tree.period}>", 'value': calculation_total_time, 'children': children}

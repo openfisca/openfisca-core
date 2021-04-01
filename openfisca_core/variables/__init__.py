@@ -16,13 +16,11 @@
 #
 # And for classes:
 #
-#   >>> from openfisca_core import module
-#   >>> module.Symbol()
+#   >>> from openfisca_core.module import Symbol
+#   >>> Symbol()
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
 from .config import VALUE_TYPES, FORMULA_NAME_PREFIX  # noqa: F401
+from .helpers import get_annualized_variable, get_neutralized_variable  # noqa: F401
 from .variable import Variable  # noqa: F401
-
-get_annualized_variable = Variable.get_annualized_variable
-get_neutralized_variable = Variable.get_neutralized_variable

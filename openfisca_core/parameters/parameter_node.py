@@ -5,10 +5,10 @@ import os
 import typing
 
 from openfisca_core import commons, parameters, tools
-from openfisca_core.parameters import config, helpers
+from openfisca_core.parameters import config, helpers, AtInstantLike, Parameter, ParameterNodeAtInstant
 
 
-class ParameterNode(parameters.AtInstantLike):
+class ParameterNode(AtInstantLike):
     """
     A node in the legislation `parameter tree <https://openfisca.org/doc/coding-the-legislation/legislation_parameters.html>`_.
     """
@@ -47,7 +47,7 @@ class ParameterNode(parameters.AtInstantLike):
         >>> node = ParameterNode('benefits', directory_path = '/path/to/country_package/parameters/benefits')
         """
         self.name: str = name
-        self.children: typing.Dict[str, typing.Union[ParameterNode, parameters.Parameter, parameters.ParameterScale]] = {}
+        self.children: typing.Dict[str, typing.Union[ParameterNode, Parameter, parameters.ParameterScale]] = {}
         self.description: str = None
         self.documentation: str = None
         self.file_path: str = None
@@ -116,7 +116,7 @@ class ParameterNode(parameters.AtInstantLike):
         """
         if name in self.children:
             raise ValueError("{} has already a child named {}".format(self.name, name))
-        if not (isinstance(child, parameters.ParameterNode) or isinstance(child, parameters.Parameter) or isinstance(child, parameters.ParameterScale)):
+        if not (isinstance(child, ParameterNode) or isinstance(child, Parameter) or isinstance(child, parameters.ParameterScale)):
             raise TypeError("child must be of type ParameterNode, Parameter, or Scale. Instead got {}".format(type(child)))
         self.children[name] = child
         setattr(self, name, child)
@@ -152,4 +152,4 @@ class ParameterNode(parameters.AtInstantLike):
         return clone
 
     def _get_at_instant(self, instant):
-        return parameters.ParameterNodeAtInstant(self.name, self, instant)
+        return ParameterNodeAtInstant(self.name, self, instant)

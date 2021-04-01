@@ -4,7 +4,10 @@ import warnings
 import numpy
 import psutil
 
-from openfisca_core import commons, data_storage, errors, indexed_enums, periods, tools
+from openfisca_core import commons, periods, tools
+from openfisca_core.errors import PeriodMismatchError
+from openfisca_core.data_storage import InMemoryStorage, OnDiskStorage
+from openfisca_core.indexed_enums import Enum
 
 
 class Holder:
@@ -16,7 +19,7 @@ class Holder:
         self.population = population
         self.variable = variable
         self.simulation = population.simulation
-        self._memory_storage = data_storage.InMemoryStorage(is_eternal = (self.variable.definition_period == periods.ETERNITY))
+        self._memory_storage = InMemoryStorage(is_eternal = (self.variable.definition_period == periods.ETERNITY))
 
         # By default, do not activate on-disk storage, or variable dropping
         self._disk_storage = None
@@ -51,7 +54,7 @@ class Holder:
         storage_dir = os.path.join(directory, self.variable.name)
         if not os.path.isdir(storage_dir):
             os.mkdir(storage_dir)
-        return data_storage.OnDiskStorage(
+        return OnDiskStorage(
             storage_dir,
             is_eternal = (self.variable.definition_period == periods.ETERNITY),
             preserve_storage_dir = preserve
@@ -153,7 +156,7 @@ class Holder:
                     self.variable.name,
                     self.variable.definition_period
                 )
-            raise errors.PeriodMismatchError(
+            raise PeriodMismatchError(
                 self.variable.name,
                 period,
                 self.variable.definition_period,
@@ -181,7 +184,7 @@ class Holder:
             raise ValueError(
                 'Unable to set value "{}" for variable "{}", as its length is {} while there are {} {} in the simulation.'
                 .format(value, self.variable.name, len(value), self.population.count, self.population.entity.plural))
-        if self.variable.value_type == indexed_enums.Enum:
+        if self.variable.value_type == Enum:
             value = self.variable.possible_values.encode(value)
         if value.dtype != self.variable.dtype:
             try:
@@ -206,7 +209,7 @@ class Holder:
                     f'If you are the maintainer of "{name}", you can consider adding it a set_input attribute to enable automatic period casting.'
                     ])
 
-                raise errors.PeriodMismatchError(
+                raise PeriodMismatchError(
                     self.variable.name,
                     period,
                     self.variable.definition_period,

@@ -1,7 +1,8 @@
 import copy
 import typing
 
-from openfisca_core import commons, errors
+from openfisca_core import commons
+from openfisca_core.errors import ParameterParsingError
 from openfisca_core.parameters import config, helpers
 
 
@@ -42,12 +43,12 @@ class ParameterAtInstant:
         try:
             value = data['value']
         except KeyError:
-            raise errors.ParameterParsingError(
+            raise ParameterParsingError(
                 "Missing 'value' property for {}".format(self.name),
                 self.file_path
                 )
         if not isinstance(value, config.ALLOWED_PARAM_TYPES):
-            raise errors.ParameterParsingError(
+            raise ParameterParsingError(
                 "Value in {} has type {}, which is not one of the allowed types ({}): {}".format(self.name, type(value), config.ALLOWED_PARAM_TYPES, value),
                 self.file_path
                 )

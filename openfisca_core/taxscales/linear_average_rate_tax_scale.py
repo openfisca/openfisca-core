@@ -6,11 +6,12 @@ import typing
 import numpy
 
 from openfisca_core import taxscales
+from openfisca_core.taxscales import RateTaxScaleLike
 
 log = logging.getLogger(__name__)
 
 
-class LinearAverageRateTaxScale(taxscales.RateTaxScaleLike):
+class LinearAverageRateTaxScale(RateTaxScaleLike):
 
     def calc(
             self,
