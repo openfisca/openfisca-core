@@ -18,9 +18,10 @@ def build_openAPI_specification(api_data):
     file = open(OPEN_API_CONFIG_FILE, 'r')
     spec = yaml.safe_load(file)
     country_package_name = api_data['country_package_metadata']['name'].title()
+    country_package_version = api_data['country_package_metadata']['version']
     dpath.util.new(spec, 'info/title', spec['info']['title'].replace("{COUNTRY_PACKAGE_NAME}", country_package_name))
     dpath.util.new(spec, 'info/description', spec['info']['description'].replace("{COUNTRY_PACKAGE_NAME}", country_package_name))
-    dpath.util.new(spec, 'info/version', api_data['country_package_metadata']['version'])
+    dpath.util.new(spec, 'info/version', spec['info']['version'].replace("{COUNTRY_PACKAGE_VERSION}", country_package_version))
 
     for entity in tax_benefit_system.entities:
         name = entity.key.title()
