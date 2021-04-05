@@ -13,6 +13,7 @@ try:
     from flask import Flask, jsonify, abort, request, make_response
     from flask_cors import CORS
     from werkzeug.middleware.proxy_fix import ProxyFix
+    import werkzeug.exceptions
 except ImportError as error:
     handle_import_error(error)
 
@@ -139,7 +140,7 @@ def create_app(tax_benefit_system,
             result = handlers.calculate(tax_benefit_system, input_data)
         except SituationParsingError as e:
             abort(make_response(jsonify(e.error), e.code or 400))
-        except UnicodeEncodeError as e:
+        except (UnicodeEncodeError, UnicodeDecodeError) as e:
             abort(make_response(jsonify({"error": "'" + e[1] + "' is not a valid ASCII value."}), 400))
         return jsonify(result)
 
@@ -180,15 +181,11 @@ def create_app(tax_benefit_system,
         return response
 
     @app.errorhandler(500)
-    def internal_server_error(e):
-        message = str(e.args[0])
-        if type(e) == UnicodeEncodeError or type(e) == UnicodeDecodeError:
-            response = jsonify({"error": "Internal server error: '" + e[1] + "' is not a valid ASCII value."})
-        elif message:
-            response = jsonify({"error": "Internal server error: " + message.strip(os.linesep).replace(os.linesep, ' ')})
-        else:
-            response = jsonify({"error": "Internal server error: " + str(e)})
+    def internal_server_error(e: werkzeug.exceptions.InternalServerError):
+        message = getattr(e, "original_exception", e.description)
+        response = jsonify({"error": "Internal server error: " + str(message)})
         response.status_code = 500
+
         return response
 
     return app

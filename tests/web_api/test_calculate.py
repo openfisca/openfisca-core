@@ -2,7 +2,7 @@
 
 import os
 import json
-from http.client import BAD_REQUEST, OK, NOT_FOUND
+from http.client import OK, BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR
 from copy import deepcopy
 
 import pytest
@@ -317,3 +317,49 @@ def test_periods():
 
     monthly_variable = dpath.get(response_json, 'households/_/housing_occupancy_status')  # web api month is a string
     assert monthly_variable == {'2017-01': 'tenant'}
+
+
+def test_gracefully_handle_unexpected_errors():
+    """
+    Context
+    ========
+
+    Whenever an exception is raised by the calculation engine, the API will try
+    to handle it and to provide a useful message to the user (4XX). When the
+    unexpected happens, if the exception is available it will be forwarded
+    and given to the user even in this worst case scenario (500).
+
+    Scenario
+    ========
+
+    Calculate the housing tax due by Bill a thousand years ago.
+
+    Expected behaviour
+    ========
+
+    In the `country-template`, Housing Tax is only defined from 2010 onwards.
+    The calculation engine should therefore raise an exception `ParameterNotFound`.
+    The API is not expecting this, but she should handle the situation nonetheless.
+    """
+    variable = "housing_tax"
+    period = "1234-05-06"
+
+    simulation_json = json.dumps({
+        "persons": {
+            "bill": {},
+            },
+        "households": {
+            "_": {
+                "parents": ["bill"],
+                variable: {
+                    period: None,
+                    },
+                }
+            }
+        })
+
+    response = post_json(simulation_json)
+    assert response.status_code == INTERNAL_SERVER_ERROR
+
+    error = json.loads(response.data)["error"]
+    assert f"Unable to compute variable '{variable}' for period {period}" in error
