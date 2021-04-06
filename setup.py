@@ -37,7 +37,7 @@ dev_requirements = [
 
 setup(
     name = 'OpenFisca-Core',
-    version = '35.3.1',
+    version = '35.3.2',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [
@@ -72,10 +72,5 @@ setup(
         },
     include_package_data = True,  # Will read MANIFEST.in
     install_requires = general_requirements,
-    message_extractors = {
-        'openfisca_core': [
-            ('**.py', 'python', None),
-            ],
-        },
     packages = find_packages(exclude=['tests*']),
     )

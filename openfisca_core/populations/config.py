@@ -1,0 +1,2 @@
+ADD = 'add'
+DIVIDE = 'divide'
