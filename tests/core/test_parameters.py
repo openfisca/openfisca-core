@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import tempfile
-
 import pytest
 
 from openfisca_core.parameters import ParameterNotFound, ParameterNode, ParameterNodeAtInstant, load_parameter_file
-from .test_countries import tax_benefit_system
 
 
-def test_get_at_instant():
+def test_get_at_instant(tax_benefit_system):
     parameters = tax_benefit_system.parameters
     assert isinstance(parameters, ParameterNode), parameters
     parameters_at_instant = parameters('2016-01-01')
@@ -17,7 +14,7 @@ def test_get_at_instant():
     assert parameters_at_instant.benefits.basic_income == 600
 
 
-def test_param_values():
+def test_param_values(tax_benefit_system):
     dated_values = {
         '2015-01-01': 0.15,
         '2014-01-01': 0.14,
@@ -29,46 +26,45 @@ def test_param_values():
         assert tax_benefit_system.get_parameters_at_instant(date).taxes.income_tax_rate == value
 
 
-def test_param_before_it_is_defined():
+def test_param_before_it_is_defined(tax_benefit_system):
     with pytest.raises(ParameterNotFound):
         tax_benefit_system.get_parameters_at_instant('1997-12-31').taxes.income_tax_rate
 
 
 # The placeholder should have no effect on the parameter computation
-def test_param_with_placeholder():
+def test_param_with_placeholder(tax_benefit_system):
     assert tax_benefit_system.get_parameters_at_instant('2018-01-01').taxes.income_tax_rate == 0.15
 
 
-def test_stopped_parameter_before_end_value():
+def test_stopped_parameter_before_end_value(tax_benefit_system):
     assert tax_benefit_system.get_parameters_at_instant('2011-12-31').benefits.housing_allowance == 0.25
 
 
-def test_stopped_parameter_after_end_value():
+def test_stopped_parameter_after_end_value(tax_benefit_system):
     with pytest.raises(ParameterNotFound):
         tax_benefit_system.get_parameters_at_instant('2016-12-01').benefits.housing_allowance
 
 
-def test_parameter_for_period():
+def test_parameter_for_period(tax_benefit_system):
     income_tax_rate = tax_benefit_system.parameters.taxes.income_tax_rate
     assert income_tax_rate("2015") == income_tax_rate("2015-01-01")
 
 
-def test_wrong_value():
+def test_wrong_value(tax_benefit_system):
     income_tax_rate = tax_benefit_system.parameters.taxes.income_tax_rate
     with pytest.raises(ValueError):
         income_tax_rate("test")
 
 
-def test_parameter_repr():
+def test_parameter_repr(tax_benefit_system, tmp_path):
+    path = tmp_path / 'parameters'
     parameters = tax_benefit_system.parameters
-    tf = tempfile.NamedTemporaryFile(delete = False)
-    tf.write(repr(parameters).encode('utf-8'))
-    tf.close()
-    tf_parameters = load_parameter_file(file_path = tf.name)
-    assert repr(parameters) == repr(tf_parameters)
+    path.write_bytes(repr(parameters).encode('utf-8'))
+    tmp_parameters = load_parameter_file(file_path = path)
+    assert repr(parameters) == repr(tmp_parameters)
 
 
-def test_parameters_metadata():
+def test_parameters_metadata(tax_benefit_system):
     parameter = tax_benefit_system.parameters.benefits.basic_income
     assert parameter.metadata['reference'] == 'https://law.gov.example/basic-income/amount'
     assert parameter.metadata['unit'] == 'currency-EUR'
@@ -79,7 +75,7 @@ def test_parameters_metadata():
     assert scale.metadata['rate_unit'] == '/1'
 
 
-def test_parameter_node_metadata():
+def test_parameter_node_metadata(tax_benefit_system):
     parameter = tax_benefit_system.parameters.benefits
     assert parameter.description == 'Social benefits'
 
@@ -87,12 +83,12 @@ def test_parameter_node_metadata():
     assert parameter_2.description == 'Housing tax'
 
 
-def test_parameter_documentation():
+def test_parameter_documentation(tax_benefit_system):
     parameter = tax_benefit_system.parameters.benefits.housing_allowance
     assert parameter.documentation == 'A fraction of the rent.\nFrom the 1st of Dec 2016, the housing allowance no longer exists.\n'
 
 
-def test_get_descendants():
+def test_get_descendants(tax_benefit_system):
     all_parameters = {parameter.name for parameter in tax_benefit_system.parameters.get_descendants()}
     assert all_parameters.issuperset({'taxes', 'taxes.housing_tax', 'taxes.housing_tax.minimal_amount'})
 

@@ -1,59 +1,47 @@
-from openfisca_core.model_api import *  # noqa analysis:ignore
-from openfisca_core.simulation_builder import SimulationBuilder
-from openfisca_core.tools import assert_near
-
-from openfisca_country_template import CountryTaxBenefitSystem
-from openfisca_country_template.entities import *  # noqa analysis:ignore
-from openfisca_country_template.situation_examples import single
-
 from pytest import fixture, raises
+
+from openfisca_core.tools import assert_near
+from openfisca_core.simulations import calculate_output_add
+from openfisca_core.simulations import calculate_output_divide
+from openfisca_core.periods import YEAR
 
 
 @fixture
-def simulation():
-    return SimulationBuilder().build_from_entities(tax_benefit_system, single)
+def simple_variable(make_variable):
+    return make_variable('simple_variable')
 
 
-class simple_variable(Variable):
-    entity = Person
-    definition_period = MONTH
-    value_type = int
+@fixture
+def variable_with_calculate_output_add(make_variable):
+    return make_variable('variable_with_calculate_output_add', calculate_output = calculate_output_add)
 
 
-class variable_with_calculate_output_add(Variable):
-    entity = Person
-    definition_period = MONTH
-    value_type = int
-    calculate_output = calculate_output_add
+@fixture
+def variable_with_calculate_output_divide(make_variable):
+    return make_variable('variable_with_calculate_output_divide',
+            definition_period = YEAR,
+            calculate_output = calculate_output_divide)
 
 
-class variable_with_calculate_output_divide(Variable):
-    entity = Person
-    definition_period = YEAR
-    value_type = int
-    calculate_output = calculate_output_divide
+@fixture
+def simulation_single_with_variables(simulation_builder, tax_benefit_system, single,
+        simple_variable, variable_with_calculate_output_add, variable_with_calculate_output_divide):
+    tax_benefit_system.add_variables(simple_variable, variable_with_calculate_output_add, variable_with_calculate_output_divide)
+    return simulation_builder.build_from_entities(tax_benefit_system, single)
 
 
-tax_benefit_system = CountryTaxBenefitSystem()
-tax_benefit_system.add_variables(
-    simple_variable,
-    variable_with_calculate_output_add,
-    variable_with_calculate_output_divide
-    )
-
-
-def test_calculate_output_default(simulation):
+def test_calculate_output_default(simulation_single_with_variables):
     with raises(ValueError):
-        simulation.calculate_output('simple_variable', 2017)
+        simulation_single_with_variables.calculate_output('simple_variable', 2017)
 
 
-def test_calculate_output_add(simulation):
-    simulation.set_input('variable_with_calculate_output_add', '2017-01', [10])
-    simulation.set_input('variable_with_calculate_output_add', '2017-05', [20])
-    simulation.set_input('variable_with_calculate_output_add', '2017-12', [70])
-    assert_near(simulation.calculate_output('variable_with_calculate_output_add', 2017), 100)
+def test_calculate_output_add(simulation_single_with_variables):
+    simulation_single_with_variables.set_input('variable_with_calculate_output_add', '2017-01', [10])
+    simulation_single_with_variables.set_input('variable_with_calculate_output_add', '2017-05', [20])
+    simulation_single_with_variables.set_input('variable_with_calculate_output_add', '2017-12', [70])
+    assert_near(simulation_single_with_variables.calculate_output('variable_with_calculate_output_add', 2017), 100)
 
 
-def test_calculate_output_divide(simulation):
-    simulation.set_input('variable_with_calculate_output_divide', 2017, [12000])
-    assert_near(simulation.calculate_output('variable_with_calculate_output_divide', '2017-06'), 1000)
+def test_calculate_output_divide(simulation_single_with_variables):
+    simulation_single_with_variables.set_input('variable_with_calculate_output_divide', 2017, [12000])
+    assert_near(simulation_single_with_variables.calculate_output('variable_with_calculate_output_divide', '2017-06'), 1000)
