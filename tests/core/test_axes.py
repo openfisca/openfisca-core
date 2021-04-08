@@ -131,6 +131,17 @@ def test_add_perpendicular_axes(simulation_builder, persons):
     assert simulation_builder.get_input('salary', '2018-11') == approx([0, 1500, 3000, 0, 1500, 3000])
     assert simulation_builder.get_input('pension', '2018-11') == approx([0, 0, 0, 2000, 2000, 2000])
 
+
+def test_axis_on_existing_variable(simulation_builder, persons):
+    simulation_builder.register_variable('salary', persons)
+    simulation_builder.add_person_entity(persons, {
+        'Alicia': {},
+        'Javier': {'salary': {'2018-11': 1000}},
+        })
+    simulation_builder.add_parallel_axis({'count': 10, 'name': 'salary', 'index': 0, 'min': 0, 'max': 3000, 'period': '2018-11'})
+    simulation_builder.expand_axes()
+
+
 # Integration test
 
 
