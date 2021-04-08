@@ -1,5 +1,14 @@
 # Changelog
 
+### 35.3.3 [#994](https://github.com/openfisca/openfisca-core/pull/994)
+
+#### Bug fix
+
+- Repair expansion of axes on a variable given as input
+  - When expanding axes, the expected behavour is to override any input value for the requested variable and period
+  - As longs as we passed some input for a variable on a period, it was not being overrode, creating a NumPy's error (boradcasting)
+  - By additionally checking that an input was given, now we make that the array has the correct shape by constructing it with NumPy's tile with a shape equal to the number of the axis expansion count requested.
+
 ### 35.3.2 [#992](https://github.com/openfisca/openfisca-core/pull/992)
 
 #### Technical improvements
@@ -24,7 +33,7 @@
 
 #### Bug fix
 
-- [Web API] Gracefully handle unexpected errors 
+- [Web API] Gracefully handle unexpected errors
   - The exception signature expected by the internal server error handler was not the good one
   - Henceforth no response was being given to the user, when a 500 with an explanation was expected
 
