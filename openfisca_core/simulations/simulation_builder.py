@@ -513,6 +513,8 @@ class SimulationBuilder:
                 array = self.get_input(axis_name, str(axis_period))
                 if array is None:
                     array = variable.default_array(axis_count * axis_entity_step_size)
+                elif array.size == axis_entity_step_size:
+                    array = numpy.tile(array, axis_count)
                 array[axis_index:: axis_entity_step_size] = numpy.linspace(
                     axis['min'],
                     axis['max'],
@@ -546,6 +548,8 @@ class SimulationBuilder:
                     array = self.get_input(axis_name, str(axis_period))
                     if array is None:
                         array = variable.default_array(cell_count * axis_entity_step_size)
+                    elif array.size == axis_entity_step_size:
+                        array = numpy.tile(array, cell_count)
                     array[axis_index:: axis_entity_step_size] = axis['min'] \
                         + mesh.reshape(cell_count) * (axis['max'] - axis['min']) / (axis_count - 1)
                     self.input_buffer[axis_name][str(axis_period)] = array
