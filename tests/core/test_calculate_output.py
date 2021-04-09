@@ -1,17 +1,10 @@
 from openfisca_core.model_api import *  # noqa analysis:ignore
-from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.tools import assert_near
 
-from openfisca_country_template import CountryTaxBenefitSystem
 from openfisca_country_template.entities import *  # noqa analysis:ignore
 from openfisca_country_template.situation_examples import single
 
 from pytest import fixture, raises
-
-
-@fixture
-def simulation():
-    return SimulationBuilder().build_from_entities(tax_benefit_system, single)
 
 
 class simple_variable(Variable):
@@ -34,12 +27,18 @@ class variable_with_calculate_output_divide(Variable):
     calculate_output = calculate_output_divide
 
 
-tax_benefit_system = CountryTaxBenefitSystem()
-tax_benefit_system.add_variables(
-    simple_variable,
-    variable_with_calculate_output_add,
-    variable_with_calculate_output_divide
-    )
+@fixture(scope = "module", autouse = True)
+def add_variables_to_tax_benefit_system(tax_benefit_system):
+    tax_benefit_system.add_variables(
+        simple_variable,
+        variable_with_calculate_output_add,
+        variable_with_calculate_output_divide
+        )
+
+
+@fixture
+def simulation(simulation_builder, tax_benefit_system):
+    return simulation_builder.build_from_entities(tax_benefit_system, single)
 
 
 def test_calculate_output_default(simulation):
