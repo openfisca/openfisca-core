@@ -1,15 +1,8 @@
-# -*- coding: utf-8 -*-
-
-
-from openfisca_core.simulation_builder import SimulationBuilder
-
 from openfisca_country_template.situation_examples import single
 
-from .test_countries import tax_benefit_system
 
-
-def test_calculate_full_tracer():
-    simulation = SimulationBuilder().build_default_simulation(tax_benefit_system)
+def test_calculate_full_tracer(simulation_builder, tax_benefit_system):
+    simulation = simulation_builder.build_default_simulation(tax_benefit_system)
     simulation.trace = True
     simulation.calculate('income_tax', '2017-01')
 
@@ -29,13 +22,13 @@ def test_calculate_full_tracer():
     assert income_tax_node.parameters[0].value == 0.15
 
 
-def test_get_entity_not_found():
-    simulation = SimulationBuilder().build_default_simulation(tax_benefit_system)
+def test_get_entity_not_found(simulation_builder, tax_benefit_system):
+    simulation = simulation_builder.build_default_simulation(tax_benefit_system)
     assert simulation.get_entity(plural = "no_such_entities") is None
 
 
-def test_clone():
-    simulation = SimulationBuilder().build_from_entities(tax_benefit_system,
+def test_clone(simulation_builder, tax_benefit_system):
+    simulation = simulation_builder.build_from_entities(tax_benefit_system,
             {
                 "persons": {
                     "bill": {"salary": {"2017-01": 3000}},
@@ -63,8 +56,8 @@ def test_clone():
     assert salary_holder_clone.population == simulation_clone.persons
 
 
-def test_get_memory_usage():
-    simulation = SimulationBuilder().build_from_entities(tax_benefit_system, single)
+def test_get_memory_usage(simulation_builder, tax_benefit_system):
+    simulation = simulation_builder.build_from_entities(tax_benefit_system, single)
     simulation.calculate('disposable_income', '2017-01')
     memory_usage = simulation.get_memory_usage(variables = ['salary'])
     assert(memory_usage['total_nb_bytes'] > 0)
