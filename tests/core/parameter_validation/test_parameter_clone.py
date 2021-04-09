@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-from ..test_countries import tax_benefit_system
-
 import os
+
 from openfisca_core.parameters import ParameterNode
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 year = 2016
 
@@ -20,7 +19,7 @@ def test_clone():
     assert id(clone.node1.param) != id(parameters.node1.param)
 
 
-def test_clone_parameter():
+def test_clone_parameter(tax_benefit_system):
 
     param = tax_benefit_system.parameters.taxes.income_tax_rate
     clone = param.clone()
@@ -32,7 +31,7 @@ def test_clone_parameter():
     assert clone.values_list == param.values_list
 
 
-def test_clone_parameter_node():
+def test_clone_parameter_node(tax_benefit_system):
     node = tax_benefit_system.parameters.taxes
     clone = node.clone()
 
@@ -41,7 +40,7 @@ def test_clone_parameter_node():
     assert clone.children['income_tax_rate'] is not node.children['income_tax_rate']
 
 
-def test_clone_scale():
+def test_clone_scale(tax_benefit_system):
     scale = tax_benefit_system.parameters.taxes.social_security_contribution
     clone = scale.clone()
 
@@ -49,7 +48,7 @@ def test_clone_scale():
     assert clone.brackets[0].rate is not scale.brackets[0].rate
 
 
-def test_deep_edit():
+def test_deep_edit(tax_benefit_system):
     parameters = tax_benefit_system.parameters
     clone = parameters.clone()
 
