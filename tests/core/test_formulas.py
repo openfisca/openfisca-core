@@ -1,13 +1,8 @@
-# -*- coding: utf-8 -*-
-
-
 import numpy as np
 
 from openfisca_core.periods import MONTH
-from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.variables import Variable
 from openfisca_core.formula_helpers import switch
-from openfisca_country_template import CountryTaxBenefitSystem
 from openfisca_country_template.entities import Person
 
 from pytest import fixture, approx
@@ -59,9 +54,9 @@ class uses_switch(Variable):
         return result
 
 
-# TaxBenefitSystem instance declared after formulas
-our_tbs = CountryTaxBenefitSystem()
-our_tbs.add_variables(choice, uses_multiplication, uses_switch, returns_scalar)
+@fixture(scope = "module", autouse = True)
+def add_variables_to_tax_benefit_system(tax_benefit_system):
+    tax_benefit_system.add_variables(choice, uses_multiplication, uses_switch, returns_scalar)
 
 
 @fixture
@@ -70,10 +65,9 @@ def month():
 
 
 @fixture
-def simulation(month):
-    builder = SimulationBuilder()
-    builder.default_period = month
-    simulation = builder.build_from_variables(our_tbs, {'choice': np.random.randint(2, size = 1000) + 1})
+def simulation(simulation_builder, tax_benefit_system, month):
+    simulation_builder.default_period = month
+    simulation = simulation_builder.build_from_variables(tax_benefit_system, {'choice': np.random.randint(2, size = 1000) + 1})
     simulation.debug = True
     return simulation
 
