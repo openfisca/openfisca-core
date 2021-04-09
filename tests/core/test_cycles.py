@@ -1,12 +1,8 @@
-# -*- coding: utf-8 -*-
-
 from openfisca_core import periods
 from openfisca_core.periods import MONTH
-from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.simulations import CycleError
 from openfisca_core.variables import Variable
 
-from openfisca_country_template import CountryTaxBenefitSystem
 from openfisca_country_template.entities import Person
 from openfisca_core.tools import assert_near
 
@@ -19,8 +15,8 @@ def reference_period():
 
 
 @fixture
-def simulation(reference_period):
-    return SimulationBuilder().build_default_simulation(tax_benefit_system)
+def simulation(simulation_builder, tax_benefit_system):
+    return simulation_builder.build_default_simulation(tax_benefit_system)
 
 
 # 1 <--> 2 with same period
@@ -106,10 +102,18 @@ class cotisation(Variable):
             return person.empty_array() + 1
 
 
-# TaxBenefitSystem instance declared after formulas
-tax_benefit_system = CountryTaxBenefitSystem()
-tax_benefit_system.add_variables(variable1, variable2, variable3, variable4,
-    variable5, variable6, variable7, cotisation)
+@fixture(scope = "module", autouse = True)
+def add_variables_to_tax_benefit_system(tax_benefit_system):
+    tax_benefit_system.add_variables(
+        variable1,
+        variable2,
+        variable3,
+        variable4,
+        variable5,
+        variable6,
+        variable7,
+        cotisation,
+        )
 
 
 def test_pure_cycle(simulation, reference_period):
