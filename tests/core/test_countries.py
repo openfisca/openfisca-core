@@ -7,17 +7,6 @@ from openfisca_core.variables import Variable
 PERIOD = periods.period("2016-01")
 
 
-@pytest.fixture
-def simulation(simulation_builder, tax_benefit_system, request):
-    variables, period = request.param
-    simulation_builder.set_default_period(period)
-    simulation = \
-        simulation_builder \
-        .build_from_variables(tax_benefit_system, variables)
-
-    return simulation
-
-
 @pytest.mark.parametrize("simulation", [({"salary": 2000}, PERIOD)], indirect = True)
 def test_input_variable(simulation):
     result = simulation.calculate("salary", PERIOD)
