@@ -1,6 +1,6 @@
 import pytest
 
-from openfisca_core.simulations import Axis, SimulationBuilder
+from openfisca_core.simulations import Axis, AxisArray, SimulationBuilder
 from .test_simulation_builder import *  # noqa: F401
 
 
@@ -20,7 +20,7 @@ def axis_args():
 
 
 @pytest.fixture
-def axis(axis_params):
+def axis(axis_args):
     return Axis(axis_args)
 
 
@@ -42,6 +42,13 @@ def test_create_empty_axis():
     """
     with pytest.raises(TypeError):
         Axis()
+
+
+def test_create_axis_array():
+    """
+    Nothing fancy, just an empty container.
+    """
+    assert AxisArray()
 
 
 # With periods

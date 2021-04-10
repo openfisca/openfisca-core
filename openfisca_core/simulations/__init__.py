@@ -25,5 +25,6 @@ from openfisca_core.errors import CycleError, NaNCreationError, SpiralError  # n
 
 from .helpers import calculate_output_add, calculate_output_divide, check_type, transform_to_strict_syntax  # noqa: F401
 from .axis import Axis  # noqa: F401
+from .axis_array import AxisArray  # noqa: F401
 from .simulation import Simulation  # noqa: F401
 from .simulation_builder import SimulationBuilder  # noqa: F401
