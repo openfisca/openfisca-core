@@ -91,34 +91,26 @@ def test_input_with_wrong_period(simulation_builder, tax_benefit_system):
         simulation_builder.build_from_variables(tax_benefit_system, variables)
 
 
-def test_variable_with_reference(simulation_builder, isolated_tax_benefit_system):
+def test_variable_with_reference(make_simulation, isolated_tax_benefit_system):
     variables = {"salary": 4000}
-    simulation_builder.set_default_period(PERIOD)
+    simulation = make_simulation(isolated_tax_benefit_system, variables, PERIOD)
 
-    simulation = \
-        simulation_builder \
-        .build_from_variables(isolated_tax_benefit_system, variables)
+    result = simulation.calculate("disposable_income", PERIOD)
 
-    disposable_income = simulation.calculate("disposable_income", PERIOD)
-
-    assert disposable_income > 0
+    assert result > 0
 
     class disposable_income(Variable):
-
         definition_period = periods.MONTH
 
         def formula(household, period):
             return household.empty_array()
 
     isolated_tax_benefit_system.update_variable(disposable_income)
+    simulation = make_simulation(isolated_tax_benefit_system, variables, PERIOD)
 
-    simulation = \
-        simulation_builder \
-        .build_from_variables(isolated_tax_benefit_system, variables)
+    result = simulation.calculate("disposable_income", PERIOD)
 
-    disposable_income = simulation.calculate("disposable_income", PERIOD)
-
-    assert disposable_income == 0
+    assert result == 0
 
 
 def test_variable_name_conflict(tax_benefit_system):
