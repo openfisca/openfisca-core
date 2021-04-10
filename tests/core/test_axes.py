@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+import pytest
 from pytest import fixture, approx
 
 from openfisca_core.simulation_builder import SimulationBuilder
@@ -10,14 +10,7 @@ def simulation_builder():
     return SimulationBuilder()
 
 
-def test_add_axis_on_persons(simulation_builder, persons):
-    simulation_builder.add_person_entity(persons, {'Alicia': {}})
-    simulation_builder.register_variable('salary', persons)
-    simulation_builder.add_parallel_axis({'count': 3, 'name': 'salary', 'min': 0, 'max': 3000, 'period': '2018-11'})
-    simulation_builder.expand_axes()
-    assert simulation_builder.get_input('salary', '2018-11') == approx([0, 1500, 3000])
-    assert simulation_builder.get_count('persons') == 3
-    assert simulation_builder.get_ids('persons') == ['Alicia0', 'Alicia1', 'Alicia2']
+# With periods
 
 
 def test_add_axis_without_period(simulation_builder, persons):
@@ -27,6 +20,40 @@ def test_add_axis_without_period(simulation_builder, persons):
     simulation_builder.add_parallel_axis({'count': 3, 'name': 'salary', 'min': 0, 'max': 3000})
     simulation_builder.expand_axes()
     assert simulation_builder.get_input('salary', '2018-11') == approx([0, 1500, 3000])
+
+
+# With variables
+
+
+def test_add_axis_on_a_non_existing_variable(simulation_builder, persons):
+    simulation_builder.add_person_entity(persons, {'Alicia': {}})
+    simulation_builder.add_parallel_axis({'count': 3, 'name': 'ubi', 'min': 0, 'max': 3000, 'period': '2018-11'})
+
+    with pytest.raises(KeyError):
+        simulation_builder.expand_axes()
+
+
+def test_add_axis_on_an_existing_variable_with_input(simulation_builder, persons):
+    simulation_builder.add_person_entity(persons, {'Alicia': {'salary': {'2018-11': 1000}}})
+    simulation_builder.register_variable('salary', persons)
+    simulation_builder.add_parallel_axis({'count': 3, 'name': 'salary', 'min': 0, 'max': 3000, 'period': '2018-11'})
+    simulation_builder.expand_axes()
+    assert simulation_builder.get_input('salary', '2018-11') == approx([0, 1500, 3000])
+    assert simulation_builder.get_count('persons') == 3
+    assert simulation_builder.get_ids('persons') == ['Alicia0', 'Alicia1', 'Alicia2']
+
+
+# With entities
+
+
+def test_add_axis_on_persons(simulation_builder, persons):
+    simulation_builder.add_person_entity(persons, {'Alicia': {}})
+    simulation_builder.register_variable('salary', persons)
+    simulation_builder.add_parallel_axis({'count': 3, 'name': 'salary', 'min': 0, 'max': 3000, 'period': '2018-11'})
+    simulation_builder.expand_axes()
+    assert simulation_builder.get_input('salary', '2018-11') == approx([0, 1500, 3000])
+    assert simulation_builder.get_count('persons') == 3
+    assert simulation_builder.get_ids('persons') == ['Alicia0', 'Alicia1', 'Alicia2']
 
 
 def test_add_two_axes(simulation_builder, persons):
@@ -123,6 +150,22 @@ def test_add_axis_distributes_memberships(simulation_builder, persons, group_ent
 
 def test_add_perpendicular_axes(simulation_builder, persons):
     simulation_builder.add_person_entity(persons, {'Alicia': {}})
+    simulation_builder.register_variable('salary', persons)
+    simulation_builder.register_variable('pension', persons)
+    simulation_builder.add_parallel_axis({'count': 3, 'name': 'salary', 'min': 0, 'max': 3000, 'period': '2018-11'})
+    simulation_builder.add_perpendicular_axis({'count': 2, 'name': 'pension', 'min': 0, 'max': 2000, 'period': '2018-11'})
+    simulation_builder.expand_axes()
+    assert simulation_builder.get_input('salary', '2018-11') == approx([0, 1500, 3000, 0, 1500, 3000])
+    assert simulation_builder.get_input('pension', '2018-11') == approx([0, 0, 0, 2000, 2000, 2000])
+
+
+def test_add_perpendicular_axis_on_an_existing_variable_with_input(simulation_builder, persons):
+    simulation_builder.add_person_entity(persons, {
+        'Alicia': {
+            'salary': {'2018-11': 1000},
+            'pension': {'2018-11': 1000},
+            },
+        },)
     simulation_builder.register_variable('salary', persons)
     simulation_builder.register_variable('pension', persons)
     simulation_builder.add_parallel_axis({'count': 3, 'name': 'salary', 'min': 0, 'max': 3000, 'period': '2018-11'})
