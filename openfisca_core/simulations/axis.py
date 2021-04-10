@@ -32,6 +32,19 @@ class Axis:
         period: The period at which the expansion will take place over.
         index:  The :class:`Axis` position relative to other equidistant axes.
 
+    Usage:
+
+       >>> axis = Axis(name = "salary", count = 3, min = 0, max = 3000)
+       >>> axis
+       Axis(name='salary', count=3, min=0, max=3000, period=None, index=None)
+
+       >>> axis.name
+       'salary'
+
+    Testing:
+
+        pytest tests/core/test_axes.py openfisca_core/simulations/axis.py
+
     .. versionadded:: 3.4.0
     """
 

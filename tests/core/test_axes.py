@@ -10,7 +10,7 @@ def simulation_builder():
 
 
 @pytest.fixture
-def axis_args():
+def kwargs():
     return {
         "name": "salary",
         "count": 3,
@@ -20,20 +20,25 @@ def axis_args():
 
 
 @pytest.fixture
-def axis(axis_args):
-    return Axis(axis_args)
+def axis(kwargs):
+    return Axis(**kwargs)
+
+
+@pytest.fixture
+def axis_array():
+    return AxisArray()
 
 
 # Unit tests
 
-def test_create_axis(axis_args):
+
+def test_create_axis(kwargs):
     """
     Works! Missing fields are optional, so they default to None.
     """
-    result = Axis(**axis_args)
+    result = Axis(**kwargs)
     assert result.name == "salary"
     assert not result.period
-    assert not result.index
 
 
 def test_create_empty_axis():
@@ -48,7 +53,16 @@ def test_create_axis_array():
     """
     Nothing fancy, just an empty container.
     """
-    assert AxisArray()
+    result = AxisArray()
+    assert isinstance(result, AxisArray)
+
+
+def test_add_axis_to_array(axis_array, axis):
+    """
+    If you add an :class:`Axis` to the array, it works!
+    """
+    result = axis_array.append(axis)
+    assert axis in result
 
 
 # With periods
