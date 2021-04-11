@@ -122,6 +122,16 @@ def test_add_parallel_axis(axis_array, salary_axis):
     assert result.first().first() == salary_axis
 
 
+def test_add_parallel_axes_with_different_counts(axis_array, salary_axis, pension_axis):
+    """
+    We can't, it should fail!
+
+    Otherwise they become non expandable.
+    """
+    with pytest.raises(TypeError):
+        axis_array.add_parallel(salary_axis).add_parallel(pension_axis)
+
+
 def test_add_perpendicular_axis_before_parallel_axis(axis_array, pension_axis):
     """
     As there are no previously added axes in our collection, it fails!
@@ -146,6 +156,17 @@ def test_add_perpendicular_axis(axis_array, salary_axis, pension_axis):
     # Perpendicular
     assert pension_axis in result.last()
     assert result.last().first() == pension_axis
+
+
+def test_add_perpendicular_axes_with_different_counts(axis_array, salary_axis, pension_axis):
+    """
+    We can, because each perpendicular axis is added to the next dimension.
+    """
+    assert \
+        axis_array \
+        .add_parallel(salary_axis) \
+        .add_perpendicular(salary_axis) \
+        .add_perpendicular(pension_axis)
 
 
 # AxisExpander

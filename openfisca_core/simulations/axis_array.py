@@ -174,14 +174,21 @@ class AxisArray:
 
             >>> axis_array = AxisArray()
             >>> axis = Axis(name = "salary", count = 3, min = 0, max = 3000)
-            >>> axis_array.add_parallel(axis)
+            >>> axis_array = axis_array.add_parallel(axis)
+            >>> axis_array
             AxisArray[AxisArray[Axis(name='salary', ...)]]
+
+            >>> axis = Axis(name = "pension", count = 2, min = 0, max = 3000)
+            >>> axis_array.add_parallel(axis)
+            Traceback (most recent call last):
+            TypeError: Expecting counts to be equal...
 
         .. versionadded:: 35.4.0
         """
         node = self.validate(isinstance, self.first(), (AxisArray, list))
         tail = self.validate(isinstance, tail, Axis)
         parallel = self.__class__([*node, tail])
+        self.validate(self.__has_same_counts, parallel, "counts to be equal")
         return self.__class__([parallel, *self.axes[1:]])
 
     def add_perpendicular(self, tail: Axis) -> Union[AxisArray, NoReturn]:
@@ -243,6 +250,20 @@ class AxisArray:
             return real
 
         raise TypeError(f"Expecting {expected}, but {real} given.")
+
+    def __has_same_counts(self, axes: AxisArray, _) -> bool:
+        """
+        Validate all counts on a collection are the same.
+
+        They have to be the same for all parallel axes of a collection,
+        otherwise they become non expandable.
+        """
+        counts = list(map(lambda axis: axis.count, axes))
+
+        if counts.count(counts[0]) == len(counts):
+            return True
+
+        return False
 
     def __flatten(self, axes: list) -> List[Union[AxisArray, Axis]]:
         """
