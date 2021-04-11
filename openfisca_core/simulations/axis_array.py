@@ -9,17 +9,7 @@ from . import Axis
 @dataclasses.dataclass(frozen = True)
 class AxisArray:
     """
-    A collection of :obj:`Axis` (some business logic).
-
-    Axis expansion is a feature in :module:`openfisca_core` that allows us to
-    parametrise some dimensions in order to create and to evaluate a range of
-    values for others.
-
-    The most typical use of axis expansion is evaluate different numerical
-    values, starting from a :attr:`min_` and up to a :attr:`max_`, that could
-    take any given :class:`openfisca_core.variables.Variable` for any given
-    :class:`openfisca_core.periods.Period` for any given population (or a
-    collection of :module:`openfisca_core.entities`).
+    A collection of :obj:`Axis` (some domain logic related to data integrity).
 
     As axes have a relative position relative to each other, they can be either
     equidistant, that is parallel, or perpendicular. We assume the first

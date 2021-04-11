@@ -11,7 +11,7 @@ from openfisca_core.errors import PeriodMismatchError, SituationParsingError, Va
 from openfisca_core.populations import Population
 from openfisca_core.variables import Variable
 
-from . import helpers, Axis, AxisArray, Simulation
+from . import helpers, Axis, AxisArray, AxisExpander, Simulation
 
 
 class SimulationBuilder:
@@ -475,10 +475,9 @@ class SimulationBuilder:
         .. deprecated:: 35.4.0
 
             Use :meth:`AxisArray.add_parallel` instead.
-
         """
         message = [
-            "The 'add_parallel_axis' function has been deprecated since",
+            "The 'add_parallel_axis' method has been deprecated since",
             "version 35.4.0, and will be removed in the future. Please use",
             "'AxisArray.add_parallel' instead",
             ]
@@ -497,10 +496,9 @@ class SimulationBuilder:
         .. deprecated:: 35.4.0
 
             Use :meth:`AxisArray.add_parallel` instead.
-
         """
         message = [
-            "The 'add_perpendicular_axis' function has been deprecated since",
+            "The 'add_perpendicular_axis' method has been deprecated since",
             "version 35.4.0, and will be removed in the future. Please use",
             "'AxisArray.add_perpendicular' instead",
             ]
@@ -509,17 +507,23 @@ class SimulationBuilder:
         self.axes = self.axes.add_perpendicular(Axis(**axis))
 
     def expand_axes(self):
-        # This method should be idempotent & allow change in axes
-        perpendicular_dimensions = self.axes
+        """
+        Expand all axes for the current simulation.
 
-        cell_count = 1
+        .. deprecated:: 35.4.0
 
-        # All parallel axes have the same count and entity.
-        # Search for a compatible axis, if none exists, error out.
-        for parallel_axes in perpendicular_dimensions:
-            first_axis = parallel_axes.first()
-            axis_count = first_axis.count
-            cell_count *= axis_count
+            Use :class:`AxisExpander` instead.
+        """
+        message = [
+            "The 'expand_axes' method has been deprecated since",
+            "version 35.4.0, and will be removed in the future. Please use",
+            "'AxisExpander' instead",
+            ]
+
+        warnings.warn(" ".join(message), DeprecationWarning)
+
+        expander = AxisExpander(self.axes)
+        cell_count = expander.count_cells()
 
         # Scale the "prototype" situation, repeating it cell_count times
         for entity_name in self.entity_counts.keys():

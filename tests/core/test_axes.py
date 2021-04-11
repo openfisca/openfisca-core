@@ -1,6 +1,12 @@
 import pytest
 
-from openfisca_core.simulations import Axis, AxisArray, SimulationBuilder
+from openfisca_core.simulations import (
+    Axis,
+    AxisArray,
+    AxisExpander,
+    SimulationBuilder,
+    )
+
 from .test_simulation_builder import *  # noqa: F401
 
 
@@ -44,7 +50,14 @@ def axis_array():
     return AxisArray()
 
 
-# Unit tests
+@pytest.fixture
+def axis_expander(axis_array, salary_axis, pension_axis):
+    axis_array = axis_array.add_parallel(salary_axis)
+    axis_array = axis_array.add_perpendicular(pension_axis)
+    return AxisExpander(axis_array)
+
+
+# Axis
 
 
 def test_create_axis(salary):
@@ -62,6 +75,9 @@ def test_create_empty_axis():
     """
     with pytest.raises(TypeError):
         Axis()
+
+
+# AxisArray
 
 
 def test_empty_create_axis_array():
@@ -114,7 +130,7 @@ def test_add_perpendicular_axis_before_parallel_axis(axis_array, pension_axis):
         axis_array.add_perpendicular(pension_axis)
 
 
-def test_add_perpendicular_axis_after_parallel_axis(axis_array, salary_axis, pension_axis):
+def test_add_perpendicular_axis(axis_array, salary_axis, pension_axis):
     """
     As there is at least one parallel axis already, it works!
     """
@@ -130,6 +146,16 @@ def test_add_perpendicular_axis_after_parallel_axis(axis_array, salary_axis, pen
     # Perpendicular
     assert pension_axis in result.last()
     assert result.last().first() == pension_axis
+
+
+# AxisExpander
+
+
+def test_count_cells(axis_expander):
+    assert axis_expander.count_cells() == 6
+
+
+# SimulationBuilder
 
 
 # With periods
