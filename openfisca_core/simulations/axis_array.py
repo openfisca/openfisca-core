@@ -52,6 +52,20 @@ class AxisArray:
         >>> axis_array
         AxisArray[[]]
 
+        >>> salary = Axis(name = "salary", count = 3, min = 0, max = 3)
+        >>> axis_array = axis_array.add_parallel(salary)
+        >>> axis_array
+        AxisArray[AxisArray[Axis(name='salary', ..., index=0)]]
+
+        >>> pension = Axis(name = "pension", count = 2, min = 0, max = 1)
+        >>> axis_array = axis_array.add_perpendicular(pension)
+        >>> axis_array
+        AxisArray[AxisArray[Axis(...)], AxisArray[Axis(...)]]
+
+        >>> rent = Axis(name = "rent", count = 3, min = 0, max = 2)
+        >>> axis_array.add_parallel(rent)
+        AxisArray[AxisArray[Axis(...), Axis(...)], AxisArray[Axis(...)]]
+
     Testing:
 
         pytest tests/core/test_axes.py openfisca_core/simulations/axis_array.py
@@ -94,7 +108,7 @@ class AxisArray:
             >>> axis_array = AxisArray([])
             >>> axis_array.first()
             Traceback (most recent call last):
-            TypeError: Expecting a non empty list, but [] given
+            TypeError: Expecting a non empty list, but [] given.
 
             >>> axis = Axis(name = "salary", count = 3, min = 0, max = 3000)
             >>> node_array = AxisArray([axis])
@@ -103,7 +117,7 @@ class AxisArray:
 
             >>> axis = Axis(name = "salary", count = 3, min = 0, max = 3000)
             >>> axis_array = AxisArray()
-            >>> axis_array = axis_array.append_parallel(axis)
+            >>> axis_array = axis_array.add_parallel(axis)
             >>> axis_array.first()
             AxisArray[Axis(name='salary', ..., index=0)]
 
@@ -112,31 +126,101 @@ class AxisArray:
         self.validate(lambda item, _: item, self.axes, "a non empty list")
         return self.axes[0]
 
-    def append_parallel(self, tail: Axis) -> Union[AxisArray, NoReturn]:
+    def last(self) -> Union[AxisArray, Axis, List]:
         """
-        Append an :obj:`Axis` to the first dimension of our collection.
+        Retrieves the last axis from our axes collection.
 
-        We choose the language "append" instead of "add" as, in a pythonic
-        context, "add" means "concatenate". Here, instead, we're "appending"
-        and :obj:`Axis` to a dimension (the first one) of the collection.
+        Usage:
+
+            >>> axis_array = AxisArray()
+            >>> axis_array.last()
+            []
+
+            >>> axis_array = AxisArray([])
+            >>> axis_array.last()
+            Traceback (most recent call last):
+            TypeError: Expecting a non empty list, but [] given.
+
+            >>> axis = Axis(name = "salary", count = 3, min = 0, max = 3000)
+            >>> node_array = AxisArray([axis])
+            >>> node_array.last()
+            Axis(name='salary', count=3, min=0, max=3000, period=None, index=0)
+
+            >>> axis1 = Axis(name = "salary", count = 3, min = 0, max = 3)
+            >>> axis2 = Axis(name = "pension", count = 2, min = 0, max = 2)
+            >>> axis3 = Axis(name = "rent", count = 3, min = 0, max = 1)
+            >>> axis_array = AxisArray()
+            >>> axis_array = axis_array.add_parallel(axis1)
+            >>> axis_array = axis_array.add_perpendicular(axis2)
+            >>> axis_array = axis_array.add_parallel(axis3)
+
+            >>> axis_array.first()
+            AxisArray[Axis(name='salary', ...), Axis(name='rent', ...)]
+
+            >>> axis_array.first().last()
+            Axis(name='rent', ..., index=0)
+
+            >>> axis_array.last()
+            AxisArray[Axis(name='pension', ...)]
+
+            >>> axis_array.last().last()
+            Axis(name='pension', ..., index=0)
+
+        .. versionadded:: 35.4.0
+        """
+        self.validate(lambda item, _: item, self.axes, "a non empty list")
+        return self.axes[-1]
+
+    def add_parallel(self, tail: Axis) -> Union[AxisArray, NoReturn]:
+        """
+        Add an :obj:`Axis` to the first dimension of our collection.
 
         Args:
 
-            tail:   An :obj:`Axis` to append to the first dimension of our
+            tail:   An :obj:`Axis` to add to the first dimension of our
                     collection.
 
         Usage:
 
             >>> axis_array = AxisArray()
             >>> axis = Axis(name = "salary", count = 3, min = 0, max = 3000)
-            >>> axis_array.append_parallel(axis)
+            >>> axis_array.add_parallel(axis)
             AxisArray[AxisArray[Axis(name='salary', ...)]]
 
         .. versionadded:: 35.4.0
         """
-        parallel = self.validate(isinstance, self.first(), (AxisArray, list))
-        appended = self.__append(parallel, tail)
-        return self.__append(self.axes, appended)
+        node = self.validate(isinstance, self.first(), (AxisArray, list))
+        tail = self.validate(isinstance, tail, Axis)
+        parallel = self.__class__([*node, tail])
+        return self.__class__([parallel, *self.axes[1:]])
+
+    def add_perpendicular(self, tail: Axis) -> Union[AxisArray, NoReturn]:
+        """
+        Add an :obj:`Axis` to the subsequent dimensions of our collection.
+
+        Args:
+
+            tail:   An :obj:`Axis` to add to the subsequent dimensions of
+                    our collection.
+
+        Usage:
+
+            >>> axis_array = AxisArray()
+            >>> axis = Axis(name = "salary", count = 3, min = 0, max = 3000)
+            >>> axis_array.add_perpendicular(axis)
+            Traceback (most recent call last):
+            TypeError: Expecting parallel axes set, but [] given.
+
+            >>> axis_array = axis_array.add_parallel(axis)
+            >>> axis_array.add_perpendicular(axis)
+            AxisArray[AxisArray[Axis(name='salary', ...)]]
+
+        .. versionadded:: 35.4.0
+        """
+        self.validate(lambda item, _: item, self.first(), "parallel axes set")
+        tail = self.validate(isinstance, tail, Axis)
+        perpendicular = self.__class__([tail])
+        return self.__class__([*self.axes, perpendicular])
 
     def validate(
             self,
@@ -161,33 +245,14 @@ class AxisArray:
             >>> expected = list
             >>> axis_array.validate(condition, real, expected)
             Traceback (most recent call last):
-            TypeError: Expecting <class 'list'>, but () given
+            TypeError: Expecting <class 'list'>, but () given.
 
         .. versionadded:: 35.4.0
         """
         if condition(real, expected):
             return real
 
-        raise TypeError(f"Expecting {expected}, but {real} given")
-
-    def __append(
-            self,
-            axes: List[Union[AxisArray, Axis, list]],
-            tail: Union[AxisArray, Axis],
-            ) -> Union[AxisArray, NoReturn]:
-        """
-        Append an element to an array.
-
-        Args:
-
-            axes:   An :obj:`AxisArray` to be appended to.
-            tail:   An :obj:`Axis` or an :obj:`AxisArray` to append.
-
-        .. versionadded:: 35.4.0
-        """
-        self.validate(isinstance, axes, list)
-        self.validate(isinstance, tail, (AxisArray, Axis))
-        return self.__class__([*axes, tail][-1:])
+        raise TypeError(f"Expecting {expected}, but {real} given.")
 
     def __flatten(self, axes: list) -> List[Union[AxisArray, Axis]]:
         """

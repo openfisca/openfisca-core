@@ -10,7 +10,7 @@ def simulation_builder():
 
 
 @pytest.fixture
-def kwargs():
+def salary():
     return {
         "name": "salary",
         "count": 3,
@@ -20,8 +20,23 @@ def kwargs():
 
 
 @pytest.fixture
-def axis(kwargs):
-    return Axis(**kwargs)
+def pension():
+    return {
+        "name": "pension",
+        "count": 2,
+        "min": 0,
+        "max": 2000,
+        }
+
+
+@pytest.fixture
+def salary_axis(salary):
+    return Axis(**salary)
+
+
+@pytest.fixture
+def pension_axis(pension):
+    return Axis(**pension)
 
 
 @pytest.fixture
@@ -32,11 +47,11 @@ def axis_array():
 # Unit tests
 
 
-def test_create_axis(kwargs):
+def test_create_axis(salary):
     """
     Works! Missing fields are optional, so they default to None.
     """
-    result = Axis(**kwargs)
+    result = Axis(**salary)
     assert result.name == "salary"
     assert not result.period
 
@@ -57,20 +72,20 @@ def test_empty_create_axis_array():
     assert isinstance(result, AxisArray)
 
 
-def test_create_axis_array_with_axes(axis):
+def test_create_axis_array_with_axes(salary_axis):
     """
     We can pass along some axes at initialisation time as well.
     """
-    result = AxisArray([axis])
-    assert result.first() == axis
+    result = AxisArray([salary_axis])
+    assert result.first() == salary_axis
 
 
-def test_create_axis_array_with_anything(axis):
+def test_create_axis_array_with_anything(salary_axis):
     """
     If you don't pass a collection, it will fail!
     """
     with pytest.raises(TypeError):
-        AxisArray(axes = axis)
+        AxisArray(salary_axis)
 
 
 def test_create_axis_array_with_a_collection_of_anything():
@@ -78,17 +93,43 @@ def test_create_axis_array_with_a_collection_of_anything():
     If you pass a collection of anything, it will fail!
     """
     with pytest.raises(TypeError):
-        AxisArray(axes = ["axis"])
+        AxisArray(["axis"])
 
 
-def test_append_parallel_axis(axis_array, axis):
+def test_add_parallel_axis(axis_array, salary_axis):
     """
     As there are no previously added axes in our collection, it adds the first
     one to the first dimension (parallel).
     """
-    result = axis_array.append_parallel(axis)
-    assert axis in result.first()
-    assert result.first().first() == axis
+    result = axis_array.add_parallel(salary_axis)
+    assert salary_axis in result.first()
+    assert result.first().first() == salary_axis
+
+
+def test_add_perpendicular_axis_before_parallel_axis(axis_array, pension_axis):
+    """
+    As there are no previously added axes in our collection, it fails!
+    """
+    with pytest.raises(TypeError):
+        axis_array.add_perpendicular(pension_axis)
+
+
+def test_add_perpendicular_axis_after_parallel_axis(axis_array, salary_axis, pension_axis):
+    """
+    As there is at least one parallel axis already, it works!
+    """
+    result = \
+        axis_array \
+        .add_parallel(salary_axis) \
+        .add_perpendicular(pension_axis)
+
+    # Parallel
+    assert salary_axis in result.first()
+    assert result.first().first() == salary_axis
+
+    # Perpendicular
+    assert pension_axis in result.last()
+    assert result.last().first() == pension_axis
 
 
 # With periods

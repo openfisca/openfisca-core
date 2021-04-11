@@ -474,17 +474,17 @@ class SimulationBuilder:
 
         .. deprecated:: 35.4.0
 
-            Use :meth:`AxisArray.append_parallel` instead.
+            Use :meth:`AxisArray.add_parallel` instead.
 
         """
         message = [
             "The 'add_parallel_axis' function has been deprecated since",
             "version 35.4.0, and will be removed in the future. Please use",
-            "'AxisArray.append_parallel' instead",
+            "'AxisArray.add_parallel' instead",
             ]
 
         warnings.warn(" ".join(message), DeprecationWarning)
-        self.axes = self.axes.append_parallel(Axis(**axis))
+        self.axes = self.axes.add_parallel(Axis(**axis))
 
     def add_perpendicular_axis(self, axis: dict) -> None:
         """
@@ -496,17 +496,17 @@ class SimulationBuilder:
 
         .. deprecated:: 35.4.0
 
-            Use :meth:`AxisArray.append_parallel` instead.
+            Use :meth:`AxisArray.add_parallel` instead.
 
         """
         message = [
             "The 'add_perpendicular_axis' function has been deprecated since",
             "version 35.4.0, and will be removed in the future. Please use",
-            "'AxisArray.append_perpendicular' instead",
+            "'AxisArray.add_perpendicular' instead",
             ]
 
         warnings.warn(" ".join(message), DeprecationWarning)
-        self.axes.append_perpendicular(Axis(**axis))
+        self.axes = self.axes.add_perpendicular(Axis(**axis))
 
     def expand_axes(self):
         # This method should be idempotent & allow change in axes
@@ -570,7 +570,7 @@ class SimulationBuilder:
                 self.input_buffer[axis_name][str(axis_period)] = array
         else:
             first_axes_count: List[int] = (
-                parallel_axes[0].count
+                parallel_axes.first().count
                 for parallel_axes
                 in self.axes
                 )
