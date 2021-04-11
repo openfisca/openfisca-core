@@ -107,7 +107,13 @@ class SimulationBuilder:
                 self.add_default_group_entity(persons_ids, entity_class)
 
         if axes:
-            self.axes = axes
+            for axis in axes[0]:
+                self.add_parallel_axis(axis)
+
+            if len(axes) >= 1:
+                for axis in axes[1:]:
+                    self.add_perpendicular_axis(axis[0])
+
             self.expand_axes()
 
         try:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Any, Callable, List, NoReturn, Optional, Type, Union
+from typing import Any, Callable, List, NoReturn, Optional, Union
 
 from .axis import Axis
 
@@ -98,7 +98,7 @@ class AxisArray:
 
         Args:
 
-            axis:   An :obj:`Axis` to append to our collection.
+            tail:   An :obj:`Axis` to append to our collection.
 
         Usage:
 

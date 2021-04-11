@@ -260,10 +260,10 @@ def test_add_perpendicular_axis_on_an_existing_variable_with_input(simulation_bu
     assert simulation_builder.get_input('salary', '2018-11') == pytest.approx([0, 1500, 3000, 0, 1500, 3000])
     assert simulation_builder.get_input('pension', '2018-11') == pytest.approx([0, 0, 0, 2000, 2000, 2000])
 
+
 # Integration test
 
 
-@pytest.mark.skip
 def test_simulation_with_axes(simulation_builder):
     from .test_countries import tax_benefit_system
     input_yaml = """
