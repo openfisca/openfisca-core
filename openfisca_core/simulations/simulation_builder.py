@@ -9,8 +9,9 @@ from openfisca_core import periods
 from openfisca_core.entities import Entity
 from openfisca_core.errors import PeriodMismatchError, SituationParsingError, VariableNotFoundError
 from openfisca_core.populations import Population
-from openfisca_core.simulations import helpers, Axis, Simulation
 from openfisca_core.variables import Variable
+
+from . import helpers, Axis, AxisArray, Simulation
 
 
 class SimulationBuilder:
@@ -33,7 +34,7 @@ class SimulationBuilder:
 
         self.variable_entities: Dict[Variable.name, Entity] = {}
 
-        self.axes = [[]]
+        self.axes = AxisArray()
         self.axes_entity_counts: Dict[Entity.plural, int] = {}
         self.axes_entity_ids: Dict[Entity.plural, List[int]] = {}
         self.axes_memberships: Dict[Entity.plural, List[int]] = {}
@@ -473,17 +474,17 @@ class SimulationBuilder:
 
         .. deprecated:: 35.4.0
 
-            Use :meth:`AxisArray.add_parallel` instead.
+            Use :meth:`AxisArray.append_parallel` instead.
 
         """
         message = [
-            "The 'add_parallel_axis' class has been deprecated since version",
-            "35.4.0, and will be removed in the future. Please use",
-            "'AxisArray.add_parallel' instead",
+            "The 'add_parallel_axis' function has been deprecated since",
+            "version 35.4.0, and will be removed in the future. Please use",
+            "'AxisArray.append_parallel' instead",
             ]
 
         warnings.warn(" ".join(message), DeprecationWarning)
-        self.axes[0].append(Axis(**axis))
+        self.axes = self.axes.append_parallel(Axis(**axis))
 
     def add_perpendicular_axis(self, axis: dict) -> None:
         """
@@ -495,17 +496,17 @@ class SimulationBuilder:
 
         .. deprecated:: 35.4.0
 
-            Use :meth:`AxisArray.add_parallel` instead.
+            Use :meth:`AxisArray.append_parallel` instead.
 
         """
         message = [
-            "The 'add_perpendicular_axis' class has been deprecated since",
+            "The 'add_perpendicular_axis' function has been deprecated since",
             "version 35.4.0, and will be removed in the future. Please use",
-            "'AxisArray.add_perpendicular' instead",
+            "'AxisArray.append_perpendicular' instead",
             ]
 
         warnings.warn(" ".join(message), DeprecationWarning)
-        self.axes.append([Axis(**axis)])
+        self.axes.append_perpendicular(Axis(**axis))
 
     def expand_axes(self):
         # This method should be idempotent & allow change in axes
@@ -516,7 +517,7 @@ class SimulationBuilder:
         # All parallel axes have the same count and entity.
         # Search for a compatible axis, if none exists, error out.
         for parallel_axes in perpendicular_dimensions:
-            first_axis = parallel_axes[0]
+            first_axis = parallel_axes.first()
             axis_count = first_axis.count
             cell_count *= axis_count
 
@@ -543,9 +544,9 @@ class SimulationBuilder:
 
         # Now generate input values along the specified axes
         # TODO - factor out the common logic here
-        if len(self.axes) == 1 and len(self.axes[0]):
-            parallel_axes = self.axes[0]
-            first_axis = parallel_axes[0]
+        if len(self.axes) == 1 and len(self.axes.first()):
+            parallel_axes = self.axes.first()
+            first_axis = parallel_axes.first()
             axis_count: int = first_axis.count
             axis_entity = self.get_variable_entity(first_axis.name)
             axis_entity_step_size = self.entity_counts[axis_entity.plural]
@@ -580,7 +581,7 @@ class SimulationBuilder:
                 ]
             axes_meshes = numpy.meshgrid(*axes_linspaces)
             for parallel_axes, mesh in zip(self.axes, axes_meshes):
-                first_axis = parallel_axes[0]
+                first_axis = parallel_axes.first()
                 axis_count = first_axis.count
                 axis_entity = self.get_variable_entity(first_axis.name)
                 axis_entity_step_size = self.entity_counts[axis_entity.plural]

@@ -61,7 +61,7 @@ def test_create_axis_array_with_axes(axis):
     """
     We can pass along some axes at initialisation time as well.
     """
-    result = AxisArray(axes = [axis])
+    result = AxisArray([axis])
     assert result.first() == axis
 
 
@@ -81,20 +81,15 @@ def test_create_axis_array_with_a_collection_of_anything():
         AxisArray(axes = ["axis"])
 
 
-def test_add_axis_to_array(axis_array, axis):
+def test_append_parallel_axis(axis_array, axis):
     """
-    If you add an :obj:`Axis` to the array, it works!
+    As there are no previously added axes in our collection, it adds the first
+    one to the first dimension (parallel).
     """
-    result = axis_array.append(axis)
-    assert axis in result
+    result = axis_array.append_parallel(axis)
+    assert axis in result.first()
+    assert result.first().first() == axis
 
-
-def test_add_anything_to_array(axis_array, axis):
-    """
-    If you add anything else to the array, it fails!
-    """
-    with pytest.raises(TypeError):
-        axis_array.append("cuack")
 
 # With periods
 

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Any, Callable, List, NoReturn, Optional, Union
+from typing import Any, Callable, Iterator, List, NoReturn, Union
 
-from .axis import Axis
+from . import Axis
 
 
 @dataclasses.dataclass(frozen = True)
@@ -50,7 +50,7 @@ class AxisArray:
 
         >>> axis_array = AxisArray()
         >>> axis_array
-        AxisArray[]
+        AxisArray[[]]
 
     Testing:
 
@@ -59,63 +59,91 @@ class AxisArray:
     .. versionadded:: 35.4.0
     """
 
-    axes: List[Axis] = dataclasses.field(default_factory = list)
+    axes: List[Union[AxisArray, Axis, list]] = \
+        dataclasses \
+        .field(default_factory = lambda: [[]])
 
     def __post_init__(self) -> None:
-        self.validate(isinstance, self.axes, list)
+        axes = self.validate(isinstance, self.axes, list)
 
-        for axis in self.axes:
-            self.validate(isinstance, axis, Axis)
+        for item in self.__flatten(axes):
+            self.validate(isinstance, item, (AxisArray, Axis))
 
-    def __contains__(self, item: Axis) -> bool:
+    def __contains__(self, item: Union[AxisArray, Axis]) -> bool:
         return item in self.axes
+
+    def __iter__(self) -> Iterator:
+        return (item for item in self.axes)
+
+    def __len__(self) -> int:
+        return len(self.axes)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}{repr(self.axes)}"
 
-    def first(self) -> Optional[Axis]:
+    def first(self) -> Union[AxisArray, Axis, List]:
         """
-        Retrieves the first :obj:`Axis` from our axes collection.
+        Retrieves the first axis from our axes collection.
 
         Usage:
 
             >>> axis_array = AxisArray()
+            >>> axis_array.first()
+            []
+
+            >>> axis_array = AxisArray([])
             >>> axis_array.first()
             Traceback (most recent call last):
             TypeError: Expecting a non empty list, but [] given
 
             >>> axis = Axis(name = "salary", count = 3, min = 0, max = 3000)
-            >>> axis_array = axis_array.append(axis)
+            >>> node_array = AxisArray([axis])
+            >>> node_array.first()
+            Axis(name='salary', count=3, min=0, max=3000, period=None, index=0)
+
+            >>> axis = Axis(name = "salary", count = 3, min = 0, max = 3000)
+            >>> axis_array = AxisArray()
+            >>> axis_array = axis_array.append_parallel(axis)
             >>> axis_array.first()
-            Axis(name='salary', ..., index=0)
+            AxisArray[Axis(name='salary', ..., index=0)]
+
+        .. versionadded:: 35.4.0
         """
-        self.validate(lambda axes, _: axes, self.axes, "a non empty list")
+        self.validate(lambda item, _: item, self.axes, "a non empty list")
         return self.axes[0]
 
-    def append(self, tail: Axis) -> Union[AxisArray, NoReturn]:
+    def append_parallel(self, tail: Axis) -> Union[AxisArray, NoReturn]:
         """
-        Append an :obj:`Axis` to our axes collection.
+        Append an :obj:`Axis` to the first dimension of our collection.
+
+        We choose the language "append" instead of "add" as, in a pythonic
+        context, "add" means "concatenate". Here, instead, we're "appending"
+        and :obj:`Axis` to a dimension (the first one) of the collection.
 
         Args:
 
-            tail:   An :obj:`Axis` to append to our collection.
+            tail:   An :obj:`Axis` to append to the first dimension of our
+                    collection.
 
         Usage:
 
             >>> axis_array = AxisArray()
             >>> axis = Axis(name = "salary", count = 3, min = 0, max = 3000)
-            >>> axis_array.append(axis)
-            AxisArray[Axis(name='salary', ...)]
+            >>> axis_array.append_parallel(axis)
+            AxisArray[AxisArray[Axis(name='salary', ...)]]
+
+        .. versionadded:: 35.4.0
         """
-        self.validate(isinstance, tail, Axis)
-        return self.__class__(axes = [*self.axes, tail])
+        parallel = self.validate(isinstance, self.first(), (AxisArray, list))
+        appended = self.__append(parallel, tail)
+        return self.__append(self.axes, appended)
 
     def validate(
             self,
             condition: Callable,
             real: Any,
             expected: Any,
-            ) -> Union[bool, NoReturn]:
+            ) -> Union[Any, NoReturn]:
         """
         Validate that a condition holds true.
 
@@ -134,8 +162,47 @@ class AxisArray:
             >>> axis_array.validate(condition, real, expected)
             Traceback (most recent call last):
             TypeError: Expecting <class 'list'>, but () given
+
+        .. versionadded:: 35.4.0
         """
         if condition(real, expected):
-            return True
+            return real
 
         raise TypeError(f"Expecting {expected}, but {real} given")
+
+    def __append(
+            self,
+            axes: List[Union[AxisArray, Axis, list]],
+            tail: Union[AxisArray, Axis],
+            ) -> Union[AxisArray, NoReturn]:
+        """
+        Append an element to an array.
+
+        Args:
+
+            axes:   An :obj:`AxisArray` to be appended to.
+            tail:   An :obj:`Axis` or an :obj:`AxisArray` to append.
+
+        .. versionadded:: 35.4.0
+        """
+        self.validate(isinstance, axes, list)
+        self.validate(isinstance, tail, (AxisArray, Axis))
+        return self.__class__([*axes, tail][-1:])
+
+    def __flatten(self, axes: list) -> List[Union[AxisArray, Axis]]:
+        """
+        Flatten out our entire collection.
+
+        Args:
+
+            axes:   Our collection.
+
+        .. versionadded:: 35.4.0
+        """
+        if not axes:
+            return axes
+
+        if isinstance(axes[0], list):
+            return self.__flatten(axes[0]) + self.__flatten(axes[1:])
+
+        return axes[:1] + self.__flatten(axes[1:])
