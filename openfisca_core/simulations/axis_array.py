@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import collections.abc
 import dataclasses
 import typing
 
@@ -9,7 +10,7 @@ from .axis import Axis
 @dataclasses.dataclass(frozen = True)
 class AxisArray:
     """
-    Simply a collection of :class:`Axis`.
+    A collection of :obj:`Axis` and a bunch of business logic.
 
     Axis expansion is a feature in :module:`openfisca_core` that allows us to
     parametrise some dimensions in order to create and to evaluate a range of
@@ -23,7 +24,7 @@ class AxisArray:
 
     Attributes:
 
-        axes:   A :type:`tuple` containing our collection of :class:`Axis`.
+        axes:   A :type:`tuple` containing our collection of :obj:`Axis`.
 
     Usage:
 
@@ -40,18 +41,58 @@ class AxisArray:
 
     axes: typing.Tuple[Axis, ...] = ()
 
-    def append(self, tail: Axis) -> AxisArray:
+    def first(self) -> typing.Optional[Axis]:
         """
-        Append an :class:`Axis` to our axes collection.
+        Retrieves the first :obj:`Axis` in our axes collection.
 
         Usage:
 
-        >>> axis_array = AxisArray()
-        >>> axis = Axis(name = "salary", count = 3, min = 0, max = 3000)
-        >>> axis_array.append(axis)  # doctest: +ELLIPSIS
-        AxisArray(Axis(name='salary', ...),)
+            >>> axis_array = AxisArray()
+            >>> not axis_array.first()
+            True
+
+            >>> axis = Axis(name = "salary", count = 3, min = 0, max = 3000)
+            >>> axis_array = axis_array.append(axis)
+            >>> axis_array.first()
+            Axis(name='salary', ..., index=None)
         """
+        if len(self.axes) == 0:
+            return None
+
+        return self.axes[0]
+
+    def append(self, tail: Axis) -> AxisArray:
+        """
+        Append an :obj:`Axis` to our axes collection.
+
+        Args:
+
+            axis:   An :obj:`Axis` to append to our collection.
+
+        Usage:
+
+            >>> axis_array = AxisArray()
+            >>> axis = Axis(name = "salary", count = 3, min = 0, max = 3000)
+            >>> axis_array.append(axis)
+            AxisArray(Axis(name='salary', ...),)
+        """
+        if not isinstance(self.axes, collections.abc.Iterable):
+            raise TypeError("Not an Iterable, but improve this message stub!")
+
+        for axis in self.axes:
+            if not isinstance(axis, Axis):
+                raise TypeError("Not an Axis, but improve this message stub!")
+
         return self.__class__(axes = (*self.axes, tail))
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.axes, collections.abc.Iterable):
+            raise TypeError("Not an Iterable, but improve this message stub!")
+
+        for axis in self.axes:
+            if not isinstance(axis, Axis):
+                raise TypeError("Not an Axis, but improve this message stub!")
+
 
     def __contains__(self, item: Axis) -> bool:
         return item in self.axes

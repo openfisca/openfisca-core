@@ -49,7 +49,7 @@ def test_create_empty_axis():
         Axis()
 
 
-def test_create_axis_array():
+def test_empty_create_axis_array():
     """
     Nothing fancy, just an empty container.
     """
@@ -57,13 +57,44 @@ def test_create_axis_array():
     assert isinstance(result, AxisArray)
 
 
+def test_create_axis_array_with_axes(axis):
+    """
+    We can pass along some axes at initialisation time as well.
+    """
+    result = AxisArray(axes = [axis])
+    assert result.first() == axis
+
+
+def test_create_axis_array_with_anything(axis):
+    """
+    If you don't pass a collection, it will fail!
+    """
+    with pytest.raises(TypeError):
+        AxisArray(axes = axis)
+
+
+def test_create_axis_array_with_a_collection_of_anything():
+    """
+    If you pass anything, it will fail!
+    """
+    with pytest.raises(TypeError):
+        AxisArray(axes = ["axis"])
+
+
 def test_add_axis_to_array(axis_array, axis):
     """
-    If you add an :class:`Axis` to the array, it works!
+    If you add an :obj:`Axis` to the array, it works!
     """
     result = axis_array.append(axis)
     assert axis in result
 
+
+def test_add_anything_to_array(axis_array, axis):
+    """
+    If you add anything else to the array, it fails!
+    """
+    with pytest.raises(TypeError):
+        axis_array.append("cuack")
 
 # With periods
 
