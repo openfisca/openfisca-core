@@ -75,7 +75,7 @@ def test_create_axis_array_with_anything(axis):
 
 def test_create_axis_array_with_a_collection_of_anything():
     """
-    If you pass anything, it will fail!
+    If you pass a collection of anything, it will fail!
     """
     with pytest.raises(TypeError):
         AxisArray(axes = ["axis"])
