@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import typing
 import dataclasses
+from typing import Optional, Union
 
 
 @dataclasses.dataclass(frozen = True)
@@ -36,7 +36,7 @@ class Axis:
 
        >>> axis = Axis(name = "salary", count = 3, min = 0, max = 3000)
        >>> axis
-       Axis(name='salary', count=3, min=0, max=3000, period=None, index=None)
+       Axis(name='salary', count=3, min=0, max=3000, period=None, index=0)
 
        >>> axis.name
        'salary'
@@ -45,12 +45,12 @@ class Axis:
 
         pytest tests/core/test_axes.py openfisca_core/simulations/axis.py
 
-    .. versionadded:: 3.4.0
+    .. versionadded:: 35.4.0
     """
 
     name: str
     count: int
-    min: typing.Union[int, float]
-    max: typing.Union[int, float]
-    period: typing.Optional[typing.Union[int, str]] = None
-    index: typing.Optional[int] = None
+    min: Union[int, float]
+    max: Union[int, float]
+    period: Optional[Union[int, str]] = dataclasses.field(default = None)
+    index: int = dataclasses.field(default = 0)

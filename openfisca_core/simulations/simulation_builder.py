@@ -1,6 +1,7 @@
 import copy
 import dpath
-import typing
+import warnings
+from typing import Dict, Iterable, List
 
 import numpy
 
@@ -8,7 +9,7 @@ from openfisca_core import periods
 from openfisca_core.entities import Entity
 from openfisca_core.errors import PeriodMismatchError, SituationParsingError, VariableNotFoundError
 from openfisca_core.populations import Population
-from openfisca_core.simulations import helpers, Simulation
+from openfisca_core.simulations import helpers, Axis, Simulation
 from openfisca_core.variables import Variable
 
 
@@ -19,24 +20,24 @@ class SimulationBuilder:
         self.persons_plural = None  # Plural name for person entity in current tax and benefits system
 
         # JSON input - Memory of known input values. Indexed by variable or axis name.
-        self.input_buffer: typing.Dict[Variable.name, typing.Dict[str(periods.period), numpy.array]] = {}
-        self.populations: typing.Dict[Entity.key, Population] = {}
+        self.input_buffer: Dict[Variable.name, Dict[str(periods.period), numpy.array]] = {}
+        self.populations: Dict[Entity.key, Population] = {}
         # JSON input - Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
-        self.entity_counts: typing.Dict[Entity.plural, int] = {}
-        # JSON input - typing.List of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_counts``.
-        self.entity_ids: typing.Dict[Entity.plural, typing.List[int]] = {}
+        self.entity_counts: Dict[Entity.plural, int] = {}
+        # JSON input - List of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_counts``.
+        self.entity_ids: Dict[Entity.plural, List[int]] = {}
 
         # Links entities with persons. For each person index in persons ids list, set entity index in entity ids id. E.g.: self.memberships[entity.plural][person_index] = entity_ids.index(instance_id)
-        self.memberships: typing.Dict[Entity.plural, typing.List[int]] = {}
-        self.roles: typing.Dict[Entity.plural, typing.List[int]] = {}
+        self.memberships: Dict[Entity.plural, List[int]] = {}
+        self.roles: Dict[Entity.plural, List[int]] = {}
 
-        self.variable_entities: typing.Dict[Variable.name, Entity] = {}
+        self.variable_entities: Dict[Variable.name, Entity] = {}
 
         self.axes = [[]]
-        self.axes_entity_counts: typing.Dict[Entity.plural, int] = {}
-        self.axes_entity_ids: typing.Dict[Entity.plural, typing.List[int]] = {}
-        self.axes_memberships: typing.Dict[Entity.plural, typing.List[int]] = {}
-        self.axes_roles: typing.Dict[Entity.plural, typing.List[int]] = {}
+        self.axes_entity_counts: Dict[Entity.plural, int] = {}
+        self.axes_entity_ids: Dict[Entity.plural, List[int]] = {}
+        self.axes_memberships: Dict[Entity.plural, List[int]] = {}
+        self.axes_roles: Dict[Entity.plural, List[int]] = {}
 
     def build_from_dict(self, tax_benefit_system, input_dict):
         """
@@ -167,14 +168,14 @@ class SimulationBuilder:
     def create_entities(self, tax_benefit_system):
         self.populations = tax_benefit_system.instantiate_entities()
 
-    def declare_person_entity(self, person_singular, persons_ids: typing.Iterable):
+    def declare_person_entity(self, person_singular, persons_ids: Iterable):
         person_instance = self.populations[person_singular]
         person_instance.ids = numpy.array(list(persons_ids))
         person_instance.count = len(person_instance.ids)
 
         self.persons_plural = person_instance.entity.plural
 
-    def declare_entity(self, entity_singular, entity_ids: typing.Iterable):
+    def declare_entity(self, entity_singular, entity_ids: Iterable):
         entity_instance = self.populations[entity_singular]
         entity_instance.ids = numpy.array(list(entity_ids))
         entity_instance.count = len(entity_instance.ids)
@@ -183,7 +184,7 @@ class SimulationBuilder:
     def nb_persons(self, entity_singular, role = None):
         return self.populations[entity_singular].nb_persons(role = role)
 
-    def join_with_persons(self, group_population, persons_group_assignment, roles: typing.Iterable[str]):
+    def join_with_persons(self, group_population, persons_group_assignment, roles: Iterable[str]):
         # Maps group's identifiers to a 0-based integer range, for indexing into members_roles (see PR#876)
         group_sorted_indices = numpy.unique(persons_group_assignment, return_inverse = True)[1]
         group_population.members_entity_id = numpy.argsort(group_population.ids)[group_sorted_indices]
@@ -456,23 +457,61 @@ class SimulationBuilder:
         # Return empty array for the "persons" entity
         return self.axes_roles.get(entity_name, self.roles.get(entity_name, []))
 
-    def add_parallel_axis(self, axis):
-        # All parallel axes have the same count and entity.
-        # Search for a compatible axis, if none exists, error out
-        self.axes[0].append(axis)
+    def add_parallel_axis(self, axis: dict) -> None:
+        """
+        Add a parallel axis to our collection of axes.
 
-    def add_perpendicular_axis(self, axis):
-        # This adds an axis perpendicular to all previous dimensions
-        self.axes.append([axis])
+        Args:
+
+            axis:   An axis to add to our collection.
+
+        .. deprecated:: 35.4.0
+
+            Use :meth:`AxisArray.add_parallel` instead.
+
+        """
+        message = [
+            "The 'add_parallel_axis' class has been deprecated since version",
+            "35.4.0, and will be removed in the future. Please use",
+            "'AxisArray.add_parallel' instead",
+            ]
+
+        warnings.warn(" ".join(message), DeprecationWarning)
+        self.axes[0].append(Axis(**axis))
+
+    def add_perpendicular_axis(self, axis: dict) -> None:
+        """
+        Add a perpendicular axis to all previous dimensions.
+
+        Args:
+
+            axis:   An axis to add to our collection.
+
+        .. deprecated:: 35.4.0
+
+            Use :meth:`AxisArray.add_parallel` instead.
+
+        """
+        message = [
+            "The 'add_perpendicular_axis' class has been deprecated since",
+            "version 35.4.0, and will be removed in the future. Please use",
+            "'AxisArray.add_perpendicular' instead",
+            ]
+
+        warnings.warn(" ".join(message), DeprecationWarning)
+        self.axes.append([Axis(**axis)])
 
     def expand_axes(self):
         # This method should be idempotent & allow change in axes
         perpendicular_dimensions = self.axes
 
         cell_count = 1
+
+        # All parallel axes have the same count and entity.
+        # Search for a compatible axis, if none exists, error out.
         for parallel_axes in perpendicular_dimensions:
             first_axis = parallel_axes[0]
-            axis_count = first_axis['count']
+            axis_count = first_axis.count
             cell_count *= axis_count
 
         # Scale the "prototype" situation, repeating it cell_count times
@@ -501,14 +540,14 @@ class SimulationBuilder:
         if len(self.axes) == 1 and len(self.axes[0]):
             parallel_axes = self.axes[0]
             first_axis = parallel_axes[0]
-            axis_count: int = first_axis['count']
-            axis_entity = self.get_variable_entity(first_axis['name'])
+            axis_count: int = first_axis.count
+            axis_entity = self.get_variable_entity(first_axis.name)
             axis_entity_step_size = self.entity_counts[axis_entity.plural]
             # Distribute values along axes
             for axis in parallel_axes:
-                axis_index = axis.get('index', 0)
-                axis_period = axis.get('period', self.default_period)
-                axis_name = axis['name']
+                axis_index = axis.index
+                axis_period = axis.period or self.default_period
+                axis_name = axis.name
                 variable = axis_entity.get_variable(axis_name)
                 array = self.get_input(axis_name, str(axis_period))
                 if array is None:
@@ -516,15 +555,15 @@ class SimulationBuilder:
                 elif array.size == axis_entity_step_size:
                     array = numpy.tile(array, axis_count)
                 array[axis_index:: axis_entity_step_size] = numpy.linspace(
-                    axis['min'],
-                    axis['max'],
+                    axis.min,
+                    axis.max,
                     num = axis_count,
                     )
                 # Set input
                 self.input_buffer[axis_name][str(axis_period)] = array
         else:
-            first_axes_count: typing.List[int] = (
-                parallel_axes[0]["count"]
+            first_axes_count: List[int] = (
+                parallel_axes[0].count
                 for parallel_axes
                 in self.axes
                 )
@@ -536,22 +575,22 @@ class SimulationBuilder:
             axes_meshes = numpy.meshgrid(*axes_linspaces)
             for parallel_axes, mesh in zip(self.axes, axes_meshes):
                 first_axis = parallel_axes[0]
-                axis_count = first_axis['count']
-                axis_entity = self.get_variable_entity(first_axis['name'])
+                axis_count = first_axis.count
+                axis_entity = self.get_variable_entity(first_axis.name)
                 axis_entity_step_size = self.entity_counts[axis_entity.plural]
                 # Distribute values along the grid
                 for axis in parallel_axes:
-                    axis_index = axis.get('index', 0)
-                    axis_period = axis['period'] or self.default_period
-                    axis_name = axis['name']
+                    axis_index = axis.index
+                    axis_period = axis.period or self.default_period
+                    axis_name = axis.name
                     variable = axis_entity.get_variable(axis_name)
                     array = self.get_input(axis_name, str(axis_period))
                     if array is None:
                         array = variable.default_array(cell_count * axis_entity_step_size)
                     elif array.size == axis_entity_step_size:
                         array = numpy.tile(array, cell_count)
-                    array[axis_index:: axis_entity_step_size] = axis['min'] \
-                        + mesh.reshape(cell_count) * (axis['max'] - axis['min']) / (axis_count - 1)
+                    array[axis_index:: axis_entity_step_size] = axis.min \
+                        + mesh.reshape(cell_count) * (axis.max - axis.min) / (axis_count - 1)
                     self.input_buffer[axis_name][str(axis_period)] = array
 
     def get_variable_entity(self, variable_name):

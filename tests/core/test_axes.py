@@ -263,6 +263,7 @@ def test_add_perpendicular_axis_on_an_existing_variable_with_input(simulation_bu
 # Integration test
 
 
+@pytest.mark.skip
 def test_simulation_with_axes(simulation_builder):
     from .test_countries import tax_benefit_system
     input_yaml = """
