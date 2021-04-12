@@ -2,7 +2,7 @@ import functools
 
 import pytest
 
-from openfisca_core.simulation_builder import SimulationBuilder
+from openfisca_core.simulations.simulation_builder import SimulationBuilder
 
 
 @pytest.fixture
