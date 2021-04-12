@@ -41,7 +41,7 @@ class ParameterNodeAtInstant:
     def __getitem__(self, key):
         # If fancy indexing is used, cast to a vectorial node
         if isinstance(key, numpy.ndarray):
-        # If fancy indexing is used wit a datetime64, cast to a vectorial node supporting datetime64
+            # If fancy indexing is used wit a datetime64, cast to a vectorial node supporting datetime64
             if numpy.issubdtype(key.dtype, numpy.datetime64):
                 return parameters.VectorialAsofDateParameterNodeAtInstant.build_from_node(self)[key]
 
