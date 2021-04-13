@@ -87,14 +87,14 @@ def test_add_axis_with_group_int_period(persons):
     assert simulation_builder.get_input('salary', '2018') == pytest.approx([0, 0, 3000, 3000])
 
 
-def test_add_axis_on_group_entity(persons, group_entity):
+def test_add_axis_on_households(persons, households):
     simulation_builder = SimulationBuilder()
     simulation_builder.add_person_entity(persons, {'Alicia': {}, 'Javier': {}, 'Tom': {}})
-    simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Tom'], group_entity, {
+    simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Tom'], households, {
         'housea': {'parents': ['Alicia', 'Javier']},
         'houseb': {'parents': ['Tom']},
         })
-    simulation_builder.register_variable('rent', group_entity)
+    simulation_builder.register_variable('rent', households)
     simulation_builder.add_parallel_axis({'count': 2, 'name': 'rent', 'min': 0, 'max': 3000, 'period': '2018-11'})
     simulation_builder.expand_axes()
     assert simulation_builder.get_count('households') == 4
@@ -102,36 +102,36 @@ def test_add_axis_on_group_entity(persons, group_entity):
     assert simulation_builder.get_input('rent', '2018-11') == pytest.approx([0, 0, 3000, 0])
 
 
-def test_axis_on_group_expands_persons(persons, group_entity):
+def test_axis_on_group_expands_persons(persons, households):
     simulation_builder = SimulationBuilder()
     simulation_builder.add_person_entity(persons, {'Alicia': {}, 'Javier': {}, 'Tom': {}})
-    simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Tom'], group_entity, {
+    simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Tom'], households, {
         'housea': {'parents': ['Alicia', 'Javier']},
         'houseb': {'parents': ['Tom']},
         })
-    simulation_builder.register_variable('rent', group_entity)
+    simulation_builder.register_variable('rent', households)
     simulation_builder.add_parallel_axis({'count': 2, 'name': 'rent', 'min': 0, 'max': 3000, 'period': '2018-11'})
     simulation_builder.expand_axes()
     assert simulation_builder.get_count('persons') == 6
 
 
-def test_add_axis_distributes_roles(persons, group_entity):
+def test_add_axis_distributes_roles(persons, households):
     simulation_builder = SimulationBuilder()
     simulation_builder.add_person_entity(persons, {'Alicia': {}, 'Javier': {}, 'Tom': {}})
-    simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Tom'], group_entity, {
+    simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Tom'], households, {
         'housea': {'parents': ['Alicia']},
         'houseb': {'parents': ['Tom'], 'children': ['Javier']},
         })
-    simulation_builder.register_variable('rent', group_entity)
+    simulation_builder.register_variable('rent', households)
     simulation_builder.add_parallel_axis({'count': 2, 'name': 'rent', 'min': 0, 'max': 3000, 'period': '2018-11'})
     simulation_builder.expand_axes()
     assert [role.key for role in simulation_builder.get_roles('households')] == ['parent', 'child', 'parent', 'parent', 'child', 'parent']
 
 
-def test_add_axis_on_persons_distributes_roles(persons, group_entity):
+def test_add_axis_on_persons_distributes_roles(persons, households):
     simulation_builder = SimulationBuilder()
     simulation_builder.add_person_entity(persons, {'Alicia': {}, 'Javier': {}, 'Tom': {}})
-    simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Tom'], group_entity, {
+    simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Tom'], households, {
         'housea': {'parents': ['Alicia']},
         'houseb': {'parents': ['Tom'], 'children': ['Javier']},
         })
@@ -141,14 +141,14 @@ def test_add_axis_on_persons_distributes_roles(persons, group_entity):
     assert [role.key for role in simulation_builder.get_roles('households')] == ['parent', 'child', 'parent', 'parent', 'child', 'parent']
 
 
-def test_add_axis_distributes_memberships(persons, group_entity):
+def test_add_axis_distributes_memberships(persons, households):
     simulation_builder = SimulationBuilder()
     simulation_builder.add_person_entity(persons, {'Alicia': {}, 'Javier': {}, 'Tom': {}})
-    simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Tom'], group_entity, {
+    simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Tom'], households, {
         'housea': {'parents': ['Alicia']},
         'houseb': {'parents': ['Tom'], 'children': ['Javier']},
         })
-    simulation_builder.register_variable('rent', group_entity)
+    simulation_builder.register_variable('rent', households)
     simulation_builder.add_parallel_axis({'count': 2, 'name': 'rent', 'min': 0, 'max': 3000, 'period': '2018-11'})
     simulation_builder.expand_axes()
     assert simulation_builder.get_memberships('households') == [0, 1, 1, 2, 3, 3]
