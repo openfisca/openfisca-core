@@ -1,5 +1,6 @@
 import tempfile
 import logging
+import warnings
 
 import numpy
 
@@ -10,6 +11,11 @@ from openfisca_core.periods import Period
 from openfisca_core.tracers import FullTracer, SimpleTracer, TracingParameterNodeAtInstant
 
 log = logging.getLogger(__name__)
+
+
+class OpenFiscaTempfileWarning(UserWarning):
+    # Custom Warning when using temp file on disk.
+    pass
 
 
 class Simulation:
@@ -75,10 +81,11 @@ class Simulation:
         """
         if self._data_storage_dir is None:
             self._data_storage_dir = tempfile.mkdtemp(prefix = "openfisca_")
-            log.warn((
-                "Intermediate results will be stored on disk in {} in case of memory overflow. "
+            message = [
+                ("Intermediate results will be stored on disk in {} in case of memory overflow.").format(self._data_storage_dir),
                 "You should remove this directory once you're done with your simulation."
-                ).format(self._data_storage_dir))
+                ]
+            warnings.warn(" ".join(message), OpenFiscaTempfileWarning)
         return self._data_storage_dir
 
     # ----- Calculation methods ----- #

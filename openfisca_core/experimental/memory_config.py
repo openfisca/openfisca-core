@@ -1,6 +1,12 @@
 import logging
+import warnings
 
 log = logging.getLogger(__name__)
+
+
+class OpenFiscaMemoryWarning(UserWarning):
+    # Custom Warning for MemoryConfig
+    pass
 
 
 class MemoryConfig:
@@ -9,7 +15,12 @@ class MemoryConfig:
       max_memory_occupation,
       priority_variables = None,
       variables_to_drop = None):
-        log.warn("Memory configuration is a feature that is still currently under experimentation. You are very welcome to use it and send us precious feedback, but keep in mind that the way it is used might change without any major version bump.")
+        message = [
+            "Memory configuration is a feature that is still currently under experimentation.",
+            "You are very welcome to use it and send us precious feedback,",
+            "but keep in mind that the way it is used might change without any major version bump."
+            ]
+        warnings.warn(" ".join(message), OpenFiscaMemoryWarning)
 
         self.max_memory_occupation = float(max_memory_occupation)
         if self.max_memory_occupation > 1:
