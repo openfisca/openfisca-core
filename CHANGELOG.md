@@ -1,5 +1,11 @@
 # Changelog
 
+### 35.3.4 [#999](https://github.com/openfisca/openfisca-core/pull/999)
+
+#### Technical improvements
+
+- Change logging.warning to warnings.warn to allow users of the package to hide them.
+
 ### 35.3.3 [#994](https://github.com/openfisca/openfisca-core/pull/994)
 
 #### Bug fix

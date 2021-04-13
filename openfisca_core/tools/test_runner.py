@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import logging
+import warnings
 import sys
 import os
 import traceback
@@ -12,8 +12,7 @@ import pytest
 from openfisca_core.tools import assert_near
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.errors import SituationParsingError, VariableNotFound
-
-log = logging.getLogger(__name__)
+from openfisca_core.warnings import LibYAMLWarning
 
 
 def import_yaml():
@@ -21,12 +20,13 @@ def import_yaml():
     try:
         from yaml import CLoader as Loader
     except ImportError:
-        log.warning(
-            ' '
-            'libyaml is not installed in your environment, this can make your '
-            'test suite slower to run. Once you have installed libyaml, run `pip '
-            'uninstall pyyaml && pip install pyyaml --no-cache-dir` so that it is used in your '
-            'Python environment.')
+        message = [
+            "libyaml is not installed in your environment.",
+            "This can make your test suite slower to run. Once you have installed libyaml, ",
+            "run 'pip uninstall pyyaml && pip install pyyaml --no-cache-dir'",
+            "so that it is used in your Python environment."
+            ]
+        warnings.warn(" ".join(message), LibYAMLWarning)
         from yaml import SafeLoader as Loader
     return yaml, Loader
 
