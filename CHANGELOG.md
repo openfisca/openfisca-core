@@ -1,5 +1,15 @@
 # Changelog
 
+### 35.4.0 [#998](https://github.com/openfisca/openfisca-core/pull/998)
+
+#### New features
+
+- Introduce ability to interpolate between values in a SingleAmountTaxScale
+
+#### Usage notes
+
+- Interpolation is performed within the `SingleAmountTaxScale.calc()` function if the keyword argument `interpolate=True` is provided
+
 ### 35.3.3 [#994](https://github.com/openfisca/openfisca-core/pull/994)
 
 #### Bug fix

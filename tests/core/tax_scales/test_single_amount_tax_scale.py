@@ -37,6 +37,28 @@ def test_calc():
     tools.assert_near(result, [0, 0.23, 0.29])
 
 
+def test_calc_interpolate():
+    tax_base = numpy.array([2.5, 5, 7, 10])
+    tax_scale = taxscales.SingleAmountTaxScale()
+    tax_scale.add_bracket(0, 0)
+    tax_scale.add_bracket(5, 50)
+    tax_scale.add_bracket(10, 200)
+
+    result = tax_scale.calc(tax_base, interpolate=True)
+
+    tools.assert_near(result, [25, 50, 110, 200])
+
+
+def test_calc_interpolate_with_unitary_bracket():
+    tax_base = numpy.array([2.5, 5, 7, 10])
+    tax_scale = taxscales.SingleAmountTaxScale()
+    tax_scale.add_bracket(5, 50)
+
+    result = tax_scale.calc(tax_base, interpolate=True)
+
+    tools.assert_near(result, [50, 50, 50, 50])
+
+
 def test_to_dict():
     tax_scale = taxscales.SingleAmountTaxScale()
     tax_scale.add_bracket(6, 0.23)
