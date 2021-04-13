@@ -6,7 +6,9 @@ import typing
 
 
 class OpenFiscaLibyamlWarning(UserWarning):
-    # Custom Warning for libyaml not installed
+    """
+    Custom warning for libyaml not installed.
+    """
     pass
 
 

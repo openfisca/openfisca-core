@@ -5,7 +5,9 @@ log = logging.getLogger(__name__)
 
 
 class OpenFiscaMemoryWarning(UserWarning):
-    # Custom Warning for MemoryConfig
+    """
+    Custom warning for MemoryConfig.
+    """
     pass
 
 
