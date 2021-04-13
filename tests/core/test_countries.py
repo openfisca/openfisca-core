@@ -2,6 +2,7 @@ import pytest
 
 from openfisca_core import periods, populations, tools
 from openfisca_core.errors import VariableNameConflictError, VariableNotFoundError
+from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.variables import Variable
 
 PERIOD = periods.period("2016-01")
@@ -82,9 +83,10 @@ def test_divide_option_with_complex_period(simulation):
         assert word in error_message, f"Expected '{word}' in error message '{error_message}'"
 
 
-def test_input_with_wrong_period(simulation_builder, tax_benefit_system):
+def test_input_with_wrong_period(tax_benefit_system):
     year = str(PERIOD.this_year)
     variables = {"basic_income": {year: 12000}}
+    simulation_builder = SimulationBuilder()
     simulation_builder.set_default_period(PERIOD)
 
     with pytest.raises(ValueError):

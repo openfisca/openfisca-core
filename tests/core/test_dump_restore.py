@@ -5,12 +5,13 @@ from numpy import testing
 
 from openfisca_country_template import situation_examples
 
+from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.tools import simulation_dumper
 
 
-def test_dump(simulation_builder, tax_benefit_system):
+def test_dump(tax_benefit_system):
     directory = tempfile.mkdtemp(prefix = "openfisca_")
-    simulation = simulation_builder.build_from_entities(tax_benefit_system, situation_examples.couple)
+    simulation = SimulationBuilder().build_from_entities(tax_benefit_system, situation_examples.couple)
     calculated_value = simulation.calculate('disposable_income', '2018-01')
     simulation_dumper.dump_simulation(simulation, directory)
 

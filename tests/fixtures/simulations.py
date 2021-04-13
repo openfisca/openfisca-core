@@ -2,23 +2,24 @@ import functools
 
 import pytest
 
-from openfisca_core.simulations.simulation_builder import SimulationBuilder
+from openfisca_core.simulations import SimulationBuilder
 
 
 @pytest.fixture
-def simulation_builder():
-    return SimulationBuilder()
-
-
-@pytest.fixture
-def simulation(simulation_builder, tax_benefit_system, request):
+def simulation(tax_benefit_system, request):
     variables, period = request.param
-    return _simulation(simulation_builder, tax_benefit_system, variables, period)
+
+    return _simulation(
+        SimulationBuilder(),
+        tax_benefit_system,
+        variables,
+        period,
+        )
 
 
 @pytest.fixture
-def make_simulation(simulation_builder):
-    return functools.partial(_simulation, simulation_builder)
+def make_simulation():
+    return functools.partial(_simulation, SimulationBuilder())
 
 
 def _simulation(simulation_builder, tax_benefit_system, variables, period):
