@@ -1,14 +1,5 @@
-import logging
 import warnings
-
-log = logging.getLogger(__name__)
-
-
-class OpenFiscaMemoryWarning(UserWarning):
-    """
-    Custom warning for MemoryConfig.
-    """
-    pass
+from openfisca_core.warnings import OpenFiscaMemoryWarning
 
 
 class MemoryConfig:

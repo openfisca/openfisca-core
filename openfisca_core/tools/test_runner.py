@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import logging
 import warnings
 import sys
 import os
@@ -13,13 +12,7 @@ import pytest
 from openfisca_core.tools import assert_near
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.errors import SituationParsingError, VariableNotFound
-
-log = logging.getLogger(__name__)
-
-
-class OpenFiscaLibyamlWarning(UserWarning):
-    # Custom Warning for libyaml not installed
-    pass
+from openfisca_core.warnings import OpenFiscaLibyamlWarning
 
 
 def import_yaml():

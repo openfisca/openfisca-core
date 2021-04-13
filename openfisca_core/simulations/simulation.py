@@ -1,5 +1,4 @@
 import tempfile
-import logging
 import warnings
 
 import numpy
@@ -9,13 +8,7 @@ from openfisca_core.errors import CycleError, SpiralError
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import Period
 from openfisca_core.tracers import FullTracer, SimpleTracer, TracingParameterNodeAtInstant
-
-log = logging.getLogger(__name__)
-
-
-class OpenFiscaTempfileWarning(UserWarning):
-    # Custom Warning when using temp file on disk.
-    pass
+from openfisca_core.warnings import OpenFiscaTempfileWarning
 
 
 class Simulation:

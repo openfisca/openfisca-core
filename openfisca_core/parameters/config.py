@@ -1,18 +1,9 @@
-import logging
 import warnings
 import os
 import yaml
 import typing
+from openfisca_core.warnings import OpenFiscaLibyamlWarning
 
-
-class OpenFiscaLibyamlWarning(UserWarning):
-    """
-    Custom warning for libyaml not installed.
-    """
-    pass
-
-
-log = logging.getLogger(__name__)
 
 try:
     from yaml import CLoader as Loader
