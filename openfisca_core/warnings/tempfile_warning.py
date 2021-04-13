@@ -1,5 +1,5 @@
-class OpenFiscaTempfileWarning(UserWarning):
+class TempfileWarning(UserWarning):
     """
-    Custom Warning when using temp file on disk.
+    Custom warning when using a tempfile on disk.
     """
     pass

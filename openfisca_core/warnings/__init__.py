@@ -21,6 +21,6 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
-from .tempfile_warning import OpenFiscaTempfileWarning  # noqa: F401
-from .libyaml_warning import OpenFiscaLibyamlWarning  # noqa: F401
-from .memory_warning import OpenFiscaMemoryWarning  # noqa: F401
+from .libyaml_warning import LibYAMLWarning  # noqa: F401
+from .memory_warning import MemoryConfigWarning  # noqa: F401
+from .tempfile_warning import TempfileWarning  # noqa: F401

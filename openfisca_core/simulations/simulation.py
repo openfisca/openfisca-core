@@ -8,7 +8,7 @@ from openfisca_core.errors import CycleError, SpiralError
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import Period
 from openfisca_core.tracers import FullTracer, SimpleTracer, TracingParameterNodeAtInstant
-from openfisca_core.warnings import OpenFiscaTempfileWarning
+from openfisca_core.warnings import TempfileWarning
 
 
 class Simulation:
@@ -78,7 +78,7 @@ class Simulation:
                 ("Intermediate results will be stored on disk in {} in case of memory overflow.").format(self._data_storage_dir),
                 "You should remove this directory once you're done with your simulation."
                 ]
-            warnings.warn(" ".join(message), OpenFiscaTempfileWarning)
+            warnings.warn(" ".join(message), TempfileWarning)
         return self._data_storage_dir
 
     # ----- Calculation methods ----- #

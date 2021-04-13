@@ -1,5 +1,5 @@
-class OpenFiscaLibyamlWarning(UserWarning):
+class LibYAMLWarning(UserWarning):
     """
-    Custom warning for libyaml not installed.
+    Custom warning for LibYAML not installed.
     """
     pass

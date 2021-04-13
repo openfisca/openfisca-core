@@ -12,7 +12,7 @@ import pytest
 from openfisca_core.tools import assert_near
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.errors import SituationParsingError, VariableNotFound
-from openfisca_core.warnings import OpenFiscaLibyamlWarning
+from openfisca_core.warnings import LibYAMLWarning
 
 
 def import_yaml():
@@ -26,7 +26,7 @@ def import_yaml():
             "run 'pip uninstall pyyaml && pip install pyyaml --no-cache-dir'",
             "so that it is used in your Python environment."
             ]
-        warnings.warn(" ".join(message), OpenFiscaLibyamlWarning)
+        warnings.warn(" ".join(message), LibYAMLWarning)
         from yaml import SafeLoader as Loader
     return yaml, Loader
 
