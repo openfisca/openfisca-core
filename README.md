@@ -51,7 +51,7 @@ pytest tests/core/test_parameters.py -k test_parameter_for_period
 
 ## Style
 
-This repository adheres to a certain coding style, and we invite you to follow it for your contributions to be integrated promptly.
+This repository adheres to a [certain coding style](STYLEGUIDE.md), and we invite you to follow it for your contributions to be integrated promptly.
 
 Style checking is already run with `make test`. To run the style checker alone:
 

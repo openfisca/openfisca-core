@@ -1,5 +1,13 @@
 # Changelog
 
+### 35.3.5 [#997](https://github.com/openfisca/openfisca-core/pull/997)
+
+#### Technical changes
+
+- In tests, extract `CountryTaxBenefitSystem` to a fixture reusable by all the tests in the test suite.
+  - It allows for a better reusability of test scenarios available to new contributors.
+  - To mitigate possible performance issues, by default the fixture is initialised once per test module.
+
 ### 35.3.4 [#999](https://github.com/openfisca/openfisca-core/pull/999)
 
 #### Technical improvements
