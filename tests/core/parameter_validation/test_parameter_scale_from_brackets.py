@@ -1,12 +1,10 @@
-from ..test_countries import tax_benefit_system
-
 import os
 from openfisca_core.parameters import ParameterScale
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 year = 2016
 
 
-def test_init_from_brackets():
+def test_init_from_brackets(tax_benefit_system):
     scale = tax_benefit_system.parameters.taxes.social_security_contribution
     brackets = scale.brackets.copy()
 
