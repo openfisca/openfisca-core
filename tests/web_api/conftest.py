@@ -1,15 +1,11 @@
-from http.client import OK, NOT_FOUND
 import pytest
-from unittest.mock import patch
 
 from openfisca_core.entities import build_entity
 from openfisca_core.parameters import ParameterNode
-from openfisca_core.periods import MONTH, ETERNITY
+from openfisca_core.periods import MONTH
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_core.variables import Variable
 
-
-from openfisca_core.entities import build_entity
 
 Household = build_entity(
     key = "household",
@@ -42,6 +38,7 @@ Person = build_entity(
     is_person = True,
     )
 
+
 @pytest.fixture(scope="package")
 def entities():
     return [Household, Person]
@@ -52,13 +49,13 @@ def test_tax_benefit_system(entities):
     tax_benefit_system = TaxBenefitSystem(entities)
 
     # At least one ParameterNode must be defined, or else `openfisca_web_api.app.create_app()` will fail
-    tax_benefit_system.parameters = ParameterNode(name="mockParameterNode", 
+    tax_benefit_system.parameters = ParameterNode(name="mockParameterNode",
                                                   data={'amount': {'values': {
-                                                                    "2015-01-01": {'value': 550},
-                                                                    "2016-01-01": {'value': 600}
-                                                                 }}
+                                                                   "2015-01-01": {'value': 550},
+                                                                   "2016-01-01": {'value': 600}
+                                                                   }}
                                                         })
-    
+
     # At least one Variable must be defined, or else `openfisca_web_api.app.create_app()` will fail
     class initial_variable(Variable):
         value_type = float

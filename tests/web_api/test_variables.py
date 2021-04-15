@@ -3,6 +3,7 @@
 from datetime import date
 from http.client import OK, NOT_FOUND
 import json
+from numpy import where
 import re
 
 import pytest
@@ -11,7 +12,8 @@ from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import MONTH, ETERNITY
 from openfisca_core.variables import Variable
 from openfisca_web_api.app import create_app
-from tests.web_api.conftest import test_tax_benefit_system, Person, Household
+from .conftest import Person, Household
+
 
 def assert_items_equal(x, y):
     assert set(x) == set(y)
@@ -19,9 +21,10 @@ def assert_items_equal(x, y):
 
 GITHUB_URL_REGEX = r'^https://github\.com/openfisca/openfisca-core/blob/\d+\.\d+\.\d+((.dev|rc)\d+)?/tests/web_api/(.)+\.py#L\d+-L\d+$'
 
+
 @pytest.fixture(scope="module")
 def test_client(test_tax_benefit_system):
-    
+
     ###
     # In this section you define the mock Variables you will need for tests in this module
     class birth(Variable):
@@ -31,7 +34,6 @@ def test_client(test_tax_benefit_system):
         label = "Birth date"
         definition_period = ETERNITY  # This variable cannot change over time.
         reference = "https://en.wiktionary.org/wiki/birthdate"
-
 
     class income_tax(Variable):
         value_type = float
@@ -47,7 +49,6 @@ def test_client(test_tax_benefit_system):
             The formula to compute the income tax for a given person at a given period
             """
             return person("salary", period) * parameters(period).taxes.income_tax_rate
-
 
     class age(Variable):
         value_type = int
@@ -69,7 +70,6 @@ def test_client(test_tax_benefit_system):
             is_birthday_past = (birth_month < period.start.month) + (birth_month == period.start.month) * (birth_day <= period.start.day)
 
             return (period.start.year - birth_year) - where(is_birthday_past, 0, 1)  # If the birthday is not passed this year, subtract one year
-
 
     class housing_allowance(Variable):
         value_type = float
@@ -96,14 +96,12 @@ def test_client(test_tax_benefit_system):
             """
             return household("rent", period) * parameters(period).benefits.housing_allowance
 
-
     class HousingOccupancyStatus(Enum):
         __order__ = "owner tenant free_lodger homeless"
         owner = "Owner"
         tenant = "Tenant"
         free_lodger = "Free lodger"
         homeless = "Homeless"
-
 
     class housing_occupancy_status(Variable):
         value_type = Enum
@@ -112,7 +110,6 @@ def test_client(test_tax_benefit_system):
         entity = Household
         definition_period = MONTH
         label = "Legal housing situation of the household concerning their main residence"
-
 
     class basic_income(Variable):
         value_type = float
@@ -141,7 +138,6 @@ def test_client(test_tax_benefit_system):
             salary_condition = person("salary", period) == 0
             return age_condition * salary_condition * parameters(period).benefits.basic_income  # The '*' is also used as a vectorial 'and'. See https://openfisca.org/doc/coding-the-legislation/25_vectorial_computing.html#boolean-operations
 
-
     class pension(Variable):
         value_type = float
         entity = Person
@@ -159,7 +155,7 @@ def test_client(test_tax_benefit_system):
             """
             age_condition = person("age", period) >= parameters(period).general.age_of_retirement
             return age_condition
-            
+
     ###
     # Add the Variables above to the `test_tax_benefit_system` fixture
     test_tax_benefit_system.add_variable(birth)
@@ -173,7 +169,7 @@ def test_client(test_tax_benefit_system):
     ###
     # Create the test API client
     app = create_app(test_tax_benefit_system)
-    return app.test_client() 
+    return app.test_client()
 
 
 # /variables
@@ -183,6 +179,7 @@ def test_client(test_tax_benefit_system):
 def variables_response(test_client):
     variables_response = test_client.get("/variables")
     return variables_response
+
 
 def test_return_code(variables_response):
     assert variables_response.status_code == OK
@@ -214,7 +211,7 @@ def test_return_code_existing_input_variable(input_variable_response):
     assert input_variable_response.status_code == OK
 
 
-def check_input_variable_value(key, expected_value, input_variable={}):
+def check_input_variable_value(key, expected_value, input_variable=None):
     assert input_variable[key] == expected_value
 
 
@@ -244,7 +241,7 @@ def test_return_code_existing_variable(test_client):
     assert variable_response.status_code == OK
 
 
-def check_variable_value(key, expected_value, variable={}):
+def check_variable_value(key, expected_value, variable=None):
     assert variable[key] == expected_value
 
 
