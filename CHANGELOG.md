@@ -1,5 +1,14 @@
 # Changelog
 
+### 35.3.6 [#984](https://github.com/openfisca/openfisca-core/pull/984)
+
+#### Technical changes
+
+- In web_api tests, extract `test_client` to a fixture reusable by all the tests in the test suite.
+  - To mitigate possible performance issues, by default the fixture is initialised once per test module.
+  - This follows the same approach as [#997](https://github.com/openfisca/openfisca-core/pull/997)
+
+
 ### 35.3.5 [#997](https://github.com/openfisca/openfisca-core/pull/997)
 
 #### Technical changes
