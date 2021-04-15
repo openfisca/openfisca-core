@@ -264,7 +264,9 @@ def test_variable_formula_github_link(test_client):
     assert re.match(GITHUB_URL_REGEX, variable['formulas']['0001-01-01']['source'])
 
 
-def test_variable_formula_content():
+def test_variable_formula_content(test_client):
+    variable_response = test_client.get('/variable/income_tax')
+    variable = json.loads(variable_response.data.decode('utf-8'))
     content = variable['formulas']['0001-01-01']['content']
     assert "def formula(person, period, parameters):" in content
     assert "return person(\"salary\", period) * parameters(period).taxes.income_tax_rate" in content
