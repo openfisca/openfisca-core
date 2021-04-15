@@ -3,42 +3,12 @@ import json
 import pytest
 import re
 
-from openfisca_web_api import app
-
 
 def assert_items_equal(x, y):
     assert set(x) == set(y)
 
 
 GITHUB_URL_REGEX = r'^https://github\.com/openfisca/country-template/blob/\d+\.\d+\.\d+((.dev|rc)\d+)?/openfisca_country_template/variables/(.)+\.py#L\d+-L\d+$'
-
-
-@pytest.fixture(scope="module")
-def test_client(tax_benefit_system):
-    """ This module-scoped fixture creates an API client for the TBS defined in the `tax_benefit_system`
-        fixture. This `tax_benefit_system` is mutable, so you can add/update variables. Example:
-
-        ```
-            from openfisca_country_template import entities
-            from openfisca_core import periods
-            from openfisca_core.variables import Variable
-            ...
-
-            class new_variable(Variable):
-                value_type = float
-                entity = entities.Person
-                definition_period = periods.MONTH
-                label = "New variable"
-                reference = "https://law.gov.example/new_variable"  # Always use the most official source
-
-            tax_benefit_system.add_variable(new_variable)
-            flask_app = app.create_app(tax_benefit_system)
-        ```
-    """
-
-    # Create the test API client
-    flask_app = app.create_app(tax_benefit_system)
-    return flask_app.test_client()
 
 
 # /variables
