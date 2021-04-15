@@ -44,7 +44,7 @@ def entities():
     return [Household, Person]
 
 
-@pytest.fixture(scope="package")
+@pytest.fixture(scope="module")
 def test_tax_benefit_system(entities):
     tax_benefit_system = TaxBenefitSystem(entities)
 
