@@ -42,12 +42,12 @@ Person = build_entity(
     is_person = True,
     )
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="package")
 def entities():
     return [Household, Person]
 
 
-@pytest.fixture()
+@pytest.fixture(scope="package")
 def test_tax_benefit_system(entities):
     tax_benefit_system = TaxBenefitSystem(entities)
 
