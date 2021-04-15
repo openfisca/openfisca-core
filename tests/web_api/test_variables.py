@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from datetime import date
 from http.client import OK, NOT_FOUND
 import json
 import re
@@ -7,9 +8,173 @@ import re
 import pytest
 from . import subject
 
+from openfisca_core.indexed_enums import Enum
+from openfisca_core.periods import MONTH, ETERNITY
+from openfisca_core.variables import Variable
+from openfisca_web_api.app import create_app
+from tests.web_api.conftest import test_tax_benefit_system, Person, Household
 
 def assert_items_equal(x, y):
     assert set(x) == set(y)
+
+
+GITHUB_URL_REGEX = r'^https://github\.com/openfisca/openfisca-core/blob/\d+\.\d+\.\d+((.dev|rc)\d+)?/tests/web_api/(.)+\.py#L\d+-L\d+$'
+
+@pytest.fixture(scope="module")
+def test_client(test_tax_benefit_system):
+    
+    ###
+    # In this section you define the mock Variables you will need for tests in this module
+    class birth(Variable):
+        value_type = date
+        default_value = date(1970, 1, 1)  # By default, if no value is set for a simulation, we consider the people involved in a simulation to be born on the 1st of Jan 1970.
+        entity = Person
+        label = "Birth date"
+        definition_period = ETERNITY  # This variable cannot change over time.
+        reference = "https://en.wiktionary.org/wiki/birthdate"
+
+
+    class income_tax(Variable):
+        value_type = float
+        entity = Person
+        definition_period = MONTH
+        label = "Income tax"
+        reference = "https://law.gov.example/income_tax"  # Always use the most official source
+
+        def formula(person, period, parameters):
+            """
+            Income tax.
+
+            The formula to compute the income tax for a given person at a given period
+            """
+            return person("salary", period) * parameters(period).taxes.income_tax_rate
+
+
+    class age(Variable):
+        value_type = int
+        entity = Person
+        definition_period = MONTH
+        label = "Person's age (in years)"
+
+        def formula(person, period, _parameters):
+            """
+            Person's age (in years).
+
+            A person's age is computed according to its birth date.
+            """
+            birth = person("birth", period)
+            birth_year = birth.astype("datetime64[Y]").astype(int) + 1970
+            birth_month = birth.astype("datetime64[M]").astype(int) % 12 + 1
+            birth_day = (birth - birth.astype("datetime64[M]") + 1).astype(int)
+
+            is_birthday_past = (birth_month < period.start.month) + (birth_month == period.start.month) * (birth_day <= period.start.day)
+
+            return (period.start.year - birth_year) - where(is_birthday_past, 0, 1)  # If the birthday is not passed this year, subtract one year
+
+
+    class housing_allowance(Variable):
+        value_type = float
+        entity = Household
+        definition_period = MONTH
+        label = "Housing allowance"
+        reference = "https://law.gov.example/housing_allowance"  # Always use the most official source
+        end = "2016-11-30"  # This allowance was removed on the 1st of Dec 2016. Calculating it before this date will always return the variable default value, 0.
+        unit = "currency-EUR"
+        documentation = """
+        This allowance was introduced on the 1st of Jan 1980.
+        It disappeared in Dec 2016.
+        """
+
+        def formula_1980(household, period, parameters):
+            """
+            Housing allowance.
+
+            This allowance was introduced on the 1st of Jan 1980.
+            Calculating it before this date will always return the variable default value, 0.
+
+            To compute this allowance, the 'rent' value must be provided for the same month,
+            but 'housing_occupancy_status' is not necessary.
+            """
+            return household("rent", period) * parameters(period).benefits.housing_allowance
+
+
+    class HousingOccupancyStatus(Enum):
+        __order__ = "owner tenant free_lodger homeless"
+        owner = "Owner"
+        tenant = "Tenant"
+        free_lodger = "Free lodger"
+        homeless = "Homeless"
+
+
+    class housing_occupancy_status(Variable):
+        value_type = Enum
+        possible_values = HousingOccupancyStatus
+        default_value = HousingOccupancyStatus.tenant
+        entity = Household
+        definition_period = MONTH
+        label = "Legal housing situation of the household concerning their main residence"
+
+
+    class basic_income(Variable):
+        value_type = float
+        entity = Person
+        definition_period = MONTH
+        label = "Basic income provided to adults"
+        reference = "https://law.gov.example/basic_income"  # Always use the most official source
+
+        def formula_2016_12(person, period, parameters):
+            """
+            Basic income provided to adults.
+
+            Since Dec 1st 2016, the basic income is provided to any adult, without considering their income.
+            """
+            age_condition = person("age", period) >= parameters(period).general.age_of_majority
+            return age_condition * parameters(period).benefits.basic_income  # This '*' is a vectorial 'if'. See https://openfisca.org/doc/coding-the-legislation/25_vectorial_computing.html#control-structures
+
+        def formula_2015_12(person, period, parameters):
+            """
+            Basic income provided to adults.
+
+            From Dec 1st 2015 to Nov 30 2016, the basic income is provided to adults who have no income.
+            Before Dec 1st 2015, the basic income does not exist in the law, and calculating it returns its default value, which is 0.
+            """
+            age_condition = person("age", period) >= parameters(period).general.age_of_majority
+            salary_condition = person("salary", period) == 0
+            return age_condition * salary_condition * parameters(period).benefits.basic_income  # The '*' is also used as a vectorial 'and'. See https://openfisca.org/doc/coding-the-legislation/25_vectorial_computing.html#boolean-operations
+
+
+    class pension(Variable):
+        value_type = float
+        entity = Person
+        definition_period = MONTH
+        label = "Pension for the elderly. Pension attribuée aux personnes âgées. تقاعد."
+        reference = ["https://fr.wikipedia.org/wiki/Retraite_(économie)", "https://ar.wikipedia.org/wiki/تقاعد"]
+
+        def formula(person, period, parameters):
+            """
+            Pension for the elderly.
+
+            A person's pension depends on their birth date.
+            In French: retraite selon l'âge.
+            In Arabic: تقاعد.
+            """
+            age_condition = person("age", period) >= parameters(period).general.age_of_retirement
+            return age_condition
+            
+    ###
+    # Add the Variables above to the `test_tax_benefit_system` fixture
+    test_tax_benefit_system.add_variable(birth)
+    test_tax_benefit_system.add_variable(income_tax)
+    test_tax_benefit_system.add_variable(age)
+    test_tax_benefit_system.add_variable(housing_allowance)
+    test_tax_benefit_system.add_variable(housing_occupancy_status)
+    test_tax_benefit_system.add_variable(basic_income)
+    test_tax_benefit_system.add_variable(pension)
+
+    ###
+    # Create the test API client
+    app = create_app(test_tax_benefit_system)
+    return app.test_client() 
 
 
 # /variables
