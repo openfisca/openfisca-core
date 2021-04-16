@@ -10,14 +10,17 @@ from openfisca_core.taxscales import RateTaxScaleLike
 
 log = logging.getLogger(__name__)
 
+if typing.TYPE_CHECKING:
+    NumericalArray = typing.Union[numpy.int_, numpy.float_]
+
 
 class LinearAverageRateTaxScale(RateTaxScaleLike):
 
     def calc(
             self,
-            tax_base: typing.Union[numpy.ndarray[int], numpy.ndarray[float]],
+            tax_base: NumericalArray,
             right: bool = False,
-            ) -> numpy.ndarray[float]:
+            ) -> numpy.float_:
         if len(self.rates) == 1:
             return tax_base * self.rates[0]
 
