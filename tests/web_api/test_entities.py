@@ -1,24 +1,25 @@
 # -*- coding: utf-8 -*-
 
-from http.client import OK
+from http import client
 import json
-import openfisca_country_template
-from . import subject
 
-entities_response = subject.get('/entities')
+from openfisca_country_template import entities
+
 
 # /entities
 
 
-def test_return_code():
-    assert entities_response.status_code == OK
+def test_return_code(test_client):
+    entities_response = test_client.get('/entities')
+    assert entities_response.status_code == client.OK
 
 
-def test_response_data():
-    entities = json.loads(entities_response.data.decode('utf-8'))
-    test_documentation = openfisca_country_template.entities.Household.doc.strip()
+def test_response_data(test_client):
+    entities_response = test_client.get('/entities')
+    entities_dict = json.loads(entities_response.data.decode('utf-8'))
+    test_documentation = entities.Household.doc.strip()
 
-    assert entities['household'] == {
+    assert entities_dict['household'] == {
         'description': 'All the people in a family or group who live together in the same place.',
         'documentation': test_documentation,
         'plural': 'households',
