@@ -1,5 +1,12 @@
 # Changelog
 
+### 35.3.7 [#990](https://github.com/openfisca/openfisca-core/pull/990)
+
+#### Technical changes
+
+- Update dependencies.
+  - Extend NumPy compatibility to v1.20 to support M1 processors.
+
 ### 35.3.6 [#984](https://github.com/openfisca/openfisca-core/pull/984)
 
 #### Technical changes
