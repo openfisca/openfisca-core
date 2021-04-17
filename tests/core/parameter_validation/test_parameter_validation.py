@@ -21,6 +21,7 @@ def check_fails_with_message(file_name, keywords):
 
 @pytest.mark.parametrize("test", [
     ('indentation', {'Invalid YAML', 'indentation.yaml', 'line 2', 'mapping values are not allowed'}),
+    ("wrong_date", {"Expected a period", "got: '2006-31-03'"}),
     ('wrong_scale', {'Unexpected property', 'scale[1]', 'treshold'}),
     ('wrong_value', {'not one of the allowed types', 'wrong_value[2015-12-01]', '1A'}),
     ('unexpected_key_in_parameter', {'Unexpected property', 'unexpected_key'}),
