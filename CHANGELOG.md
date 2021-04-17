@@ -1,5 +1,13 @@
 # Changelog
 
+### 35.4.1 [#1007](https://github.com/openfisca/openfisca-core/pull/1007)
+
+#### Bug fix
+
+- Properly check for date validity in parameters.
+  - Date validity was being checked only partially, allowing parameters with illegal dates such as "2015-13-32".
+  - The changes introduced fix this error and prevent the user when a parameter date is illegal.
+
 ## 35.4.0 [#1010](https://github.com/openfisca/openfisca-core/pull/1010)
 
 #### Technical changes
