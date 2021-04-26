@@ -1,14 +1,11 @@
 from __future__ import annotations
 
 import enum
-import typing
+from typing import Union
 
 import numpy
 
 from openfisca_core.indexed_enums import config, EnumArray
-
-if typing.TYPE_CHECKING:
-    IndexedEnumArray = numpy.object_
 
 
 class Enum(enum.Enum):
@@ -34,11 +31,11 @@ class Enum(enum.Enum):
     @classmethod
     def encode(
             cls,
-            array: typing.Union[
+            array: Union[
                 EnumArray,
                 numpy.int_,
                 numpy.float_,
-                IndexedEnumArray,
+                numpy.object_,
                 ],
             ) -> EnumArray:
         """

@@ -1,16 +1,18 @@
 from __future__ import annotations
 
 import typing
+from typing import List, Optional, Union
 
 import numpy
-import numpy.typing
 
 from openfisca_core.indexed_enums import EnumArray
 
 if typing.TYPE_CHECKING:
+    from numpy.typing import ArrayLike
+
     from openfisca_core.tracers import FullTracer, TraceNode
 
-    Array = typing.Union[EnumArray, numpy.typing.ArrayLike]
+    Array = Union[EnumArray, ArrayLike]
 
 
 class ComputationLog:
@@ -22,7 +24,7 @@ class ComputationLog:
 
     def display(
             self,
-            value: typing.Optional[Array],
+            value: Optional[Array],
             ) -> str:
         if isinstance(value, EnumArray):
             value = value.decode_to_str()
@@ -34,7 +36,7 @@ class ComputationLog:
             node: TraceNode,
             depth: int,
             aggregate: bool,
-            ) -> typing.List[str]:
+            ) -> List[str]:
 
         def print_line(depth: int, node: TraceNode) -> str:
             indent = '  ' * depth
@@ -71,11 +73,11 @@ class ComputationLog:
 
     def _flatten(
             self,
-            list_of_lists: typing.List[typing.List[str]],
-            ) -> typing.List[str]:
+            list_of_lists: List[List[str]],
+            ) -> List[str]:
         return [item for _list in list_of_lists for item in _list]
 
-    def lines(self, aggregate: bool = False) -> typing.List[str]:
+    def lines(self, aggregate: bool = False) -> List[str]:
         depth = 1
 
         lines_by_tree = [

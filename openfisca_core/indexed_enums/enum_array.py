@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import typing
+from typing import Any, NoReturn, Optional, Type
 
 import numpy
 
 if typing.TYPE_CHECKING:
     from openfisca_core.indexed_enums import Enum
-
-    IndexedEnumArray = numpy.object_
 
 
 class EnumArray(numpy.ndarray):
@@ -23,20 +22,20 @@ class EnumArray(numpy.ndarray):
     def __new__(
             cls,
             input_array: numpy.int_,
-            possible_values: typing.Optional[typing.Type[Enum]] = None,
+            possible_values: Optional[Type[Enum]] = None,
             ) -> EnumArray:
         obj = numpy.asarray(input_array).view(cls)
         obj.possible_values = possible_values
         return obj
 
     # See previous comment
-    def __array_finalize__(self, obj: typing.Optional[numpy.int_]) -> None:
+    def __array_finalize__(self, obj: Optional[numpy.int_]) -> None:
         if obj is None:
             return
 
         self.possible_values = getattr(obj, "possible_values", None)
 
-    def __eq__(self, other: typing.Any) -> bool:
+    def __eq__(self, other: Any) -> bool:
         # When comparing to an item of self.possible_values, use the item index
         # to speed up the comparison.
         if other.__class__.__name__ is self.possible_values.__name__:
@@ -46,10 +45,10 @@ class EnumArray(numpy.ndarray):
 
         return self.view(numpy.ndarray) == other
 
-    def __ne__(self, other: typing.Any) -> bool:
+    def __ne__(self, other: Any) -> bool:
         return numpy.logical_not(self == other)
 
-    def _forbidden_operation(self, other: typing.Any) -> typing.NoReturn:
+    def _forbidden_operation(self, other: Any) -> NoReturn:
         raise TypeError(
             "Forbidden operation. The only operations allowed on EnumArrays "
             "are '==' and '!='.",
@@ -64,7 +63,7 @@ class EnumArray(numpy.ndarray):
     __and__ = _forbidden_operation
     __or__ = _forbidden_operation
 
-    def decode(self) -> IndexedEnumArray:
+    def decode(self) -> numpy.object_:
         """
         Return the array of enum items corresponding to self.
 
