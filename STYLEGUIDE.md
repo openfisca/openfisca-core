@@ -42,10 +42,10 @@ Whenever possible we should expect:
 # Yes
 
 import copy
+import typing
 from typing import List
 
 import numpy
-from numpy.typing import ArrayLike
 
 from openfisca_country_template import entities
 
@@ -53,6 +53,10 @@ from openfisca_core import tools
 from openfisca_core.variables import Variable
 
 from . import Something
+
+if typing.TYPE_CHECKING:
+    from numpy.typing import ArrayLike
+
 
 def do(this: List) -> ArrayLike:
     that = copy.deepcopy(this)
