@@ -17,6 +17,8 @@ This package contains the core features of OpenFisca, which are meant to be used
 
 OpenFisca runs on Python 3.7. More recent versions should work, but are not tested.
 
+OpenFisca also relies strongly on NumPy. Last four minor versions should work, but only latest/stable is tested.
+
 ## Installation
 
 If you're developing your own country package, you don't need to explicitly install OpenFisca-Core. It just needs to appear [in your package dependencies](https://github.com/openfisca/openfisca-france/blob/18.2.1/setup.py#L53).
@@ -47,6 +49,18 @@ To run a single test:
 
 ```sh
 pytest tests/core/test_parameters.py -k test_parameter_for_period
+```
+
+## Types
+
+This repository relies on MyPy for optional dynamic & static type checking.
+
+As NumPy introduced the `typing` module in 1.20.0, to ensure type hints do not break the code at runtime, we run the checker against the last four minor NumPy versions.
+
+Type checking is already run with `make test`. To run the type checker alone:
+
+```sh
+make check-types
 ```
 
 ## Style
