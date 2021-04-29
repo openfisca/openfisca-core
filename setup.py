@@ -35,7 +35,7 @@ dev_requirements = [
 
 setup(
     name = 'OpenFisca-Core',
-    version = '35.3.8',
+    version = '35.4.0',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [
@@ -53,7 +53,10 @@ setup(
     url = 'https://github.com/openfisca/openfisca-core',
 
     data_files = [
-        ('share/openfisca/openfisca-core', ['CHANGELOG.md', 'LICENSE', 'README.md']),
+        (
+            'share/openfisca/openfisca-core',
+            ['CHANGELOG.md', 'LICENSE', 'README.md'],
+            ),
         ],
     entry_points = {
         'console_scripts': [

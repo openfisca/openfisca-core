@@ -1,5 +1,17 @@
 # Changelog
 
+## 35.4.0 [#1010](https://github.com/openfisca/openfisca-core/pull/1010)
+
+#### Technical changes
+
+- Update dependencies (_as in 35.3.7_).
+  - Extend NumPy compatibility to v1.20 to support M1 processors.
+
+- Make NumPy's type-checking compatible with 1.17.0+
+  - NumPy introduced their `typing` module since 1.20.0
+  - Previous type hints relying on `annotations` will henceforward no longer work
+  - This changes ensure that type hints are always legal for the last four minor NumPy versions
+
 ### 35.3.8 [#1014](https://github.com/openfisca/openfisca-core/pull/1014)
 
 #### Bug fix
