@@ -8,7 +8,7 @@ from openfisca_core.indexed_enums import Enum
 
 VALUE_TYPES = {
     bool: {
-        'dtype': numpy.bool_,
+        'dtype': numpy.bool,
         'default': False,
         'json_type': 'boolean',
         'formatted_value_type': 'Boolean',

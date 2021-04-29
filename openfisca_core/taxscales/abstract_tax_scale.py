@@ -3,34 +3,24 @@ from __future__ import annotations
 import typing
 import warnings
 
+import numpy
+
 from openfisca_core.taxscales import TaxScaleLike
-
-if typing.TYPE_CHECKING:
-    import numpy
-
-    NumericalArray = typing.Union[numpy.int_, numpy.float_]
 
 
 class AbstractTaxScale(TaxScaleLike):
     """
-    Base class for various types of tax scales: amount-based tax scales,
-    rate-based tax scales...
+    Base class for various types of tax scales: amount-based tax scales, rate-based
+    tax scales...
     """
 
-    def __init__(
-            self,
-            name: typing.Optional[str] = None,
-            option: typing.Any = None,
-            unit: numpy.int_ = None,
-            ) -> None:
-
+    def __init__(self, name: typing.Optional[str] = None, option = None, unit = None) -> None:
         message = [
-            "The 'AbstractTaxScale' class has been deprecated since",
-            "version 34.7.0, and will be removed in the future.",
+            "The 'AbstractTaxScale' class has been deprecated since version 34.7.0,",
+            "and will be removed in the future.",
             ]
-
         warnings.warn(" ".join(message), DeprecationWarning)
-        super().__init__(name, option, unit)
+        super(AbstractTaxScale, self).__init__(name, option, unit)
 
     def __repr__(self) -> typing.NoReturn:
         raise NotImplementedError(
@@ -40,7 +30,7 @@ class AbstractTaxScale(TaxScaleLike):
 
     def calc(
             self,
-            tax_base: NumericalArray,
+            tax_base: typing.Union[numpy.ndarray[int], numpy.ndarray[float]],
             right: bool,
             ) -> typing.NoReturn:
         raise NotImplementedError(
