@@ -11,25 +11,17 @@ from openfisca_core import tools
 from openfisca_core.errors import EmptyArgumentError
 from openfisca_core.taxscales import TaxScaleLike
 
-if typing.TYPE_CHECKING:
-    NumericalArray = typing.Union[numpy.int_, numpy.float_]
-
 
 class RateTaxScaleLike(TaxScaleLike, abc.ABC):
     """
-    Base class for various types of rate-based tax scales: marginal rate,
-    linear average rate...
+    Base class for various types of rate-based tax scales: marginal rate, linear
+    average rate...
     """
 
     rates: typing.List
 
-    def __init__(
-            self,
-            name: typing.Optional[str] = None,
-            option: typing.Any = None,
-            unit: typing.Any = None,
-            ) -> None:
-        super().__init__(name, option, unit)
+    def __init__(self, name: typing.Optional[str] = None, option = None, unit = None) -> None:
+        super(RateTaxScaleLike, self).__init__(name, option, unit)
         self.rates = []
 
     def __repr__(self) -> str:
@@ -37,8 +29,7 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
             os.linesep.join(
                 [
                     f"- threshold: {threshold}{os.linesep}  rate: {rate}"
-                    for (threshold, rate)
-                    in zip(self.thresholds, self.rates)
+                    for (threshold, rate) in zip(self.thresholds, self.rates)
                     ]
                 )
             )
@@ -51,7 +42,6 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
         if threshold in self.thresholds:
             i = self.thresholds.index(threshold)
             self.rates[i] += rate
-
         else:
             i = bisect.bisect_left(self.thresholds, threshold)
             self.thresholds.insert(i, threshold)
@@ -95,11 +85,7 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
 
             for i, threshold in enumerate(self.thresholds):
                 if decimals is not None:
-                    self.thresholds[i] = numpy.around(
-                        threshold * factor,
-                        decimals = decimals,
-                        )
-
+                    self.thresholds[i] = numpy.around(threshold * factor, decimals = decimals)
                 else:
                     self.thresholds[i] = threshold * factor
 
@@ -125,19 +111,18 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
 
     def bracket_indices(
             self,
-            tax_base: NumericalArray,
+            tax_base: typing.Union[numpy.ndarray[int], numpy.ndarray[float]],
             factor: float = 1.0,
             round_decimals: typing.Optional[int] = None,
-            ) -> numpy.int_:
+            ) -> numpy.ndarray[int]:
         """
         Compute the relevant bracket indices for the given tax bases.
 
         :param ndarray tax_base: Array of the tax bases.
-        :param float factor: Factor to apply to the thresholds.
+        :param float factor: Factor to apply to the thresholds of the tax scales.
         :param int round_decimals: Decimals to keep when rounding thresholds.
 
-        :returns: Integer array with relevant bracket indices for the given tax
-                  bases.
+        :returns: Int array with relevant bracket indices for the given tax bases.
 
         For instance:
 
@@ -168,17 +153,8 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
         base1 = numpy.tile(tax_base, (len(self.thresholds), 1)).T
         factor = numpy.ones(len(tax_base)) * factor
 
-        # To avoid the creation of:
-        #
-        #   numpy.nan = 0 * numpy.inf
-        #
-        # We use:
-        #
-        #   numpy.finfo(float_).eps
-        thresholds1 = numpy.outer(
-            + factor
-            + numpy.finfo(numpy.float_).eps, numpy.array(self.thresholds)
-            )
+        # finfo(float_).eps is used to avoid nan = 0 * inf creation
+        thresholds1 = numpy.outer(factor + numpy.finfo(numpy.float_).eps, numpy.array(self.thresholds))
 
         if round_decimals is not None:
             thresholds1 = numpy.round_(thresholds1, round_decimals)
@@ -188,6 +164,5 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
     def to_dict(self) -> dict:
         return {
             str(threshold): self.rates[index]
-            for index, threshold
-            in enumerate(self.thresholds)
+            for index, threshold in enumerate(self.thresholds)
             }

@@ -1,6 +1,22 @@
 # Changelog
 
+### 35.3.8 [#1014](https://github.com/openfisca/openfisca-core/pull/1014)
+
+#### Bug fix
+
+- Drop latest NumPy supported version to 1.18.x
+  - OpenFisca relies on MyPy for optional duck & static type checking
+  - When libraries do not implement their own types, MyPy provides stubs, or type sheds
+  - Thanks to `__future__.annotations`, those stubs or type sheds are casted to `typing.Any`
+  - Since 1.20.x, NumPy now provides their own type definitions
+  - The introduction of NumPy 1.20.x in #990 caused one major problem: 
+    - It is general practice to do not import at runtime modules only used for typing purposes, thanks to the `typing.TYPE_CHEKING` variable
+    - The new `numpy.typing` module was being imported at runtime, rendering OpenFisca unusable to all users depending on previous versions of NumPy (1.20.x-)
+  - These changes revert #990 and solve #1009 and #1012
+
 ### 35.3.7 [#990](https://github.com/openfisca/openfisca-core/pull/990)
+
+_Note: this version has been unpublished due to an issue introduced by NumPy upgrade. Please use 34.3.8 or a more recent version._
 
 #### Technical changes
 
