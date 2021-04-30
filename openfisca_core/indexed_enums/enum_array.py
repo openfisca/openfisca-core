@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import typing
+from typing import Any, NoReturn, Optional, Type
 
 import numpy
 
@@ -20,23 +21,23 @@ class EnumArray(numpy.ndarray):
     # https://docs.scipy.org/doc/numpy-1.13.0/user/basics.subclassing.html#slightly-more-realistic-example-attribute-added-to-existing-array.
     def __new__(
             cls,
-            input_array: numpy.ndarray[int],
-            possible_values: typing.Optional[typing.Type[Enum]] = None,
+            input_array: numpy.int_,
+            possible_values: Optional[Type[Enum]] = None,
             ) -> EnumArray:
         obj = numpy.asarray(input_array).view(cls)
         obj.possible_values = possible_values
         return obj
 
     # See previous comment
-    def __array_finalize__(self, obj: typing.Optional[numpy.ndarray[int]]) -> None:
+    def __array_finalize__(self, obj: Optional[numpy.int_]) -> None:
         if obj is None:
             return
 
         self.possible_values = getattr(obj, "possible_values", None)
 
-    def __eq__(self, other: typing.Any) -> bool:
-        # When comparing to an item of self.possible_values, use the item index to
-        # speed up the comparison.
+    def __eq__(self, other: Any) -> bool:
+        # When comparing to an item of self.possible_values, use the item index
+        # to speed up the comparison.
         if other.__class__.__name__ is self.possible_values.__name__:
             # Use view(ndarray) so that the result is a classic ndarray, not an
             # EnumArray.
@@ -44,13 +45,13 @@ class EnumArray(numpy.ndarray):
 
         return self.view(numpy.ndarray) == other
 
-    def __ne__(self, other: typing.Any) -> bool:
+    def __ne__(self, other: Any) -> bool:
         return numpy.logical_not(self == other)
 
-    def _forbidden_operation(self, other: typing.Any) -> typing.NoReturn:
+    def _forbidden_operation(self, other: Any) -> NoReturn:
         raise TypeError(
-            "Forbidden operation. The only operations allowed on EnumArrays are "
-            "'==' and '!='.",
+            "Forbidden operation. The only operations allowed on EnumArrays "
+            "are '==' and '!='.",
             )
 
     __add__ = _forbidden_operation
@@ -62,7 +63,7 @@ class EnumArray(numpy.ndarray):
     __and__ = _forbidden_operation
     __or__ = _forbidden_operation
 
-    def decode(self) -> numpy.ndarray[Enum]:
+    def decode(self) -> numpy.object_:
         """
         Return the array of enum items corresponding to self.
 
@@ -72,14 +73,16 @@ class EnumArray(numpy.ndarray):
         >>> enum_array[0]
         >>> 2  # Encoded value
         >>> enum_array.decode()[0]
-        <HousingOccupancyStatus.free_lodger: 'Free lodger'>  # Decoded value : enum item
+        <HousingOccupancyStatus.free_lodger: 'Free lodger'>
+
+        Decoded value: enum item
         """
         return numpy.select(
             [self == item.index for item in self.possible_values],
             list(self.possible_values),
             )
 
-    def decode_to_str(self) -> numpy.ndarray[str]:
+    def decode_to_str(self) -> numpy.str_:
         """
         Return the array of string identifiers corresponding to self.
 

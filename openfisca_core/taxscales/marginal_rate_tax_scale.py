@@ -9,11 +9,14 @@ import numpy
 from openfisca_core import taxscales
 from openfisca_core.taxscales import RateTaxScaleLike
 
+if typing.TYPE_CHECKING:
+    NumericalArray = typing.Union[numpy.int_, numpy.float_]
+
 
 class MarginalRateTaxScale(RateTaxScaleLike):
 
     def add_tax_scale(self, tax_scale: RateTaxScaleLike) -> None:
-        # Pour ne pas avoir de problèmes avec les barèmes vides
+        # So as not to have problems with empty scales
         if (len(tax_scale.thresholds) > 0):
             for threshold_low, threshold_high, rate in zip(
                     tax_scale.thresholds[:-1],
@@ -22,7 +25,7 @@ class MarginalRateTaxScale(RateTaxScaleLike):
                     ):
                 self.combine_bracket(rate, threshold_low, threshold_high)
 
-            # Pour traiter le dernier threshold
+            # To process the last threshold
             self.combine_bracket(
                 tax_scale.rates[-1],
                 tax_scale.thresholds[-1],
@@ -30,16 +33,17 @@ class MarginalRateTaxScale(RateTaxScaleLike):
 
     def calc(
             self,
-            tax_base: typing.Union[numpy.ndarray[int], numpy.ndarray[float]],
+            tax_base: NumericalArray,
             factor: float = 1.0,
             round_base_decimals: typing.Optional[int] = None,
-            ) -> numpy.ndarray[float]:
+            ) -> numpy.float_:
         """
-        Compute the tax amount for the given tax bases by applying the taxscale.
+        Compute the tax amount for the given tax bases by applying a taxscale.
 
         :param ndarray tax_base: Array of the tax bases.
-        :param float factor: Factor to apply to the thresholds of the tax scale.
-        :param int round_base_decimals: Decimals to keep when rounding thresholds.
+        :param float factor: Factor to apply to the thresholds of the taxscale.
+        :param int round_base_decimals: Decimals to keep when rounding
+                                        thresholds.
 
         :returns: Float array with tax amount for the given tax bases.
 
@@ -52,20 +56,31 @@ class MarginalRateTaxScale(RateTaxScaleLike):
         >>> tax_scale.calc(tax_base)
         [0.0, 5.0]
         """
-
         base1 = numpy.tile(tax_base, (len(self.thresholds), 1)).T
         factor = numpy.ones(len(tax_base)) * factor
 
-        # finfo(float_).eps is used to avoid nan = 0 * inf creation
-        thresholds1 = numpy.outer(factor + numpy.finfo(numpy.float_).eps, numpy.array(self.thresholds + [numpy.inf]))
+        # To avoid the creation of:
+        #
+        #   numpy.nan = 0 * numpy.inf
+        #
+        # We use:
+        #
+        #   numpy.finfo(float_).eps
+        thresholds1 = numpy.outer(
+            factor + numpy.finfo(numpy.float_).eps,
+            numpy.array(self.thresholds + [numpy.inf]),
+            )
 
         if round_base_decimals is not None:
             thresholds1 = numpy.round_(thresholds1, round_base_decimals)
 
-        a = numpy.maximum(numpy.minimum(base1, thresholds1[:, 1:]) - thresholds1[:, :-1], 0)
+        a = numpy.maximum(
+            numpy.minimum(base1, thresholds1[:, 1:]) - thresholds1[:, :-1], 0
+            )
 
         if round_base_decimals is None:
             return numpy.dot(self.rates, a.T)
+
         else:
             r = numpy.tile(self.rates, (len(tax_base), 1))
             b = numpy.round_(a, round_base_decimals)
@@ -91,26 +106,30 @@ class MarginalRateTaxScale(RateTaxScaleLike):
 
         if threshold_high:
             j = self.thresholds.index(threshold_high) - 1
+
         else:
             j = len(self.thresholds) - 1
+
         while i <= j:
             self.add_bracket(self.thresholds[i], rate)
             i += 1
 
     def marginal_rates(
             self,
-            tax_base: typing.Union[numpy.ndarray[int], numpy.ndarray[float]],
+            tax_base: NumericalArray,
             factor: float = 1.0,
             round_base_decimals: typing.Optional[int] = None,
-            ) -> numpy.ndarray[float]:
+            ) -> numpy.float_:
         """
         Compute the marginal tax rates relevant for the given tax bases.
 
         :param ndarray tax_base: Array of the tax bases.
-        :param float factor: Factor to apply to the thresholds of the tax scale.
-        :param int round_base_decimals: Decimals to keep when rounding thresholds.
+        :param float factor: Factor to apply to the thresholds of a tax scale.
+        :param int round_base_decimals: Decimals to keep when rounding
+                                        thresholds.
 
-        :returns: Float array with relevant marginal tax rate for the given tax bases.
+        :returns: Float array with relevant marginal tax rate for the given tax
+                  bases.
 
         For instance:
 
@@ -135,29 +154,29 @@ class MarginalRateTaxScale(RateTaxScaleLike):
 
         Invert a taxscale:
 
-            Assume tax_scale composed of bracket which thresholds are expressed in term
-            of brut revenue.
+            Assume tax_scale composed of bracket whose thresholds are expressed
+            in terms of gross revenue.
 
-            The inverse is another MarginalTaxSclae which thresholds are expressed in
-            terms of net revenue.
+            The inverse is another MarginalRateTaxScale whose thresholds are
+            expressed in terms of net revenue.
 
-            IF net = revbrut - tax_scale.calc(revbrut)
-            THEN brut = tax_scale.inverse().calc(net)
+            If net = gross_revenue - tax_scale.calc(gross_revenue)
+            Then gross = tax_scale.inverse().calc(net)
         """
         # Threshold of net revenue.
         net_threshold: int = 0
 
-        # Threshold of brut revenue.
+        # Threshold of gross revenue.
         threshold: int
 
-        # Ordonnée à l'origine des segments des différents seuils dans une
-        # représentation du revenu imposable comme fonction linéaire par morceaux du
-        # revenu brut.
+        # The intercept of the segments of the different thresholds in a
+        # representation of taxable revenue as a piecewise linear function
+        # of gross revenue.
         theta: int
 
-        # Actually 1 / (1- global_rate)
+        # Actually 1 / (1 - global_rate)
         inverse = self.__class__(
-            name = self.name + "'",
+            name = str(self.name) + "'",
             option = self.option,
             unit = self.unit,
             )
@@ -167,7 +186,8 @@ class MarginalRateTaxScale(RateTaxScaleLike):
                 previous_rate = 0
                 theta = 0
 
-            # On calcule le seuil de revenu imposable de la tranche considérée.
+            # We calculate the taxable revenue threshold of the considered
+            # bracket.
             net_threshold = (1 - previous_rate) * threshold + theta
             inverse.add_bracket(net_threshold, 1 / (1 - rate))
             theta = (rate - previous_rate) * threshold + theta
