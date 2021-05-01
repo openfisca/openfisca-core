@@ -1,0 +1,8 @@
+# These are dependencies to publish the library, so we always want the latest
+# versions.
+
+# For publishing on PyPI.
+twine
+
+# For building the package.
+wheel

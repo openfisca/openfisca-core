@@ -1,0 +1,7 @@
+# Please make sure to pin all dependency versions, in order to avoid unwanted
+# functional and integration breaks caused by external code updates.
+#
+# These are web-api tracking dependencies, so pin them.
+
+# For sending usage statistics to the Matomo third-party service.
+openfisca-tracker == 0.4.0

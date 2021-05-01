@@ -1,0 +1,5 @@
+# These are dependencies to upload test coverage statistics, so we always want
+# the latest versions.
+
+# For sending test statistics to the Coveralls third-party service.
+coveralls

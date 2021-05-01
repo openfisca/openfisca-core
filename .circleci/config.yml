@@ -127,7 +127,7 @@ jobs:
           name: Submit coverage to Coveralls
           command: |
             source /tmp/venv/openfisca_core/bin/activate
-            pip install coveralls
+            pip install --editable .[coverage]
             coveralls
 
       - save_cache:
@@ -153,9 +153,10 @@ jobs:
           command: if ! .circleci/has-functional-changes.sh ; then circleci step halt ; fi
 
       - run:
-          name: Upload a Python package to Pypi
+          name: Upload a Python package to PyPi
           command: |
             source /tmp/venv/openfisca_core/bin/activate
+            pip install --editable .[publication]
             .circleci/publish-python-package.sh
 
       - run:
