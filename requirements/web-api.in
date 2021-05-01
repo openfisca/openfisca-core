@@ -4,13 +4,9 @@
 # These are web-api dependencies, so pin them.
 
 # For OpenFisca's Web API.
-#
-# TODO: pin.
 flask == 1.1.2
-gunicorn >= 20.0.0, < 21.0.0
+gunicorn == 20.1.0
 
 # For OpenFisca's Web API users requiring CORS.
-#
-# TODO: pin.
 flask-cors == 3.0.10
-werkzeug >= 1.0.0, < 2.0.0
+werkzeug == 1.0.1
