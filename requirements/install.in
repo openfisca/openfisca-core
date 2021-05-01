@@ -1,0 +1,70 @@
+# Please make sure to cap all dependency versions, in order to avoid unwanted
+# functional and integration breaks caused by external code updates.
+#
+# These are general dependencies, so:
+#
+# * the ranges should be broad, and
+# * the number of them kept discreet.
+#
+# If a dependency seems trivial, please propose a pull request to remove it.
+#
+# General Rule
+# ========
+#
+# * Cap to latest major.
+#
+# NumPy Rule
+# ========
+#
+# * Cap to latest four minors (document why).
+#
+# Exceptions
+# ========
+#
+# * Avoiding a version (document why).
+# * Pinning a version (document why).
+
+# For globing over dictionaries as if they were filesystems
+#
+# We do not support 2 because of a bug introducted to period parsing in
+# OpenFisca's Web API.
+dpath ~= 1.5
+
+# For evaluating numerical expressions
+#
+# TODO: support for 2 should be extended.
+numexpr ~= 2.7
+
+# For vectorial support
+#
+# We support the latest four minors because NumPy is generally a transitive
+# dependency that users rely on within the projects where OpenFisca is
+# depended on by.
+#
+# TODO: support for < 1.17 should be dropped.
+numpy ~= 1.11, < 1.21
+
+# For caching
+#
+# We support psutil >= 5.4.7 because users have found problems running
+# older versions on Windows (specifically 5.4.2).
+# TODO: support should be extended to >= 5.4.3.
+psutil >= 5.4.7, < 6
+
+# For openfisca test
+#
+# TODO: support for 4 should be dropped.
+# TODO: support for 6 requires fixing some tests.
+# See: https://docs.pytest.org/en/stable/deprecations.html#node-construction-changed-to-node-from-parent
+pytest >= 4.4.1, < 6
+
+# For parameters, tests
+#
+# TODO: support for 3 should be dropped.
+# TODO: support for 4 should be dropped.
+PyYAML >= 3.10, < 6
+
+# For sorting formulas by date
+#
+# TODO: support for 2 should be extended.
+sortedcontainers == 2.2.2

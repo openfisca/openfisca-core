@@ -1,43 +1,28 @@
 #! /usr/bin/env python
 
+from __future__ import annotations
+
+from typing import List
+
+import re
 from setuptools import setup, find_packages
 
-# Please make sure to cap all dependency versions, in order to avoid unwanted
-# functional and integration breaks caused by external code updates.
 
-general_requirements = [
-    'dpath >= 1.5.0, < 2.0.0',
-    'nptyping == 1.4.4',
-    'numexpr >= 2.7.0, <= 3.0',
-    'numpy >= 1.11, < 1.21',
-    'psutil >= 5.4.7, < 6.0.0',
-    'pytest >= 4.4.1, < 6.0.0',  # For openfisca test
-    'PyYAML >= 3.10',
-    'sortedcontainers == 2.2.2',
-    'typing-extensions == 3.10.0.2',
-    ]
+def load_requirements_from_file(filename: str) -> List[str]:
+    """Allows for composable requirement files with the `-r filename` flag."""
 
-api_requirements = [
-    'flask == 1.1.2',
-    'flask-cors == 3.0.10',
-    'gunicorn >= 20.0.0, < 21.0.0',
-    'werkzeug >= 1.0.0, < 2.0.0',
-    ]
+    reqs = open(f"requirements/{filename}").readlines()
+    pattern = re.compile(r"^\s*-r\s*(?P<filename>.*)$")
 
-dev_requirements = [
-    'autopep8 >= 1.4.0, < 1.6.0',
-    'coverage == 6.0.2',
-    'darglint == 1.8.0',
-    'flake8 >= 3.9.0, < 4.0.0',
-    'flake8-bugbear >= 19.3.0, < 20.0.0',
-    'flake8-docstrings == 1.6.0',
-    'flake8-print >= 3.1.0, < 4.0.0',
-    'flake8-rst-docstrings == 0.2.3',
-    'mypy == 0.910',
-    'openfisca-country-template >= 3.10.0, < 4.0.0',
-    'openfisca-extension-template >= 1.2.0rc0, < 2.0.0',
-    'pylint == 2.10.2',
-    ] + api_requirements
+    for req in reqs:
+        match = pattern.match(req)
+
+        if match:
+            reqs.remove(req)
+            reqs.extend(load_requirements_from_file(match.group("filename")))
+
+    return reqs
+
 
 setup(
     name = 'OpenFisca-Core',
@@ -49,7 +34,6 @@ setup(
         'License :: OSI Approved :: GNU Affero General Public License v3',
         'Operating System :: POSIX',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Topic :: Scientific/Engineering :: Information Analysis',
         ],
@@ -57,7 +41,6 @@ setup(
     keywords = 'benefit microsimulation social tax',
     license = 'https://www.fsf.org/licensing/licenses/agpl-3.0.html',
     url = 'https://github.com/openfisca/openfisca-core',
-
     data_files = [
         (
             'share/openfisca/openfisca-core',
@@ -70,14 +53,15 @@ setup(
             'openfisca-run-test=openfisca_core.scripts.openfisca_command:main',
             ],
         },
+    python_requires = ">= 3.7",
+    install_requires = load_requirements_from_file("install"),
     extras_require = {
-        'web-api': api_requirements,
-        'dev': dev_requirements,
-        'tracker': [
-            'openfisca-tracker == 0.4.0',
-            ],
+        "coverage": load_requirements_from_file("coverage"),
+        "dev": load_requirements_from_file("dev"),
+        "publication": load_requirements_from_file("publication"),
+        "tracker": load_requirements_from_file("tracker"),
+        "web-api": load_requirements_from_file("web-api"),
         },
     include_package_data = True,  # Will read MANIFEST.in
-    install_requires = general_requirements,
     packages = find_packages(exclude=['tests*']),
     )
