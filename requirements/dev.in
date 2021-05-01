@@ -4,25 +4,23 @@
 # These are dev dependencies, so pin them.
 
 # For automatic style formatting.
-#
-# TODO: pin
-autopep8 >= 1.4.0, < 1.6.0
+autopep8 == 1.5.7
 
 # For style & code checking.
-flake8 >= 3.9.0, < 4.0.0
-flake8-bugbear >= 19.3.0, < 20.0.0
-flake8-print >= 3.1.0, < 4.0.0
+flake8 == 3.9.1
+flake8-bugbear == 21.4.3
+flake8-print == 4.0.0
 flake8-rst-docstrings == 0.2.3
 
 # For PyTest test coverage integration.
-pytest-cov >= 2.6.1, < 3.0.0
+pytest-cov == 2.11.1
 
 # For optional duck & static type checking.
-mypy >= 0.701, < 0.800
+mypy == 0.812
 
 # For testing: parameters, variables, etc.
-openfisca-country-template >= 3.10.0, < 4.0.0
-openfisca-extension-template >= 1.2.0rc0, < 2.0.0
+openfisca-country-template == 3.12.5
+openfisca-extension-template == 1.3.6
 
 # Include Web API dependencies for development
 -r web-api.in
