@@ -44,11 +44,10 @@ numexpr ~= 2.7
 # TODO: support for < 1.17 should be dropped.
 numpy ~= 1.11, < 1.21
 
-# For caching
+# Memory monitoring for caching.
 #
-# We support psutil >= 5.4.7 because users have found problems running
-# older versions on Windows (specifically 5.4.2).
-# TODO: support should be extended to >= 5.4.3.
+# We support psutil >= 5.4.7 because it is the first version compatible with
+# Python 3.7.
 psutil >= 5.4.7, < 6
 
 # For openfisca test
