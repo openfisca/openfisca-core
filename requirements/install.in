@@ -63,11 +63,8 @@ psutil >= 5.4.7, < 6
 # See: https://docs.pytest.org/en/stable/deprecations.html#node-construction-changed-to-node-from-parent
 pytest >= 5.4.2, < 6
 
-# For parameters, tests
-#
-# TODO: support for 3 should be dropped.
-# TODO: support for 4 should be dropped.
-PyYAML >= 3.10, < 6
+# For parameters, tests.
+PyYAML >= 5.1, < 6
 
 # For sorting formulas by period.
 sortedcontainers >= 2, < 3
