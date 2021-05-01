@@ -1,0 +1,5 @@
+# These are dependencies to help with debug and profiling, so we always want
+# the latest versions.
+
+# Interactive console on steroids (even makes your coffee)!
+ipython
