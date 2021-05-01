@@ -24,11 +24,14 @@
 # * Avoiding a version (document why).
 # * Pinning a version (document why).
 
-# For globing over dictionaries as if they were filesystems
+# For globing over dictionaries as if they were filesystems.
 #
-# We do not support 2 because of a bug introducted to period parsing in
+# We support from 1.3.2 on because it is the first version published
+# following the semantic versioning specification.
+#
+# We do not support 2 because of a bug introduced to period parsing in
 # OpenFisca's Web API.
-dpath ~= 1.5
+dpath >= 1.3.2, < 2
 
 # For evaluating numerical expressions
 #
