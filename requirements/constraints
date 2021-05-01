@@ -1,0 +1,6 @@
+# These are constraint versions to ensure the integrity of distributions.
+#
+# Normally, we want to add here the pinned lower-bound supported versions of
+# dependencies critical to OpenFisca's usability.
+
+numpy == 1.17
