@@ -64,7 +64,5 @@ pytest >= 4.4.1, < 6
 # TODO: support for 4 should be dropped.
 PyYAML >= 3.10, < 6
 
-# For sorting formulas by date
-#
-# TODO: support for 2 should be extended.
-sortedcontainers == 2.2.2
+# For sorting formulas by period.
+sortedcontainers >= 2, < 3
