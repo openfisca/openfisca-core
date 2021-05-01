@@ -1,5 +1,59 @@
 # Changelog
 
+# 36.0.0 [#1015](https://github.com/openfisca/openfisca-core/pull/1015)
+
+#### Technical changes
+
+- Extract requirements to separate files for easier contract enforcement.
+- Add explicit contract regarding supported dependencies.
+- Add constraint file to test against lower-bound NumPy.
+- Add extra dependencies.
+  - Add coveralls (latest) to extra requirements.
+  - Add twine (latest) to extra requirements.
+  - Add wheel (latest) to extra requirements.
+- Pin non-distribution dependencies.
+  - Pin autopep8 at latest.
+  - Pin flake8 at latest.
+  - Pin flake8-bugbear at latest.
+  - Pin flake8-print at latest.
+  - Pin pytest-cov at latest.
+  - Pin mypy at latest.
+  - Pin flask at 1.1.2.
+  - Pin gunicorn at 20.1.0.
+  - Pin flask-cors at 3.0.10.
+  - Pin werkzeug at 1.0.1.
+- Relax distrubution dependencies.
+  - Set dpath at >= 1.3.2, < 2.
+  - Set psutil at >= 5.4.7, < 6.
+  - Set sortedcontainers at >= 2, < 3.
+- Relax circular dependencies.
+  - Relax openfisca-country-template.
+  - Relax openfisca-extension-template.
+
+#### Breaking changes
+
+- Drop support for Python < 3.7.
+  - Python 3.7 [introduces backwards incompatible syntax changes](https://docs.python.org/3/whatsnew/3.7.html) that might be used in your country models.
+- Drop support for numexpr < 2.7.1.
+  - numexpr 2.7.1 [introduces no breaking changes](https://numexpr.readthedocs.io/projects/NumExpr3/en/latest/release_notes.html#changes-from-2-7-0-to-2-7-1).
+- Drop support for NumPy < 1.17
+  - NumPy 1.12 [expires a list of old deprecations](https://numpy.org/devdocs/release/1.12.0-notes.html#compatibility-notes) that might be used in your country models.
+  - NumPy 1.13 [expires a list of old deprecations](https://numpy.org/devdocs/release/1.13.0-notes.html#compatibility-notes) that might be used in your country models.
+  - NumPy 1.14 [expires a list of old deprecations](https://numpy.org/devdocs/release/1.14.0-notes.html#compatibility-notes) that might be used in your country models.
+  - NumPy 1.15 [expires a list of old deprecations](https://numpy.org/devdocs/release/1.15.0-notes.html#compatibility-notes) that might be used in your country models.
+  - NumPy 1.16 [expires a list of old deprecations](https://numpy.org/devdocs/release/1.16.0-notes.html#expired-deprecations) that might be used in your country models.
+  - NumPy 1.17 [expires a list of old deprecations](https://numpy.org/devdocs/release/1.17.0-notes.html#compatibility-notes) that might be used in your country models.
+- Drop support for pytest < 5.4.2.
+  - pytest 5 [introduces a list of removals and deprecations](https://docs.pytest.org/en/stable/changelog.html#pytest-5-0-0-2019-06-28) that might be used in your country models.
+  - pytest 5.1 [introduces a list of removals](https://docs.pytest.org/en/stable/changelog.html#pytest-5-1-0-2019-08-15) that might be used in your country models.
+  - pytest 5.2 [introduces a list of deprecations](https://docs.pytest.org/en/stable/changelog.html#pytest-5-2-0-2019-09-28) that might be used in your country models.
+  - pytest 5.3 [introduces a list of deprecations](https://docs.pytest.org/en/stable/changelog.html#pytest-5-3-0-2019-11-19) that might be used in your country models.
+  - pytest 5.4 [introduces a list of breaking changes and deprecations](https://docs.pytest.org/en/stable/changelog.html#pytest-5-3-0-2019-11-19) that might be used in your country models.
+  - pytest 5.4.1 [introduces no breaking changes](https://docs.pytest.org/en/stable/changelog.html#pytest-5-4-1-2020-03-13).
+  - pytest 5.4.2 [introduces no breaking changes](https://docs.pytest.org/en/stable/changelog.html#pytest-5-4-2-2020-05-08).
+- Drop support for PyYAML < 5.1.
+  - PyYAML 5.1 [introduces some breaking changes](https://github.com/yaml/pyyaml/blob/ee37f4653c08fc07aecff69cfd92848e6b1a540e/CHANGES#L66-L97) that might be used in your country models.
+
 ### 35.7.1 [#1075](https://github.com/openfisca/openfisca-core/pull/1075)
 
 #### Bug fix
