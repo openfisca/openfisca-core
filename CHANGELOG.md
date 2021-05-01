@@ -54,6 +54,27 @@
 - Drop support for PyYAML < 5.1.
   - PyYAML 5.1 [introduces some breaking changes](https://github.com/yaml/pyyaml/blob/ee37f4653c08fc07aecff69cfd92848e6b1a540e/CHANGES#L66-L97) that might be used in your country models.
 
+#### Expired deprecations
+
+- `openfisca_core.commons.Dummy` => `openfisca_core.commons.empty_clone`
+- `openfisca_core.errors.ParameterNotFound` => `openfisca_core.errors.ParameterNotFoundError`
+- `openfisca_core.errors.VariableNameConflict` => `openfisca_core.errors.VariableNameConflictError`
+- `openfisca_core.errors.VariableNotFound` => `openfisca_core.errors.VariableNotFoundError`
+- `openfisca_core.formula_helpers.py` => `openfisca_core.commons`
+- `openfisca_core.memory_config.py` => `openfisca_core.experimental`
+- `openfisca_core.parameters.Bracket` => `openfisca_core.errors.ParameterScaleBracket`
+- `openfisca_core.parameters.ParameterNotFound` => `openfisca_core.errors.ParameterNotFoundError`
+- `openfisca_core.parameters.ParameterParsingError` => `openfisca_core.errors.ParameterParsingError`
+- `openfisca_core.parameters.Scale` => `openfisca_core.errors.ParameterScale`
+- `openfisca_core.rates` => `openfisca_core.commons`
+- `openfisca_core.simulation_builder` => `openfisca_core.simulations`
+- `openfisca_core.simulations.CycleError` => `openfisca_core.errors.CycleError`
+- `openfisca_core.simulations.NaNCreationError` => `openfisca_core.errors.NaNCreationError`
+- `openfisca_core.simulations.SpiralError` => `openfisca_core.errors.SpiralError`
+- `openfisca_core.taxbenefitsystems.VariableNameConflict` => `openfisca_core.errors.VariableNameConflictError`
+- `openfisca_core.taxbenefitsystems.VariableNotFound` => `openfisca_core.errors.VariableNotFoundError`
+- `openfisca_core.taxscales.EmptyArgumentError` => `openfisca_core.errors.EmptyArgumentError`
+
 ### 35.7.1 [#1075](https://github.com/openfisca/openfisca-core/pull/1075)
 
 #### Bug fix
