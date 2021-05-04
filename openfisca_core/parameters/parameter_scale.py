@@ -21,7 +21,7 @@ class ParameterScale(AtInstantLike):
     # 'unit' and 'reference' are only listed here for backward compatibility
     _allowed_keys = config.COMMON_KEYS.union({'brackets'})
 
-    def __init__(self, name, data = None, file_path = None, brackets = []):
+    def __init__(self, name, data, file_path):
         """
         :param name: name of the scale, eg "taxes.some_scale"
         :param data: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
@@ -29,18 +29,11 @@ class ParameterScale(AtInstantLike):
         """
         self.name: str = name
         self.file_path: str = file_path
+        helpers._validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
         self.description: str = data.get('description')
         self.metadata: typing.Dict = {}
-
-        if brackets:
-            self.brackets = brackets
-
-        helpers._validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
         helpers._set_backward_compatibility_metadata(self, data)
         self.metadata.update(data.get('metadata', {}))
-
-        if brackets:
-            return
 
         if not isinstance(data.get('brackets', []), list):
             raise ParameterParsingError(
@@ -54,22 +47,6 @@ class ParameterScale(AtInstantLike):
             bracket_name = helpers._compose_name(name, item_name = i)
             bracket = parameters.ParameterScaleBracket(name = bracket_name, data = bracket_data, file_path = file_path)
             brackets.append(bracket)
-        self.brackets: typing.List[parameters.ParameterScaleBracket] = brackets
-
-
-    def init_from_brackets(cls, name, brackets, data = None):
-        """Initialize ParameterScale from brackets.
-
-        :param name: name of the scale, eg "taxes.some_scale"
-        :param brackets: brackets of the scale
-        :param data: Other than brackets data for the ParameterScale.
-        """
-        self.name: str = name
-        helpers._validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
-        self.description: str = data.get('description')
-        self.metadata: typing.Dict = {}
-        helpers._set_backward_compatibility_metadata(self, data)
-        self.metadata.update(data.get('metadata', {}))
         self.brackets: typing.List[parameters.ParameterScaleBracket] = brackets
 
     def __getitem__(self, key):
