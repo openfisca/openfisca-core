@@ -2,7 +2,15 @@ import tempfile
 
 import pytest
 
-from openfisca_core.parameters import ParameterNotFound, ParameterNode, ParameterNodeAtInstant, load_parameter_file
+from openfisca_core.errors import ParameterNotFound
+from openfisca_core.parameters import (
+    config,
+    helpers,
+    ParameterNode,
+    ParameterNodeAtInstant,
+    ParameterScale,
+    ParameterScaleBracket,
+    )
 
 
 def test_get_at_instant(tax_benefit_system):
@@ -61,7 +69,7 @@ def test_parameter_repr(tax_benefit_system):
     tf = tempfile.NamedTemporaryFile(delete = False)
     tf.write(repr(parameters).encode('utf-8'))
     tf.close()
-    tf_parameters = load_parameter_file(file_path = tf.name)
+    tf_parameters = helpers.load_parameter_file(file_path = tf.name)
     assert repr(parameters) == repr(tf_parameters)
 
 
@@ -105,3 +113,48 @@ def test_name():
         }
     parameter = ParameterNode('root', data = parameter_data)
     assert parameter.children["2010"].name == "root.2010"
+
+
+# ParameterScale
+
+@pytest.fixture
+def input_bracket():
+    data = """
+        rate:
+            2017-01-01: 0.02
+            2015-01-01: 0.04
+            2013-01-01: 0.03
+        threshold:
+            2013-01-01: 0.0
+        """
+
+    return config.yaml.load(data, Loader = config.Loader)
+
+
+@pytest.fixture
+def bracket(input_bracket):
+    return ParameterScaleBracket(
+        name = "Bracket",
+        data = input_bracket,
+        )
+
+
+def test_build_scale_from_input_scale_brackets(input_bracket, bracket):
+    scale = ParameterScale(
+        name = "Scale",
+        data = {"brackets": [input_bracket]},
+        file_path = None,
+        )
+
+    assert bracket != scale.brackets[0]
+    assert bracket.rate("2017-01-01") == scale.brackets[0].rate("2017-01-01")
+
+
+def test_build_scale_from_brackets(bracket):
+    my_scale = ParameterScale(
+        name = "MyScale",
+        data = {"brackets": [bracket]},
+        file_path = None,
+        )
+
+    assert bracket in my_scale.brackets
