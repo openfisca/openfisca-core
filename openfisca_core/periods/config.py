@@ -6,7 +6,9 @@ MONTH = 'month'
 YEAR = 'year'
 ETERNITY = 'eternity'
 
-INSTANT_PATTERN = re.compile(r'^\d{4}(?:-\d{1,2}){0,2}$')  # matches '2015', '2015-01', '2015-01-01'
+# Matches "2015", "2015-01", "2015-01-01"
+# Does not match "2015-13", "2015-12-32"
+INSTANT_PATTERN = re.compile(r"^\d{4}(-(0[1-9]|1[012]))?(-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01]))?$")
 
 date_by_instant_cache: typing.Dict = {}
 str_by_instant_cache: typing.Dict = {}

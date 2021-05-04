@@ -148,6 +148,11 @@ def test_2_years_size_in_days():
 # Misc
 
 
+def test_wrong_date():
+    with pytest.raises(ValueError):
+        period("2006-31-03")
+
+
 def test_ambiguous_period():
     with pytest.raises(ValueError):
         period('month:2014')
