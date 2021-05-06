@@ -132,20 +132,6 @@ def input_bracket():
 
 
 @pytest.fixture
-def another_input_bracket():
-    data = """
-        rate:
-            2017-01-01: 0.2
-            2015-01-01: 0.4
-            2013-01-01: 0.3
-        threshold:
-            2013-01-01: 100
-        """
-
-    return config.yaml.load(data, Loader = config.Loader)
-
-
-@pytest.fixture
 def bracket(input_bracket):
     return ParameterScaleBracket(
         name = "Bracket",
@@ -153,32 +139,12 @@ def bracket(input_bracket):
         )
 
 
-@pytest.fixture
-def another_bracket(another_input_bracket):
-    return ParameterScaleBracket(
-        name = "Bracket",
-        data = another_input_bracket,
-        )
-
-
-def test_build_scale_from_input_scale_brackets(input_bracket, another_input_bracket, bracket, another_bracket):
-    brackets = [bracket, another_bracket]
+def test_build_scale_from_brackets(input_bracket, bracket):
     scale = ParameterScale(
         name = "Scale",
-        data = {"brackets": brackets},
+        data = {"brackets": [input_bracket, bracket]},
         file_path = None,
         )
-    assert bracket in scale.brackets
-    assert another_bracket in scale.brackets
-    assert scale.brackets[0].rate('2017-01-01') == 0.2
-
-
-def test_build_scale_from_brackets(bracket, another_bracket):
-    my_scale = ParameterScale(
-        name = "MyScale",
-        data = {"brackets": [bracket, another_bracket]},
-        file_path = None,
-        )
-
-    assert bracket in my_scale.brackets
-    assert id(bracket) != id(my_scale.brackets[0])
+    assert [bracket, bracket] == scale.brackets
+    assert scale.brackets[0].rate("2017-01-01") == 0.02
+    assert scale.brackets[1].rate("2015-01-01") == 0.04
