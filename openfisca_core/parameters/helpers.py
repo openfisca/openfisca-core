@@ -1,5 +1,6 @@
 import os
 import traceback
+from collections import abc
 
 import numpy
 
@@ -78,7 +79,7 @@ def _set_backward_compatibility_metadata(parameter, data):
 
 def _validate_parameter(parameter, data, data_type = None, allowed_keys = None):
     type_map = {
-        dict: 'object',
+        abc.MutableMapping: 'object',
         list: 'array',
         }
 

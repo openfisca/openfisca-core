@@ -145,6 +145,7 @@ def test_build_scale_from_brackets(input_bracket, bracket):
         data = {"brackets": [input_bracket, bracket]},
         file_path = None,
         )
+
     assert [bracket, bracket] == scale.brackets
     assert scale.brackets[0].rate("2017-01-01") == 0.02
     assert scale.brackets[1].rate("2015-01-01") == 0.04

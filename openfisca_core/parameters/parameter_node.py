@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import os
 import typing
+from collections import abc
 
 from openfisca_core import commons, parameters, tools
 from openfisca_core.parameters import config, helpers, AtInstantLike, Parameter, ParameterNodeAtInstant
@@ -84,7 +85,7 @@ class ParameterNode(AtInstantLike):
 
         else:
             self.file_path = file_path
-            helpers._validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
+            helpers._validate_parameter(self, data, data_type = abc.MutableMapping, allowed_keys = self._allowed_keys)
             self.description = data.get('description')
             self.documentation = data.get('documentation')
             helpers._set_backward_compatibility_metadata(self, data)

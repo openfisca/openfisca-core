@@ -1,6 +1,7 @@
 import copy
 import os
 import typing
+from collections import abc
 
 from openfisca_core import commons, periods
 from openfisca_core.errors import ParameterParsingError
@@ -42,7 +43,7 @@ class Parameter(AtInstantLike):
     def __init__(self, name, data, file_path = None):
         self.name: str = name
         self.file_path: str = file_path
-        helpers._validate_parameter(self, data, data_type = dict)
+        helpers._validate_parameter(self, data, data_type = abc.MutableMapping)
         self.description: str = None
         self.metadata: typing.Dict = {}
         self.documentation: str = None
@@ -57,7 +58,7 @@ class Parameter(AtInstantLike):
             helpers._set_backward_compatibility_metadata(self, data)
             self.metadata.update(data.get('metadata', {}))
 
-            helpers._validate_parameter(self, data['values'], data_type = dict)
+            helpers._validate_parameter(self, data['values'], data_type = abc.MutableMapping)
             values = data['values']
 
             self.documentation = data.get('documentation')

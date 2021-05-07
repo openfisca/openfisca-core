@@ -30,7 +30,7 @@ def check_fails_with_message(file_name, keywords):
     ('unexpected_key_in_value_at_instant', {'Unexpected property', 'unexpected_key'}),
     ('unexpected_key_in_scale', {'Unexpected property', 'unexpected_key'}),
     ('wrong_type_in_scale', {'must be of type object'}),
-    ('wrong_type_in_brackets', {'must be of type array'}),
+    ('wrong_type_in_brackets', {'must be of type list'}),
     ('wrong_type_in_bracket', {'must be of type object'}),
     ('missing_value', {'missing', 'value'}),
     ('duplicate_key', {'duplicate'}),

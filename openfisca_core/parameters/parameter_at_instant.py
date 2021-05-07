@@ -1,5 +1,6 @@
 import copy
 import typing
+from collections import abc
 
 from openfisca_core import commons
 from openfisca_core.errors import ParameterParsingError
@@ -39,7 +40,7 @@ class ParameterAtInstant:
         self.metadata.update(data.get('metadata', {}))
 
     def validate(self, data):
-        helpers._validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
+        helpers._validate_parameter(self, data, data_type = abc.MutableMapping, allowed_keys = self._allowed_keys)
         try:
             value = data['value']
         except KeyError:
