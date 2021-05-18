@@ -64,6 +64,10 @@ def test_with_anchors(tax_benefit_system):
     assert run_yaml_test(tax_benefit_system, 'test_with_anchors.yaml') == EXIT_OK
 
 
+def test_with_neutralized_variables(tax_benefit_system):
+    assert run_yaml_test(tax_benefit_system, 'test_with_neutralized_variables.yaml') == EXIT_OK
+
+
 def test_run_tests_from_directory_fail(tax_benefit_system):
     assert run_yaml_test(tax_benefit_system, yaml_tests_dir) == EXIT_TESTSFAILED
 
