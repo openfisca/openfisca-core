@@ -70,9 +70,9 @@ def test_parameter_node(tax_benefit_system, test_client):
     parameter = json.loads(response.data)
     assert sorted(list(parameter.keys())), ['description', 'documentation', 'id', 'metadata', 'source' == 'subparams']
     assert parameter['documentation'] == (
-        "Government support for the citizens and residents of society. "
-        "\nThey may be provided to people of any income level, as with social security, "
-        "\nbut usually it is intended to ensure that everyone can meet their basic human needs "
+        "Government support for the citizens and residents of society."
+        "\nThey may be provided to people of any income level, as with social security,"
+        "\nbut usually it is intended to ensure that everyone can meet their basic human needs"
         "\nsuch as food and shelter.\n(See https://en.wikipedia.org/wiki/Welfare)"
         )
 
