@@ -314,6 +314,35 @@ def test_periods(test_client):
     assert monthly_variable == {'2017-01': 'tenant'}
 
 
+def test_handle_period_mismatch_error(test_client):
+
+    variable = "housing_tax"
+    period = "2017-01"
+
+    simulation_json = json.dumps({
+        "persons": {
+            "bill": {}
+            },
+        "households": {
+            "_": {
+                "parents": ["bill"],
+                variable: {
+                    period: 400
+                    },
+                }
+            }
+        })
+
+    response = post_json(test_client, simulation_json)
+    assert response.status_code == client.BAD_REQUEST
+
+    response_json = json.loads(response.data)
+
+    error = dpath.get(response_json, f'households/_/housing_tax/{period}')
+    message = f'Unable to set a value for variable "{variable}" for month-long period "{period}"'
+    assert message in error
+
+
 def test_gracefully_handle_unexpected_errors(test_client):
     """
     Context
