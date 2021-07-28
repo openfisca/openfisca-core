@@ -1,5 +1,14 @@
 # Changelog
 
+### 35.4.2 [#1026](https://github.com/openfisca/openfisca-core/pull/1026)
+
+#### Bug fix
+
+- [Web API] Handle a period mismatch error
+  - Period mismatch error was not being handled by the API
+  - Since it's caused by the user, a 400 (bad request error) is to be expected
+  - However, since it was not being handled, a 500 (internal server error) was being given instead
+
 ### 35.4.1 [#1007](https://github.com/openfisca/openfisca-core/pull/1007)
 
 #### Bug fix
