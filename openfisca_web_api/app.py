@@ -4,7 +4,7 @@ import logging
 import os
 import traceback
 
-from openfisca_core.errors import SituationParsingError
+from openfisca_core.errors import SituationParsingError, PeriodMismatchError
 from openfisca_web_api.loader import build_data
 from openfisca_web_api.errors import handle_import_error
 from openfisca_web_api import handlers
@@ -138,7 +138,7 @@ def create_app(tax_benefit_system,
         input_data = request.get_json()
         try:
             result = handlers.calculate(tax_benefit_system, input_data)
-        except SituationParsingError as e:
+        except (SituationParsingError, PeriodMismatchError) as e:
             abort(make_response(jsonify(e.error), e.code or 400))
         except (UnicodeEncodeError, UnicodeDecodeError) as e:
             abort(make_response(jsonify({"error": "'" + e[1] + "' is not a valid ASCII value."}), 400))
@@ -151,7 +151,7 @@ def create_app(tax_benefit_system,
         input_data = request.get_json()
         try:
             result = handlers.trace(tax_benefit_system, input_data)
-        except SituationParsingError as e:
+        except (SituationParsingError, PeriodMismatchError) as e:
             abort(make_response(jsonify(e.error), e.code or 400))
         return jsonify(result)
 
