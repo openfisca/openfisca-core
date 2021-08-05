@@ -28,6 +28,9 @@ If you want to contribute to OpenFisca-Core itself, welcome! To install it local
 ```bash
 git clone https://github.com/openfisca/openfisca-core.git
 cd openfisca-core
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -U pip
 pip install --editable .[dev] --use-deprecated=legacy-resolver
 ```
 
