@@ -5,7 +5,7 @@ all: test
 
 ## Install project dependencies.
 install:
-	@echo [⚙] Installing dependencies...
+	@$(call doc,$@:)
 	@pip install --upgrade pip twine wheel
 	@pip install --editable .[dev] --upgrade --use-deprecated=legacy-resolver
 
@@ -13,50 +13,50 @@ install:
 build: setup.py
 	@## This allows us to be sure tests are run against the packaged version
 	@## of openfisca-core, the same we put in the hands of users and reusers.
-	@echo [⚙] Building and installing locally built openfisca-core...
+	@$(call doc,$@:)
 	@python $? bdist_wheel
 	@find dist -name "*.whl" -exec pip install --force-reinstall {}[dev] \;
 
 ## Uninstall project dependencies.
 uninstall:
-	@echo [⚙] Uninstalling project dependencies...
+	@$(call doc,$@:)
 	@pip freeze | grep -v "^-e" | sed "s/@.*//" | xargs pip uninstall -y
 
 ## Delete builds and compiled python files.
 clean: \
 	$(shell ls -d * | grep "build\|dist") \
 	$(shell find . -name "*.pyc")
-	@echo [⚙] Deleting builds and compiled python files...
+	@$(call doc,$@:)
 	@rm -rf $?
 
 ## Compile python files to check for syntax errors.
 check-syntax-errors: .
-	@echo [⚙] Compiling python files to check for syntax errors...
+	@$(call doc,$@:)
 	@python -m compileall -q $?
 
 ## Run linters to check for syntax and style errors.
 check-style: $(shell git ls-files "*.py")
-	@echo [⚙] Running linters to check for syntax and style errors...
+	@$(call doc,$@:)
 	@flake8 $?
 
 ## Run code formatters to correct style errors.
 format-style: $(shell git ls-files "*.py")
-	@echo [⚙] Running code formatters to correct style errors...
+	@$(call doc,$@:)
 	@autopep8 $?
 
 ## Run static type checkers for type errors.
 check-types: openfisca_core openfisca_web_api
-	@echo [⚙] Running static type checkers for type errors...
+	@$(call doc,$@:)
 	@mypy $?
 
 ## Run openfisca-core tests.
 test: clean check-syntax-errors check-style check-types
-	@echo [⚙] Running openfisca-core tests...
+	@$(call doc,$@:)
 	@env PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=openfisca_core" pytest
 
 ## Serve the openfisca Web API.
 api:
-	@echo [⚙] Serving the openfisca Web API...
+	@$(call doc,$@:)
 	@openfisca serve \
 		--country-package openfisca_country_template \
 		--extensions openfisca_extension_template
