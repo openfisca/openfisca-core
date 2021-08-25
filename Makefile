@@ -1,34 +1,60 @@
+## Same as `make test`.
 all: test
 
-uninstall:
-	pip freeze | grep -v "^-e" | xargs pip uninstall -y
-
+## Install project dependencies.
 install:
-	pip install --upgrade pip twine wheel
-	pip install --editable .[dev] --upgrade --use-deprecated=legacy-resolver
+	@echo [⚙] Installing dependencies...
+	@pip install --upgrade pip twine wheel
+	@pip install --editable .[dev] --upgrade --use-deprecated=legacy-resolver
 
-clean:
-	rm -rf build dist
-	find . -name '*.pyc' -exec rm \{\} \;
+## Install openfisca-core for deployment and publishing.
+build: setup.py
+	@## This allows us to be sure tests are run against the packaged version
+	@## of openfisca-core, the same we put in the hands of users and reusers.
+	@echo [⚙] Building and installing locally built openfisca-core...
+	@python $? bdist_wheel
+	@find dist -name "*.whl" -exec pip install --force-reinstall {}[dev] \;
 
-check-syntax-errors:
-	python -m compileall -q .
+## Uninstall project dependencies.
+uninstall:
+	@echo [⚙] Uninstalling project dependencies...
+	@pip freeze | grep -v "^-e" | sed "s/@.*//" | xargs pip uninstall -y
 
-check-types:
-	mypy openfisca_core && mypy openfisca_web_api
+## Delete builds and compiled python files.
+clean: \
+	$(shell ls -d * | grep "build\|dist") \
+	$(shell find . -name "*.pyc")
+	@echo [⚙] Deleting builds and compiled python files...
+	@rm -rf $?
 
-check-style:
-	@# Do not analyse .gitignored files.
-	@# `make` needs `$$` to output `$`. Ref: http://stackoverflow.com/questions/2382764.
-	flake8 `git ls-files | grep "\.py$$"`
+## Compile python files to check for syntax errors.
+check-syntax-errors: .
+	@echo [⚙] Compiling python files to check for syntax errors...
+	@python -m compileall -q $?
 
-format-style:
-	@# Do not analyse .gitignored files.
-	@# `make` needs `$$` to output `$`. Ref: http://stackoverflow.com/questions/2382764.
-	autopep8 `git ls-files | grep "\.py$$"`
+## Run linters to check for syntax and style errors.
+check-style: $(shell git ls-files "*.py")
+	@echo [⚙] Running linters to check for syntax and style errors...
+	@flake8 $?
 
+## Run code formatters to correct style errors.
+format-style: $(shell git ls-files "*.py")
+	@echo [⚙] Running code formatters to correct style errors...
+	@autopep8 $?
+
+## Run static type checkers for type errors.
+check-types: openfisca_core openfisca_web_api
+	@echo [⚙] Running static type checkers for type errors...
+	@mypy $?
+
+## Run openfisca-core tests.
 test: clean check-syntax-errors check-style check-types
-	env PYTEST_ADDOPTS="$$PYTEST_ADDOPTS --cov=openfisca_core" pytest
+	@echo [⚙] Running openfisca-core tests...
+	@env PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=openfisca_core" pytest
 
+## Serve the openfisca Web API.
 api:
-	openfisca serve --country-package openfisca_country_template --extensions openfisca_extension_template
+	@echo [⚙] Serving the openfisca Web API...
+	@openfisca serve \
+		--country-package openfisca_country_template \
+		--extensions openfisca_extension_template
