@@ -1,4 +1,6 @@
-## Same as `make test`.
+doc = sed -n "/^$1/ { x ; p ; } ; s/\#\#/[⚙]/ ; s/\./.../ ; x" ${MAKEFILE_LIST}
+
+## Same as `make test.
 all: test
 
 ## Install project dependencies.
