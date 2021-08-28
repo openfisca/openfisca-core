@@ -7,6 +7,7 @@
 .vscode/
 build/
 dist/
+doc/
 *.egg-info
 *.mo
 *.pyc

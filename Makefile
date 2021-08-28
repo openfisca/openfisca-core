@@ -1,6 +1,6 @@
 doc = sed -n "/^$1/ { x ; p ; } ; s/\#\#/[⚙]/ ; s/\./.../ ; x" ${MAKEFILE_LIST}
 
-## Same as `make test.
+## Same as `make test`.
 all: test
 
 ## Install project dependencies.
@@ -53,6 +53,18 @@ check-types: openfisca_core openfisca_web_api
 test: clean check-syntax-errors check-style check-types
 	@$(call doc,$@:)
 	@env PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=openfisca_core" pytest
+
+test.doc:
+	@[ ! -d doc ] \
+		&& git clone https://github.com/openfisca/openfisca-doc doc \
+		|| { cd doc ; git pull 2> /dev/null ; }
+
+	@[ $$(pip freeze | grep -c "Sphinx") -eq 0 ] \
+		&& pip install -r doc/requirements.txt --use-deprecated=legacy-resolver \
+		&& pip install --editable .[dev] --upgrade --use-deprecated=legacy-resolver \
+		|| :
+
+	@sphinx-build -M dummy doc/source doc/build -a -n -T -W 1> /dev/null
 
 ## Serve the openfisca Web API.
 api:
