@@ -33,7 +33,7 @@ class TaxBenefitSystem:
 
     .. attribute:: parameters
 
-       :obj:`~openfisca_core.parameters.ParameterNode` containing the legislation parameters
+       :obj:`.ParameterNode` containing the legislation parameters
     """
     _base_tax_benefit_system = None
     _parameters_at_instant_cache = None
@@ -143,7 +143,7 @@ class TaxBenefitSystem:
         """
         Adds an OpenFisca variable to the tax and benefit system.
 
-        :param Variable variable: The variable to add. Must be a subclass of Variable.
+        :param .Variable variable: The variable to add. Must be a subclass of Variable.
 
         :raises: :any:`VariableNameConflict` if a variable with the same name have previously been added to the tax and benefit system.
         """

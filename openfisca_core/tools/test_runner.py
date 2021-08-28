@@ -44,7 +44,7 @@ def run_tests(tax_benefit_system, paths, options = None):
 
     If `path` is a directory, subdirectories will be recursively explored.
 
-    :param openfisca_core.taxbenefitsystems.TaxBenefitSystem tax_benefit_system: the tax-benefit system to use to run the tests
+    :param .TaxBenefitSystem tax_benefit_system: the tax-benefit system to use to run the tests
     :param (str/list) paths: A path, or a list of paths, towards the files or directories containing the tests to run. If a path is a directory, subdirectories will be recursively explored.
     :param dict options: See more details below.
 
