@@ -338,9 +338,9 @@ class TaxBenefitSystem:
         """
         Get the parameters of the legislation at a given instant
 
-        :param instant: string of the format 'YYYY-MM-DD' or `openfisca_core.periods.Instant` instance.
+        :param instant: :obj:`str` of the format 'YYYY-MM-DD' or :class:`.Instant` instance.
         :returns: The parameters of the legislation at a given instant.
-        :rtype: :any:`ParameterNodeAtInstant`
+        :rtype: :class:`.ParameterNodeAtInstant`
         """
         if isinstance(instant, Period):
             instant = instant.start
@@ -410,7 +410,7 @@ class TaxBenefitSystem:
         """
         Gets all variables contained in a tax and benefit system.
 
-        :param <Entity subclass> entity: If set, returns only the variable defined for the given entity.
+        :param .Entity entity: If set, returns only the variable defined for the given entity.
 
         :returns: A dictionnary, indexed by variable names.
         :rtype: dict
