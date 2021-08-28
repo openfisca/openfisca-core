@@ -10,7 +10,8 @@ from openfisca_core import periods, tools
 from openfisca_core.entities import Entity
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import Period
-from openfisca_core.variables import config, helpers
+
+from . import config, helpers
 
 
 class Variable:
@@ -308,7 +309,8 @@ class Variable:
         If no period is given and the variable has several formula, return the oldest formula.
 
         :returns: Formula used to compute the variable
-        :rtype: function
+        :rtype: .Formula
+
         """
 
         if not self.formulas:

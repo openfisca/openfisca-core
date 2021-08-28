@@ -24,3 +24,4 @@
 from .config import VALUE_TYPES, FORMULA_NAME_PREFIX  # noqa: F401
 from .helpers import get_annualized_variable, get_neutralized_variable  # noqa: F401
 from .variable import Variable  # noqa: F401
+from .typing import Formula  # noqa: F401
