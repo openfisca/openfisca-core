@@ -145,7 +145,7 @@ class TaxBenefitSystem:
 
         :param .Variable variable: The variable to add. Must be a subclass of Variable.
 
-        :raises: :any:`VariableNameConflict` if a variable with the same name have previously been added to the tax and benefit system.
+        :raises: :exc:`.VariableNameConflictError` if a variable with the same name have previously been added to the tax and benefit system.
         """
         return self.load_variable(variable, update = False)
 
