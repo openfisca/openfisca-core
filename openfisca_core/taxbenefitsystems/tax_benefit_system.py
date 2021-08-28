@@ -33,7 +33,7 @@ class TaxBenefitSystem:
 
     .. attribute:: parameters
 
-       :any:`ParameterNode` containing the legislation parameters
+       :obj:`~openfisca_core.parameters.ParameterNode` containing the legislation parameters
     """
     _base_tax_benefit_system = None
     _parameters_at_instant_cache = None
