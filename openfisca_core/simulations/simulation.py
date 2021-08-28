@@ -321,7 +321,7 @@ class Simulation:
 
     def get_holder(self, variable_name):
         """
-        Get the :class:`~openfisca_core.holders.Holder` associated with the variable ``variable_name`` for the simulation
+        Get the :obj:`~openfisca_core.holders.Holder` associated with the variable ``variable_name`` for the simulation
         """
         return self.get_variable_population(variable_name).get_holder(variable_name)
 
