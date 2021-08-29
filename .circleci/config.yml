@@ -81,6 +81,11 @@ jobs:
           paths:
             - /tmp/venv/openfisca_doc
 
+      - run:
+          name: Run doc tests
+          command: make test.doc.build
+
+
   check_version:
     docker:
       - image: python:3.7
