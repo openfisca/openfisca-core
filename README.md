@@ -102,11 +102,69 @@ Yet however OpenFisca does not follow a common convention for docstrings, our cu
 
 In the meantime, please take a look at our [contributing guidelines](CONTRIBUTING.md) for some general tips on how to document your contributions, and at our official documentation's [repository](https://github.com/openfisca/openfisca-doc/blob/master/README.md) to in case you want to know how to build it by yourself —and improve it!
 
-To verify that the documentation still builds correctly, you can run:
+### To verify that the documentation still builds correctly
+
+You can run:
 
 ```sh
 make test.doc
 ```
+
+### If it doesn't, or if the doc is already broken.
+
+Here's how you can fix it:
+
+1. Clone the documentation, if not yet done:
+
+```
+make test.doc.checkout
+```
+
+2. Install the documentation's dependencies, if not yet done:
+
+```
+make test.doc.install
+```
+
+3. Create a branch, both in core and in the doc, to correct the problems:
+
+```
+git checkout -b fix-doc
+sh -c "cd doc && git checkout -b `git branch --show-current`"
+```
+
+4. Fix the offending problems —they could be in core, in the doc, or in both.
+
+You can test-drive your fixes by checking that each change works as expected:
+
+```
+make test.doc.build branch=`git branch --show-current`
+```
+
+5. Commit at each step, so you don't accidentally lose your progress:
+
+```
+git add -A && git commit -m "Fixed bad ref to numpy.array"
+sh -c "cd doc && git add -A && git commit -m \"Fixed bad ref to numpy.array\""
+```
+
+6. Once you're done, push your changes and cleanup:
+
+```
+git push origin `git branch --show-current`
+sh -c "cd doc && git push origin `git branch --show-current`"
+rm -rf doc
+```
+
+7. Finally, open a pull request both in [core](https://github.com/openfisca/openfisca-core/compare/master...fix-doc) and in the [doc](https://github.com/openfisca/openfisca-doc/compare/master...fix-doc).
+
+[CircleCI](.circleci/config.yml) will automatically try to build the documentation from the same branch in both core and the doc (in our example "fix-doc") so we can integrate first our changes to core, and then our changes to the doc.
+
+If no changes were needed to the doc, then your changes to core will be verified against the production version of the doc.
+
+If your changes concern only the doc, please take a look at the doc's [README](https://github.com/openfisca/openfisca-doc/blob/master/README.md).
+
+That's it! 🙌
 
 ## Serving the API
 
