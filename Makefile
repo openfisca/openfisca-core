@@ -60,12 +60,18 @@ test: clean check-syntax-errors check-style check-types
 test.doc:
 	@##	Usage:
 	@##
-	@##		make test.doc [branch="--ARG"]
+	@##		make test.doc [branch=BRANCH]
 	@##
 	@##	Examples:
 	@##
+	@##		# Will check "master" in openfisca-doc.
 	@##		make test.doc # will check "master" in openfisca-doc
-	@##		make test.doc branch=test-doc # will check "test-doc" in openfisca-doc
+	@##
+	@##		# Will check "test-doc" in openfisca-doc.
+	@##		make test.doc branch=test-doc # will check "test-doc"
+	@##
+	@##		# Will check "master" if "asdf1234" does not exist.
+	@##		make test.doc branch=asdf1234 # will fallback to "master"
 	@##
 	@$(call help,$@:)
 	@${MAKE} test.doc.checkout
@@ -75,14 +81,25 @@ test.doc:
 ## Update the local copy of the doc.
 test.doc.checkout:
 	@$(call help,$@:)
-	@[ ! -d doc ] && git clone ${repo} doc 1> /dev/null || :
+	@[ ! -d doc ] && git clone ${repo} doc || :
 	@cd doc && { \
 		git reset --hard ; \
 		git fetch --all ; \
-		[ $$(git branch --show-current) != "master" ] && git checkout master || : ; \
-		[ ${branch} != "master" ] && { git branch -D ${branch} ; git checkout ${branch} ; } || : ; \
-		git pull --ff-only origin ${branch} ; \
-	}  1> /dev/null
+		[ $$(git branch --show-current) != master ] && git checkout master || : ; \
+		[ ${branch} != "master" ] \
+			&& { \
+				{ \
+					git branch -D ${branch} 2> /dev/null ; \
+					git checkout ${branch} ; \
+				} \
+					&& git pull --ff-only origin ${branch} \
+					|| { \
+						>&2 echo "[!] The branch '${branch}' doesn't exist, checking out 'master' instead..." ; \
+						git pull --ff-only origin master ; \
+					} \
+			} \
+			|| git pull --ff-only origin master ; \
+	} 1> /dev/null
 
 ## Install doc dependencies.
 test.doc.install:
