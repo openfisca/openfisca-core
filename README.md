@@ -96,6 +96,18 @@ exec make format-style
 END
 ```
 
+## Documentation
+
+Yet however OpenFisca does not follow a common convention for docstrings, our current toolchain allows to check whether documentation builds correctly and to update it automatically with each contribution to this repository.
+
+In the meantime, please take a look at our [contributing guidelines](CONTRIBUTING.md) for some general tips on how to document your contributions, and at our official documentation's [repository](https://github.com/openfisca/openfisca-doc/blob/master/README.md) to in case you want to know how to build it by yourself —and improve it!
+
+To verify that the documentation still builds correctly, you can run:
+
+```sh
+make test.doc
+```
+
 ## Serving the API
 
 OpenFisca-Core provides a Web-API. It is by default served on the `5000` port.
