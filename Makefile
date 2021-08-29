@@ -1,4 +1,5 @@
 help = sed -n "/^$1/ { x ; p ; } ; s/\#\#/[⚙]/ ; s/\./.../ ; x" ${MAKEFILE_LIST}
+repo = https://github.com/openfisca/openfisca-doc
 branch = master
 
 ## Same as `make test`.
@@ -74,7 +75,7 @@ test.doc:
 ## Update the local copy of the doc.
 test.doc.checkout:
 	@$(call help,$@:)
-	@[ ! -d doc ] && git clone https://github.com/openfisca/openfisca-doc doc 1> /dev/null || :
+	@[ ! -d doc ] && git clone ${repo} doc 1> /dev/null || :
 	@cd doc && { \
 		git reset --hard ; \
 		git fetch --all ; \
