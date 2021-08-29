@@ -1,5 +1,5 @@
 help = sed -n "/^$1/ { x ; p ; } ; s/\#\#/[⚙]/ ; s/\./.../ ; x" ${MAKEFILE_LIST}
-doc_branch = master
+branch = master
 
 ## Same as `make test`.
 all: test
@@ -76,10 +76,11 @@ test.doc.checkout:
 	@$(call help,$@:)
 	@[ ! -d doc ] && git clone https://github.com/openfisca/openfisca-doc doc 1> /dev/null || :
 	@cd doc && { \
-		git reset --hard; \
-		git fetch --all; \
-		git checkout ${branch}; \
-		git pull --ff-only origin ${branch}; \
+		git reset --hard ; \
+		git fetch --all ; \
+		[ $$(git branch --show-current) != "master" ] && git checkout master || : ; \
+		[ ${branch} != "master" ] && { git branch -D ${branch} ; git checkout ${branch} ; } || : ; \
+		git pull --ff-only origin ${branch} ; \
 	}  1> /dev/null
 
 ## Install doc dependencies.
