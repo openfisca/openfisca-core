@@ -65,9 +65,9 @@ We strive to deliver great error messages, which means they are:
 
 ### Example
 
-> **Terrible**: `unexpected value`.
-> **Bad**: `argument must be a string, an int, or a period`.
-> **Good**: `Variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} doesn't match the total ({3}).`
-> **Great**: `Inconsistent input: variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} doesn't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period. See more at <https://openfisca.org/doc/key-concepts/periodsinstants.html>.`
+- **Terrible**: `unexpected value`.
+- **Bad**: `argument must be a string, an int, or a period`.
+- **Good**: `Variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} doesn't match the total ({3}).`
+- **Great**: `Inconsistent input: variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} doesn't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period. See more at <https://openfisca.org/doc/key-concepts/periodsinstants.html>.`
 
 [More information](https://blogs.mulesoft.com/dev/api-dev/api-best-practices-response-handling/).
