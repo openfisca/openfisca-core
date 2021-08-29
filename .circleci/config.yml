@@ -18,6 +18,10 @@ jobs:
             echo "source /tmp/venv/openfisca_core/bin/activate" >> $BASH_ENV
 
       - run:
+          name: Checkout dependencies
+          command: make test.doc.checkout branch=$CIRCLE_BRANCH
+
+      - run:
           name: Install dependencies
           command: |
             make install
