@@ -104,7 +104,7 @@ test.doc.checkout:
 ## Install doc dependencies.
 test.doc.install:
 	@$(call help,$@:)
-	@pip install --requirement doc/requirements.txt --use-deprecated=legacy-resolver 1> /dev/null
+	@pip install --requirement doc/requirements.txt 1> /dev/null
 	@pip install --editable .[dev] --upgrade 1> /dev/null
 
 ## Dry-build the doc.

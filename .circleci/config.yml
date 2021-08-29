@@ -59,6 +59,28 @@ jobs:
           name: Checkout docs
           command: make test.doc.checkout branch=$CIRCLE_BRANCH
 
+      - restore_cache:
+          key: v1-py3-{{ .Branch }}-{{ checksum "setup.py" }}
+
+      - restore_cache:
+          key: v1-py3-docs-{{ .Branch }}-{{ checksum "doc/requirements.txt" }}
+
+      - run:
+          name: Create a virtualenv
+          command: |
+            mkdir -p /tmp/venv/openfisca_doc
+            python -m venv /tmp/venv/openfisca_doc
+            echo "source /tmp/venv/openfisca_doc/bin/activate" >> $BASH_ENV
+
+      - run:
+          name: Install dependencies
+          command: make test.doc.install
+
+      - save_cache:
+          key: v1-py3-docs-{{ .Branch }}-{{ checksum "doc/requirements.txt" }}
+          paths:
+            - /tmp/venv/openfisca_doc
+
   check_version:
     docker:
       - image: python:3.7
