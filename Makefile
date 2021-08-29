@@ -1,11 +1,11 @@
-doc = sed -n "/^$1/ { x ; p ; } ; s/\#\#/[⚙]/ ; s/\./.../ ; x" ${MAKEFILE_LIST}
+help = sed -n "/^$1/ { x ; p ; } ; s/\#\#/[⚙]/ ; s/\./.../ ; x" ${MAKEFILE_LIST}
 
 ## Same as `make test`.
 all: test
 
 ## Install project dependencies.
 install:
-	@$(call doc,$@:)
+	@$(call help,$@:)
 	@pip install --upgrade pip twine wheel
 	@pip install --editable .[dev] --upgrade --use-deprecated=legacy-resolver
 
@@ -13,62 +13,81 @@ install:
 build: setup.py
 	@## This allows us to be sure tests are run against the packaged version
 	@## of openfisca-core, the same we put in the hands of users and reusers.
-	@$(call doc,$@:)
+	@$(call help,$@:)
 	@python $? bdist_wheel
 	@find dist -name "*.whl" -exec pip install --force-reinstall {}[dev] \;
 
 ## Uninstall project dependencies.
 uninstall:
-	@$(call doc,$@:)
+	@$(call help,$@:)
 	@pip freeze | grep -v "^-e" | sed "s/@.*//" | xargs pip uninstall -y
 
 ## Delete builds and compiled python files.
 clean: \
 	$(shell ls -d * | grep "build\|dist") \
 	$(shell find . -name "*.pyc")
-	@$(call doc,$@:)
+	@$(call help,$@:)
 	@rm -rf $?
 
 ## Compile python files to check for syntax errors.
 check-syntax-errors: .
-	@$(call doc,$@:)
+	@$(call help,$@:)
 	@python -m compileall -q $?
 
 ## Run linters to check for syntax and style errors.
 check-style: $(shell git ls-files "*.py")
-	@$(call doc,$@:)
+	@$(call help,$@:)
 	@flake8 $?
 
 ## Run code formatters to correct style errors.
 format-style: $(shell git ls-files "*.py")
-	@$(call doc,$@:)
+	@$(call help,$@:)
 	@autopep8 $?
 
 ## Run static type checkers for type errors.
 check-types: openfisca_core openfisca_web_api
-	@$(call doc,$@:)
+	@$(call help,$@:)
 	@mypy $?
 
 ## Run openfisca-core tests.
 test: clean check-syntax-errors check-style check-types
-	@$(call doc,$@:)
+	@$(call help,$@:)
 	@env PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=openfisca_core" pytest
 
+## Check that the current changes do not break the doc.
 test.doc:
+	@$(call help,$@:)
+	@${MAKE} test.doc.checkout
+	@${MAKE} test.doc.install
+	@${MAKE} test.doc.build
+
+## Update the local copy of the doc.
+test.doc.checkout:
+	@$(call help,$@:)
 	@[ ! -d doc ] \
-		&& git clone https://github.com/openfisca/openfisca-doc doc \
-		|| { cd doc ; git pull 2> /dev/null ; }
+		&& git clone https://github.com/openfisca/openfisca-doc doc 1> /dev/null \
+		|| { \
+			cd doc; \
+			git reset --hard; \
+			git fetch --all; \
+			git checkout master; \
+			git pull --ff-only origin master; \
+			}  1> /dev/null
 
-	@[ $$(pip freeze | grep -c "Sphinx") -eq 0 ] \
-		&& pip install -r doc/requirements.txt --use-deprecated=legacy-resolver \
-		&& pip install --editable .[dev] --upgrade --use-deprecated=legacy-resolver \
-		|| :
+## Install doc dependencies.
+test.doc.install:
+	@$(call help,$@:)
+	@pip install --requirement doc/requirements.txt --use-deprecated=legacy-resolver 1> /dev/null
+	@pip install --editable .[dev] --upgrade 1> /dev/null
 
-	@sphinx-build -M dummy doc/source doc/build -a -n -T -W 1> /dev/null
+## Dry-build the doc.
+test.doc.build:
+	@$(call help,$@:)
+	@sphinx-build -M dummy doc/source doc/build -n -q -W
 
 ## Serve the openfisca Web API.
 api:
-	@$(call doc,$@:)
+	@$(call help,$@:)
 	@openfisca serve \
 		--country-package openfisca_country_template \
 		--extensions openfisca_extension_template
