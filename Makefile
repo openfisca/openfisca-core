@@ -1,4 +1,5 @@
 help = sed -n "/^$1/ { x ; p ; } ; s/\#\#/[⚙]/ ; s/\./.../ ; x" ${MAKEFILE_LIST}
+doc_branch = master
 
 ## Same as `make test`.
 all: test
@@ -56,6 +57,15 @@ test: clean check-syntax-errors check-style check-types
 
 ## Check that the current changes do not break the doc.
 test.doc:
+	@##	Usage:
+	@##
+	@##		make test.doc [branch="--ARG"]
+	@##
+	@##	Examples:
+	@##
+	@##		make test.doc # will check "master" in openfisca-doc
+	@##		make test.doc branch=test-doc # will check "test-doc" in openfisca-doc
+	@##
 	@$(call help,$@:)
 	@${MAKE} test.doc.checkout
 	@${MAKE} test.doc.install
@@ -64,15 +74,13 @@ test.doc:
 ## Update the local copy of the doc.
 test.doc.checkout:
 	@$(call help,$@:)
-	@[ ! -d doc ] \
-		&& git clone https://github.com/openfisca/openfisca-doc doc 1> /dev/null \
-		|| { \
-			cd doc; \
-			git reset --hard; \
-			git fetch --all; \
-			git checkout master; \
-			git pull --ff-only origin master; \
-			}  1> /dev/null
+	@[ ! -d doc ] && git clone https://github.com/openfisca/openfisca-doc doc 1> /dev/null || :
+	@cd doc && { \
+		git reset --hard; \
+		git fetch --all; \
+		git checkout ${branch}; \
+		git pull --ff-only origin ${branch}; \
+	}  1> /dev/null
 
 ## Install doc dependencies.
 test.doc.install:
