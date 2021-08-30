@@ -31,7 +31,7 @@ class TaxBenefitSystem:
     :param string parameters: Directory containing the YAML parameter files.
 
 
-    .. py:attribute:: parameters
+    .. attribute:: parameters
 
        :any:`ParameterNode` containing the legislation parameters
     """

@@ -34,7 +34,7 @@ class Parameter(AtInstantLike):
                 }
             })
 
-    .. py:attribute:: values_list
+    .. attribute:: values_list
 
        List of the values, in reverse chronological order
     """
