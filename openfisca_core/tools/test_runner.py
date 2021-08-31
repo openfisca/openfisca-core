@@ -31,6 +31,14 @@ def import_yaml():
     return yaml, Loader
 
 
+#: These keys the syntax keys for writing YAML tests.
+#:
+#: .. seealso::
+#:      For more information on common keys and examples, please take a look at
+#:      the official documentation on `Writing YAML tests`_.
+#:
+#: .. _Writing YAML tests: https://openfisca.org/doc/coding-the-legislation/writing_yaml_tests.html
+#:
 TEST_KEYWORDS = {
     'absolute_error_margin',
     'description',
@@ -40,7 +48,7 @@ TEST_KEYWORDS = {
     'keywords',
     'max_spiral_loops',
     'name',
-    'neutralized_variables',
+    'neutralize_variables',
     'only_variables',
     'output',
     'period',
@@ -156,7 +164,7 @@ class YamlItem(pytest.Item):
             self.baseline_tax_benefit_system,
             self.test.get('reforms', []),
             self.test.get('extensions', []),
-            self.test.get('neutralized_variables', [])
+            self.test.get('neutralize_variables', [])
             )
 
         builder = SimulationBuilder()
@@ -303,16 +311,16 @@ class OpenFiscaPlugin(object):
                 options = self.options)
 
 
-def _get_tax_benefit_system(baseline, reforms, extensions, neutralized_variables):
+def _get_tax_benefit_system(baseline, reforms, extensions, neutralize_variables):
     if not isinstance(reforms, list):
         reforms = [reforms]
     if not isinstance(extensions, list):
         extensions = [extensions]
-    if not isinstance(neutralized_variables, list):
-        neutralized_variables = [neutralized_variables]
+    if not isinstance(neutralize_variables, list):
+        neutralize_variables = [neutralize_variables]
 
     # keep reforms order in cache, ignore extensions order
-    key = hash((id(baseline), ':'.join(reforms), frozenset(extensions), ':'.join(neutralized_variables)))
+    key = hash((id(baseline), ':'.join(reforms), frozenset(extensions), ':'.join(neutralize_variables)))
     if _tax_benefit_system_cache.get(key):
         return _tax_benefit_system_cache.get(key)
 
@@ -325,7 +333,7 @@ def _get_tax_benefit_system(baseline, reforms, extensions, neutralized_variables
         current_tax_benefit_system = current_tax_benefit_system.clone()
         current_tax_benefit_system.load_extension(extension)
 
-    for neutralized_variable in neutralized_variables:
+    for neutralized_variable in neutralize_variables:
         current_tax_benefit_system.neutralize_variable(neutralized_variable)
 
     _tax_benefit_system_cache[key] = current_tax_benefit_system
