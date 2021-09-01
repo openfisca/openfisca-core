@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-import typing
 import sortedcontainers
+from typing import Optional
 
-if typing.TYPE_CHECKING:
-    from openfisca_core.periods import Period
-    from openfisca_core.variables import Variable
+from openfisca_core.periods import Period
+
+from .. import variables
 
 
-def get_annualized_variable(variable: Variable, annualization_period: typing.Optional[Period] = None) -> Variable:
+def get_annualized_variable(variable: variables.Variable, annualization_period: Optional[Period] = None) -> variables.Variable:
     """
     Returns a clone of ``variable`` that is annualized for the period ``annualization_period``.
     When annualized, a variable's formula is only called for a January calculation, and the results for other months are assumed to be identical.
