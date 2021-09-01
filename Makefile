@@ -1,6 +1,6 @@
 help = sed -n "/^$1/ { x ; p ; } ; s/\#\#/[⚙]/ ; s/\./.../ ; x" ${MAKEFILE_LIST}
 repo = https://github.com/openfisca/openfisca-doc
-branch = master
+branch = $(shell git branch --show-current)
 
 ## Same as `make test`.
 all: test
@@ -64,14 +64,14 @@ test.doc:
 	@##
 	@##	Examples:
 	@##
-	@##		# Will check "master" in openfisca-doc.
-	@##		make test.doc # will check "master" in openfisca-doc
+	@##		# Will check the current branch in openfisca-doc.
+	@##		make test.doc
 	@##
 	@##		# Will check "test-doc" in openfisca-doc.
-	@##		make test.doc branch=test-doc # will check "test-doc"
+	@##		make test.doc branch=test-doc
 	@##
 	@##		# Will check "master" if "asdf1234" does not exist.
-	@##		make test.doc branch=asdf1234 # will fallback to "master"
+	@##		make test.doc branch=asdf1234
 	@##
 	@$(call help,$@:)
 	@${MAKE} test.doc.checkout
