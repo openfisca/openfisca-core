@@ -5,12 +5,11 @@ from typing import Dict, Optional, Union
 
 import numpy
 
+from openfisca_core import tracers
 from openfisca_core.indexed_enums import EnumArray
 
 if typing.TYPE_CHECKING:
     from numpy.typing import ArrayLike
-
-    from openfisca_core.tracers import TraceNode, FullTracer
 
     Array = Union[EnumArray, ArrayLike]
     Trace = Dict[str, dict]
@@ -18,12 +17,12 @@ if typing.TYPE_CHECKING:
 
 class FlatTrace:
 
-    _full_tracer: FullTracer
+    _full_tracer: tracers.FullTracer
 
-    def __init__(self, full_tracer: FullTracer) -> None:
+    def __init__(self, full_tracer: tracers.FullTracer) -> None:
         self._full_tracer = full_tracer
 
-    def key(self, node: TraceNode) -> str:
+    def key(self, node: tracers.TraceNode) -> str:
         name = node.name
         period = node.period
         return f"{name}<{period}>"
@@ -71,7 +70,7 @@ class FlatTrace:
 
     def _get_flat_trace(
             self,
-            node: TraceNode,
+            node: tracers.TraceNode,
             ) -> Trace:
         key = self.key(node)
 

@@ -5,21 +5,20 @@ from typing import List, Optional, Union
 
 import numpy
 
+from .. import tracers
 from openfisca_core.indexed_enums import EnumArray
 
 if typing.TYPE_CHECKING:
     from numpy.typing import ArrayLike
-
-    from openfisca_core.tracers import FullTracer, TraceNode
 
     Array = Union[EnumArray, ArrayLike]
 
 
 class ComputationLog:
 
-    _full_tracer: FullTracer
+    _full_tracer: tracers.FullTracer
 
-    def __init__(self, full_tracer: FullTracer) -> None:
+    def __init__(self, full_tracer: tracers.FullTracer) -> None:
         self._full_tracer = full_tracer
 
     def display(
@@ -33,12 +32,12 @@ class ComputationLog:
 
     def _get_node_log(
             self,
-            node: TraceNode,
+            node: tracers.TraceNode,
             depth: int,
             aggregate: bool,
             ) -> List[str]:
 
-        def print_line(depth: int, node: TraceNode) -> str:
+        def print_line(depth: int, node: tracers.TraceNode) -> str:
             indent = '  ' * depth
             value = node.value
 

@@ -7,11 +7,9 @@ import json
 import os
 import typing
 
-from openfisca_core.tracers import TraceNode
+from .. import tracers
 
 if typing.TYPE_CHECKING:
-    from openfisca_core.tracers import FullTracer
-
     Trace = typing.Dict[str, dict]
     Calculation = typing.Tuple[str, dict]
     SortedTrace = typing.List[Calculation]
@@ -19,7 +17,7 @@ if typing.TYPE_CHECKING:
 
 class PerformanceLog:
 
-    def __init__(self, full_tracer: FullTracer) -> None:
+    def __init__(self, full_tracer: tracers.FullTracer) -> None:
         self._full_tracer = full_tracer
 
     def generate_graph(self, dir_path: str) -> None:
@@ -87,10 +85,10 @@ class PerformanceLog:
 
             return {
                 'calculation_count': calculation_count,
-                'calculation_time': TraceNode.round(calculation_time),
-                'formula_time': TraceNode.round(formula_time),
-                'avg_calculation_time': TraceNode.round(calculation_time / calculation_count),
-                'avg_formula_time': TraceNode.round(formula_time / calculation_count),
+                'calculation_time': tracers.TraceNode.round(calculation_time),
+                'formula_time': tracers.TraceNode.round(formula_time),
+                'avg_calculation_time': tracers.TraceNode.round(calculation_time / calculation_count),
+                'avg_formula_time': tracers.TraceNode.round(formula_time / calculation_count),
                 }
 
         def _groupby(calculation: Calculation) -> str:
@@ -114,7 +112,7 @@ class PerformanceLog:
             'children': children,
             }
 
-    def _json_tree(self, tree: TraceNode) -> dict:
+    def _json_tree(self, tree: tracers.TraceNode) -> dict:
         calculation_total_time = tree.calculation_time()
         children = [self._json_tree(child) for child in tree.children]
 
