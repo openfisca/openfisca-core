@@ -27,7 +27,7 @@ uninstall:
 ## Delete builds and compiled python files.
 clean: \
 	$(shell ls -d * | grep "build\|dist") \
-	$(shell find . -name "*.pyc")
+	$(shell find . -path ./.nox -prune -o -name "*.pyc")
 	@$(call help,$@:)
 	@rm -rf $?
 
