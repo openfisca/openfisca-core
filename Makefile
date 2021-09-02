@@ -62,7 +62,7 @@ test.matrix:
 	@[ -z $$(pip freeze | grep ^nox) ] \
 		&& pip install --upgrade nox \
 		&& ${MAKE} test.matrix \
-		|| time ${MAKE} test.matrix.all
+		|| time ${MAKE} test.matrix.all --jobs $$(($$(nproc) / 2 + 1))
 
 test.matrix.%: $(shell git ls-files "tests/**/*.py")
 	@args=($(subst -, ,$*)) ; nox -s "test-$${args[0]}($${args[1]})" -- $?
