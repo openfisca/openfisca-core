@@ -59,11 +59,13 @@ test: clean check-syntax-errors check-style check-types
 ## Run openfisca-core tests over a matrix.
 test.matrix:
 	@$(call doc,$@:)
-	@[ -z $$(pip freeze | grep ^nox) ] && pip install --upgrade nox || :
-	@${MAKE} test.matrix.all
+	@[ -z $$(pip freeze | grep ^nox) ] \
+		&& pip install --upgrade nox \
+		&& ${MAKE} test.matrix \
+		|| ${MAKE} test.matrix.all
 
 test.matrix.%:
-	@args=($(subst -, ,$*)) && nox -s "test-$${args[0]}($${args[1]})"
+	@args=($(subst -, ,$*)) ; nox -s "test-$${args[0]}($${args[1]})"
 
 test.matrix.all: \
 	test.matrix.3.7.11-1.18.5 \
