@@ -64,8 +64,8 @@ test.matrix:
 		&& ${MAKE} test.matrix \
 		|| ${MAKE} test.matrix.all
 
-test.matrix.%:
-	@args=($(subst -, ,$*)) ; nox -s "test-$${args[0]}($${args[1]})"
+test.matrix.%: $(shell git ls-files "tests/**/*.py")
+	@args=($(subst -, ,$*)) ; nox -s "test-$${args[0]}($${args[1]})" -- $?
 
 test.matrix.all: \
 	test.matrix.3.7.11-1.18.5 \

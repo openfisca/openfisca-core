@@ -8,7 +8,7 @@ np_versions = ["1.18.5", "1.19.5", "1.20.3", "1.21.2"]
 @nox.session(python = py_versions)
 @nox.parametrize("numpy", np_versions, ids = np_versions)
 def test(session, numpy):
-    session.install(".[dev]")
+    session.install("-e", ".[dev]")
     session.install("invoke")
     session.install("pytest-parallel-39")
     session.install(f"numpy=={numpy}")
