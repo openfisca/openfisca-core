@@ -56,6 +56,12 @@ test: clean check-syntax-errors check-style check-types
 	@$(call help,$@:)
 	@env PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=openfisca_core" pytest
 
+## Run openfisca-core tests over a matrix with nox.
+test.matrix:
+	@$(call doc,$@:)
+	@[ -z $$(pip freeze | grep ^nox) ] && pip install --upgrade nox || :
+	nox -- tests
+
 ## Check that the current changes do not break the doc.
 test-doc:
 	@##	Usage:
