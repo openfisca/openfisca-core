@@ -24,9 +24,9 @@ uninstall:
 	@$(call help,$@:)
 	@pip freeze | grep -v "^-e" | sed "s/@.*//" | xargs pip uninstall -y
 
-## Delete builds and compiled python files.
+## Delete builds, cached and compiled python files.
 clean: \
-	$(shell ls -d * | grep "build\|dist") \
+	$(shell ls -a | grep "build\|dist\|mypy_\|pytest_") \
 	$(shell find . -path ./.nox -prune -o -name "*.pyc")
 	@$(call help,$@:)
 	@rm -rf $?
