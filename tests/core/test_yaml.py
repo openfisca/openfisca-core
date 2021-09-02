@@ -92,6 +92,7 @@ def test_failing_shell_script():
             subprocess.check_call(command, stdout = devnull, stderr = devnull)
 
 
+@pytest.mark.skip(reason = "Subprocesses fail with parallelisation.")
 def test_shell_script_with_reform():
     yaml_path = os.path.join(yaml_tests_dir, 'test_with_reform_2.yaml')
     command = ['openfisca', 'test', yaml_path, '-c', 'openfisca_country_template', '-r', 'openfisca_country_template.reforms.removal_basic_income.removal_basic_income']

@@ -62,24 +62,82 @@ test.matrix:
 	@[ -z $$(pip freeze | grep ^nox) ] \
 		&& pip install --upgrade nox \
 		&& ${MAKE} test.matrix \
-		|| time ${MAKE} test.matrix.all --jobs $$(($$(nproc) / 2 + 1))
+		|| time { \
+			${MAKE} test.matrix.install --jobs $$(($$(nproc) * 3 / 2 + 1)) ; \
+			${MAKE} test.matrix.test --jobs $$(($$(nproc) / 2 + 1)) ; \
+		}
 
 test.matrix.%: $(shell git ls-files "tests/**/*.py")
-	@args=($(subst -, ,$*)) ; nox -s "test-$${args[0]}($${args[1]})" -- $?
+	@args=($(subst -, ,$*)) \
+		&& [ $${args[3]} -eq 0 ] \
+		&& echo "[⚙] Installing python $${args[1]} and numpy $${args[2]}…" \
+		|| echo "[⚙] Testing against python $${args[1]} and numpy $${args[2]} (group $${args[3]}/4)…" \
+		&& nox -s "$${args[0]}-$${args[1]}($${args[2]})" -- $${args[3]} $? &> /dev/null ;
 
-test.matrix.all: \
-	test.matrix.3.7.11-1.18.5 \
-	test.matrix.3.7.11-1.19.5 \
-	test.matrix.3.7.11-1.20.3 \
-	test.matrix.3.7.11-1.21.2 \
-	test.matrix.3.8.12-1.18.5 \
-	test.matrix.3.8.12-1.19.5 \
-	test.matrix.3.8.12-1.20.3 \
-	test.matrix.3.8.12-1.21.2 \
-	test.matrix.3.9.7-1.18.5 \
-	test.matrix.3.9.7-1.19.5 \
-	test.matrix.3.9.7-1.20.3 \
-	test.matrix.3.9.7-1.21.2 \
+test.matrix.install: \
+	test.matrix.test-3.7.11-1.18.5-0 \
+	test.matrix.test-3.7.11-1.19.5-0 \
+	test.matrix.test-3.7.11-1.20.3-0 \
+	test.matrix.test-3.7.11-1.21.2-0 \
+	test.matrix.test-3.8.12-1.18.5-0 \
+	test.matrix.test-3.8.12-1.19.5-0 \
+	test.matrix.test-3.8.12-1.20.3-0 \
+	test.matrix.test-3.8.12-1.21.2-0 \
+	test.matrix.test-3.9.7-1.18.5-0 \
+	test.matrix.test-3.9.7-1.19.5-0 \
+	test.matrix.test-3.9.7-1.20.3-0 \
+	test.matrix.test-3.9.7-1.21.2-0 \
+	;
+
+test.matrix.test: \
+	test.matrix.test-3.7.11-1.18.5-1 \
+	test.matrix.test-3.7.11-1.18.5-2 \
+	test.matrix.test-3.7.11-1.18.5-3 \
+	test.matrix.test-3.7.11-1.18.5-4 \
+	test.matrix.test-3.7.11-1.19.5-1 \
+	test.matrix.test-3.7.11-1.19.5-2 \
+	test.matrix.test-3.7.11-1.19.5-3 \
+	test.matrix.test-3.7.11-1.19.5-4 \
+	test.matrix.test-3.7.11-1.20.3-1 \
+	test.matrix.test-3.7.11-1.20.3-2 \
+	test.matrix.test-3.7.11-1.20.3-3 \
+	test.matrix.test-3.7.11-1.20.3-4 \
+	test.matrix.test-3.7.11-1.21.2-1 \
+	test.matrix.test-3.7.11-1.21.2-2 \
+	test.matrix.test-3.7.11-1.21.2-3 \
+	test.matrix.test-3.7.11-1.21.2-4 \
+	test.matrix.test-3.8.12-1.18.5-1 \
+	test.matrix.test-3.8.12-1.18.5-2 \
+	test.matrix.test-3.8.12-1.18.5-3 \
+	test.matrix.test-3.8.12-1.18.5-4 \
+	test.matrix.test-3.8.12-1.19.5-1 \
+	test.matrix.test-3.8.12-1.19.5-2 \
+	test.matrix.test-3.8.12-1.19.5-3 \
+	test.matrix.test-3.8.12-1.19.5-4 \
+	test.matrix.test-3.8.12-1.20.3-1 \
+	test.matrix.test-3.8.12-1.20.3-2 \
+	test.matrix.test-3.8.12-1.20.3-3 \
+	test.matrix.test-3.8.12-1.20.3-4 \
+	test.matrix.test-3.8.12-1.21.2-1 \
+	test.matrix.test-3.8.12-1.21.2-2 \
+	test.matrix.test-3.8.12-1.21.2-3 \
+	test.matrix.test-3.8.12-1.21.2-4 \
+	test.matrix.test-3.9.7-1.18.5-1 \
+	test.matrix.test-3.9.7-1.18.5-2 \
+	test.matrix.test-3.9.7-1.18.5-3 \
+	test.matrix.test-3.9.7-1.18.5-4 \
+	test.matrix.test-3.9.7-1.19.5-1 \
+	test.matrix.test-3.9.7-1.19.5-2 \
+	test.matrix.test-3.9.7-1.19.5-3 \
+	test.matrix.test-3.9.7-1.19.5-4 \
+	test.matrix.test-3.9.7-1.20.3-1 \
+	test.matrix.test-3.9.7-1.20.3-2 \
+	test.matrix.test-3.9.7-1.20.3-3 \
+	test.matrix.test-3.9.7-1.20.3-4 \
+	test.matrix.test-3.9.7-1.21.2-1 \
+	test.matrix.test-3.9.7-1.21.2-2 \
+	test.matrix.test-3.9.7-1.21.2-3 \
+	test.matrix.test-3.9.7-1.21.2-4 \
 	;
 
 ## Check that the current changes do not break the doc.
