@@ -56,11 +56,29 @@ test: clean check-syntax-errors check-style check-types
 	@$(call help,$@:)
 	@env PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=openfisca_core" pytest
 
-## Run openfisca-core tests over a matrix with nox.
+## Run openfisca-core tests over a matrix.
 test.matrix:
 	@$(call doc,$@:)
 	@[ -z $$(pip freeze | grep ^nox) ] && pip install --upgrade nox || :
-	nox -- tests
+	@${MAKE} test.matrix.all
+
+test.matrix.%:
+	@args=($(subst -, ,$*)) && nox -s "test-$${args[0]}($${args[1]})"
+
+test.matrix.all: \
+	test.matrix.3.7.11-1.18.5 \
+	test.matrix.3.7.11-1.19.5 \
+	test.matrix.3.7.11-1.20.3 \
+	test.matrix.3.7.11-1.21.2 \
+	test.matrix.3.8.12-1.18.5 \
+	test.matrix.3.8.12-1.19.5 \
+	test.matrix.3.8.12-1.20.3 \
+	test.matrix.3.8.12-1.21.2 \
+	test.matrix.3.9.7-1.18.5 \
+	test.matrix.3.9.7-1.19.5 \
+	test.matrix.3.9.7-1.20.3 \
+	test.matrix.3.9.7-1.21.2 \
+	;
 
 ## Check that the current changes do not break the doc.
 test-doc:
