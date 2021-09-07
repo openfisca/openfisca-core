@@ -144,8 +144,8 @@ make test.doc.build branch=`git branch --show-current`
 5. Commit at each step, so you don't accidentally lose your progress:
 
 ```
-git add -A && git commit -m "Fixed bad ref to numpy.array"
-sh -c "cd doc && git add -A && git commit -m \"Fixed bad ref to numpy.array\""
+git add -A && git commit -m "Fix outdated argument for Entity"
+sh -c "cd doc && git add -A && git commit -m \"Fix outdated argument for Entity\""
 ```
 
 6. Once you're done, push your changes and cleanup:
