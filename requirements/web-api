@@ -1,7 +1,10 @@
-# Please make sure to pin all dependency versions, in order to avoid unwanted
-# functional and integration breaks caused by external code updates.
+# These are dependencies to serve the Web-API, so we always want to support
+# the latest versions.
 #
-# These are web-api dependencies, so pin them.
+# As a safety measure, compatibility could be smoke-tested automatically:
+# https://github.com/openfisca/country-template/pull/113
+#
+# In the meantime, we pin these dependencies.
 
 # For OpenFisca's Web API.
 flask == 1.1.2
