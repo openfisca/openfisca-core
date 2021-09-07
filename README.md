@@ -107,7 +107,7 @@ In the meantime, please take a look at our [contributing guidelines](CONTRIBUTIN
 You can run:
 
 ```sh
-make test.doc
+make test-doc
 ```
 
 ### If it doesn't, or if the doc is already broken.
@@ -117,13 +117,13 @@ Here's how you can fix it:
 1. Clone the documentation, if not yet done:
 
 ```
-make test.doc.checkout
+make test-doc-checkout
 ```
 
 2. Install the documentation's dependencies, if not yet done:
 
 ```
-make test.doc.install
+make test-doc-install
 ```
 
 3. Create a branch, both in core and in the doc, to correct the problems:
@@ -138,7 +138,7 @@ sh -c "cd doc && git checkout -b `git branch --show-current`"
 You can test-drive your fixes by checking that each change works as expected:
 
 ```
-make test.doc.build branch=`git branch --show-current`
+make test-doc-build branch=`git branch --show-current`
 ```
 
 5. Commit at each step, so you don't accidentally lose your progress:

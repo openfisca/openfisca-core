@@ -57,7 +57,7 @@ jobs:
 
       - run:
           name: Checkout docs
-          command: make test.doc.checkout branch=$CIRCLE_BRANCH
+          command: make test-doc-checkout branch=$CIRCLE_BRANCH
 
       - restore_cache:
           key: v1-py3-{{ .Branch }}-{{ checksum "setup.py" }}
@@ -74,7 +74,7 @@ jobs:
 
       - run:
           name: Install dependencies
-          command: make test.doc.install
+          command: make test-doc-install
 
       - save_cache:
           key: v1-py3-docs-{{ .Branch }}-{{ checksum "doc/requirements.txt" }}
@@ -83,7 +83,7 @@ jobs:
 
       - run:
           name: Run doc tests
-          command: make test.doc.build
+          command: make test-doc-build
 
 
   check_version:
