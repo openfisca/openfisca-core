@@ -9,17 +9,12 @@
 # If a dependency seems redundant, please propose a pull request to remove it.
 #
 # General Rule
-# ========
+# ============
 #
 # * Cap to latest major.
 #
-# NumPy Rule
-# ========
-#
-# * Cap to latest four minors (document why).
-#
 # Exceptions
-# ========
+# ==========
 #
 # * Avoiding a version (document why).
 # * Pinning a version (document why).
