@@ -4,4 +4,4 @@
 # These are web-api tracking dependencies, so pin them.
 
 # For sending usage statistics to the Matomo third-party service.
-openfisca-tracker == 0.4.0
+openfisca-tracker <= 0.4.0
