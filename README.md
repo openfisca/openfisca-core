@@ -31,7 +31,8 @@ cd openfisca-core
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -U pip
-pip install --editable .[dev] --use-deprecated=legacy-resolver
+pip install --requirement requirements/dev --upgrade
+pip install --editable . --upgrade --no-dependencies
 ```
 
 ## Testing
@@ -194,9 +195,16 @@ The OpenFisca Web API comes with an [optional tracker](https://github.com/openfi
 The tracker is not installed by default. To install it, run:
 
 ```sh
-pip install openfisca_core[tracker] --use-deprecated=legacy-resolver # Or `pip install --editable ".[tracker]"` for an editable installation
+pip install openfisca_core[tracker]
 ```
 
+Or for an editable installation:
+
+```
+pip install --requirement requirements/tracker --upgrade
+pip install --requirement requirements/dev --upgrade
+pip install --editable . --upgrade --no-dependencies
+```
 
 #### Tracker configuration
 
