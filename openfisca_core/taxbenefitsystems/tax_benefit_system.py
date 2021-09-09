@@ -31,9 +31,9 @@ class TaxBenefitSystem:
     :param string parameters: Directory containing the YAML parameter files.
 
 
-    .. py:attribute:: parameters
+    .. attribute:: parameters
 
-       :any:`ParameterNode` containing the legislation parameters
+       :obj:`.ParameterNode` containing the legislation parameters
     """
     _base_tax_benefit_system = None
     _parameters_at_instant_cache = None
@@ -143,9 +143,9 @@ class TaxBenefitSystem:
         """
         Adds an OpenFisca variable to the tax and benefit system.
 
-        :param Variable variable: The variable to add. Must be a subclass of Variable.
+        :param .Variable variable: The variable to add. Must be a subclass of Variable.
 
-        :raises: :any:`VariableNameConflict` if a variable with the same name have previously been added to the tax and benefit system.
+        :raises: :exc:`.VariableNameConflictError` if a variable with the same name have previously been added to the tax and benefit system.
         """
         return self.load_variable(variable, update = False)
 
@@ -338,9 +338,9 @@ class TaxBenefitSystem:
         """
         Get the parameters of the legislation at a given instant
 
-        :param instant: string of the format 'YYYY-MM-DD' or `openfisca_core.periods.Instant` instance.
+        :param instant: :obj:`str` of the format 'YYYY-MM-DD' or :class:`.Instant` instance.
         :returns: The parameters of the legislation at a given instant.
-        :rtype: :any:`ParameterNodeAtInstant`
+        :rtype: :class:`.ParameterNodeAtInstant`
         """
         if isinstance(instant, Period):
             instant = instant.start
@@ -410,7 +410,7 @@ class TaxBenefitSystem:
         """
         Gets all variables contained in a tax and benefit system.
 
-        :param <Entity subclass> entity: If set, returns only the variable defined for the given entity.
+        :param .Entity entity: If set, returns only the variable defined for the given entity.
 
         :returns: A dictionnary, indexed by variable names.
         :rtype: dict

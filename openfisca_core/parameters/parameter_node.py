@@ -5,7 +5,7 @@ import os
 import typing
 
 from openfisca_core import commons, parameters, tools
-from openfisca_core.parameters import config, helpers, AtInstantLike, Parameter, ParameterNodeAtInstant
+from . import config, helpers, AtInstantLike, Parameter, ParameterNodeAtInstant
 
 
 class ParameterNode(AtInstantLike):
@@ -112,7 +112,7 @@ class ParameterNode(AtInstantLike):
         Add a new child to the node.
 
         :param name: Name of the child that must be used to access that child. Should not contain anything that could interfere with the operator `.` (dot).
-        :param child: The new child, an instance of :any:`Scale` or :any:`Parameter` or :any:`ParameterNode`.
+        :param child: The new child, an instance of :class:`.ParameterScale` or :class:`.Parameter` or :class:`.ParameterNode`.
         """
         if name in self.children:
             raise ValueError("{} has already a child named {}".format(self.name, name))

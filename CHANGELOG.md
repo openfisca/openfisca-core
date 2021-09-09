@@ -1,5 +1,28 @@
 # Changelog
 
+## 35.5.0 [#1038](https://github.com/openfisca/openfisca-core/pull/1038)
+
+#### New Features
+
+- Introduce `openfisca_core.variables.typing`
+  - Documents the signature of formulas
+  - Note: as formulas are generated dynamically, documenting them is tricky
+
+#### Bug Fixes
+
+- Fix the official doc
+  - Corrects malformed docstrings
+  - Fix missing and/ou outdated references
+
+#### Technical Changes
+
+- Add tasks to automatically validate that changes do not break the documentation
+
+#### Documentation
+
+- Add steps to follow in case the documentation is broken
+- Add general documenting guidelines in CONTRIBUTING.md
+
 ### 35.4.2 [#1026](https://github.com/openfisca/openfisca-core/pull/1026)
 
 #### Bug fix

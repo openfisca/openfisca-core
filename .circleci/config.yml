@@ -48,6 +48,44 @@ jobs:
             COUNTRY_TEMPLATE_PATH=`python -c "import openfisca_country_template; print(openfisca_country_template.CountryTaxBenefitSystem().get_package_metadata()['location'])"`
             openfisca test $COUNTRY_TEMPLATE_PATH/openfisca_country_template/tests/
 
+  test_docs:
+    docker:
+      - image: python:3.7
+
+    steps:
+      - checkout
+
+      - run:
+          name: Checkout docs
+          command: make test-doc-checkout branch=$CIRCLE_BRANCH
+
+      - restore_cache:
+          key: v1-py3-{{ .Branch }}-{{ checksum "setup.py" }}
+
+      - restore_cache:
+          key: v1-py3-docs-{{ .Branch }}-{{ checksum "doc/requirements.txt" }}
+
+      - run:
+          name: Create a virtualenv
+          command: |
+            mkdir -p /tmp/venv/openfisca_doc
+            python -m venv /tmp/venv/openfisca_doc
+            echo "source /tmp/venv/openfisca_doc/bin/activate" >> $BASH_ENV
+
+      - run:
+          name: Install dependencies
+          command: make test-doc-install
+
+      - save_cache:
+          key: v1-py3-docs-{{ .Branch }}-{{ checksum "doc/requirements.txt" }}
+          paths:
+            - /tmp/venv/openfisca_doc
+
+      - run:
+          name: Run doc tests
+          command: make test-doc-build
+
+
   check_version:
     docker:
       - image: python:3.7
@@ -123,6 +161,7 @@ workflows:
   build_and_deploy:
     jobs:
       - run_tests
+      - test_docs
       - check_version
       - submit_coverage:
           requires:
@@ -130,6 +169,7 @@ workflows:
       - deploy:
           requires:
             - run_tests
+            - test_docs
             - check_version
           filters:
             branches:

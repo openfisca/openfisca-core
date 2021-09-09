@@ -346,7 +346,7 @@ def test_handle_period_mismatch_error(test_client):
 def test_gracefully_handle_unexpected_errors(test_client):
     """
     Context
-    ========
+    =======
 
     Whenever an exception is raised by the calculation engine, the API will try
     to handle it and to provide a useful message to the user (4XX). When the
@@ -359,7 +359,7 @@ def test_gracefully_handle_unexpected_errors(test_client):
     Calculate the housing tax due by Bill a thousand years ago.
 
     Expected behaviour
-    ========
+    ==================
 
     In the `country-template`, Housing Tax is only defined from 2010 onwards.
     The calculation engine should therefore raise an exception `ParameterNotFound`.

@@ -19,7 +19,7 @@ def load_parameter_file(file_path, name = ''):
     """
     Load parameters from a YAML file (or a directory containing YAML files).
 
-    :returns: An instance of :any:`ParameterNode` or :any:`Scale` or :any:`Parameter`.
+    :returns: An instance of :class:`.ParameterNode` or :class:`.ParameterScale` or :class:`.Parameter`.
     """
     if not os.path.exists(file_path):
         raise ValueError("{} does not exist".format(file_path))

@@ -84,6 +84,8 @@ class Simulation:
     # ----- Calculation methods ----- #
 
     def calculate(self, variable_name, period):
+        """Calculate ``variable_name`` for ``period``."""
+
         if period is not None and not isinstance(period, Period):
             period = periods.period(period)
 
@@ -311,7 +313,7 @@ class Simulation:
         """
         Return the value of ``variable_name`` for ``period``, if this value is alreay in the cache (if it has been set as an input or previously calculated).
 
-        Unlike :any:`calculate`, this method *does not* trigger calculations and *does not* use any formula.
+        Unlike :meth:`.calculate`, this method *does not* trigger calculations and *does not* use any formula.
         """
         if period is not None and not isinstance(period, Period):
             period = periods.period(period)
@@ -319,7 +321,7 @@ class Simulation:
 
     def get_holder(self, variable_name):
         """
-        Get the :any:`Holder` associated with the variable ``variable_name`` for the simulation
+        Get the :obj:`.Holder` associated with the variable ``variable_name`` for the simulation
         """
         return self.get_variable_population(variable_name).get_holder(variable_name)
 
