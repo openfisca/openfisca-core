@@ -62,14 +62,17 @@ test-doc-checkout:
 			} \
 			|| git pull --ff-only origin master ; \
 	} 1> /dev/null
+	@$(call print_pass,$@:)
 
 ## Install doc dependencies.
 test-doc-install:
 	@$(call print_help,$@:)
 	@pip install --requirement doc/requirements.txt 1> /dev/null
 	@pip install --editable .[dev] --upgrade 1> /dev/null
+	@$(call print_pass,$@:)
 
 ## Dry-build the doc.
 test-doc-build:
 	@$(call print_help,$@:)
 	@sphinx-build -M dummy doc/source doc/build -n -q -W
+	@$(call print_pass,$@:)
