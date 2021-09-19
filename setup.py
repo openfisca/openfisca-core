@@ -28,6 +28,7 @@ dev_requirements = [
     'darglint == 1.8.0',
     'flake8 >= 3.9.0, < 4.0.0',
     'flake8-bugbear >= 19.3.0, < 20.0.0',
+    'flake8-docstrings == 1.6.0',
     'flake8-print >= 3.1.0, < 4.0.0',
     'flake8-rst-docstrings < 1.0.0',
     'mypy >= 0.701, < 0.800',
