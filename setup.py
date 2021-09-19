@@ -7,6 +7,7 @@ from setuptools import setup, find_packages
 
 general_requirements = [
     'dpath >= 1.5.0, < 2.0.0',
+    'nptyping >= 1.4.3, < 2.0.0',
     'numexpr >= 2.7.0, <= 3.0',
     'numpy >= 1.11, < 1.21',
     'psutil >= 5.4.7, < 6.0.0',
