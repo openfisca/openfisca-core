@@ -85,8 +85,8 @@ test-doc-checkout:
 	@cd doc && { \
 		git reset --hard ; \
 		git fetch --all ; \
-		[ $$(git branch --show-current) != master ] && git checkout master || : ; \
-		[ ${branch} != "master" ] \
+		[ "$$(git branch --show-current)" != "master" ] && git checkout master || : ; \
+		[ "${branch}" != "master" ] \
 			&& { \
 				{ \
 					git branch -D ${branch} 2> /dev/null ; \
