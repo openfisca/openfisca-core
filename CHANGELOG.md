@@ -1,5 +1,19 @@
 # Changelog
 
+## 35.6.0 [#1033](https://github.com/openfisca/openfisca-core/pull/1033)
+
+#### New Features
+
+- Introduce `openfisca_core.types`
+
+#### Bug Fixes
+
+- Fix doctests of the commons module
+
+#### Documentation
+
+- Complete the documentation of the commons module
+
 ## 35.5.0 [#1038](https://github.com/openfisca/openfisca-core/pull/1038)
 
 #### New Features
