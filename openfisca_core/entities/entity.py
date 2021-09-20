@@ -72,6 +72,29 @@ class Entity:
         >>> entity != entity
         False
 
+        >>> from openfisca_core.taxbenefitsystems import TaxBenefitSystem
+        >>> from openfisca_core.variables import Variable
+
+        >>> class Variable(Variable):
+        ...     definition_period = "month"
+        ...     value_type = float
+        ...     entity = entity
+
+        >>> tbs = TaxBenefitSystem([entity])
+        >>> tbs.add_variable(Variable)
+        <openfisca_core.entities.entity.Variable...
+
+        >>> entity.tax_benefit_system = tbs
+
+        >>> entity.variables.get("Variable")
+        <...Variable...
+
+        >>> entity.variables.exists().get("Variable")
+        <...Variable...
+
+        >>> entity.variables.isdefined().get("Variable")
+        <...Variable...
+
     .. versionchanged:: 35.7.0
         Hereafter ``variables`` allows querying a :obj:`.TaxBenefitSystem`
         for a :obj:`.Variable`.
