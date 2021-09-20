@@ -18,7 +18,7 @@ Note:
 
         from openfisca_core.indexed_enums import *  # Bad
         from openfisca_core.indexed_enums.config import ENUM_ARRAY_DTYPE  # Bad
-        from openfisca_core.ndexed_enums.Enum import Enum  # Bad
+        from openfisca_core.indexed_enums.Enum import Enum  # Bad
 
     The previous examples provoke cyclic dependency problems, that prevents us
     from modularizing the different components of the library, so as to make
