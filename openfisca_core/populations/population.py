@@ -69,7 +69,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
             :returns: A numpy array containing the result of the calculation
         """
-        self.entity.check_variable_defined_for_entity(variable_name)
+        self.entity.variables.isdefined().get(variable_name)
         self.check_period_validity(variable_name, period)
 
         if options is None:
@@ -87,7 +87,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     # Helpers
 
     def get_holder(self, variable_name):
-        self.entity.check_variable_defined_for_entity(variable_name)
+        self.entity.variables.isdefined().get(variable_name)
         holder = self._holders.get(variable_name)
         if holder:
             return holder
