@@ -87,11 +87,12 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     # Helpers
 
     def get_holder(self, variable_name):
-        self.entity.variables.isdefined().get(variable_name)
         holder = self._holders.get(variable_name)
+
         if holder:
             return holder
-        variable = self.entity.get_variable(variable_name)
+
+        variable = self.entity.variables.isdefined().get(variable_name)
         self._holders[variable_name] = holder = Holder(variable, self)
         return holder
 
