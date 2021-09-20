@@ -12,6 +12,7 @@ Official Public API:
     * :class:`.HasHolders`
     * :class:`.HasPlural`
     * :class:`.HasVariables`
+    * :class:`.SupportsEncode`
     * :class:`.SupportsFormula`
     * :class:`.SupportsRole`
 
@@ -57,9 +58,11 @@ from .protocols import (  # noqa: F401
     HasHolders,
     HasPlural,
     HasVariables,
+    SupportsEncode,
     SupportsFormula,
     SupportsRole,
     )
 
 __all__ = ["Builder", "Descriptor", "HasHolders", "HasPlural", *__all__]
-__all__ = ["HasVariables", "SupportsFormula", "SupportsRole", *__all__]
+__all__ = ["HasVariables", "SupportsEncode", "SupportsFormula", *__all__]
+__all__ = ["SupportsRole", *__all__]
