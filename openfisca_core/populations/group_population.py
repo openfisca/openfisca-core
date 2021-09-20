@@ -2,7 +2,7 @@ import typing
 
 import numpy
 
-from openfisca_core import projectors
+from openfisca_core import entities, projectors
 from openfisca_core.entities import Role
 from openfisca_core.indexed_enums import EnumArray
 from openfisca_core.populations import Population
@@ -98,7 +98,7 @@ class GroupPopulation(Population):
             >>> household.sum(salaries)
             >>> array([3500])
         """
-        self.entity.check_role_validity(role)
+        entities.check_role_validity(role)
         self.members.check_array_compatible_with_entity(array)
         if role is not None:
             role_filter = self.members.has_role(role)
@@ -130,7 +130,7 @@ class GroupPopulation(Population):
     @projectors.projectable
     def reduce(self, array, reducer, neutral_element, role = None):
         self.members.check_array_compatible_with_entity(array)
-        self.entity.check_role_validity(role)
+        entities.check_role_validity(role)
         position_in_entity = self.members_position
         role_filter = self.members.has_role(role) if role is not None else True
         filtered_array = numpy.where(role_filter, array, neutral_element)
@@ -229,7 +229,7 @@ class GroupPopulation(Population):
 
             The result is a vector which dimension is the number of entities
         """
-        self.entity.check_role_validity(role)
+        entities.check_role_validity(role)
         if role.max != 1:
             raise Exception(
                 'You can only use value_from_person with a role that is unique in {}. Role {} is not unique.'
@@ -277,7 +277,7 @@ class GroupPopulation(Population):
 
     def project(self, array, role = None):
         self.check_array_compatible_with_entity(array)
-        self.entity.check_role_validity(role)
+        entities.check_role_validity(role)
         if role is None:
             return array[self.members_entity_id]
         else:

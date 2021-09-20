@@ -2,7 +2,7 @@ import traceback
 
 import numpy
 
-from openfisca_core import projectors
+from openfisca_core import entities, projectors
 from openfisca_core.holders import Holder
 from openfisca_core.populations import config
 from openfisca_core.projectors import Projector
@@ -121,7 +121,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             >>> person.has_role(Household.CHILD)
             >>> array([False])
         """
-        self.entity.check_role_validity(role)
+        entities.check_role_validity(role)
         group_population = self.simulation.get_population(role.entity.plural)
         if role.subroles:
             return numpy.logical_or.reduce([group_population.members_role == subrole for subrole in role.subroles])
@@ -131,7 +131,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     @projectors.projectable
     def value_from_partner(self, array, entity, role):
         self.check_array_compatible_with_entity(array)
-        self.entity.check_role_validity(role)
+        entities.check_role_validity(role)
 
         if not role.subroles or not len(role.subroles) == 2:
             raise Exception('Projection to partner is only implemented for roles having exactly two subroles.')
