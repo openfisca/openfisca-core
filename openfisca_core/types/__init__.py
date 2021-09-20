@@ -4,15 +4,21 @@ The type definitions included in this sub-package are intented mostly for
 contributors, to help them better document contracts and behaviours.
 
 Official Public API:
-    * ``ArrayLike``
+    * :data:`.ArrayLike`
     * :attr:`.ArrayType`
+    * :class:`.RoleLike`
+    * :class:`.Buildable`
+    * :class:`.Descriptable`
+    * :class:`.Modellable`
+    * :class:`.Personifiable`
+    * :class:`.Representable`
+    * :class:`.Rolifiable`
 
 Note:
     How imports are being used today::
 
         from openfisca_core.types import *  # Bad
         from openfisca_core.types.data_types.arrays import ArrayLike  # Bad
-
 
     The previous examples provoke cyclic dependency problems, that prevents us
     from modularizing the different components of the library, so as to make
@@ -39,8 +45,19 @@ Note:
 from .data_types import (  # noqa: F401
     ArrayLike,
     ArrayType,
+    RoleLike,
     )
 
-#: Official Public API
+__all__ = ["ArrayLike", "ArrayType", "RoleLike"]
 
-__all__ = ["ArrayLike", "ArrayType"]
+from .protocols import (  # noqa: F401
+    Buildable,
+    Descriptable,
+    Modellable,
+    Personifiable,
+    Representable,
+    Rolifiable,
+    )
+
+__all__ = ["Buildable", "Descriptable", "Modellable", *__all__]
+__all__ = ["Personifiable", "Representable", "Rolifiable", *__all__]

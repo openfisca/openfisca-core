@@ -9,6 +9,7 @@ Official Public API:
     * :class:`.GroupEntity`
     * :class:`.Role`
     * :func:`.build_entity`
+    * :func:`.check_role_validity`
 
 Note:
     How imports are being used today::
@@ -44,7 +45,7 @@ Note:
 from .entity import Entity  # noqa: F401
 from .group_entity import GroupEntity  # noqa: F401
 from .role import Role  # noqa: F401
-from .helpers import build_entity  # noqa: F401
+from .helpers import build_entity, check_role_validity  # noqa: F401
 
 __all__ = ["Entity", "GroupEntity", "Role"]
-__all__ = ["build_entity", *__all__]
+__all__ = ["build_entity", "check_role_validity", *__all__]
