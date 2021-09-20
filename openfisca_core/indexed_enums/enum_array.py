@@ -76,6 +76,7 @@ class EnumArray(numpy.ndarray):
             ) -> EnumArray:
         """See comment above."""
 
+        obj: EnumArray
         obj = numpy.asarray(input_array).view(cls)
         obj.possible_values = possible_values
         return obj

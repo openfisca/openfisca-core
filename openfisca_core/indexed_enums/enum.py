@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import enum
-from typing import Any, Union
+from typing import Any, List, Union
 
 import numpy
 
@@ -226,6 +226,9 @@ class Enum(enum.Enum):
             :meth:`.EnumArray.decode` for decoding.
 
         """
+
+        conditions: List[ArrayType[bool]]
+        choices: List[int]
 
         if isinstance(array, EnumArray):
 
