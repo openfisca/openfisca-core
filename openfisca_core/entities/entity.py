@@ -13,14 +13,29 @@ from ._variable_proxy import VariableProxy
 class Entity:
     """Represents an entity on which calculations can be run.
 
-    For example an individual, a company, etc.
+    For example an individual, a company, etc. An :class:`.Entity`
+    represents an "abstract" atomic unit of the legislation, as in
+    "any individual", or "any company".
 
     Attributes:
-        key (:obj:`str`): Key to identify the :class:`.Entity`.
-        plural (:obj:`str`): The ``key``, pluralised.
-        label (:obj:`str`): A summary description.
-        doc (:obj:`str`): A full description, dedented.
-        is_person (:obj:`bool`): Represents an individual? Defaults to True.
+        key (:obj:`str`):
+            Key to identify the :class:`.Entity`.
+        plural (:obj:`str`):
+            The ``key``, pluralised.
+        label (:obj:`str`):
+            A summary description.
+        doc (:obj:`str`):
+            A full description, dedented.
+        is_person (:obj:`bool`):
+            Represents an individual? Defaults to True.
+        populations (:class:`.Population`):
+            An :class:`.Entity` has many :class:`Populations <.Population>`,
+            that is a concrete case of an :class:`.Entity` —a dataset, a
+            survey, a single individual case…
+        variables (:class:`.Variable`):
+            An :class:`.Entity` has many :class:`Variables <.Variable>`. In
+            fact, each :class:`.Variable` is defined for a specific
+            :class:`.Entity`.
 
     Args:
         key: Key to identify the :class:`.Entity`.
