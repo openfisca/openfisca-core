@@ -348,10 +348,13 @@ class SimulationBuilder:
                 )
 
     def init_variable_values(self, entity, instance_object, instance_id):
+        query = entity.variables.isdefined()
+
         for variable_name, variable_values in instance_object.items():
             path_in_json = [entity.plural, instance_id, variable_name]
+
             try:
-                entity.check_variable_defined_for_entity(variable_name)
+                variable = query.get(variable_name)
             except ValueError as e:  # The variable is defined for another entity
                 raise SituationParsingError(path_in_json, e.args[0])
             except VariableNotFoundError as e:  # The variable doesn't exist
@@ -370,7 +373,7 @@ class SimulationBuilder:
                     periods.period(period_str)
                 except ValueError as e:
                     raise SituationParsingError(path_in_json, e.args[0])
-                variable = entity.get_variable(variable_name)
+
                 self.add_variable_value(entity, variable, instance_index, instance_id, period_str, value)
 
     def add_variable_value(self, entity, variable, instance_index, instance_id, period_str, value):
