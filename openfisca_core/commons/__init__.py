@@ -29,7 +29,6 @@ Note:
         from openfisca_core.commons.formulas import switch  # Bad
         from openfisca_core.commons.decorators import deprecated  # Bad
 
-
     The previous examples provoke cyclic dependency problems, that prevents us
     from modularizing the different components of the library, so as to make
     them easier to test and to maintain.
