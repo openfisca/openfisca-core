@@ -422,8 +422,7 @@ class TaxBenefitSystem:
             return {
                 variable_name: variable
                 for variable_name, variable in self.variables.items()
-                # TODO - because entities are copied (see constructor) they can't be compared
-                if variable.entity.key == entity.key
+                if variable.entity == entity
                 }
 
     def clone(self):
