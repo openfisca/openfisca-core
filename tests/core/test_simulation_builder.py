@@ -146,7 +146,7 @@ def test_add_group_entity_loose_syntax(households):
 
 
 def test_add_variable_value(persons):
-    salary = persons.get_variable('salary')
+    salary = persons.variables.get("salary")
     instance_index = 0
     simulation_builder = SimulationBuilder()
     simulation_builder.entity_counts['persons'] = 1
@@ -156,7 +156,7 @@ def test_add_variable_value(persons):
 
 
 def test_add_variable_value_as_expression(persons):
-    salary = persons.get_variable('salary')
+    salary = persons.variables.get("salary")
     instance_index = 0
     simulation_builder = SimulationBuilder()
     simulation_builder.entity_counts['persons'] = 1
@@ -166,7 +166,7 @@ def test_add_variable_value_as_expression(persons):
 
 
 def test_fail_on_wrong_data(persons):
-    salary = persons.get_variable('salary')
+    salary = persons.variables.get("salary")
     instance_index = 0
     simulation_builder = SimulationBuilder()
     simulation_builder.entity_counts['persons'] = 1
@@ -176,7 +176,7 @@ def test_fail_on_wrong_data(persons):
 
 
 def test_fail_on_ill_formed_expression(persons):
-    salary = persons.get_variable('salary')
+    salary = persons.variables.get("salary")
     instance_index = 0
     simulation_builder = SimulationBuilder()
     simulation_builder.entity_counts['persons'] = 1

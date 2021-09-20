@@ -6,23 +6,37 @@ from .variables import TestVariable
 
 
 class TestEntity(Entity):
-    def get_variable(self, variable_name):
+    @property
+    def variables(self):
+        return self
+
+    def exists(self):
+        return self
+
+    def isdefined(self):
+        return self
+
+    def get(self, variable_name):
         result = TestVariable(self)
         result.name = variable_name
         return result
-
-    def check_variable_defined_for_entity(self, variable_name):
-        return True
 
 
 class TestGroupEntity(GroupEntity):
-    def get_variable(self, variable_name):
+    @property
+    def variables(self):
+        return self
+
+    def exists(self):
+        return self
+
+    def isdefined(self):
+        return self
+
+    def get(self, variable_name):
         result = TestVariable(self)
         result.name = variable_name
         return result
-
-    def check_variable_defined_for_entity(self, variable_name):
-        return True
 
 
 @pytest.fixture
