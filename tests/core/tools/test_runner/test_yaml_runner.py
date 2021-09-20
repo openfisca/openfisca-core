@@ -16,7 +16,7 @@ class TaxBenefitSystem:
     def __init__(self):
         self.variables = {'salary': TestVariable()}
         self.person_entity = Entity('person', 'persons', None, "")
-        self.person_entity.set_tax_benefit_system(self)
+        self.person_entity.tax_benefit_system = self
 
     def get_package_metadata(self):
         return {"name": "Test", "version": "Test"}
