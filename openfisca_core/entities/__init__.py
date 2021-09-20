@@ -11,6 +11,17 @@ Official Public API:
     * :func:`.build_entity`
     * :func:`.check_role_validity`
 
+Deprecated:
+    * :meth:`.Entity.set_tax_benefit_system`
+    * :meth:`.Entity.get_variable`
+    * :meth:`.Entity.check_variable_defined_for_entity`
+    * :meth:`.Entity.check_role_validity`
+
+Note:
+    The ``deprecated`` features are kept so as to give time to users to
+    migrate, and could be definitely removed from the codebase in a future
+    major release.
+
 Note:
     How imports are being used today::
 
