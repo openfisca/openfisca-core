@@ -50,6 +50,7 @@ check-syntax-errors: .
 check-style: \
 	check-style-all \
 	check-style-doc-commons \
+	check-style-doc-entities \
 	check-style-doc-types
 	@$(call pass,$@:)
 
@@ -68,6 +69,7 @@ check-style-doc-%:
 check-types: \
 	check-types-all \
 	check-types-strict-commons \
+	check-types-strict-entities \
 	check-types-strict-types
 	@$(call pass,$@:)
 
