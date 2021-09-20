@@ -409,7 +409,7 @@ def test_log_aggregate_with_enum(tracer):
     tracer._exit_calculation()
 
     lines = tracer.computation_log.lines(aggregate = True)
-    assert lines[0] == "  A<2017> >> {'avg': EnumArray(HousingOccupancyStatus.tenant), 'max': EnumArray(HousingOccupancyStatus.tenant), 'min': EnumArray(HousingOccupancyStatus.tenant)}"
+    assert lines[0] == "  A<2017> >> {'avg': <EnumArray(HousingOccupancyStatus.tenant)>, 'max': <EnumArray(HousingOccupancyStatus.tenant)>, 'min': <EnumArray(HousingOccupancyStatus.tenant)>}"
 
 
 def test_log_aggregate_with_strings(tracer):
