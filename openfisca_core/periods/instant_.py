@@ -1,249 +1,280 @@
-import calendar
+from __future__ import annotations
+
+import dataclasses
 import datetime
+import functools
+from typing import Any, Iterator, Tuple, Union
 
-from openfisca_core import periods
-from openfisca_core.periods import config
+from typing_extensions import Literal
+
+from dateutil import relativedelta
+
+from openfisca_core import commons, periods
+from openfisca_core.types import SupportsPeriod
+
+from .date_unit import DateUnit
+
+DateLike = Tuple[int, ...]
+DateKeys = Literal[DateUnit.YEAR, DateUnit.MONTH, DateUnit.DAY]
+OffsetBy = Union[Literal["first-of", "last-of"], int]
 
 
-class Instant(tuple):
+@dataclasses.dataclass(init = False, frozen = True)
+class Instant:
+    """An instant in time (year, month, day).
 
-    def __repr__(self):
-        """
-        Transform instant to to its Python representation as a string.
+    An :class:`.Instant` represents the most atomic and indivisible unit time
+    of a legislations.
 
-        >>> repr(instant(2014))
-        'Instant((2014, 1, 1))'
-        >>> repr(instant('2014-2'))
-        'Instant((2014, 2, 1))'
-        >>> repr(instant('2014-2-3'))
-        'Instant((2014, 2, 3))'
-        """
-        return '{}({})'.format(self.__class__.__name__, super(Instant, self).__repr__())
+    Current implementation considers this unit to be a day, so
+    :obj:`instants <.Instant>` can be thought of as "day dates".
 
-    def __str__(self):
-        """
-        Transform instant to a string.
+    Attributes:
+        year (:obj:`int`):
+            The year of the :obj:`.Instant`.
+        month (:obj:`int`):
+            The month of the :obj:`.Instant`.
+        day (:obj:`int`):
+            The day of the :obj:`.Instant.`
+        date (:obj:`datetime.date`:):
+            The converted :obj:`.Instant`.
+        canonical (tuple(int, int, int)):
+            The ``year``, ``month``, and ``day``, accordingly.
 
-        >>> str(instant(2014))
-        '2014-01-01'
-        >>> str(instant('2014-2'))
-        '2014-02-01'
-        >>> str(instant('2014-2-3'))
-        '2014-02-03'
+    Args:
+        units (tuple(int, int, int)):
+            The ``year``, ``month``, and ``day``, accordingly.
 
-        """
-        instant_str = config.str_by_instant_cache.get(self)
-        if instant_str is None:
-            config.str_by_instant_cache[self] = instant_str = self.date.isoformat()
-        return instant_str
+    Examples:
+        >>> instant = Instant((2021, 9, 13))
 
-    @property
-    def date(self):
-        """
-        Convert instant to a date.
+        >>> repr(Instant)
+        "<class 'openfisca_core.periods.instant_.Instant'>"
 
-        >>> instant(2014).date
-        datetime.date(2014, 1, 1)
-        >>> instant('2014-2').date
-        datetime.date(2014, 2, 1)
-        >>> instant('2014-2-3').date
-        datetime.date(2014, 2, 3)
-        """
-        instant_date = config.date_by_instant_cache.get(self)
-        if instant_date is None:
-            config.date_by_instant_cache[self] = instant_date = datetime.date(*self)
-        return instant_date
+        >>> repr(instant)
+        '<Instant(2021, 9, 13)>'
 
-    @property
-    def day(self):
-        """
-        Extract day from instant.
+        >>> str(instant)
+        '2021-09-13'
 
-        >>> instant(2014).day
-        1
-        >>> instant('2014-2').day
-        1
-        >>> instant('2014-2-3').day
+        >>> dict([(instant, (2021, 9, 13))])
+        {<Instant(2021, 9, 13)>: (2021, 9, 13)}
+
+        >>> tuple(instant)
+        (2021, 9, 13)
+
+        >>> instant[0]
+        2021
+
+        >>> instant[0] in instant
+        True
+
+        >>> len(instant)
         3
+
+        >>> instant == (2021, 9, 13)
+        True
+
+        >>> instant != (2021, 9, 13)
+        False
+
+        >>> instant > (2020, 9, 13)
+        True
+
+        >>> instant < (2020, 9, 13)
+        False
+
+        >>> instant >= (2020, 9, 13)
+        True
+
+        >>> instant <= (2020, 9, 13)
+        False
+
+        >>> instant.year
+        2021
+
+        >>> instant.month
+        9
+
+        >>> instant.day
+        13
+
+        >>> instant.canonical
+        (2021, 9, 13)
+
+        >>> instant.date
+        datetime.date(2021, 9, 13)
+
+        >>> year, month, day = instant
+
+    """
+
+    __slots__ = ["year", "month", "day", "date", "canonical"]
+    year: int
+    month: int
+    day: int
+    date: datetime.date
+    canonical: DateLike
+
+    def __init__(self, units: DateLike) -> None:
+        year, month, day = units
+        object.__setattr__(self, "year", year)
+        object.__setattr__(self, "month", month)
+        object.__setattr__(self, "day", day)
+        object.__setattr__(self, "date", periods.DATE(year, month, day))
+        object.__setattr__(self, "canonical", units)
+
+    def __repr__(self) -> str:
+        return \
+            f"<{self.__class__.__name__}" \
+            f"({self.year}, {self.month}, {self.day})>"
+
+    @functools.lru_cache(maxsize = None)
+    def __str__(self) -> str:
+        return self.date.isoformat()
+
+    def __contains__(self, item: Any) -> bool:
+        return item in self.canonical
+
+    def __getitem__(self, key: int) -> int:
+        return self.canonical[key]
+
+    def __iter__(self) -> Iterator[int]:
+        return iter(self.canonical)
+
+    def __len__(self) -> int:
+        return len(self.canonical)
+
+    def __eq__(self, other: Any) -> bool:
+        return self.canonical == other
+
+    def __ne__(self, other: Any) -> bool:
+        return self.canonical != other
+
+    def __lt__(self, other: Any) -> bool:
+        return self.canonical < other
+
+    def __le__(self, other: Any) -> bool:
+        return self.canonical <= other
+
+    def __gt__(self, other: Any) -> bool:
+        return self.canonical > other
+
+    def __ge__(self, other: Any) -> bool:
+        return self.canonical >= other
+
+    @commons.deprecated(since = "35.9.0", expires = "the future")
+    def period(self, unit: DateUnit, size: int = 1) -> SupportsPeriod:
+        """Creates a new :obj:`.Period` starting at :obj:`.Instant`.
+
+        Args:
+            unit: ``day`` or ``month`` or ``year``.
+            size: How many of ``unit``.
+
+        Returns:
+            A new object :obj:`.Period`.
+
+        Raises:
+            :exc:`AssertionError`: When ``unit`` is not a date unit.
+            :exc:`AssertionError`: When ``size`` is not an unsigned :obj:`int`.
+
+        Examples:
+            >>> Instant((2021, 9, 13)).period(DateUnit.YEAR.value)
+            <Period(('year', <Instant(2021, 9, 13)>, 1))>
+
+            >>> Instant((2021, 9, 13)).period("month", 2)
+            <Period(('month', <Instant(2021, 9, 13)>, 2))>
+
+        .. deprecated:: 35.9.0
+            :meth:`.period` has been deprecated and will be removed in the
+            future. The functionality is now provided by :func:`.period`.
+
         """
-        return self[2]
 
-    @property
-    def month(self):
+        assert unit in DateUnit.ethereal, \
+            f"Invalid unit: {unit} of type {type(unit)}. Expecting any of " \
+            f"{', '.join(str(unit) for unit in DateUnit.ethereal)}."
+
+        assert isinstance(size, int) and size >= 1, \
+            f"Invalid size: {size} of type {type(size)}. Expecting any " \
+            "int >= 1."
+
+        if isinstance(unit, str):
+            unit = DateUnit[unit]
+
+        return periods.period(f"{unit.value}:{str(self)}:{size}")
+
+    @functools.lru_cache(maxsize = None)
+    def offset(self, offset: OffsetBy, unit: DateUnit) -> Instant:
+        """Increments/decrements the given instant with offset units.
+
+        Args:
+            offset: How much of ``unit`` to offset.
+            unit: What to offset
+
+        Returns:
+            :obj:`.Instant`: A new :obj:`.Instant` in time.
+
+        Raises:
+            :exc:`AssertionError`: When ``unit`` is not a date unit.
+            :exc:`AssertionError`: When ``offset`` is not either ``first-of``,
+                ``last-of``, or any :obj:`int`.
+
+        Examples:
+            >>> Instant((2020, 12, 31)).offset("first-of", DateUnit.MONTH.value)
+            <Instant(2020, 12, 1)>
+
+            >>> Instant((2020, 1, 1)).offset("last-of", "year")
+            <Instant(2020, 12, 31)>
+
+            >>> Instant((2020, 1, 1)).offset(1, DateUnit.YEAR.value)
+            <Instant(2021, 1, 1)>
+
+            >>> Instant((2020, 1, 1)).offset(-3, "day")
+            <Instant(2019, 12, 29)>
+
         """
-        Extract month from instant.
 
-        >>> instant(2014).month
-        1
-        >>> instant('2014-2').month
-        2
-        >>> instant('2014-2-3').month
-        2
-        """
-        return self[1]
+        #: Use current ``year`` fro the offset.
+        year = self.year
 
-    def period(self, unit, size = 1):
-        """
-        Create a new period starting at instant.
+        #: Use current ``month`` fro the offset.
+        month = self.month
 
-        >>> instant(2014).period('month')
-        Period(('month', Instant((2014, 1, 1)), 1))
-        >>> instant('2014-2').period('year', 2)
-        Period(('year', Instant((2014, 2, 1)), 2))
-        >>> instant('2014-2-3').period('day', size = 2)
-        Period(('day', Instant((2014, 2, 3)), 2))
-        """
-        assert unit in (config.DAY, config.MONTH, config.YEAR), 'Invalid unit: {} of type {}'.format(unit, type(unit))
-        assert isinstance(size, int) and size >= 1, 'Invalid size: {} of type {}'.format(size, type(size))
-        return periods.Period((unit, self, size))
+        #: Use current ``day`` fro the offset.
+        day = self.day
 
-    def offset(self, offset, unit):
-        """
-        Increment (or decrement) the given instant with offset units.
+        assert unit in DateUnit.ethereal, \
+            f"Invalid unit: {unit} of type {type(unit)}. Expecting any of " \
+            f"{', '.join(str(unit) for unit in DateUnit.ethereal)}."
 
-        >>> instant(2014).offset(1, 'day')
-        Instant((2014, 1, 2))
-        >>> instant(2014).offset(1, 'month')
-        Instant((2014, 2, 1))
-        >>> instant(2014).offset(1, 'year')
-        Instant((2015, 1, 1))
+        if offset == "first-of" and unit == DateUnit.YEAR:
+            return self.__class__((year, 1, 1))
 
-        >>> instant('2014-1-31').offset(1, 'day')
-        Instant((2014, 2, 1))
-        >>> instant('2014-1-31').offset(1, 'month')
-        Instant((2014, 2, 28))
-        >>> instant('2014-1-31').offset(1, 'year')
-        Instant((2015, 1, 31))
+        if offset == "first-of" and unit == DateUnit.MONTH:
+            return self.__class__((year, month, 1))
 
-        >>> instant('2011-2-28').offset(1, 'day')
-        Instant((2011, 3, 1))
-        >>> instant('2011-2-28').offset(1, 'month')
-        Instant((2011, 3, 28))
-        >>> instant('2012-2-29').offset(1, 'year')
-        Instant((2013, 2, 28))
+        if offset == "last-of" and unit == DateUnit.YEAR:
+            return self.__class__((year, 12, 31))
 
-        >>> instant(2014).offset(-1, 'day')
-        Instant((2013, 12, 31))
-        >>> instant(2014).offset(-1, 'month')
-        Instant((2013, 12, 1))
-        >>> instant(2014).offset(-1, 'year')
-        Instant((2013, 1, 1))
+        if offset == "last-of" and unit == DateUnit.MONTH:
+            day = periods.LAST(year, month)[1]
+            return self.__class__((year, month, day))
 
-        >>> instant('2011-3-1').offset(-1, 'day')
-        Instant((2011, 2, 28))
-        >>> instant('2011-3-31').offset(-1, 'month')
-        Instant((2011, 2, 28))
-        >>> instant('2012-2-29').offset(-1, 'year')
-        Instant((2011, 2, 28))
+        assert isinstance(offset, int), \
+            f"Invalid offset: {offset} of type {type(offset)}. Expecting " \
+            "any int."
 
-        >>> instant('2014-1-30').offset(3, 'day')
-        Instant((2014, 2, 2))
-        >>> instant('2014-10-2').offset(3, 'month')
-        Instant((2015, 1, 2))
-        >>> instant('2014-1-1').offset(3, 'year')
-        Instant((2017, 1, 1))
+        if unit == DateUnit.YEAR:
+            date = self.date + relativedelta.relativedelta(years = offset)
+            return self.__class__((date.year, date.month, date.day))
 
-        >>> instant(2014).offset(-3, 'day')
-        Instant((2013, 12, 29))
-        >>> instant(2014).offset(-3, 'month')
-        Instant((2013, 10, 1))
-        >>> instant(2014).offset(-3, 'year')
-        Instant((2011, 1, 1))
+        if unit == DateUnit.MONTH:
+            date = self.date + relativedelta.relativedelta(months = offset)
+            return self.__class__((date.year, date.month, date.day))
 
-        >>> instant(2014).offset('first-of', 'month')
-        Instant((2014, 1, 1))
-        >>> instant('2014-2').offset('first-of', 'month')
-        Instant((2014, 2, 1))
-        >>> instant('2014-2-3').offset('first-of', 'month')
-        Instant((2014, 2, 1))
+        if unit == DateUnit.DAY:
+            date = self.date + relativedelta.relativedelta(days = offset)
+            return self.__class__((date.year, date.month, date.day))
 
-        >>> instant(2014).offset('first-of', 'year')
-        Instant((2014, 1, 1))
-        >>> instant('2014-2').offset('first-of', 'year')
-        Instant((2014, 1, 1))
-        >>> instant('2014-2-3').offset('first-of', 'year')
-        Instant((2014, 1, 1))
-
-        >>> instant(2014).offset('last-of', 'month')
-        Instant((2014, 1, 31))
-        >>> instant('2014-2').offset('last-of', 'month')
-        Instant((2014, 2, 28))
-        >>> instant('2012-2-3').offset('last-of', 'month')
-        Instant((2012, 2, 29))
-
-        >>> instant(2014).offset('last-of', 'year')
-        Instant((2014, 12, 31))
-        >>> instant('2014-2').offset('last-of', 'year')
-        Instant((2014, 12, 31))
-        >>> instant('2014-2-3').offset('last-of', 'year')
-        Instant((2014, 12, 31))
-        """
-        year, month, day = self
-        assert unit in (config.DAY, config.MONTH, config.YEAR), 'Invalid unit: {} of type {}'.format(unit, type(unit))
-        if offset == 'first-of':
-            if unit == config.MONTH:
-                day = 1
-            elif unit == config.YEAR:
-                month = 1
-                day = 1
-        elif offset == 'last-of':
-            if unit == config.MONTH:
-                day = calendar.monthrange(year, month)[1]
-            elif unit == config.YEAR:
-                month = 12
-                day = 31
-        else:
-            assert isinstance(offset, int), 'Invalid offset: {} of type {}'.format(offset, type(offset))
-            if unit == config.DAY:
-                day += offset
-                if offset < 0:
-                    while day < 1:
-                        month -= 1
-                        if month == 0:
-                            year -= 1
-                            month = 12
-                        day += calendar.monthrange(year, month)[1]
-                elif offset > 0:
-                    month_last_day = calendar.monthrange(year, month)[1]
-                    while day > month_last_day:
-                        month += 1
-                        if month == 13:
-                            year += 1
-                            month = 1
-                        day -= month_last_day
-                        month_last_day = calendar.monthrange(year, month)[1]
-            elif unit == config.MONTH:
-                month += offset
-                if offset < 0:
-                    while month < 1:
-                        year -= 1
-                        month += 12
-                elif offset > 0:
-                    while month > 12:
-                        year += 1
-                        month -= 12
-                month_last_day = calendar.monthrange(year, month)[1]
-                if day > month_last_day:
-                    day = month_last_day
-            elif unit == config.YEAR:
-                year += offset
-                # Handle february month of leap year.
-                month_last_day = calendar.monthrange(year, month)[1]
-                if day > month_last_day:
-                    day = month_last_day
-
-        return self.__class__((year, month, day))
-
-    @property
-    def year(self):
-        """
-        Extract year from instant.
-
-        >>> instant(2014).year
-        2014
-        >>> instant('2014-2').year
-        2014
-        >>> instant('2014-2-3').year
-        2014
-        """
-        return self[0]
+        return self

@@ -52,6 +52,7 @@ check-style: \
 	check-style-doc-commons \
 	check-style-doc-entities \
 	check-style-doc-indexed_enums \
+	check-style-doc-periods \
 	check-style-doc-types
 	@$(call pass,$@:)
 
@@ -72,6 +73,7 @@ check-types: \
 	check-types-strict-commons \
 	check-types-strict-entities \
 	check-types-strict-indexed_enums \
+	check-types-strict-periods \
 	check-types-strict-types
 	@$(call pass,$@:)
 

@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import calendar
 
-from openfisca_core import periods
-from openfisca_core.periods import config, helpers
+from openfisca_core.periods import Instant
+
+from .date_unit import DateUnit
 
 
 class Period(tuple):
@@ -14,20 +15,24 @@ class Period(tuple):
     (year, month, day) triple, and where size is an integer > 1.
 
     Since a period is a triple it can be used as a dictionary key.
+
+    Examples:
+        >>> instant = Instant((2021, 9, 1))
+        >>> period = Period((DateUnit.YEAR.value, instant, 3))
+
+        >>> repr(Period)
+        "<class 'openfisca_core.periods.period_.Period'>"
+
+        >>> repr(period)
+        "<Period(('year', <Instant(2021, 9, 1)>, 3))>"
+
+        >>> str(period)
+        'year:2021-09:3'
+
     """
 
-    def __repr__(self):
-        """
-        Transform period to to its Python representation as a string.
-
-        >>> repr(period('year', 2014))
-        "Period(('year', Instant((2014, 1, 1)), 1))"
-        >>> repr(period('month', '2014-2'))
-        "Period(('month', Instant((2014, 2, 1)), 1))"
-        >>> repr(period('day', '2014-2-3'))
-        "Period(('day', Instant((2014, 2, 3)), 1))"
-        """
-        return '{}({})'.format(self.__class__.__name__, super(Period, self).__repr__())
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}({super().__repr__()})>"
 
     def __str__(self):
         """
@@ -57,26 +62,26 @@ class Period(tuple):
         """
 
         unit, start_instant, size = self
-        if unit == config.ETERNITY:
+        if unit == DateUnit.ETERNITY:
             return 'ETERNITY'
         year, month, day = start_instant
 
         # 1 year long period
-        if (unit == config.MONTH and size == 12 or unit == config.YEAR and size == 1):
+        if (unit == DateUnit.MONTH and size == 12 or unit == DateUnit.YEAR and size == 1):
             if month == 1:
                 # civil year starting from january
                 return str(year)
             else:
                 # rolling year
-                return '{}:{}-{:02d}'.format(config.YEAR, year, month)
+                return '{}:{}-{:02d}'.format(DateUnit.YEAR.value, year, month)
         # simple month
-        if unit == config.MONTH and size == 1:
+        if unit == DateUnit.MONTH and size == 1:
             return '{}-{:02d}'.format(year, month)
         # several civil years
-        if unit == config.YEAR and month == 1:
+        if unit == DateUnit.YEAR and month == 1:
             return '{}:{}:{}'.format(unit, year, size)
 
-        if unit == config.DAY:
+        if unit == DateUnit.DAY:
             if size == 1:
                 return '{}-{:02d}-{:02d}'.format(year, month, day)
             else:
@@ -170,17 +175,17 @@ class Period(tuple):
         >>> period('year:2014:2').get_subperiods(YEAR)
         >>> [period('2014'), period('2015')]
         """
-        if helpers.unit_weight(self.unit) < helpers.unit_weight(unit):
+        if self.unit < unit:
             raise ValueError('Cannot subdivide {0} into {1}'.format(self.unit, unit))
 
-        if unit == config.YEAR:
-            return [self.this_year.offset(i, config.YEAR) for i in range(self.size)]
+        if unit == DateUnit.YEAR:
+            return [self.this_year.offset(i, DateUnit.YEAR.value) for i in range(self.size)]
 
-        if unit == config.MONTH:
-            return [self.first_month.offset(i, config.MONTH) for i in range(self.size_in_months)]
+        if unit == DateUnit.MONTH:
+            return [self.first_month.offset(i, DateUnit.MONTH.value) for i in range(self.size_in_months)]
 
-        if unit == config.DAY:
-            return [self.first_day.offset(i, config.DAY) for i in range(self.size_in_days)]
+        if unit == DateUnit.DAY:
+            return [self.first_day.offset(i, DateUnit.DAY.value) for i in range(self.size_in_days)]
 
     def offset(self, offset, unit = None):
         """
@@ -345,9 +350,9 @@ class Period(tuple):
         >>> period('year', '2012', 1).size_in_months
         12
         """
-        if (self[0] == config.MONTH):
+        if (self[0] == DateUnit.MONTH):
             return self[2]
-        if(self[0] == config.YEAR):
+        if(self[0] == DateUnit.YEAR):
             return self[2] * 12
         raise ValueError("Cannot calculate number of months in {0}".format(self[0]))
 
@@ -363,10 +368,10 @@ class Period(tuple):
         """
         unit, instant, length = self
 
-        if unit == config.DAY:
+        if unit == DateUnit.DAY:
             return length
-        if unit in [config.MONTH, config.YEAR]:
-            last_day = self.start.offset(length, unit).offset(-1, config.DAY)
+        if unit in [DateUnit.MONTH, DateUnit.YEAR]:
+            last_day = self.start.offset(length, unit).offset(-1, DateUnit.DAY.value)
             return (last_day.date - self.start.date).days + 1
 
         raise ValueError("Cannot calculate number of days in {0}".format(unit))
@@ -409,7 +414,7 @@ class Period(tuple):
         """
         unit, start_instant, size = self
         year, month, day = start_instant
-        if unit == config.ETERNITY:
+        if unit == DateUnit.ETERNITY:
             return periods.Instant((float("inf"), float("inf"), float("inf")))
         if unit == 'day':
             if size > 1:

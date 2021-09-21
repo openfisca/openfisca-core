@@ -14,6 +14,7 @@ Official Public API:
     * :class:`.HasVariables`
     * :class:`.SupportsEncode`
     * :class:`.SupportsFormula`
+    * :class:`.SupportsPeriod`
     * :class:`.SupportsRole`
 
 Note:
@@ -60,9 +61,10 @@ from .protocols import (  # noqa: F401
     HasVariables,
     SupportsEncode,
     SupportsFormula,
+    SupportsPeriod,
     SupportsRole,
     )
 
 __all__ = ["Builder", "Descriptor", "HasHolders", "HasPlural", *__all__]
 __all__ = ["HasVariables", "SupportsEncode", "SupportsFormula", *__all__]
-__all__ = ["SupportsRole", *__all__]
+__all__ = ["SupportsPeriod", "SupportsRole", *__all__]
