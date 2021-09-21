@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses
 from typing import Iterable, Optional, Sequence, Type
 
-from openfisca_core.types import Personifiable, Rolifiable, RoleLike
+from openfisca_core.types import HasPlural, RoleLike, SupportsRole
 
 
 @dataclasses.dataclass(frozen = True)
@@ -55,13 +55,13 @@ class RoleBuilder:
     """
 
     __slots__ = ["builder", "buildee"]
-    builder: Personifiable
-    buildee: Type[Rolifiable]
+    builder: HasPlural
+    buildee: Type[SupportsRole]
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}({self.builder}, {self.buildee})>"
 
-    def __call__(self, items: Iterable[RoleLike]) -> Sequence[Rolifiable]:
+    def __call__(self, items: Iterable[RoleLike]) -> Sequence[SupportsRole]:
         """Builds a sub/role for each item in ``items``.
 
         Args:
@@ -76,7 +76,7 @@ class RoleBuilder:
 
         return [self.build(item) for item in items]
 
-    def build(self, item: RoleLike) -> Rolifiable:
+    def build(self, item: RoleLike) -> SupportsRole:
         """Builds a role from ``item``.
 
         Args:
@@ -89,7 +89,7 @@ class RoleBuilder:
 
         """
 
-        role: Rolifiable
+        role: SupportsRole
         subroles: Optional[Iterable[str]]
 
         role = self.buildee(item, self.builder)

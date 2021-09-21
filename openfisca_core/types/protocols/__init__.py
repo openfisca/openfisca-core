@@ -1,6 +1,7 @@
-from .buildable import Buildable  # noqa: F401
-from .descriptable import Descriptable  # noqa: F401
-from .modellable import Modellable  # noqa: F401
-from .personifiable import Personifiable  # noqa: F401
-from .representable import Representable  # noqa: F401
-from .rolifiable import Rolifiable  # noqa: F401
+from .builder import Builder  # noqa: F401
+from .descriptor import Descriptor  # noqa: F401
+from .has_holders import HasHolders  # noqa: F401
+from .has_plural import HasPlural  # noqa: F401
+from .has_variables import HasVariables  # noqa: F401
+from .supports_formula import SupportsFormula  # noqa: F401
+from .supports_role import SupportsRole  # noqa: F401

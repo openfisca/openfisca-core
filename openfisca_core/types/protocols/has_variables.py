@@ -4,7 +4,7 @@ from typing import Any, Optional
 from typing_extensions import Protocol
 
 
-class Representable(Protocol):
+class HasVariables(Protocol):
     """Base type for any ruleset-like model.
 
     Type-checking against abstractions rather than implementations helps in

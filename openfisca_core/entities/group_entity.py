@@ -3,7 +3,7 @@ import textwrap
 import typing
 from typing import Iterable, Sequence
 
-from openfisca_core.types import Buildable, Rolifiable, RoleLike
+from openfisca_core.types import Builder, RoleLike, SupportsRole
 
 from ._role_builder import RoleBuilder
 from .entity import Entity
@@ -91,11 +91,11 @@ class GroupEntity(Entity):
         self.roles_description = self.roles
 
         # Create builder.
-        builder: Buildable[GroupEntity, Rolifiable, RoleLike]
+        builder: Builder[GroupEntity, SupportsRole, RoleLike]
         builder = RoleBuilder(self, Role)
 
         # Build roles & assign role attributes.
-        roles: Sequence[Rolifiable]
+        roles: Sequence[SupportsRole]
         roles = builder(self.roles)
 
         # Not true, but we have to "fake" the type here, as the method is not
@@ -106,15 +106,15 @@ class GroupEntity(Entity):
             self.__dict__.update({role.key.upper(): role})
 
         # Assign sub-role attributes.
-        self.flattened_roles: Sequence[Rolifiable]
+        self.flattened_roles: Sequence[SupportsRole]
         self.flattened_roles = self._flatten(roles)
 
         for role in self.flattened_roles:
             self.__dict__.update({role.key.upper(): role})
 
         # Just for the record.
-        typing.cast(Sequence[Rolifiable], self.roles)
+        typing.cast(Sequence[SupportsRole], self.roles)
 
     @staticmethod
-    def _flatten(roles: Sequence[Rolifiable]) -> Sequence[Rolifiable]:
+    def _flatten(roles: Sequence[SupportsRole]) -> Sequence[SupportsRole]:
         return [array for role in roles for array in role.subroles or [role]]

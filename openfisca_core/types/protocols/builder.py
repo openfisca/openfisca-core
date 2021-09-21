@@ -10,7 +10,7 @@ ET = TypeVar("ET", covariant = True)
 EL = TypeVar("EL", contravariant = True)
 
 
-class Buildable(Protocol[RT, ET, EL]):
+class Builder(Protocol[RT, ET, EL]):
     """Base type for any model implementing a builder protocol.
 
     Type-checking against abstractions rather than implementations helps in

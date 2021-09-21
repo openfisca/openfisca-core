@@ -1,22 +1,20 @@
-from __future__ import annotations
-
 import abc
-from typing import Any, Optional, Iterator, Sequence, Tuple
+from typing import Any, Iterator, Tuple
 
 import typing_extensions
 from typing_extensions import Protocol
 
-from ..data_types import RoleLike
 from ._documentable import Documentable
-from .personifiable import Personifiable
+from .has_variables import HasVariables
+from .supports_formula import SupportsFormula
 
-R = RoleLike
-G = Personifiable
+T = HasVariables
+V = SupportsFormula
 
 
 @typing_extensions.runtime_checkable
-class Rolifiable(Documentable, Protocol):
-    """Base type for any role-like model.
+class HasPlural(Documentable, Protocol):
+    """Base type for any entity-like model.
 
     Type-checking against abstractions rather than implementations helps in
     (a) decoupling the codebse, thanks to structural subtyping, and
@@ -26,8 +24,7 @@ class Rolifiable(Documentable, Protocol):
 
     """
 
-    max: Optional[int]
-    subroles: Optional[Sequence[Rolifiable]]
+    plural: str
 
     @abc.abstractmethod
     def __repr__(self) -> str:
@@ -39,8 +36,4 @@ class Rolifiable(Documentable, Protocol):
 
     @abc.abstractmethod
     def __iter__(self) -> Iterator[Tuple[str, Any]]:
-        ...
-
-    @abc.abstractmethod
-    def __init__(self, __arg1: R, __arg2: G) -> None:
         ...

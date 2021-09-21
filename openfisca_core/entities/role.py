@@ -6,9 +6,9 @@ import textwrap
 from typing import Any, Iterator, Optional, Sequence, Tuple
 
 from openfisca_core.types import (
-    Personifiable,
-    Rolifiable,
+    HasPlural,
     RoleLike,
+    SupportsRole,
     )
 
 
@@ -69,15 +69,15 @@ class Role:
     """
 
     __slots__ = ["entity", "key", "plural", "label", "doc", "max", "subroles"]
-    entity: Personifiable
+    entity: HasPlural
     key: str
     plural: Optional[str]
     label: Optional[str]
     doc: str
     max: Optional[int]
-    subroles: Optional[Sequence[Rolifiable]]
+    subroles: Optional[Sequence[SupportsRole]]
 
-    def __init__(self, description: RoleLike, entity: Personifiable) -> None:
+    def __init__(self, description: RoleLike, entity: HasPlural) -> None:
         self.entity = entity
         self.key = description['key']
         self.plural = description.get('plural')

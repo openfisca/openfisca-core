@@ -6,13 +6,13 @@ from typing import Any, Optional, Type
 
 from typing_extensions import Protocol
 
-from openfisca_core.types import Modellable, Personifiable, Representable
+from openfisca_core.types import HasPlural, HasVariables, SupportsFormula
 
 DOC_URL = "https://openfisca.org/doc/coding-the-legislation"
 
-E = Personifiable
-T = Representable
-V = Modellable
+E = HasPlural
+T = HasVariables
+V = SupportsFormula
 
 
 class Query(Protocol):
@@ -114,7 +114,7 @@ class VariableProxy:
             :obj:`None` when the :attr:`.tax_benefit_system` is not set.
 
         Raises:
-            :exc:`.VariableNotFoundError`: When the :obj:`.Variable` doesn't exist.
+            :exc:`.VariableNotFoundError`: When :obj:`.Variable` doesn't exist.
             :exc:`.ValueError`: When the :obj:`.Variable` exists but is defined
             for another :obj:`.Entity`.
 

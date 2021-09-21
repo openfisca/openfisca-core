@@ -3,7 +3,12 @@ import textwrap
 from typing import Any, Iterator, Optional, Tuple
 
 from openfisca_core.commons import deprecated
-from openfisca_core.types import Descriptable, Modellable, Representable
+from openfisca_core.types import (
+    Descriptor,
+    HasHolders,
+    HasVariables,
+    SupportsFormula,
+    )
 
 from .. import entities
 from ._variable_proxy import VariableProxy
@@ -28,14 +33,6 @@ class Entity:
             A full description, dedented.
         is_person (:obj:`bool`):
             Represents an individual? Defaults to True.
-        populations (:class:`.Population`):
-            An :class:`.Entity` has many :class:`Populations <.Population>`,
-            that is a concrete case of an :class:`.Entity` —a dataset, a
-            survey, a single individual case…
-        variables (:class:`.Variable`):
-            An :class:`.Entity` has many :class:`Variables <.Variable>`. In
-            fact, each :class:`.Variable` is defined for a specific
-            :class:`.Entity`.
 
     Args:
         key: Key to identify the :class:`.Entity`.
@@ -72,7 +69,24 @@ class Entity:
         >>> entity != entity
         False
 
+        :attr:`population`
+
+        >>> from openfisca_core.populations import Population
+
+        >>> entity.population = Population(entity)
+        >>> entity == entity.population.entity
+        True
+
+        :attr:`tax_benefit_system`
+
         >>> from openfisca_core.taxbenefitsystems import TaxBenefitSystem
+
+        >>> entity.tax_benefit_system = TaxBenefitSystem([entity])
+        >>> entity in entity.tax_benefit_system.entities
+        True
+
+        :attr:`variables`
+
         >>> from openfisca_core.variables import Variable
 
         >>> class Variable(Variable):
@@ -80,11 +94,10 @@ class Entity:
         ...     value_type = float
         ...     entity = entity
 
-        >>> tbs = TaxBenefitSystem([entity])
-        >>> tbs.add_variable(Variable)
-        <openfisca_core.entities.entity.Variable...
+        >>> entity.variables.get("Variable")
 
-        >>> entity.tax_benefit_system = tbs
+        >>> entity.tax_benefit_system.add_variable(Variable)
+        <...Variable...
 
         >>> entity.variables.get("Variable")
         <...Variable...
@@ -110,22 +123,37 @@ class Entity:
     label: str
     doc: str
 
-    variables: Descriptable[VariableProxy] = dataclasses.field(
-        init = False,
-        compare = False,
-        default = VariableProxy(),
-        )
-    """:obj:`.Variables`: A descriptor to search for a :obj:`.Variable`."""
+    @property
+    def population(self) -> Optional[HasHolders]:
+        """An :class:`.Entity` has one :class:`.Population`."""
+
+        return self._population
+
+    @population.setter
+    def population(self, value: HasHolders) -> None:
+        self._population = value
 
     @property
-    def tax_benefit_system(self) -> Optional[Representable]:
-        """An :obj:`.Entity`'s :obj:`.TaxBenefitSystem`."""
+    def tax_benefit_system(self) -> Optional[HasVariables]:
+        """An :class:`.Entity` belongs to a :obj:`.TaxBenefitSystem`."""
 
         return self._tax_benefit_system
 
     @tax_benefit_system.setter
-    def tax_benefit_system(self, value: Representable) -> None:
+    def tax_benefit_system(self, value: HasVariables) -> None:
         self._tax_benefit_system = value
+
+    @property
+    def variables(self) -> Optional[VariableProxy]:
+        """An :class:`.Entity` has many :class:`Variables <.Variable>`."""
+
+        return self._variables
+
+    _variables: Descriptor[VariableProxy] = dataclasses.field(
+        init = False,
+        compare = False,
+        default = VariableProxy(),
+        )
 
     def __post_init__(self) -> None:
         self.doc = textwrap.dedent(self.doc)
@@ -143,7 +171,7 @@ class Entity:
     @deprecated(since = "35.7.0", expires = "the future")
     def set_tax_benefit_system(
             self,
-            tax_benefit_system: Representable,
+            tax_benefit_system: HasVariables,
             ) -> None:
         """Sets ``_tax_benefit_system``.
 
@@ -164,7 +192,7 @@ class Entity:
             self,
             variable_name: str,
             check_existence: bool = False,
-            ) -> Optional[Modellable]:
+            ) -> Optional[SupportsFormula]:
         """Gets ``variable_name`` from ``variables``.
 
         Args:
@@ -177,8 +205,8 @@ class Entity:
             :obj:`None` when the :obj:`.Variable` doesn't exist.
 
         Raises:
-            :exc:`.VariableNotFoundError`: When ``check_existence`` is True and the
-            :obj:`.Variable` doesn't exist.
+            :exc:`.VariableNotFoundError`: When ``check_existence`` is True and
+            the :obj:`.Variable` doesn't exist.
 
         .. deprecated:: 35.7.0
             :meth:`.get_variable` has been deprecated and will be
@@ -199,7 +227,7 @@ class Entity:
     def check_variable_defined_for_entity(
             self,
             variable_name: str,
-            ) -> Optional[Modellable]:
+            ) -> Optional[SupportsFormula]:
         """Checks if ``variable_name`` is defined for ``self``.
 
         Args:

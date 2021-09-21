@@ -1,6 +1,6 @@
 from typing import Any, Iterable, Optional
 
-from openfisca_core.types import Personifiable, Rolifiable, RoleLike
+from openfisca_core.types import RoleLike, HasPlural, SupportsRole
 
 from .entity import Entity
 from .group_entity import GroupEntity
@@ -14,7 +14,7 @@ def build_entity(
         roles: Optional[Iterable[RoleLike]] = None,
         is_person: bool = False,
         class_override: Optional[Any] = None,
-        ) -> Personifiable:
+        ) -> HasPlural:
     """Builds an :class:`.Entity` or a :class:`.GroupEntity`.
 
     Args:
@@ -84,5 +84,5 @@ def check_role_validity(role: Any) -> None:
 
     """
 
-    if role is not None and not isinstance(role, Rolifiable):
+    if role is not None and not isinstance(role, SupportsRole):
         raise ValueError(f"{role} is not a valid role")

@@ -7,12 +7,13 @@ Official Public API:
     * :data:`.ArrayLike`
     * :attr:`.ArrayType`
     * :class:`.RoleLike`
-    * :class:`.Buildable`
-    * :class:`.Descriptable`
-    * :class:`.Modellable`
-    * :class:`.Personifiable`
-    * :class:`.Representable`
-    * :class:`.Rolifiable`
+    * :class:`.Builder`
+    * :class:`.Descriptor`
+    * :class:`.HasHolders`
+    * :class:`.HasPlural`
+    * :class:`.HasVariables`
+    * :class:`.SupportsFormula`
+    * :class:`.SupportsRole`
 
 Note:
     How imports are being used today::
@@ -51,13 +52,14 @@ from .data_types import (  # noqa: F401
 __all__ = ["ArrayLike", "ArrayType", "RoleLike"]
 
 from .protocols import (  # noqa: F401
-    Buildable,
-    Descriptable,
-    Modellable,
-    Personifiable,
-    Representable,
-    Rolifiable,
+    Builder,
+    Descriptor,
+    HasHolders,
+    HasPlural,
+    HasVariables,
+    SupportsFormula,
+    SupportsRole,
     )
 
-__all__ = ["Buildable", "Descriptable", "Modellable", *__all__]
-__all__ = ["Personifiable", "Representable", "Rolifiable", *__all__]
+__all__ = ["Builder", "Descriptor", "HasHolders", "HasPlural", *__all__]
+__all__ = ["HasVariables", "SupportsFormula", "SupportsRole", *__all__]

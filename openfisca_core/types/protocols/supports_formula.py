@@ -1,7 +1,7 @@
 from typing_extensions import Protocol
 
 
-class Modellable(Protocol):
+class SupportsFormula(Protocol):
     """Base type for any modelable element of the legislation.
 
     Type-checking against abstractions rather than implementations helps in

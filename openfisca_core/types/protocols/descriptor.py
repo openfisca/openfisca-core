@@ -5,7 +5,7 @@ from typing_extensions import Protocol
 T = TypeVar("T", covariant = True)
 
 
-class Descriptable(Protocol[T]):
+class Descriptor(Protocol[T]):
     """Base type for any model implementing a descriptor protocol.
 
     Type-checking against abstractions rather than implementations helps in
