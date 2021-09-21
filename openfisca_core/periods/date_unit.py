@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import enum
-from typing import Any, Tuple, TypeVar
+from typing import Tuple, TypeVar
 
 from openfisca_core.indexed_enums import Enum
 
@@ -10,21 +10,27 @@ T = TypeVar("T", bound = "DateUnit")
 
 class DateUnitMeta(enum.EnumMeta):
 
-    def __contains__(self, item: Any) -> bool:
+    def __contains__(self, item: object) -> bool:
+        if not isinstance(item, (str, int, DateUnit)):
+            return NotImplemented
+
         if isinstance(item, str):
-            return super().__contains__(self[item.upper()])
+            return super().__contains__(self[item])
+
+        if isinstance(item, int):
+            return super().__contains__(self[item])
 
         return super().__contains__(item)
 
     def __getitem__(self, key: object) -> T:
-        if not isinstance(key, (int, slice, str, DateUnit)):
+        if not isinstance(key, (str, int, slice, DateUnit)):
             return NotImplemented
-
-        if isinstance(key, (int, slice)):
-            return self[self.__dict__["_member_names_"][key]]
 
         if isinstance(key, str):
             return super().__getitem__(key.upper())
+
+        if isinstance(key, (int, slice)):
+            return self[self.__dict__["_member_names_"][key]]
 
         return super().__getitem__(key.value.upper())
 
@@ -137,6 +143,9 @@ class DateUnit(Enum, metaclass = DateUnitMeta):
         >>> "day" in DateUnit
         True
 
+        >>> 2 in DateUnit
+        True
+
         >>> DateUnit.DAY == DateUnit.DAY
         True
 
@@ -144,6 +153,9 @@ class DateUnit(Enum, metaclass = DateUnitMeta):
         True
 
         >>> "day" == DateUnit.DAY
+        True
+
+        >>> 2 == DateUnit.DAY
         True
 
         >>> DateUnit.DAY < DateUnit.DAY
@@ -177,6 +189,18 @@ class DateUnit(Enum, metaclass = DateUnitMeta):
         False
 
         >>> "day" <= DateUnit.DAY
+        True
+
+        >>> 2 >= DateUnit.DAY
+        True
+
+        >>> 2 < DateUnit.DAY
+        False
+
+        >>> 2 > DateUnit.DAY
+        False
+
+        >>> 2 <= DateUnit.DAY
         True
 
         >>> "day" >= DateUnit.DAY
@@ -216,40 +240,76 @@ class DateUnit(Enum, metaclass = DateUnitMeta):
         return self.value
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, str):
-            return super().__eq__(other)
+        if not isinstance(other, (str, int, DateUnit)):
+            return NotImplemented
 
-        return self.value == other.lower()
+        if isinstance(other, str):
+            return self.index == DateUnit[other].index
+
+        if isinstance(other, int):
+            return self.index == other
+
+        return super().__eq__(other)
 
     def __ne__(self, other: object) -> bool:
-        if not isinstance(other, str):
-            return super().__ne__(other)
+        if not isinstance(other, (str, int, DateUnit)):
+            return NotImplemented
 
-        return self.value != other.lower()
+        if isinstance(other, str):
+            return self.index != DateUnit[other].index
+
+        if isinstance(other, int):
+            return self.index != other
+
+        return super().__ne__(other)
 
     def __lt__(self, other: object) -> bool:
-        if not isinstance(other, str):
-            return super().__lt__(other)
+        if not isinstance(other, (str, int, DateUnit)):
+            return NotImplemented
 
-        return self.index < DateUnit[other].index
+        if isinstance(other, str):
+            return self.index < DateUnit[other].index
+
+        if isinstance(other, int):
+            return self.index < other
+
+        return super().__lt__(other)
 
     def __le__(self, other: object) -> bool:
-        if not isinstance(other, str):
-            return super().__le__(other)
+        if not isinstance(other, (str, int, DateUnit)):
+            return NotImplemented
 
-        return self.index <= DateUnit[other].index
+        if isinstance(other, str):
+            return self.index <= DateUnit[other].index
+
+        if isinstance(other, int):
+            return self.index <= other
+
+        return super().__le__(other)
 
     def __gt__(self, other: object) -> bool:
-        if not isinstance(other, str):
-            return super().__gt__(other)
+        if not isinstance(other, (str, int, DateUnit)):
+            return NotImplemented
 
-        return self.index > DateUnit[other].index
+        if isinstance(other, str):
+            return self.index > DateUnit[other].index
+
+        if isinstance(other, int):
+            return self.index > other
+
+        return super().__gt__(other)
 
     def __ge__(self, other: object) -> bool:
-        if not isinstance(other, str):
-            return super().__ge__(other)
+        if not isinstance(other, (str, int, DateUnit)):
+            return NotImplemented
 
-        return self.index >= DateUnit[other].index
+        if isinstance(other, str):
+            return self.index >= DateUnit[other].index
+
+        if isinstance(other, int):
+            return self.index >= other
+
+        return super().__ge__(other)
 
     def upper(self) -> str:
         """Uppercases the :class:`.DateUnit`.
