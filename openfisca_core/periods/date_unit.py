@@ -99,7 +99,7 @@ class DateUnit(Enum, metaclass = DateUnitMeta):
         '<DateUnit.DAY(day)>'
 
         >>> str(DateUnit.DAY)
-        'DateUnit.DAY'
+        'day'
 
         >>> dict([(DateUnit.DAY, DateUnit.DAY.value)])
         {<DateUnit.DAY(day)>: 'day'}
@@ -211,6 +211,9 @@ class DateUnit(Enum, metaclass = DateUnitMeta):
     ETERNITY = "eternity"
 
     __hash__ = object.__hash__
+
+    def __str__(self) -> str:
+        return self.value
 
     def __eq__(self, other):
         if isinstance(other, str):

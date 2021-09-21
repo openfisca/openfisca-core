@@ -38,32 +38,40 @@ class Period(tuple):
         """
         Transform period to a string.
 
-        >>> str(period(YEAR, 2014))
-        '2014'
+        >>> str(Period((DateUnit.YEAR, Instant((2021, 1, 1)), 1)))
+        '2021'
 
-        >>> str(period(YEAR, '2014-2'))
-        'year:2014-02'
-        >>> str(period(MONTH, '2014-2'))
-        '2014-02'
+        >>> str(Period((DateUnit.YEAR, Instant((2021, 2, 1)), 1)))
+        'year:2021-02'
 
-        >>> str(period(YEAR, 2012, size = 2))
-        'year:2012:2'
-        >>> str(period(MONTH, 2012, size = 2))
-        'month:2012-01:2'
-        >>> str(period(MONTH, 2012, size = 12))
-        '2012'
+        >>> str(Period((DateUnit.MONTH, Instant((2021, 2, 1)), 1)))
+        '2021-02'
 
-        >>> str(period(YEAR, '2012-3', size = 2))
-        'year:2012-03:2'
-        >>> str(period(MONTH, '2012-3', size = 2))
-        'month:2012-03:2'
-        >>> str(period(MONTH, '2012-3', size = 12))
-        'year:2012-03'
+        >>> str(Period((DateUnit.YEAR, Instant((2021, 1, 1)), 2)))
+        'year:2021:2'
+
+        >>> str(Period((DateUnit.MONTH, Instant((2021, 1, 1)), 2)))
+        'month:2021-01:2'
+
+        >>> str(Period((DateUnit.MONTH, Instant((2021, 1, 1)), 12)))
+        '2021'
+
+        >>> str(Period((DateUnit.YEAR, Instant((2021, 3, 1)), 2)))
+        'year:2021-03:2'
+
+        >>> str(Period((DateUnit.MONTH, Instant((2021, 3, 1)), 2)))
+        'month:2021-03:2'
+
+        >>> str(Period((DateUnit.MONTH, Instant((2021, 3, 1)), 12)))
+        'year:2021-03'
+
         """
 
         unit, start_instant, size = self
+
         if unit == DateUnit.ETERNITY:
             return 'ETERNITY'
+
         year, month, day = start_instant
 
         # 1 year long period
@@ -73,10 +81,12 @@ class Period(tuple):
                 return str(year)
             else:
                 # rolling year
-                return '{}:{}-{:02d}'.format(DateUnit.YEAR.value, year, month)
+                return '{}:{}-{:02d}'.format(DateUnit.YEAR, year, month)
+
         # simple month
         if unit == DateUnit.MONTH and size == 1:
             return '{}-{:02d}'.format(year, month)
+
         # several civil years
         if unit == DateUnit.YEAR and month == 1:
             return '{}:{}:{}'.format(unit, year, size)
