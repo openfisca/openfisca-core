@@ -110,27 +110,29 @@ class Period(tuple):
         """
         Count the number of days in period.
 
-        >>> period('day', 2014).days
+        >>> Period((DateUnit.DAY, Instant((2021, 1, 1)), 1)).days
         365
-        >>> period('month', 2014).days
+        >>> Period((DateUnit.MONTH, Instant((2021, 1, 1)), 1)).days
         365
-        >>> period('year', 2014).days
-        365
-
-        >>> period('day', '2014-2').days
-        28
-        >>> period('month', '2014-2').days
-        28
-        >>> period('year', '2014-2').days
+        >>> Period((DateUnit.YEAR, Instant((2021, 1, 1)), 1)).days
         365
 
-        >>> period('day', '2014-2-3').days
+        >>> Period((DateUnit.DAY, Instant((2021, 2, 1)), 1)).days
+        28
+        >>> Period((DateUnit.MONTH, Instant((2021, 2, 1)), 1)).days
+        28
+        >>> Period((DateUnit.YEAR, Instant((2021, 2, 1)), 1)).days
+        365
+
+        >>> Period((DateUnit.DAY, Instant((2021, 2, 3)), 1)).days
         1
-        >>> period('month', '2014-2-3').days
+        >>> Period((DateUnit.MONTH, Instant((2021, 2, 3)), 1)).days
         28
-        >>> period('year', '2014-2-3').days
+        >>> Period((DateUnit.YEAR, Instant((2021, 2, 3)), 1)).days
         365
+
         """
+
         return (self.stop.date - self.start.date).days + 1
 
     def intersection(self, start, stop):
@@ -201,22 +203,22 @@ class Period(tuple):
         """
         Increment (or decrement) the given period with offset units.
 
-        >>> period('day', 2014).offset(1)
+        >>> Period((DateUnit.DAY, Instant((2021, 1, 1)), 1)).offset(1)
         Period(('day', Instant((2014, 1, 2)), 365))
-        >>> period('day', 2014).offset(1, 'day')
+        >>> Period((DateUnit.DAY, Instant((2021, 1, 1)), 1)).offset(1, 'day')
         Period(('day', Instant((2014, 1, 2)), 365))
-        >>> period('day', 2014).offset(1, 'month')
+        >>> Period((DateUnit.DAY, Instant((2021, 1, 1)), 1)).offset(1, 'month')
         Period(('day', Instant((2014, 2, 1)), 365))
-        >>> period('day', 2014).offset(1, 'year')
+        >>> Period((DateUnit.DAY, Instant((2021, 1, 1)), 1)).offset(1, 'year')
         Period(('day', Instant((2015, 1, 1)), 365))
 
-        >>> period('month', 2014).offset(1)
+        >>> Period((DateUnit.MONTH, Instant((2021, 1, 1)), 1)).offset(1)
         Period(('month', Instant((2014, 2, 1)), 12))
-        >>> period('month', 2014).offset(1, 'day')
+        >>> Period((DateUnit.MONTH, Instant((2021, 1, 1)), 1)).offset(1, 'day')
         Period(('month', Instant((2014, 1, 2)), 12))
-        >>> period('month', 2014).offset(1, 'month')
+        >>> Period((DateUnit.MONTH, Instant((2021, 1, 1)), 1)).offset(1, 'month')
         Period(('month', Instant((2014, 2, 1)), 12))
-        >>> period('month', 2014).offset(1, 'year')
+        >>> Period((DateUnit.MONTH, Instant((2021, 1, 1)), 1)).offset(1, 'year')
         Period(('month', Instant((2015, 1, 1)), 12))
 
         >>> period('year', 2014).offset(1)
@@ -249,9 +251,9 @@ class Period(tuple):
         >>> period('year', '2014-1-30').offset(3)
         Period(('year', Instant((2017, 1, 30)), 1))
 
-        >>> period('day', 2014).offset(-3)
+        >>> Period((DateUnit.DAY, Instant((2021, 1, 1)), 1)).offset(-3)
         Period(('day', Instant((2013, 12, 29)), 365))
-        >>> period('month', 2014).offset(-3)
+        >>> Period((DateUnit.MONTH, Instant((2021, 1, 1)), 1)).offset(-3)
         Period(('month', Instant((2013, 10, 1)), 12))
         >>> period('year', 2014).offset(-3)
         Period(('year', Instant((2011, 1, 1)), 1))
@@ -387,7 +389,7 @@ class Period(tuple):
         raise ValueError("Cannot calculate number of days in {0}".format(unit))
 
     @property
-    def start(self) -> periods.Instant:
+    def start(self) -> Instant:
         """
         Return the first day of the period as an Instant instance.
 
@@ -397,15 +399,15 @@ class Period(tuple):
         return self[1]
 
     @property
-    def stop(self) -> periods.Instant:
+    def stop(self) -> Instant:
         """
         Return the last day of the period as an Instant instance.
 
         >>> period('year', 2014).stop
         Instant((2014, 12, 31))
-        >>> period('month', 2014).stop
+        >>> Period((DateUnit.MONTH, Instant((2021, 1, 1)), 1)).stop
         Instant((2014, 12, 31))
-        >>> period('day', 2014).stop
+        >>> Period((DateUnit.DAY, Instant((2021, 1, 1)), 1)).stop
         Instant((2014, 12, 31))
 
         >>> period('year', '2012-2-29').stop
@@ -424,8 +426,10 @@ class Period(tuple):
         """
         unit, start_instant, size = self
         year, month, day = start_instant
+
         if unit == DateUnit.ETERNITY:
-            return periods.Instant((float("inf"), float("inf"), float("inf")))
+            return Instant((float("inf"), float("inf"), float("inf")))
+
         if unit == 'day':
             if size > 1:
                 day += size - 1
@@ -461,7 +465,7 @@ class Period(tuple):
                         year += 1
                         month = 1
                     day -= month_last_day
-        return periods.Instant((year, month, day))
+        return Instant((year, month, day))
 
     @property
     def unit(self):
