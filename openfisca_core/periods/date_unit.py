@@ -177,7 +177,7 @@ class DateUnit(Enum, metaclass = DateUnitMeta):
         if not isinstance(other, (str, int, DateUnit)):
             return NotImplemented
 
-        if isinstance(other, str):
+        if isinstance(other, str) and other.upper() in self._member_names_:
             return self.index == DateUnit[other].index
 
         if isinstance(other, int):
@@ -189,7 +189,7 @@ class DateUnit(Enum, metaclass = DateUnitMeta):
         if not isinstance(other, (str, int, DateUnit)):
             return NotImplemented
 
-        if isinstance(other, str):
+        if isinstance(other, str) and other.upper() in self._member_names_:
             return self.index != DateUnit[other].index
 
         if isinstance(other, int):

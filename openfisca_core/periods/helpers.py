@@ -322,7 +322,7 @@ def period(value: PeriodLike) -> Period:
         #: Left-most component must be a valid unit: ``day``, ``month``, or
         #: ``year``.
         #:
-        if period_unit not in DateUnit.ethereal:
+        if period_unit not in DateUnit.isoformat:
             raise ValueError
 
         #: Reject ambiguous periods, such as ``month:2014``.

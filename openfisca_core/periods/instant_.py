@@ -191,9 +191,9 @@ class Instant:
 
         """
 
-        assert unit in DateUnit.ethereal, \
+        assert unit in DateUnit.isoformat, \
             f"Invalid unit: {unit} of type {type(unit)}. Expecting any of " \
-            f"{', '.join(str(unit) for unit in DateUnit.ethereal)}."
+            f"{', '.join(str(unit) for unit in DateUnit.isoformat)}."
 
         assert isinstance(size, int) and size >= 1, \
             f"Invalid size: {size} of type {type(size)}. Expecting any " \
@@ -244,9 +244,9 @@ class Instant:
         #: Use current ``day`` fro the offset.
         day = self.day
 
-        assert unit in DateUnit.ethereal, \
+        assert unit in DateUnit.isoformat, \
             f"Invalid unit: {unit} of type {type(unit)}. Expecting any of " \
-            f"{', '.join(str(unit) for unit in DateUnit.ethereal)}."
+            f"{', '.join(str(unit) for unit in DateUnit.isoformat)}."
 
         if offset == "first-of" and unit == DateUnit.YEAR:
             return self.__class__((year, 1, 1))
