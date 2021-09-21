@@ -76,7 +76,7 @@ def test_variables_setter(entity):
     """Does nothing when tryng to set `variables`` to something else."""
 
     obj = object()
-    entity.variables = obj
+    entity._variables = obj
     assert entity.variables != obj
 
 
