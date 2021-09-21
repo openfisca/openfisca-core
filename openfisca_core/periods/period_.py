@@ -110,24 +110,21 @@ class Period(tuple):
         """
         Count the number of days in period.
 
-        >>> Period((DateUnit.DAY, Instant((2021, 1, 1)), 1)).days
-        365
-        >>> Period((DateUnit.MONTH, Instant((2021, 1, 1)), 1)).days
-        365
         >>> Period((DateUnit.YEAR, Instant((2021, 1, 1)), 1)).days
         365
 
-        >>> Period((DateUnit.DAY, Instant((2021, 2, 1)), 1)).days
-        28
         >>> Period((DateUnit.MONTH, Instant((2021, 2, 1)), 1)).days
         28
+
         >>> Period((DateUnit.YEAR, Instant((2021, 2, 1)), 1)).days
         365
 
         >>> Period((DateUnit.DAY, Instant((2021, 2, 3)), 1)).days
         1
+
         >>> Period((DateUnit.MONTH, Instant((2021, 2, 3)), 1)).days
         28
+
         >>> Period((DateUnit.YEAR, Instant((2021, 2, 3)), 1)).days
         365
 
