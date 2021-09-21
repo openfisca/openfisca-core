@@ -109,7 +109,7 @@ class Entity:
         <...Variable...
 
     .. versionchanged:: 35.7.0
-        Hereafter ``variables`` allows querying a :obj:`.TaxBenefitSystem`
+        Hereafter :attr:`variables` allows querying a :obj:`.TaxBenefitSystem`
         for a :obj:`.Variable`.
 
     .. versionchanged:: 35.7.0
@@ -155,7 +155,7 @@ class Entity:
         default = VariableProxy(),
         )
 
-    def __post_init__(self) -> None:
+    def __post_init__(self, __: Optional[Any] = None) -> None:
         self.doc = textwrap.dedent(self.doc)
         self.is_person = True
 

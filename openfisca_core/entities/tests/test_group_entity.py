@@ -63,15 +63,3 @@ def test_get_variable_deprecation(group_entity):
 
     with pytest.warns(DeprecationWarning):
         group_entity.get_variable("variable")
-
-
-def test_group_entity_with_roles(group_entity):
-    """Assigns a :obj:`.Role` for each role-like passed as argument."""
-
-    assert group_entity.PARENT
-
-
-def test_group_entity_with_subroles(group_entity):
-    """Assigns a :obj:`.Role` for each subrole-like passed as argument."""
-
-    assert group_entity.FIRST_PARENT
