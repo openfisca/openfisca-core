@@ -4,7 +4,7 @@ from typing import Any, NoReturn, Optional, Type, Union
 
 import numpy
 
-from openfisca_core.types import ArrayLike, ArrayType, Encodable
+from openfisca_core.types import ArrayLike, ArrayType, SupportsEncode
 
 
 class EnumArray(numpy.ndarray):
@@ -72,7 +72,7 @@ class EnumArray(numpy.ndarray):
     def __new__(
             cls,
             input_array: ArrayType[int],
-            possible_values: Optional[Type[Encodable]] = None,
+            possible_values: Optional[Type[SupportsEncode]] = None,
             ) -> EnumArray:
         """See comment above."""
 
@@ -195,7 +195,7 @@ class EnumArray(numpy.ndarray):
     __and__ = _forbidden_operation
     __or__ = _forbidden_operation
 
-    def decode(self) -> ArrayLike[Encodable]:
+    def decode(self) -> ArrayLike[SupportsEncode]:
         """Decodes itself to a normal array.
 
         Returns:

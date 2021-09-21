@@ -5,14 +5,14 @@ from typing import Any, List, Union
 
 import numpy
 
-from openfisca_core.types import ArrayType, Encodable
+from openfisca_core.types import ArrayType, SupportsEncode
 
 from .. import indexed_enums as enums
 from .enum_array import EnumArray
 
 A = Union[
     EnumArray,
-    ArrayType[Encodable],
+    ArrayType[SupportsEncode],
     ArrayType[bytes],
     ArrayType[int],
     ArrayType[str],
@@ -133,6 +133,18 @@ class Enum(enum.Enum):
     def __str__(self) -> str:
         return f"{self.__class__.__name__}.{self.name}"
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Enum):
+            return NotImplemented
+
+        return self.index == other.index
+
+    def __ne__(self, other: object) -> bool:
+        if not isinstance(other, Enum):
+            return NotImplemented
+
+        return self.index != other.index
+
     def __lt__(self, other: object) -> bool:
         if not isinstance(other, Enum):
             return NotImplemented
@@ -156,9 +168,6 @@ class Enum(enum.Enum):
             return NotImplemented
 
         return self.index >= other.index
-
-    __eq__ = object.__eq__
-    """Bypass the slow :meth:`~enum.Enum.__eq__`."""
 
     __hash__ = object.__hash__
     """:meth:`.__hash__` must also be defined as so to stay hashable."""
