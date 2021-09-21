@@ -85,7 +85,7 @@ class Entity:
         >>> entity in entity.tax_benefit_system.entities
         True
 
-        :attr:`variables`
+        :attr:`.variables`
 
         >>> from openfisca_core.variables import Variable
 
@@ -109,7 +109,7 @@ class Entity:
         <...Variable...
 
     .. versionchanged:: 35.7.0
-        Hereafter :attr:`variables` allows querying a :obj:`.TaxBenefitSystem`
+        Hereafter :attr:`.variables` allows querying a :obj:`.TaxBenefitSystem`
         for a :obj:`.Variable`.
 
     .. versionchanged:: 35.7.0
@@ -117,6 +117,16 @@ class Entity:
         data attributes.
 
     """
+
+    __slots__ = [
+        "key",
+        "plural",
+        "label",
+        "doc",
+        "is_person",
+        "_population",
+        "_tax_benefit_system",
+        ]
 
     key: str
     plural: str
@@ -166,7 +176,11 @@ class Entity:
         return self.plural
 
     def __iter__(self) -> Iterator[Tuple[str, Any]]:
-        return (item for item in self.__dict__.items())
+        return (
+            (item, self.__getattribute__(item))
+            for item in self.__slots__
+            if not item.startswith("_")
+            )
 
     @deprecated(since = "35.7.0", expires = "the future")
     def set_tax_benefit_system(

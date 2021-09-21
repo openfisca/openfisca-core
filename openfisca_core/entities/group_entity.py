@@ -83,7 +83,7 @@ class GroupEntity(Entity):
         <Role(first_parent)>
 
     .. versionchanged:: 35.7.0
-        Hereafter :attr:`variables` allows querying a :obj:`.TaxBenefitSystem`
+        Hereafter :attr:`.variables` allows querying a :obj:`.TaxBenefitSystem`
         for a :obj:`.Variable`.
 
     .. versionchanged:: 35.7.0

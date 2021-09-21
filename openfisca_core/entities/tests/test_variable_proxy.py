@@ -73,11 +73,10 @@ def test_variables_without_owner(variables):
 
 
 def test_variables_setter(entity):
-    """Does nothing when tryng to set `variables`` to something else."""
+    """Raises AttributeError when tryng to set ``variables``."""
 
-    obj = object()
-    entity._variables = obj
-    assert entity.variables != obj
+    with pytest.raises(AttributeError, match = "can't set attribute"):
+        entity.variables = object()
 
 
 def test_variables_without_tax_benefit_system(entity):
