@@ -104,8 +104,8 @@ class DateUnit(Enum, metaclass = DateUnitMeta):
         >>> dict([(DateUnit.DAY, DateUnit.DAY.value)])
         {<DateUnit.DAY(day)>: 'day'}
 
-        >>> tuple(DateUnit)
-        (<DateUnit.WEEK_DAY(week_day)>, <DateUnit.WEEK(week)>, <DateUnit.DA...)
+        >>> list(DateUnit)
+        [<DateUnit.WEEK_DAY(week_day)>, <DateUnit.WEEK(week)>, <DateUnit.DA...]
 
         >>> len(DateUnit)
         6
@@ -210,43 +210,49 @@ class DateUnit(Enum, metaclass = DateUnitMeta):
     YEAR = "year"
     ETERNITY = "eternity"
 
-    __hash__ = object.__hash__
+    __hash__ = Enum.__hash__
 
     def __str__(self) -> str:
         return self.value
 
-    def __eq__(self, other):
-        if isinstance(other, str):
-            return self.value == other.lower()
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, str):
+            return super().__eq__(other)
 
-        return NotImplemented
+        return self.value == other.lower()
 
-    def __lt__(self, other: Any) -> bool:
-        if isinstance(other, str):
-            return self.index < DateUnit[other.upper()].index
+    def __ne__(self, other: object) -> bool:
+        if not isinstance(other, str):
+            return super().__ne__(other)
 
-        return self.index < other
+        return self.value != other.lower()
 
-    def __le__(self, other: Any) -> bool:
-        if isinstance(other, str):
-            return self.index <= DateUnit[other.upper()].index
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, str):
+            return super().__lt__(other)
 
-        return self.index <= other
+        return self.index < DateUnit[other].index
 
-    def __gt__(self, other: Any) -> bool:
-        if isinstance(other, str):
-            return self.index > DateUnit[other.upper()].index
+    def __le__(self, other: object) -> bool:
+        if not isinstance(other, str):
+            return super().__le__(other)
 
-        return self.index > other
+        return self.index <= DateUnit[other].index
 
-    def __ge__(self, other: Any) -> bool:
-        if isinstance(other, str):
-            return self.index >= DateUnit[other.upper()].index
+    def __gt__(self, other: object) -> bool:
+        if not isinstance(other, str):
+            return super().__gt__(other)
 
-        return self.index >= other
+        return self.index > DateUnit[other].index
+
+    def __ge__(self, other: object) -> bool:
+        if not isinstance(other, str):
+            return super().__ge__(other)
+
+        return self.index >= DateUnit[other].index
 
     def upper(self) -> str:
-        """Uppercases the :class:`.Unit`.
+        """Uppercases the :class:`.DateUnit`.
 
         Returns:
             :obj:`str`: The uppercased :class:`.Unit`.
@@ -260,7 +266,7 @@ class DateUnit(Enum, metaclass = DateUnitMeta):
         return self.value.upper()
 
     def lower(self) -> str:
-        """Lowecases the :class:`.Unit`.
+        """Lowecases the :class:`.DateUnit`.
 
         Returns:
             :obj:`str`: The lowercased :class:`.Unit`.
