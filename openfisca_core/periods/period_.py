@@ -178,12 +178,16 @@ class Period(tuple):
 
         Examples:
 
-        >>> period('2017').get_subperiods(MONTH)
-        >>> [period('2017-01'), period('2017-02'), ... period('2017-12')]
+        >>> period = Period((DateUnit.YEAR, Instant((2021, 1, 1)), 1))
+        >>> period.get_subperiods(DateUnit.MONTH)
+        [<Period(('month', <Instant(2021, 1, 1)>, 1))>, ...2021, 12, 1)>, 1))>]
 
-        >>> period('year:2014:2').get_subperiods(YEAR)
-        >>> [period('2014'), period('2015')]
+        >>> period = Period((DateUnit.YEAR, Instant((2021, 1, 1)), 2))
+        >>> period.get_subperiods(DateUnit.YEAR)
+        [<Period(('year', <Instant(2021, 1, 1)>, 1))>, ...t(2022, 1, 1)>, 1))>]
+
         """
+
         if self.unit < unit:
             raise ValueError('Cannot subdivide {0} into {1}'.format(self.unit, unit))
 
