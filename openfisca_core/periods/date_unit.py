@@ -29,26 +29,26 @@ class DateUnitMeta(enum.EnumMeta):
         return super().__getitem__(key.value.upper())
 
     @property
-    def ethereal(self) -> Tuple[DateUnit, ...]:
-        """Creates a :obj:`tuple` of ``key`` with ethereal items.
+    def isoformat(self) -> Tuple[DateUnit, ...]:
+        """Creates a :obj:`tuple` of ``key`` with isoformat items.
 
         Returns:
             tuple(str): A :obj:`tuple` containing the ``keys``.
 
         Examples:
-            >>> DateUnit.ethereal
-            (<DateUnit.DAY(day)>, <DateUnit.MONTH(month)>, <DateUnit.YEAR(year)>)
+            >>> DateUnit.isoformat
+            (<DateUnit.DAY(day)>, <DateUnit.MONTH(month)>, <DateUnit.YEAR(y...)
 
-            >>> DateUnit.DAY in DateUnit.ethereal
+            >>> DateUnit.DAY in DateUnit.isoformat
             True
 
-            >>> "DAY" in DateUnit.ethereal
+            >>> "DAY" in DateUnit.isoformat
             True
 
-            >>> "day" in DateUnit.ethereal
+            >>> "day" in DateUnit.isoformat
             True
 
-            >>> "eternity" in DateUnit.ethereal
+            >>> DateUnit.WEEK in DateUnit.isoformat
             False
 
         """
@@ -56,31 +56,31 @@ class DateUnitMeta(enum.EnumMeta):
         return DateUnit.DAY, DateUnit.MONTH, DateUnit.YEAR
 
     @property
-    def eternal(self) -> Tuple[DateUnit, ...]:
-        """Creates a :obj:`tuple` of ``key`` with eternal items.
+    def isocalendar(self) -> Tuple[DateUnit, ...]:
+        """Creates a :obj:`tuple` of ``key`` with isocalendar items.
 
         Returns:
             tuple(str): A :obj:`tuple` containing the ``keys``.
 
         Examples:
-            >>> DateUnit.eternal
-            (<DateUnit.ETERNITY(eternity)>,)
+            >>> DateUnit.isocalendar
+            (<DateUnit.WEEK_DAY(week_day)>, <DateUnit.WEEK(week)>, <DateUni...)
 
-            >>> DateUnit.ETERNITY in DateUnit.eternal
+            >>> DateUnit.WEEK in DateUnit.isocalendar
             True
 
-            >>> "ETERNITY" in DateUnit.eternal
+            >>> "WEEK" in DateUnit.isocalendar
             True
 
-            >>> "eternity" in DateUnit.eternal
+            >>> "week" in DateUnit.isocalendar
             True
 
-            >>> "day" in DateUnit.eternal
+            >>> "day" in DateUnit.isocalendar
             False
 
         """
 
-        return (DateUnit.ETERNITY,)
+        return DateUnit.WEEK_DAY, DateUnit.WEEK, DateUnit.YEAR
 
 
 class DateUnit(Enum, metaclass = DateUnitMeta):
