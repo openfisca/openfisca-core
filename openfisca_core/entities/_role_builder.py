@@ -48,7 +48,7 @@ class RoleBuilder:
         "<RoleBuilder(households, <class '...Role'>)>"
 
         >>> builder(items)
-        [<Role(parent)>]
+        (<Role(parent)>,)
 
     .. versionadded:: 35.7.0
 
@@ -74,7 +74,7 @@ class RoleBuilder:
 
         """
 
-        return [self.build(item) for item in items]
+        return tuple(self.build(item) for item in items)
 
     def build(self, item: RoleLike) -> SupportsRole:
         """Builds a role from ``item``.

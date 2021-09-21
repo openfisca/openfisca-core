@@ -165,7 +165,7 @@ class Entity:
         default = VariableProxy(),
         )
 
-    def __post_init__(self, __: Optional[Any] = None) -> None:
+    def __post_init__(self, *__: Any) -> None:
         self.doc = textwrap.dedent(self.doc)
         self.is_person = True
 
