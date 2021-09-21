@@ -48,12 +48,6 @@ class DateUnitMeta(enum.EnumMeta):
             >>> DateUnit.DAY in DateUnit.isoformat
             True
 
-            >>> "DAY" in DateUnit.isoformat
-            True
-
-            >>> "day" in DateUnit.isoformat
-            True
-
             >>> DateUnit.WEEK in DateUnit.isoformat
             False
 
@@ -73,12 +67,6 @@ class DateUnitMeta(enum.EnumMeta):
             (<DateUnit.WEEK_DAY(week_day)>, <DateUnit.WEEK(week)>, <DateUni...)
 
             >>> DateUnit.WEEK in DateUnit.isocalendar
-            True
-
-            >>> "WEEK" in DateUnit.isocalendar
-            True
-
-            >>> "week" in DateUnit.isocalendar
             True
 
             >>> "day" in DateUnit.isocalendar
@@ -137,25 +125,7 @@ class DateUnit(Enum, metaclass = DateUnitMeta):
         >>> DateUnit.DAY in DateUnit
         True
 
-        >>> "DAY" in DateUnit
-        True
-
-        >>> "day" in DateUnit
-        True
-
-        >>> 2 in DateUnit
-        True
-
         >>> DateUnit.DAY == DateUnit.DAY
-        True
-
-        >>> "DAY" == DateUnit.DAY
-        True
-
-        >>> "day" == DateUnit.DAY
-        True
-
-        >>> 2 == DateUnit.DAY
         True
 
         >>> DateUnit.DAY < DateUnit.DAY
@@ -168,42 +138,6 @@ class DateUnit(Enum, metaclass = DateUnitMeta):
         True
 
         >>> DateUnit.DAY >= DateUnit.DAY
-        True
-
-        >>> "DAY" < DateUnit.DAY
-        False
-
-        >>> "DAY" > DateUnit.DAY
-        False
-
-        >>> "DAY" <= DateUnit.DAY
-        True
-
-        >>> "DAY" >= DateUnit.DAY
-        True
-
-        >>> "day" < DateUnit.DAY
-        False
-
-        >>> "day" > DateUnit.DAY
-        False
-
-        >>> "day" <= DateUnit.DAY
-        True
-
-        >>> 2 >= DateUnit.DAY
-        True
-
-        >>> 2 < DateUnit.DAY
-        False
-
-        >>> 2 > DateUnit.DAY
-        False
-
-        >>> 2 <= DateUnit.DAY
-        True
-
-        >>> "day" >= DateUnit.DAY
         True
 
         >>> DateUnit.DAY.index
