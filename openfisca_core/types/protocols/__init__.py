@@ -3,5 +3,6 @@ from .descriptor import Descriptor  # noqa: F401
 from .has_holders import HasHolders  # noqa: F401
 from .has_plural import HasPlural  # noqa: F401
 from .has_variables import HasVariables  # noqa: F401
+from .supports_encode import SupportsEncode  # noqa: F401
 from .supports_formula import SupportsFormula  # noqa: F401
 from .supports_role import SupportsRole  # noqa: F401
