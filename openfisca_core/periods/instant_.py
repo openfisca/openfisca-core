@@ -199,10 +199,7 @@ class Instant:
             f"Invalid size: {size} of type {type(size)}. Expecting any " \
             "int >= 1."
 
-        if isinstance(unit, str):
-            unit = DateUnit[unit]
-
-        return periods.period(f"{unit.value}:{str(self)}:{size}")
+        return periods.period(f"{unit}:{str(self)}:{size}")
 
     @functools.lru_cache(maxsize = None)
     def offset(self, offset: OffsetBy, unit: DateUnit) -> Instant:
@@ -221,13 +218,13 @@ class Instant:
                 ``last-of``, or any :obj:`int`.
 
         Examples:
-            >>> Instant((2020, 12, 31)).offset("first-of", DateUnit.MONTH.value)
+            >>> Instant((2020, 12, 31)).offset("first-of", DateUnit.MONTH)
             <Instant(2020, 12, 1)>
 
             >>> Instant((2020, 1, 1)).offset("last-of", "year")
             <Instant(2020, 12, 31)>
 
-            >>> Instant((2020, 1, 1)).offset(1, DateUnit.YEAR.value)
+            >>> Instant((2020, 1, 1)).offset(1, DateUnit.YEAR)
             <Instant(2021, 1, 1)>
 
             >>> Instant((2020, 1, 1)).offset(-3, "day")
@@ -236,13 +233,13 @@ class Instant:
         """
 
         #: Use current ``year`` fro the offset.
-        year = self.year
+        year: int = self.year
 
         #: Use current ``month`` fro the offset.
-        month = self.month
+        month: int = self.month
 
         #: Use current ``day`` fro the offset.
-        day = self.day
+        day: int = self.day
 
         assert unit in DateUnit.isoformat, \
             f"Invalid unit: {unit} of type {type(unit)}. Expecting any of " \
