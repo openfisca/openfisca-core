@@ -60,8 +60,8 @@ class Instant:
         >>> dict([(instant, (2021, 9, 13))])
         {<Instant(2021, 9, 13)>: (2021, 9, 13)}
 
-        >>> tuple(instant)
-        (2021, 9, 13)
+        >>> list(instant)
+        [2021, 9, 13]
 
         >>> instant[0]
         2021
@@ -201,7 +201,6 @@ class Instant:
 
         return periods.period(f"{unit}:{str(self)}:{size}")
 
-    @functools.lru_cache(maxsize = None)
     def offset(self, offset: OffsetBy, unit: DateUnit) -> Instant:
         """Increments/decrements the given instant with offset units.
 
