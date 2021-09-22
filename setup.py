@@ -33,6 +33,7 @@ dev_requirements = [
     'flake8-docstrings == 1.6.0',
     'flake8-print >= 3.1.0, < 4.0.0',
     'flake8-rst-docstrings < 1.0.0',
+    'hypothesis[numpy] == 6.21.6',
     'mypy == 0.910',
     'openfisca-country-template >= 3.10.0, < 4.0.0',
     'openfisca-extension-template >= 1.2.0rc0, < 2.0.0',
