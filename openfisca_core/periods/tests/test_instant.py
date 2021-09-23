@@ -93,9 +93,9 @@ def test_instant_contract(year, month, day):
             Instant((year, month, day))
         return
 
-    instant = Instant((year, month, day))
+    *units, = Instant((year, month, day))
 
-    assert instant.canonical == (year, month, day)
+    assert units == [year, month, day]
 
 
 def test_period_deprecation(instant):
@@ -185,7 +185,7 @@ def test_offset_contract(year, month, day, offset, unit):
         return
 
     # Now we know our offset should always work.
-    assert start.offset(offset, unit)
+    assert isinstance(start.offset(offset, unit), Instant)
 
 
 @pytest.mark.parametrize("start, offset, after", [
