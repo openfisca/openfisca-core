@@ -92,68 +92,68 @@ def instant(instant: Optional[InstantLike] = None) -> Optional[Instant]:
     if isinstance(instant, Instant):
         return instant
 
-    #: See: :attr`.Period.start`.
+    # See: :attr`.Period.start`.
     if isinstance(instant, Period):
         return instant.start
 
-    #: For example ``2021`` gives ``<Instant(2021, 1, 1)>``.
+    # For example ``2021`` gives ``<Instant(2021, 1, 1)>``.
     if isinstance(instant, int):
         return Instant((instant, 1, 1))
 
-    #: For example ``datetime.date(2021, 9, 16)``.
+    # For example ``datetime.date(2021, 9, 16)``.
     if isinstance(instant, datetime.date):
         return Instant((instant.year, instant.month, instant.day))
 
     try:
-        #: For example if ``instant`` is ``["2014"]``, we will:
-        #:
-        #: 1. Try to cast each element to an :obj:`int`.
+        # For example if ``instant`` is ``["2014"]``, we will:
         #
-        #: 2. Add a date unit recursively (``month``, then ``day``).
-        #:
+        # 1. Try to cast each element to an :obj:`int`.
+        #
+        # 2. Add a date unit recursively (``month``, then ``day``).
+        #
         if isinstance(instant, (list, tuple)) and len(instant) < 3:
             return periods.instant([*[int(unit) for unit in instant], 1])
 
-        #: For example if ``instant`` is ``["2014", 9, 12, 32]``, we will:
-        #:
-        #: 1. Select the first three elements of the collection.
+        # For example if ``instant`` is ``["2014", 9, 12, 32]``, we will:
         #
-        #: 2. Try to cast those three elements to an :obj:`int`.
-        #:
+        # 1. Select the first three elements of the collection.
+        #
+        # 2. Try to cast those three elements to an :obj:`int`.
+        #
         if isinstance(instant, (list, tuple)):
             return Instant(tuple(int(unit) for unit in instant[0:3]))
 
-        #: Up to this point, if ``instant`` is not a :obj:`str`, we desist.
+        # Up to this point, if ``instant`` is not a :obj:`str`, we desist.
         if not isinstance(instant, str):
             raise ValueError
 
-        #: We look for ``fragments``, for example ``day:2014:3``:
-        #:
-        #: - If there are, we split and call :func:`.instant` recursively.
-        #:
-        #: - If there are not, we continue.
-        #:
-        #: See :meth:`.Period.get_subperiods` and :attr:`.Period.size`.
-        #:
+        # We look for ``fragments``, for example ``day:2014:3``:
+        #
+        # - If there are, we split and call :func:`.instant` recursively.
+        #
+        # - If there are not, we continue.
+        #
+        # See :meth:`.Period.get_subperiods` and :attr:`.Period.size`.
+        #
         if instant.find(":") != -1:
             return periods.instant(instant.split(":")[1])
 
-        #: We assume we're dealing with a date in the ISO format, so:
-        #:
-        #: - If we can't decompose ``instant``, we call :func:`.instant`
-        #:   recursively, for example given ``"2014"``` we will call
-        #:   ``periods.instant(["2014"])``.
-        #:
-        #:  - Otherwise, we split ``instant`` and then call :func:`.instant`
-        #:   recursively, for example given ``"2014-9"`` we will call
-        #:   ``periods.instant(["2014", "9"])``.
-        #:
+        # We assume we're dealing with a date in the ISO format, so:
+        #
+        # - If we can't decompose ``instant``, we call :func:`.instant`
+        #   recursively, for example given ``"2014"``` we will call
+        #   ``periods.instant(["2014"])``.
+        #
+        #  - Otherwise, we split ``instant`` and then call :func:`.instant`
+        #   recursively, for example given ``"2014-9"`` we will call
+        #   ``periods.instant(["2014", "9"])``.
+        #
         if instant.find("-") == -1:
             return periods.instant([instant])
 
         return periods.instant(instant.split("-"))
 
-    except ValueError:
+    except (ValueError, TypeError):
         raise ValueError(
             f"'{instant}' is not a valid instant. Instants are described "
             "using the 'YYYY-MM-DD' format, for example: '2015-06-15'. "

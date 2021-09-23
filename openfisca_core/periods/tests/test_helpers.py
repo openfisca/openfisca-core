@@ -1,22 +1,81 @@
+import datetime
+
+import hypothesis
 import pytest
+from hypothesis import strategies as st
 
 from openfisca_core import periods
-from openfisca_core.periods import Instant, Period
-from openfisca_core.taxbenefitsystems import TaxBenefitSystem
+from openfisca_core.periods import DateUnit, Instant, Period
+
+# Valid ranges for years.
+MIN_YEAR = datetime.MINYEAR
+MAX_YEAR = datetime.MAXYEAR
+OK_YEARS = range(MIN_YEAR, MAX_YEAR + 1)
+
+# Fail if test execution time is slower than 1ms.
+DEADLINE = datetime.timedelta(milliseconds = 1)
 
 
-@pytest.mark.parametrize("args", [
-    TaxBenefitSystem,
-    [2021, "-12"],
-    "2021-31-12",
-    "2021-foo",
-    object,
-    ])
-def test_instant_with_invalid_arguments(args):
-    """Raises a ValueError when called with invalid arguments."""
+def one_of(*sts):
+    """Random floats, strings, etc…"""
 
-    with pytest.raises(ValueError, match = str(args)):
-        periods.instant(args)
+    return st.one_of(
+        *sts,
+        st.integers(datetime.MINYEAR, datetime.MAXYEAR),
+        st.floats(),
+        st.text(),
+        st.none(),
+        st.dates(),
+        st.lists(*sts),
+        st.tuples(*sts),
+        )
+
+
+@hypothesis.given(
+    one_of(
+        st.sampled_from((
+            Period((DateUnit.YEAR, Instant((1, 1, 1)), 3)),
+            Instant((1, 1, 1)),
+            [2021, "-12"],
+            "2021-31-12",
+            "2021-foo",
+            object()
+            )),
+        )
+    )
+@hypothesis.settings(deadline = DEADLINE, max_examples = 1000)
+def test_instant_contract(instant):
+    """Raises when called with invalid arguments, works otherwise."""
+
+    if instant is None:
+        assert not periods.instant(instant)
+        return
+
+    if isinstance(instant, (Period, Instant, datetime.date, int)):
+        assert isinstance(periods.instant(instant), Instant)
+        return
+
+    if isinstance(instant, str):
+        if instant.strip().isdigit() and int(instant) in OK_YEARS:
+            assert isinstance(periods.instant(instant), Instant)
+            return
+
+    if isinstance(instant, (list, tuple)):
+        if len(instant) == 0:
+            assert isinstance(periods.instant(instant), Instant)
+            return
+
+        if all(isinstance(unit, int) for unit in instant):
+            assert isinstance(periods.instant(instant), Instant)
+            return
+
+        if all(isinstance(unit, str) for unit in instant):
+            if all(unit.strip().isdigit() for unit in instant):
+                assert isinstance(periods.instant(instant), Instant)
+                return
+
+    with pytest.raises(ValueError):
+        periods.instant(instant)
 
 
 @pytest.mark.parametrize("actual, expected", [
@@ -45,7 +104,6 @@ def test_instant_date_deprecation():
 
 
 @pytest.mark.parametrize("args", [
-    TaxBenefitSystem,
     [2021, "-12"],
     "2021-31-12",
     "2021-foo",
