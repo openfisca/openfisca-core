@@ -4,21 +4,32 @@ from openfisca_core.periods import DateUnit
 
 
 @pytest.mark.parametrize("operation", [
+    # Contains
     "DAY" in DateUnit,
     "day" in DateUnit,
     2 in DateUnit,
+
+    # Equality
     "DAY" == DateUnit.DAY,
     "day" == DateUnit.DAY,
     2 == DateUnit.DAY,
+
+    # Less than.
     "DAY" < DateUnit.MONTH,
     "day" < DateUnit.MONTH,
     2 < DateUnit.MONTH,
+
+    # Greater than.
     "MONTH" > DateUnit.DAY,
     "month" > DateUnit.DAY,
     3 > DateUnit.DAY,
+
+    # Less or equal than.
     "DAY" <= DateUnit.DAY,
     "day" <= DateUnit.DAY,
     2 <= DateUnit.DAY,
+
+    # Greater or equal than.
     "DAY" >= DateUnit.DAY,
     "day" >= DateUnit.DAY,
     2 >= DateUnit.DAY,
