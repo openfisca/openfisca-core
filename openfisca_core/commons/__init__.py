@@ -30,11 +30,11 @@ Note:
         from openfisca_core.commons.decorators import deprecated  # Bad
 
 
-    The previous examples provoke cyclic dependency problems, that prevents us
-    from modularizing the different components of the library, so as to make
+    The previous examples provoke cyclic dependency problems, that prevent us
+    from modularizing the different components of the library, which would make
     them easier to test and to maintain.
 
-    How could them be used after the next major release::
+    How they could be used in a future release:
 
         from openfisca_core import commons
         from openfisca_core.commons import deprecated
