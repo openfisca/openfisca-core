@@ -32,7 +32,10 @@ ST_DAYS = st.integers(OK_DAYS[0] - 1, OK_DAYS[-1] + 1)
 OK_UNITS = DateUnit.isoformat
 
 # Fail if test execution time is slower than 1ms.
-DEADLINE = datetime.timedelta(milliseconds = 1)
+DEADLINE = datetime.timedelta(milliseconds = 10)
+
+# Number of random examples to run.
+MAX_EXAMPLES = 5000
 
 
 def one_of(*sts):
@@ -56,7 +59,7 @@ def test_instant_with_wrong_arity():
 
 
 @hypothesis.given(one_of(ST_YEARS), one_of(ST_MONTHS), one_of(ST_DAYS))
-@hypothesis.settings(deadline = DEADLINE)
+@hypothesis.settings(deadline = DEADLINE, max_examples = MAX_EXAMPLES)
 def test_instant_contract(year, month, day):
     """Raises with wrong year/month/day, works otherwise."""
 
@@ -126,7 +129,7 @@ def test_period_with_invalid_size(instant):
     one_of(st.sampled_from(("first-of", "last-of", *OK_YEARS))),
     one_of(st.sampled_from(DateUnit)),
     )
-@hypothesis.settings(deadline = DEADLINE)
+@hypothesis.settings(deadline = DEADLINE, max_examples = MAX_EXAMPLES)
 def test_offset_contract(year, month, day, offset, unit):
     """Raises when called with invalid values, works otherwise."""
 

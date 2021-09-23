@@ -8,26 +8,80 @@ from .date_unit import DateUnit
 
 
 class Period(tuple):
-    """
-    Toolbox to handle date intervals.
+    """Toolbox to handle date intervals.
 
-    A period is a triple (unit, start, size), where unit is either "month" or "year", where start format is a
-    (year, month, day) triple, and where size is an integer > 1.
+    A :class:`.Period` is a triple (``unit``, ``start``, ``size``).
 
-    Since a period is a triple it can be used as a dictionary key.
+    Attributes:
+        unit (:obj:`.DateUnit`):
+            Either an :meth:`~DateUnit.isoformat` unit (``day``, ``month``,
+            ``year``), an :meth:`~DateUnit.isocalendar` one (``week_day``,
+            ``week``, ``year``), or :obj:`~DateUnit.ETERNITY`.
+        start (:obj:`.Instant`):
+            The "instant" the :obj:`.Period` starts at.
+        size (:obj:`int`):
+            The amount of ``unit``, starting at ``start``, at least ``1``.
+
+    Args:
+        fragments (tuple(.DateUnit, .Instant, int)):
+            The ``unit``, ``start``, and ``size``, accordingly.
 
     Examples:
         >>> instant = Instant((2021, 9, 1))
-        >>> period = Period((DateUnit.YEAR.value, instant, 3))
+        >>> period = Period((DateUnit.YEAR, instant, 3))
 
         >>> repr(Period)
         "<class 'openfisca_core.periods.period_.Period'>"
 
         >>> repr(period)
-        "<Period(('year', <Instant(2021, 9, 1)>, 3))>"
+        '<Period((<DateUnit.YEAR(year)>, <Instant(2021, 9, 1)>, 3))>'
 
         >>> str(period)
         'year:2021-09:3'
+
+        # >>> dict([period, instant])
+
+        >>> list(period)
+        [<DateUnit.YEAR(year)>, <Instant(2021, 9, 1)>, 3]
+
+        >>> period[0]
+        <DateUnit.YEAR(year)>
+
+        >>> period[0] in period
+        True
+
+        >>> len(period)
+        3
+
+        >>> period == Period((DateUnit.YEAR, instant, 3))
+        True
+
+        >>> period != Period((DateUnit.YEAR, instant, 3))
+        False
+
+        >>> period > Period((DateUnit.YEAR, instant, 3))
+        False
+
+        >>> period < Period((DateUnit.YEAR, instant, 3))
+        False
+
+        >>> period >= Period((DateUnit.YEAR, instant, 3))
+        True
+
+        >>> period <= Period((DateUnit.YEAR, instant, 3))
+        True
+
+        >>> period.unit
+        <DateUnit.YEAR(year)>
+
+        >>> period.start
+        <Instant(2021, 9, 1)>
+
+        >>> period.size
+        3
+
+        # >>> period.canonical
+        (DateUnit.YEAR, instant, 3)
 
     """
 

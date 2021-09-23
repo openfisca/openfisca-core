@@ -105,26 +105,38 @@ def instant(instant: Optional[InstantLike] = None) -> Optional[Instant]:
         return Instant((instant.year, instant.month, instant.day))
 
     try:
-        # For example if ``instant`` is ``["2014"]``, we will:
-        #
-        # 1. Try to cast each element to an :obj:`int`.
-        #
-        # 2. Add a date unit recursively (``month``, then ``day``).
-        #
-        if isinstance(instant, (list, tuple)) and len(instant) < 3:
-            return periods.instant([*[int(unit) for unit in instant], 1])
-
-        # For example if ``instant`` is ``["2014", 9, 12, 32]``, we will:
-        #
-        # 1. Select the first three elements of the collection.
-        #
-        # 2. Try to cast those three elements to an :obj:`int`.
-        #
         if isinstance(instant, (list, tuple)):
+            # If it is a list/tuple, we expect it to be of int/str.
+            if not all(isinstance(unit, (int, str)) for unit in instant):
+                raise ValueError
+
+            # There can't be empty strings or zeros.
+            if not all(instant):
+                raise ValueError
+
+            # For example if ``instant`` is ``["2014"]``, we will:
+            #
+            # 1. Try to cast each element to an :obj:`int`.
+            #
+            # 2. Add a date unit recursively (``month``, then ``day``).
+            #
+            if len(instant) < 3:
+                return periods.instant([*[int(unit) for unit in instant], 1])
+
+            # For example if ``instant`` is ``["2014", 9, 12, 32]``, we will:
+            #
+            # 1. Select the first three elements of the collection.
+            #
+            # 2. Try to cast those three elements to an :obj:`int`.
+            #
             return Instant(tuple(int(unit) for unit in instant[0:3]))
 
         # Up to this point, if ``instant`` is not a :obj:`str`, we desist.
         if not isinstance(instant, str):
+            raise ValueError
+
+        # There can't be empty strings or.
+        if not instant:
             raise ValueError
 
         # We look for ``fragments``, for example ``day:2014:3``:
@@ -153,7 +165,7 @@ def instant(instant: Optional[InstantLike] = None) -> Optional[Instant]:
 
         return periods.instant(instant.split("-"))
 
-    except (ValueError, TypeError):
+    except ValueError:
         raise ValueError(
             f"'{instant}' is not a valid instant. Instants are described "
             "using the 'YYYY-MM-DD' format, for example: '2015-06-15'. "
@@ -262,84 +274,93 @@ def period(value: PeriodLike) -> Period:
     if isinstance(value, Period):
         return value
 
-    #: We return a "day-period", for example
-    #: ``<Period(('day', <Instant(2021, 1, 1)>, 1))>``.
-    #:
+    # We return a "day-period", for example
+    # ``<Period(('day', <Instant(2021, 1, 1)>, 1))>``.
+    #
     if isinstance(value, Instant):
         return Period((DateUnit.DAY.value, value, 1))
 
-    #: For example ``datetime.date(2021, 9, 16)``.
+    # For example ``datetime.date(2021, 9, 16)``.
     if isinstance(value, datetime.date):
         instant = periods.instant(value)
         return Period((DateUnit.DAY.value, instant, 1))
 
-    #: We return an "eternity-period", for example
-    #: ``<Period(('eternity', <Instant(1, 1, 1)>, inf))>``.
-    #:
+    # We return an "eternity-period", for example
+    # ``<Period(('eternity', <Instant(1, 1, 1)>, inf))>``.
+    #
     if value == DateUnit.ETERNITY:
         instant = periods.instant(datetime.date.min)
         return Period((DateUnit.ETERNITY.value, instant, float("inf")))
 
-    #: For example ``2021`` gives
-    #: ``<Period(('year', <Instant(2021, 1, 1)>, 1))>``.
-    #:
+    # For example ``2021`` gives
+    # ``<Period(('year', <Instant(2021, 1, 1)>, 1))>``.
+    #
     if isinstance(value, int):
         instant = periods.instant(value)
         return Period((DateUnit.YEAR.value, instant, 1))
 
     try:
-        #: Up to this point, if ``value`` is not a :obj:`str`, we desist.
+        # Up to this point, if ``value`` is not a :obj:`str`, we desist.
         if not isinstance(value, str):
             raise ValueError
 
-        #: We calculate the date unit index based on the indexes of
-        #: :class:`.DateUnit`.
-        #:
-        #: So for example if ``value`` is ``"2021-02"``, the result of ``len``
-        #: will be ``2``, and we know we're looking to build a month-period.
-        #:
-        #: ``MONTH`` is the 4th member of :class:`.DateUnit`. Because it is
-        #: an :class:`.indexed_enums.Enum`, we know its index is then ``3``.
-        #:
-        #: Then ``5 - 2`` gives us the index of :obj:`.DateUnit.MONTH`, ``3``.
-        #:
+        # There can't be empty strings.
+        if not value:
+            raise ValueError
+
+        # We calculate the date unit index based on the indexes of
+        # :class:`.DateUnit`.
+        #
+        # So for example if ``value`` is ``"2021-02"``, the result of ``len``
+        # will be ``2``, and we know we're looking to build a month-period.
+        #
+        # ``MONTH`` is the 4th member of :class:`.DateUnit`. Because it is
+        # an :class:`.indexed_enums.Enum`, we know its index is then ``3``.
+        #
+        # Then ``5 - 2`` gives us the index of :obj:`.DateUnit.MONTH`, ``3``.
+        #
         index = DateUnit[-1].index - len(value.split("-"))  # type: ignore
         instant_unit = DateUnit[index]  # type: ignore
 
-        #: We look for ``fragments`` see :func:`.instant`.
-        #:
-        #: If there are no fragments, we will delegate the next steps to
-        #: :func:`.instant`.
-        #:
+        # We look for ``fragments`` see :func:`.instant`.
+        #
+        # If there are no fragments, we will delegate the next steps to
+        # :func:`.instant`.
+        #
         if value.find(":") == -1:
             instant = periods.instant(value)
             return Period((instant_unit.value, instant, 1))
 
-        #: For example ``month``, ``2014``, and ``1``.
+        # For example ``month``, ``2014``, and ``1``.
         input_unit, *rest = value.split(":")
+
+        # Up to this point, ``unit`` can't be empty or invalid.
+        if input_unit not in DateUnit.isoformat:
+            raise ValueError
+
         period_unit = DateUnit[input_unit]
 
-        #: Left-most component must be a valid unit: ``day``, ``month``, or
-        #: ``year``.
-        #:
+        # Left-most component must be a valid unit: ``day``, ``month``, or
+        # ``year``.
+        #
         if period_unit not in DateUnit.isoformat:
             raise ValueError
 
-        #: Reject ambiguous periods, such as ``month:2014``.
+        # Reject ambiguous periods, such as ``month:2014``.
         if instant_unit > period_unit:
             raise ValueError
 
-        #: Now that we have the ``unit``, we will create an ``instant``.
+        # Now that we have the ``unit``, we will create an ``instant``.
         date, *rest = rest
         instant = periods.instant(value)
 
-        #: Periods like ``year:2015-03`` have, by default, a size of 1.
+        # Periods like ``year:2015-03`` have, by default, a size of 1.
         if not rest:
             return Period((period_unit.value, instant, 1))
 
-        #: If provided, let's make sure the ``size`` is an integer.
-        #: We also ignore any extra element, so for example if the provided
-        #: ``value`` is ``"year:2021:3:asdf1234"`` we will ignore ``asdf1234``.
+        # If provided, let's make sure the ``size`` is an integer.
+        # We also ignore any extra element, so for example if the provided
+        # ``value`` is ``"year:2021:3:asdf1234"`` we will ignore ``asdf1234``.
         size = int(rest[0])
 
         return Period((period_unit.value, instant, size))
