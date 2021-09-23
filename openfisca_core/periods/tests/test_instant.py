@@ -57,7 +57,7 @@ def test_instant_with_wrong_arity():
 
 @hypothesis.given(one_of(ST_YEARS), one_of(ST_MONTHS), one_of(ST_DAYS))
 @hypothesis.settings(deadline = DEADLINE)
-def test_instant(year, month, day):
+def test_instant_contract(year, month, day):
     """Raises with wrong year/month/day, works otherwise."""
 
     # All units have to be integers, otherwise we raise.
@@ -127,7 +127,7 @@ def test_period_with_invalid_size(instant):
     one_of(st.sampled_from(DateUnit)),
     )
 @hypothesis.settings(deadline = DEADLINE)
-def test_offset(year, month, day, offset, unit):
+def test_offset_contract(year, month, day, offset, unit):
     """Raises when called with invalid values, works otherwise."""
 
     # We calculate the valid offset values for year.
@@ -185,44 +185,60 @@ def test_offset(year, month, day, offset, unit):
         return
 
     # Now we know our offset should always work.
-    after = start.offset(offset, unit)
-
-    if offset == "first-of" and unit == DateUnit.YEAR:
-        assert after.canonical == (year, 1, 1)
-        return
-
-    if offset == "first-of" and unit == DateUnit.MONTH:
-        assert after.canonical == (year, start.month, 1)
-        return
-
-    if offset == "last-of" and unit == DateUnit.YEAR:
-        assert after.canonical == (year, 12, 31)
-        return
-
-    if offset == "last-of" and unit == DateUnit.MONTH:
-        assert after.canonical == (year, start.month, ok_days[-1])
-        return
-
-    # We test the actual offset values for month/day below.
-    if unit != DateUnit.YEAR:
-        return
-
-    # Leap year!
-    if day == 29 and ok_days[-1] == 29:
-        after.canonical == (year + offset, month, day - 1)
-        return
-
-    assert after.canonical == (year + offset, month, day)
+    assert start.offset(offset, unit)
 
 
 @pytest.mark.parametrize("start, offset, after", [
+    ((2020, 1, 1), ("first-of", DateUnit.MONTH), (2020, 1, 1)),
+    ((2020, 1, 1), ("first-of", DateUnit.YEAR), (2020, 1, 1)),
+    ((2020, 2, 1), ("first-of", DateUnit.MONTH), (2020, 2, 1)),
+    ((2020, 2, 1), ("first-of", DateUnit.YEAR), (2020, 1, 1)),
+    ((2020, 2, 3), ("first-of", DateUnit.MONTH), (2020, 2, 1)),
+    ((2020, 2, 3), ("first-of", DateUnit.YEAR), (2020, 1, 1)),
+    ])
+def test_offset_first_of(start, offset, after):
+    """It works ;)."""
+
+    assert Instant(start).offset(*offset) == Instant(after)
+
+
+@pytest.mark.parametrize("start, offset, after", [
+    ((2020, 1, 1), ("last-of", DateUnit.MONTH), (2020, 1, 31)),
+    ((2020, 1, 1), ("last-of", DateUnit.YEAR), (2020, 12, 31)),
+    ((2020, 2, 1), ("last-of", DateUnit.MONTH), (2020, 2, 29)),
+    ((2020, 2, 1), ("last-of", DateUnit.YEAR), (2020, 12, 31)),
+    ((2020, 2, 3), ("last-of", DateUnit.MONTH), (2020, 2, 29)),
+    ((2020, 2, 3), ("last-of", DateUnit.YEAR), (2020, 12, 31)),
+    ])
+def test_offset_last_of(start, offset, after):
+    """It works ;)."""
+
+    assert Instant(start).offset(*offset) == Instant(after)
+
+
+@pytest.mark.parametrize("start, offset, after", [
+    ((2020, 1, 1), (-1, DateUnit.YEAR), (2019, 1, 1)),
+    ((2020, 1, 1), (-3, DateUnit.YEAR), (2017, 1, 1)),
+    ((2020, 1, 1), (1, DateUnit.YEAR), (2021, 1, 1)),
+    ((2020, 1, 1), (3, DateUnit.YEAR), (2023, 1, 1)),
+    ((2020, 1, 31), (1, DateUnit.YEAR), (2021, 1, 31)),
+    ((2020, 2, 29), (-1, DateUnit.YEAR), (2019, 2, 28)),
+    ((2020, 2, 29), (1, DateUnit.YEAR), (2021, 2, 28)),
+    ])
+def test_offset_year(start, offset, after):
+    """It works, including leap years ;)."""
+
+    assert Instant(start).offset(*offset) == Instant(after)
+
+
+@pytest.mark.parametrize("start, offset, after", [
+    ((2020, 1, 1), (-1, DateUnit.MONTH), (2019, 12, 1)),
+    ((2020, 1, 1), (-3, DateUnit.MONTH), (2019, 10, 1)),
     ((2020, 1, 1), (1, DateUnit.MONTH), (2020, 2, 1)),
     ((2020, 1, 31), (1, DateUnit.MONTH), (2020, 2, 29)),
-    ((2020, 2, 28), (1, DateUnit.MONTH), (2020, 3, 28)),
-    ((2020, 1, 1), (-1, DateUnit.MONTH), (2019, 12, 1)),
-    ((2020, 3, 31), (-1, DateUnit.MONTH), (2020, 2, 29)),
     ((2020, 10, 2), (3, DateUnit.MONTH), (2021, 1, 2)),
-    ((2020, 1, 1), (-3, DateUnit.MONTH), (2019, 10, 1)),
+    ((2020, 2, 28), (1, DateUnit.MONTH), (2020, 3, 28)),
+    ((2020, 3, 31), (-1, DateUnit.MONTH), (2020, 2, 29)),
     ])
 def test_offset_month(start, offset, after):
     """It works, including leap years ;)."""
@@ -231,13 +247,13 @@ def test_offset_month(start, offset, after):
 
 
 @pytest.mark.parametrize("start, offset, after", [
+    ((2020, 1, 1), (-1, DateUnit.DAY), (2019, 12, 31)),
+    ((2020, 1, 1), (-3, DateUnit.DAY), (2019, 12, 29)),
     ((2020, 1, 1), (1, DateUnit.DAY), (2020, 1, 2)),
+    ((2020, 1, 30), (3, DateUnit.DAY), (2020, 2, 2)),
     ((2020, 1, 31), (1, DateUnit.DAY), (2020, 2, 1)),
     ((2020, 2, 28), (1, DateUnit.DAY), (2020, 2, 29)),
-    ((2020, 1, 1), (-1, DateUnit.DAY), (2019, 12, 31)),
     ((2020, 3, 1), (-1, DateUnit.DAY), (2020, 2, 29)),
-    ((2020, 1, 30), (3, DateUnit.DAY), (2020, 2, 2)),
-    ((2020, 1, 1), (-3, DateUnit.DAY), (2019, 12, 29)),
     ])
 def test_offset_day(start, offset, after):
     """It works, including leap years ;)."""
