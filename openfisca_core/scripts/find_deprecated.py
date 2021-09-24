@@ -32,8 +32,6 @@ class FindDeprecated(ast.NodeVisitor):
                 lineno = node.lineno + 1
                 since, expires = decorator.keywords
 
-                # breakpoint()
-
                 message = [
                     f"[{module}.{node.name}:{lineno}]",
                     f"Deprecated since: {since.value.s}.",
