@@ -1,5 +1,24 @@
 # Changelog
 
+# 36.0.0 [#1044](https://github.com/openfisca/openfisca-core/pull/1044)
+
+Follows discussion on #1033 
+
+#### New features
+
+- Introduce `make check-deprecated`
+  - Allows for listing the features marked as deprecated.
+
+Example:
+
+```
+$ make check-deprecated
+
+[⚙] Check for features marked as deprecated...
+[!] commons.dummy.__init__:17 => Deprecated since: 34.7.0. Expiration status: 36.0.0 (current: 36.0.0).
+[/] 18%  |█████████·········································|
+```
+
 ### 35.5.1 [#1046](https://github.com/openfisca/openfisca-core/pull/1046)
 
 #### Non-technical changes
