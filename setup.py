@@ -28,10 +28,11 @@ dev_requirements = [
     'flake8-bugbear >= 19.3.0, < 20.0.0',
     'flake8-print >= 3.1.0, < 4.0.0',
     'flake8-rst-docstrings < 1.0.0',
-    'pytest-cov >= 2.6.1, < 3.0.0',
     'mypy >= 0.701, < 0.800',
     'openfisca-country-template >= 3.10.0, < 4.0.0',
-    'openfisca-extension-template >= 1.2.0rc0, < 2.0.0'
+    'openfisca-extension-template >= 1.2.0rc0, < 2.0.0',
+    'pytest-cov >= 2.6.1, < 3.0.0',
+    'typing-extensions == 3.10.0.2',
     ] + api_requirements
 
 setup(
