@@ -4,7 +4,7 @@ import tempfile
 
 import pytest
 
-from openfisca_core.scripts import FindDeprecated
+from openfisca_tasks import CheckDeprecated
 
 
 class Module:
@@ -35,11 +35,11 @@ def test_find_deprecated(capsys):
     """Prints out the features marked as deprecated."""
 
     with Module() as (file, name):
-        find = FindDeprecated([file.name])
-        find()
+        checker = CheckDeprecated([file.name])
+        checker()
 
     with pytest.raises(SystemExit) as exit:
-        sys.exit(find.exit)
+        sys.exit(checker.exit)
 
     assert exit.value.code == os.EX_OK
     assert f"[{name}.function:5]" in capsys.readouterr().out
@@ -51,10 +51,10 @@ def test_find_deprecated_when_expired(capsys):
     version = "1.0.0"
 
     with Module(version) as (file, _):
-        find = FindDeprecated([file.name], version)
-        find()
+        checker = CheckDeprecated([file.name], version)
+        checker()
 
     with pytest.raises(SystemExit) as exit:
-        sys.exit(find.exit)
+        sys.exit(checker.exit)
 
     assert exit.value.code != os.EX_OK

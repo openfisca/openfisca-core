@@ -5,3 +5,9 @@ build: setup.py
 	@$(call print_help,$@:)
 	@python $? bdist_wheel
 	@find dist -name "*.whl" -exec pip install --force-reinstall {}[dev] \;
+
+## Check for features marked as deprecated.
+check-deprecated:
+	@$(call print_help,$@:)
+	@python -m openfisca_tasks CheckDeprecated
+	@$(call print_pass,$@:)

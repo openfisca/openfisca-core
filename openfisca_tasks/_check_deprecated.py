@@ -3,7 +3,6 @@ import os
 import pathlib
 import pkg_resources
 import subprocess
-import sys
 import textwrap
 from typing import Sequence
 
@@ -19,7 +18,7 @@ VERSION: str
 VERSION = pkg_resources.get_distribution("openfisca_core").version
 
 
-class FindDeprecated(ast.NodeVisitor):
+class CheckDeprecated(ast.NodeVisitor):
 
     count: int
     exit: int = os.EX_OK
@@ -81,9 +80,3 @@ class FindDeprecated(ast.NodeVisitor):
         with open(file, "r") as f:
             source = textwrap.dedent(f.read())
             return ast.parse(source, file, "exec")
-
-
-if __name__ == "__main__":
-    find = FindDeprecated()
-    find()
-    sys.exit(find.exit)
