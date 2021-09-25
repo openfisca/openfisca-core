@@ -45,31 +45,40 @@ class CheckDeprecated(ast.NodeVisitor):
             self.count = count
             self.visit(node)
 
-    def visit_FunctionDef(self, node) -> None:
-        expires: ast.Str
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        keywords: Sequence[str]
         file: str
-        lineno: int
-        message: Sequence[str]
-        module: str
         path: pathlib.Path
-        since: ast.Str
+        module: str
+        lineno: int
+        since: str
+        expires: str
+        message: Sequence[str]
 
         for decorator in node.decorator_list:
+            if not isinstance(decorator, ast.Call):
+                break
+
             if "deprecated" in ast.dump(decorator):
+                keywords = [
+                    kwd.value.s
+                    for kwd in decorator.keywords
+                    if isinstance(kwd.value, ast.Str)
+                    ]
+
                 file = self.files[self.count]
                 path = pathlib.Path(file).resolve()
                 module = f"{path.parts[-2]}.{path.stem}"
                 lineno = node.lineno + 1
-                since = decorator.keywords[0].value
-                expires = decorator.keywords[1].value
+                since, expires = keywords
 
-                if self._isthis(expires.s):
+                if self._isthis(expires):
                     self.exit = 1
 
                 message = [
                     f"[{module}.{node.name}:{lineno}]",
-                    f"Deprecated since: {since.s}.",
-                    f"Expiration status: {expires.s}",
+                    f"Deprecated since: {since}.",
+                    f"Expiration status: {expires}",
                     f"(current: {self.version}).",
                     ]
 
