@@ -13,6 +13,18 @@ class HasExit(Protocol):
     def __call__(self) -> None:
         ...
 
+    @abc.abstractmethod
+    def __init_progress__(self) -> None:
+        ...
+
+    @abc.abstractmethod
+    def __push_progress__(self) -> None:
+        ...
+
+    @abc.abstractmethod
+    def __wipe_progress__(self) -> None:
+        ...
+
 
 if __name__ == "__main__":
     task: HasExit

@@ -42,7 +42,7 @@ def test_find_deprecated(capsys):
         sys.exit(checker.exit)
 
     assert exit.value.code == os.EX_OK
-    assert f"[{name}.function:5]" in capsys.readouterr().out
+    assert f"[i] {name}.function:5" in capsys.readouterr().out
 
 
 def test_find_deprecated_when_expired(capsys):
@@ -58,3 +58,4 @@ def test_find_deprecated_when_expired(capsys):
         sys.exit(checker.exit)
 
     assert exit.value.code != os.EX_OK
+    assert "[!]" in capsys.readouterr().out

@@ -8,8 +8,11 @@ from typing import Sequence
 
 from typing_extensions import Literal
 
-EXIT_OK: Literal[0] = 0
-EXIT_KO: Literal[1] = 1
+EXIT_OK: Literal[0]
+EXIT_OK = 0
+
+EXIT_KO: Literal[1]
+EXIT_KO = 1
 
 FILES: Sequence[str]
 FILES = \
@@ -67,6 +70,7 @@ class CheckDeprecated(ast.NodeVisitor):
         self.files = files
         self.nodes = [self._node(file) for file in self.files]
         self.version = version
+        self.__init_progress__()
 
     def __call__(self) -> None:
         # We use ``count`` to link each ``node`` with the corresponding
@@ -74,6 +78,9 @@ class CheckDeprecated(ast.NodeVisitor):
         for count, node in enumerate(self.nodes):
             self.count = count
             self.visit(node)
+            self.__push_progress__()
+
+        self.__wipe_progress__()
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         """Defines the ``visit()`` function to inspect the ``node``.
@@ -146,22 +153,21 @@ class CheckDeprecated(ast.NodeVisitor):
             since, expires = keywords
 
             message = [
-                f"[{module}.{node.name}:{lineno}]",
+                f"[i] {module}.{node.name}:{lineno} =>",
                 f"Deprecated since: {since}.",
                 f"Expiration status: {expires}",
                 f"(current: {self.version}).",
                 ]
 
-            sys.stdout.write(f"{' '.join(message)}\n")
-
-            # If the exit code has already been modified, we wont set it again.
-            if self.exit == EXIT_KO:
-                continue
+            sys.stdout.write(f"{' '.join(message)}")
 
             # If there is at least one expired deprecation, the handler
             # will exit with an error.
             if self._isthis(expires):
                 self.exit = EXIT_KO
+                sys.stdout.write("\r[!]")
+
+            sys.stdout.write("\n")
 
     def _isthis(self, version: str) -> bool:
         return self.version == version
@@ -172,3 +178,25 @@ class CheckDeprecated(ast.NodeVisitor):
         with open(file, "r") as f:
             source = textwrap.dedent(f.read())
             return ast.parse(source, file, "exec")
+
+    def __init_progress__(self) -> None:
+        sys.stdout.write(f"[/] 0%   |{'·' * 50}|\r")
+
+    def __push_progress__(self) -> None:
+        doner: int
+        space: str
+
+        doner = (self.count + 1) * 100 // len(self.nodes)
+        space = ""
+        space += [' ', ''][doner >= 100]
+        space += [' ', ''][doner >= 10]
+
+        sys.stdout.write(
+            f"[/] {doner}% {space}|"
+            f"{'█' * (doner // 2)}"
+            f"{'·' * (50 - doner // 2)}"
+            "|\r"
+            )
+
+    def __wipe_progress__(self) -> None:
+        sys.stdout.write(f"{' ' * 100}\r")
