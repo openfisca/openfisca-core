@@ -1,11 +1,15 @@
 import ast
-import os
 import pathlib
 import pkg_resources
 import subprocess
 import sys
 import textwrap
 from typing import Sequence
+
+from typing_extensions import Literal
+
+EXIT_OK: Literal[0] = 0
+EXIT_KO: Literal[1] = 1
 
 FILES: Sequence[str]
 FILES = \
@@ -50,7 +54,7 @@ class CheckDeprecated(ast.NodeVisitor):
     """
 
     count: int
-    exit: int = os.EX_OK
+    exit: Literal[0, 1] = EXIT_OK
     files: Sequence[str]
     nodes: Sequence[ast.Module]
     version: str
@@ -111,7 +115,7 @@ class CheckDeprecated(ast.NodeVisitor):
         # We look for the corresponding ``file``.
         file = self.files[self.count]
 
-        # We find the absolute path of the the file.
+        # We find the absolute path of the file.
         path = pathlib.Path(file).resolve()
 
         # We build the module name with the name of the parent path, a
@@ -125,33 +129,39 @@ class CheckDeprecated(ast.NodeVisitor):
         for decorator in node.decorator_list:
             # We cast the ``decorator`` to ``callable``.
             if not isinstance(decorator, ast.Call):
-                break
+                continue
 
             # We only print out the deprecated functions.
-            if "deprecated" in ast.dump(decorator):
-                # We cast each keyword to ``str``.
-                keywords = [
-                    kwd.value.s
-                    for kwd in decorator.keywords
-                    if isinstance(kwd.value, ast.Str)
-                    ]
+            if "deprecated" not in ast.dump(decorator):
+                continue
 
-                # Finally we assign each keyword to a variable.
-                since, expires = keywords
+            # We cast each keyword to ``str``.
+            keywords = [
+                kwd.value.s
+                for kwd in decorator.keywords
+                if isinstance(kwd.value, ast.Str)
+                ]
 
-                # If there is at least one expired deprecation, the handler
-                # will exit with an error.
-                if self._isthis(expires):
-                    self.exit = 1
+            # Finally we assign each keyword to a variable.
+            since, expires = keywords
 
-                message = [
-                    f"[{module}.{node.name}:{lineno}]",
-                    f"Deprecated since: {since}.",
-                    f"Expiration status: {expires}",
-                    f"(current: {self.version}).",
-                    ]
+            message = [
+                f"[{module}.{node.name}:{lineno}]",
+                f"Deprecated since: {since}.",
+                f"Expiration status: {expires}",
+                f"(current: {self.version}).",
+                ]
 
-                sys.stdout.write(f"{' '.join(message)}\n")
+            sys.stdout.write(f"{' '.join(message)}\n")
+
+            # If the exit code has already been modified, we wont set it again.
+            if self.exit == EXIT_KO:
+                continue
+
+            # If there is at least one expired deprecation, the handler
+            # will exit with an error.
+            if self._isthis(expires):
+                self.exit = EXIT_KO
 
     def _isthis(self, version: str) -> bool:
         return self.version == version
