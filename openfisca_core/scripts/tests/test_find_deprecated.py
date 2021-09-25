@@ -1,35 +1,58 @@
 import os
 import sys
+import tempfile
 
 import pytest
 
-from openfisca_core.commons import deprecated
 from openfisca_core.scripts import FindDeprecated
 
 
-@deprecated(since = "yesterday", expires = "1.0.0")
-def function(a: int, b: float) -> float:
-    return a + b
+class Module:
+    """Some module with an expired function."""
+
+    def __init__(self, expires = "never"):
+        self.module = [
+            b"from openfisca_core.commons import deprecated",
+            b"",
+            b"",
+            f"@deprecated(since = 'today', expires = '{expires}')".encode(),
+            b"def function() -> None:",
+            b"    ..."
+            ]
+
+    def __enter__(self):
+        self.file = tempfile.NamedTemporaryFile()
+        self.name = ".".join(self.file.name.split("/")[-2:])
+        self.file.write(b"\n".join(self.module))
+        self.file.seek(0)
+        return self.file, self.name
+
+    def __exit__(self, *__):
+        self.file.close()
 
 
 def test_find_deprecated(capsys):
     """Prints out the features marked as deprecated."""
 
-    find = FindDeprecated()
-    find()
+    with Module() as (file, name):
+        find = FindDeprecated([file.name])
+        find()
 
     with pytest.raises(SystemExit) as exit:
         sys.exit(find.exit)
 
     assert exit.value.code == os.EX_OK
-    assert "tests.test_find_deprecated.function:11" in capsys.readouterr().out
+    assert f"[{name}.function:5]" in capsys.readouterr().out
 
 
 def test_find_deprecated_when_expired(capsys):
     """Raises an error when at least one deprecation has expired."""
 
-    find = FindDeprecated("1.0.0")
-    find()
+    version = "1.0.0"
+
+    with Module(version) as (file, _):
+        find = FindDeprecated([file.name], version)
+        find()
 
     with pytest.raises(SystemExit) as exit:
         sys.exit(find.exit)

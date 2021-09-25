@@ -7,6 +7,14 @@ import sys
 import textwrap
 from typing import Sequence
 
+FILES: Sequence[str]
+FILES = \
+    subprocess \
+    .run(["git", "ls-files", "*.py"], stdout = subprocess.PIPE) \
+    .stdout \
+    .decode("utf-8") \
+    .split()
+
 VERSION: str
 VERSION = pkg_resources.get_distribution("openfisca_core").version
 
@@ -19,13 +27,13 @@ class FindDeprecated(ast.NodeVisitor):
     nodes: Sequence[ast.Module]
     version: str
 
-    def __init__(self, version: str = VERSION) -> None:
-        result = subprocess.run(
-            ["git", "ls-files", "*.py"],
-            stdout = subprocess.PIPE,
-            )
+    def __init__(
+            self,
+            files: Sequence[str] = FILES,
+            version: str = VERSION,
+            ) -> None:
 
-        self.files = result.stdout.decode("utf-8").split()
+        self.files = files
         self.nodes = [self._node(file) for file in self.files]
         self.version = version
 
