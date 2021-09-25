@@ -6,6 +6,8 @@ import logging
 import pkgutil
 from os import linesep
 
+from .find_deprecated import FindDeprecated  # noqa: F401
+
 log = logging.getLogger(__name__)
 
 
