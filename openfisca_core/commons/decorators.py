@@ -39,7 +39,7 @@ class deprecated:
         >>> str(obsolete)
         '<function obsolete ...>'
 
-    .. versionadded:: 35.6.0
+    .. versionadded:: 36.0.0
 
     """
 

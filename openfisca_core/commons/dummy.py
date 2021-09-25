@@ -9,8 +9,7 @@ class Dummy:
         <openfisca_core.commons.dummy.Dummy object...
 
     .. deprecated:: 34.7.0
-        :class:`.Dummy` has been deprecated and it will be removed in the
-        future.
+        :class:`.Dummy` has been deprecated and it will be removed in 36.0.0.
 
     """
 
