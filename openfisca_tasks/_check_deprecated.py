@@ -3,6 +3,7 @@ import os
 import pathlib
 import pkg_resources
 import subprocess
+import sys
 import textwrap
 from typing import Sequence
 
@@ -15,7 +16,10 @@ FILES = \
     .split()
 
 VERSION: str
-VERSION = pkg_resources.get_distribution("openfisca_core").version
+VERSION = \
+    pkg_resources \
+    .get_distribution("openfisca_core") \
+    .version
 
 
 class CheckDeprecated(ast.NodeVisitor):
@@ -69,7 +73,7 @@ class CheckDeprecated(ast.NodeVisitor):
                     f"(current: {self.version}).",
                     ]
 
-                print(" ".join(message))
+                sys.stdout.write(f"{' '.join(message)}\n")
 
     def _isthis(self, version: str) -> bool:
         return self.version == version
