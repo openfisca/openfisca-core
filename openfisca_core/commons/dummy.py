@@ -14,6 +14,6 @@ class Dummy:
 
     """
 
-    @deprecated(since = "34.7.0", expires = "in the future")
+    @deprecated(since = "34.7.0", expires = "36.0.0")
     def __init__(self) -> None:
         ...
