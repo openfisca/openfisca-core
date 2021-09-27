@@ -15,21 +15,25 @@ try:
 except ImportError as error:
     handle_import_error(error)
 
+try:
+    from openfisca_tracker.piwik import PiwikTracker
+except ImportError:
+    ...
+
 log = logging.getLogger('gunicorn.error')
 
 
 def init_tracker(url, idsite, tracker_token):
     try:
-        from openfisca_tracker.piwik import PiwikTracker
         tracker = PiwikTracker(url, idsite, tracker_token)
 
         info = os.linesep.join(['You chose to activate the `tracker` module. ',
-                             'Tracking data will be sent to: ' + url,
-                             'For more information, see <https://github.com/openfisca/openfisca-core#tracker-configuration>.'])
+                                'Tracking data will be sent to: ' + url,
+                                'For more information, see <https://github.com/openfisca/openfisca-core#tracker-configuration>.'])
         log.info(info)
         return tracker
 
-    except ImportError:
+    except NameError:
         message = os.linesep.join([traceback.format_exc(),
                                 'You chose to activate the `tracker` module, but it is not installed.',
                                 'For more information, see <https://github.com/openfisca/openfisca-core#tracker-installation>.'])

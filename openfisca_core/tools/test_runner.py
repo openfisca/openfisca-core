@@ -1,37 +1,35 @@
+from __future__ import annotations
+
 import warnings
 import sys
 import os
 import traceback
 import textwrap
-from typing import Dict, List
+from typing import Dict, List, Type, Union
 
 import pytest
+import yaml
 
 from openfisca_core.tools import assert_near
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.errors import SituationParsingError, VariableNotFound
 from openfisca_core.warnings import LibYAMLWarning
 
+Loader: Union[Type[yaml.CLoader], Type[yaml.SafeLoader]]
 
-def import_yaml():
-    import yaml
-    try:
-        from yaml import CLoader as Loader
-    except ImportError:
-        message = [
-            "libyaml is not installed in your environment.",
-            "This can make your test suite slower to run. Once you have installed libyaml, ",
-            "run 'pip uninstall pyyaml && pip install pyyaml --no-cache-dir'",
-            "so that it is used in your Python environment."
-            ]
-        warnings.warn(" ".join(message), LibYAMLWarning)
-        from yaml import SafeLoader as Loader
-    return yaml, Loader
-
+try:
+    from yaml import CLoader as Loader
+except ImportError:
+    message = [
+        "libyaml is not installed in your environment.",
+        "This can make your test suite slower to run. Once you have installed libyaml, ",
+        "run 'pip uninstall pyyaml && pip install pyyaml --no-cache-dir'",
+        "so that it is used in your Python environment."
+        ]
+    warnings.warn(" ".join(message), LibYAMLWarning)
+    from yaml import SafeLoader as Loader
 
 TEST_KEYWORDS = {'absolute_error_margin', 'description', 'extensions', 'ignore_variables', 'input', 'keywords', 'max_spiral_loops', 'name', 'only_variables', 'output', 'period', 'reforms', 'relative_error_margin'}
-
-yaml, Loader = import_yaml()
 
 _tax_benefit_system_cache: Dict = {}
 

@@ -1,6 +1,9 @@
+import json
 import os
+import urllib
 
 import numexpr
+import numpy as np
 
 from openfisca_core.indexed_enums import EnumArray
 
@@ -17,8 +20,6 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
       Limit : This function cannot be used to assert near periods.
 
     '''
-
-    import numpy as np
 
     if absolute_error_margin is None and relative_error_margin is None:
         absolute_error_margin = 0
@@ -60,9 +61,6 @@ def indent(text):
 
 
 def get_trace_tool_link(scenario, variables, api_url, trace_tool_url):
-    import json
-    import urllib
-
     scenario_json = scenario.to_json()
     simulation_json = {
         'scenarios': [scenario_json],
