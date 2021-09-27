@@ -112,9 +112,9 @@ class VectorialParameterNodeAtInstant:
                             raise_key_inhomogeneity_error(name, first_name, missing_key)
                     children.update(extract_named_children(node))
                 check_nodes_homogeneous(children)
-            elif isinstance(first_node, float) or isinstance(first_node, int):
+            elif isinstance(first_node, (int, float)):
                 for node, name in list(zip(nodes, names))[1:]:
-                    if isinstance(node, int) or isinstance(node, float):
+                    if isinstance(node, (int, float)):
                         pass
                     elif isinstance(node, parameters.ParameterNodeAtInstant):
                         raise_type_inhomogeneity_error(name, first_name)

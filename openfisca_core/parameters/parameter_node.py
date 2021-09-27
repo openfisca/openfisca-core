@@ -116,7 +116,7 @@ class ParameterNode(AtInstantLike):
         """
         if name in self.children:
             raise ValueError(f"{self.name} has already a child named {name}")
-        if not (isinstance(child, ParameterNode) or isinstance(child, Parameter) or isinstance(child, parameters.ParameterScale)):
+        if not isinstance(child, (ParameterNode, Parameter, parameters.ParameterScale)):
             raise TypeError(f"child must be of type ParameterNode, Parameter, or Scale. Instead got {type(child)}")
         self.children[name] = child
         setattr(self, name, child)
