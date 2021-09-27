@@ -1,4 +1,7 @@
+## The repository of the documentation.
 repo = https://github.com/openfisca/openfisca-doc
+
+## The current working branch.
 branch = $(shell git branch --show-current)
 
 ## Check that the current changes do not break the doc.
@@ -22,6 +25,7 @@ test-doc:
 	@${MAKE} test-doc-checkout
 	@${MAKE} test-doc-install
 	@${MAKE} test-doc-build
+	@$(call print_pass,$@:)
 
 ## Update the local copy of the doc.
 test-doc-checkout:

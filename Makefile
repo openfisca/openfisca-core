@@ -28,6 +28,8 @@ print_help = sed -n "/^$1/ { x ; p ; } ; s/\#\#/[⚙]/ ; s/\./…/ ; x" ${MAKEFI
 
 ## Same as `make test`.
 all: test
+	@$(call print_pass,$@:)
 
 ## Run all lints and tests.
 test: clean lint test-code
+	@$(call print_pass,$@:)
