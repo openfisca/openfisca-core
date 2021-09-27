@@ -19,7 +19,7 @@ class StubSimulation(Simulation):
         self.exception = None
         self.max_spiral_loops = 1
 
-    def _calculate(self, variable, period):
+    def _calculate(self, variable_name, period):
         if self.exception:
             raise self.exception
 
