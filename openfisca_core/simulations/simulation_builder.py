@@ -503,7 +503,7 @@ class SimulationBuilder:
 
         # Now generate input values along the specified axes
         # TODO - factor out the common logic here
-        if len(self.axes) == 1 and len(self.axes[0]):
+        if len(self.axes) == 1 and len(self.axes[0]) > 0:
             parallel_axes = self.axes[0]
             first_axis = parallel_axes[0]
             axis_count: int = first_axis['count']
