@@ -31,5 +31,6 @@ class Projector:
 
         return self.parent.transform_and_bubble_up(transformed_result)
 
-    def transform(self, result):
+    @staticmethod
+    def transform(result):
         return NotImplementedError()

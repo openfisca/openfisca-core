@@ -166,7 +166,8 @@ class Parameter(AtInstantLike):
 
         self.values_list = new_values
 
-    def get_descendants(self):
+    @staticmethod
+    def get_descendants():
         return iter(())
 
     def _get_at_instant(self, instant):

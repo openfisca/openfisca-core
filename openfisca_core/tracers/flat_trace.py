@@ -22,7 +22,8 @@ class FlatTrace:
     def __init__(self, full_tracer: tracers.FullTracer) -> None:
         self._full_tracer = full_tracer
 
-    def key(self, node: tracers.TraceNode) -> str:
+    @staticmethod
+    def key(node: tracers.TraceNode) -> str:
         name = node.name
         period = node.period
         return f"{name}<{period}>"
@@ -52,10 +53,8 @@ class FlatTrace:
             for key, flat_trace in self.get_trace().items()
             }
 
-    def serialize(
-            self,
-            value: Optional[Array],
-            ) -> Union[Optional[Array], list]:
+    @staticmethod
+    def serialize(value: Optional[Array]) -> Union[Optional[Array], list]:
         if isinstance(value, EnumArray):
             value = value.decode_to_str()
 

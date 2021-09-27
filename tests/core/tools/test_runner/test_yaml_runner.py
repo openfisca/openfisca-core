@@ -18,19 +18,23 @@ class TaxBenefitSystem:
         self.person_entity = Entity('person', 'persons', None, "")
         self.person_entity.set_tax_benefit_system(self)
 
-    def get_package_metadata(self):
+    @staticmethod
+    def get_package_metadata():
         return {"name": "Test", "version": "Test"}
 
-    def apply_reform(self, path):
+    def apply_reform(self, _path):
         return Reform(self)
 
-    def load_extension(self, extension):
+    @staticmethod
+    def load_extension(_extension):
         pass
 
-    def entities_by_singular(self):
+    @staticmethod
+    def entities_by_singular():
         return {}
 
-    def entities_plural(self):
+    @staticmethod
+    def entities_plural():
         return {}
 
     def instantiate_entities(self):
@@ -39,7 +43,8 @@ class TaxBenefitSystem:
     def get_variable(self, variable_name, check_existence = True):
         return self.variables.get(variable_name)
 
-    def clone(self):
+    @staticmethod
+    def clone():
         return TaxBenefitSystem()
 
 
@@ -52,7 +57,8 @@ class Simulation:
     def __init__(self):
         self.populations = {"person": None}
 
-    def get_population(self, plural = None):
+    @staticmethod
+    def get_population(plural = None):
         return None
 
 

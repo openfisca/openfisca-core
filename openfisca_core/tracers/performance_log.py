@@ -63,8 +63,8 @@ class PerformanceLog:
             aggregated_csv_rows,
             )
 
+    @staticmethod
     def aggregate_calculation_times(
-            self,
             flat_trace: Trace,
             ) -> typing.Dict[str, dict]:
 
@@ -122,7 +122,8 @@ class PerformanceLog:
             'children': children,
             }
 
-    def _write_csv(self, path: str, rows: typing.List[dict]) -> None:
+    @staticmethod
+    def _write_csv(path: str, rows: typing.List[dict]) -> None:
         fieldnames = list(rows[0].keys())
 
         with open(path, 'w') as csv_file:

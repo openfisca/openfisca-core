@@ -148,7 +148,8 @@ class SimulationBuilder:
                     simulation.set_input(variable, period_str, dated_value)
         return simulation
 
-    def build_default_simulation(self, tax_benefit_system, count = 1):
+    @staticmethod
+    def build_default_simulation(tax_benefit_system, count = 1):
         """
             Build a simulation where:
                 - There are ``count`` persons
@@ -183,7 +184,8 @@ class SimulationBuilder:
     def nb_persons(self, entity_singular, role = None):
         return self.populations[entity_singular].nb_persons(role = role)
 
-    def join_with_persons(self, group_population, persons_group_assignment, roles: typing.Iterable[str]):
+    @staticmethod
+    def join_with_persons(group_population, persons_group_assignment, roles: typing.Iterable[str]):
         # Maps group's identifiers to a 0-based integer range, for indexing into members_roles (see PR#876)
         group_sorted_indices = numpy.unique(persons_group_assignment, return_inverse = True)[1]
         group_population.members_entity_id = numpy.argsort(group_population.ids)[group_sorted_indices]
@@ -201,7 +203,8 @@ class SimulationBuilder:
     def build(self, tax_benefit_system):
         return Simulation(tax_benefit_system, self.populations)
 
-    def explicit_singular_entities(self, tax_benefit_system, input_dict):
+    @staticmethod
+    def explicit_singular_entities(tax_benefit_system, input_dict):
         """
             Preprocess ``input_dict`` to explicit entities defined using the single-entity shortcut
 
@@ -331,7 +334,8 @@ class SimulationBuilder:
             self.input_buffer[variable] = {}
         return self.input_buffer[variable].get(period_str)
 
-    def check_persons_to_allocate(self, persons_plural, entity_plural,
+    @staticmethod
+    def check_persons_to_allocate(persons_plural, entity_plural,
                                   persons_ids,
                                   person_id, entity_id, role_id,
                                   persons_to_allocate, index):
@@ -424,7 +428,8 @@ class SimulationBuilder:
                 if (variable.end is None) or (period_value.start.date <= variable.end):
                     holder.set_input(period_value, array)
 
-    def raise_period_mismatch(self, entity, json, e):
+    @staticmethod
+    def raise_period_mismatch(entity, json, e):
         # This error happens when we try to set a variable value for a period that doesn't match its definition period
         # It is only raised when we consume the buffer. We thus don't know which exact key caused the error.
         # We do a basic research to find the culprit path

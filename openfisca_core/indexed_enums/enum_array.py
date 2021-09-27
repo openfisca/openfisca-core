@@ -50,8 +50,8 @@ class EnumArray(numpy.ndarray):
 
     def _forbidden_operation(self, other: Any) -> NoReturn:
         raise TypeError(
-            "Forbidden operation. The only operations allowed on EnumArrays "
-            "are '==' and '!='.",
+            "Forbidden operation. The only operations allowed on "
+            f"{self.__class__.__name__}s are '==' and '!='.",
             )
 
     __add__ = _forbidden_operation

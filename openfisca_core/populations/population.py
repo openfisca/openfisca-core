@@ -46,7 +46,8 @@ class Population:
             raise ValueError("Input {} is not a valid value for the entity {} (size = {} != {} = count)".format(
                 array, self.key, array.size, self.count))
 
-    def check_period_validity(self, variable_name, period):
+    @staticmethod
+    def check_period_validity(variable_name, period):
         if period is None:
             stack = traceback.extract_stack()
             filename, line_number, function_name, line_of_code = stack[-3]
@@ -145,8 +146,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             [value_subrole_2, value_subrole_1],
             )
 
+    @staticmethod
     @projectors.projectable
-    def get_rank(self, entity, criteria, condition = True):
+    def get_rank(entity, criteria, condition = True):
         """
         Get the rank of a person within an entity according to a criteria.
         The person with rank 0 has the minimum value of criteria.

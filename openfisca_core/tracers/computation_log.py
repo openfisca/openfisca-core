@@ -22,10 +22,8 @@ class ComputationLog:
     def __init__(self, full_tracer: tracers.FullTracer) -> None:
         self._full_tracer = full_tracer
 
-    def display(
-            self,
-            value: Optional[Array],
-            ) -> str:
+    @staticmethod
+    def display(value: Optional[Array]) -> str:
         if isinstance(value, EnumArray):
             value = value.decode_to_str()
 
@@ -71,10 +69,8 @@ class ComputationLog:
 
         return node_log + self._flatten(children_logs)
 
-    def _flatten(
-            self,
-            list_of_lists: List[List[str]],
-            ) -> List[str]:
+    @staticmethod
+    def _flatten(list_of_lists: List[List[str]]) -> List[str]:
         return [item for _list in list_of_lists for item in _list]
 
     def lines(self, aggregate: bool = False) -> List[str]:

@@ -234,7 +234,8 @@ class Simulation:
 
         return array
 
-    def _check_period_consistency(self, period, variable):
+    @staticmethod
+    def _check_period_consistency(period, variable):
         """
         Check that a period matches the variable definition_period
         """

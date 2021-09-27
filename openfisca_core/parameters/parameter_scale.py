@@ -61,7 +61,8 @@ class ParameterScale(AtInstantLike):
             + [tools.indent('-' + tools.indent(repr(bracket))[1:]) for bracket in self.brackets]
             )
 
-    def get_descendants(self):
+    @staticmethod
+    def get_descendants():
         return iter(())
 
     def clone(self):

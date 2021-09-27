@@ -98,7 +98,7 @@ class age(Variable):
     entity = Individu
     label = "Âge (en nombre d'années)"
 
-    def formula(self, simulation, period):
+    def formula(simulation, period):
         birth = simulation.get_array('birth', period)
         if birth is None:
             age_en_mois = simulation.get_array('age_en_mois', period)
@@ -113,7 +113,7 @@ class dom_tom(Variable):
     entity = Famille
     label = "La famille habite-t-elle les DOM-TOM ?"
 
-    def formula(self, simulation, period):
+    def formula(simulation, period):
         period = period.start.period('year').offset('first-of')
         city_code = simulation.calculate('city_code', period)
         return np.logical_or(startswith(city_code, '97'), startswith(city_code, '98'))
@@ -124,7 +124,7 @@ class revenu_disponible(Variable):
     entity = Individu
     label = "Revenu disponible de l'individu"
 
-    def formula(self, simulation, period):
+    def formula(simulation, period):
         period = period.start.period('year').offset('first-of')
         rsa = simulation.calculate('rsa', period)
         salaire_imposable = simulation.calculate('salaire_imposable', period)
@@ -136,17 +136,17 @@ class rsa(Variable):
     entity = Individu
     label = "RSA"
 
-    def formula_2010_01_01(self, simulation, period):
+    def formula_2010_01_01(simulation, period):
         period = period.start.period('month').offset('first-of')
         salaire_imposable = simulation.calculate('salaire_imposable', period)
         return (salaire_imposable < 500) * 100.0
 
-    def formula_2011_01_01(self, simulation, period):
+    def formula_2011_01_01(simulation, period):
         period = period.start.period('month').offset('first-of')
         salaire_imposable = simulation.calculate('salaire_imposable', period)
         return (salaire_imposable < 500) * 200.0
 
-    def formula_2013_01_01(self, simulation, period):
+    def formula_2013_01_01(simulation, period):
         period = period.start.period('month').offset('first-of')
         salaire_imposable = simulation.calculate('salaire_imposable', period)
         return (salaire_imposable < 500) * 300
@@ -169,7 +169,7 @@ class salaire_net(Variable):
     entity = Individu
     label = "Salaire net"
 
-    def formula(self, simulation, period):
+    def formula(simulation, period):
         period = period.start.period('year').offset('first-of')
         salaire_brut = simulation.calculate('salaire_brut', period)
         return salaire_brut * 0.8

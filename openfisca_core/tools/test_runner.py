@@ -169,14 +169,17 @@ class YamlItem(pytest.Item):
             if performance_tables:
                 self.generate_performance_tables(tracer)
 
-    def print_computation_log(self, tracer):
+    @staticmethod
+    def print_computation_log(tracer):
         print("Computation log:")  # noqa T001
         tracer.print_computation_log()
 
-    def generate_performance_graph(self, tracer):
+    @staticmethod
+    def generate_performance_graph(tracer):
         tracer.generate_performance_graph('.')
 
-    def generate_performance_tables(self, tracer):
+    @staticmethod
+    def generate_performance_tables(tracer):
         tracer.generate_performance_tables('.')
 
     def check_output(self):

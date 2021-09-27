@@ -94,7 +94,8 @@ class Migrator:
 
         return results
 
-    def convert_entities(self, entity, entities_description):
+    @staticmethod
+    def convert_entities(entity, entities_description):
         return {
             entity_description.get('id', f"{entity.key}_{index}"): remove_id(entity_description)
             for index, entity_description in enumerate(entities_description)

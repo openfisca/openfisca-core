@@ -118,7 +118,8 @@ class FullTracer:
     def flat_trace(self) -> tracers.FlatTrace:
         return tracers.FlatTrace(self)
 
-    def _get_time_in_sec(self) -> float:
+    @staticmethod
+    def _get_time_in_sec() -> float:
         return time.time_ns() / (10**9)
 
     def print_computation_log(self, aggregate = False):

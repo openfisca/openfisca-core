@@ -170,7 +170,8 @@ class Variable:
             .format(possible_values, self.name, Enum))
         return possible_values
 
-    def set_label(self, label):
+    @staticmethod
+    def set_label(label):
         if label:
             return label
 
@@ -200,7 +201,8 @@ class Variable:
 
         return reference
 
-    def set_documentation(self, documentation):
+    @staticmethod
+    def set_documentation(documentation):
         if documentation:
             return textwrap.dedent(documentation)
 
