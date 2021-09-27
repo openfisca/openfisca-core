@@ -118,7 +118,7 @@ def test_permanent_variable_neutralization(make_simulation, tax_benefit_system):
 
 
 def test_update_items():
-    def check_update_items(description, value_history, start_instant, stop_instant, value, expected_items):
+    def check_update_items(_description, value_history, start_instant, stop_instant, value, expected_items):
         value_history.update(period=None, start=start_instant, stop=stop_instant, value=value)
         assert value_history == expected_items
 
@@ -219,7 +219,7 @@ def test_add_variable(make_simulation, tax_benefit_system):
         entity = Household
         definition_period = MONTH
 
-        def formula(household, period):
+        def formula(household, _period):
             return household.empty_array() + 10
 
     class test_add_variable(Reform):
@@ -243,10 +243,10 @@ def test_add_dated_variable(make_simulation, tax_benefit_system):
         entity = Household
         definition_period = MONTH
 
-        def formula_2010_01_01(household, period):
+        def formula_2010_01_01(household, _period):
             return household.empty_array() + 10
 
-        def formula_2011_01_01(household, period):
+        def formula_2011_01_01(household, _period):
             return household.empty_array() + 15
 
     class test_add_variable(Reform):
@@ -266,7 +266,7 @@ def test_update_variable(make_simulation, tax_benefit_system):
     class disposable_income(Variable):
         definition_period = MONTH
 
-        def formula_2018(household, period):
+        def formula_2018(household, _period):
             return household.empty_array() + 10
 
     class test_update_variable(Reform):
@@ -300,7 +300,7 @@ def test_replace_variable(tax_benefit_system):
         label = "Disposable income"
         value_type = float
 
-        def formula_2018(household, period):
+        def formula_2018(household, _period):
             return household.empty_array() + 10
 
     class test_update_variable(Reform):

@@ -32,10 +32,10 @@ class StubSimulation(Simulation):
 
 class MockTracer:
 
-    def record_calculation_start(self, variable, period):
+    def record_calculation_start(self, _variable, _period):
         self.calculation_start_recorded = True
 
-    def record_calculation_result(self, value):
+    def record_calculation_result(self, _value):
         self.recorded_result = True
 
     def record_calculation_end(self):
@@ -69,8 +69,7 @@ def test_stack_two_levels(tracer):
     assert tracer.stack == [{'name': 'a', 'period': 2017}]
 
 
-@mark.parametrize("tracer", [SimpleTracer(), FullTracer()])
-def test_tracer_contract(tracer):
+def test_tracer_contract():
     simulation = StubSimulation()
     simulation.tracer = MockTracer()
 
