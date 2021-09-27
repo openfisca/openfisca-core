@@ -38,12 +38,25 @@ test-doc-checkout:
 		[ "${branch}" != "master" ] \
 			&& { \
 				{ \
+					>&2 echo "$(print_info) Trying to checkout the branch 'openfisca-doc/${branch}'..." ; \
 					git branch -D ${branch} 2> /dev/null ; \
-					git checkout ${branch} ; \
+					git checkout ${branch} 2> /dev/null ; \
 				} \
 					&& git pull --ff-only origin ${branch} \
 					|| { \
-						>&2 echo "[!] The branch '${branch}' doesn't exist, checking out 'master' instead..." ; \
+						>&2 echo "$(print_warn) The branch 'openfisca-doc/${branch}' was not found, falling back to 'openfisca-doc/master'..." ; \
+						>&2 echo "" ; \
+						>&2 echo "$(print_info) This is perfectly normal, one of two things can ensue:" ; \
+						>&2 echo "$(print_info)" ; \
+						>&2 echo "$(print_info) $$(tput setaf 2)[If tests pass]$$(tput sgr0)" ; \
+						>&2 echo "$(print_info)     * No further action required on your side..." ; \
+						>&2 echo "$(print_info)" ; \
+						>&2 echo "$(print_info) $$(tput setaf 1)[If tests fail]$$(tput sgr0)" ; \
+						>&2 echo "$(print_info)     * Create the branch '${branch}' in 'openfisca-doc'... " ; \
+						>&2 echo "$(print_info)     * Push your fixes..." ; \
+						>&2 echo "$(print_info)     * Run 'make test-doc' again..." ; \
+						>&2 echo "" ; \
+						>&2 echo "$(print_work) Checking out 'openfisca-doc/master'..." ; \
 						git pull --ff-only origin master ; \
 					} \
 			} \
