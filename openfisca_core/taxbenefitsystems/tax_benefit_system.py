@@ -265,7 +265,7 @@ class TaxBenefitSystem:
         >>> self.apply_reform('openfisca_france.reforms.inversion_revenus')
 
         """
-        from openfisca_core.reforms import Reform  # pylint: disable=C0415
+        from openfisca_core.reforms import Reform  # pylint: disable=import-outside-toplevel
         try:
             reform_package, reform_name = reform_path.rsplit('.', 1)
         except ValueError as e:
