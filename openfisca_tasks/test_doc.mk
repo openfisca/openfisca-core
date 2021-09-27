@@ -18,14 +18,14 @@ test-doc:
 	@##		# Will check "master" if "asdf1234" does not exist.
 	@##		make test-doc branch=asdf1234
 	@##
-	@$(call help,$@:)
+	@$(call print_help,$@:)
 	@${MAKE} test-doc-checkout
 	@${MAKE} test-doc-install
 	@${MAKE} test-doc-build
 
 ## Update the local copy of the doc.
 test-doc-checkout:
-	@$(call help,$@:)
+	@$(call print_help,$@:)
 	@[ ! -d doc ] && git clone ${repo} doc || :
 	@cd doc && { \
 		git reset --hard ; \
@@ -48,11 +48,11 @@ test-doc-checkout:
 
 ## Install doc dependencies.
 test-doc-install:
-	@$(call help,$@:)
+	@$(call print_help,$@:)
 	@pip install --requirement doc/requirements.txt 1> /dev/null
 	@pip install --editable .[dev] --upgrade 1> /dev/null
 
 ## Dry-build the doc.
 test-doc-build:
-	@$(call help,$@:)
+	@$(call print_help,$@:)
 	@sphinx-build -M dummy doc/source doc/build -n -q -W
