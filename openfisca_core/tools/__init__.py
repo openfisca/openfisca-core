@@ -46,6 +46,8 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
             '{}{} differs from {} with a relative margin {} > {}'.format(message, value, target_value,
                 diff, abs(relative_error_margin * target_value))
 
+    return None
+
 
 def assert_datetime_equals(value, target_value, message = ''):
     assert (value == target_value).all(), f'{message}{value} differs from {target_value}.'

@@ -92,7 +92,7 @@ def _restore_entity(population, directory):
     population.ids = np.load(os.path.join(path, "id.npy"))
 
     if population.entity.is_person:
-        return
+        return None
 
     population.members_position = np.load(os.path.join(path, "members_position.npy"))
     population.members_entity_id = np.load(os.path.join(path, "members_entity_id.npy"))
@@ -104,7 +104,7 @@ def _restore_entity(population, directory):
     else:
         population.members_role = np.select(
             [encoded_roles == role.key for role in flattened_roles],
-            [role for role in flattened_roles],
+            list(flattened_roles),
             )
     person_count = len(population.members_entity_id)
     population.count = max(population.members_entity_id) + 1

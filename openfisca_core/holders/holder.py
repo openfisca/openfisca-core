@@ -85,6 +85,8 @@ class Holder:
         if self._disk_storage:
             return self._disk_storage.get(period)
 
+        return None
+
     def get_memory_usage(self):
         """
         Get data about the virtual memory usage of the holder.

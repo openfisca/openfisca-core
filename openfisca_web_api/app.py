@@ -39,6 +39,8 @@ def init_tracker(url, idsite, tracker_token):
                                 'For more information, see <https://github.com/openfisca/openfisca-core#tracker-installation>.'])
         log.warn(message)
 
+    return None
+
 
 def create_app(tax_benefit_system,
                tracker_url = None,
@@ -93,7 +95,7 @@ def create_app(tax_benefit_system,
             parameter_new_id = parameter_id.replace('.', '/')
             parameter = data['parameters'].get(parameter_new_id)
         if parameter is None:
-            raise abort(404)
+            abort(404)
         return jsonify(parameter)
 
     @app.route('/variables')
@@ -111,7 +113,7 @@ def create_app(tax_benefit_system,
     def get_variable(id):
         variable = data['variables'].get(id)
         if variable is None:
-            raise abort(404)
+            abort(404)
         return jsonify(variable)
 
     @app.route('/entities')

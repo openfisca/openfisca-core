@@ -18,7 +18,7 @@ def monthly_variable():
         entity = Person
         definition_period = MONTH
 
-        def formula(person, period, parameters):  # pylint: disable=R0201
+        def formula(person, period, parameters):  # pylint: disable=no-self-use
             variable.calculation_count += 1
             return np.asarray([100])
 

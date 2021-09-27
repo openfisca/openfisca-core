@@ -81,3 +81,4 @@ class Reform(TaxBenefitSystem):
                 )
         self.parameters = reform_parameters
         self._parameters_at_instant_cache = {}
+        return None

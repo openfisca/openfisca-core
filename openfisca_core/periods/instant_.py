@@ -223,14 +223,12 @@ class Instant(tuple):
                         year += 1
                         month -= 12
                 month_last_day = calendar.monthrange(year, month)[1]
-                if day > month_last_day:
-                    day = month_last_day
+                day = min(day, month_last_day)
             elif unit == config.YEAR:
                 year += offset
                 # Handle february month of leap year.
                 month_last_day = calendar.monthrange(year, month)[1]
-                if day > month_last_day:
-                    day = month_last_day
+                day = min(day, month_last_day)
 
         return self.__class__((year, month, day))
 

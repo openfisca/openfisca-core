@@ -203,11 +203,12 @@ class YamlItem(pytest.Item):
 
     def check_variable(self, variable_name, expected_value, period, entity_index = None):
         if self.should_ignore_variable(variable_name):
-            return
+            return None
         if isinstance(expected_value, dict):
             for requested_period, expected_value_at_period in expected_value.items():
                 self.check_variable(variable_name, expected_value_at_period, requested_period, entity_index)
-            return
+
+        return None
 
         actual_value = self.simulation.calculate(variable_name, period)
 
@@ -259,6 +260,8 @@ class OpenFiscaPlugin:
             return YamlFile.from_parent(parent, path = path, fspath = path,
                 tax_benefit_system = self.tax_benefit_system,
                 options = self.options)
+
+        return None
 
 
 def _get_tax_benefit_system(baseline, reforms, extensions):

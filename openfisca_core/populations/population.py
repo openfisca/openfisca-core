@@ -78,12 +78,14 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
         if config.ADD in options and config.DIVIDE in options:
             raise ValueError(f'Options  config.ADD and  config.DIVIDE are incompatible (trying to compute variable {variable_name})'.encode())
-        elif config.ADD in options:
+
+        if config.ADD in options:
             return self.simulation.calculate_add(variable_name, period)
-        elif config.DIVIDE in options:
+
+        if config.DIVIDE in options:
             return self.simulation.calculate_divide(variable_name, period)
-        else:
-            return self.simulation.calculate(variable_name, period)
+
+        return self.simulation.calculate(variable_name, period)
 
     # Helpers
 

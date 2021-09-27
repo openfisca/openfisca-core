@@ -40,7 +40,7 @@ check-syntax-errors: .
 check-style: $(shell git ls-files "*.py")
 	@$(call help,$@:)
 	@flake8 $?
-	@pylint --disable=E0213,R1733,W0201,W0212,W0231,W0404,W0511 $?
+	@pylint --disable=E0213,R1732,R1733,W0201,W0212,W0221,W0231,W0404,W0511, $?
 
 ## Run code formatters to correct style errors.
 format-style: $(shell git ls-files "*.py")

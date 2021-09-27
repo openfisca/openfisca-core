@@ -119,7 +119,7 @@ def period(value):
             ])
         raise ValueError(message)
 
-    if value == 'ETERNITY' or value == config.ETERNITY:
+    if value in ('ETERNITY', config.ETERNITY):
         return periods.Period(('eternity', instant(datetime.date.min), float("inf")))
 
     # check the type

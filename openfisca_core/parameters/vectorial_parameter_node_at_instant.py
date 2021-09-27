@@ -169,3 +169,5 @@ class VectorialParameterNodeAtInstant:
                 return VectorialParameterNodeAtInstant(self._name, result.view(numpy.recarray), self._instant_str)
 
             return result
+
+        return None

@@ -183,6 +183,8 @@ class Period(tuple):
         if unit == config.DAY:
             return [self.first_day.offset(i, config.DAY) for i in range(self.size_in_days)]
 
+        return None
+
     def offset(self, offset, unit = None):
         """
         Increment (or decrement) the given period with offset units.

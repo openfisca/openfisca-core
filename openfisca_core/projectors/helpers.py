@@ -21,3 +21,5 @@ def get_projector_from_shortcut(population, shortcut, parent = None):
         role = next((role for role in population.entity.flattened_roles if (role.max == 1) and (role.key == shortcut)), None)
         if role:
             return projectors.UniqueRoleToEntityProjector(population, role, parent)
+
+    return None

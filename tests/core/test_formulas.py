@@ -32,7 +32,7 @@ class returns_scalar(Variable):
     label = 'Variable with formula that returns a scalar value'
     definition_period = periods.MONTH
 
-    def formula(person, period):  # pylint: disable=R0201
+    def formula(person, period):  # pylint: disable=no-self-use
         return 666
 
 

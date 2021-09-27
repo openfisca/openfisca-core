@@ -175,12 +175,16 @@ class Variable:
         if label:
             return label
 
+        return None
+
     def set_end(self, end):
         if end:
             try:
                 return datetime.datetime.strptime(end, '%Y-%m-%d').date()
             except ValueError as e:
                 raise ValueError(f"Incorrect 'end' attribute format in '{self.name}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {end}") from e
+
+        return None
 
     def set_reference(self, reference):
         if reference:
@@ -205,6 +209,8 @@ class Variable:
     def set_documentation(documentation):
         if documentation:
             return textwrap.dedent(documentation)
+
+        return None
 
     def set_set_input(self, set_input):
         if not set_input and self.baseline_variable:
