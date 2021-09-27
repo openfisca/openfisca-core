@@ -3,6 +3,8 @@ jobs:
   run_tests:
     docker:
       - image: python:3.7
+    environment:
+      TERM: xterm-256color  # To colorize output of make tasks.
 
     steps:
       - checkout
@@ -56,6 +58,8 @@ jobs:
   test_docs:
     docker:
       - image: python:3.7
+    environment:
+      TERM: xterm-256color  # To colorize output of make tasks.
 
     steps:
       - checkout
