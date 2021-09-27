@@ -1,4 +1,5 @@
 import http
+
 import pytest
 
 from openfisca_core import scripts

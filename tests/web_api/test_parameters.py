@@ -1,8 +1,8 @@
-from http import client
 import json
-import pytest
 import re
+from http import client
 
+import pytest
 
 # /parameters
 

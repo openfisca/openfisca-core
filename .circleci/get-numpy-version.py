@@ -5,10 +5,10 @@ from __future__ import annotations
 import os
 import sys
 import typing
-from packaging import version
 from typing import NoReturn, Union
 
 import numpy
+from packaging import version
 
 if typing.TYPE_CHECKING:
     from packaging.version import LegacyVersion, Version

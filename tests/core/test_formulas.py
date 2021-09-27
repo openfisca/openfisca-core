@@ -1,12 +1,11 @@
 import numpy
+from pytest import fixture, approx
 
 from openfisca_country_template import entities
 
 from openfisca_core import commons, periods
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.variables import Variable
-
-from pytest import fixture, approx
 
 
 class choice(Variable):

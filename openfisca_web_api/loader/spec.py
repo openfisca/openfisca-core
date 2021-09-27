@@ -1,8 +1,8 @@
 import os
-import yaml
 from copy import deepcopy
 
 import dpath
+import yaml
 
 from openfisca_core.indexed_enums import Enum
 from openfisca_web_api import handlers

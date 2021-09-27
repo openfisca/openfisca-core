@@ -1,7 +1,7 @@
 import copy
-import dpath
 import typing
 
+import dpath
 import numpy
 
 from openfisca_core import periods

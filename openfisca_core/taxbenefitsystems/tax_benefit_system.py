@@ -4,10 +4,11 @@ import importlib
 import inspect
 import logging
 import os
-import pkg_resources
 import traceback
 import typing
 from imp import find_module, load_module
+
+import pkg_resources
 
 from openfisca_core import commons, periods, variables
 from openfisca_core.entities import Entity

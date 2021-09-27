@@ -2,12 +2,13 @@ import warnings
 
 import pytest
 
+from openfisca_country_template.entities import Household, Person
+
 from openfisca_core import periods
+from openfisca_core.model_api import *  # noqa analysis:ignore
+from openfisca_core.parameters import ValuesHistory, ParameterNode
 from openfisca_core.periods import Instant
 from openfisca_core.tools import assert_near
-from openfisca_core.parameters import ValuesHistory, ParameterNode
-from openfisca_country_template.entities import Household, Person
-from openfisca_core.model_api import *  # noqa analysis:ignore
 
 
 class goes_to_school(Variable):

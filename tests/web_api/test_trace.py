@@ -1,7 +1,8 @@
 import copy
-import dpath
-from http import client
 import json
+from http import client
+
+import dpath
 
 from openfisca_country_template.situation_examples import single, couple
 

@@ -1,8 +1,7 @@
 import numpy
+import pytest
 
 from openfisca_core import commons
-
-import pytest
 
 
 def test_dummy():

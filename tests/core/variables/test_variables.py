@@ -1,15 +1,16 @@
 import datetime
 
-from openfisca_core.model_api import Variable
-from openfisca_core.periods import MONTH, ETERNITY
-from openfisca_core.simulation_builder import SimulationBuilder
-from openfisca_core.tools import assert_near
+from pytest import fixture, raises, mark
 
 import openfisca_country_template as country_template
 import openfisca_country_template.situation_examples
 from openfisca_country_template.entities import Person
 
-from pytest import fixture, raises, mark
+from openfisca_core.model_api import Variable
+from openfisca_core.periods import MONTH, ETERNITY
+from openfisca_core.simulation_builder import SimulationBuilder
+from openfisca_core.tools import assert_near
+
 
 # Check which date is applied whether it comes from Variable attribute (end)
 # or formula(s) dates.

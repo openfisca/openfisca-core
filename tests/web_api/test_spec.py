@@ -1,7 +1,8 @@
-import dpath
 import json
-import pytest
 from http import client
+
+import dpath
+import pytest
 
 
 def assert_items_equal(x, y):

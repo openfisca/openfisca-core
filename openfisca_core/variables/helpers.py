@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import sortedcontainers
 from typing import Optional
+
+import sortedcontainers
 
 from openfisca_core.periods import Period
 
