@@ -5,7 +5,6 @@ contributors who maintain OpenFisca Core, and to help users building their own
 systems.
 
 Official Public API:
-    * :class:`.deprecated`
     * :func:`.apply_thresholds`
     * :func:`.average_rate`
     * :func:`.concat`
@@ -54,13 +53,11 @@ Note:
 
 # Official Public API
 
-from .decorators import deprecated  # noqa: F401
 from .formulas import apply_thresholds, concat, switch  # noqa: F401
 from .misc import empty_clone, stringify_array  # noqa: F401
 from .rates import average_rate, marginal_rate  # noqa: F401
 
-__all__ = ["deprecated"]
-__all__ = ["apply_thresholds", "concat", "switch", *__all__]
+__all__ = ["apply_thresholds", "concat", "switch"]
 __all__ = ["empty_clone", "stringify_array", *__all__]
 __all__ = ["average_rate", "marginal_rate", *__all__]
 

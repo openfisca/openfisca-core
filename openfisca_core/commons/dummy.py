@@ -1,4 +1,4 @@
-from .decorators import deprecated
+import warnings
 
 
 class Dummy:
@@ -14,6 +14,11 @@ class Dummy:
 
     """
 
-    @deprecated(since = "34.7.0", expires = "in the future")
     def __init__(self) -> None:
+        message = [
+            "The 'Dummy' class has been deprecated since version 34.7.0,",
+            "and will be removed in the future.",
+            ]
+        warnings.warn(" ".join(message), DeprecationWarning)
+
         ...
