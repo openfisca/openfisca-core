@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 import os
 
 import numpy as np
@@ -21,7 +18,7 @@ def dump_simulation(simulation, directory):
         os.mkdir(directory)
 
     if os.listdir(directory):
-        raise ValueError("Directory '{}' is not empty".format(directory))
+        raise ValueError(f"Directory '{directory}' is not empty")
 
     entities_dump_dir = os.path.join(directory, "__entities__")
     os.mkdir(entities_dump_dir)

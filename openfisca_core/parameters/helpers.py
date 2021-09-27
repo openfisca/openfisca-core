@@ -22,7 +22,7 @@ def load_parameter_file(file_path, name = ''):
     :returns: An instance of :class:`.ParameterNode` or :class:`.ParameterScale` or :class:`.Parameter`.
     """
     if not os.path.exists(file_path):
-        raise ValueError("{} does not exist".format(file_path))
+        raise ValueError(f"{file_path} does not exist")
     if os.path.isdir(file_path):
         return parameters.ParameterNode(name, directory_path = file_path)
     data = _load_yaml_file(file_path)
@@ -33,13 +33,13 @@ def _compose_name(path, child_name = None, item_name = None):
     if not path:
         return child_name
     if child_name is not None:
-        return '{}.{}'.format(path, child_name)
+        return f'{path}.{child_name}'
     if item_name is not None:
-        return '{}[{}]'.format(path, item_name)
+        return f'{path}[{item_name}]'
 
 
 def _load_yaml_file(file_path):
-    with open(file_path, 'r') as f:
+    with open(file_path) as f:
         try:
             return config.yaml.load(f, Loader = config.Loader)
         except (config.yaml.scanner.ScannerError, config.yaml.parser.ParserError):
@@ -84,7 +84,7 @@ def _validate_parameter(parameter, data, data_type = None, allowed_keys = None):
 
     if data_type is not None and not isinstance(data, data_type):
         raise ParameterParsingError(
-            "'{}' must be of type {}.".format(parameter.name, type_map[data_type]),
+            f"'{parameter.name}' must be of type {type_map[data_type]}.",
             parameter.file_path
             )
 

@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
 # flake8: noqa T001
 
 
@@ -27,7 +26,7 @@ def measure_time(title):
     t1 = time.time()
     yield
     t2 = time.time()
-    print('{}\t: {:.8f} seconds elapsed'.format(title, t2 - t1))
+    print(f'{title}\t: {t2 - t1:.8f} seconds elapsed')
 
 
 def switch_fromiter(conditions, function_by_condition, dtype):

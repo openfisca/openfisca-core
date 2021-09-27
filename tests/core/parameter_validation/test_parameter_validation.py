@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 import pytest
 from openfisca_core.parameters import load_parameter_file, ParameterNode, ParameterParsingError

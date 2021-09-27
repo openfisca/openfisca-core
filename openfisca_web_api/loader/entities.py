@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 def build_entities(tax_benefit_system):
     entities = {
         entity.key: build_entity(entity)

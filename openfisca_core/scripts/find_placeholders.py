@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # flake8: noqa T001
 
 import os
@@ -18,7 +17,7 @@ def find_param_files(input_dir):
 
 
 def find_placeholders(filename_input):
-    with open(filename_input, 'r') as f:
+    with open(filename_input) as f:
         xml_content = f.read()
 
     xml_parsed = BeautifulSoup(xml_content, "lxml-xml")
@@ -53,9 +52,9 @@ Usage :
     for filename_input in param_files:
         output_list = find_placeholders(filename_input)
 
-        print('File {}'.format(filename_input))
+        print(f'File {filename_input}')
 
         for deb, path in output_list:
-            print('{} {}'.format(deb, path))
+            print(f'{deb} {path}')
 
         print('\n')

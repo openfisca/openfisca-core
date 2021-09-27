@@ -33,7 +33,7 @@ def instant(instant):
         return instant
     if isinstance(instant, str):
         if not config.INSTANT_PATTERN.match(instant):
-            raise ValueError("'{}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'.".format(instant))
+            raise ValueError(f"'{instant}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'.")
         instant = periods.Instant(
             int(fragment)
             for fragment in instant.split('-', 2)[:3]
@@ -113,7 +113,7 @@ def period(value):
 
     def raise_error(value):
         message = os.linesep.join([
-            "Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: '{}'.".format(value),
+            f"Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: '{value}'.",
             "Learn more about legal period formats in OpenFisca:",
             "<https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-simulations>."
             ])
@@ -187,7 +187,7 @@ def key_period_size(period):
 
     unit, start, size = period
 
-    return '{}_{}'.format(unit_weight(unit), size)
+    return f'{unit_weight(unit)}_{size}'
 
 
 def unit_weights():

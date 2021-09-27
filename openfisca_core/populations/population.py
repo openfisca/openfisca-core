@@ -33,7 +33,7 @@ class Population:
     def __getattr__(self, attribute):
         projector = projectors.get_projector_from_shortcut(self, attribute)
         if not projector:
-            raise AttributeError("You tried to use the '{}' of '{}' but that is not a known attribute.".format(attribute, self.entity.key))
+            raise AttributeError(f"You tried to use the '{attribute}' of '{self.entity.key}' but that is not a known attribute.")
         return projector
 
     def get_index(self, id):
@@ -76,7 +76,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             options = []
 
         if config.ADD in options and config.DIVIDE in options:
-            raise ValueError('Options  config.ADD and  config.DIVIDE are incompatible (trying to compute variable {})'.format(variable_name).encode('utf-8'))
+            raise ValueError(f'Options  config.ADD and  config.DIVIDE are incompatible (trying to compute variable {variable_name})'.encode())
         elif config.ADD in options:
             return self.simulation.calculate_add(variable_name, period)
         elif config.DIVIDE in options:

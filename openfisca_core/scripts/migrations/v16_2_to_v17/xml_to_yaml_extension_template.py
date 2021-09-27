@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 ''' xml_to_yaml_extension_template.py : Parse XML parameter files for Extension-Template and convert them to YAML files. Comments are NOT transformed.
 
 Usage :

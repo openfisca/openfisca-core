@@ -44,7 +44,7 @@ def add_variables_to_tax_benefit_system(tax_benefit_system):
 
 @pytest.fixture(scope = "module", autouse = True)
 def add_variables_to_cache_blakclist(tax_benefit_system):
-    tax_benefit_system.cache_blacklist = set(['intermediate'])
+    tax_benefit_system.cache_blacklist = {'intermediate'}
 
 
 @pytest.mark.parametrize("simulation", [({'input': 1}, PERIOD)], indirect = True)

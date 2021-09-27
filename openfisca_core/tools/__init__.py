@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 import os
 
 import numexpr
@@ -50,16 +47,16 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
 
 
 def assert_datetime_equals(value, target_value, message = ''):
-    assert (value == target_value).all(), '{}{} differs from {}.'.format(message, value, target_value)
+    assert (value == target_value).all(), f'{message}{value} differs from {target_value}.'
 
 
 def assert_enum_equals(value, target_value, message = ''):
     value = value.decode_to_str()
-    assert (value == target_value).all(), '{}{} differs from {}.'.format(message, value, target_value)
+    assert (value == target_value).all(), f'{message}{value} differs from {target_value}.'
 
 
 def indent(text):
-    return "  {}".format(text.replace(os.linesep, "{}  ".format(os.linesep)))
+    return "  {}".format(text.replace(os.linesep, f"{os.linesep}  "))
 
 
 def get_trace_tool_link(scenario, variables, api_url, trace_tool_url):

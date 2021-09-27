@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 import pytest
 
 from openfisca_core.periods import Period, Instant, YEAR, MONTH, DAY, period

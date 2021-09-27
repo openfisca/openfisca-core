@@ -15,16 +15,16 @@ class VariableNotFoundError(Exception):
         country_package_name = country_package_metadata['name']
         country_package_version = country_package_metadata['version']
         if country_package_version:
-            country_package_id = '{}@{}'.format(country_package_name, country_package_version)
+            country_package_id = f'{country_package_name}@{country_package_version}'
         else:
             country_package_id = country_package_name
         message = os.linesep.join([
-            "You tried to calculate or to set a value for variable '{0}', but it was not found in the loaded tax and benefit system ({1}).".format(variable_name, country_package_id),
-            "Are you sure you spelled '{0}' correctly?".format(variable_name),
+            f"You tried to calculate or to set a value for variable '{variable_name}', but it was not found in the loaded tax and benefit system ({country_package_id}).",
+            f"Are you sure you spelled '{variable_name}' correctly?",
             "If this code used to work and suddenly does not, this is most probably linked to an update of the tax and benefit system.",
             "Look at its changelog to learn about renames and removals and update your code. If it is an official package,",
-            "it is probably available on <https://github.com/openfisca/{0}/blob/master/CHANGELOG.md>.".format(country_package_name)
+            f"it is probably available on <https://github.com/openfisca/{country_package_name}/blob/master/CHANGELOG.md>."
             ])
         self.message = message
         self.variable_name = variable_name
-        Exception.__init__(self, self.message)
+        super().__init__(self.message)

@@ -17,10 +17,10 @@ class VectorialParameterNodeAtInstant:
         VectorialParameterNodeAtInstant.check_node_vectorisable(node)
         subnodes_name = node._children.keys()
         # Recursively vectorize the children of the node
-        vectorial_subnodes = tuple([
+        vectorial_subnodes = tuple(
             VectorialParameterNodeAtInstant.build_from_node(node[subnode_name]).vector if isinstance(node[subnode_name], parameters.ParameterNodeAtInstant) else node[subnode_name]
             for subnode_name in subnodes_name
-            ])
+            )
         # A vectorial node is a wrapper around a numpy recarray
         # We first build the recarray
         recarray = numpy.array(

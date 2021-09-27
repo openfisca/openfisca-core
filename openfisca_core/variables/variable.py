@@ -109,7 +109,7 @@ class Variable:
         if self.value_type == str:
             self.max_length = self.set(attr, 'max_length', allowed_type = int)
             if self.max_length:
-                self.dtype = '|S{}'.format(self.max_length)
+                self.dtype = f'|S{self.max_length}'
         if self.value_type == Enum:
             self.default_value = self.set(attr, 'default_value', allowed_type = self.possible_values, required = True)
         else:
@@ -143,7 +143,7 @@ class Variable:
         if value is None and self.baseline_variable:
             return getattr(self.baseline_variable, attribute_name)
         if required and value is None:
-            raise ValueError("Missing attribute '{}' in definition of variable '{}'.".format(attribute_name, self.name))
+            raise ValueError(f"Missing attribute '{attribute_name}' in definition of variable '{self.name}'.")
         if allowed_values is not None and value not in allowed_values:
             raise ValueError("Invalid value '{}' for attribute '{}' in variable '{}'. Allowed values are '{}'."
                 .format(value, attribute_name, self.name, allowed_values))
@@ -179,7 +179,7 @@ class Variable:
             try:
                 return datetime.datetime.strptime(end, '%Y-%m-%d').date()
             except ValueError:
-                raise ValueError("Incorrect 'end' attribute format in '{}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {}".format(self.name, end))
+                raise ValueError(f"Incorrect 'end' attribute format in '{self.name}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {end}")
 
     def set_reference(self, reference):
         if reference:
@@ -190,7 +190,7 @@ class Variable:
             elif isinstance(reference, tuple):
                 reference = list(reference)
             else:
-                raise TypeError('The reference of the variable {} is a {} instead of a String or a List of Strings.'.format(self.name, type(reference)))
+                raise TypeError(f'The reference of the variable {self.name} is a {type(reference)} instead of a String or a List of Strings.')
 
             for element in reference:
                 if not isinstance(element, str):
@@ -297,7 +297,7 @@ class Variable:
         try:
             source_lines, start_line_number = inspect.getsourcelines(cls)
             source_code = textwrap.dedent(''.join(source_lines))
-        except (IOError, TypeError):
+        except (OSError, TypeError):
             source_code, start_line_number = None, None
 
         return comments, source_file_path, source_code, start_line_number
@@ -364,12 +364,12 @@ class Variable:
             value = numpy.array([value], dtype = self.dtype)[0]
         except (TypeError, ValueError):
             if (self.value_type == datetime.date):
-                error_message = "Can't deal with date: '{}'.".format(value)
+                error_message = f"Can't deal with date: '{value}'."
             else:
-                error_message = "Can't deal with value: expected type {}, received '{}'.".format(self.json_type, value)
+                error_message = f"Can't deal with value: expected type {self.json_type}, received '{value}'."
             raise ValueError(error_message)
         except (OverflowError):
-            error_message = "Can't deal with value: '{}', it's too large for type '{}'.".format(value, self.json_type)
+            error_message = f"Can't deal with value: '{value}', it's too large for type '{self.json_type}'."
             raise ValueError(error_message)
 
         return value

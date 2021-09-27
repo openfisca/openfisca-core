@@ -284,11 +284,11 @@ class Simulation:
         # The last frame is the current calculation, so it should be ignored from cycle detection
         previous_periods = [frame['period'] for frame in self.tracer.stack[:-1] if frame['name'] == variable]
         if period in previous_periods:
-            raise CycleError("Circular definition detected on formula {}@{}".format(variable, period))
+            raise CycleError(f"Circular definition detected on formula {variable}@{period}")
         spiral = len(previous_periods) >= self.max_spiral_loops
         if spiral:
             self.invalidate_spiral_variables(variable)
-            message = "Quasicircular definition detected on formula {}@{} involving {}".format(variable, period, self.tracer.stack)
+            message = f"Quasicircular definition detected on formula {variable}@{period} involving {self.tracer.stack}"
             raise SpiralError(message, variable)
 
     def invalidate_cache_entry(self, variable: str, period):

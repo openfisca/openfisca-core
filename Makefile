@@ -45,7 +45,7 @@ check-style: $(shell git ls-files "*.py")
 ## Run code formatters to correct style errors.
 format-style: $(shell git ls-files "*.py")
 	@$(call help,$@:)
-	@pyupgrade --py37-plus $?
+	@pyupgrade $? --py36-plus --keep-runtime-typing
 	@autopep8 $?
 
 ## Run static type checkers for type errors.

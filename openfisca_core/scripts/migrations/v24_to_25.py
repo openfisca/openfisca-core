@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # flake8: noqa T001
 
 import argparse
@@ -25,7 +24,7 @@ def build_parser():
     return parser
 
 
-class Migrator(object):
+class Migrator:
 
     def __init__(self, tax_benefit_system):
         self.tax_benefit_system = tax_benefit_system
@@ -49,7 +48,7 @@ class Migrator(object):
 
             return
 
-        print('Migrating {}.'.format(path))
+        print(f'Migrating {path}.')
 
         with open(path) as yaml_file:
             tests = yaml.safe_load(yaml_file)
@@ -97,7 +96,7 @@ class Migrator(object):
 
     def convert_entities(self, entity, entities_description):
         return {
-            entity_description.get('id', "{}_{}".format(entity.key, index)): remove_id(entity_description)
+            entity_description.get('id', f"{entity.key}_{index}"): remove_id(entity_description)
             for index, entity_description in enumerate(entities_description)
             }
 
@@ -111,7 +110,7 @@ class Migrator(object):
                 inputs[entity.key] = {entity.roles[0].plural or entity.roles[0].key: [person_id]}
             else:
                 inputs[entity.plural] = {
-                    '{}_{}'.format(entity.key, index): {entity.roles[0].plural or entity.roles[0].key: [person_id]}
+                    f'{entity.key}_{index}': {entity.roles[0].plural or entity.roles[0].key: [person_id]}
                     for index, person_id in enumerate(persons.keys())
                     }
         return inputs

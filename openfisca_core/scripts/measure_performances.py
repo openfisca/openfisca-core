@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
 # flake8: noqa T001
 
 
@@ -28,7 +27,7 @@ def timeit(method):
         start_time = time.time()
         result = method(*args, **kwargs)
         # print '%r (%r, %r) %2.9f s' % (method.__name__, args, kw, time.time() - start_time)
-        print('{:2.6f} s'.format(time.time() - start_time))
+        print(f'{time.time() - start_time:2.6f} s')
         return result
 
     return timed

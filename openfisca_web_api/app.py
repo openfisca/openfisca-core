@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import logging
 import os
 import traceback
@@ -75,7 +73,7 @@ def create_app(tax_benefit_system,
         parameters = {
             parameter['id']: {
                 'description': parameter['description'],
-                'href': '{}parameter/{}'.format(request.host_url, name)
+                'href': f'{request.host_url}parameter/{name}'
                 }
             for name, parameter in data['parameters'].items()
             if parameter.get('subparams') is None  # For now and for backward compat, don't show nodes in overview
@@ -99,7 +97,7 @@ def create_app(tax_benefit_system,
         variables = {
             name: {
                 'description': variable['description'],
-                'href': '{}variable/{}'.format(request.host_url, name)
+                'href': f'{request.host_url}variable/{name}'
                 }
             for name, variable in data['variables'].items()
             }
@@ -126,7 +124,7 @@ def create_app(tax_benefit_system,
 
     def handle_invalid_json(error):
         json_response = jsonify({
-            'error': 'Invalid JSON: {}'.format(error.args[0]),
+            'error': f'Invalid JSON: {error.args[0]}',
             })
 
         abort(make_response(json_response, 400))

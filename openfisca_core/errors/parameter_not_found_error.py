@@ -12,10 +12,10 @@ class ParameterNotFoundError(AttributeError):
         self.name = name
         self.instant_str = instant_str
         self.variable_name = variable_name
-        message = "The parameter '{}'".format(name)
+        message = f"The parameter '{name}'"
         if variable_name is not None:
-            message += " requested by variable '{}'".format(variable_name)
+            message += f" requested by variable '{variable_name}'"
         message += (
             " was not found in the {} tax and benefit system."
             ).format(instant_str)
-        super(ParameterNotFoundError, self).__init__(message)
+        super().__init__(message)

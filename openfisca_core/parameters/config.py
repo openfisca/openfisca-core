@@ -35,7 +35,7 @@ def dict_no_duplicate_constructor(loader, node, deep = False):
     keys = [key.value for key, value in node.value]
 
     if len(keys) != len(set(keys)):
-        duplicate = next((key for key in keys if keys.count(key) > 1))
+        duplicate = next(key for key in keys if keys.count(key) > 1)
         raise yaml.parser.ParserError('', node.start_mark, f"Found duplicate key '{duplicate}'")
 
     return loader.construct_mapping(node, deep)

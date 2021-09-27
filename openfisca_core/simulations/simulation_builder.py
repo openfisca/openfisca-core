@@ -429,7 +429,7 @@ class SimulationBuilder:
         # It is only raised when we consume the buffer. We thus don't know which exact key caused the error.
         # We do a basic research to find the culprit path
         culprit_path = next(
-            dpath.search(json, "*/{}/{}".format(e.variable_name, str(e.period)), yielded = True),
+            dpath.search(json, f"*/{e.variable_name}/{str(e.period)}", yielded = True),
             None)
         if culprit_path:
             path = [entity.plural] + culprit_path[0].split('/')

@@ -48,7 +48,7 @@ class Reform(TaxBenefitSystem):
         self.decomposition_file_path = baseline.decomposition_file_path
         self.key = self.__class__.__name__
         if not hasattr(self, 'apply'):
-            raise Exception("Reform {} must define an `apply` function".format(self.key))
+            raise Exception(f"Reform {self.key} must define an `apply` function")
         self.apply()
 
     def __getattr__(self, attribute):
@@ -57,7 +57,7 @@ class Reform(TaxBenefitSystem):
     @property
     def full_key(self):
         key = self.key
-        assert key is not None, 'key was not set for reform {} (name: {!r})'.format(self, self.name)
+        assert key is not None, f'key was not set for reform {self} (name: {self.name!r})'
         if self.baseline is not None and hasattr(self.baseline, 'key'):
             baseline_full_key = self.baseline.full_key
             key = '.'.join([baseline_full_key, key])

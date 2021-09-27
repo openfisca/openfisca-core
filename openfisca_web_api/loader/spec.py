@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 import yaml
 from copy import deepcopy
@@ -15,7 +13,7 @@ OPEN_API_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
 
 def build_openAPI_specification(api_data):
     tax_benefit_system = api_data['tax_benefit_system']
-    file = open(OPEN_API_CONFIG_FILE, 'r')
+    file = open(OPEN_API_CONFIG_FILE)
     spec = yaml.safe_load(file)
     country_package_name = api_data['country_package_metadata']['name'].title()
     dpath.new(spec, 'info/title', spec['info']['title'].replace("{COUNTRY_PACKAGE_NAME}", country_package_name))
@@ -56,7 +54,7 @@ def build_openAPI_specification(api_data):
         dpath.new(spec, 'definitions/SituationOutput/example', handlers.calculate(tax_benefit_system, deepcopy(simulation_example)))  # calculate has side-effects
         dpath.new(spec, 'definitions/Trace/example', handlers.trace(tax_benefit_system, simulation_example))
     else:
-        message = "No simulation example has been defined for this tax and benefit system. If you are the maintainer of {}, you can define an example by following this documentation: https://openfisca.org/doc/openfisca-web-api/config-openapi.html".format(country_package_name)
+        message = f"No simulation example has been defined for this tax and benefit system. If you are the maintainer of {country_package_name}, you can define an example by following this documentation: https://openfisca.org/doc/openfisca-web-api/config-openapi.html"
         dpath.new(spec, 'definitions/SituationInput/example', message)
         dpath.new(spec, 'definitions/SituationOutput/example', message)
         dpath.new(spec, 'definitions/Trace/example', message)
@@ -115,7 +113,7 @@ def get_situation_json_schema(tax_benefit_system):
             entity.plural: {
                 'type': 'object',
                 'additionalProperties': {
-                    "$ref": "#/definitions/{}".format(entity.key.title())
+                    "$ref": f"#/definitions/{entity.key.title()}"
                     }
                 }
             for entity in tax_benefit_system.entities

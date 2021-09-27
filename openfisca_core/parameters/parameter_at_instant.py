@@ -12,7 +12,7 @@ class ParameterAtInstant:
     """
 
     # 'unit' and 'reference' are only listed here for backward compatibility
-    _allowed_keys = set(['value', 'metadata', 'unit', 'reference'])
+    _allowed_keys = {'value', 'metadata', 'unit', 'reference'}
 
     def __init__(self, name, instant_str, data = None, file_path = None, metadata = None):
         """
@@ -44,12 +44,12 @@ class ParameterAtInstant:
             value = data['value']
         except KeyError:
             raise ParameterParsingError(
-                "Missing 'value' property for {}".format(self.name),
+                f"Missing 'value' property for {self.name}",
                 self.file_path
                 )
         if not isinstance(value, config.ALLOWED_PARAM_TYPES):
             raise ParameterParsingError(
-                "Value in {} has type {}, which is not one of the allowed types ({}): {}".format(self.name, type(value), config.ALLOWED_PARAM_TYPES, value),
+                f"Value in {self.name} has type {type(value)}, which is not one of the allowed types ({config.ALLOWED_PARAM_TYPES}): {value}",
                 self.file_path
                 )
 
@@ -57,7 +57,7 @@ class ParameterAtInstant:
         return (self.name == other.name) and (self.instant_str == other.instant_str) and (self.value == other.value)
 
     def __repr__(self):
-        return "ParameterAtInstant({})".format({self.instant_str: self.value})
+        return f"ParameterAtInstant({dict({self.instant_str: self.value})})"
 
     def clone(self):
         clone = commons.empty_clone(self)

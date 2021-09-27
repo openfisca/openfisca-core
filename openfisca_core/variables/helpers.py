@@ -41,7 +41,7 @@ def get_neutralized_variable(variable):
     """
     result = variable.clone()
     result.is_neutralized = True
-    result.label = '[Neutralized]' if variable.label is None else '[Neutralized] {}'.format(variable.label),
+    result.label = '[Neutralized]' if variable.label is None else f'[Neutralized] {variable.label}',
 
     return result
 

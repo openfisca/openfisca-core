@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import dpath
 
 from openfisca_core.simulation_builder import SimulationBuilder

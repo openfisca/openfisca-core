@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import warnings
 import sys
 import os
@@ -81,7 +79,7 @@ def run_tests(tax_benefit_system, paths, options = None):
 class YamlFile(pytest.File):
 
     def __init__(self, path, fspath, parent, tax_benefit_system, options):
-        super(YamlFile, self).__init__(path, parent)
+        super().__init__(path, parent)
         self.tax_benefit_system = tax_benefit_system
         self.options = options
 
@@ -121,7 +119,7 @@ class YamlItem(pytest.Item):
     """
 
     def __init__(self, name, parent, baseline_tax_benefit_system, test, options):
-        super(YamlItem, self).__init__(name, parent)
+        super().__init__(name, parent)
         self.baseline_tax_benefit_system = baseline_tax_benefit_system
         self.options = options
         self.test = test
@@ -131,11 +129,11 @@ class YamlItem(pytest.Item):
     def runtest(self):
         self.name = self.test.get('name', '')
         if not self.test.get('output'):
-            raise ValueError("Missing key 'output' in test '{}' in file '{}'".format(self.name, self.fspath))
+            raise ValueError(f"Missing key 'output' in test '{self.name}' in file '{self.fspath}'")
 
         if not TEST_KEYWORDS.issuperset(self.test.keys()):
             unexpected_keys = set(self.test.keys()).difference(TEST_KEYWORDS)
-            raise ValueError("Unexpected keys {} in test '{}' in file '{}'".format(unexpected_keys, self.name, self.fspath))
+            raise ValueError(f"Unexpected keys {unexpected_keys} in test '{self.name}' in file '{self.fspath}'")
 
         self.tax_benefit_system = _get_tax_benefit_system(self.baseline_tax_benefit_system, self.test.get('reforms', []), self.test.get('extensions', []))
 
@@ -232,7 +230,7 @@ class YamlItem(pytest.Item):
 
     def repr_failure(self, excinfo):
         if not isinstance(excinfo.value, (AssertionError, VariableNotFound, SituationParsingError)):
-            return super(YamlItem, self).repr_failure(excinfo)
+            return super().repr_failure(excinfo)
 
         message = excinfo.value.args[0]
         if isinstance(excinfo.value, SituationParsingError):
@@ -245,7 +243,7 @@ class YamlItem(pytest.Item):
             ])
 
 
-class OpenFiscaPlugin(object):
+class OpenFiscaPlugin:
 
     def __init__(self, tax_benefit_system, options):
         self.tax_benefit_system = tax_benefit_system

@@ -127,8 +127,8 @@ class Holder:
         Get the list of periods the variable value is known for.
         """
 
-        return list(self._memory_storage.get_known_periods()) + list((
-            self._disk_storage.get_known_periods() if self._disk_storage else []))
+        return list(self._memory_storage.get_known_periods()) + list(
+            self._disk_storage.get_known_periods() if self._disk_storage else [])
 
     def set_input(self, period, array):
         """
@@ -163,7 +163,7 @@ class Holder:
                 error_message
                 )
         if self.variable.is_neutralized:
-            warning_message = "You cannot set a value for the variable {}, as it has been neutralized. The value you provided ({}) will be ignored.".format(self.variable.name, array)
+            warning_message = f"You cannot set a value for the variable {self.variable.name}, as it has been neutralized. The value you provided ({array}) will be ignored."
             return warnings.warn(
                 warning_message,
                 Warning

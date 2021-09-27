@@ -21,5 +21,5 @@ class GroupEntity(Entity):
                     setattr(self, subrole.key.upper(), subrole)
                     role.subroles.append(subrole)
                 role.max = len(role.subroles)
-        self.flattened_roles = sum([role2.subroles or [role2] for role2 in self.roles], [])
+        self.flattened_roles = sum((role2.subroles or [role2] for role2 in self.roles), [])
         self.is_person = False

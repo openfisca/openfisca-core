@@ -115,9 +115,9 @@ class ParameterNode(AtInstantLike):
         :param child: The new child, an instance of :class:`.ParameterScale` or :class:`.Parameter` or :class:`.ParameterNode`.
         """
         if name in self.children:
-            raise ValueError("{} has already a child named {}".format(self.name, name))
+            raise ValueError(f"{self.name} has already a child named {name}")
         if not (isinstance(child, ParameterNode) or isinstance(child, Parameter) or isinstance(child, parameters.ParameterScale)):
-            raise TypeError("child must be of type ParameterNode, Parameter, or Scale. Instead got {}".format(type(child)))
+            raise TypeError(f"child must be of type ParameterNode, Parameter, or Scale. Instead got {type(child)}")
         self.children[name] = child
         setattr(self, name, child)
 

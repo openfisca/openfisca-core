@@ -80,7 +80,7 @@ class TaxBenefitSystem:
 
     # Deprecated method of constructing simulations, to be phased out in favor of SimulationBuilder
     def new_scenario(self):
-        class ScenarioAdapter(object):
+        class ScenarioAdapter:
             def __init__(self, tax_benefit_system):
                 self.tax_benefit_system = tax_benefit_system
 
@@ -132,7 +132,7 @@ class TaxBenefitSystem:
         baseline_variable = self.get_variable(name)
         if baseline_variable and not update:
             raise VariableNameConflictError(
-                'Variable "{}" is already defined. Use `update_variable` to replace it.'.format(name))
+                f'Variable "{name}" is already defined. Use `update_variable` to replace it.')
 
         variable = variable_class(baseline_variable = baseline_variable)
         self.variables[variable.name] = variable
@@ -188,7 +188,7 @@ class TaxBenefitSystem:
             #  As Python remembers loaded modules by name, in order to prevent collisions, we need to make sure that:
             #  - Files with the same name, but located in different directories, have a different module names. Hence the file path hash in the module name.
             #  - The same file, loaded by different tax and benefit systems, has distinct module names. Hence the `id(self)` in the module name.
-            module_name = '{}_{}_{}'.format(id(self), hash(os.path.abspath(file_path)), file_name)
+            module_name = f'{id(self)}_{hash(os.path.abspath(file_path))}_{file_name}'
 
             module_directory = os.path.dirname(file_path)
             try:
@@ -202,7 +202,7 @@ class TaxBenefitSystem:
                 if inspect.isclass(pot_variable) and issubclass(pot_variable, Variable) and pot_variable.__module__ == module_name:
                     self.add_variable(pot_variable)
         except Exception:
-            log.error('Unable to load OpenFisca variables from file "{}"'.format(file_path))
+            log.error(f'Unable to load OpenFisca variables from file "{file_path}"')
             raise
 
     def add_variables_from_directory(self, directory):
@@ -238,7 +238,7 @@ class TaxBenefitSystem:
             extension_directory = package.__path__[0]
         except ImportError:
             message = os.linesep.join([traceback.format_exc(),
-                                    'Error loading extension: `{}` is neither a directory, nor a package.'.format(extension),
+                                    f'Error loading extension: `{extension}` is neither a directory, nor a package.',
                                     'Are you sure it is installed in your environment? If so, look at the stack trace above to determine the origin of this error.',
                                     'See more at <https://github.com/openfisca/openfisca-extension-template#installing>.'])
             raise ValueError(message)
@@ -268,19 +268,19 @@ class TaxBenefitSystem:
         try:
             reform_package, reform_name = reform_path.rsplit('.', 1)
         except ValueError:
-            raise ValueError('`{}` does not seem to be a path pointing to a reform. A path looks like `some_country_package.reforms.some_reform.`'.format(reform_path))
+            raise ValueError(f'`{reform_path}` does not seem to be a path pointing to a reform. A path looks like `some_country_package.reforms.some_reform.`')
         try:
             reform_module = importlib.import_module(reform_package)
         except ImportError:
             message = os.linesep.join([traceback.format_exc(),
-                                    'Could not import `{}`.'.format(reform_package),
+                                    f'Could not import `{reform_package}`.',
                                     'Are you sure of this reform module name? If so, look at the stack trace above to determine the origin of this error.'])
             raise ValueError(message)
         reform = getattr(reform_module, reform_name, None)
         if reform is None:
-            raise ValueError('{} has no attribute {}'.format(reform_package, reform_name))
+            raise ValueError(f'{reform_package} has no attribute {reform_name}')
         if not issubclass(reform, Reform):
-            raise ValueError('`{}` does not seem to be a valid Openfisca reform.'.format(reform_path))
+            raise ValueError(f'`{reform_path}` does not seem to be a valid Openfisca reform.')
 
         return reform(self)
 
@@ -347,7 +347,7 @@ class TaxBenefitSystem:
         elif isinstance(instant, (str, int)):
             instant = periods.instant(instant)
         else:
-            assert isinstance(instant, Instant), "Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {}.".format(instant)
+            assert isinstance(instant, Instant), f"Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {instant}."
 
         parameters_at_instant = self._parameters_at_instant_cache.get(instant)
         if parameters_at_instant is None and self.parameters is not None:
