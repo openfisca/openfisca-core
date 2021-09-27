@@ -41,5 +41,5 @@ def _get_person_count(input_dict):
             return 1
 
         return len(first_value)
-    except Exception:
+    except (StopIteration, TypeError):
         return 1
