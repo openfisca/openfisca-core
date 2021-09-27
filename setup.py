@@ -33,6 +33,7 @@ dev_requirements = [
     'openfisca-extension-template >= 1.2.0rc0, < 2.0.0',
     'pylint == 2.10.2',
     'pytest-cov >= 2.6.1, < 3.0.0',
+    'pyupgrade == 2.28.0',
     ] + api_requirements
 
 setup(
