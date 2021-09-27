@@ -21,6 +21,7 @@ jobs:
           name: Install dependencies
           command: |
             make install
+            make clean
             # pip install --editable git+https://github.com/openfisca/country-template.git@BRANCH_NAME#egg=OpenFisca-Country-Template  # use a specific branch of OpenFisca-Country-Template
             # pip install --editable git+https://github.com/openfisca/extension-template.git@BRANCH_NAME#egg=OpenFisca-Extension-Template  # use a specific branch of OpenFisca-Extension-Template
 
@@ -30,8 +31,12 @@ jobs:
             - /tmp/venv/openfisca_core
 
       - run:
-          name: Run Core tests
-          command: env PYTEST_ADDOPTS="--exitfirst" make test
+          name: Run linters
+          command: make lint
+
+      - run:
+          name: Run openfisca-core tests
+          command: make test-core pytest_args="--exitfirst"
 
       - run:
           name: Check NumPy typing against latest 3 minor versions
