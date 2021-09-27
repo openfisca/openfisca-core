@@ -179,8 +179,8 @@ class Variable:
         if end:
             try:
                 return datetime.datetime.strptime(end, '%Y-%m-%d').date()
-            except ValueError:
-                raise ValueError(f"Incorrect 'end' attribute format in '{self.name}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {end}")
+            except ValueError as e:
+                raise ValueError(f"Incorrect 'end' attribute format in '{self.name}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {end}") from e
 
     def set_reference(self, reference):
         if reference:
@@ -347,32 +347,32 @@ class Variable:
         if self.value_type == Enum and isinstance(value, str):
             try:
                 value = self.possible_values[value].index
-            except KeyError:
+            except KeyError as e:
                 possible_values = [item.name for item in self.possible_values]
                 raise ValueError(
                     "'{}' is not a known value for '{}'. Possible values are ['{}'].".format(
                         value, self.name, "', '".join(possible_values))
-                    )
+                    ) from e
         if self.value_type in (float, int) and isinstance(value, str):
             try:
                 value = tools.eval_expression(value)
-            except SyntaxError:
+            except SyntaxError as e:
                 raise ValueError(
                     "I couldn't understand '{}' as a value for '{}'".format(
                         value, self.name)
-                    )
+                    ) from e
 
         try:
             value = numpy.array([value], dtype = self.dtype)[0]
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as e:
             if (self.value_type == datetime.date):
                 error_message = f"Can't deal with date: '{value}'."
             else:
                 error_message = f"Can't deal with value: expected type {self.json_type}, received '{value}'."
-            raise ValueError(error_message)
-        except (OverflowError):
+            raise ValueError(error_message) from e
+        except (OverflowError) as e:
             error_message = f"Can't deal with value: '{value}', it's too large for type '{self.json_type}'."
-            raise ValueError(error_message)
+            raise ValueError(error_message) from e
 
         return value
 

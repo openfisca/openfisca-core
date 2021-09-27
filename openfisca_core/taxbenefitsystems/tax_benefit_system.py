@@ -237,12 +237,12 @@ class TaxBenefitSystem:
         try:
             package = importlib.import_module(extension)
             extension_directory = package.__path__[0]
-        except ImportError:
+        except ImportError as e:
             message = os.linesep.join([traceback.format_exc(),
                                     f'Error loading extension: `{extension}` is neither a directory, nor a package.',
                                     'Are you sure it is installed in your environment? If so, look at the stack trace above to determine the origin of this error.',
                                     'See more at <https://github.com/openfisca/openfisca-extension-template#installing>.'])
-            raise ValueError(message)
+            raise ValueError(message) from e
 
         self.add_variables_from_directory(extension_directory)
         param_dir = os.path.join(extension_directory, 'parameters')
@@ -268,15 +268,15 @@ class TaxBenefitSystem:
         from openfisca_core.reforms import Reform
         try:
             reform_package, reform_name = reform_path.rsplit('.', 1)
-        except ValueError:
-            raise ValueError(f'`{reform_path}` does not seem to be a path pointing to a reform. A path looks like `some_country_package.reforms.some_reform.`')
+        except ValueError as e:
+            raise ValueError(f'`{reform_path}` does not seem to be a path pointing to a reform. A path looks like `some_country_package.reforms.some_reform.`') from e
         try:
             reform_module = importlib.import_module(reform_package)
-        except ImportError:
+        except ImportError as e:
             message = os.linesep.join([traceback.format_exc(),
                                     f'Could not import `{reform_package}`.',
                                     'Are you sure of this reform module name? If so, look at the stack trace above to determine the origin of this error.'])
-            raise ValueError(message)
+            raise ValueError(message) from e
         reform = getattr(reform_module, reform_name, None)
         if reform is None:
             raise ValueError(f'{reform_package} has no attribute {reform_name}')

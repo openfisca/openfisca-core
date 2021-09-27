@@ -189,10 +189,10 @@ class Holder:
         if value.dtype != self.variable.dtype:
             try:
                 value = value.astype(self.variable.dtype)
-            except ValueError:
+            except ValueError as e:
                 raise ValueError(
                     'Unable to set value "{}" for variable "{}", as the variable dtype "{}" does not match the value dtype "{}".'
-                    .format(value, self.variable.name, self.variable.dtype, value.dtype))
+                    .format(value, self.variable.name, self.variable.dtype, value.dtype)) from e
         return value
 
     def _set(self, period, value):

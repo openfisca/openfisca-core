@@ -42,20 +42,20 @@ def _load_yaml_file(file_path):
     with open(file_path) as f:
         try:
             return config.yaml.load(f, Loader = config.Loader)
-        except (config.yaml.scanner.ScannerError, config.yaml.parser.ParserError):
+        except (config.yaml.scanner.ScannerError, config.yaml.parser.ParserError) as e:
             stack_trace = traceback.format_exc()
             raise ParameterParsingError(
                 "Invalid YAML. Check the traceback above for more details.",
                 file_path,
                 stack_trace
-                )
-        except Exception:
+                ) from e
+        except Exception as e:
             stack_trace = traceback.format_exc()
             raise ParameterParsingError(
                 "Invalid parameter file content. Check the traceback above for more details.",
                 file_path,
                 stack_trace
-                )
+                ) from e
 
 
 def _parse_child(child_name, child, child_path):

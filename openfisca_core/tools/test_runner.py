@@ -86,12 +86,12 @@ class YamlFile(pytest.File):
     def collect(self):
         try:
             tests = yaml.load(self.fspath.open(), Loader = Loader)
-        except (yaml.scanner.ScannerError, yaml.parser.ParserError, TypeError):
+        except (yaml.scanner.ScannerError, yaml.parser.ParserError, TypeError) as e:
             message = os.linesep.join([
                 traceback.format_exc(),
                 f"'{self.fspath}' is not a valid YAML file. Check the stack trace above for more details.",
                 ])
-            raise ValueError(message)
+            raise ValueError(message) from e
 
         if not isinstance(tests, list):
             tests: List[Dict] = [tests]

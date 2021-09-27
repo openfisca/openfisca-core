@@ -357,9 +357,9 @@ class SimulationBuilder:
             try:
                 entity.check_variable_defined_for_entity(variable_name)
             except ValueError as e:  # The variable is defined for another entity
-                raise SituationParsingError(path_in_json, e.args[0])
+                raise SituationParsingError(path_in_json, e.args[0]) from e
             except VariableNotFoundError as e:  # The variable doesn't exist
-                raise SituationParsingError(path_in_json, str(e), code = 404)
+                raise SituationParsingError(path_in_json, str(e), code = 404) from e
 
             instance_index = self.get_ids(entity.plural).index(instance_id)
 
@@ -373,7 +373,7 @@ class SimulationBuilder:
                 try:
                     periods.period(period_str)
                 except ValueError as e:
-                    raise SituationParsingError(path_in_json, e.args[0])
+                    raise SituationParsingError(path_in_json, e.args[0]) from e
                 variable = entity.get_variable(variable_name)
                 self.add_variable_value(entity, variable, instance_index, instance_id, period_str, value)
 
@@ -392,7 +392,7 @@ class SimulationBuilder:
         try:
             value = variable.check_set_value(value)
         except ValueError as error:
-            raise SituationParsingError(path_in_json, *error.args)
+            raise SituationParsingError(path_in_json, *error.args) from error
 
         array[instance_index] = value
 

@@ -42,11 +42,11 @@ class ParameterAtInstant:
         helpers._validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
         try:
             value = data['value']
-        except KeyError:
+        except KeyError as e:
             raise ParameterParsingError(
                 f"Missing 'value' property for {self.name}",
                 self.file_path
-                )
+                ) from e
         if not isinstance(value, config.ALLOWED_PARAM_TYPES):
             raise ParameterParsingError(
                 f"Value in {self.name} has type {type(value)}, which is not one of the allowed types ({config.ALLOWED_PARAM_TYPES}): {value}",
