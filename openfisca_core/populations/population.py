@@ -125,8 +125,8 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         group_population = self.simulation.get_population(role.entity.plural)
         if role.subroles:
             return numpy.logical_or.reduce([group_population.members_role == subrole for subrole in role.subroles])
-        else:
-            return group_population.members_role == role
+
+        return group_population.members_role == role
 
     @projectors.projectable
     def value_from_partner(self, array, entity, role):

@@ -18,8 +18,8 @@ def get_value(date, values):
 
     if candidates:
         return candidates[0][1]
-    else:
-        return None
+
+    return None
 
 
 def build_api_scale(scale, value_key_name):

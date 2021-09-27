@@ -97,8 +97,8 @@ class cotisation(Variable):
     def formula(person, period):
         if period.start.month == 12:
             return 2 * person('cotisation', period.last_month)
-        else:
-            return person.empty_array() + 1
+
+        return person.empty_array() + 1
 
 
 @pytest.fixture(scope = "module", autouse = True)

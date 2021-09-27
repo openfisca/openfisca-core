@@ -187,7 +187,8 @@ class Simulation:
         if period.unit == periods.MONTH:
             computation_period = period.this_year
             return self.calculate(variable_name, period = computation_period) / 12.
-        elif period.unit == periods.YEAR:
+
+        if period.unit == periods.YEAR:
             return self.calculate(variable_name, period)
 
         raise ValueError("Unable to divide the value of '{}' to match period {}.".format(

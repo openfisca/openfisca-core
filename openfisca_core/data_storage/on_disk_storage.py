@@ -23,8 +23,8 @@ class OnDiskStorage:
         enum = self._enums.get(file)
         if enum is not None:
             return EnumArray(numpy.load(file), enum)
-        else:
-            return numpy.load(file)
+
+        return numpy.load(file)
 
     def get(self, period):
         if self.is_eternal:

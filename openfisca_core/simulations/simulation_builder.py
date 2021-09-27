@@ -51,8 +51,8 @@ class SimulationBuilder:
         input_dict = self.explicit_singular_entities(tax_benefit_system, input_dict)
         if any(key in tax_benefit_system.entities_plural() for key in input_dict.keys()):
             return self.build_from_entities(tax_benefit_system, input_dict)
-        else:
-            return self.build_from_variables(tax_benefit_system, input_dict)
+
+        return self.build_from_variables(tax_benefit_system, input_dict)
 
     def build_from_entities(self, tax_benefit_system, input_dict):
         """

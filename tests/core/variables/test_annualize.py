@@ -36,8 +36,8 @@ class PopulationMock:
     def __call__(self, variable_name, period):
         if period.start.month == 1:
             return np.asarray([100])
-        else:
-            return self.variable.get_formula(period)(self, period, None)
+
+        return self.variable.get_formula(period)(self, period, None)
 
 
 def test_without_annualize(monthly_variable):

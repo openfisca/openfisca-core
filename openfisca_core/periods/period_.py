@@ -66,9 +66,10 @@ class Period(tuple):
             if month == 1:
                 # civil year starting from january
                 return str(year)
-            else:
-                # rolling year
-                return f'{config.YEAR}:{year}-{month:02d}'
+
+            # rolling year
+            return f'{config.YEAR}:{year}-{month:02d}'
+
         # simple month
         if unit == config.MONTH and size == 1:
             return f'{year}-{month:02d}'
@@ -79,8 +80,8 @@ class Period(tuple):
         if unit == config.DAY:
             if size == 1:
                 return f'{year}-{month:02d}-{day:02d}'
-            else:
-                return f'{unit}:{year}-{month:02d}-{day:02d}:{size}'
+
+            return f'{unit}:{year}-{month:02d}-{day:02d}:{size}'
 
         # complex period
         return f'{unit}:{year}-{month:02d}:{size}'

@@ -418,13 +418,13 @@ class TaxBenefitSystem:
         """
         if not entity:
             return self.variables
-        else:
-            return {
-                variable_name: variable
-                for variable_name, variable in self.variables.items()
-                # TODO - because entities are copied (see constructor) they can't be compared
-                if variable.entity.key == entity.key
-                }
+
+        return {
+            variable_name: variable
+            for variable_name, variable in self.variables.items()
+            # TODO - because entities are copied (see constructor) they can't be compared
+            if variable.entity.key == entity.key
+            }
 
     def clone(self):
         new = commons.empty_clone(self)

@@ -81,10 +81,9 @@ class MarginalRateTaxScale(RateTaxScaleLike):
         if round_base_decimals is None:
             return numpy.dot(self.rates, a.T)
 
-        else:
-            r = numpy.tile(self.rates, (len(tax_base), 1))
-            b = numpy.round_(a, round_base_decimals)
-            return numpy.round_(r * b, round_base_decimals).sum(axis = 1)
+        r = numpy.tile(self.rates, (len(tax_base), 1))
+        b = numpy.round_(a, round_base_decimals)
+        return numpy.round_(r * b, round_base_decimals).sum(axis = 1)
 
     def combine_bracket(
             self,

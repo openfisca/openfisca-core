@@ -28,8 +28,8 @@ class Projector:
         transformed_result = self.transform(result)
         if self.parent is None:
             return transformed_result
-        else:
-            return self.parent.transform_and_bubble_up(transformed_result)
+
+        return self.parent.transform_and_bubble_up(transformed_result)
 
     def transform(self, result):
         return NotImplementedError()

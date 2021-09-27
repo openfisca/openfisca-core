@@ -52,8 +52,8 @@ class ParameterScale(AtInstantLike):
     def __getitem__(self, key):
         if isinstance(key, int) and key < len(self.brackets):
             return self.brackets[key]
-        else:
-            raise KeyError(key)
+
+        raise KeyError(key)
 
     def __repr__(self):
         return os.linesep.join(
@@ -84,7 +84,8 @@ class ParameterScale(AtInstantLike):
                     threshold = bracket.threshold
                     scale.add_bracket(threshold, amount)
             return scale
-        elif any('amount' in bracket._children for bracket in brackets):
+
+        if any('amount' in bracket._children for bracket in brackets):
             scale = MarginalAmountTaxScale()
             for bracket in brackets:
                 if 'amount' in bracket._children and 'threshold' in bracket._children:
@@ -92,7 +93,8 @@ class ParameterScale(AtInstantLike):
                     threshold = bracket.threshold
                     scale.add_bracket(threshold, amount)
             return scale
-        elif any('average_rate' in bracket._children for bracket in brackets):
+
+        if any('average_rate' in bracket._children for bracket in brackets):
             scale = LinearAverageRateTaxScale()
 
             for bracket in brackets:
@@ -105,16 +107,16 @@ class ParameterScale(AtInstantLike):
                     threshold = bracket.threshold
                     scale.add_bracket(threshold, average_rate * base)
             return scale
-        else:
-            scale = MarginalRateTaxScale()
 
-            for bracket in brackets:
-                if 'base' in bracket._children:
-                    base = bracket.base
-                else:
-                    base = 1.
-                if 'rate' in bracket._children and 'threshold' in bracket._children:
-                    rate = bracket.rate
-                    threshold = bracket.threshold
-                    scale.add_bracket(threshold, rate * base)
-            return scale
+        scale = MarginalRateTaxScale()
+
+        for bracket in brackets:
+            if 'base' in bracket._children:
+                base = bracket.base
+            else:
+                base = 1.
+            if 'rate' in bracket._children and 'threshold' in bracket._children:
+                rate = bracket.rate
+                threshold = bracket.threshold
+                scale.add_bracket(threshold, rate * base)
+        return scale

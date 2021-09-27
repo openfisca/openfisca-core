@@ -11,8 +11,8 @@ from openfisca_core.parameters import config
 def contains_nan(vector):
     if numpy.issubdtype(vector.dtype, numpy.record):
         return any([contains_nan(vector[name]) for name in vector.dtype.names])
-    else:
-        return numpy.isnan(vector).any()
+
+    return numpy.isnan(vector).any()
 
 
 def load_parameter_file(file_path, name = ''):
@@ -61,12 +61,14 @@ def _load_yaml_file(file_path):
 def _parse_child(child_name, child, child_path):
     if 'values' in child:
         return parameters.Parameter(child_name, child, child_path)
-    elif 'brackets' in child:
+
+    if 'brackets' in child:
         return parameters.ParameterScale(child_name, child, child_path)
-    elif isinstance(child, dict) and all([periods.INSTANT_PATTERN.match(str(key)) for key in child.keys()]):
+
+    if isinstance(child, dict) and all([periods.INSTANT_PATTERN.match(str(key)) for key in child.keys()]):
         return parameters.Parameter(child_name, child, child_path)
-    else:
-        return parameters.ParameterNode(child_name, data = child, file_path = child_path)
+
+    return parameters.ParameterNode(child_name, data = child, file_path = child_path)
 
 
 def _set_backward_compatibility_metadata(parameter, data):

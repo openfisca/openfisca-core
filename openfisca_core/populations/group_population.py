@@ -106,8 +106,8 @@ class GroupPopulation(Population):
                 self.members_entity_id[role_filter],
                 weights = array[role_filter],
                 minlength = self.count)
-        else:
-            return numpy.bincount(self.members_entity_id, weights = array)
+
+        return numpy.bincount(self.members_entity_id, weights = array)
 
     @projectors.projectable
     def any(self, array, role = None):
@@ -213,8 +213,8 @@ class GroupPopulation(Population):
             else:
                 role_condition = self.members_role == role
             return self.sum(role_condition)
-        else:
-            return numpy.bincount(self.members_entity_id)
+
+        return numpy.bincount(self.members_entity_id)
 
     # Projection person -> entity
 
@@ -280,6 +280,6 @@ class GroupPopulation(Population):
         self.entity.check_role_validity(role)
         if role is None:
             return array[self.members_entity_id]
-        else:
-            role_condition = self.members.has_role(role)
-            return numpy.where(role_condition, array[self.members_entity_id], 0)
+
+        role_condition = self.members.has_role(role)
+        return numpy.where(role_condition, array[self.members_entity_id], 0)

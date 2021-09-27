@@ -83,26 +83,26 @@ def get_entity_json_schema(entity, tax_benefit_system):
                 },
             'additionalProperties': False,
             }
-    else:
-        properties = {}
-        properties.update({
-            role.plural or role.key: {
-                'type': 'array',
-                "items": {
-                    "type": "string"
-                    }
+
+    properties = {}
+    properties.update({
+        role.plural or role.key: {
+            'type': 'array',
+            "items": {
+                "type": "string"
                 }
-            for role in entity.roles
-            })
-        properties.update({
-            variable_name: get_variable_json_schema(variable)
-            for variable_name, variable in tax_benefit_system.get_variables(entity).items()
-            })
-        return {
-            'type': 'object',
-            'properties': properties,
-            'additionalProperties': False,
             }
+        for role in entity.roles
+        })
+    properties.update({
+        variable_name: get_variable_json_schema(variable)
+        for variable_name, variable in tax_benefit_system.get_variables(entity).items()
+        })
+    return {
+        'type': 'object',
+        'properties': properties,
+        'additionalProperties': False,
+        }
 
 
 def get_situation_json_schema(tax_benefit_system):
