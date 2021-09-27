@@ -104,7 +104,7 @@ def test_variable_with_reference(make_simulation, isolated_tax_benefit_system):
     class disposable_income(Variable):
         definition_period = periods.MONTH
 
-        def formula(household, period):
+        def formula(household, _period):
             return household.empty_array()
 
     isolated_tax_benefit_system.update_variable(disposable_income)
@@ -121,7 +121,7 @@ def test_variable_name_conflict(tax_benefit_system):
         reference = "disposable_income"
         definition_period = periods.MONTH
 
-        def formula(household, period):
+        def formula(household, _period):
             return household.empty_array()
 
     with pytest.raises(VariableNameConflictError):
