@@ -208,7 +208,7 @@ class YamlItem(pytest.Item):
             for requested_period, expected_value_at_period in expected_value.items():
                 self.check_variable(variable_name, expected_value_at_period, requested_period, entity_index)
 
-        return None
+            return None
 
         actual_value = self.simulation.calculate(variable_name, period)
 
