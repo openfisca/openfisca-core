@@ -1,10 +1,19 @@
 # flake8: noqa T001
 
-import os
 import fnmatch
+import os
 import sys
+import warnings
 
-from bs4 import BeautifulSoup
+try:
+    from bs4 import BeautifulSoup
+
+except ImportError:
+    message = [
+        "You tried to use the 'bs4' package, or it is not currently",
+        "installed. Try running `pip install --user bs4`.",
+        ]
+    warnings.warn(" ".join(message), UserWarning)
 
 
 def find_param_files(input_dir):

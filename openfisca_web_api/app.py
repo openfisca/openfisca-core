@@ -12,11 +12,13 @@ try:
     from flask_cors import CORS
     from werkzeug.middleware.proxy_fix import ProxyFix
     import werkzeug.exceptions
+
 except ImportError as error:
     handle_import_error(error)
 
 try:
     from openfisca_tracker.piwik import PiwikTracker
+
 except ImportError:
     ...
 

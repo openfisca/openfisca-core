@@ -1,11 +1,20 @@
 # flake8: noqa T001
 
 import argparse
-import os
 import glob
+import os
+import warnings
 
-from ruamel.yaml import YAML
-from ruamel.yaml.comments import CommentedSeq
+try:
+    from ruamel.yaml import YAML
+    from ruamel.yaml.comments import CommentedSeq
+
+except ImportError:
+    message = [
+        "You tried to use the 'ruamel' package, or it is not",
+        "currently installed. Try running `pip install --user ruamel`.",
+        ]
+    warnings.warn(" ".join(message), UserWarning)
 
 from openfisca_core.scripts import add_tax_benefit_system_arguments, build_tax_benefit_system
 

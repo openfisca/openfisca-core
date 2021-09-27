@@ -1,10 +1,20 @@
 # flake8: noqa T001
 
 import timeit
+import warnings
 
 import numpy as np
 
-from openfisca_france import CountryTaxBenefitSystem
+try:
+    from openfisca_france import CountryTaxBenefitSystem
+
+except ImportError:
+    message = [
+        "You tried to use the 'openfisca_france' package, or it is not",
+        "currently installed. Try running",
+        "`pip install --user openfisca_france`.",
+        ]
+    warnings.warn(" ".join(message), UserWarning)
 
 from openfisca_core.model_api import *  # noqa analysis:ignore
 
