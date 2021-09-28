@@ -17,7 +17,6 @@ import time
 
 import numpy as np
 
-
 args = None
 
 
@@ -125,10 +124,13 @@ def main():
     parser.add_argument('--array-length', default = 1000, type = int, help = "length of the array")
     parser.add_argument('--calculate-time', default = 0.1, type = float,
         help = "time taken by the calculation in seconds")
-    global args
+
     args = parser.parse_args()
 
-    print(args)
+    sys.stdout.write(f"{args}\n")
+
+    sys.modules[__name__].__setattr__("args", args)
+
     test_all_notations()
 
 

@@ -18,7 +18,6 @@ from openfisca_core.variables import Variable
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_core.tools import assert_near
 
-
 args = None
 
 
@@ -203,8 +202,10 @@ def check_revenu_disponible(year, city_code, expected_revenu_disponible):
 def main():
     parser = argparse.ArgumentParser(description = __doc__)
     parser.add_argument('-v', '--verbose', action = 'store_true', default = False, help = "increase output verbosity")
-    global args
+
     args = parser.parse_args()
+    sys.modules[__name__].__setattr__("args", args)
+
     logging.basicConfig(level = logging.DEBUG if args.verbose else logging.WARNING, stream = sys.stdout)
 
     check_revenu_disponible(2009, '75101', np.array([0, 0, 25200, 0, 50400, 0]))
