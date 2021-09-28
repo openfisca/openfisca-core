@@ -5,5 +5,3 @@ class ValuesHistory(Parameter):
     """
     Only for backward compatibility.
     """
-
-    pass
