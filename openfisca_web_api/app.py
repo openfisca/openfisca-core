@@ -1,6 +1,7 @@
 import logging
 import os
 import traceback
+import warnings
 
 from openfisca_core.errors import SituationParsingError, PeriodMismatchError
 from openfisca_web_api.loader import build_data
@@ -39,7 +40,7 @@ def init_tracker(url, idsite, tracker_token):
         message = os.linesep.join([traceback.format_exc(),
                                 'You chose to activate the `tracker` module, but it is not installed.',
                                 'For more information, see <https://github.com/openfisca/openfisca-core#tracker-installation>.'])
-        log.warn(message)
+        warnings.warn(message, UserWarning)
 
     return None
 
