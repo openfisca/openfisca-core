@@ -227,7 +227,7 @@ position_code = list(zip(index_code, index_code_end))
 
 to_remove = []
 for i in range(len(lines_5) - 1):
-    if (list_value[i] is not None) and (list_value[i + 1] is not None) and (list_value[i] == list_value[i + 1]):
+    if list_value[i] is not None and list_value[i + 1] is not None and list_value[i] == list_value[i + 1]:
         to_remove.append(i)
 
 to_remove_set = set(to_remove)

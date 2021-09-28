@@ -17,7 +17,7 @@ class MarginalRateTaxScale(RateTaxScaleLike):
 
     def add_tax_scale(self, tax_scale: RateTaxScaleLike) -> None:
         # So as not to have problems with empty scales
-        if (len(tax_scale.thresholds) > 0):
+        if len(tax_scale.thresholds) > 0:
             for threshold_low, threshold_high, rate in zip(
                     tax_scale.thresholds[:-1],
                     tax_scale.thresholds[1:],

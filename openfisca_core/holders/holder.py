@@ -202,7 +202,7 @@ class Holder:
         if self.variable.definition_period != periods.ETERNITY:
             if period is None:
                 raise ValueError('A period must be specified to set values, except for variables with periods.ETERNITY as as period_definition.')
-            if (self.variable.definition_period != period.unit or period.size > 1):
+            if self.variable.definition_period != period.unit or period.size > 1:
                 name = self.variable.name
                 period_size_adj = f'{period.unit}' if (period.size == 1) else f'{period.size}-{period.unit}s'
                 error_message = os.linesep.join([

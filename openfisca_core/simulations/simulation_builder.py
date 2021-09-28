@@ -425,7 +425,7 @@ class SimulationBuilder:
                 variable = holder.variable
                 # TODO - this duplicates the check in Simulation.set_input, but
                 # fixing that requires improving Simulation's handling of entities
-                if (variable.end is None) or (period_value.start.date <= variable.end):
+                if variable.end is None or period_value.start.date <= variable.end:
                     holder.set_input(period_value, array)
 
     @staticmethod

@@ -408,7 +408,7 @@ class Simulation:
         """
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
         period = periods.period(period)
-        if ((variable.end is not None) and (period.start.date > variable.end)):
+        if variable.end is not None and period.start.date > variable.end:
             return
         self.get_holder(variable_name).set_input(period, value)
 

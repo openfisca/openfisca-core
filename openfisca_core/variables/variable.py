@@ -371,7 +371,7 @@ class Variable:
         try:
             value = numpy.array([value], dtype = self.dtype)[0]
         except (TypeError, ValueError) as e:
-            if (self.value_type == datetime.date):
+            if self.value_type == datetime.date:
                 error_message = f"Can't deal with date: '{value}'."
             else:
                 error_message = f"Can't deal with value: expected type {self.json_type}, received '{value}'."

@@ -62,7 +62,7 @@ class Period(tuple):
         year, month, day = start_instant
 
         # 1 year long period
-        if (unit == config.MONTH and size == 12 or unit == config.YEAR and size == 1):
+        if unit == config.MONTH and size == 12 or unit == config.YEAR and size == 1:
             if month == 1:
                 # civil year starting from january
                 return str(year)
@@ -348,9 +348,9 @@ class Period(tuple):
         >>> period('year', '2012', 1).size_in_months
         12
         """
-        if (self[0] == config.MONTH):
+        if self[0] == config.MONTH:
             return self[2]
-        if(self[0] == config.YEAR):
+        if self[0] == config.YEAR:
             return self[2] * 12
         raise ValueError(f"Cannot calculate number of months in {self[0]}")
 
