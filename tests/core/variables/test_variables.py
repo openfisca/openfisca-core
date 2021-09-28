@@ -269,7 +269,7 @@ tax_benefit_system.add_variable(no_end_attribute__formulas__start_formats)
 
 def test_formulas_attributes_dated_formulas():
     formulas = tax_benefit_system.variables['no_end_attribute__formulas__start_formats'].formulas
-    assert(len(formulas) == 2)
+    assert len(formulas) == 2
     assert formulas['2000-01-01'] is not None
     assert formulas['2010-01-01'] is not None
 

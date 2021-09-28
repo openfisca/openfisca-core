@@ -53,7 +53,7 @@ Usage :
     python find_placeholders /dir/to/search
 ''')
 
-    assert(len(sys.argv) == 2)
+    assert len(sys.argv) == 2
     input_dir = sys.argv[1]
 
     param_files = find_param_files(input_dir)

@@ -62,5 +62,5 @@ def test_get_memory_usage(tax_benefit_system):
     simulation = SimulationBuilder().build_from_entities(tax_benefit_system, single)
     simulation.calculate('disposable_income', '2017-01')
     memory_usage = simulation.get_memory_usage(variables = ['salary'])
-    assert(memory_usage['total_nb_bytes'] > 0)
-    assert(len(memory_usage['by_variable']) == 1)
+    assert memory_usage['total_nb_bytes'] > 0
+    assert len(memory_usage['by_variable']) == 1

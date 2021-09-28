@@ -51,7 +51,7 @@ def add_variables_to_cache_blakclist(tax_benefit_system):
 def test_without_cache_opt_out(simulation):
     simulation.calculate('output', period = PERIOD)
     intermediate_cache = simulation.persons.get_holder('intermediate')
-    assert(intermediate_cache.get_array(PERIOD) is not None)
+    assert intermediate_cache.get_array(PERIOD) is not None
 
 
 @pytest.mark.parametrize("simulation", [({'input': 1}, PERIOD)], indirect = True)
@@ -60,11 +60,11 @@ def test_with_cache_opt_out(simulation):
     simulation.opt_out_cache = True
     simulation.calculate('output', period = PERIOD)
     intermediate_cache = simulation.persons.get_holder('intermediate')
-    assert(intermediate_cache.get_array(PERIOD) is None)
+    assert intermediate_cache.get_array(PERIOD) is None
 
 
 @pytest.mark.parametrize("simulation", [({'input': 1}, PERIOD)], indirect = True)
 def test_with_no_blacklist(simulation):
     simulation.calculate('output', period = PERIOD)
     intermediate_cache = simulation.persons.get_holder('intermediate')
-    assert(intermediate_cache.get_array(PERIOD) is not None)
+    assert intermediate_cache.get_array(PERIOD) is not None
