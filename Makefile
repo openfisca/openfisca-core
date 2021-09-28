@@ -1,9 +1,10 @@
-help = sed -n "/^$1/ { x ; p ; } ; s/\#\#/[⚙]/ ; s/\./.../ ; x" ${MAKEFILE_LIST}
+help = sed -n "/^$1/ { x ; p ; } ; s/\#\#/\r[⚙]/ ; s/\./…/ ; x" ${MAKEFILE_LIST}
 list = $(shell git ls-files "*.py" | paste -sd ",")
-set1 = $(shell IFS="," read -a list <<< ${list} ; echo $${list[@]:0:49})
-set2 = $(shell IFS="," read -a list <<< ${list} ; echo $${list[@]:50:99})
-set3 = $(shell IFS="," read -a list <<< ${list} ; echo $${list[@]:100:149})
-set4 = $(shell IFS="," read -a list <<< ${list} ; echo $${list[@]:150:1000})
+size = $(shell IFS="," read -a list <<< ${list} ; echo $$(($${\#list[@]} / 4 + 1)))
+set1 = $(shell IFS="," read -a list <<< ${list} ; echo $${list[@]:0:${size}})
+set2 = $(shell IFS="," read -a list <<< ${list} ; echo $${list[@]:${size}:${size}})
+set3 = $(shell IFS="," read -a list <<< ${list} ; echo $${list[@]:$$((${size} * 2)):${size}})
+set4 = $(shell IFS="," read -a list <<< ${list} ; echo $${list[@]:$$((${size} * 3)):${size}})
 repo = https://github.com/openfisca/openfisca-doc
 branch = $(shell git branch --show-current)
 
@@ -53,7 +54,17 @@ check-style: \
 check-style-%:
 	@$(call help,$(subst $*,%,$@:))
 	@flake8 ${set$*}
-	@pylint --load-plugins pylint_pytest ${set$*}
+	@{ pylint --load-plugins pylint_pytest ${set$*} & } \
+		&& pid=$$! \
+		&& acc="$$(tput setaf 1)♥$$(tput sgr0)" \
+		&& { \
+			while kill -0 $${pid} 2> /dev/null ; \
+			do printf "\r[/] $${acc}"; \
+			sleep 1 ; \
+			acc="$$(tput setaf 2)·$$(tput sgr0)$${acc}" ; \
+			done \
+		}
+	@printf "\033[2K"
 
 ## Run code formatters to correct style errors.
 format-style: $(shell git ls-files "*.py")
