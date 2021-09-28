@@ -11,6 +11,16 @@ branch = $(shell git branch --show-current)
 ## Same as `make test`.
 all: test
 
+## Run openfisca-core tests.
+test: \
+	clean \
+	check-syntax-errors \
+	check-style \
+	check-types \
+	test-code \
+	;
+
+
 ## Install project dependencies.
 install:
 	@$(call help,$@:)
@@ -78,7 +88,7 @@ check-types: openfisca_core openfisca_web_api
 	@mypy $?
 
 ## Run openfisca-core tests.
-test: clean check-syntax-errors check-style check-types
+test-code:
 	@$(call help,$@:)
 	@env PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=openfisca_core" pytest
 

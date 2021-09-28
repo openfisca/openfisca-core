@@ -32,8 +32,8 @@ jobs:
             - /tmp/venv/openfisca_core
 
       - run:
-          name: Run linters & tests
-          command: make test pytest_args="--exitfirst"
+          name: Run checks & tests
+          command: make clean check-syntax-errors check-types test-code pytest_args="--exitfirst"
 
       - run:
           name: Check NumPy typing against latest 3 minor versions
@@ -49,6 +49,32 @@ jobs:
           command: |
             COUNTRY_TEMPLATE_PATH=`python -c "import openfisca_country_template; print(openfisca_country_template.CountryTaxBenefitSystem().get_package_metadata()['location'])"`
             openfisca test $COUNTRY_TEMPLATE_PATH/openfisca_country_template/tests/
+
+  check_style:
+    parallelism: 4
+    docker:
+      - image: python:3.7
+    environment:
+      TERM: xterm-256color  # To colorize output of make tasks.
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          key: v1-py3-{{ .Branch }}-{{ checksum "setup.py" }}
+
+      - run:
+          name: Activate virtualenv
+          command: echo "source /tmp/venv/openfisca_core/bin/activate" >> $BASH_ENV
+
+      - run:
+          name: Run check-style
+          command: |
+            mkdir -p /root/.cache/pylint
+            make clean
+            find . -exec touch {} \;
+            circleci tests glob `git ls-files "*.py"` | circleci tests split > /tmp/tests-to-run
+            make check-style-$CIRCLE_NODE_INDEX set$CIRCLE_NODE_INDEX=$(cat /tmp/tests-to-run)
 
   test_docs:
     docker:
@@ -167,6 +193,9 @@ workflows:
       - run_tests
       - test_docs
       - check_version
+      - check_style:
+          requires:
+            - run_tests
       - submit_coverage:
           requires:
             - run_tests
@@ -175,6 +204,7 @@ workflows:
             - run_tests
             - test_docs
             - check_version
+            - check_style
           filters:
             branches:
               only: master
