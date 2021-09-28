@@ -63,6 +63,9 @@ class Enum(enum.Enum):
         >>> encoded_array[0]
         2  # Encoded value
         """
+
+        kind = cls
+
         if isinstance(array, EnumArray):
             return array
 
@@ -70,8 +73,8 @@ class Enum(enum.Enum):
         if isinstance(array, numpy.ndarray) and \
                 array.dtype.kind in {'U', 'S'}:
             array = numpy.select(
-                [array == item.name for item in cls],
-                [item.index for item in cls],
+                [array == item.name for item in kind],
+                [item.index for item in kind],
                 ).astype(ENUM_ARRAY_DTYPE)
 
         # Enum items arrays
@@ -88,12 +91,12 @@ class Enum(enum.Enum):
             # So, instead of relying on the "cls" passed in, we use only its
             # name to check that the values in the array, if non-empty, are of
             # the right type.
-            if len(array) > 0 and cls.__name__ is array[0].__class__.__name__:
-                cls = array[0].__class__
+            if len(array) > 0 and kind.__name__ is array[0].__class__.__name__:
+                kind = array[0].__class__
 
             array = numpy.select(
-                [array == item for item in cls],
-                [item.index for item in cls],
+                [array == item for item in kind],
+                [item.index for item in kind],
                 ).astype(ENUM_ARRAY_DTYPE)
 
-        return EnumArray(array, cls)
+        return EnumArray(array, kind)
