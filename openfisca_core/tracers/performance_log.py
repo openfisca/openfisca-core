@@ -21,7 +21,7 @@ class PerformanceLog:
         self._full_tracer = full_tracer
 
     def generate_graph(self, dir_path: str) -> None:
-        with open(os.path.join(dir_path, 'performance_graph.html'), 'w') as f:
+        with open(os.path.join(dir_path, 'performance_graph.html'), 'w', encoding = "utf-8") as f:
             template = importlib.resources.read_text(
                 'openfisca_core.scripts.assets',
                 'index.html',
@@ -126,7 +126,7 @@ class PerformanceLog:
     def _write_csv(path: str, rows: typing.List[dict]) -> None:
         fieldnames = list(rows[0].keys())
 
-        with open(path, 'w') as csv_file:
+        with open(path, 'w', encoding = "utf-8") as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames = fieldnames)
             writer.writeheader()
 

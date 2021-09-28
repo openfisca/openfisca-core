@@ -59,14 +59,14 @@ class Migrator:
 
         print(f'Migrating {path}.')
 
-        with open(path) as yaml_file:
+        with open(path, encoding = "utf-8") as yaml_file:
             tests = yaml.safe_load(yaml_file)
         if isinstance(tests, CommentedSeq):
             migrated_tests = [self.convert_test(test) for test in tests]
         else:
             migrated_tests = self.convert_test(tests)
 
-        with open(path, 'w') as yaml_file:
+        with open(path, 'w', encoding = "utf-8") as yaml_file:
             yaml.dump(migrated_tests, yaml_file)
 
     def convert_test(self, test):

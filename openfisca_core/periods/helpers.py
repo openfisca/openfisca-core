@@ -185,7 +185,7 @@ def key_period_size(period):
 
     """
 
-    unit, start, size = period
+    unit, _start, size = period
 
     return f'{unit_weight(unit)}_{size}'
 

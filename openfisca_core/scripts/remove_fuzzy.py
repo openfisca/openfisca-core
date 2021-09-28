@@ -9,7 +9,7 @@ import numpy as np
 assert len(sys.argv) == 2
 filename = sys.argv[1]
 
-with open(filename) as f:
+with open(filename, encoding = "utf-8") as f:
     lines = f.readlines()
 
 
@@ -240,6 +240,6 @@ lines_6 = [
 
 # Write
 
-with open(filename, 'w') as f:
+with open(filename, 'w', encoding = "utf-8") as f:
     for line in lines_6:
         f.write(line)

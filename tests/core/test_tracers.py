@@ -313,7 +313,7 @@ def test_flat_trace_calc_time(tracer_calc_time):
 def test_generate_performance_table(tracer_calc_time, tmpdir):
     tracer = tracer_calc_time
     tracer.generate_performance_tables(tmpdir)
-    with open(os.path.join(tmpdir, 'performance_table.csv')) as csv_file:
+    with open(os.path.join(tmpdir, 'performance_table.csv'), encoding = "utf-8") as csv_file:
         csv_reader = csv.DictReader(csv_file)
         csv_rows = list(csv_reader)
     assert len(csv_rows) == 4
@@ -321,7 +321,7 @@ def test_generate_performance_table(tracer_calc_time, tmpdir):
     assert float(a_row['calculation_time']) == 1000
     assert float(a_row['formula_time']) == 190
 
-    with open(os.path.join(tmpdir, 'aggregated_performance_table.csv')) as csv_file:
+    with open(os.path.join(tmpdir, 'aggregated_performance_table.csv'), encoding = "utf-8") as csv_file:
         aggregated_csv_reader = csv.DictReader(csv_file)
         aggregated_csv_rows = list(aggregated_csv_reader)
     assert len(aggregated_csv_rows) == 3

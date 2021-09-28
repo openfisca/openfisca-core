@@ -364,7 +364,7 @@ class Period(tuple):
         >>> period('year', '2012', 1).size_in_days
         366
         """
-        unit, instant, length = self
+        unit, _instant, length = self
 
         if unit == config.DAY:
             return length

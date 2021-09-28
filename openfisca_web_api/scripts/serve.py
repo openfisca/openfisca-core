@@ -31,7 +31,7 @@ def read_user_configuration(default_configuration, command_line_parser):
 
     if args.configuration_file:
         file_configuration = {}
-        with open(args.configuration_file) as file:
+        with open(args.configuration_file, encoding = "utf-8") as file:
             exec(file.read(), {}, file_configuration)
 
         # Configuration file overloads default configuration

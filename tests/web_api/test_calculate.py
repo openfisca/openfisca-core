@@ -12,7 +12,7 @@ from openfisca_country_template.situation_examples import couple
 def post_json(client, data = None, file = None):
     if file:
         file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets', file)
-        with open(file_path) as f:
+        with open(file_path, encoding = "utf-8") as f:
             data = f.read()
     return client.post('/calculate', data = data, content_type = 'application/json')
 
