@@ -58,10 +58,12 @@ def test_wrong_value(tax_benefit_system):
 
 def test_parameter_repr(tax_benefit_system):
     parameters = tax_benefit_system.parameters
-    tf = tempfile.NamedTemporaryFile(delete = False)
-    tf.write(repr(parameters).encode('utf-8'))
-    tf.close()
+
+    with tempfile.NamedTemporaryFile(delete = False) as tf:
+        tf.write(repr(parameters).encode('utf-8'))
+
     tf_parameters = load_parameter_file(file_path = tf.name)
+
     assert repr(parameters) == repr(tf_parameters)
 
 
