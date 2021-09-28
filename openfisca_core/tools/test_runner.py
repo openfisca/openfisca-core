@@ -71,7 +71,7 @@ def run_tests(tax_benefit_system, paths, options = None):
     if options is None:
         options = {}
 
-    return pytest.main([*argv, *paths] if True else paths, plugins = [OpenFiscaPlugin(tax_benefit_system, options)])
+    return pytest.main([*argv, *paths], plugins = [OpenFiscaPlugin(tax_benefit_system, options)])
 
 
 class YamlFile(pytest.File):
