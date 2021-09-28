@@ -125,7 +125,7 @@ class GroupPopulation(Population):
             >>> array([True])
         """
         sum_in_entity = self.sum(array, role = role)
-        return (sum_in_entity > 0)
+        return sum_in_entity > 0
 
     @projectors.projectable
     def reduce(self, array, reducer, neutral_element, role = None):
