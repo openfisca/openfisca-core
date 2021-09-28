@@ -63,7 +63,7 @@ def build_formulas(formulas, country_package_metadata, source_file_path, tax_ben
 
 
 def build_variable(variable, country_package_metadata, tax_benefit_system):
-    comments, source_file_path, source_code, start_line_number = variable.get_introspection_data(tax_benefit_system)
+    _comments, source_file_path, source_code, start_line_number = variable.get_introspection_data(tax_benefit_system)
     result = {
         'id': variable.name,
         'description': variable.label,

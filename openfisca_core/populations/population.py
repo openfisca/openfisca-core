@@ -50,7 +50,7 @@ class Population:
     def check_period_validity(variable_name, period):
         if period is None:
             stack = traceback.extract_stack()
-            filename, line_number, function_name, line_of_code = stack[-3]
+            filename, line_number, _function_name, line_of_code = stack[-3]
             raise ValueError('''
 You requested computation of variable "{}", but you did not specify on which period in "{}:{}":
     {}

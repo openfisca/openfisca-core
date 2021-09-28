@@ -18,7 +18,7 @@ except ImportError:
 
 def find_param_files(input_dir):
     param_files = []
-    for root, dirnames, filenames in os.walk(input_dir):
+    for root, _dirnames, filenames in os.walk(input_dir):
         for filename in fnmatch.filter(filenames, '*.xml'):
             param_files.append(os.path.join(root, filename))
 
