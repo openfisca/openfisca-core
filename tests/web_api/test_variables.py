@@ -15,10 +15,9 @@ GITHUB_URL_REGEX = r'^https://github\.com/openfisca/country-template/blob/\d+\.\
 # /variables
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope = "module")
 def variables_response(test_client):
-    variables_response = test_client.get("/variables")
-    return variables_response
+    return test_client.get("/variables")
 
 
 def test_return_code(variables_response):
@@ -41,10 +40,9 @@ def test_error_code_non_existing_variable(test_client):
     assert response.status_code == client.NOT_FOUND
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope = "module")
 def input_variable_response(test_client):
-    input_variable_response = test_client.get('/variable/birth')
-    return input_variable_response
+    return test_client.get('/variable/birth')
 
 
 def test_return_code_existing_input_variable(input_variable_response):
@@ -66,12 +64,12 @@ def check_input_variable_value(key, expected_value, input_variable=None):
 def test_input_variable_value(expected_values, input_variable_response):
     input_variable = json.loads(input_variable_response.data.decode('utf-8'))
 
-    check_input_variable_value(*expected_values, input_variable=input_variable)
+    check_input_variable_value(*expected_values, input_variable = input_variable)
 
 
 def test_input_variable_github_url(test_client):
-    input_variable_response = test_client.get('/variable/income_tax')
-    input_variable = json.loads(input_variable_response.data.decode('utf-8'))
+    response = test_client.get('/variable/income_tax')
+    input_variable = json.loads(response.data.decode('utf-8'))
 
     assert re.match(GITHUB_URL_REGEX, input_variable['source'])
 
@@ -139,10 +137,9 @@ def test_variable_with_enum(test_client):
         'tenant': 'Tenant'}
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope = "module")
 def dated_variable_response(test_client):
-    dated_variable_response = test_client.get('/variable/basic_income')
-    return dated_variable_response
+    return test_client.get('/variable/basic_income')
 
 
 def test_return_code_existing_dated_variable(dated_variable_response):

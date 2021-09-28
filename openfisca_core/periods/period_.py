@@ -436,19 +436,13 @@ class Period(tuple):
                 year += size
             day -= 1
             if day < 1:
-                month -= 1
-                if month == 0:
-                    year -= 1
-                    month = 12
-                day += calendar.monthrange(year, month)[1]
+                units = helpers.year_end(year, month, day)
+                year, month, day = units
             else:
                 month_last_day = calendar.monthrange(year, month)[1]
                 if day > month_last_day:
-                    month += 1
-                    if month == 13:
-                        year += 1
-                        month = 1
-                    day -= month_last_day
+                    units = helpers.year_start(year, month, day)
+                    year, month, day, _ = units
         return periods.Instant((year, month, day))
 
     @property

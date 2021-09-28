@@ -9,16 +9,16 @@ import pytest
 from openfisca_country_template.situation_examples import couple
 
 
-def post_json(client, data = None, file = None):
+def post_json(test_client, data = None, file = None):
     if file:
         file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets', file)
         with open(file_path, encoding = "utf-8") as f:
             data = f.read()
-    return client.post('/calculate', data = data, content_type = 'application/json')
+    return test_client.post('/calculate', data = data, content_type = 'application/json')
 
 
-def check_response(client, data, expected_error_code, path_to_check, content_to_check):
-    response = post_json(client, data)
+def check_response(test_client, data, expected_error_code, path_to_check, content_to_check):
+    response = post_json(test_client, data)
     assert response.status_code == expected_error_code
     json_response = json.loads(response.data.decode('utf-8'))
     if path_to_check:

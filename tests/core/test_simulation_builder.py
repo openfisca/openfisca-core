@@ -6,6 +6,7 @@ import pytest
 from openfisca_country_template import entities, situation_examples
 
 from openfisca_core import periods, tools
+from openfisca_core.entities import Entity
 from openfisca_core.errors import SituationParsingError
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.populations import Population
@@ -45,18 +46,20 @@ def date_variable(persons):
 @pytest.fixture
 def enum_variable():
 
+    class MyEnum(Enum):
+        FOO = b"foo"
+        BAR = b"bar"
+
     class TestEnum(Variable):
+        default_value = MyEnum.FOO
         definition_period = periods.ETERNITY
-        value_type = Enum
-        dtype = 'O'
-        default_value = '0'
-        is_neutralized = False
+        entity = Entity("key", "plural", "label", "doc")
+        possible_values = MyEnum
         set_input = None
-        possible_values = Enum('foo', 'bar')
-        name = "enum"
+        value_type = Enum
 
         def __init__(self):
-            pass
+            super().__init__()
 
     return TestEnum()
 

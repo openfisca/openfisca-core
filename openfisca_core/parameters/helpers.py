@@ -40,6 +40,9 @@ def _compose_name(path, child_name = None, item_name = None):
     return None
 
 
+compose_name = _compose_name
+
+
 def _load_yaml_file(file_path):
     with open(file_path, encoding = "utf-8") as f:
         try:
@@ -101,3 +104,6 @@ def _validate_parameter(parameter, data, data_type = None, allowed_keys = None):
                     .format(key, parameter.name, list(allowed_keys)),
                     parameter.file_path
                     )
+
+
+validate_parameter = _validate_parameter

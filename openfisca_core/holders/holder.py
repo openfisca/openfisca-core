@@ -15,6 +15,10 @@ class Holder:
     A holder keeps tracks of a variable values after they have been calculated, or set as an input.
     """
 
+    @property
+    def memory_storage(self):
+        return self._memory_storage
+
     def __init__(self, variable, population):
         self.population = population
         self.variable = variable
@@ -197,6 +201,8 @@ class Holder:
                     .format(value, self.variable.name, self.variable.dtype, value.dtype)) from e
         return value
 
+    to_array = _to_array
+
     def _set(self, period, value):
         value = self._to_array(value)
         if self.variable.definition_period != periods.ETERNITY:
@@ -228,6 +234,8 @@ class Holder:
             self._disk_storage.put(value, period)
         else:
             self._memory_storage.put(value, period)
+
+    set_ = _set
 
     def put_in_cache(self, value, period):
         if self._do_not_store:

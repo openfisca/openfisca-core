@@ -8,7 +8,7 @@ from openfisca_core.taxscales import TaxScaleLike
 if typing.TYPE_CHECKING:
     import numpy
 
-    NumericalArray = typing.Union[numpy.int_, numpy.float_]
+    NumArray = typing.Union[numpy.int_, numpy.float_]
 
 
 class AbstractTaxScale(TaxScaleLike):
@@ -38,11 +38,7 @@ class AbstractTaxScale(TaxScaleLike):
             f"{self.__class__.__name__}",
             )
 
-    def calc(
-            self,
-            tax_base: NumericalArray,
-            right: bool,
-            ) -> typing.NoReturn:
+    def calc(self, tax_base: NumArray, right: bool) -> typing.NoReturn:
         raise NotImplementedError(
             "Method 'calc' is not implemented for "
             f"{self.__class__.__name__}",

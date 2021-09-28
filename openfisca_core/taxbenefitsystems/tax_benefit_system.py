@@ -83,6 +83,9 @@ class TaxBenefitSystem:
     def new_scenario(self):
         class ScenarioAdapter:
             def __init__(self, tax_benefit_system):
+                self.attributes = None
+                self.dict = None
+                self.period = None
                 self.tax_benefit_system = tax_benefit_system
 
             def init_from_attributes(self, **attributes):
@@ -197,7 +200,7 @@ class TaxBenefitSystem:
                 sys.modules[module_name] = module
                 spec.loader.exec_module(module)
             except NameError as e:
-                logging.error(str(e) + ": if this code used to work, this error might be due to a major change in OpenFisca-Core. Checkout the changelog to learn more: <https://github.com/openfisca/openfisca-core/blob/master/CHANGELOG.md>")
+                logging.error(f"{str(e)}: if this code used to work, this error might be due to a major change in OpenFisca-Core. Checkout the changelog to learn more: <https://github.com/openfisca/openfisca-core/blob/master/CHANGELOG.md>")
                 raise
             potential_variables = [getattr(module, item) for item in dir(module) if not item.startswith('__')]
             for pot_variable in potential_variables:
@@ -267,6 +270,8 @@ class TaxBenefitSystem:
         >>> self.apply_reform('openfisca_france.reforms.inversion_revenus')
 
         """
+
+        # TODO: this is a circular import, fix then enable check.
         from openfisca_core.reforms import Reform  # pylint: disable=import-outside-toplevel
         try:
             reform_package, reform_name = reform_path.rsplit('.', 1)
@@ -335,7 +340,9 @@ class TaxBenefitSystem:
         baseline = self.baseline
         if baseline is None:
             return self.get_parameters_at_instant(instant)
-        return baseline._get_baseline_parameters_at_instant(instant)
+        return baseline.get_baseline_parameters_at_instant(instant)
+
+    get_baseline_parameters_at_instant = _get_baseline_parameters_at_instant
 
     def get_parameters_at_instant(self, instant):
         """
@@ -399,7 +406,7 @@ class TaxBenefitSystem:
 
         home_page_metadatas = [
             metadata.split(':', 1)[1].strip(' ')
-            for metadata in distribution._get_metadata(distribution.PKG_INFO) if 'Home-page' in metadata
+            for metadata in distribution._get_metadata(distribution.PKG_INFO) if 'Home-page' in metadata  # pylint: disable=protected-access
             ]
         repository_url = home_page_metadatas[0] if home_page_metadatas else ''
         return {

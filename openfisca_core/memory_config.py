@@ -6,4 +6,4 @@
 # The following are transitional imports to ensure non-breaking changes.
 # Could be deprecated in the next major release.
 
-from openfisca_core.experimental import MemoryConfig  # noqa: F401
+from openfisca_core.experimental import MemoryConfig  # noqa: F401 # pylint: disable=unused-import

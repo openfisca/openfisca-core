@@ -4,6 +4,8 @@ import logging
 import pkgutil
 from os import linesep
 
+from openfisca_core import commons
+
 log = logging.getLogger(__name__)
 
 
@@ -18,15 +20,9 @@ def add_tax_benefit_system_arguments(parser):
 def build_tax_benefit_system(country_package_name, extensions, reforms):
     if country_package_name is None:
         country_package_name = detect_country_package()
-    try:
-        country_package = importlib.import_module(country_package_name)
-    except ImportError as e:
-        message = linesep.join([traceback.format_exc(),
-                                f'Could not import module `{country_package_name}`.',
-                                'Are you sure it is installed in your environment? If so, look at the stack trace above to determine the origin of this error.',
-                                'See more at <https://github.com/openfisca/country-template#installing>.'])
 
-        raise ImportError(message) from e
+    country_package = commons.import_country_package(country_package_name)
+
     if not hasattr(country_package, 'CountryTaxBenefitSystem'):
         raise ImportError(f'`{country_package_name}` does not seem to be a valid Openfisca country package.')
 

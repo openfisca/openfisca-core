@@ -4,11 +4,11 @@ import pytest
 
 from openfisca_country_template.entities import Household, Person
 
-from openfisca_core import periods
-from openfisca_core.model_api import *  # noqa analysis:ignore
+from openfisca_core import holders, periods, simulations, tools
 from openfisca_core.parameters import ValuesHistory, ParameterNode
 from openfisca_core.periods import Instant
-from openfisca_core.tools import assert_near
+from openfisca_core.reforms import Reform
+from openfisca_core.variables import Variable
 
 
 class goes_to_school(Variable):
@@ -16,7 +16,7 @@ class goes_to_school(Variable):
     default_value = True
     entity = Person
     label = "The person goes to school (only relevant for children)"
-    definition_period = MONTH
+    definition_period = periods.MONTH
 
 
 class WithBasicIncomeNeutralized(Reform):
@@ -37,7 +37,7 @@ def test_formula_neutralization(make_simulation, tax_benefit_system):
     simulation.debug = True
 
     basic_income = simulation.calculate('basic_income', period = period)
-    assert_near(basic_income, 600)
+    tools.assert_near(basic_income, 600)
     disposable_income = simulation.calculate('disposable_income', period = period)
     assert disposable_income > 0
 
@@ -45,9 +45,9 @@ def test_formula_neutralization(make_simulation, tax_benefit_system):
     reform_simulation.debug = True
 
     basic_income_reform = reform_simulation.calculate('basic_income', period = '2013-01')
-    assert_near(basic_income_reform, 0, absolute_error_margin = 0)
+    tools.assert_near(basic_income_reform, 0, absolute_error_margin = 0)
     disposable_income_reform = reform_simulation.calculate('disposable_income', period = period)
-    assert_near(disposable_income_reform, 0)
+    tools.assert_near(disposable_income_reform, 0)
 
 
 def test_neutralization_variable_with_default_value(make_simulation, tax_benefit_system):
@@ -61,7 +61,7 @@ def test_neutralization_variable_with_default_value(make_simulation, tax_benefit
     simulation = make_simulation(reform.base_tax_benefit_system, {}, period)
 
     goes_to_school = simulation.calculate('goes_to_school', period)
-    assert_near(goes_to_school, [True], absolute_error_margin = 0)
+    tools.assert_near(goes_to_school, [True], absolute_error_margin = 0)
 
 
 def test_neutralization_optimization(make_simulation, tax_benefit_system):
@@ -95,9 +95,9 @@ def test_input_variable_neutralization(make_simulation, tax_benefit_system):
         reform_simulation = make_simulation(reform, {'salary': [1200, 1000]}, period)
         assert 'You cannot set a value for the variable' in raised_warnings[0].message.args[0]
     salary = reform_simulation.calculate('salary', period)
-    assert_near(salary, [0, 0],)
+    tools.assert_near(salary, [0, 0],)
     disposable_income_reform = reform_simulation.calculate('disposable_income', period = period)
-    assert_near(disposable_income_reform, [600, 600])
+    tools.assert_near(disposable_income_reform, [600, 600])
 
 
 def test_permanent_variable_neutralization(make_simulation, tax_benefit_system):
@@ -217,7 +217,7 @@ def test_add_variable(make_simulation, tax_benefit_system):
         value_type = int
         label = "Nouvelle variable introduite par la réforme"
         entity = Household
-        definition_period = MONTH
+        definition_period = periods.MONTH
 
         def formula(household, _period):
             return household.empty_array() + 10
@@ -233,7 +233,7 @@ def test_add_variable(make_simulation, tax_benefit_system):
     reform_simulation = make_simulation(reform, {}, 2013)
     reform_simulation.debug = True
     new_variable1 = reform_simulation.calculate('new_variable', period = '2013-01')
-    assert_near(new_variable1, 10, absolute_error_margin = 0)
+    tools.assert_near(new_variable1, 10, absolute_error_margin = 0)
 
 
 def test_add_dated_variable(make_simulation, tax_benefit_system):
@@ -241,7 +241,7 @@ def test_add_dated_variable(make_simulation, tax_benefit_system):
         value_type = int
         label = "Nouvelle variable introduite par la réforme"
         entity = Household
-        definition_period = MONTH
+        definition_period = periods.MONTH
 
         def formula_2010_01_01(household, _period):
             return household.empty_array() + 10
@@ -258,13 +258,13 @@ def test_add_dated_variable(make_simulation, tax_benefit_system):
     reform_simulation = make_simulation(reform, {}, '2013-01')
     reform_simulation.debug = True
     new_dated_variable1 = reform_simulation.calculate('new_dated_variable', period = '2013-01')
-    assert_near(new_dated_variable1, 15, absolute_error_margin = 0)
+    tools.assert_near(new_dated_variable1, 15, absolute_error_margin = 0)
 
 
 def test_update_variable(make_simulation, tax_benefit_system):
 
     class disposable_income(Variable):
-        definition_period = MONTH
+        definition_period = periods.MONTH
 
         def formula_2018(household, _period):
             return household.empty_array() + 10
@@ -285,7 +285,7 @@ def test_update_variable(make_simulation, tax_benefit_system):
 
     reform_simulation = make_simulation(reform, {}, 2018)
     disposable_income1 = reform_simulation.calculate('disposable_income', period = '2018-01')
-    assert_near(disposable_income1, 10, absolute_error_margin = 0)
+    tools.assert_near(disposable_income1, 10, absolute_error_margin = 0)
 
     disposable_income2 = reform_simulation.calculate('disposable_income', period = '2017-01')
     # Before 2018, the former formula is used
@@ -295,7 +295,7 @@ def test_update_variable(make_simulation, tax_benefit_system):
 def test_replace_variable(tax_benefit_system):
 
     class disposable_income(Variable):
-        definition_period = MONTH
+        definition_period = periods.MONTH
         entity = Person
         label = "Disposable income"
         value_type = float
@@ -356,9 +356,9 @@ def test_attributes_conservation(tax_benefit_system):
         value_type = int
         entity = Person
         label = "Variable with many attributes"
-        definition_period = MONTH
-        set_input = set_input_divide_by_period
-        calculate_output = calculate_output_add
+        definition_period = periods.MONTH
+        set_input = holders.set_input_divide_by_period
+        calculate_output = simulations.calculate_output_add
 
     tax_benefit_system.add_variable(some_variable)
 

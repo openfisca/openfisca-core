@@ -24,5 +24,6 @@
 from .dummy import Dummy  # noqa: F401
 
 from .formulas import apply_thresholds, concat, switch  # noqa: F401
+from .imports import import_country_package, import_yaml  # noqa: F401
 from .misc import empty_clone, stringify_array  # noqa: F401
 from .rates import average_rate, marginal_rate  # noqa: F401

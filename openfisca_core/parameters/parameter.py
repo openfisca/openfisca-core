@@ -42,7 +42,7 @@ class Parameter(AtInstantLike):
     def __init__(self, name, data, file_path = None):
         self.name: str = name
         self.file_path: str = file_path
-        helpers._validate_parameter(self, data, data_type = dict)
+        helpers.validate_parameter(self, data, data_type = dict)
         self.description: str = None
         self.metadata: typing.Dict = {}
         self.documentation: str = None
@@ -51,13 +51,13 @@ class Parameter(AtInstantLike):
         # Normal parameter declaration: the values are declared under the 'values' key: parse the description and metadata.
         if data.get('values'):
             # 'unit' and 'reference' are only listed here for backward compatibility
-            helpers._validate_parameter(self, data, allowed_keys = config.COMMON_KEYS.union({'values'}))
+            helpers.validate_parameter(self, data, allowed_keys = config.COMMON_KEYS.union({'values'}))
             self.description = data.get('description')
 
             helpers._set_backward_compatibility_metadata(self, data)
             self.metadata.update(data.get('metadata', {}))
 
-            helpers._validate_parameter(self, data['values'], data_type = dict)
+            helpers.validate_parameter(self, data['values'], data_type = dict)
             values = data['values']
 
             self.documentation = data.get('documentation')
@@ -81,7 +81,7 @@ class Parameter(AtInstantLike):
             if instant_info == "expected" or isinstance(instant_info, dict) and instant_info.get("expected"):
                 continue
 
-            value_name = helpers._compose_name(name, item_name = instant_str)
+            value_name = helpers.compose_name(name, item_name = instant_str)
             value_at_instant = ParameterAtInstant(value_name, instant_str, data = instant_info, file_path = self.file_path, metadata = self.metadata)
             values_list.append(value_at_instant)
 
@@ -142,16 +142,16 @@ class Parameter(AtInstantLike):
             else:
                 if i < n:
                     overlapped_value = old_values[i].value
-                    value_name = helpers._compose_name(self.name, item_name = stop_str)
+                    value_name = helpers.compose_name(self.name, item_name = stop_str)
                     new_interval = ParameterAtInstant(value_name, stop_str, data = {'value': overlapped_value})
                     new_values.append(new_interval)
                 else:
-                    value_name = helpers._compose_name(self.name, item_name = stop_str)
+                    value_name = helpers.compose_name(self.name, item_name = stop_str)
                     new_interval = ParameterAtInstant(value_name, stop_str, data = {'value': None})
                     new_values.append(new_interval)
 
         # Insert new interval
-        value_name = helpers._compose_name(self.name, item_name = start_str)
+        value_name = helpers.compose_name(self.name, item_name = start_str)
         new_interval = ParameterAtInstant(value_name, start_str, data = {'value': value})
         new_values.append(new_interval)
 

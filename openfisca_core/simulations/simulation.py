@@ -293,6 +293,8 @@ class Simulation:
             message = f"Quasicircular definition detected on formula {variable}@{period} involving {self.tracer.stack}"
             raise SpiralError(message, variable)
 
+    check_for_cycle = _check_for_cycle
+
     def invalidate_cache_entry(self, variable: str, period):
         self.invalidated_caches.add((variable, period))
 

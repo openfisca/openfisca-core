@@ -28,7 +28,7 @@ def dump_simulation(simulation, directory):
         _dump_entity(entity, entities_dump_dir)
 
         # Dump variable values
-        for holder in entity._holders.values():
+        for holder in entity.holders.values():
             _dump_holder(holder, directory)
 
 

@@ -8,7 +8,7 @@ from openfisca_core.taxscales import RateTaxScaleLike
 if typing.TYPE_CHECKING:
     import numpy
 
-    NumericalArray = typing.Union[numpy.int_, numpy.float_]
+    NumArray = typing.Union[numpy.int_, numpy.float_]
 
 
 class AbstractRateTaxScale(RateTaxScaleLike):
@@ -30,11 +30,7 @@ class AbstractRateTaxScale(RateTaxScaleLike):
         warnings.warn(" ".join(message), DeprecationWarning)
         super().__init__(name, option, unit)
 
-    def calc(
-            self,
-            tax_base: NumericalArray,
-            right: bool,
-            ) -> typing.NoReturn:
+    def calc(self, tax_base: NumArray, right: bool) -> typing.NoReturn:
         raise NotImplementedError(
             "Method 'calc' is not implemented for "
             f"{self.__class__.__name__}",

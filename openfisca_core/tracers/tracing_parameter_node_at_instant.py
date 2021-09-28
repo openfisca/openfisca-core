@@ -49,7 +49,7 @@ class TracingParameterNodeAtInstant:
             child: Child,
             key: Union[str, ArrayLike],
             ) -> Union[TracingParameterNodeAtInstant, Child]:
-        period = self.parameter_node_at_instant._instant_str
+        period = self.parameter_node_at_instant.instant_str
 
         if isinstance(
                 child,
@@ -65,10 +65,10 @@ class TracingParameterNodeAtInstant:
             # In case of vectorization, we keep the parent node name as, for
             # instance, rate[status].zone1 is best described as the value of
             # "rate".
-            name = self.parameter_node_at_instant._name
+            name = self.parameter_node_at_instant.name
 
         else:
-            name = '.'.join([self.parameter_node_at_instant._name, key])
+            name = '.'.join([self.parameter_node_at_instant.name, key])
 
         if isinstance(child, (numpy.ndarray,) + parameters.ALLOWED_PARAM_TYPES):
             self.tracer.record_parameter_access(name, period, child)

@@ -1,4 +1,9 @@
 help = sed -n "/^$1/ { x ; p ; } ; s/\#\#/[⚙]/ ; s/\./.../ ; x" ${MAKEFILE_LIST}
+list = $(shell git ls-files "*.py" | paste -sd ",")
+set1 = $(shell IFS="," read -a list <<< ${list} ; echo $${list[@]:0:49})
+set2 = $(shell IFS="," read -a list <<< ${list} ; echo $${list[@]:50:99})
+set3 = $(shell IFS="," read -a list <<< ${list} ; echo $${list[@]:100:149})
+set4 = $(shell IFS="," read -a list <<< ${list} ; echo $${list[@]:150:1000})
 repo = https://github.com/openfisca/openfisca-doc
 branch = $(shell git branch --show-current)
 
@@ -37,10 +42,18 @@ check-syntax-errors: .
 	@python -m compileall -q $?
 
 ## Run linters to check for syntax and style errors.
-check-style: $(shell git ls-files "*.py")
-	@$(call help,$@:)
-	@flake8 $?
-	@pylint $?
+check-style: \
+	check-style-1 \
+	check-style-2 \
+	check-style-3 \
+	check-style-4 \
+	;
+
+## Run linters to check for syntax and style errors.
+check-style-%:
+	@$(call help,$(subst $*,%,$@:))
+	@flake8 ${set$*}
+	@pylint --load-plugins pylint_pytest ${set$*}
 
 ## Run code formatters to correct style errors.
 format-style: $(shell git ls-files "*.py")

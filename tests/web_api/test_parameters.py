@@ -104,8 +104,8 @@ def test_scale(test_client):
         }
 
 
-def check_code(client, route, code):
-    response = client.get(route)
+def check_code(test_client, route, code):
+    response = test_client.get(route)
     assert response.status_code == code
 
 

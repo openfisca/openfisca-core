@@ -39,7 +39,7 @@ class ParameterAtInstant:
         self.metadata.update(data.get('metadata', {}))
 
     def validate(self, data):
-        helpers._validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
+        helpers.validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
         try:
             value = data['value']
         except KeyError as e:

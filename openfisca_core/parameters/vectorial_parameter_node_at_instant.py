@@ -12,10 +12,18 @@ class VectorialParameterNodeAtInstant:
     Vectorized parameters allow requests such as parameters.housing_benefit[zipcode], where zipcode is a vector
     """
 
+    @property
+    def instant_str(self):
+        return self._instant_str
+
+    @property
+    def name(self):
+        return self._name
+
     @staticmethod
     def build_from_node(node):
         VectorialParameterNodeAtInstant.check_node_vectorisable(node)
-        subnodes_name = node._children.keys()
+        subnodes_name = node.children.keys()
         # Recursively vectorize the children of the node
         vectorial_subnodes = tuple(
             VectorialParameterNodeAtInstant.build_from_node(node[subnode_name]).vector if isinstance(node[subnode_name], parameters.ParameterNodeAtInstant) else node[subnode_name]
@@ -31,7 +39,7 @@ class VectorialParameterNodeAtInstant:
                 ]
             )
 
-        return VectorialParameterNodeAtInstant(node._name, recarray.view(numpy.recarray), node._instant_str)
+        return VectorialParameterNodeAtInstant(node.name, recarray.view(numpy.recarray), node.instant_str)
 
     @staticmethod
     def check_node_vectorisable(node):
@@ -49,7 +57,7 @@ class VectorialParameterNodeAtInstant:
                 MESSAGE_PART_3,
                 MESSAGE_PART_4,
                 ]).format(
-                node._name,
+                node.name,
                 '.'.join([node_with_key, missing_key]),
                 '.'.join([node_without_key, missing_key]),
                 )
@@ -63,7 +71,7 @@ class VectorialParameterNodeAtInstant:
                 MESSAGE_PART_3,
                 MESSAGE_PART_4,
                 ]).format(
-                node._name,
+                node.name,
                 node_name,
                 non_node_name,
                 )
@@ -76,7 +84,7 @@ class VectorialParameterNodeAtInstant:
                 "'{}' is a '{}', and fancy indexing has not been implemented yet on this kind of parameters.",
                 MESSAGE_PART_4,
                 ]).format(
-                node._name,
+                node.name,
                 node_name,
                 node_type,
                 )
@@ -84,8 +92,8 @@ class VectorialParameterNodeAtInstant:
 
         def extract_named_children(node):
             return {
-                '.'.join([node._name, key]): value
-                for key, value in node._children.items()
+                '.'.join([node.name, key]): value
+                for key, value in node.children.items()
                 }
 
         def check_nodes_homogeneous(named_nodes):
@@ -101,8 +109,8 @@ class VectorialParameterNodeAtInstant:
                 for node, name in list(zip(nodes, names))[1:]:
                     if not isinstance(node, parameters.ParameterNodeAtInstant):
                         raise_type_inhomogeneity_error(first_name, name)
-                    first_node_keys = first_node._children.keys()
-                    node_keys = node._children.keys()
+                    first_node_keys = first_node.children.keys()
+                    node_keys = node.children.keys()
                     if not first_node_keys == node_keys:
                         missing_keys = set(first_node_keys).difference(node_keys)
                         if missing_keys:  # If the first_node has a key that node hasn't

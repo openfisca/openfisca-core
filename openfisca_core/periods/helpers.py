@@ -1,5 +1,7 @@
+import calendar
 import datetime
 import os
+from typing import Tuple
 
 from openfisca_core import periods
 from openfisca_core.periods import config
@@ -201,3 +203,29 @@ def unit_weights():
 
 def unit_weight(unit):
     return unit_weights()[unit]
+
+
+def year_start(year: int, month: int, day: int) -> Tuple[int, ...]:
+    last_day = calendar.monthrange(year, month)[1]
+    month += 1
+
+    if month == 13:
+        year += 1
+        month = 1
+
+    day -= last_day
+    last_day = calendar.monthrange(year, month)[1]
+
+    return year, month, day, last_day
+
+
+def year_end(year: int, month: int, day: int) -> Tuple[int, ...]:
+    month -= 1
+
+    if month == 0:
+        year -= 1
+        month = 12
+
+    day += calendar.monthrange(year, month)[1]
+
+    return year, month, day

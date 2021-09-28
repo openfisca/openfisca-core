@@ -13,6 +13,18 @@ class ParameterNodeAtInstant:
     Parameter node of the legislation, at a given instant.
     """
 
+    @property
+    def children(self):
+        return self._children
+
+    @property
+    def instant_str(self):
+        return self._instant_str
+
+    @property
+    def name(self):
+        return self._name
+
     def __init__(self, name, node, instant_str):
         """
         :param name: Name of the node.
@@ -35,7 +47,7 @@ class ParameterNodeAtInstant:
         setattr(self, child_name, child_at_instant)
 
     def __getattr__(self, key):
-        param_name = helpers._compose_name(self._name, item_name = key)
+        param_name = helpers.compose_name(self._name, item_name = key)
         raise ParameterNotFoundError(param_name, self._instant_str)
 
     def __getitem__(self, key):

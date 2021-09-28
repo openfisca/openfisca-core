@@ -9,17 +9,26 @@ from openfisca_core.projectors import Projector
 
 
 class Population:
+
+    @property
+    def holders(self):
+        return self._holders
+
+    @holders.setter
+    def holders(self, value):
+        self._holders = value
+
     def __init__(self, entity):
         self.simulation = None
         self.entity = entity
-        self._holders = {}
+        self.holders = {}
         self.count = 0
         self.ids = []
 
     def clone(self, simulation):
         result = Population(self.entity)
         result.simulation = simulation
-        result._holders = {variable: holder.clone(result) for (variable, holder) in self._holders.items()}
+        result.holders = {variable: holder.clone(result) for (variable, holder) in self._holders.items()}
         result.count = self.count
         result.ids = self.ids
         return result

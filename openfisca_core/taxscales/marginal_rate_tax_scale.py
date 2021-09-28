@@ -10,7 +10,7 @@ from openfisca_core import taxscales
 from openfisca_core.taxscales import RateTaxScaleLike
 
 if typing.TYPE_CHECKING:
-    NumericalArray = typing.Union[numpy.int_, numpy.float_]
+    NumArray = typing.Union[numpy.int_, numpy.float_]
 
 
 class MarginalRateTaxScale(RateTaxScaleLike):
@@ -31,9 +31,9 @@ class MarginalRateTaxScale(RateTaxScaleLike):
                 tax_scale.thresholds[-1],
                 )
 
-    def calc(
+    def calc(  # pylint: disable=arguments-differ
             self,
-            tax_base: NumericalArray,
+            tax_base: NumArray,
             factor: float = 1.0,
             round_base_decimals: typing.Optional[int] = None,
             ) -> numpy.float_:
@@ -115,7 +115,7 @@ class MarginalRateTaxScale(RateTaxScaleLike):
 
     def marginal_rates(
             self,
-            tax_base: NumericalArray,
+            tax_base: NumArray,
             factor: float = 1.0,
             round_base_decimals: typing.Optional[int] = None,
             ) -> numpy.float_:

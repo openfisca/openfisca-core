@@ -1,22 +1,8 @@
-import os
 import typing
-import warnings
 
-import yaml
+from openfisca_core import commons
 
-from openfisca_core.warnings import LibYAMLWarning
-
-try:
-    from yaml import CLoader as Loader
-except ImportError:
-    message = [
-        "libyaml is not installed in your environment.",
-        "This can make OpenFisca slower to start.",
-        "Once you have installed libyaml, run 'pip uninstall pyyaml && pip install pyyaml --no-cache-dir'",
-        "so that it is used in your Python environment." + os.linesep
-        ]
-    warnings.warn(" ".join(message), LibYAMLWarning)
-    from yaml import Loader  # type: ignore # (see https://github.com/python/mypy/issues/1153#issuecomment-455802270)
+yaml, Loader = commons.import_yaml()
 
 # 'unit' and 'reference' are only listed here for backward compatibility.
 #  It is now recommended to include them in metadata, until a common consensus emerges.

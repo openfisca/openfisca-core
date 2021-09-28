@@ -43,3 +43,6 @@ def _get_person_count(input_dict):
         return len(first_value)
     except (StopIteration, TypeError):
         return 1
+
+
+get_person_count = _get_person_count

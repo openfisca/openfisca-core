@@ -135,7 +135,7 @@ class SimulationBuilder:
                 {'salary': {'2016-10': 12000}}
                 )
         """
-        count = helpers._get_person_count(input_dict)
+        count = helpers.get_person_count(input_dict)
         simulation = self.build_default_simulation(tax_benefit_system, count)
         for variable, value in input_dict.items():
             if not isinstance(value, dict):

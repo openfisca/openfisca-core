@@ -20,13 +20,13 @@ class GroupPopulation(Population):
     def clone(self, simulation):
         result = GroupPopulation(self.entity, self.members)
         result.simulation = simulation
-        result._holders = {variable: holder.clone(self) for (variable, holder) in self._holders.items()}
+        result.holders = {variable: holder.clone(self) for (variable, holder) in self._holders.items()}
         result.count = self.count
         result.ids = self.ids
-        result._members_entity_id = self._members_entity_id
-        result._members_role = self._members_role
-        result._members_position = self._members_position
-        result._ordered_members_map = self._ordered_members_map
+        result.members_entity_id = self._members_entity_id
+        result.members_role = self._members_role
+        result.members_position = self._members_position
+        result.ordered_members_map = self._ordered_members_map
         return result
 
     @property
@@ -77,6 +77,10 @@ class GroupPopulation(Population):
         if self._ordered_members_map is None:
             self._ordered_members_map = numpy.argsort(self.members_entity_id)
         return self._ordered_members_map
+
+    @ordered_members_map.setter
+    def ordered_members_map(self, value):
+        self._ordered_members_map = value
 
     def get_role(self, role_name):
         return next((role for role in self.entity.flattened_roles if role.key == role_name), None)

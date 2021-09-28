@@ -10,11 +10,29 @@ if typing.TYPE_CHECKING:
 
 
 class EnumArray(numpy.ndarray):
-    """
-    Numpy array subclass representing an array of enum items.
+    """Numpy array subclass representing an array of enum items.
 
     EnumArrays are encoded as ``int`` arrays to improve performance
+
+    Examples:
+        >>> from openfisca_core.indexed_enums import Enum
+        >>> from openfisca_core.variables import Variable
+
+        >>> class Housing(Enum):
+        ...     OWNER = "Owner"
+        ...     TENANT = "Tenant"
+        ...     FREE_LODGER = "Free lodger"
+        ...     HOMELESS = "Homeless"
+
+        >>> array = numpy.array([1])
+        >>> enum_array = EnumArray(array, Housing)
+
+        >>> enum_array.possible_values
+        <enum 'Housing'>
+
     """
+
+    possible_values: Optional[Type[Enum]]
 
     # Subclassing ndarray is a little tricky.
     # To read more about the two following methods, see:
@@ -38,7 +56,8 @@ class EnumArray(numpy.ndarray):
     def __eq__(self, other: Any) -> bool:
         # When comparing to an item of self.possible_values, use the item index
         # to speed up the comparison.
-        if other.__class__.__name__ is self.possible_values.__name__:
+        if self.possible_values is not None and \
+           other.__class__.__name__ is self.possible_values.__name__:
             # Use view(ndarray) so that the result is a classic ndarray, not an
             # EnumArray.
             return self.view(numpy.ndarray) == other.index
@@ -63,37 +82,51 @@ class EnumArray(numpy.ndarray):
     __and__ = _forbidden_operation
     __or__ = _forbidden_operation
 
-    def decode(self) -> numpy.object_:
+    def decode(self) -> Optional[numpy.object_]:
+        """Return the array of enum items corresponding to self.
+
+        Examples:
+            >>> from openfisca_core.indexed_enums import Enum
+
+            >>> class MyEnum(Enum):
+            ...     FOO = b"foo"
+            ...     BAR = b"bar"
+
+            >>> array = numpy.array([1])
+            >>> enum_array = EnumArray(array, MyEnum)
+            >>> enum_array.decode()
+            array([<MyEnum.BAR: b'bar'>], dtype=object)
+
         """
-        Return the array of enum items corresponding to self.
 
-        For instance:
+        if self.possible_values is None:
+            return None
 
-        >>> enum_array = household('housing_occupancy_status', period)
-        >>> enum_array[0]
-        >>> 2  # Encoded value
-        >>> enum_array.decode()[0]
-        <HousingOccupancyStatus.free_lodger: 'Free lodger'>
-
-        Decoded value: enum item
-        """
         return numpy.select(
             [self == item.index for item in self.possible_values],
             list(self.possible_values),
             )
 
-    def decode_to_str(self) -> numpy.str_:
-        """
-        Return the array of string identifiers corresponding to self.
+    def decode_to_str(self) -> Optional[numpy.str_]:
+        """Return the array of string identifiers corresponding to self.
 
-        For instance:
+        Examples:
+            >>> from openfisca_core.indexed_enums import Enum
 
-        >>> enum_array = household('housing_occupancy_status', period)
-        >>> enum_array[0]
-        >>> 2  # Encoded value
-        >>> enum_array.decode_to_str()[0]
-        'free_lodger'  # String identifier
+            >>> class MyEnum(Enum):
+            ...     FOO = b"foo"
+            ...     BAR = b"bar"
+
+            >>> array = numpy.array([1])
+            >>> enum_array = EnumArray(array, MyEnum)
+            >>> enum_array.decode_to_str()
+            array(['BAR']...)
+
         """
+
+        if self.possible_values is None:
+            return None
+
         return numpy.select(
             [self == item.index for item in self.possible_values],
             [item.name for item in self.possible_values],

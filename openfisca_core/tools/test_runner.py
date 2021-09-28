@@ -1,33 +1,19 @@
 from __future__ import annotations
 
-import warnings
 import sys
 import os
 import traceback
 import textwrap
-from typing import Dict, List, Type, Union
+from typing import Dict, List
 
 import pytest
-import yaml
 
-from openfisca_core.tools import assert_near
-from openfisca_core.simulation_builder import SimulationBuilder
+from openfisca_core import commons
 from openfisca_core.errors import SituationParsingError, VariableNotFound
-from openfisca_core.warnings import LibYAMLWarning
+from openfisca_core.simulation_builder import SimulationBuilder
+from openfisca_core.tools import assert_near
 
-Loader: Union[Type[yaml.CLoader], Type[yaml.SafeLoader]]
-
-try:
-    from yaml import CLoader as Loader
-except ImportError:
-    message = [
-        "libyaml is not installed in your environment.",
-        "This can make your test suite slower to run. Once you have installed libyaml, ",
-        "run 'pip uninstall pyyaml && pip install pyyaml --no-cache-dir'",
-        "so that it is used in your Python environment."
-        ]
-    warnings.warn(" ".join(message), LibYAMLWarning)
-    from yaml import SafeLoader as Loader
+yaml, Loader = commons.import_yaml()
 
 TEST_KEYWORDS = {'absolute_error_margin', 'description', 'extensions', 'ignore_variables', 'input', 'keywords', 'max_spiral_loops', 'name', 'only_variables', 'output', 'period', 'reforms', 'relative_error_margin'}
 
@@ -230,7 +216,7 @@ class YamlItem(pytest.Item):
 
         return variable_ignored or variable_not_tested
 
-    def repr_failure(self, excinfo):
+    def repr_failure(self, excinfo, __arg = None):
         if not isinstance(excinfo.value, (AssertionError, VariableNotFound, SituationParsingError)):
             return super().repr_failure(excinfo)
 

@@ -6,4 +6,4 @@
 # The following are transitional imports to ensure non-breaking changes.
 # Could be deprecated in the next major release.
 
-from openfisca_core.commons import average_rate, marginal_rate  # noqa: F401
+from openfisca_core.commons import average_rate, marginal_rate  # noqa: F401 # pylint: disable=unused-import

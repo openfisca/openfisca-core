@@ -6,7 +6,7 @@
 # The following are transitional imports to ensure non-breaking changes.
 # Could be deprecated in the next major release.
 
-from openfisca_core.simulations import (    # noqa: F401
+from openfisca_core.simulations import (  # noqa: F401 # pylint: disable=unused-import
     Simulation,
     SimulationBuilder,
     calculate_output_add,

@@ -1,23 +1,21 @@
-import importlib
 import traceback
 import logging
-from os import linesep
+
+from openfisca_core import commons
 
 log = logging.getLogger(__name__)
 
 
 def build_tax_benefit_system(country_package_name):
     try:
-        country_package = importlib.import_module(country_package_name)
-    except ImportError as e:
-        message = linesep.join([traceback.format_exc(),
-                                f'Could not import module `{country_package_name}`.',
-                                'Are you sure it is installed in your environment? If so, look at the stack trace above to determine the origin of this error.',
-                                'See more at <https://github.com/openfisca/country-template#installing>.',
-                                linesep])
-        raise ValueError(message) from e
+        country_package = commons.import_country_package(country_package_name)
+
+    except ImportError as error:
+        raise ValueError(str(error)) from error
+
     try:
         return country_package.CountryTaxBenefitSystem()
+
     except NameError:  # Gunicorn swallows NameErrors. Force printing the stack trace.
         log.error(traceback.format_exc())
         raise

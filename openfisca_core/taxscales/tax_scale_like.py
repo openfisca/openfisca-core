@@ -9,7 +9,7 @@ import numpy
 from openfisca_core import commons
 
 if typing.TYPE_CHECKING:
-    NumericalArray = typing.Union[numpy.int_, numpy.float_]
+    NumArray = typing.Union[numpy.int_, numpy.float_]
 
 
 class TaxScaleLike(abc.ABC):
@@ -52,11 +52,7 @@ class TaxScaleLike(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def calc(
-            self,
-            tax_base: NumericalArray,
-            right: bool,
-            ) -> numpy.float_:
+    def calc(self, tax_base: NumArray, right: bool) -> numpy.float_:
         ...
 
     @abc.abstractmethod

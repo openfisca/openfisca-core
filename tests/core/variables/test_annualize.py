@@ -1,26 +1,26 @@
-import numpy as np
-from pytest import fixture
+import numpy
+import pytest
 
 from openfisca_country_template.entities import Person
 
-from openfisca_core import periods
-from openfisca_core.model_api import *  # noqa analysis:ignore
-from openfisca_core.variables import get_annualized_variable
+from openfisca_core import periods, variables
+from openfisca_core.variables import Variable
 
 
-@fixture
+@pytest.fixture
 def monthly_variable():
 
     calculation_count = 0
 
     class monthly_variable(Variable):
+        calculation_count: int
         value_type = int
         entity = Person
-        definition_period = MONTH
+        definition_period = periods.MONTH
 
         def formula(person, _period, _parameters):  # pylint: disable=no-self-use
             variable.calculation_count += 1
-            return np.asarray([100])
+            return numpy.asarray([100])
 
     variable = monthly_variable()
     variable.calculation_count = calculation_count
@@ -36,7 +36,7 @@ class PopulationMock:
 
     def __call__(self, variable_name, period):
         if period.start.month == 1:
-            return np.asarray([100])
+            return numpy.asarray([100])
 
         return self.variable.get_formula(period)(self, period, None)
 
@@ -48,7 +48,7 @@ def test_without_annualize(monthly_variable):
 
     yearly_sum = sum(
         person('monthly_variable', month)
-        for month in period.get_subperiods(MONTH)
+        for month in period.get_subperiods(periods.MONTH)
         )
 
     assert monthly_variable.calculation_count == 11
@@ -57,13 +57,13 @@ def test_without_annualize(monthly_variable):
 
 def test_with_annualize(monthly_variable):
     period = periods.period(2019)
-    annualized_variable = get_annualized_variable(monthly_variable)
+    annualized_variable = variables.get_annualized_variable(monthly_variable)
 
     person = PopulationMock(annualized_variable)
 
     yearly_sum = sum(
         person('monthly_variable', month)
-        for month in period.get_subperiods(MONTH)
+        for month in period.get_subperiods(periods.MONTH)
         )
 
     assert monthly_variable.calculation_count == 0
@@ -72,13 +72,13 @@ def test_with_annualize(monthly_variable):
 
 def test_with_partial_annualize(monthly_variable):
     period = periods.period('year:2018:2')
-    annualized_variable = get_annualized_variable(monthly_variable, periods.period(2018))
+    annualized_variable = variables.get_annualized_variable(monthly_variable, periods.period(2018))
 
     person = PopulationMock(annualized_variable)
 
     yearly_sum = sum(
         person('monthly_variable', month)
-        for month in period.get_subperiods(MONTH)
+        for month in period.get_subperiods(periods.MONTH)
         )
 
     assert monthly_variable.calculation_count == 11

@@ -112,6 +112,8 @@ class PerformanceLog:
             'children': children,
             }
 
+    json = _json
+
     def _json_tree(self, tree: tracers.TraceNode) -> dict:
         calculation_total_time = tree.calculation_time()
         children = [self._json_tree(child) for child in tree.children]

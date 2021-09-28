@@ -182,7 +182,7 @@ def test_known_periods(couple):
     holder = simulation.person.get_holder('disposable_income')
     data = numpy.asarray([2000, 3000])
     holder.put_in_cache(data, month)
-    holder._memory_storage.put(data, month_2)
+    holder.memory_storage.put(data, month_2)
 
     assert sorted(holder.get_known_periods()), [month == month_2]
 

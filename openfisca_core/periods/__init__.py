@@ -36,10 +36,10 @@ from .helpers import (  # noqa: F401
     N_,
     instant,
     instant_date,
-    period,
     key_period_size,
-    unit_weights,
+    period,
     unit_weight,
+    unit_weights,
     )
 
 from .instant_ import Instant  # noqa: F401

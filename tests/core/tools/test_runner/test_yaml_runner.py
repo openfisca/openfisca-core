@@ -4,7 +4,7 @@ from typing import List
 import pytest
 import numpy as np
 
-from openfisca_core.tools.test_runner import _get_tax_benefit_system, YamlItem, YamlFile
+from openfisca_core.tools.test_runner import _get_tax_benefit_system, YamlItem
 from openfisca_core.errors import VariableNotFound
 from openfisca_core.variables import Variable
 from openfisca_core.populations import Population
@@ -14,7 +14,7 @@ from openfisca_core.periods import ETERNITY
 
 class TaxBenefitSystem:
     def __init__(self):
-        self.variables = {'salary': TestVariable()}
+        self.variables = {'salary': MyVariable()}
         self.person_entity = Entity('person', 'persons', None, "")
         self.person_entity.set_tax_benefit_system(self)
 
@@ -50,6 +50,7 @@ class TaxBenefitSystem:
 
 class Reform(TaxBenefitSystem):
     def __init__(self, baseline):
+        super().__init__()
         self.baseline = baseline
 
 
@@ -62,29 +63,30 @@ class Simulation:
         return None
 
 
-class TestFile(YamlFile):
+class MyFile:
 
     def __init__(self):
         self.config = None
+        self.nodeid = 'testname'
         self.session = None
-        self._nodeid = 'testname'
 
 
-class TestItem(YamlItem):
+class MyItem(YamlItem):
     def __init__(self, test):
-        super().__init__('', TestFile(), TaxBenefitSystem(), test, {})
+        super().__init__('', MyFile(), TaxBenefitSystem(), test, {})
 
         self.tax_benefit_system = self.baseline_tax_benefit_system
         self.simulation = Simulation()
 
 
-class TestVariable(Variable):
+class MyVariable(Variable):
     definition_period = ETERNITY
+    entity = Entity('person', 'persons', None, "")
     value_type = float
 
     def __init__(self):
+        super().__init__()
         self.end = None
-        self.entity = Entity('person', 'persons', None, "")
         self.is_neutralized = False
         self.set_input = None
         self.dtype = np.float32
@@ -93,7 +95,7 @@ class TestVariable(Variable):
 def test_variable_not_found():
     test = {"output": {"unknown_variable": 0}}
     with pytest.raises(VariableNotFound) as excinfo:
-        test_item = TestItem(test)
+        test_item = MyItem(test)
         test_item.check_output()
     assert excinfo.value.variable_name == "unknown_variable"
 
@@ -148,7 +150,7 @@ def test_extensions_order():
 
 def test_performance_graph_option_output():
     test = {'input': {'salary': {'2017-01': 2000}}, 'output': {'salary': {'2017-01': 2000}}}
-    test_item = TestItem(test)
+    test_item = MyItem(test)
     test_item.options = {'performance_graph': True}
 
     paths = ["./performance_graph.html"]
@@ -166,7 +168,7 @@ def test_performance_graph_option_output():
 
 def test_performance_tables_option_output():
     test = {'input': {'salary': {'2017-01': 2000}}, 'output': {'salary': {'2017-01': 2000}}}
-    test_item = TestItem(test)
+    test_item = MyItem(test)
     test_item.options = {'performance_tables': True}
 
     paths = ["performance_table.csv", "aggregated_performance_table.csv"]

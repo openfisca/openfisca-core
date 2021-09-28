@@ -66,25 +66,25 @@ class ParameterNode(AtInstantLike):
 
                     if child_name == 'index':
                         data = helpers._load_yaml_file(child_path) or {}
-                        helpers._validate_parameter(self, data, allowed_keys = config.COMMON_KEYS)
+                        helpers.validate_parameter(self, data, allowed_keys = config.COMMON_KEYS)
                         self.description = data.get('description')
                         self.documentation = data.get('documentation')
                         helpers._set_backward_compatibility_metadata(self, data)
                         self.metadata.update(data.get('metadata', {}))
                     else:
-                        child_name_expanded = helpers._compose_name(name, child_name)
+                        child_name_expanded = helpers.compose_name(name, child_name)
                         child = helpers.load_parameter_file(child_path, child_name_expanded)
                         self.add_child(child_name, child)
 
                 elif os.path.isdir(child_path):
                     child_name = os.path.basename(child_path)
-                    child_name_expanded = helpers._compose_name(name, child_name)
+                    child_name_expanded = helpers.compose_name(name, child_name)
                     child = ParameterNode(child_name_expanded, directory_path = child_path)
                     self.add_child(child_name, child)
 
         else:
             self.file_path = file_path
-            helpers._validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
+            helpers.validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
             self.description = data.get('description')
             self.documentation = data.get('documentation')
             helpers._set_backward_compatibility_metadata(self, data)
@@ -94,7 +94,7 @@ class ParameterNode(AtInstantLike):
                     continue  # do not treat reserved keys as subparameters.
 
                 child_name = str(child_name)
-                child_name_expanded = helpers._compose_name(name, child_name)
+                child_name_expanded = helpers.compose_name(name, child_name)
                 child = helpers._parse_child(child_name_expanded, child, file_path)
                 self.add_child(child_name, child)
 

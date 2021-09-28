@@ -178,16 +178,16 @@ def test_set_input_with_constructor(tax_benefit_system):
 
 def test_has_role(tax_benefit_system):
     simulation = new_simulation(tax_benefit_system, TEST_CASE)
-    individu = simulation.persons
-    tools.assert_near(individu.has_role(CHILD), [False, False, True, True, False, True])
+    persons = simulation.persons
+    tools.assert_near(persons.has_role(CHILD), [False, False, True, True, False, True])
 
 
 def test_has_role_with_subrole(tax_benefit_system):
     simulation = new_simulation(tax_benefit_system, TEST_CASE)
-    individu = simulation.persons
-    tools.assert_near(individu.has_role(PARENT), [True, True, False, False, True, False])
-    tools.assert_near(individu.has_role(FIRST_PARENT), [True, False, False, False, True, False])
-    tools.assert_near(individu.has_role(SECOND_PARENT), [False, True, False, False, False, False])
+    persons = simulation.persons
+    tools.assert_near(persons.has_role(PARENT), [True, True, False, False, True, False])
+    tools.assert_near(persons.has_role(FIRST_PARENT), [True, False, False, False, True, False])
+    tools.assert_near(persons.has_role(SECOND_PARENT), [False, True, False, False, False, False])
 
 
 def test_project(tax_benefit_system):
@@ -211,8 +211,8 @@ def test_implicit_projection(tax_benefit_system):
     test_case['households']['h1']['housing_tax'] = 20000
 
     simulation = new_simulation(tax_benefit_system, test_case, YEAR)
-    individu = simulation.person
-    housing_tax = individu.household('housing_tax', YEAR)
+    person = simulation.person
+    housing_tax = person.household('housing_tax', YEAR)
 
     tools.assert_near(housing_tax, [20000, 20000, 20000, 20000, 0, 0])
 

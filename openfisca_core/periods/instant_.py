@@ -2,7 +2,7 @@ import calendar
 import datetime
 
 from openfisca_core import periods
-from openfisca_core.periods import config
+from openfisca_core.periods import config, helpers
 
 
 class Instant(tuple):
@@ -198,20 +198,13 @@ class Instant(tuple):
                 day += offset
                 if offset < 0:
                     while day < 1:
-                        month -= 1
-                        if month == 0:
-                            year -= 1
-                            month = 12
-                        day += calendar.monthrange(year, month)[1]
+                        units = helpers.year_end(year, month, day)
+                        year, month, day = units
                 elif offset > 0:
                     month_last_day = calendar.monthrange(year, month)[1]
                     while day > month_last_day:
-                        month += 1
-                        if month == 13:
-                            year += 1
-                            month = 1
-                        day -= month_last_day
-                        month_last_day = calendar.monthrange(year, month)[1]
+                        units = helpers.year_start(year, month, day)
+                        year, month, day, month_last_day = units
             elif unit == config.MONTH:
                 month += offset
                 if offset < 0:

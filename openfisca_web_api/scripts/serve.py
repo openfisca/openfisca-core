@@ -74,6 +74,9 @@ class OpenFiscaWebAPIApplication(BaseApplication):
         self.options = options
         super().__init__()
 
+    def init(self, __parser, __opts, __args):
+        ...
+
     def load_config(self):
         for key, value in self.options.items():
             if key in self.cfg.settings:
