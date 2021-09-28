@@ -66,5 +66,5 @@ def detect_country_package():
     if len(installed_country_packages) == 0:
         raise ImportError('No country package has been detected on your environment. If your country package is installed but not detected, please use the --country-package option.')
     if len(installed_country_packages) > 1:
-        log.warning('Several country packages detected : `{}`. Using `{}` by default. To use another package, please use the --country-package option.'.format(', '.join(installed_country_packages), installed_country_packages[0]))
+        log.warning(f"Several country packages detected : `{', '.join(installed_country_packages)}`. Using `{installed_country_packages[0]}` by default. To use another package, please use the --country-package option.")
     return installed_country_packages[0]
