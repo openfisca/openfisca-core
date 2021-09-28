@@ -223,6 +223,7 @@ class MarginalRateTaxScale(RateTaxScaleLike):
                 previous_threshold = threshold
                 previous_rate = rate
 
-            average_tax_scale.add_bracket(float("Inf"), rate)
+            if "rate" in locals():
+                average_tax_scale.add_bracket(float("Inf"), locals()["rate"])
 
         return average_tax_scale

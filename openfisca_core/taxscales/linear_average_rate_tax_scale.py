@@ -74,6 +74,7 @@ class LinearAverageRateTaxScale(RateTaxScaleLike):
                 previous_i = i
                 previous_threshold = threshold
 
-        marginal_tax_scale.add_bracket(previous_threshold, rate)
+        if "rate" in locals():
+            marginal_tax_scale.add_bracket(previous_threshold, locals()["rate"])
 
         return marginal_tax_scale
