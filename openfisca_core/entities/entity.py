@@ -22,7 +22,7 @@ class Entity:
 
     @staticmethod
     def check_role_validity(role):
-        if role is not None and not type(role) == Role:
+        if role is not None and not isinstance(role, Role):
             raise ValueError(f"{role} is not a valid role")
 
     def get_variable(self, variable_name, check_existence = False):
