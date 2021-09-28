@@ -1,5 +1,11 @@
 # Changelog
 
+## 35.6.0 [#1047](https://github.com/openfisca/openfisca-core/pull/1047)
+
+#### Technical changes
+
+- Make style checks stricter and clearer to help developers contribute
+
 ## 35.5.0 [#1038](https://github.com/openfisca/openfisca-core/pull/1038)
 
 #### New Features
