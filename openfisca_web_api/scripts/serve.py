@@ -1,3 +1,5 @@
+"""Define the `openfisca serve` command line interface."""
+
 import sys
 import logging
 
@@ -10,11 +12,6 @@ try:
     from gunicorn import config
 except ImportError as error:
     handle_import_error(error)
-
-
-"""
-    Define the `openfisca serve` command line interface.
-"""
 
 DEFAULT_PORT = '5000'
 HOST = '127.0.0.1'

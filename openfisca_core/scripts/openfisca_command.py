@@ -1,3 +1,5 @@
+"""Define the `openfisca` command line interface."""
+
 import argparse
 import warnings
 import sys
@@ -5,9 +7,6 @@ import sys
 from openfisca_core.scripts import add_tax_benefit_system_arguments
 from openfisca_core.scripts.run_test import main as test_main
 from openfisca_web_api.scripts.serve import main as serve_main
-"""
-    Define the `openfisca` command line interface.
-"""
 
 
 def get_parser():

@@ -53,9 +53,7 @@ def test_several_days():
     assert str(Period((DAY, first_march, 3))) == 'day:2014-03-01:3'
 
 
-'''
-Test String -> Period
-'''
+# Test String -> Period
 
 
 # Years
