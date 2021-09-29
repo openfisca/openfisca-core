@@ -27,6 +27,8 @@ jobs:
         with:
           path: dist
           key: ${{ github.ref }}${{ env.pythonLocation }}-build-release-${{ hashFiles('setup.py') }}
+      - name: Run tests
+        run: env PYTEST_ADDOPTS="--exitfirst" make test
 
   test-python:
     runs-on: ubuntu-latest
