@@ -18,7 +18,7 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ github.ref }}${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }} # Cache the entire build Python environment
-      - name: Build
+      - name: Build package
         if: steps.restore-install.outputs.cache-hit != 'true'
         run: make build
       - name: Cache build release
@@ -45,6 +45,8 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ github.ref }}${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}
+      - name: Build package
+        run: make build
       - name: Run Core tests
         run:  make test
 
