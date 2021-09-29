@@ -27,15 +27,21 @@ jobs:
         with:
           path: dist
           key: ${{ github.ref }}${{ env.pythonLocation }}-build-release-${{ hashFiles('setup.py') }}
+      - name: Cache coverage
+        id: restore-coverage
+        uses: actions/cache@v2
+        with:
+          path: .coverage
+          key: ${{ github.ref }}${{ env.pythonLocation }}-coverage
       - name: Run tests
         run: env PYTEST_ADDOPTS="--exitfirst" make test
+
 
   test-python:
     runs-on: ubuntu-latest
     needs: [ build ]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
@@ -46,12 +52,12 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ github.ref }}${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}
-      - name: Cache build release
-        id: restore-build-release
+      - name: Cache coverage
+        id: restore-coverage
         uses: actions/cache@v2
         with:
-          path: dist
-          key: ${{ github.ref }}${{ env.pythonLocation }}-build-release-${{ hashFiles('setup.py') }}
+          path: .coverage
+          key: ${{ github.ref }}${{ env.pythonLocation }}-coverage
       - name: Run Core tests
         run: env PYTEST_ADDOPTS="--exitfirst" make test
 
