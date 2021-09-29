@@ -44,7 +44,8 @@ jobs:
           path: ${{ env.pythonLocation }}
           key: ${{ github.ref }}${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}
       - name: Run Core tests
-        run: env PYTEST_ADDOPTS="--exitfirst" make test
+        # run: env PYTEST_ADDOPTS="--exitfirst" make test
+        run: pytest
 
   check-numpy:
     runs-on: ubuntu-latest
