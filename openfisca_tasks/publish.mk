@@ -5,3 +5,4 @@ build:
 	@$(call print_help,$@:)
 	@python setup.py bdist_wheel
 	@find dist -name "*.whl" -exec pip install --force-reinstall {}[dev] \;
+	@$(call print_pass,$@:)
