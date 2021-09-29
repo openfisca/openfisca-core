@@ -46,6 +46,7 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ github.ref }}${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}
+      - run: make install
       - name: Run Core tests
         run:  make test
 
