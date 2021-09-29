@@ -6,16 +6,16 @@ import logging
 import os
 import pkg_resources
 import traceback
-import typing
 from imp import find_module, load_module
+from typing import Dict, Optional
 
 from openfisca_core import commons, periods, variables
-from openfisca_core.entities import Entity
 from openfisca_core.errors import VariableNameConflictError, VariableNotFoundError
 from openfisca_core.parameters import ParameterNode
 from openfisca_core.periods import Instant, Period
 from openfisca_core.populations import Population, GroupPopulation
 from openfisca_core.simulations import SimulationBuilder
+from openfisca_core.types import Personifiable
 from openfisca_core.variables import Variable
 
 log = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 
 class TaxBenefitSystem:
     """
-    Represents the legislation.
+    A machine-consumable representation of the tax-benefit legislation.
 
     It stores parameters (values defined for everyone) and variables (values defined for some given entity e.g. a person).
 
@@ -56,7 +56,7 @@ class TaxBenefitSystem:
         self.person_entity = [entity for entity in self.entities if entity.is_person][0]
         self.group_entities = [entity for entity in self.entities if not entity.is_person]
         for entity in self.entities:
-            entity.set_tax_benefit_system(self)
+            entity.variable = self.get_variable
 
     @property
     def base_tax_benefit_system(self):
@@ -71,7 +71,7 @@ class TaxBenefitSystem:
     def instantiate_entities(self):
         person = self.person_entity
         members = Population(person)
-        entities: typing.Dict[Entity.key, Entity] = {person.key: members}
+        entities: Dict[Personifiable.key, Personifiable] = {person.key: members}
 
         for entity in self.group_entities:
             entities[entity.key] = GroupPopulation(entity, members)
@@ -307,7 +307,7 @@ class TaxBenefitSystem:
         """
         self.variables[variable_name] = variables.get_neutralized_variable(self.get_variable(variable_name))
 
-    def annualize_variable(self, variable_name: str, period: typing.Optional[Period] = None):
+    def annualize_variable(self, variable_name: str, period: Optional[Period] = None):
         self.variables[variable_name] = variables.get_annualized_variable(self.get_variable(variable_name, period))
 
     def load_parameters(self, path_to_yaml_dir):
@@ -434,7 +434,7 @@ class TaxBenefitSystem:
             if key not in ('parameters', '_parameters_at_instant_cache', 'variables', 'open_api_config'):
                 new_dict[key] = value
         for entity in new_dict['entities']:
-            entity.set_tax_benefit_system(new)
+            entity.variable = new.get_variable
 
         new_dict['parameters'] = self.parameters.clone()
         new_dict['_parameters_at_instant_cache'] = {}

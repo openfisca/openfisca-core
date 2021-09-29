@@ -3,17 +3,47 @@ import logging
 import numpy
 
 from openfisca_core import periods
+from openfisca_core.periods import Period
+from openfisca_core.types import ArrayLike
+
+from .holder import Holder
 
 log = logging.getLogger(__name__)
 
 
-def set_input_dispatch_by_period(holder, period, array):
-    """
-    This function can be declared as a ``set_input`` attribute of a variable.
+def set_input_dispatch_by_period(holder: Holder, period: Period, array: ArrayLike[float]) -> None:
+    """Function that can be declared as a :class:`.Variable.set_input`.
 
     In this case, the variable will accept inputs on larger periods that its definition period, and the value for the larger period will be applied to all its subperiods.
 
     To read more about ``set_input`` attributes, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#set-input-automatically-process-variable-inputs-defined-for-periods-not-matching-the-definition-period>`_.
+
+    Examples:
+        >>> from openfisca_core.entities import Entity
+        >>> from openfisca_core.periods import Instant
+        >>> from openfisca_core.populations import Population
+        >>> from openfisca_core.variables import Variable
+
+        >>> entity = Entity("", "", "", "")
+
+        >>> class MyVariable(Variable):
+        ...     definition_period = "year"
+        ...     entity = entity
+        ...     value_type = int
+
+        >>> variable = MyVariable()
+        >>> population = Population(entity)
+        >>> population.count = 1
+        >>> holder = Holder(variable, population)
+        >>> instant = Instant((2021, 1, 1))
+        >>> period = Period(("year", instant, 1))
+
+        >>> array = numpy.array([1.])
+        >>> set_input_dispatch_by_period(holder, period, array)
+
+        >>> array = [1]
+        >>> set_input_dispatch_by_period(holder, period, array)
+
     """
     array = holder._to_array(array)
 

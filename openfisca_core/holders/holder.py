@@ -8,6 +8,9 @@ from openfisca_core import commons, periods, tools
 from openfisca_core.errors import PeriodMismatchError
 from openfisca_core.data_storage import InMemoryStorage, OnDiskStorage
 from openfisca_core.indexed_enums import Enum
+from openfisca_core.periods import Period
+from openfisca_core.variables import Variable
+from openfisca_core.types import ArrayLike, ArrayType, Aggregatable
 
 
 class Holder:
@@ -15,7 +18,7 @@ class Holder:
     A holder keeps tracks of a variable values after they have been calculated, or set as an input.
     """
 
-    def __init__(self, variable, population):
+    def __init__(self, variable: Variable, population: Aggregatable) -> None:
         self.population = population
         self.variable = variable
         self.simulation = population.simulation
@@ -85,25 +88,44 @@ class Holder:
         if self._disk_storage:
             return self._disk_storage.get(period)
 
-    def get_memory_usage(self):
-        """
-        Get data about the virtual memory usage of the holder.
+    def get_memory_usage(self) -> dict:
+        """Get data about the virtual memory usage of the :obj:`.Holder`.
 
-        :returns: Memory usage data
-        :rtype: dict
+        Returns:
+            Memory usage data.
 
-        Example:
+        Examples:
+            >>> from pprint import pprint
 
-        >>> holder.get_memory_usage()
-        >>> {
-        >>>    'nb_arrays': 12,  # The holder contains the variable values for 12 different periods
-        >>>    'nb_cells_by_array': 100, # There are 100 entities (e.g. persons) in our simulation
-        >>>    'cell_size': 8,  # Each value takes 8B of memory
-        >>>    'dtype': dtype('float64')  # Each value is a float 64
-        >>>    'total_nb_bytes': 10400  # The holder uses 10.4kB of virtual memory
-        >>>    'nb_requests': 24  # The variable has been computed 24 times
-        >>>    'nb_requests_by_array': 2  # Each array stored has been on average requested twice
-        >>>    }
+            >>> from openfisca_core.entities import Entity
+            >>> from openfisca_core.populations import Population
+            >>> from openfisca_core.simulations import Simulation
+            >>> from openfisca_core.taxbenefitsystems import TaxBenefitSystem
+            >>> from openfisca_core.variables import Variable
+
+            >>> entity = Entity("", "", "", "")
+
+            >>> class MyVariable(Variable):
+            ...     definition_period = "year"
+            ...     entity = entity
+            ...     value_type = int
+
+            >>> variable = MyVariable()
+            >>> population = Population(entity)
+            >>> holder = Holder(variable, population)
+
+            >>> tax_benefit_system = TaxBenefitSystem([entity])
+            >>> populations = {entity.key: population}
+            >>> simulation = Simulation(tax_benefit_system, populations)
+            >>> holder.simulation = simulation
+
+            >>> pprint(holder.get_memory_usage(), indent = 3)
+            {  'cell_size': nan,
+               'dtype': <class 'numpy.int32'>,
+               'nb_arrays': 0,
+               'nb_cells_by_array': 0,
+               'total_nb_bytes': 0...
+
         """
 
         usage = dict(
@@ -130,21 +152,43 @@ class Holder:
         return list(self._memory_storage.get_known_periods()) + list((
             self._disk_storage.get_known_periods() if self._disk_storage else []))
 
-    def set_input(self, period, array):
-        """
-        Set a variable's value (``array``) for a given period (``period``)
+    def set_input(self, period: Period, array: ArrayLike[float]) -> ArrayType[int]:
+        """Set :obj:`.Variable.array` for a given :obj:`.Period`.
 
-        :param array: the input value for the variable
-        :param period: the period at which the value is setted
+        Args:
+            period: The period at which the value is setted.
+            array: The input value for the variable.
 
-        Example :
+        Returns:
+            The setted input array.
 
-        >>> holder.set_input([12, 14], '2018-04')
-        >>> holder.get_array('2018-04')
-        >>> [12, 14]
+        Examples:
+            >>> from openfisca_core.entities import Entity
+            >>> from openfisca_core.populations import Population
+            >>> from openfisca_core.variables import Variable
 
+            >>> entity = Entity("", "", "", "")
+
+            >>> class MyVariable(Variable):
+            ...     definition_period = "year"
+            ...     entity = entity
+            ...     value_type = int
+
+            >>> variable = MyVariable()
+            >>> population = Population(entity)
+            >>> population.count = 2
+            >>> holder = Holder(variable, population)
+
+            >>> holder.set_input("2018", numpy.array([12.5, 14]))
+            >>> holder.get_array("2018")
+            array([12, 14], dtype=int32)
+
+            >>> holder.set_input("2018", [12.5, 14])
+            >>> holder.get_array("2018")
+            array([12, 14], dtype=int32)
 
         If a ``set_input`` property has been set for the variable, this method may accept inputs for periods not matching the ``definition_period`` of the variable. To read more about this, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#set-input-automatically-process-variable-inputs-defined-for-periods-not-matching-the-definition-period>`_.
+
         """
 
         period = periods.period(period)
