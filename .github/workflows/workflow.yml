@@ -46,6 +46,12 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ github.ref }}${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}
+      - name: Cache build release
+        id: restore-build-release
+        uses: actions/cache@v2
+        with:
+          path: dist
+          key: ${{ github.ref }}${{ env.pythonLocation }}-build-release-${{ hashFiles('setup.py') }}
       - name: Run Core tests
         run: env PYTEST_ADDOPTS="--exitfirst" make test
 
