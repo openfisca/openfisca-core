@@ -138,7 +138,7 @@ jobs:
 
   check-version:
     runs-on: ubuntu-latest
-    needs: [ test-python, check-numpy, test-country-template, test-doc, lint-files  ] # Last job to run
+    needs: [ test-python, check-numpy, test-country-template, test-docs, lint-files  ] # Last job to run
     steps:
       - uses: actions/checkout@v2
         with:
