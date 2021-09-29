@@ -27,12 +27,6 @@ jobs:
         with:
           path: dist
           key: ${{ github.ref }}${{ env.pythonLocation }}-build-release-${{ hashFiles('setup.py') }}
-      - name: Cache coverage
-        id: restore-coverage
-        uses: actions/cache@v2
-        with:
-          path: .coverage
-          key: ${{ github.ref }}${{ env.pythonLocation }}-coverage
       - name: Run tests
         run: env PYTEST_ADDOPTS="--exitfirst" make test
 
@@ -52,14 +46,8 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ github.ref }}${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}
-      - name: Cache coverage
-        id: restore-coverage
-        uses: actions/cache@v2
-        with:
-          path: .coverage
-          key: ${{ github.ref }}${{ env.pythonLocation }}-coverage
       - name: Run Core tests
-        run: env PYTEST_ADDOPTS="--exitfirst" make test
+        run:  make test
 
   check-numpy:
     runs-on: ubuntu-latest
