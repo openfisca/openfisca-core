@@ -13,7 +13,6 @@ general_requirements = [
     'pytest >= 4.4.1, < 6.0.0',  # For openfisca test
     'PyYAML >= 3.10',
     'sortedcontainers == 2.2.2',
-    'typing-extensions >= 3.0.0.0, < 4.0.0.0',
     ]
 
 api_requirements = [
