@@ -26,8 +26,10 @@ def empty_clone(original):
     """
 
     class Dummy(original.__class__):
+        """Dummy class for empty cloning."""
+
         def __init__(self) -> None:
-            pass
+            ...
 
     new = Dummy()
     new.__class__ = original.__class__
