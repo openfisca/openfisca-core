@@ -44,7 +44,9 @@ jobs:
           path: ${{ env.pythonLocation }}
           key: ${{ github.ref }}${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}
       - name: Run Core tests
-        run: env PYTEST_ADDOPTS="--exitfirst" make test
+        run: |
+          shopt -s globstar
+          env PYTEST_ADDOPTS="--exitfirst" make test
 
   check-numpy:
     runs-on: ubuntu-latest
