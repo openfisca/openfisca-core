@@ -1,5 +1,11 @@
 # Changelog
 
+### 35.5.5 [#1055](https://github.com/openfisca/openfisca-core/pull/1055)
+
+#### Documentation
+
+- Complete the documentation of the commons module
+
 ### 35.5.4 [#1033](https://github.com/openfisca/openfisca-core/pull/1033)
 
 #### Bug Fixes
