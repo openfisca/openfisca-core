@@ -28,11 +28,6 @@ lint-doc-%:
 	@## The reason they're here is because otherwise we wouldn't be
 	@## able to integrate documentation improvements progresively.
 	@##
-	@## D101:	Missing docstring in public class.
-	@## D102:	Missing docstring in public method.
-	@## D103:	Missing docstring in public function.
-	@## DAR:	https://github.com/terrencepreilly/darglint#error-codes.
-	@##
 	@$(call print_help,$(subst $*,%,$@:))
 	@flake8 --select=D101,D102,D103,DAR openfisca_core/$*
 	@pylint openfisca_core/$*
