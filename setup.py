@@ -14,6 +14,7 @@ general_requirements = [
     'pytest >= 4.4.1, < 6.0.0',  # For openfisca test
     'PyYAML >= 3.10',
     'sortedcontainers == 2.2.2',
+    'typing-extensions == 3.10.0.2',
     ]
 
 api_requirements = [
@@ -31,7 +32,7 @@ dev_requirements = [
     'flake8-docstrings == 1.6.0',
     'flake8-print >= 3.1.0, < 4.0.0',
     'flake8-rst-docstrings == 0.2.3',
-    'mypy >= 0.701, < 0.800',
+    'mypy == 0.910',
     'openfisca-country-template >= 3.10.0, < 4.0.0',
     'openfisca-extension-template >= 1.2.0rc0, < 2.0.0',
     'pylint == 2.10.2',
