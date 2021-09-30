@@ -30,6 +30,12 @@ jobs:
         with:
           path: dist
           key: ${{ env.pythonLocation }}-build-release-${{ hashFiles('setup.py') }}-${{ github.ref }}-${{ github.sha }}
+      - name: Cache coverage
+        id: restore-coverage
+        uses: actions/cache@v2
+        with:
+          path: .coverage
+          key: ${{ hashFiles('.coverage) }}-${{ github.sha }}
 
   test-python:
     runs-on: ubuntu-latest
@@ -174,6 +180,12 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.ref }}-${{ github.sha }}
+      - name: Cache coverage
+        id: restore-coverage
+        uses: actions/cache@v2
+        with:
+          path: .coverage
+          key: ${{ hashFiles('.coverage) }}-${{ github.sha }}
       - name: Submit coverage to Coveralls
         run: |
           pip install coveralls
