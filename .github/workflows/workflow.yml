@@ -159,6 +159,7 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.sha }}
+      - run: make build
       - name: Submit coverage to Coveralls
         run: |
           pip install coveralls
