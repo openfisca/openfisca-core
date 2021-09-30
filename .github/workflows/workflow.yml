@@ -18,6 +18,10 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.ref }}-${{ github.sha }} # Cache the entire build Python environment
+          restore-keys: |
+            ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.ref }}
+            ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}
+            ${{ env.pythonLocation }}-build-
       - name: Build package
         run: make build
       - name: Cache build release
@@ -129,7 +133,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
-          key: $${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.ref }}-${{ github.sha }}
+          key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.ref }}-${{ github.sha }}
       - run: make check-syntax-errors
       - run: make check-style
       - name: Lint Python files
