@@ -140,23 +140,9 @@ jobs:
       - name: Lint YAML tests
         run: "${GITHUB_WORKSPACE}/.github/lint-changed-yaml-tests.sh"
 
-  check-version:
-    runs-on: ubuntu-latest
-    needs: [ test-python, check-numpy, test-country-template, test-docs, lint-files  ] # Last job to run
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0 # Fetch all the tags
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.7
-      - name: Check version number has been properly updated
-        run: "${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh"
-
   sumbit-coverage:
     runs-on: ubuntu-latest
-    needs: [ test-python, check-numpy, test-country-template ]
+    needs: [ test-python, check-numpy, test-country-template, lint-files ]
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -177,6 +163,19 @@ jobs:
         run: |
           pip install coveralls
           coveralls --service=github
+  check-version:
+    runs-on: ubuntu-latest
+    needs: [ test-python, check-numpy, test-country-template, test-docs, lint-files ] # Last job to run
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # Fetch all the tags
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+      - name: Check version number has been properly updated
+        run: "${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh"
 
   check-for-functional-changes:
     runs-on: ubuntu-latest
