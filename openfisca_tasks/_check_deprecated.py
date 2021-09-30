@@ -6,6 +6,7 @@ import sys
 import textwrap
 from typing import Sequence
 
+import termcolor
 from typing_extensions import Literal
 
 EXIT_OK: Literal[0]
@@ -13,6 +14,24 @@ EXIT_OK = 0
 
 EXIT_KO: Literal[1]
 EXIT_KO = 1
+
+WORK: str
+WORK = termcolor.colored("[/]", "cyan")
+
+WARN: str
+WARN = termcolor.colored("[i]", "yellow")
+
+FAIL: str
+FAIL = termcolor.colored("[!]", "red")
+
+BAR: str
+BAR = termcolor.colored("|", "green")
+
+ETA: str
+ETA = termcolor.colored("✓", "green")
+
+ACC: str
+ACC = termcolor.colored("·", "green")
 
 FILES: Sequence[str]
 FILES = \
@@ -153,7 +172,7 @@ class CheckDeprecated(ast.NodeVisitor):
             since, expires = keywords
 
             message = [
-                f"[i] {module}.{node.name}:{lineno} =>",
+                f"{WARN} {module}.{node.name}:{lineno} =>",
                 f"Deprecated since: {since}.",
                 f"Expiration status: {expires}",
                 f"(current: {self.version}).",
@@ -165,7 +184,7 @@ class CheckDeprecated(ast.NodeVisitor):
             # will exit with an error.
             if self._isthis(expires):
                 self.exit = EXIT_KO
-                sys.stdout.write("\r[!]")
+                sys.stdout.write(f"\r{FAIL}")
 
             sys.stdout.write("\n")
 
@@ -180,7 +199,7 @@ class CheckDeprecated(ast.NodeVisitor):
             return ast.parse(source, file, "exec")
 
     def __init_progress__(self) -> None:
-        sys.stdout.write(f"[/] 0%   |{'·' * 50}|\r")
+        sys.stdout.write(f"{WORK} 0%   {BAR}{ACC * 50}{BAR}\r")
 
     def __push_progress__(self) -> None:
         doner: int
@@ -192,11 +211,14 @@ class CheckDeprecated(ast.NodeVisitor):
         space += [' ', ''][doner >= 10]
 
         sys.stdout.write(
-            f"[/] {doner}% {space}|"
-            f"{'█' * (doner // 2)}"
-            f"{'·' * (50 - doner // 2)}"
-            "|\r"
+            f"{WORK} {doner}% {space}{BAR}"
+            f"{ETA * (doner // 2)}"
+            f"{ACC * (50 - doner // 2)}"
+            f"{BAR}\r"
             )
+
+        import time
+        time.sleep(.1)
 
     def __wipe_progress__(self) -> None:
         sys.stdout.write(f"{' ' * 100}\r")
