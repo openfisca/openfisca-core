@@ -1,8 +1,10 @@
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, Sequence, TypeVar
 
 import numpy
 
 from openfisca_core.types import ArrayLike, ArrayType
+
+T = TypeVar("T")
 
 
 def apply_thresholds(
@@ -88,9 +90,9 @@ def concat(this: ArrayLike[str], that: ArrayLike[str]) -> ArrayType[str]:
 
 
 def switch(
-        conditions: ArrayType[float],
-        value_by_condition: Dict[float, Any],
-        ) -> ArrayType[float]:
+        conditions: ArrayType[Any],
+        value_by_condition: Dict[float, T],
+        ) -> ArrayType[T]:
     """Mimicks a switch statement.
 
     Given an array of conditions, returns an array of the same size,
@@ -101,7 +103,7 @@ def switch(
         value_by_condition: Values to replace for each condition.
 
     Returns:
-        :obj:`numpy.ndarray` of :obj:`float`:
+        :obj:`numpy.ndarray`:
         An array with the replaced values.
 
     Raises:
