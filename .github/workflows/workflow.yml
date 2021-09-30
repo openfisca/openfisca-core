@@ -23,7 +23,6 @@ jobs:
             ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}
             ${{ env.pythonLocation }}-build-
       - name: Build package
-        if: steps.restore-install.outputs.cache-hit != 'true'
         run: make build
       - name: Cache build release
         id: restore-build-release
