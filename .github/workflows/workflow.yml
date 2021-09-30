@@ -29,7 +29,7 @@ jobs:
         with:
           path: dist
           key: ${{ env.pythonLocation }}-build-release-${{ hashFiles('setup.py') }}-${{ github.sha }}
-      - run: ls -l
+      - run: ls -al
       - name: Upload coverage after build
         uses: actions/upload-artifact@v2
         with:
