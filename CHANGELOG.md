@@ -1,5 +1,11 @@
 # Changelog
 
+### 35.5.3 [#1020](https://github.com/openfisca/openfisca-core/pull/1020)
+
+#### Technical changes
+
+- Run openfisca-core & country/extension template tests systematically
+
 ### 35.5.2 [#1048](https://github.com/openfisca/openfisca-core/pull/1048)
 
 #### Bug fix
