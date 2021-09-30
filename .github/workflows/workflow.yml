@@ -17,9 +17,8 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.ref }}-${{ github.sha }} # Cache the entire build Python environment
+          key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.sha }} # Cache the entire build Python environment
           restore-keys: |
-            ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.ref }}
             ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}
             ${{ env.pythonLocation }}-build-
       - name: Build package
@@ -29,7 +28,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: dist
-          key: ${{ env.pythonLocation }}-build-release-${{ hashFiles('setup.py') }}-${{ github.ref }}-${{ github.sha }}
+          key: ${{ env.pythonLocation }}-build-release-${{ hashFiles('setup.py') }}-${{ github.sha }}
       - name: Cache coverage
         id: restore-coverage
         uses: actions/cache@v2
@@ -51,7 +50,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.ref }}-${{ github.sha }}
+          key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.sha }}
       - name: Build package
         run: make build
       - name: Run Core tests
@@ -71,7 +70,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.ref }}-${{ github.sha }}
+          key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.sha }}
       - name: Check NumPy typing against latest 3 minor versions
         run: for i in {1..3}; do VERSION=$(${GITHUB_WORKSPACE}/.github/get-numpy-version.py prev) && pip install numpy==$VERSION && make check-types; done
 
@@ -89,7 +88,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.ref }}-${{ github.sha }}
+          key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.sha }}
       - name: Run Country Template tests
         run: |
           COUNTRY_TEMPLATE_PATH=`python -c "import openfisca_country_template; print(openfisca_country_template.CountryTaxBenefitSystem().get_package_metadata()['location'])"`
@@ -111,7 +110,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.ref }}-${{ github.sha }}
+          key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.sha }}
       - name: Cache docs
         id: restore-docs
         uses: actions/cache@v2
@@ -139,7 +138,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.ref }}-${{ github.sha }}
+          key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.sha }}
       - run: make check-syntax-errors
       - run: make check-style
       - name: Lint Python files
@@ -179,7 +178,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.ref }}-${{ github.sha }}
+          key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.sha }}
       - name: Cache coverage
         id: restore-coverage
         uses: actions/cache@v2
@@ -227,13 +226,13 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.ref }}-${{ github.sha }}
+          key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.sha }}
       - name: Cache build release
         id: restore-build-release
         uses: actions/cache@v2
         with:
           path: dist
-          key: ${{ env.pythonLocation }}-build-release-${{ hashFiles('setup.py') }}-${{ github.ref }}-${{ github.sha }}
+          key: ${{ env.pythonLocation }}-build-release-${{ hashFiles('setup.py') }}-${{ github.sha }}
       - name: Upload a Python package to PyPi
         run: twine upload dist/* --username $PYPI_USERNAME --password $PYPI_PASSWORD
       - name: Publish a git tag
