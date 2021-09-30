@@ -26,8 +26,8 @@ jobs:
         id: restore-env
         uses: actions/cache@v2
         with:
-          path: ${{ env }}
-          key: ${{ env }}-build-${{ hashFiles('setup.py') }}-${{ github.ref }}-${{ github.sha }}
+          path: .
+          key: build-${{ hashFiles('setup.py') }}-${{ github.ref }}-${{ github.sha }}
       - name: Build package
         run: make build
       - name: Cache build release
@@ -50,8 +50,8 @@ jobs:
         id: restore-build
         uses: actions/cache@v2
         with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.ref }}-${{ github.sha }}
+          path: .
+          key: build-${{ hashFiles('setup.py') }}-${{ github.ref }}-${{ github.sha }}
       - name: Cache env
         id: restore-env
         uses: actions/cache@v2
