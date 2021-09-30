@@ -29,12 +29,6 @@ jobs:
         with:
           path: dist
           key: ${{ env.pythonLocation }}-build-release-${{ hashFiles('setup.py') }}-${{ github.sha }}
-      - run: ls -al
-      - name: Upload coverage after build
-        uses: actions/upload-artifact@v2
-        with:
-          name: coverage
-          path: .coverage
 
   test-python:
     runs-on: ubuntu-latest
@@ -179,14 +173,9 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.sha }}
-      - name: Download coverage from build
-        uses: actions/download-artifact@v2
-        with:
-          name: coverage
       - name: Submit coverage to Coveralls
         run: |
-          pip install coveralls
-          coveralls
+          coveralls --service=github
 
   check-for-functional-changes:
     runs-on: ubuntu-latest
