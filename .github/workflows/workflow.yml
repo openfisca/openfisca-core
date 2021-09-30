@@ -49,7 +49,7 @@ jobs:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-build-${{ hashFiles('setup.py') }}-${{ github.ref }}-${{ github.sha }}
       - name: Run Core tests
-        run:  make test
+        run:  pytest
 
   check-numpy:
     runs-on: ubuntu-latest
