@@ -1,5 +1,12 @@
 # Changelog
 
+### 35.5.1 [#1046](https://github.com/openfisca/openfisca-core/pull/1046)
+
+#### Non-technical changes
+
+- Reorganise `Makefile` into context files (install, test, publish…)
+- Colorise `make` tasks and improve messages printed to the user
+
 ## 35.5.0 [#1038](https://github.com/openfisca/openfisca-core/pull/1038)
 
 #### New Features
