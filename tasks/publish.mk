@@ -24,4 +24,6 @@ build:
 
 ## Upload openfisca-core package to PyPi.
 publish:
+	@$(call print_help,$@:)
 	@twine upload dist/* --username $${PYPI_USERNAME} --password $${PYPI_PASSWORD}
+	@$(call print_pass,$@:)
