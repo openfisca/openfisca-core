@@ -1,4 +1,4 @@
-include tasks/install.mk
+include tasks/dev.mk
 include tasks/lint.mk
 include tasks/publish.mk
 include tasks/serve.mk
