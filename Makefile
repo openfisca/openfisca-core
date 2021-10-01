@@ -1,9 +1,9 @@
-include openfisca_tasks/install.mk
-include openfisca_tasks/lint.mk
-include openfisca_tasks/publish.mk
-include openfisca_tasks/serve.mk
-include openfisca_tasks/test_code.mk
-include openfisca_tasks/test_doc.mk
+include tasks/install.mk
+include tasks/lint.mk
+include tasks/publish.mk
+include tasks/serve.mk
+include tasks/test_code.mk
+include tasks/test_doc.mk
 
 ## To share info with the user, but no action is needed.
 print_info = $$(tput setaf 6)[i]$$(tput sgr0)
@@ -21,7 +21,7 @@ print_pass = echo $$(tput setaf 2)[✓]$$(tput sgr0) $$(tput setaf 8)$1$$(tput s
 ## Similar to `print_work`, but this will read the comments above a task, and
 ## print them to the user at the start of each task. The `$1` is a function
 ## argument.
-print_help = sed -n "/^$1/ { x ; p ; } ; s/\#\#/$(print_work)/ ; s/\./…/ ; x" ${MAKEFILE_LIST}
+print_help = sed -n "/^$1/ { x ; p ; } ; s/\#\#/\r$(print_work)/ ; s/\./…/ ; x" ${MAKEFILE_LIST}
 
 ## Same as `make`.
 .DEFAULT_GOAL := all
