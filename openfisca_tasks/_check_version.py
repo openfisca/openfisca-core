@@ -6,7 +6,7 @@ import functools
 import pathlib
 import textwrap
 import subprocess
-from typing import Generator, Sequence
+from typing import Generator, Optional, Sequence
 
 from typing_extensions import Literal
 
@@ -22,15 +22,16 @@ EXIT_KO = 1
 
 IGNORE_DIFF_ON: Sequence[str]
 IGNORE_DIFF_ON = (
-    ".circleci/*",
-    ".github/*",
-    "tests/*",
-    ".gitignore"
+    ".circleci",
+    ".github",
+    ".gitignore",
+    ".mk",
     "CONTRIBUTING.md",
-    "LICENSE*",
+    "LICENSE",
     "Makefile",
     "README.md",
     "STYLEGUIDE.md",
+    "tests",
     )
 
 VERSION: str
@@ -98,6 +99,21 @@ class Type:
     name: str
 
 
+@dataclasses.dataclass(frozen = True)
+class Argument:
+    name: str
+    type_: Optional[Type] = None
+    default: Optional[str] = None
+
+
+@dataclasses.dataclass(frozen = True)
+class Contract:
+    name: str
+    file: str
+    arguments: Optional[Sequence[Argument]] = None
+    returns: Optional[Sequence[Type]] = None
+
+
 class CheckVersion(ast.NodeVisitor):
 
     actual: Sequence[Contract]
@@ -115,8 +131,16 @@ class CheckVersion(ast.NodeVisitor):
 
     def __call__(self, progress: SupportsProgress) -> None:
         self.progress = progress
-        self.actual = tuple(self._parse_actual())
-        self.before = tuple(self._parse_before())
+        self.actual = tuple(
+            nodes
+            for node in self._parse_actual()
+            for nodes in node
+            )
+        self.before = tuple(
+            nodes
+            for node in self._parse_before()
+            for nodes in node
+            )
 
         if self._haschanges():
             self.exit = EXIT_KO
@@ -155,13 +179,23 @@ class CheckVersion(ast.NodeVisitor):
             if "setter" in ast.dump(decorator):
                 name = f"{name}#setter"
 
-        build_argument = functools.partial(
+        build = functools.partial(
             self._build_argument,
             args = node.args.args,
             defaults = node.args.defaults,
             )
 
-        self.contracts = functools.reduce(build_argument, node.args.args, ())
+        posargs = functools.reduce(build, node.args.args, ())
+
+        build = functools.partial(
+            self._build_argument,
+            args = node.args.kwonlyargs,
+            defaults = node.args.kw_defaults,
+            )
+
+        keyargs = functools.reduce(build, node.args.kwonlyargs, ())
+
+        self.contracts.append(Contract(name, file, posargs + keyargs))
 
     def _haschanges(self) -> bool:
         total: int
@@ -171,10 +205,12 @@ class CheckVersion(ast.NodeVisitor):
         self.progress.init()
 
         for count, file in enumerate(CHANGED):
-            if file not in IGNORE_DIFF_ON:
-                self.version = max(self.version, Version.PATCH.index)
-                self.progress.wipe()
-                self.progress.warn(f"~ {file}\n")
+            if not self._isfunctional(file):
+                continue
+
+            self.version = max(self.version, Version.PATCH.index)
+            self.progress.wipe()
+            self.progress.warn(f"~ {file}\n")
 
             self.progress.push(count, total)
 
@@ -182,8 +218,8 @@ class CheckVersion(ast.NodeVisitor):
         return bool(self.version)
 
     def _hasaddedfuncs(self) -> bool:
-        actual = set(self.actual)
-        before = set(self.before)
+        actual = set(contract.name for contract in self.actual)
+        before = set(contract.name for contract in self.before)
 
         added = actual ^ before & actual
         total = len(added)
@@ -191,14 +227,32 @@ class CheckVersion(ast.NodeVisitor):
         self.progress.info("Checking for added functions…\n")
         self.progress.init()
 
-        for count, function in enumerate(added):
+        for count, name in enumerate(added):
+            contract = self._find(name, self.actual)
+
+            if contract is None or not self._isfunctional(contract.file):
+                continue
+
             self.version = max(self.version, Version.MINOR.index)
             self.progress.wipe()
-            self.progress.warn(f"+ {function}\n")
+            self.progress.warn(f"+ {contract.name}\n")
             self.progress.push(count, total)
 
         self.progress.wipe()
         return bool(self.version)
+
+    def _isfunctional(self, file: str) -> bool:
+        return not any(exclude in file for exclude in IGNORE_DIFF_ON)
+
+    def _find(self, name: str, pool: Sequence[Contract]) -> Optional[Contract]:
+        return next(
+            (
+                contract
+                for contract in pool
+                if contract.name == name
+                ),
+            None,
+            )
 
     def _parse_actual(self) -> Generator[ast.Module, None, None]:
         source: str
@@ -211,6 +265,7 @@ class CheckVersion(ast.NodeVisitor):
         self.progress.init()
 
         for count, filename in enumerate(self.files):
+            self.contracts = []
             self.count = count
 
             with open(filename, "r") as file:
@@ -223,6 +278,7 @@ class CheckVersion(ast.NodeVisitor):
         self.progress.wipe()
 
     def _parse_before(self) -> Generator[ast.Module, None, None]:
+        self.contracts = []
         content: str
         source: str
         total: int
@@ -252,7 +308,7 @@ class CheckVersion(ast.NodeVisitor):
 
         self.progress.wipe()
 
-    def _build_argument(self, acc, node, args, defaults):
+    def _build_argument(self, acc, node, args, defaults) -> Sequence[Argument]:
         type_ = self._build(node.annotation, Type)
 
         if type_ is not None and not isinstance(type_, tuple):
@@ -269,11 +325,7 @@ class CheckVersion(ast.NodeVisitor):
         else:
             default = None
 
-        argument = (
-            node.arg,
-            type_,
-            default,
-            )
+        argument = Argument(node.arg, type_, default)
 
         return (*acc, argument)
 
