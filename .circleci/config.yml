@@ -20,10 +20,13 @@ jobs:
             echo "source /tmp/venv/openfisca_core/bin/activate" >> $BASH_ENV
 
       - run:
+          name: Install building utils
+          command: make install-builder
+
+      - run:
           name: Install dependencies
           command: |
-            make install
-            make clean
+            make install-deps
             # pip install --editable git+https://github.com/openfisca/country-template.git@BRANCH_NAME#egg=OpenFisca-Country-Template  # use a specific branch of OpenFisca-Country-Template
             # pip install --editable git+https://github.com/openfisca/extension-template.git@BRANCH_NAME#egg=OpenFisca-Extension-Template  # use a specific branch of OpenFisca-Extension-Template
 
@@ -33,12 +36,16 @@ jobs:
             - /tmp/venv/openfisca_core
 
       - run:
+          name: Build & install openfisca-core
+          command: make build
+
+      - run:
           name: Run linters
-          command: make lint
+          command: make clean lint
 
       - run:
           name: Run openfisca-core tests
-          command: make test-core pytest_args="--exitfirst"
+          command: make clean test-core pytest_args="--exitfirst"
 
       - run:
           name: Check NumPy typing against latest 3 minor versions
@@ -151,10 +158,10 @@ jobs:
           command: if ! .circleci/has-functional-changes.sh ; then circleci step halt ; fi
 
       - run:
-          name: Upload a Python package to Pypi
+          name: Upload openfisca-core package to PyPi
           command: |
             source /tmp/venv/openfisca_core/bin/activate
-            .circleci/publish-python-package.sh
+            make install-publisher build clean publish
 
       - run:
           name: Publish a git tag
