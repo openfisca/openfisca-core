@@ -59,6 +59,9 @@ def progress():
         def fail(self):
             self.called.append(Call(name()))
 
+        def next(self):
+            ...
+
         def wipe(self):
             ...
 
