@@ -1,7 +1,7 @@
 ## Install project dependencies.
 install:
 	@$(call print_help,$@:)
-	@pip install --upgrade pip twine wheel
+	@pip install --upgrade pip
 	@pip install --editable .[dev] --upgrade --use-deprecated=legacy-resolver
 
 ## Uninstall project dependencies.
