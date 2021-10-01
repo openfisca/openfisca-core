@@ -2,7 +2,6 @@ import ast
 import pathlib
 import pkg_resources
 import subprocess
-import sys
 import textwrap
 from typing import Sequence
 
@@ -175,7 +174,7 @@ class CheckDeprecated(ast.NodeVisitor):
                 self.exit = EXIT_KO
                 self.progress.fail()
 
-            sys.stdout.write("\n")
+            self.progress.next()
 
     def _isthis(self, version: str) -> bool:
         return self.version == version

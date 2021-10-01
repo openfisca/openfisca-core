@@ -7,6 +7,9 @@ import termcolor
 WORK_ICON: str
 WORK_ICON = termcolor.colored("[/]", "cyan")
 
+INFO_ICON: str
+INFO_ICON = termcolor.colored("[i]", "cyan")
+
 WARN_ICON: str
 WARN_ICON = termcolor.colored("[i]", "yellow")
 
@@ -38,11 +41,17 @@ class ProgressBar:
 
         sys.stdout.write(self._push_message(done))
 
+    def info(self, message: str) -> None:
+        sys.stdout.write(f"{INFO_ICON} {message}")
+
     def warn(self, message: str) -> None:
         sys.stdout.write(f"{WARN_ICON} {message}")
 
     def fail(self) -> None:
         sys.stdout.write(f"\r{FAIL_ICON}")
+
+    def next(self) -> None:
+        sys.stdout.write("\n\r")
 
     def wipe(self) -> None:
         sys.stdout.write(self._wipe_message())

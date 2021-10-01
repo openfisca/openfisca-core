@@ -113,6 +113,7 @@ class CheckVersion:
 
         total = len(ACTUAL)
 
+        self.progress.info("Parsing files from the current branch…\n")
         self.progress.init()
 
         for count, filename in enumerate(ACTUAL):
@@ -130,6 +131,7 @@ class CheckVersion:
 
         total = len(BEFORE)
 
+        self.progress.info(f"Parsing files from version {VERSION}…\n")
         self.progress.init()
 
         for count, filename in enumerate(BEFORE):
