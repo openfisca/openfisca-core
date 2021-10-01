@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import ast
+import dataclasses
+import functools
 import pathlib
 import textwrap
 import subprocess
@@ -91,10 +93,20 @@ class Version(Enum):
     MAJOR = "major"
 
 
+@dataclasses.dataclass(frozen = True)
+class Type:
+    name: str
+
+
 class CheckVersion(ast.NodeVisitor):
 
+    actual: Sequence[Contract]
+    before: Sequence[Contract]
+    contracts: Sequence[Contract]
     exit: Literal[0, 1]
     files: Sequence[str]
+    progress: SupportsProgress
+    required: str
     version: int
 
     def __init__(self):
@@ -102,8 +114,6 @@ class CheckVersion(ast.NodeVisitor):
         self.version = Version.NONE.index
 
     def __call__(self, progress: SupportsProgress) -> None:
-        required: str
-
         self.progress = progress
         self.actual = tuple(self._parse_actual())
         self.before = tuple(self._parse_before())
@@ -118,8 +128,6 @@ class CheckVersion(ast.NodeVisitor):
         self.progress.info(f"Version bump required: {required}!\n")
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
-        self.contracts = ()
-
         # We look for the corresponding ``file``.
         file = self.files[self.count]
 
@@ -147,6 +155,14 @@ class CheckVersion(ast.NodeVisitor):
             if "setter" in ast.dump(decorator):
                 name = f"{name}#setter"
 
+        build_argument = functools.partial(
+            self._build_argument,
+            args = node.args.args,
+            defaults = node.args.defaults,
+            )
+
+        self.contracts = functools.reduce(build_argument, node.args.args, ())
+
     def _haschanges(self) -> bool:
         total: int
         total = len(CHANGED)
@@ -158,19 +174,31 @@ class CheckVersion(ast.NodeVisitor):
             if file not in IGNORE_DIFF_ON:
                 self.version = max(self.version, Version.PATCH.index)
                 self.progress.wipe()
-                self.progress.warn(f"{file}\n")
+                self.progress.warn(f"~ {file}\n")
 
             self.progress.push(count, total)
 
         self.progress.wipe()
         return bool(self.version)
 
-    def _hasaddedfuncs(self):
+    def _hasaddedfuncs(self) -> bool:
         actual = set(self.actual)
         before = set(self.before)
 
-        for function in (actual ^ before & actual):
-            self.progress.warn(f"Added function => {function}\n")
+        added = actual ^ before & actual
+        total = len(added)
+
+        self.progress.info("Checking for added functions…\n")
+        self.progress.init()
+
+        for count, function in enumerate(added):
+            self.version = max(self.version, Version.MINOR.index)
+            self.progress.wipe()
+            self.progress.warn(f"+ {function}\n")
+            self.progress.push(count, total)
+
+        self.progress.wipe()
+        return bool(self.version)
 
     def _parse_actual(self) -> Generator[ast.Module, None, None]:
         source: str
@@ -223,3 +251,62 @@ class CheckVersion(ast.NodeVisitor):
             self.progress.push(count, total)
 
         self.progress.wipe()
+
+    def _build_argument(self, acc, node, args, defaults):
+        type_ = self._build(node.annotation, Type)
+
+        if type_ is not None and not isinstance(type_, tuple):
+            type_ = type_,
+
+        if len(defaults) > 0 and len(args) - len(defaults) < len(acc) + 1:
+            default = defaults[
+                + len(acc)
+                + len(defaults)
+                - len(args)
+                ]
+
+            default = self._build(default)
+        else:
+            default = None
+
+        argument = (
+            node.arg,
+            type_,
+            default,
+            )
+
+        return (*acc, argument)
+
+    def _build(self, node, builder = lambda x: x):
+        if node is None:
+            return None
+
+        if isinstance(node, ast.Attribute):
+            return builder(str(node.attr))
+
+        if isinstance(node, ast.Name):
+            return builder(str(node.id))
+
+        if isinstance(node, (ast.Constant, ast.NameConstant)):
+            return builder(str(node.value))
+
+        if isinstance(node, ast.Num):
+            return builder(str(node.n))
+
+        if isinstance(node, ast.Str):
+            return builder(str(node.s))
+
+        if isinstance(node, ast.Subscript):
+            return (
+                self._build(node.value, builder),
+                self._build(node.slice.value, builder),
+                )
+
+        if isinstance(node, ast.Tuple):
+            return functools.reduce(
+                lambda acc, item: (*acc, self._build(item, builder)),
+                node.elts,
+                (),
+                )
+
+        raise TypeError(ast.dump(node))
