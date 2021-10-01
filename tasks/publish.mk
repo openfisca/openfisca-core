@@ -12,7 +12,7 @@ install-publisher:
 install-deps:
 	@$(call print_help,$@:)
 	@python setup.py egg_info
-	@pip install $$(grep -v "^\[" *.egg-info/requires.txt)
+	@pip install $$(grep -v "^\[" src/*.egg-info/requires.txt)
 	@$(call print_pass,$@:)
 
 ## Build & install openfisca-core for deployment and publishing.
