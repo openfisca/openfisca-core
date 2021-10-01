@@ -37,7 +37,7 @@ jobs:
 
       - run:
           name: Build & install openfisca-core
-          command: make build
+          command: make clean build
 
       - run:
           name: Run linters
@@ -45,7 +45,7 @@ jobs:
 
       - run:
           name: Run openfisca-core tests
-          command: make clean test-core pytest_args="--exitfirst"
+          command: make test-core pytest_args="--exitfirst"
 
       - run:
           name: Check NumPy typing against latest 3 minor versions
@@ -161,7 +161,7 @@ jobs:
           name: Upload openfisca-core package to PyPi
           command: |
             source /tmp/venv/openfisca_core/bin/activate
-            make install-publisher build clean publish
+            make install-publisher clean build publish
 
       - run:
           name: Publish a git tag
