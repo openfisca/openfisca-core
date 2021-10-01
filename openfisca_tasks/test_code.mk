@@ -1,3 +1,4 @@
+## The path to the installed packages.
 python_packages = $(shell python -c "import sysconfig; print(sysconfig.get_paths()[\"purelib\"])")
 
 ## Run openfisca-core & country/extension template tests.
