@@ -148,6 +148,9 @@ class CheckVersion(ast.NodeVisitor):
         if self._hasaddedfuncs():
             self.exit = EXIT_KO
 
+        if self._hasdelfuncs():
+            self.exit = EXIT_KO
+
         required = tuple(Version)[self.version].value
         self.progress.info(f"Version bump required: {required}!\n")
 
@@ -234,6 +237,30 @@ class CheckVersion(ast.NodeVisitor):
                 continue
 
             self.version = max(self.version, Version.MINOR.index)
+            self.progress.wipe()
+            self.progress.warn(f"+ {contract.name}\n")
+            self.progress.push(count, total)
+
+        self.progress.wipe()
+        return bool(self.version)
+
+    def _hasdelfuncs(self) -> bool:
+        actual = set(contract.name for contract in self.actual)
+        before = set(contract.name for contract in self.before)
+
+        removed = (before ^ actual & before)
+        total = len(removed)
+
+        self.progress.info("Checking for removed functions…\n")
+        self.progress.init()
+
+        for count, name in enumerate(removed):
+            contract = self._find(name, self.before)
+
+            if contract is None or not self._isfunctional(contract.file):
+                continue
+
+            self.version = max(self.version, Version.MAJOR.index)
             self.progress.wipe()
             self.progress.warn(f"+ {contract.name}\n")
             self.progress.push(count, total)
