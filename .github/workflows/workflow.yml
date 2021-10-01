@@ -30,7 +30,7 @@ jobs:
           path: dist
           key: ${{ env.pythonLocation }}-build-release-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
-  test-python:
+  test-core:
     runs-on: ubuntu-latest
     needs: [ build ]
     steps:
@@ -142,7 +142,7 @@ jobs:
 
   sumbit-coverage:
     runs-on: ubuntu-latest
-    needs: [ test-python, check-numpy, test-country-template, lint-files ]
+    needs: [ test-core, check-numpy, test-country-template, lint-files ]
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -165,7 +165,7 @@ jobs:
           coveralls --service=github
   check-version:
     runs-on: ubuntu-latest
-    needs: [ test-python, check-numpy, test-country-template, test-docs, lint-files ] # Last job to run
+    needs: [ test-core, check-numpy, test-country-template, test-docs, lint-files ] # Last job to run
     steps:
       - uses: actions/checkout@v2
         with:
