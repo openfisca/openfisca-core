@@ -9,6 +9,8 @@ from typing_extensions import Literal
 
 from ._protocols import SupportsProgress
 
+from openfisca_core.indexed_enums import Enum
+
 EXIT_OK: Literal[0]
 EXIT_OK = 0
 
@@ -81,14 +83,25 @@ BEFORE = [
     ]
 
 
+class Version(Enum):
+    NONE = "none"
+    PATCH = "patch"
+    MINOR = "minor"
+    MAJOR = "major"
+
+
 class CheckVersion:
 
     exit: Literal[0, 1]
+    version: int
 
     def __init__(self):
         self.exit = EXIT_OK
+        self.version = Version.NONE.index
 
     def __call__(self, progress: SupportsProgress) -> None:
+        required: str
+
         self.progress = progress
         self.actual = tuple(self._parse_actual())
         self.before = tuple(self._parse_before())
@@ -96,16 +109,26 @@ class CheckVersion:
         if self._haschanges():
             self.exit = EXIT_KO
 
+        required = tuple(Version)[self.version].value
+        self.progress.info(f"Version bump required: {required}!\n")
+
     def _haschanges(self) -> bool:
-        changed: bool
-        changed = False
+        total: int
+        total = len(CHANGED)
 
-        for file in CHANGED:
+        self.progress.info("Checking for functional changes…\n")
+        self.progress.init()
+
+        for count, file in enumerate(CHANGED):
             if file not in IGNORE_DIFF_ON:
+                self.version = max(self.version, Version.PATCH.index)
+                self.progress.wipe()
                 self.progress.warn(f"{file}\n")
-                changed = True
 
-        return changed
+            self.progress.push(count, total)
+
+        self.progress.wipe()
+        return bool(self.version)
 
     def _parse_actual(self) -> Generator[ast.Module, None, None]:
         source: str
