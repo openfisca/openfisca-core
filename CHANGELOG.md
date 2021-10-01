@@ -1,5 +1,13 @@
 # Changelog
 
+### 35.5.5 [#1037](https://github.com/openfisca/openfisca-core/pull/1037)
+
+#### Technical changes
+
+ - Test openfisca-core against its packaged version
+   - Doing so allows to prevent publishing corrupted versions
+   - What we test is what the user gets when installing openfisca-core
+
 ### 35.5.4 [#1059](https://github.com/openfisca/openfisca-core/pull/1059)
 
 #### Non-technical changes

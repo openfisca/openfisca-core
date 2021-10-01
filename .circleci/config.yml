@@ -45,7 +45,7 @@ jobs:
 
       - run:
           name: Run openfisca-core tests
-          command: make test-core pytest_args="--exitfirst"
+          command: make test-built pytest_args="--exitfirst"
 
       - run:
           name: Check NumPy typing against latest 3 minor versions
