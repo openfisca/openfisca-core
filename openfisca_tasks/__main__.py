@@ -1,33 +1,19 @@
-import abc
-import sys
+from __future__ import annotations
 
-from typing_extensions import Protocol
+import sys
 
 import openfisca_tasks as tasks
 
-
-class HasExit(Protocol):
-    exit: int
-
-    @abc.abstractmethod
-    def __call__(self) -> None:
-        ...
-
-    @abc.abstractmethod
-    def __init_progress__(self) -> None:
-        ...
-
-    @abc.abstractmethod
-    def __push_progress__(self) -> None:
-        ...
-
-    @abc.abstractmethod
-    def __wipe_progress__(self) -> None:
-        ...
+from ._progress_bar import ProgressBar
+from ._protocols import HasExit, SupportsProgress
 
 
 if __name__ == "__main__":
     task: HasExit
     task = tasks.__getattribute__(sys.argv[1])()
-    task()
+
+    progress: SupportsProgress
+    progress = ProgressBar()
+
+    task(progress)
     sys.exit(task.exit)

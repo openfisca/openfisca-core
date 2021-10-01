@@ -6,32 +6,15 @@ import sys
 import textwrap
 from typing import Sequence
 
-import termcolor
 from typing_extensions import Literal
+
+from ._protocols import SupportsProgress
 
 EXIT_OK: Literal[0]
 EXIT_OK = 0
 
 EXIT_KO: Literal[1]
 EXIT_KO = 1
-
-WORK: str
-WORK = termcolor.colored("[/]", "cyan")
-
-WARN: str
-WARN = termcolor.colored("[i]", "yellow")
-
-FAIL: str
-FAIL = termcolor.colored("[!]", "red")
-
-BAR: str
-BAR = termcolor.colored("|", "green")
-
-ETA: str
-ETA = termcolor.colored("✓", "green")
-
-ACC: str
-ACC = termcolor.colored("·", "green")
 
 FILES: Sequence[str]
 FILES = \
@@ -76,9 +59,11 @@ class CheckDeprecated(ast.NodeVisitor):
     """
 
     count: int
-    exit: Literal[0, 1] = EXIT_OK
+    exit: Literal[0, 1]
     files: Sequence[str]
     nodes: Sequence[ast.Module]
+    progress: SupportsProgress
+    total: int
     version: str
 
     def __init__(
@@ -86,20 +71,24 @@ class CheckDeprecated(ast.NodeVisitor):
             files: Sequence[str] = FILES,
             version: str = VERSION,
             ) -> None:
+        self.exit = EXIT_OK
         self.files = files
         self.nodes = [self._node(file) for file in self.files]
+        self.total = len(self.nodes)
         self.version = version
-        self.__init_progress__()
 
-    def __call__(self) -> None:
+    def __call__(self, progress: SupportsProgress) -> None:
+        self.progress = progress
+        self.progress.init()
+
         # We use ``count`` to link each ``node`` with the corresponding
         # ``file``.
         for count, node in enumerate(self.nodes):
             self.count = count
             self.visit(node)
-            self.__push_progress__()
+            self.progress.push(self.count, self.total)
 
-        self.__wipe_progress__()
+        self.progress.wipe()
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         """Defines the ``visit()`` function to inspect the ``node``.
@@ -172,19 +161,19 @@ class CheckDeprecated(ast.NodeVisitor):
             since, expires = keywords
 
             message = [
-                f"{WARN} {module}.{node.name}:{lineno} =>",
+                f"{module}.{node.name}:{lineno} =>",
                 f"Deprecated since: {since}.",
                 f"Expiration status: {expires}",
                 f"(current: {self.version}).",
                 ]
 
-            sys.stdout.write(f"{' '.join(message)}")
+            self.progress.warn(f"{' '.join(message)}")
 
             # If there is at least one expired deprecation, the handler
             # will exit with an error.
             if self._isthis(expires):
                 self.exit = EXIT_KO
-                sys.stdout.write(f"\r{FAIL}")
+                self.progress.fail()
 
             sys.stdout.write("\n")
 
@@ -197,28 +186,3 @@ class CheckDeprecated(ast.NodeVisitor):
         with open(file, "r") as f:
             source = textwrap.dedent(f.read())
             return ast.parse(source, file, "exec")
-
-    def __init_progress__(self) -> None:
-        sys.stdout.write(f"{WORK} 0%   {BAR}{ACC * 50}{BAR}\r")
-
-    def __push_progress__(self) -> None:
-        doner: int
-        space: str
-
-        doner = (self.count + 1) * 100 // len(self.nodes)
-        space = ""
-        space += [' ', ''][doner >= 100]
-        space += [' ', ''][doner >= 10]
-
-        sys.stdout.write(
-            f"{WORK} {doner}% {space}{BAR}"
-            f"{ETA * (doner // 2)}"
-            f"{ACC * (50 - doner // 2)}"
-            f"{BAR}\r"
-            )
-
-        import time
-        time.sleep(.1)
-
-    def __wipe_progress__(self) -> None:
-        sys.stdout.write(f"{' ' * 100}\r")
