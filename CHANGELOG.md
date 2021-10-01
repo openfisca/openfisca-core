@@ -1,5 +1,11 @@
 # Changelog
 
+### 35.5.3 [#1058](https://github.com/openfisca/openfisca-core/pull/1058)
+
+#### Non-technical changes
+
+- Moves building workflow to `Makefile`.
+
 ### 35.5.2 [#1048](https://github.com/openfisca/openfisca-core/pull/1048)
 
 #### Bug fix
