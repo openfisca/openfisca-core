@@ -11,3 +11,8 @@ check-deprecated:
 	@$(call print_help,$@:)
 	@python -m openfisca_tasks CheckDeprecated
 	@$(call print_pass,$@:)
+
+## Check if the current version is acceptable.
+check-version:
+	@$(call help,$@:)
+	@python -m openfisca_tasks CheckVersion
