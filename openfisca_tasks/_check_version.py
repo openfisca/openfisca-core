@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import pathlib
 import textwrap
 import subprocess
 from typing import Generator, Sequence
@@ -90,9 +91,10 @@ class Version(Enum):
     MAJOR = "major"
 
 
-class CheckVersion:
+class CheckVersion(ast.NodeVisitor):
 
     exit: Literal[0, 1]
+    files: Sequence[str]
     version: int
 
     def __init__(self):
@@ -109,8 +111,41 @@ class CheckVersion:
         if self._haschanges():
             self.exit = EXIT_KO
 
+        if self._hasaddedfuncs():
+            self.exit = EXIT_KO
+
         required = tuple(Version)[self.version].value
         self.progress.info(f"Version bump required: {required}!\n")
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        self.contracts = ()
+
+        # We look for the corresponding ``file``.
+        file = self.files[self.count]
+
+        # We find the absolute path of the file.
+        path = pathlib.Path(file).resolve()
+
+        # We build the module name with the name of the parent path, a
+        # folder, and the name of the file, without the extension.
+        module = f"{path.parts[-2]}.{path.stem}"
+
+        name = node.name
+
+        if name.startswith("_") and not name.endswith("_"):
+            return
+
+        if name.startswith("__") and name not in ("__init__", "__call__"):
+            return
+
+        name = f"{module}.{node.name}"
+
+        for decorator in node.decorator_list:
+            if "property" in ast.dump(decorator):
+                name = f"{name}#getter"
+
+            if "setter" in ast.dump(decorator):
+                name = f"{name}#setter"
 
     def _haschanges(self) -> bool:
         total: int
@@ -130,19 +165,31 @@ class CheckVersion:
         self.progress.wipe()
         return bool(self.version)
 
+    def _hasaddedfuncs(self):
+        actual = set(self.actual)
+        before = set(self.before)
+
+        for function in (actual ^ before & actual):
+            self.progress.warn(f"Added function => {function}\n")
+
     def _parse_actual(self) -> Generator[ast.Module, None, None]:
         source: str
         total: int
 
-        total = len(ACTUAL)
+        self.files = ACTUAL
+        total = len(self.files)
 
         self.progress.info("Parsing files from the current branch…\n")
         self.progress.init()
 
-        for count, filename in enumerate(ACTUAL):
+        for count, filename in enumerate(self.files):
+            self.count = count
+
             with open(filename, "r") as file:
                 source = textwrap.dedent(file.read())
-                yield ast.parse(source, filename, "exec")
+                node = ast.parse(source, filename, "exec")
+                self.visit(node)
+                yield self.contracts
                 self.progress.push(count, total)
 
         self.progress.wipe()
@@ -152,12 +199,15 @@ class CheckVersion:
         source: str
         total: int
 
-        total = len(BEFORE)
+        self.files = BEFORE
+        total = len(self.files)
 
         self.progress.info(f"Parsing files from version {VERSION}…\n")
         self.progress.init()
 
-        for count, filename in enumerate(BEFORE):
+        for count, filename in enumerate(self.files):
+            self.count = count
+
             content = \
                 subprocess \
                 .run(
@@ -167,7 +217,9 @@ class CheckVersion:
                 .decode("utf-8")
 
             source = textwrap.dedent(content)
-            yield ast.parse(source, filename, "exec")
+            node = ast.parse(source, filename, "exec")
+            self.visit(node)
+            yield self.contracts
             self.progress.push(count, total)
 
         self.progress.wipe()
