@@ -177,7 +177,10 @@ class CheckVersion:
         builder: ContractBuilder
         source: str
 
-        builder = ContractBuilder(self.actual_files)
+        actual = set(self.actual_files)
+        changed = set(self.changed_files)
+
+        builder = ContractBuilder(tuple(actual & changed))
 
         self.progress.info("Parsing files from the current branch…\n")
         self.progress.init()
@@ -197,7 +200,10 @@ class CheckVersion:
         content: str
         source: str
 
-        builder = ContractBuilder(self.before_files)
+        before = set(self.before_files)
+        changed = set(self.changed_files)
+
+        builder = ContractBuilder(tuple(before & changed))
 
         self.progress.info(f"Parsing files from {self.before_version}…\n")
         self.progress.init()
