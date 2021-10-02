@@ -24,6 +24,10 @@ class SupportsProgress(Protocol):
         ...
 
     @abc.abstractmethod
+    def okay(self, __message: str) -> None:
+        ...
+
+    @abc.abstractmethod
     def info(self, __message: str) -> None:
         ...
 

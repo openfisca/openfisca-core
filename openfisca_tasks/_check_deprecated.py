@@ -7,7 +7,7 @@ from typing import Sequence
 
 from typing_extensions import Literal
 
-from ._protocols import SupportsProgress
+from . import SupportsProgress
 
 EXIT_OK: Literal[0]
 EXIT_OK = 0

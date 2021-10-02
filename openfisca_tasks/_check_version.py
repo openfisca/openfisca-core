@@ -10,8 +10,8 @@ from typing import Generator, Optional, Sequence
 
 from typing_extensions import Literal
 
+from . import SupportsProgress
 from ._check_deprecated import VERSION as CURRENT_VERSION
-from ._protocols import SupportsProgress
 
 from openfisca_core.indexed_enums import Enum
 

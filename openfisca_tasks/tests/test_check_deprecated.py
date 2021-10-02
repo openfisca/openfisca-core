@@ -1,14 +1,10 @@
-import inspect
 import os
 import sys
 import tempfile
-from typing import NamedTuple
 
 import pytest
 
 from openfisca_tasks import CheckDeprecated
-
-from .._protocols import SupportsProgress
 
 
 class Module:
@@ -33,39 +29,6 @@ class Module:
 
     def __exit__(self, *__):
         self.file.close()
-
-
-@pytest.fixture
-def progress():
-
-    def name():
-        return inspect.stack()[1][3]
-
-    class Call(NamedTuple):
-        name: str
-        args: str = None
-
-    class ProgressBar(SupportsProgress):
-
-        def init(self):
-            self.called = []
-
-        def push(self, __count, __total):
-            ...
-
-        def warn(self, message):
-            self.called.append(Call(name(), message))
-
-        def fail(self):
-            self.called.append(Call(name()))
-
-        def next(self):
-            ...
-
-        def wipe(self):
-            ...
-
-    return ProgressBar()
 
 
 def test_find_deprecated(progress):
