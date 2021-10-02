@@ -3,7 +3,6 @@ from typing import Sequence
 import sys
 import termcolor
 
-
 WORK_ICON: str
 WORK_ICON = termcolor.colored("[/]", "cyan")
 

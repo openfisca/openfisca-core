@@ -7,7 +7,7 @@ from typing_extensions import Literal
 
 from . import SupportsProgress
 
-from . import _repo
+from ._repo import Repo
 
 EXIT_OK: Literal[0]
 EXIT_OK = 0
@@ -16,10 +16,10 @@ EXIT_KO: Literal[1]
 EXIT_KO = 1
 
 FILES: Sequence[str]
-FILES = _repo.actual_files()
+FILES = Repo().files.actual()
 
 VERSION: str
-VERSION = _repo.actual_version()
+VERSION = Repo().version.current()
 
 
 class CheckDeprecated(ast.NodeVisitor):
