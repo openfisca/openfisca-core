@@ -34,6 +34,12 @@ class Contract:
 
 @dataclasses.dataclass
 class ContractBuilder(ast.NodeVisitor):
+    """
+    Examples:
+        >>> ContractBuilder(["file.py"])
+        ContractBuilder(files=['file.py'], count=0, contracts=())
+
+    """
 
     files: Sequence[str]
     count: int = 0
@@ -41,9 +47,57 @@ class ContractBuilder(ast.NodeVisitor):
 
     @property
     def total(self) -> int:
+        """
+        Examples:
+            >>> builder = ContractBuilder(["file.py"])
+            >>> builder.total
+            1
+
+        """
+
         return len(self.files)
 
     def __call__(self, source: str) -> None:
+        """
+        Examples:
+            >>> builder = ContractBuilder(["file.py"])
+            >>> source = [
+            ...     "def function(n: List[int] = [1]) -> int:",
+            ...     "    return next(iter(n))",
+            ...     ]
+            >>> builder("\\n".join(source))
+            >>> contract = next(iter(builder.contracts))
+            >>> argument = next(iter(contract.arguments))
+
+            >>> builder.contracts
+            (Contract(name='openfisca-core.file.function', file='file.py', a...
+
+            >>> contract.name
+            'openfisca-core.file.function'
+
+            >>> contract.file
+            'file.py'
+
+            >>> contract.arguments
+            (Argument(name='n', types=(ArgType(name='List'), ArgType(name='i...
+
+            >>> argument.name
+            'n'
+
+            >>> argument.types
+            (ArgType(name='List'), ArgType(name='int'))
+
+            >>> argument.default
+            ('1',)
+
+            >>> contract.returns
+            (RetType(name='int'),)
+
+            >>> builder.count
+            1
+
+        """
+
         node = ast.parse(source, self.files[self.count], "exec")
         self.visit(node)
         self.count += 1
@@ -97,8 +151,13 @@ class ContractBuilder(ast.NodeVisitor):
             (),
             )
 
-        contract = Contract(name, file, posargs + keyargs)
+        # We build the return types.
+        returns = self._build_returns(node)
 
+        # We build the contract.
+        contract = Contract(name, file, posargs + keyargs, returns)
+
+        # And we added it to the list of contracts.
         self.contracts = self.contracts + (contract,)
 
     def _build_posarg(self, node: ast.FunctionDef) -> Callable[..., Any]:
@@ -136,7 +195,15 @@ class ContractBuilder(ast.NodeVisitor):
 
         return (*acc, argument)
 
-    def _build(self, node: ast.expr, builder = lambda x: x):
+    def _build_returns(self, node: ast.FunctionDef) -> Tuple[RetType, ...]:
+        returns = self._build(node.returns, RetType)
+
+        if returns is not None and not isinstance(returns, tuple):
+            returns = returns,
+
+        return returns
+
+    def _build(self, node: Optional[ast.expr], builder = lambda x: x):
         if node is None:
             return None
 
@@ -161,7 +228,7 @@ class ContractBuilder(ast.NodeVisitor):
                 self._build(node.slice.value, builder),
                 )
 
-        if isinstance(node, ast.Tuple):
+        if isinstance(node, (ast.List, ast.Tuple)):
             return functools.reduce(
                 lambda acc, item: (*acc, self._build(item, builder)),
                 node.elts,
