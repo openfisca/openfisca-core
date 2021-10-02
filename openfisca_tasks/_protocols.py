@@ -40,5 +40,9 @@ class SupportsProgress(Protocol):
         ...
 
     @abc.abstractmethod
+    def next(self) -> None:
+        ...
+
+    @abc.abstractmethod
     def wipe(self) -> None:
         ...

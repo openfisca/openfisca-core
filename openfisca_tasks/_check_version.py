@@ -4,15 +4,13 @@ import ast
 import dataclasses
 import functools
 import pathlib
-import pkg_resources
 import textwrap
 import subprocess
 from typing import Generator, Optional, Sequence
 
 from typing_extensions import Literal
 
-from . import SupportsProgress
-from ._check_deprecated import VERSION as CURRENT_VERSION
+from . import _repo, SupportsProgress
 
 from openfisca_core.indexed_enums import Enum
 
@@ -37,62 +35,19 @@ IGNORE_DIFF_ON = (
     )
 
 BEFORE_VERSION: str
-BEFORE_VERSION = \
-    subprocess \
-    .run(
-        ["git", "describe", "--tags", "--abbrev=0", "--first-parent"],
-        stdout = subprocess.PIPE,
-        ) \
-    .stdout \
-    .decode("utf-8") \
-    .split()[0]
+BEFORE_VERSION = _repo.before_version()
 
 ACTUAL_VERSION: str
-ACTUAL_VERSION = \
-    pkg_resources \
-    .get_distribution("openfisca_core") \
-    .version
+ACTUAL_VERSION = _repo.actual_version()
 
 BEFORE_FILES: Sequence[str]
-BEFORE = [
-    file
-    for file in
-    subprocess
-    .run(
-        ["git", "ls-tree", "-r", BEFORE_VERSION, "--name-only"],
-        stdout = subprocess.PIPE,
-        )
-    .stdout
-    .decode("utf-8")
-    .split()
-    if file.endswith(".py")
-    ]
+BEFORE = _repo.before_files()
 
 ACTUAL_FILES: Sequence[str]
-ACTUAL = [
-    file
-    for file in
-    subprocess
-    .run(
-        ["git", "ls-tree", "-r", "HEAD", "--name-only"],
-        stdout = subprocess.PIPE,
-        )
-    .stdout
-    .decode("utf-8")
-    .split()
-    if file.endswith(".py")
-    ]
+ACTUAL = _repo.actual_files()
 
 CHANGED: Sequence[str]
-CHANGED = \
-    subprocess \
-    .run(
-        ["git", "diff-index", "--name-only", BEFORE_VERSION],
-        stdout = subprocess.PIPE,
-        ) \
-    .stdout \
-    .decode("utf-8") \
-    .split()
+CHANGED = _repo.changed_files()
 
 
 class Version(Enum):

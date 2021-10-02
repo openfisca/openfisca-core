@@ -1,13 +1,13 @@
 import ast
 import pathlib
-import pkg_resources
-import subprocess
 import textwrap
 from typing import Sequence
 
 from typing_extensions import Literal
 
 from . import SupportsProgress
+
+from . import _repo
 
 EXIT_OK: Literal[0]
 EXIT_OK = 0
@@ -16,18 +16,10 @@ EXIT_KO: Literal[1]
 EXIT_KO = 1
 
 FILES: Sequence[str]
-FILES = \
-    subprocess \
-    .run(["git", "ls-files", "*.py"], stdout = subprocess.PIPE) \
-    .stdout \
-    .decode("utf-8") \
-    .split()
+FILES = _repo.actual_files()
 
 VERSION: str
-VERSION = \
-    pkg_resources \
-    .get_distribution("openfisca_core") \
-    .version
+VERSION = _repo.actual_version()
 
 
 class CheckDeprecated(ast.NodeVisitor):
