@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-import textwrap
-from typing import Sequence, Type, Tuple
+from typing import Sequence, Type
 
 from openfisca_core.indexed_enums import Enum
 
 from . import SupportsProgress
 
-from ._contract_builder import Contract, ContractBuilder
+from ._contract_builder import Contract
+from ._file_parser import FileParser
 from ._repo import Repo
 
 IGNORE_DIFF_ON: Sequence[str]
@@ -43,12 +43,9 @@ class CheckVersion:
     exit: int
     repo: Repo
     actual: Sequence[Contract]
-    actual_files: Sequence[str]
     actual_version: str
     before: Sequence[Contract]
-    before_files: Sequence[str]
     before_version: str
-    changed_files: Sequence[str]
     contracts: Sequence[Contract]
     files: Sequence[str]
     progress: SupportsProgress
@@ -58,17 +55,34 @@ class CheckVersion:
     def __init__(self, repo_type: Type[Repo] = Repo):
         self.exit = Exit.OK.index
         self.repo = Repo()
-        self.changed_files = self.repo.files.changed()
-        self.actual_files = self.repo.files.actual()
-        self.before_files = self.repo.files.before()
-        self.actual_version = self.repo.version.actual()
-        self.before_version = self.repo.version.before()
+        self.actual_version = self.repo.versions.actual()
+        self.before_version = self.repo.versions.before()
         self.version = Version.NONE.index
+        self.parser = FileParser()
 
     def __call__(self, progress: SupportsProgress) -> None:
         self.progress = progress
-        self.actual = self._parse_actual()
-        self.before = self._parse_before()
+
+        self.progress.info("Parsing files from the current branch…\n")
+        self.progress.init()
+
+        with self.parser.actual as parser:
+            for count, total in parser:
+                self.progress.push(count, total)
+
+            self.progress.wipe()
+
+        self.progress.info(f"Parsing files from {self.before_version}…\n")
+        self.progress.init()
+
+        with self.parser.before as parser:
+            for count, total in parser:
+                self.progress.push(count, total)
+
+            self.progress.wipe()
+
+        self.actual = self.parser.actual.contracts
+        self.before = self.parser.before.contracts
 
         if self._has_changes():
             self.exit = Exit.KO.index
@@ -94,12 +108,12 @@ class CheckVersion:
 
     def _has_changes(self) -> bool:
         total: int
-        total = len(self.changed_files)
+        total = len(self.parser.changed_files)
 
         self.progress.info("Checking for functional changes…\n")
         self.progress.init()
 
-        for count, file in enumerate(self.changed_files):
+        for count, file in enumerate(self.parser.changed_files):
             if not self._is_functional(file):
                 continue
 
@@ -172,48 +186,3 @@ class CheckVersion:
             return True
 
         return False
-
-    def _parse_actual(self) -> Tuple[Contract, ...]:
-        builder: ContractBuilder
-        source: str
-
-        actual = set(self.actual_files)
-        changed = set(self.changed_files)
-
-        builder = ContractBuilder(tuple(actual & changed))
-
-        self.progress.info("Parsing files from the current branch…\n")
-        self.progress.init()
-
-        for file in builder.files:
-            with open(file, "r") as f:
-                source = textwrap.dedent(f.read())
-                builder(source)
-                self.progress.push(builder.count, builder.total)
-
-        self.progress.wipe()
-
-        return builder.contracts
-
-    def _parse_before(self) -> Tuple[Contract, ...]:
-        builder: ContractBuilder
-        content: str
-        source: str
-
-        before = set(self.before_files)
-        changed = set(self.changed_files)
-
-        builder = ContractBuilder(tuple(before & changed))
-
-        self.progress.info(f"Parsing files from {self.before_version}…\n")
-        self.progress.init()
-
-        for file in builder.files:
-            content = self.repo.files.show(file)
-            source = textwrap.dedent(content)
-            builder(source)
-            self.progress.push(builder.count, builder.total)
-
-        self.progress.wipe()
-
-        return builder.contracts

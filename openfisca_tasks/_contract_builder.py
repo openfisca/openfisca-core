@@ -157,7 +157,7 @@ class ContractBuilder(ast.NodeVisitor):
         # We build the contract.
         contract = Contract(name, file, posargs + keyargs, returns)
 
-        # And we added it to the list of contracts.
+        # And we add it to the list of contracts.
         self.contracts = self.contracts + (contract,)
 
     def _build_posarg(self, node: ast.FunctionDef) -> Callable[..., Any]:

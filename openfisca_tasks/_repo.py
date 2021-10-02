@@ -27,7 +27,7 @@ class Files:
     def show(self, file: str) -> str:
         """Retrives the content of a file in the last tagged version."""
 
-        version: str = self.repo.version.before()
+        version: str = self.repo.versions.before()
         cmd: Sequence[str] = ["git", "show", f"{version}:{file}"]
         return self.repo.run(cmd)
 
@@ -41,7 +41,7 @@ class Files:
     def before(self) -> Sequence[str]:
         """Retrives the list of tracked files in the last tagged version."""
 
-        version: str = self.repo.version.before()
+        version: str = self.repo.versions.before()
         cmd: Sequence[str] = ["git", "ls-tree", "-r", "--name-only", version]
         res: Sequence[str] = self.repo.run(cmd).split()
         return [file for file in res if file.endswith(".py")]
@@ -49,12 +49,12 @@ class Files:
     def changed(self) -> Sequence[str]:
         """Retrives the list of changed files since the last tagged version."""
 
-        version: str = self.repo.version.before()
+        version: str = self.repo.versions.before()
         cmd: Sequence[str] = ["git", "diff-index", "--name-only", version]
         return self.repo.run(cmd).split()
 
 
-class Version:
+class Versions:
     """A descriptor to retrieve version change information.
 
     Attributes:
@@ -66,7 +66,7 @@ class Version:
 
     repo: Repo
 
-    def __get__(self, repo: Repo, repo_type: Type[Repo]) -> Version:
+    def __get__(self, repo: Repo, repo_type: Type[Repo]) -> Versions:
         self.repo = repo
         return self
 
@@ -105,14 +105,14 @@ class Repo:
 
     Attributes:
         files: A descriptor to retrieve file change information.
-        version: A descriptor to retrieve version change information.
+        versions: A descriptor to retrieve version change information.
 
     .. versionadded:: 36.1.0
 
     """
 
     files: Files = Files()
-    version: Version = Version()
+    versions: Versions = Versions()
 
     @staticmethod
     def run(cmd: Sequence[str]) -> str:
