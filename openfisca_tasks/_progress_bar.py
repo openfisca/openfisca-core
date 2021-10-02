@@ -7,6 +7,9 @@ import termcolor
 WORK_ICON: str
 WORK_ICON = termcolor.colored("[/]", "cyan")
 
+PASS_ICON: str
+PASS_ICON = termcolor.colored("[✓]", "green")
+
 INFO_ICON: str
 INFO_ICON = termcolor.colored("[i]", "cyan")
 
@@ -40,6 +43,9 @@ class ProgressBar:
         done = (count + 1) * 100 // total
 
         sys.stdout.write(self._push_message(done))
+
+    def okay(self, message: str) -> None:
+        sys.stdout.write(f"{PASS_ICON} {message}")
 
     def info(self, message: str) -> None:
         sys.stdout.write(f"{INFO_ICON} {message}")

@@ -10,6 +10,7 @@ from typing import Generator, Optional, Sequence
 
 from typing_extensions import Literal
 
+from ._check_deprecated import VERSION as CURRENT_VERSION
 from ._protocols import SupportsProgress
 
 from openfisca_core.indexed_enums import Enum
@@ -100,6 +101,11 @@ class Type:
 
 
 @dataclasses.dataclass(frozen = True)
+class RType:
+    name: str
+
+
+@dataclasses.dataclass(frozen = True)
 class Argument:
     name: str
     type_: Optional[Type] = None
@@ -111,7 +117,7 @@ class Contract:
     name: str
     file: str
     arguments: Optional[Sequence[Argument]] = None
-    returns: Optional[Sequence[Type]] = None
+    returns: Optional[Sequence[RType]] = None
 
 
 class CheckVersion(ast.NodeVisitor):
@@ -153,6 +159,15 @@ class CheckVersion(ast.NodeVisitor):
 
         required = tuple(Version)[self.version].value
         self.progress.info(f"Version bump required: {required}!\n")
+        self.progress.okay(f"Current version: {CURRENT_VERSION}")
+
+        if int(CURRENT_VERSION.split(".")[::-1][self.version - 1]) >= int(VERSION.split(".")[::-1][self.version - 1]) + 1:
+            self.exit = EXIT_OK
+
+        if self.exit == EXIT_KO:
+            self.progress.fail()
+
+        self.progress.next()
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         # We look for the corresponding ``file``.
@@ -262,7 +277,7 @@ class CheckVersion(ast.NodeVisitor):
 
             self.version = max(self.version, Version.MAJOR.index)
             self.progress.wipe()
-            self.progress.warn(f"+ {contract.name}\n")
+            self.progress.warn(f"- {contract.name}\n")
             self.progress.push(count, total)
 
         self.progress.wipe()
