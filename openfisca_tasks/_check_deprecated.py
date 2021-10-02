@@ -19,7 +19,7 @@ FILES: Sequence[str]
 FILES = Repo().files.actual()
 
 VERSION: str
-VERSION = Repo().version.current()
+VERSION = Repo().version.actual()
 
 
 class CheckDeprecated(ast.NodeVisitor):

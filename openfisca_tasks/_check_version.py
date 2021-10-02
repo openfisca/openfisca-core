@@ -67,8 +67,8 @@ class CheckVersion:
         self.changed_files = self.repo.files.changed()
         self.actual_files = self.repo.files.actual()
         self.before_files = self.repo.files.before()
-        self.actual_version = self.repo.version.current()
-        self.before_version = self.repo.version.tagged()
+        self.actual_version = self.repo.version.actual()
+        self.before_version = self.repo.version.before()
         self.version = Version.NONE.index
 
     def __call__(self, progress: SupportsProgress) -> None:
@@ -208,7 +208,7 @@ class CheckVersion:
         self.progress.init()
 
         for file in builder.files:
-            content = self.repo.show(file)
+            content = self.repo.files.show(file)
             source = textwrap.dedent(content)
             builder(source)
             self.progress.push(builder.count, builder.total)
