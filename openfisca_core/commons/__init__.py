@@ -21,8 +21,6 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
-from .dummy import Dummy  # noqa: F401
-
 from .decorators import deprecated  # noqa: F401
 from .formulas import apply_thresholds, concat, switch  # noqa: F401
 from .misc import empty_clone, stringify_array  # noqa: F401
