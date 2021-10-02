@@ -4,6 +4,7 @@ import ast
 import dataclasses
 import functools
 import pathlib
+import pkg_resources
 import textwrap
 import subprocess
 from typing import Generator, Optional, Sequence
@@ -35,8 +36,8 @@ IGNORE_DIFF_ON = (
     "tests",
     )
 
-VERSION: str
-VERSION = \
+BEFORE_VERSION: str
+BEFORE_VERSION = \
     subprocess \
     .run(
         ["git", "describe", "--tags", "--abbrev=0", "--first-parent"],
@@ -46,18 +47,28 @@ VERSION = \
     .decode("utf-8") \
     .split()[0]
 
-CHANGED: Sequence[str]
-CHANGED = \
-    subprocess \
-    .run(
-        ["git", "diff-index", "--name-only", VERSION],
-        stdout = subprocess.PIPE,
-        ) \
-    .stdout \
-    .decode("utf-8") \
-    .split()
+ACTUAL_VERSION: str
+ACTUAL_VERSION = \
+    pkg_resources \
+    .get_distribution("openfisca_core") \
+    .version
 
-ACTUAL: Sequence[str]
+BEFORE_FILES: Sequence[str]
+BEFORE = [
+    file
+    for file in
+    subprocess
+    .run(
+        ["git", "ls-tree", "-r", BEFORE_VERSION, "--name-only"],
+        stdout = subprocess.PIPE,
+        )
+    .stdout
+    .decode("utf-8")
+    .split()
+    if file.endswith(".py")
+    ]
+
+ACTUAL_FILES: Sequence[str]
 ACTUAL = [
     file
     for file in
@@ -72,20 +83,16 @@ ACTUAL = [
     if file.endswith(".py")
     ]
 
-BEFORE: Sequence[str]
-BEFORE = [
-    file
-    for file in
-    subprocess
+CHANGED: Sequence[str]
+CHANGED = \
+    subprocess \
     .run(
-        ["git", "ls-tree", "-r", VERSION, "--name-only"],
+        ["git", "diff-index", "--name-only", BEFORE_VERSION],
         stdout = subprocess.PIPE,
-        )
-    .stdout
-    .decode("utf-8")
+        ) \
+    .stdout \
+    .decode("utf-8") \
     .split()
-    if file.endswith(".py")
-    ]
 
 
 class Version(Enum):
@@ -124,15 +131,21 @@ class CheckVersion(ast.NodeVisitor):
 
     actual: Sequence[Contract]
     before: Sequence[Contract]
+    changed: Sequence[str]
     contracts: Sequence[Contract]
     exit: Literal[0, 1]
     files: Sequence[str]
     progress: SupportsProgress
-    required: str
-    version: int
+    required: int
+    version: str
 
-    def __init__(self):
+    def __init__(
+            self,
+            changed: Sequence[str] = CHANGED,
+            version: str = ACTUAL_VERSION,
+            ):
         self.exit = EXIT_OK
+        self.changed = changed
         self.version = Version.NONE.index
 
     def __call__(self, progress: SupportsProgress) -> None:
@@ -159,9 +172,9 @@ class CheckVersion(ast.NodeVisitor):
 
         required = tuple(Version)[self.version].value
         self.progress.info(f"Version bump required: {required}!\n")
-        self.progress.okay(f"Current version: {CURRENT_VERSION}")
+        self.progress.okay(f"Current version: {ACTUAL_VERSION}")
 
-        if int(CURRENT_VERSION.split(".")[::-1][self.version - 1]) >= int(VERSION.split(".")[::-1][self.version - 1]) + 1:
+        if int(ACTUAL_VERSION.split(".")[::-1][self.version - 1]) >= int(BEFORE_VERSION.split(".")[::-1][self.version - 1]) + 1:
             self.exit = EXIT_OK
 
         if self.exit == EXIT_KO:
@@ -217,12 +230,12 @@ class CheckVersion(ast.NodeVisitor):
 
     def _haschanges(self) -> bool:
         total: int
-        total = len(CHANGED)
+        total = len(self.changed)
 
         self.progress.info("Checking for functional changes…\n")
         self.progress.init()
 
-        for count, file in enumerate(CHANGED):
+        for count, file in enumerate(self.changed):
             if not self._isfunctional(file):
                 continue
 
@@ -328,7 +341,7 @@ class CheckVersion(ast.NodeVisitor):
         self.files = BEFORE
         total = len(self.files)
 
-        self.progress.info(f"Parsing files from version {VERSION}…\n")
+        self.progress.info(f"Parsing files from version {BEFORE_VERSION}…\n")
         self.progress.init()
 
         for count, filename in enumerate(self.files):
