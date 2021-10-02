@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import textwrap
-from typing import Optional, Sequence, Type, Tuple
+from typing import Sequence, Type, Tuple
 
 from openfisca_core.indexed_enums import Enum
 
@@ -38,6 +38,8 @@ class Version(Enum):
 
 
 class CheckVersion:
+    """Checks if the current version is acceptable."""
+
     exit: int
     repo: Repo
     actual: Sequence[Contract]
@@ -111,8 +113,8 @@ class CheckVersion:
         return bool(self.version)
 
     def _has_added_functions(self) -> bool:
-        actual = set(contract.name for contract in self.actual)
-        before = set(contract.name for contract in self.before)
+        actual = set(self.actual)
+        before = set(self.before)
 
         added = actual ^ before & actual
         total = len(added)
@@ -120,8 +122,7 @@ class CheckVersion:
         self.progress.info("Checking for added functions…\n")
         self.progress.init()
 
-        for count, name in enumerate(added):
-            contract = self._find(name, self.actual)
+        for count, contract in enumerate(added):
 
             if contract is None or not self._is_functional(contract.file):
                 continue
@@ -135,8 +136,8 @@ class CheckVersion:
         return bool(self.version)
 
     def _has_removed_functions(self) -> bool:
-        actual = set(contract.name for contract in self.actual)
-        before = set(contract.name for contract in self.before)
+        actual = set(self.actual)
+        before = set(self.before)
 
         removed = (before ^ actual & before)
         total = len(removed)
@@ -144,8 +145,7 @@ class CheckVersion:
         self.progress.info("Checking for removed functions…\n")
         self.progress.init()
 
-        for count, name in enumerate(removed):
-            contract = self._find(name, self.before)
+        for count, contract in enumerate(removed):
 
             if contract is None or not self._is_functional(contract.file):
                 continue
@@ -172,16 +172,6 @@ class CheckVersion:
             return True
 
         return False
-
-    def _find(self, name: str, pool: Sequence[Contract]) -> Optional[Contract]:
-        return next(
-            (
-                contract
-                for contract in pool
-                if contract.name == name
-                ),
-            None,
-            )
 
     def _parse_actual(self) -> Tuple[Contract, ...]:
         builder: ContractBuilder
