@@ -3,83 +3,104 @@ from typing import Sequence
 import sys
 import termcolor
 
-WORK_ICON: str
-WORK_ICON = termcolor.colored("[/]", "cyan")
-
-OKAY_ICON: str
-OKAY_ICON = termcolor.colored("[✓]", "green")
-
-INFO_ICON: str
-INFO_ICON = termcolor.colored("[i]", "cyan")
-
-WARN_ICON: str
-WARN_ICON = termcolor.colored("[i]", "yellow")
-
-FAIL_ICON: str
-FAIL_ICON = termcolor.colored("[!]", "red")
-
-BAR_ICON: str
-BAR_ICON = termcolor.colored("|", "green")
-
-ACC_ICON: str
-ACC_ICON = termcolor.colored("✓", "green")
-
-ETA_ICON: str
-ETA_ICON = termcolor.colored("·", "green")
-
-BAR_SIZE: int
-BAR_SIZE = 50
-
 
 class ProgressBar:
+    """Provides a progress bar for tasks.
+
+    Attributes:
+        work_icon: An icon to show when working.
+        info_icon: An icon to show when displaying information.
+        warn_icon: An icon to show when warning the user of something.
+        okay_icon: An icon to show when something succeeded.
+        fail_icon: An icon to show when something failed.
+        bar_icon: The borders of progress bar.
+        acc_icon: The accumulated progress icon.
+        eta_icon: The remaining work to finish icon.
+        bar_size: The size of the progress bar.
+
+
+    .. versionadded:: 36.1.0
+
+    """
+
+    work_icon: str = termcolor.colored("[/]", "cyan")
+    info_icon: str = termcolor.colored("[i]", "cyan")
+    warn_icon: str = termcolor.colored("[!]", "yellow")
+    okay_icon: str = termcolor.colored("[✓]", "green")
+    fail_icon: str = termcolor.colored("[x]", "red")
+
+    bar_icon: str = termcolor.colored("|", "green")
+    acc_icon: str = termcolor.colored("✓", "green")
+    eta_icon: str = termcolor.colored("·", "green")
+
+    bar_size: int = 50
 
     def init(self) -> None:
+        """Initialises the progress bar."""
+
         sys.stdout.write(self._init_message())
 
     def push(self, count: int, total: int) -> None:
-        done: int
+        """Pushes progress to the ``stdout``."""
 
-        done = (count + 1) * 100 // total
-
+        done: int = (count + 1) * 100 // total
         sys.stdout.write(self._push_message(done))
 
     def okay(self, message: str) -> None:
-        sys.stdout.write(f"{OKAY_ICON} {message}")
+        """Prints an okay ``message``."""
+
+        sys.stdout.write(f"{self.okay_icon} {message}")
 
     def info(self, message: str) -> None:
-        sys.stdout.write(f"{INFO_ICON} {message}")
+        """Prints an info ``message``."""
+
+        sys.stdout.write(f"{self.info_icon} {message}")
 
     def warn(self, message: str) -> None:
-        sys.stdout.write(f"{WARN_ICON} {message}")
+        """Prints a warn ``message``."""
+
+        sys.stdout.write(f"{self.warn_icon} {message}")
 
     def fail(self) -> None:
-        sys.stdout.write(f"\r{FAIL_ICON}")
+        """Marks last printed message as failing."""
+
+        sys.stdout.write(f"\r{self.fail_icon}")
 
     def next(self) -> None:
+        """Prints a new line and resets the cursor position."""
+
         sys.stdout.write("\n\r")
 
     def wipe(self) -> None:
+        """Cleans last printed message."""
+
         sys.stdout.write(self._wipe_message())
 
     def _init_message(self) -> str:
-        return f"{WORK_ICON} 0%   {BAR_ICON}{ETA_ICON * BAR_SIZE}{BAR_ICON}\r"
+        message: Sequence[str]
+        message = [
+            f"{self.work_icon} 0%   {self.bar_icon}",
+            f"{self.eta_icon * self.bar_size}{self.bar_icon}\r",
+            ]
+
+        return "".join(message)
 
     def _push_message(self, done: int) -> str:
         message: Sequence[str]
         spaces: str
 
         spaces = ""
-        spaces += [' ', ''][done >= BAR_SIZE * 2]
-        spaces += [' ', ''][done >= BAR_SIZE // 5]
+        spaces += [" ", ""][done >= self.bar_size * 2]
+        spaces += [" ", ""][done >= self.bar_size // 5]
 
         message = [
-            f"{WORK_ICON} {done}% {spaces}{BAR_ICON}"
-            f"{ACC_ICON * (done // 2)}"
-            f"{ETA_ICON * (BAR_SIZE - done // 2)}"
-            f"{BAR_ICON}\r"
+            f"{self.work_icon} {done}% {spaces}{self.bar_icon}"
+            f"{self.acc_icon * (done // 2)}"
+            f"{self.eta_icon * (self.bar_size - done // 2)}"
+            f"{self.bar_icon}\r"
             ]
 
         return "".join(message)
 
     def _wipe_message(self) -> str:
-        return f"{' ' * BAR_SIZE * 2}\r"
+        return f"{' ' * self.bar_size * 2}\r"
