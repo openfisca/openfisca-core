@@ -3,20 +3,12 @@ from __future__ import annotations
 import textwrap
 from typing import Optional, Sequence, Type, Tuple
 
-from typing_extensions import Literal
-
 from openfisca_core.indexed_enums import Enum
 
 from . import SupportsProgress
 
 from ._contract_builder import Contract, ContractBuilder
 from ._repo import Repo
-
-EXIT_OK: Literal[0]
-EXIT_OK = 0
-
-EXIT_KO: Literal[1]
-EXIT_KO = 1
 
 IGNORE_DIFF_ON: Sequence[str]
 IGNORE_DIFF_ON = (
@@ -46,7 +38,7 @@ class Version(Enum):
 
 
 class CheckVersion:
-    exit: Exit
+    exit: int
     repo: Repo
     actual: Sequence[Contract]
     actual_files: Sequence[str]
@@ -62,7 +54,7 @@ class CheckVersion:
     version: int
 
     def __init__(self, repo_type: Type[Repo] = Repo):
-        self.exit = Exit.OK
+        self.exit = Exit.OK.index
         self.repo = Repo()
         self.changed_files = self.repo.files.changed()
         self.actual_files = self.repo.files.actual()
@@ -77,22 +69,23 @@ class CheckVersion:
         self.before = self._parse_before()
 
         if self._has_changes():
-            self.exit = Exit.KO
+            self.exit = Exit.KO.index
 
         if self._has_added_functions():
-            self.exit = Exit.KO
+            self.exit = Exit.KO.index
 
         if self._has_removed_functions():
-            self.exit = Exit.KO
+            self.exit = Exit.KO.index
 
-        required = tuple(Version)[self.version].value
-        self.progress.info(f"Version bump required: {required}!\n")
+        self.required = tuple(Version)[self.version].value
+
+        self.progress.info(f"Version bump required: {self.required}!\n")
         self.progress.okay(f"Current version: {self.actual_version}")
 
-        if int(self.actual_version.split(".")[::-1][self.version - 1]) >= int(self.actual_version.split(".")[::-1][self.version - 1]) + 1:
-            self.exit = Exit.OK
+        if self._is_version_acceptable():
+            self.exit = Exit.OK.index
 
-        if self.exit == Exit.KO:
+        if self.exit == Exit.KO.index:
             self.progress.fail()
 
         self.progress.next()
@@ -167,6 +160,18 @@ class CheckVersion:
 
     def _is_functional(self, file: str) -> bool:
         return not any(exclude in file for exclude in IGNORE_DIFF_ON)
+
+    def _is_version_acceptable(self) -> bool:
+        if self.version == Version.NONE.index:
+            return True
+
+        actual = self.actual_version.split(".")[::-1]
+        before = self.before_version.split(".")[::-1]
+
+        if int(actual[self.version - 1]) >= int(before[self.version - 1]) + 1:
+            return True
+
+        return False
 
     def _find(self, name: str, pool: Sequence[Contract]) -> Optional[Contract]:
         return next(

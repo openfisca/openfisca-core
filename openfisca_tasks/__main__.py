@@ -12,4 +12,4 @@ if __name__ == "__main__":
     progress: ProgressBar = ProgressBar()
     task: HasExit = tasks.__getattribute__(sys.argv[1])()
     task(progress)
-    sys.exit(task.exit.index)
+    sys.exit(task.exit)
