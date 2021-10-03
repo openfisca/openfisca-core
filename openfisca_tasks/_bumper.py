@@ -133,7 +133,7 @@ class Bumper:
             before_number += 1
 
         # Otherwise we just do not check.
-        # It is way too anecdotic for the complexity that check requires.
+        # It is way too anecdotic for the complexity that the check requires.
         return actual_number >= before_number
 
     def _extract(self, version: str) -> Tuple[int, bool]:

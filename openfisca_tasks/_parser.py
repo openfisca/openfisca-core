@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import textwrap
-from typing import Any, Generator, Sequence, Set, Type, TypeVar
+from typing import Any, Generator, Sequence, Set, Tuple, Type, TypeVar
 
 from ._builder import Contract, ContractBuilder
 from ._protocols import SupportsParsing
@@ -13,6 +13,43 @@ P = TypeVar("P", bound = "Parser")
 
 
 class ActualParser:
+    """Parses actual files.
+
+    Attributes:
+        contracts: The list of built contracts.
+        to_parse: The list of files to parse.
+        builder: A :class:`.ContractBuilder` instance.
+        repo: A :class:`.Repo` instance.
+
+    Examples:
+        >>> import os
+
+        >>> parser = Parser().actual
+
+        >>> this = os.path.relpath(__file__)
+
+        >>> this
+        'openfisca_tasks/_parser.py'
+
+        >>> parser.to_parse = {this}
+        >>> parser.builder = ContractBuilder((this,))
+
+        >>> with parser as parsing:
+        ...     count, total = next(parsing)
+
+        >>> count
+        1
+
+        >>> total
+        1
+
+        >>> next(iter(parser.contracts)).file
+        'openfisca_tasks/_parser.py'
+
+    .. versionadded:: 36.1.0
+
+    """
+
     contracts: Sequence[Contract]
     to_parse: Set[str]
     builder: ContractBuilder
@@ -23,7 +60,7 @@ class ActualParser:
         self.builder = ContractBuilder(tuple(self.to_parse))
         return self
 
-    def __enter__(self) -> Generator:
+    def __enter__(self) -> Generator[Tuple[int, ...], None, None]:
         for file in self.builder.files:
             self(file)
             yield self.builder.count, self.builder.total
@@ -38,6 +75,40 @@ class ActualParser:
 
 
 class BeforeParser:
+    """Parses files from the last tagged commit.
+
+    Attributes:
+        contracts: The list of built contracts.
+        to_parse: The list of files to parse.
+        builder: A :class:`.ContractBuilder` instance.
+        repo: A :class:`.Repo` instance.
+
+    Examples:
+        >>> import os
+
+        >>> parser = Parser().before
+
+        >>> that = "openfisca_core/__init__.py"
+
+        >>> parser.to_parse = {that}
+        >>> parser.builder = ContractBuilder((that,))
+
+        >>> with parser as parsing:
+        ...     count, total = next(parsing)
+
+        >>> count
+        1
+
+        >>> total
+        1
+
+        >>> parser.contracts
+        ()
+
+    .. versionadded:: 36.1.0
+
+    """
+
     contracts: Sequence[Contract]
     to_parse: Set[str]
     builder: ContractBuilder
@@ -49,7 +120,7 @@ class BeforeParser:
         self.repo = parser.repo
         return self
 
-    def __enter__(self) -> Generator:
+    def __enter__(self) -> Generator[Tuple[int, ...], None, None]:
         for file in self.builder.files:
             self(file)
             yield self.builder.count, self.builder.total
@@ -64,6 +135,34 @@ class BeforeParser:
 
 
 class Parser:
+    """Wrapper around the repo and the contract builder.
+
+    Attributes:
+        actual_files: The current list of tracked files.
+        before_files: The list of tracked files since the last tagged version.
+        changed_files: The list of files changed since the last tagged version.
+        repo: A :class:`.Repo` instance.
+        actual: An :class:`.ActualParser` instance.
+        before: An :class:`.BeforeParser` instance.
+
+    Examples:
+        >>> import os
+
+        >>> parser = Parser()
+        >>> this = os.path.relpath(__file__)
+
+        >>> this
+        'openfisca_tasks/_parser.py'
+
+        >>> this in parser.actual_files
+        True
+
+        >>> "openfisca_core/__init__.py" in parser.before_files
+        True
+
+    .. versionadded:: 36.1.0
+
+    """
 
     actual_files: Sequence[str]
     before_files: Sequence[str]
