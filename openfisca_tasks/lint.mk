@@ -15,7 +15,7 @@ check-style: $(shell git ls-files "*.py")
 	@$(call print_pass,$@:)
 
 ## Run static type checkers for type errors.
-check-types: openfisca_core openfisca_web_api
+check-types: openfisca_core openfisca_tasks openfisca_web_api
 	@$(call print_help,$@:)
 	@mypy $?
 	@$(call print_pass,$@:)
