@@ -1,15 +1,17 @@
 from __future__ import annotations
 
-from typing import Sequence, Type
+from typing import Sequence, Set, TypeVar
 
 from openfisca_core.indexed_enums import Enum
 
 from . import SupportsProgress
 
-from ._contract_builder import Contract
-from ._file_parser import FileParser
+from ._builder import Contract
+from ._bumper import Bumper
+from ._parser import Parser
 from ._protocols import SupportsParsing
-from ._repo import Repo
+
+T = TypeVar("T", bound = "CheckVersion")
 
 IGNORE_DIFF_ON: Sequence[str]
 IGNORE_DIFF_ON = (
@@ -31,155 +33,106 @@ class Exit(Enum):
     KO = "ko"
 
 
-class Version(Enum):
-    NONE = "none"
-    PATCH = "patch"
-    MINOR = "minor"
-    MAJOR = "major"
-
-
 class CheckVersion:
     """Checks if the current version is acceptable."""
 
     exit: int
-    repo: Repo
-    actual: Sequence[Contract]
-    actual_version: str
-    before: Sequence[Contract]
-    before_version: str
-    contracts: Sequence[Contract]
-    files: Sequence[str]
     progress: SupportsProgress
-    required: int
-    version: int
 
-    def __init__(self, repo_type: Type[Repo] = Repo):
+    def __init__(self) -> None:
         self.exit = Exit.OK.index
-        self.repo = Repo()
-        self.actual_version = self.repo.versions.actual()
-        self.before_version = self.repo.versions.before()
-        self.version = Version.NONE.index
-        self.parser = FileParser()
+        # self.required = Version.NONE
 
     def __call__(self, progress: SupportsProgress) -> None:
+        before: Set[Contract]
+        actual: Set[Contract]
+        files: Set[str]
+
         self.progress = progress
 
-        self.progress.info("Parsing files from the current branch…\n")
-        self.actual = self.parse(self.parser.actual)
+        bumper = Bumper()
+        parser = Parser()
+        actual = set(self._parse(parser.actual, "HEAD"))
+        before = set(self._parse(parser.before, bumper.before))
+        files = set(parser.changed_files)
 
-        self.progress.info(f"Parsing files from {self.before_version}…\n")
-        self.before = self.parse(self.parser.before)
+        (
+            self
+            ._check_files(bumper, files)
+            ._check_funcs(bumper, "added", actual, before)
+            ._check_funcs(bumper, "removed", before, actual)
+            ._check_version_acceptable(bumper)
+            )
 
-        if self._has_changes():
-            self.exit = Exit.KO.index
+    def _parse(self, parser: SupportsParsing, rev: str) -> Sequence[Contract]:
+        self.progress.info(f"Parsing files from {rev}…\n")
+        self.progress.init()
 
-        if self._has_added_functions():
-            self.exit = Exit.KO.index
-
-        if self._has_removed_functions():
-            self.exit = Exit.KO.index
-
-        self.required = tuple(Version)[self.version].value
-
-        self.progress.info(f"Version bump required: {self.required}!\n")
-        self.progress.okay(f"Current version: {self.actual_version}")
-
-        if self._is_version_acceptable():
-            self.exit = Exit.OK.index
-
-        if self.exit == Exit.KO.index:
-            self.progress.fail()
-
-        self.progress.next()
-
-    def parse(self, parser: SupportsParsing) -> Sequence[Contract]:
-        with parser as steps:
-            self.progress.init()
-
-            for count, total in steps:
+        with parser as parsing:
+            for count, total in parsing:
                 self.progress.push(count, total)
 
-            self.progress.wipe()
-
+        self.progress.wipe()
         return parser.contracts
 
-    def _has_changes(self) -> bool:
-        total: int
-        total = len(self.parser.changed_files)
+    def _check_files(self: T, bumper: Bumper, files: Set[str]) -> T:
+        what: str = "diff"
+        total: int = len(files)
 
         self.progress.info("Checking for functional changes…\n")
         self.progress.init()
 
-        for count, file in enumerate(self.parser.changed_files):
+        for count, file in enumerate(files):
             if not self._is_functional(file):
                 continue
 
-            self.version = max(self.version, Version.PATCH.index)
+            bumper(what)
+            self.exit = Exit.KO.index
             self.progress.wipe()
-            self.progress.warn(f"~ {file}\n")
-
+            self.progress.warn(f"{str(bumper.what(what))} {file}\n")
             self.progress.push(count, total)
 
         self.progress.wipe()
-        return bool(self.version)
 
-    def _has_added_functions(self) -> bool:
-        actual = set(self.actual)
-        before = set(self.before)
+        return self
 
-        added = actual ^ before & actual
-        total = len(added)
+    def _check_funcs(
+            self: T,
+            bumper: Bumper,
+            what: str,
+            *files: Set[Contract],
+            ) -> T:
 
-        self.progress.info("Checking for added functions…\n")
+        diff: Set[Contract] = files[0] ^ files[1] & files[0]
+        total: int = len(diff)
+
+        self.progress.info(f"Checking for {what} functions…\n")
         self.progress.init()
 
-        for count, contract in enumerate(added):
-
+        for count, contract in enumerate(diff):
             if contract is None or not self._is_functional(contract.file):
                 continue
 
-            self.version = max(self.version, Version.MINOR.index)
+            bumper(what)
+            self.exit = Exit.KO.index
             self.progress.wipe()
-            self.progress.warn(f"+ {contract.name}\n")
+            self.progress.warn(f"{str(bumper.what(what))} {contract.name}\n")
             self.progress.push(count, total)
 
         self.progress.wipe()
-        return bool(self.version)
 
-    def _has_removed_functions(self) -> bool:
-        actual = set(self.actual)
-        before = set(self.before)
+        return self
 
-        removed = (before ^ actual & before)
-        total = len(removed)
+    def _check_version_acceptable(self, bumper: Bumper) -> None:
+        self.progress.info(f"Version bump required: {bumper.required.name}!\n")
+        self.progress.okay(f"Current version: {bumper.actual}")
 
-        self.progress.info("Checking for removed functions…\n")
-        self.progress.init()
+        if bumper.is_acceptable():
+            self.exit = Exit.OK.index
+        else:
+            self.progress.fail()
 
-        for count, contract in enumerate(removed):
-
-            if contract is None or not self._is_functional(contract.file):
-                continue
-
-            self.version = max(self.version, Version.MAJOR.index)
-            self.progress.wipe()
-            self.progress.warn(f"- {contract.name}\n")
-            self.progress.push(count, total)
-
-        self.progress.wipe()
-        return bool(self.version)
+        self.progress.next()
 
     def _is_functional(self, file: str) -> bool:
         return not any(exclude in file for exclude in IGNORE_DIFF_ON)
-
-    def _is_version_acceptable(self) -> bool:
-        if self.version == Version.NONE.index:
-            return True
-
-        actual = self.actual_version.split(".")[::-1]
-        before = self.before_version.split(".")[::-1]
-
-        if int(actual[self.version - 1]) >= int(before[self.version - 1]) + 1:
-            return True
-
-        return False

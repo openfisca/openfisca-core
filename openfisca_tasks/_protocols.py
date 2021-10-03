@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Generator, Sequence
+from typing import Any, Generator, Sequence, Set
 
 from typing_extensions import Protocol
 
@@ -17,6 +17,9 @@ class HasExit(Protocol):
 class SupportsParsing(Protocol):
 
     contracts: Sequence[Any]
+    to_parse: Set[str]
+    builder: Any
+    repo: Any
 
     @abc.abstractmethod
     def __enter__(self) -> Generator:
@@ -27,7 +30,7 @@ class SupportsParsing(Protocol):
         ...
 
     @abc.abstractmethod
-    def parse(self, __file: str) -> None:
+    def __call__(self, __file: str) -> None:
         ...
 
 
