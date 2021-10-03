@@ -8,6 +8,7 @@ from . import SupportsProgress
 
 from ._contract_builder import Contract
 from ._file_parser import FileParser
+from ._protocols import SupportsParsing
 from ._repo import Repo
 
 IGNORE_DIFF_ON: Sequence[str]
@@ -64,25 +65,10 @@ class CheckVersion:
         self.progress = progress
 
         self.progress.info("Parsing files from the current branch…\n")
-        self.progress.init()
-
-        with self.parser.actual as parser:
-            for count, total in parser:
-                self.progress.push(count, total)
-
-            self.progress.wipe()
+        self.actual = self.parse(self.parser.actual)
 
         self.progress.info(f"Parsing files from {self.before_version}…\n")
-        self.progress.init()
-
-        with self.parser.before as parser:
-            for count, total in parser:
-                self.progress.push(count, total)
-
-            self.progress.wipe()
-
-        self.actual = self.parser.actual.contracts
-        self.before = self.parser.before.contracts
+        self.before = self.parse(self.parser.before)
 
         if self._has_changes():
             self.exit = Exit.KO.index
@@ -105,6 +91,17 @@ class CheckVersion:
             self.progress.fail()
 
         self.progress.next()
+
+    def parse(self, parser: SupportsParsing) -> Sequence[Contract]:
+        with parser as steps:
+            self.progress.init()
+
+            for count, total in steps:
+                self.progress.push(count, total)
+
+            self.progress.wipe()
+
+        return parser.contracts
 
     def _has_changes(self) -> bool:
         total: int

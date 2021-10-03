@@ -4,6 +4,7 @@ import textwrap
 from typing import Any, Generator, Sequence, Set, Type
 
 from ._contract_builder import Contract, ContractBuilder
+from ._protocols import SupportsParsing
 from ._repo import Repo
 
 
@@ -72,8 +73,8 @@ class FileParser:
     changed_files: Sequence[str]
 
     repo: Repo = Repo()
-    actual: ActualParser = ActualParser()
-    before: BeforeParser = BeforeParser()
+    actual: SupportsParsing = ActualParser()
+    before: SupportsParsing = BeforeParser()
 
     def __init__(self) -> None:
         self.actual_files = self.repo.files.actual()

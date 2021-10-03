@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import abc
+from typing import Any, Generator, Sequence
 
 from typing_extensions import Protocol
 
@@ -10,6 +11,23 @@ class HasExit(Protocol):
 
     @abc.abstractmethod
     def __call__(self, __progress: SupportsProgress) -> None:
+        ...
+
+
+class SupportsParsing(Protocol):
+
+    contracts: Sequence[Any]
+
+    @abc.abstractmethod
+    def __enter__(self) -> Generator:
+        ...
+
+    @abc.abstractmethod
+    def __exit__(self, *__: Any) -> None:
+        ...
+
+    @abc.abstractmethod
+    def parse(self, __file: str) -> None:
         ...
 
 
