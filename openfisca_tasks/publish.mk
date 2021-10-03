@@ -1,9 +1,9 @@
 ## Install openfisca-core for deployment and publishing.
-build: setup.py
+build:
 	@## This allows us to be sure tests are run against the packaged version
 	@## of openfisca-core, the same we put in the hands of users and reusers.
 	@$(call print_help,$@:)
-	@python $? bdist_wheel
+	@python setup.py bdist_wheel
 	@find dist -name "*.whl" -exec pip install --force-reinstall {}[dev] \;
 
 ## Check for features marked as deprecated.
