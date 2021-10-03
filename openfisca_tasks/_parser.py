@@ -24,13 +24,11 @@ class ActualParser:
     Examples:
         >>> import os
 
-        >>> parser = Parser().actual
-
         >>> this = os.path.relpath(__file__)
-
         >>> this
         'openfisca_tasks/_parser.py'
 
+        >>> parser = Parser().actual
         >>> parser.to_parse = {this}
         >>> parser.builder = ContractBuilder((this,))
 
@@ -84,12 +82,8 @@ class BeforeParser:
         repo: A :class:`.Repo` instance.
 
     Examples:
-        >>> import os
-
-        >>> parser = Parser().before
-
         >>> that = "openfisca_core/__init__.py"
-
+        >>> parser = Parser().before
         >>> parser.to_parse = {that}
         >>> parser.builder = ContractBuilder((that,))
 
@@ -148,11 +142,11 @@ class Parser:
     Examples:
         >>> import os
 
-        >>> parser = Parser()
         >>> this = os.path.relpath(__file__)
-
         >>> this
         'openfisca_tasks/_parser.py'
+
+        >>> parser = Parser()
 
         >>> this in parser.actual_files
         True
