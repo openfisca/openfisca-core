@@ -4,7 +4,17 @@ import ast
 import dataclasses
 import functools
 import pathlib
-from typing import Any, Callable, Optional, Sequence, Tuple
+from typing import (
+    Any,
+    Callable,
+    Generator,
+    Iterator,
+    Optional,
+    Sequence,
+    Tuple,
+    )
+
+from openfisca_core.indexed_enums import Enum
 
 
 @dataclasses.dataclass(frozen = True)
@@ -30,6 +40,14 @@ class Contract:
     file: str
     arguments: Optional[Sequence[Argument]] = None
     returns: Optional[Sequence[RetType]] = None
+
+
+class Suffix(Enum):
+    SEMEL = ""
+    BIS = "(bis)"
+    TER = "(ter)"
+    QUATER = "(quater)"
+    QUINQUIES = "(quinquies)"
 
 
 @dataclasses.dataclass
@@ -111,11 +129,7 @@ class ContractBuilder(ast.NodeVisitor):
         # We find the absolute path of the file.
         path = pathlib.Path(file).resolve()
 
-        # We build the module name with the name of the parent path, a
-        # folder, and the name of the file, without the extension.
-        module = f"{path.parts[-2]}.{path.stem}"
-
-        # We take de node name as a base.
+        # We take the node name as a base for checks.
         name = node.name
 
         # We pass if its a private function.
@@ -126,16 +140,8 @@ class ContractBuilder(ast.NodeVisitor):
         if name.startswith("__") and name not in ("__init__", "__call__"):
             return
 
-        # We compose the name with the name of the module.
-        name = f"{module}.{node.name}"
-
-        # We suffix properties, othersise names would duplicate.
-        for decorator in node.decorator_list:
-            if "property" in ast.dump(decorator):
-                name = f"{name}#getter"
-
-            if "setter" in ast.dump(decorator):
-                name = f"{name}#setter"
+        # We find a unique name for each contract.
+        name = self._build_unique_name(path, node, iter(Suffix))
 
         # We build all positional arguments.
         posargs = functools.reduce(
@@ -159,6 +165,39 @@ class ContractBuilder(ast.NodeVisitor):
 
         # And we add it to the list of contracts.
         self.contracts = self.contracts + (contract,)
+
+    def _build_unique_name(
+            self,
+            path: pathlib.Path,
+            node: ast.FunctionDef,
+            suffixes: Iterator[Suffix],
+            ) -> str:
+        module: str
+
+        # We build the module name with the name of the parent path, a
+        # folder, and the name of the file, without the extension.
+        module = f"{path.parts[-2]}.{path.stem}"
+
+        # We compose the name with the name of the module.
+        name = f"{module}.{node.name}"
+
+        # We suffix properties, othersise names would duplicate.
+        for decorator in node.decorator_list:
+            if "property" in ast.dump(decorator):
+                name = f"{name}#getter"
+
+            if "setter" in ast.dump(decorator):
+                name = f"{name}#setter"
+
+        # Finally we suffix all functions so as to catch the duplicated ones.
+        name = f"{name}{next(suffixes).value}"
+
+        # If there are no duplicates, we continue.
+        if self._is_unique(name):
+            return name
+
+        # Otherwise, we retry…
+        return self._build_unique_name(path, node, suffixes)
 
     def _build_posarg(self, node: ast.FunctionDef) -> Callable[..., Any]:
         return functools.partial(
@@ -236,3 +275,12 @@ class ContractBuilder(ast.NodeVisitor):
                 )
 
         raise TypeError(ast.dump(node))
+
+    def _is_unique(self, name: str) -> bool:
+        is_unique: bool = not next(self._find(name), False)
+        return is_unique
+
+    def _find(self, name: str) -> Generator:
+        for contract in self.contracts:
+            if contract.name == name:
+                yield True
