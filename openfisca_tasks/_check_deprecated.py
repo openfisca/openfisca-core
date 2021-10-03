@@ -166,7 +166,7 @@ class CheckDeprecated(ast.NodeVisitor):
                 self.exit = EXIT_KO
                 self.progress.fail()
 
-            self.progress.next()
+            self.progress.then()
 
     def _isthis(self, version: str) -> bool:
         return self.version == version

@@ -66,7 +66,7 @@ class ProgressBar:
 
         sys.stdout.write(f"\r{self.fail_icon}")
 
-    def next(self) -> None:
+    def then(self) -> None:
         """Prints a new line and resets the cursor position."""
 
         sys.stdout.write("\n\r")

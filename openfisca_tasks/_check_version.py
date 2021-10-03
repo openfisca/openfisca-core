@@ -132,7 +132,7 @@ class CheckVersion:
         else:
             self.progress.fail()
 
-        self.progress.next()
+        self.progress.then()
 
     def _is_functional(self, file: str) -> bool:
         return not any(exclude in file for exclude in IGNORE_DIFF_ON)

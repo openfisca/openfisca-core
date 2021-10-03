@@ -61,7 +61,7 @@ class SupportsProgress(Protocol):
         ...
 
     @abc.abstractmethod
-    def next(self) -> None:
+    def then(self) -> None:
         ...
 
     @abc.abstractmethod
