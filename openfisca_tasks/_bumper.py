@@ -1,4 +1,5 @@
-from typing import Type
+import re
+from typing import Sequence, Tuple, Type
 
 from openfisca_core.indexed_enums import Enum
 
@@ -8,7 +9,22 @@ TO_STR = "-", "+", "~", ""
 
 
 class Version(Enum):
-    """An enum just to determine the required version."""
+    """An enum just to determine the required version.
+
+    Examples:
+        >>> [str(version) for version in Version]
+        ['-', '+', '~', '']
+
+        >>> [version.name for version in Version]
+        ['MAJOR', 'MINOR', 'PATCH', 'NONE']
+
+        >>> [version.value for version in Version]
+        ['removed', 'added', 'diff', 'none']
+
+        >>> [version.index for version in Version]
+        [0, 1, 2, 3]
+
+    """
 
     MAJOR = "removed"
     MINOR = "added"
@@ -31,6 +47,13 @@ class Bumper:
 
     Examples:
         >>> bumper = Bumper()
+
+        >>> bumper.required
+        <Version.NONE: 'none'>
+
+        >>> bumper.what("removed")
+        <Version.MAJOR: 'removed'>
+
         >>> bumper("removed")
         >>> bumper.required
         <Version.MAJOR: 'removed'>
@@ -65,8 +88,10 @@ class Bumper:
 
         Examples:
             >>> bumper = Bumper()
-            >>> bumper("removed")
+            >>> bumper.is_acceptable()
+            True
 
+            >>> bumper("removed")
             >>> bumper.actual = "1.2.3"
             >>> bumper.before = "1.2.3"
             >>> bumper.is_acceptable()
@@ -76,10 +101,55 @@ class Bumper:
             >>> bumper.is_acceptable()
             True
 
+            >>> bumper.actual = "2.0.0-rc.1+1234"
+            >>> bumper.is_acceptable()
+            True
+
+            >>> bumper.before = "2.0.0-asdf+1234"
+            >>> bumper.is_acceptable()
+            True
+
         .. versionadded:: 36.1.0
 
         """
 
-        actual: int = int(self.actual.split(".")[self.required.index])
-        before: int = int(self.before.split(".")[self.required.index])
-        return actual >= before + 1
+        actual_number: int
+        actual_is_rel: bool
+        before_number: int
+        before_is_rel: bool
+
+        # If there's no required bump, we just do not check.
+        if self.required == Version.NONE:
+            return True
+
+        # We get the actual number and whether it is a release or not.
+        actual_number, actual_is_rel = self._extract(self.actual)
+
+        # We get the last tagged number and whether it is a release or not.
+        before_number, before_is_rel = self._extract(self.before)
+
+        # If both are releases, next version has to be major/minor/patch +1.
+        if actual_is_rel and before_is_rel:
+            before_number += 1
+
+        # Otherwise we just do not check.
+        # It is way too anecdotic for the complexity that check requires.
+        return actual_number >= before_number
+
+    def _extract(self, version: str) -> Tuple[int, bool]:
+        """Extract a major/minor/patch number from a version string."""
+
+        is_release: bool
+        release: str
+        rest: Sequence[str]
+
+        # We separate the non-release par, ex: ``-pre+1``.
+        release, *rest = re.split("\\+|\\-", version)
+
+        # We get the major/minor/patch number based on the required bump.
+        number: str = release.split(".")[self.required.index]
+
+        # Finally we determine if this is a release or not.
+        is_release = len(rest) == 0
+
+        return int(number), is_release
