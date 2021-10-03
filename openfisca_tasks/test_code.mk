@@ -13,7 +13,7 @@ test-code: test-core
 	@$(call print_pass,$@:)
 
 ## Run openfisca-core tests.
-test-core: $(shell git ls-files "tests/*.py")
+test-core: $(shell git ls-files "openfisca_tasks/*.py" "tests/*.py")
 	@$(call print_help,$@:)
 	@PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=openfisca_core ${pytest_args}" \
 		openfisca test $? \
