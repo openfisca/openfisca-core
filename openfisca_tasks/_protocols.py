@@ -6,8 +6,12 @@ from typing import Any, Generator, Sequence, Set
 from typing_extensions import Protocol
 
 
+class HasIndex(Protocol):
+    index: int
+
+
 class HasExit(Protocol):
-    exit: int
+    exit: HasIndex
 
     @abc.abstractmethod
     def __call__(self, __progress: SupportsProgress) -> None:

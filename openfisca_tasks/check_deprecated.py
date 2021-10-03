@@ -3,23 +3,23 @@ import pathlib
 import textwrap
 from typing import Sequence
 
-from typing_extensions import Literal
+from openfisca_core.indexed_enums import Enum
 
 from . import SupportsProgress
 
+from ._protocols import HasIndex
 from ._repo import Repo
-
-EXIT_OK: Literal[0]
-EXIT_OK = 0
-
-EXIT_KO: Literal[1]
-EXIT_KO = 1
 
 FILES: Sequence[str]
 FILES = Repo().files.actual()
 
 VERSION: str
 VERSION = Repo().versions.actual()
+
+
+class Exit(Enum):
+    OK = "ok"
+    KO = "ko"
 
 
 class CheckDeprecated(ast.NodeVisitor):
@@ -50,7 +50,7 @@ class CheckDeprecated(ast.NodeVisitor):
     """
 
     count: int
-    exit: Literal[0, 1]
+    exit: HasIndex
     files: Sequence[str]
     nodes: Sequence[ast.Module]
     progress: SupportsProgress
@@ -62,7 +62,7 @@ class CheckDeprecated(ast.NodeVisitor):
             files: Sequence[str] = FILES,
             version: str = VERSION,
             ) -> None:
-        self.exit = EXIT_OK
+        self.exit = Exit.OK
         self.files = files
         self.nodes = [self._node(file) for file in self.files]
         self.total = len(self.nodes)
@@ -163,7 +163,7 @@ class CheckDeprecated(ast.NodeVisitor):
             # If there is at least one expired deprecation, the handler
             # will exit with an error.
             if self._isthis(expires):
-                self.exit = EXIT_KO
+                self.exit = Exit.KO
                 self.progress.fail()
 
             self.progress.then()

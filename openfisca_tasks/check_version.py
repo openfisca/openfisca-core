@@ -9,7 +9,7 @@ from . import SupportsProgress
 from ._builder import Contract
 from ._bumper import Bumper
 from ._parser import Parser
-from ._protocols import SupportsParsing
+from ._protocols import HasIndex, SupportsParsing
 
 T = TypeVar("T", bound = "CheckVersion")
 
@@ -36,12 +36,11 @@ class Exit(Enum):
 class CheckVersion:
     """Checks if the current version is acceptable."""
 
-    exit: int
+    exit: HasIndex
     progress: SupportsProgress
 
     def __init__(self) -> None:
-        self.exit = Exit.OK.index
-        # self.required = Version.NONE
+        self.exit = Exit.OK
 
     def __call__(self, progress: SupportsProgress) -> None:
         before: Set[Contract]
@@ -87,7 +86,7 @@ class CheckVersion:
                 continue
 
             bumper(what)
-            self.exit = Exit.KO.index
+            self.exit = Exit.KO
             self.progress.wipe()
             self.progress.warn(f"{str(bumper.what(what))} {file}\n")
             self.progress.push(count, total)
@@ -114,7 +113,7 @@ class CheckVersion:
                 continue
 
             bumper(what)
-            self.exit = Exit.KO.index
+            self.exit = Exit.KO
             self.progress.wipe()
             self.progress.warn(f"{str(bumper.what(what))} {contract.name}\n")
             self.progress.push(count, total)
@@ -128,7 +127,7 @@ class CheckVersion:
         self.progress.okay(f"Current version: {bumper.actual}")
 
         if bumper.is_acceptable():
-            self.exit = Exit.OK.index
+            self.exit = Exit.OK
         else:
             self.progress.fail()
 
