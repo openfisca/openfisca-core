@@ -1,172 +1,133 @@
 from __future__ import annotations
 
 import textwrap
-from typing import Any, Generator, Sequence, Set, Tuple, Type, TypeVar
+from typing import Any, Generator, Optional, Sequence, Set, Tuple, Type
+
+from typing_extensions import Literal
 
 from ._builder import Contract, ContractBuilder
-from ._protocols import SupportsParsing
 from ._repo import Repo
-
-A = TypeVar("A", bound = "SupportsParsing")
-B = TypeVar("B", bound = "SupportsParsing")
-P = TypeVar("P", bound = "Parser")
-
-
-class ActualParser:
-    """Parses actual files.
-
-    Attributes:
-        contracts: The list of built contracts.
-        to_parse: The list of files to parse.
-        builder: A :class:`.ContractBuilder` instance.
-        repo: A :class:`.Repo` instance.
-
-    Examples:
-        >>> import os
-
-        >>> this = os.path.relpath(__file__)
-        >>> this
-        'openfisca_tasks/_parser.py'
-
-        >>> parser = Parser().actual
-        >>> parser.to_parse = {this}
-        >>> parser.builder = ContractBuilder((this,))
-
-        >>> with parser as parsing:
-        ...     count, total = next(parsing)
-
-        >>> count
-        1
-
-        >>> total
-        1
-
-        >>> next(iter(parser.contracts)).file
-        'openfisca_tasks/_parser.py'
-
-    .. versionadded:: 36.1.0
-
-    """
-
-    contracts: Sequence[Contract]
-    to_parse: Set[str]
-    builder: ContractBuilder
-    repo: Repo
-
-    def __get__(self: A, parser: P, __type: Type[P]) -> A:
-        self.to_parse = set(parser.actual_files) & set(parser.changed_files)
-        self.builder = ContractBuilder(tuple(self.to_parse))
-        return self
-
-    def __enter__(self) -> Generator[Tuple[int, ...], None, None]:
-        for file in self.builder.files:
-            self(file)
-            yield self.builder.count, self.builder.total
-
-    def __exit__(self, *__: Any) -> None:
-        self.contracts = self.builder.contracts
-
-    def __call__(self, file: str) -> None:
-        with open(file, "r") as f:
-            source: str = textwrap.dedent(f.read())
-            self.builder(source)
-
-
-class BeforeParser:
-    """Parses files from the last tagged commit.
-
-    Attributes:
-        contracts: The list of built contracts.
-        to_parse: The list of files to parse.
-        builder: A :class:`.ContractBuilder` instance.
-        repo: A :class:`.Repo` instance.
-
-    Examples:
-        >>> that = "openfisca_core/__init__.py"
-        >>> parser = Parser().before
-        >>> parser.to_parse = {that}
-        >>> parser.builder = ContractBuilder((that,))
-
-        >>> with parser as parsing:
-        ...     count, total = next(parsing)
-
-        >>> count
-        1
-
-        >>> total
-        1
-
-        >>> parser.contracts
-        ()
-
-    .. versionadded:: 36.1.0
-
-    """
-
-    contracts: Sequence[Contract]
-    to_parse: Set[str]
-    builder: ContractBuilder
-    repo: Repo
-
-    def __get__(self: B, parser: P, __type: Type[P]) -> B:
-        self.to_parse = set(parser.before_files) & set(parser.changed_files)
-        self.builder = ContractBuilder(tuple(self.to_parse))
-        self.repo = parser.repo
-        return self
-
-    def __enter__(self) -> Generator[Tuple[int, ...], None, None]:
-        for file in self.builder.files:
-            self(file)
-            yield self.builder.count, self.builder.total
-
-    def __exit__(self, *__: Any) -> None:
-        self.contracts = self.builder.contracts
-
-    def __call__(self, file: str) -> None:
-        content: str = self.repo.files.show(file)
-        source: str = textwrap.dedent(content)
-        self.builder(source)
 
 
 class Parser:
     """Wrapper around the repo and the contract builder.
 
     Attributes:
-        actual_files: The current list of tracked files.
-        before_files: The list of tracked files since the last tagged version.
-        changed_files: The list of files changed since the last tagged version.
-        repo: A :class:`.Repo` instance.
-        actual: An :class:`.ActualParser` instance.
-        before: An :class:`.BeforeParser` instance.
+        repo: To query files and changes from.
+        this: The base revision.
+        that: The revision to compare with.
+        diff: The list of files changed between ``this`` and ``that``.
+        current: ``this`` or ``that``.
+        builder: A contract builder.
+        contracts: The list of built contracts.
+
+    Args:
+        repo: The repo to use, defaults to :class:`.Repo`.
+        this: The revision to use, defaults to ``HEAD``.
+        that: The revision to compare ``this`` with, defaults to last version.
 
     Examples:
-        >>> import os
+        >>> parser = Parser(this = "35.0.0", that = "35.0.1")
 
-        >>> this = os.path.relpath(__file__)
-        >>> this
-        'openfisca_tasks/_parser.py'
+        >>> parser.diff
+        ['CHANGELOG.md', 'openfisca_core/simulation_builder.py', 'setup.py',...
 
-        >>> parser = Parser()
+        >>> with parser(what = "this") as parsing:
+        ...     list(parsing)
+        ...
+        [(1, 3), (2, 3), (3, 3)]
 
-        >>> this in parser.actual_files
-        True
+        >>> this = set(parser.contracts)
 
-        >>> "openfisca_core/__init__.py" in parser.before_files
-        True
+        >>> with parser(what = "that") as parsing:
+        ...     list(parsing)
+        ...
+        [(1, 3), (2, 3), (3, 3)]
+
+        >>> that = set(parser.contracts)
+
+        >>> with parser(what = "thus") as parsing:
+        ...     print("wut!")
+        ...
+        Traceback (most recent call last):
+        AttributeError: 'Parser' object has no attribute 'thus'
+
+        >>> next(iter(that ^ this & that))  # Added functions…
+        Contract(name='core.test_axes.test_add_axis_with_group_int_period', ...
+
+        >>> next(iter(this ^ that & this))  # Removed functions…
+        Traceback (most recent call last):
+        StopIteration
 
     .. versionadded:: 36.1.0
 
     """
 
-    actual_files: Sequence[str]
-    before_files: Sequence[str]
-    changed_files: Sequence[str]
+    repo: Type[Repo]
+    this: str
+    that: str
+    diff: Sequence[str]
+    current: str
+    builder: ContractBuilder
+    contracts: Sequence[Contract]
 
-    repo = Repo()
-    actual: SupportsParsing = ActualParser()
-    before: SupportsParsing = BeforeParser()
+    def __init__(
+            self,
+            repo: Type[Repo] = Repo,
+            *,
+            this: Optional[str] = None,
+            that: Optional[str] = None,
+            ) -> None:
 
-    def __init__(self) -> None:
-        self.actual_files = self.repo.files.actual()
-        self.before_files = self.repo.files.before()
-        self.changed_files = self.repo.files.changed()
+        # We take the current HEAD.
+        if this is None:
+            this = repo.Version.this()
+
+        # And the last tagged version.
+        if that is None:
+            that = repo.Version.last()
+
+        self.repo = repo
+        self.this = this
+        self.that = that
+        self.diff = repo.File.diff(this, that)
+
+    def __call__(self, *, what: Literal["this", "that"]) -> Parser:
+        # We try recover the revision (``this`` or ``that``). Fails otherwise.
+        self.current: str = self.__getattribute__(what)
+
+        # And we return ourselves.
+        return self
+
+    def __enter__(self) -> Generator[Tuple[int, ...], None, None]:
+        # We recover the python files corresponding to ``revison``.
+        files: Set[str] = set(
+            file
+            for file in self.repo.File.tree(self.current)
+            if file.endswith(".py")
+            )
+
+        # We only keep the files changed between ``this`` and ``that``.
+        to_parse: Set[str] = files & set(self.diff)
+
+        # We create a builder with the selected files.
+        self.builder: ContractBuilder = ContractBuilder(tuple(to_parse))
+
+        # And finally we iterate over the files…
+        for file in self.builder.files:
+
+            # We recover the contents of ``file`` at ``revision``.
+            content: str = self.repo.File.show(self.current, file)
+
+            # We sanitize the source code.
+            source: str = textwrap.dedent(content)
+
+            # Then pass it on to the contract builder.
+            self.builder(source)
+
+            # And we yield a counter to keep the user updated.
+            yield self.builder.count, self.builder.total
+
+    def __exit__(self, *__: Any) -> None:
+        # We save the contracts for upstream recovery.
+        self.contracts = self.builder.contracts
