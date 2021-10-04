@@ -106,7 +106,7 @@ jobs:
           name: Check version number has been properly updated
           command: |
             git fetch
-            .circleci/is-version-number-acceptable.sh
+            make check-version
 
       - run:
           name: Check expired deprecations
@@ -152,7 +152,7 @@ jobs:
 
       - run:
           name: Check for functional changes
-          command: if ! .circleci/has-functional-changes.sh ; then circleci step halt ; fi
+          command: if ! make check-version ; then circleci step halt ; fi
 
       - run:
           name: Upload a Python package to Pypi
