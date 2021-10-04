@@ -10,11 +10,11 @@ from . import SupportsProgress
 from ._protocols import HasIndex
 from ._repo import Repo
 
-FILES: Sequence[str]
-FILES = Repo().files.actual()
-
 VERSION: str
-VERSION = Repo().versions.actual()
+VERSION = Repo.Version.last()
+
+FILES: Sequence[str]
+FILES = Repo.File.tree(VERSION)
 
 
 class Exit(Enum):

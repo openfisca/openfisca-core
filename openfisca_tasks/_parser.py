@@ -27,7 +27,7 @@ class Parser:
         that: The revision to compare ``this`` with, defaults to last version.
 
     Examples:
-        >>> parser = Parser(this = "35.0.0", that = "35.0.1")
+        >>> parser = Parser(this = "35.0.1", that = "35.0.0")
 
         >>> parser.diff
         ['CHANGELOG.md', 'openfisca_core/simulation_builder.py', 'setup.py',...
