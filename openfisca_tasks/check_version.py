@@ -149,6 +149,130 @@ class CheckVersion:
 
         return self
 
+    def check_signs(self):
+        sys.stdout.write("[i] Analizing signature changes…\n")
+        self.__init_progress__()
+        self.buffer = []
+
+        for count, contract in enumerate(self.after):
+            self.__push_progress__(self.after, count)
+
+            baseline = next((
+                baseline
+                for baseline in self.avant
+                if baseline.func == contract.func
+                ), None)
+
+            if baseline is None:
+                continue
+
+            avant = set(baseline.inputs)
+            after = set(contract.inputs)
+
+            if len(avant) == len(after):
+                for index, argument in enumerate(contract.inputs):
+                    base_arg = baseline.inputs[index]
+
+                    if argument != base_arg:
+
+                        diff_avant = [
+                            f"name = {base_arg.name}\n",
+                            f"type = {[base_arg.type_, ''][base_arg.type_ is None]}\n",
+                            f"default = {[base_arg.default, ''][base_arg.default is None]}\n",
+                            ]
+
+                        diff_apres = [
+                            f"name = {argument.name}\n",
+                            f"type = {[argument.type_, ''][argument.type_ is None]}\n",
+                            f"default = {[argument.default, ''][argument.default is None]}\n",
+                            ]
+
+                        self.buffer += [[diff_avant, diff_apres, contract.func]]
+
+                        self.__wipe_progress__()
+
+                        if argument.name != base_arg:
+                            sys.stdout.write(f"[~] Argument => {contract.func} (requires a major release)\n")
+
+                        elif argument.default is None and base_arg.default is not None:
+                            sys.stdout.write(f"[~] Argument => {contract.func} (requires a major release)\n")
+
+                        else:
+                            sys.stdout.write(f"[~] Argument => {contract.func} (requires a patch release)\n")
+
+            if len(avant) != len(after):
+
+                added = (after ^ avant & after)
+
+                for argument in added:
+                    diff_apres = [
+                        f"name = {argument.name}\n",
+                        f"type = {[argument.type_, ''][argument.type_ is None]}\n",
+                        f"default = {[argument.default, ''][argument.default is None]}\n",
+                        ]
+
+                    self.buffer += [[["\n"], diff_apres, contract.func]]
+
+                    self.__wipe_progress__()
+
+                    sys.stdout.write(f"[+] Argument => {contract.func} (requires a minor release)\n")
+
+                removed = (avant ^ after & avant)
+
+                for argument in removed:
+                    diff_avant = [
+                        f"name = {argument.name}\n",
+                        f"type = {[argument.type_, ''][argument.type_ is None]}\n",
+                        f"default = {[argument.default, ''][argument.default is None]}\n",
+                        ]
+
+                    self.buffer += [[diff_avant, ["\n"], contract.func]]
+
+                    self.__wipe_progress__()
+                    sys.stdout.write(f"[-] Argument => {contract.func} (requires a major release)\n")
+
+            if contract.output != baseline.output:
+
+                if baseline.output is None:
+                    if isinstance(contract.output, Type):
+                        diff_apres = [f"{contract.output}\n"]
+
+                    if isinstance(contract.output, tuple):
+                        diff_apres = [f"{contract.output}\n"]
+
+                    self.buffer += [[["\n"], diff_apres, contract.func]]
+
+                    self.__wipe_progress__()
+                    sys.stdout.write(f"[+] Returntp => {contract.func} (requires a patch release)\n")
+
+                if contract.output is None:
+                    if isinstance(baseline.output, Type):
+                        diff_avant = [f"{baseline.output}\n"]
+
+                    if isinstance(baseline.output, tuple):
+                        diff_avant = [f"{baseline.output}\n"]
+
+                    self.buffer += [[diff_avant, ["\n"], contract.func]]
+
+                    self.__wipe_progress__()
+                    sys.stdout.write(f"[-] Returntp => {contract.func} (requires a patch release)\n")
+
+        self.__wipe_progress__()
+
+        for diff_avant, diff_apres, func in self.buffer:
+            sys.stdout.write("\n")
+            sys.stdout.writelines(
+                difflib.unified_diff(
+                    diff_avant,
+                    diff_apres,
+                    fromfile = func,
+                    tofile = func,
+                    )
+                )
+
+        self.__wipe_progress__()
+
+
     def _check_version_acceptable(self: T, bumper: Bumper) -> T:
         """Requires a bump if there current version is not acceptable."""
 
