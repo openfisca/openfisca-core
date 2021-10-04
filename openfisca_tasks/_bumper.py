@@ -39,10 +39,9 @@ class Bumper:
     """Determines the required version bump.
 
     Attributes:
-        repo: To gather versions.
+        this: The actual version.
+        that: The last tagged version.
         what: An ``event`` and the associated bump requirement.
-        before: The last tagged version.
-        actual: The actual version.
         required: The required version bump.
 
     Examples:
@@ -62,17 +61,15 @@ class Bumper:
 
     """
 
-    repo: Repo
+    this: str
+    that: str
     what: Type[Version]
-    before: str
-    actual: str
     required: Version
 
     def __init__(self) -> None:
-        self.repo = Repo()
+        self.this = Repo.Version.this()
+        self.that = Repo.Version.last()
         self.what = Version
-        self.before = self.repo.versions.before()
-        self.actual = self.repo.versions.actual()
         self.required = Version.NONE
 
     def __call__(self, bump: str) -> None:
@@ -92,20 +89,20 @@ class Bumper:
             True
 
             >>> bumper("removed")
-            >>> bumper.actual = "1.2.3"
-            >>> bumper.before = "1.2.3"
+            >>> bumper.this = "1.2.3"
+            >>> bumper.that = "1.2.3"
             >>> bumper.is_acceptable()
             False
 
-            >>> bumper.actual = "2.0.0"
+            >>> bumper.this = "2.0.0"
             >>> bumper.is_acceptable()
             True
 
-            >>> bumper.actual = "2.0.0-rc.1+1234"
+            >>> bumper.this = "2.0.0-rc.1+1234"
             >>> bumper.is_acceptable()
             True
 
-            >>> bumper.before = "2.0.0-asdf+1234"
+            >>> bumper.that = "2.0.0-asdf+1234"
             >>> bumper.is_acceptable()
             True
 
@@ -123,10 +120,10 @@ class Bumper:
             return True
 
         # We get the actual number and whether it is a release or not.
-        actual_number, actual_is_rel = self._extract(self.actual)
+        actual_number, actual_is_rel = self._extract(self.this)
 
         # We get the last tagged number and whether it is a release or not.
-        before_number, before_is_rel = self._extract(self.before)
+        before_number, before_is_rel = self._extract(self.that)
 
         # If both are releases, next version has to be major/minor/patch +1.
         if actual_is_rel and before_is_rel:
