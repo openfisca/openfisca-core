@@ -4,12 +4,12 @@ from typing import Sequence, Set, TypeVar
 
 from openfisca_core.indexed_enums import Enum
 
-from . import SupportsProgress
+from openfisca_tasks import SupportsProgress
 
 from ._builder import Contract
 from ._bumper import Bumper
 from ._parser import Parser
-from ._protocols import HasIndex
+from ._types import HasIndex, What
 
 T = TypeVar("T", bound = "CheckVersion")
 
@@ -63,13 +63,9 @@ class CheckVersion:
     def __call__(self) -> None:
         """Runs all the checks."""
 
-        before: Set[Contract]
-        actual: Set[Contract]
-        files: Set[str]
-
-        this = set(self._parse(self.parser, "this"))
-        that = set(self._parse(self.parser, "that"))
-        diff = set(self.parser.diff)
+        this: Set[Contract] = set(self._parse(self.parser, "this"))
+        that: Set[Contract] = set(self._parse(self.parser, "that"))
+        diff: Set[str] = set(self.parser.diff)
 
         (
             self
@@ -80,7 +76,7 @@ class CheckVersion:
             .bar.then()
             )
 
-    def _parse(self, parser: Parser, what: str) -> Sequence[Contract]:
+    def _parse(self, parser: Parser, what: What) -> Sequence[Contract]:
         """Updates status while the parser builds contracts."""
 
         with parser(what = what) as parsing:

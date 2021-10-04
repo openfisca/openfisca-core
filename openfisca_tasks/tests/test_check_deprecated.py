@@ -31,32 +31,32 @@ class Module:
         self.file.close()
 
 
-def test_find_deprecated(progress):
+def test_find_deprecated(bar):
     """Prints out the features marked as deprecated."""
 
     with Module() as (file, name):
         checker = CheckDeprecated([file.name])
-        checker(progress)
+        checker(bar)
 
     with pytest.raises(SystemExit) as exit:
         sys.exit(checker.exit.index)
 
     assert exit.value.code == os.EX_OK
-    assert progress.called[-2].name == "warn"
-    assert f"{name}.function:5" in progress.called[-2].args
+    assert bar.called[-2].name == "warn"
+    assert f"{name}.function:5" in bar.called[-2].args
 
 
-def test_find_deprecated_when_expired(progress):
+def test_find_deprecated_when_expired(bar):
     """Raises an error when at least one deprecation has expired."""
 
     version = "1.0.0"
 
     with Module(version) as (file, _):
         checker = CheckDeprecated([file.name], version)
-        checker(progress)
+        checker(bar)
 
     with pytest.raises(SystemExit) as exit:
         sys.exit(checker.exit.index)
 
     assert exit.value.code != os.EX_OK
-    assert progress.called[-2].name == "fail"
+    assert bar.called[-2].name == "fail"

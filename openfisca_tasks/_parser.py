@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import textwrap
-from typing import Any, Generator, Optional, Sequence, Set, Tuple, Type
-
-from typing_extensions import Literal
+from typing import Any, Generator, Sequence, Set, Tuple
 
 from ._builder import Contract, ContractBuilder
 from ._repo import Repo
+from ._types import What
+
+THIS: str = Repo.Version.this()
+THAT: str = Repo.Version.last()
 
 
 class Parser:
@@ -52,10 +54,10 @@ class Parser:
         Traceback (most recent call last):
         AttributeError: 'Parser' object has no attribute 'thus'
 
-        >>> next(iter(that ^ this & that))  # Added functions…
+        >>> next(iter(this ^ that & this))  # Added functions…
         Contract(name='core.test_axes.test_add_axis_with_group_int_period', ...
 
-        >>> next(iter(this ^ that & this))  # Removed functions…
+        >>> next(iter(that ^ this & that))  # Removed functions…
         Traceback (most recent call last):
         StopIteration
 
@@ -63,7 +65,6 @@ class Parser:
 
     """
 
-    repo: Type[Repo]
     this: str
     that: str
     diff: Sequence[str]
@@ -71,28 +72,12 @@ class Parser:
     builder: ContractBuilder
     contracts: Sequence[Contract]
 
-    def __init__(
-            self,
-            repo: Type[Repo] = Repo,
-            *,
-            this: Optional[str] = None,
-            that: Optional[str] = None,
-            ) -> None:
-
-        # We take the current HEAD.
-        if this is None:
-            this = repo.Version.this()
-
-        # And the last tagged version.
-        if that is None:
-            that = repo.Version.last()
-
-        self.repo = repo
+    def __init__(self, *, this: str = THIS, that: str = THAT) -> None:
         self.this = this
         self.that = that
-        self.diff = repo.File.diff(this, that)
+        self.diff = Repo.File.diff(this, that)
 
-    def __call__(self, *, what: Literal["this", "that"]) -> Parser:
+    def __call__(self, *, what: What) -> Parser:
         # We try recover the revision (``this`` or ``that``). Fails otherwise.
         self.current: str = self.__getattribute__(what)
 
@@ -103,7 +88,7 @@ class Parser:
         # We recover the python files corresponding to ``revison``.
         files: Set[str] = set(
             file
-            for file in self.repo.File.tree(self.current)
+            for file in Repo.File.tree(self.current)
             if file.endswith(".py")
             )
 
@@ -117,7 +102,7 @@ class Parser:
         for file in self.builder.files:
 
             # We recover the contents of ``file`` at ``revision``.
-            content: str = self.repo.File.show(self.current, file)
+            content: str = Repo.File.show(self.current, file)
 
             # We sanitize the source code.
             source: str = textwrap.dedent(content)

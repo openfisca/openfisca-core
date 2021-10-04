@@ -7,8 +7,8 @@ from openfisca_core.indexed_enums import Enum
 
 from . import SupportsProgress
 
-from ._protocols import HasIndex
 from ._repo import Repo
+from ._types import HasIndex
 
 VERSION: str
 VERSION = Repo.Version.last()

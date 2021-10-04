@@ -4,12 +4,13 @@ import sys
 
 import openfisca_tasks as tasks
 
-from ._progress_bar import ProgressBar
-from ._protocols import HasExit, SupportsProgress
+from openfisca_tasks import Bar, SupportsProgress
+
+from ._types import HasExit
 
 
 if __name__ == "__main__":
-    progress: SupportsProgress = ProgressBar()
-    task: HasExit = tasks.__getattribute__(sys.argv[1])(progress)
+    bar: SupportsProgress = Bar()
+    task: HasExit = tasks.__getattribute__(sys.argv[1])(bar)
     task()
     sys.exit(task.exit.index)

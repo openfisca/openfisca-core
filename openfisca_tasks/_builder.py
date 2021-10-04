@@ -59,6 +59,11 @@ class Suffix(Enum):
     TER = "(ter)"
     QUATER = "(quater)"
     QUINQUIES = "(quinquies)"
+    SEXIES = "(sexies)"
+    SEPTIES = "(septies)"
+    OCTIES = "(octies)"
+    NONIES = "(nonies)"
+    DECIES = "(decies)"
 
 
 @dataclasses.dataclass
@@ -354,23 +359,28 @@ class ContractBuilder(ast.NodeVisitor):
         if isinstance(node, ast.Index):
             return self._build(node.value, builder)
 
-        # If we get something ``like[this]``, we have to recurse in order to
-        # extract the values.
+        # If we get a sequence or collection, we have to traverse
+        # each item recursively.
+        if isinstance(node, (ast.List, ast.Set, ast.Tuple)):
+            return tuple(self._build(item, builder) for item in node.elts)
+
+        # Also, if we get something ``like[this]``, we have to recurse in order
+        # to extract the values.
         if isinstance(node, ast.Subscript):
             return (
                 self._build(node.value, builder),
                 self._build(node.slice, builder),
                 )
 
-        # Similarly, if we get a sequence or collection, we have to traverse
-        # each item recursively.
-        if isinstance(node, (ast.List, ast.Set, ast.Tuple)):
-            initial: Tuple[Any, ...] = ()
-
-            return functools.reduce(
-                lambda acc, item: (*acc, self._build(item, builder)),
-                node.elts,
-                initial,
+        # Finally, if we have a dict, we have to both traverse recursively
+        # while building tuples for each key-value pair.
+        if isinstance(node, ast.Dict):
+            return tuple(
+                (
+                    self._build(key, builder),
+                    self._build(value, builder),
+                    )
+                for key, value in tuple(zip(node.keys, node.values))
                 )
 
         raise TypeError(ast.dump(node))
