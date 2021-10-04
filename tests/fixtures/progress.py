@@ -16,19 +16,22 @@ def progress():
         name: str
         args: str = None
 
-    class ProgressBar(SupportsProgress):
+    class _ProgressBar(SupportsProgress):
 
-        def init(self):
+        def __init__(self):
             self.called = []
 
-        def push(self, count, total):
+        def init(self):
             ...
+
+        def push(self, count, __total):
+            self.called.append(Call(name(), count))
 
         def okay(self, message):
-            ...
+            self.called.append(Call(name(), message))
 
         def info(self, message):
-            ...
+            self.called.append(Call(name(), message))
 
         def warn(self, message):
             self.called.append(Call(name(), message))
@@ -42,4 +45,4 @@ def progress():
         def wipe(self):
             ...
 
-    return ProgressBar()
+    return _ProgressBar()

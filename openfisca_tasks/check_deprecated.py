@@ -18,6 +18,8 @@ VERSION = Repo().versions.actual()
 
 
 class Exit(Enum):
+    """An enum with exit codes."""
+
     OK = "ok"
     KO = "ko"
 

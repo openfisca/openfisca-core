@@ -10,6 +10,6 @@ from ._protocols import HasExit
 
 if __name__ == "__main__":
     progress: ProgressBar = ProgressBar()
-    task: HasExit = tasks.__getattribute__(sys.argv[1])()
-    task(progress)
+    task: HasExit = tasks.__getattribute__(sys.argv[1])(progress)
+    task()
     sys.exit(task.exit.index)

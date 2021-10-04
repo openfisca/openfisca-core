@@ -348,6 +348,9 @@ class ContractBuilder(ast.NodeVisitor):
         if isinstance(node, ast.Str):
             return builder(str(node.s))
 
+        if isinstance(node, ast.Call):
+            return self._build(node.func, builder)
+
         if isinstance(node, ast.Index):
             return self._build(node.value, builder)
 

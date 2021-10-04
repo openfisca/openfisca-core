@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from .._progress_bar import ProgressBar
+from openfisca_tasks import ProgressBar
 
 COLORS = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 

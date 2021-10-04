@@ -6,16 +6,30 @@ from typing import Any, Generator, Sequence, Set
 from typing_extensions import Protocol
 
 
-class HasIndex(Protocol):
-    index: int
-
-
 class HasExit(Protocol):
+
     exit: HasIndex
 
     @abc.abstractmethod
-    def __call__(self, __progress: SupportsProgress) -> None:
+    def __call__(self) -> None:
         ...
+
+
+class HasFiles(Protocol):
+
+    changed_files: Sequence[str]
+
+    actual: SupportsParsing
+    before: SupportsParsing
+
+    @abc.abstractmethod
+    def __init__(self) -> None:
+        ...
+
+
+class HasIndex(Protocol):
+
+    index: int
 
 
 class SupportsParsing(Protocol):
