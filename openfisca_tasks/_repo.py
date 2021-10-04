@@ -2,137 +2,123 @@ from __future__ import annotations
 
 import pkg_resources
 import subprocess
-from typing import Any, NoReturn, Sequence, Type
+from typing import Sequence
 
 
-class Files:
-    """A descriptor to retrieve file change information.
-
-    Attributes:
-        repo: A generic service to run terminal commands.
+class _File:
+    """Retrieves file/change information.
 
     .. versionadded:: 36.1.0
 
     """
 
-    repo: Repo
+    @staticmethod
+    def show(revision: str, file: str) -> str:
+        """Retrives the content of a file in a revision.
 
-    def __get__(self, repo: Repo, repo_type: Type[Repo]) -> Files:
-        self.repo = repo
-        return self
+        Args:
+            revision: A commit, a tag, and so on…
+            file: The relative file path.
 
-    def __set__(self, repo: Repo, value: Any) -> NoReturn:
-        raise NotImplementedError
+        Returns:
+            str: The contents of the file.
 
-    def show(self, file: str) -> str:
-        """Retrives the content of a file in the last tagged version."""
+        Examples:
+            >>> source = Repo.File.show("0.5.0", "openfisca_core/calmar.py")
+            >>> source.split("\\n")[3]
+            '# OpenFisca -- A versatile microsimulation software'
 
-        version: str = self.repo.versions.before()
-        cmd: Sequence[str] = ["git", "show", f"{version}:{file}"]
-        return self.repo.run(cmd)
+        """
 
-    def actual(self) -> Sequence[str]:
-        """Retrives the list of tracked files in the current revision.
+        cmd: Sequence[str]
+        cmd = ["git", "show", f"{revision}:{file}"]
+        return Repo.run(cmd)
+
+    @staticmethod
+    def tree(revision: str) -> Sequence[str]:
+        """Retrives the list of tracked files in a revision.
+
+        Args:
+            revision: A commit, a tag, and so on…
 
         Returns:
             A sequence with the files' names.
 
         Examples:
-            >>> import os
-
-            >>> repo = Repo().files
-            >>> this = os.path.relpath(__file__)
-
-            >>> this in repo.actual()
-            True
+            >>> Repo.File.tree("0.5.0")[13]
+            'openfisca_core/calmar.py'
 
         .. versionadded:: 36.1.0
 
         """
 
-        cmd: Sequence[str] = ["git", "ls-tree", "-r", "--name-only", "HEAD"]
-        res: Sequence[str] = self.repo.run(cmd).split()
-        return [file for file in res if file.endswith(".py")]
+        cmd: Sequence[str]
+        cmd = ["git", "ls-tree", "-r", "--name-only", revision]
+        return Repo.run(cmd).split()
 
-    def before(self) -> Sequence[str]:
-        """Retrives the list of tracked files in the last tagged version.
+    @staticmethod
+    def diff(this: str, that: str) -> Sequence[str]:
+        """Retrives the list of changed files between two revisions.
+
+        Args:
+            this: A commit, a tag, and so on…
+            that: The same as ``that``, but in the past…
 
         Returns:
             A sequence with the files' names.
 
         Examples:
-            >>> repo = Repo().files
-            >>> that = "openfisca_core/__init__.py"
-
-            >>> that in repo.before()
-            True
+            >>> Repo.File.diff("0.5.0", "0.5.1")
+            ['.travis.yml', 'CHANGELOG.md', 'COPYING', 'Makefile', 'README.m...
 
         .. versionadded:: 36.1.0
 
         """
 
-        version: str = self.repo.versions.before()
-        cmd: Sequence[str] = ["git", "ls-tree", "-r", "--name-only", version]
-        res: Sequence[str] = self.repo.run(cmd).split()
-        return [file for file in res if file.endswith(".py")]
-
-    def changed(self) -> Sequence[str]:
-        """Retrives the list of changed files since the last tagged version.
-
-        Returns:
-            A sequence with the files' names.
-
-        Examples:
-            >>> repo = Repo().files
-            >>> before = repo.repo.versions.before
-            >>> repo.repo.versions.before = lambda: "v0.2"
-
-            >>> "README.fr" in repo.changed()
-            True
-
-            >>> repo.repo.versions.before = before
-
-        .. versionadded:: 36.1.0
-
-        """
-
-        version: str = self.repo.versions.before()
-        cmd: Sequence[str] = ["git", "diff-index", "--name-only", version]
-        return self.repo.run(cmd).split()
+        cmd: Sequence[str]
+        cmd = ["git", "diff", "--name-only", f"{that}..{this}"]
+        return Repo.run(cmd).split()
 
 
-class Versions:
-    """A descriptor to retrieve version change information.
-
-    Attributes:
-        repo: A generic service to run terminal commands.
+class _Version:
+    """Retrieves version/change information.
 
     .. versionadded:: 36.1.0
 
     """
 
-    repo: Repo
+    @staticmethod
+    def this() -> str:
+        """Retrives the actual version.
 
-    def __get__(self, repo: Repo, repo_type: Type[Repo]) -> Versions:
-        self.repo = repo
-        return self
+        Returns:
+            str: Representing the version.
 
-    def __set__(self, repo: Repo, value: Any) -> NoReturn:
-        raise NotImplementedError
+        Examples:
+            >>> version = Repo.Version.this()
+            >>> major, minor, patch, *rest = version.split(".")
+            >>> major.isdecimal()
+            True
 
-    def actual(self) -> str:
-        """Retrives the current version."""
+        .. versionadded:: 36.1.0
 
-        return pkg_resources.get_distribution("openfisca_core").version
+        """
 
-    def before(self) -> str:
+        return (
+            pkg_resources
+            .get_distribution("openfisca_core")
+            .version
+            )
+
+    @staticmethod
+    def last() -> str:
         """Retrives the last tagged version.
 
         Returns:
-            The :obj:`str` representing the version.
+            str: Representing the version.
 
         Examples:
-            >>> version = Repo().versions.before()
+            >>> version = Repo.Version.last()
             >>> major, minor, patch, *rest = version.split(".")
             >>> major.isdecimal()
             True
@@ -143,7 +129,7 @@ class Versions:
 
         cmd: Sequence[str]
         cmd = ["git", "describe", "--tags", "--abbrev=0", "--first-parent"]
-        return self.repo.run(cmd).split()[0]
+        return Repo.run(cmd).split()[0]
 
 
 class Repo:
@@ -157,8 +143,8 @@ class Repo:
 
     """
 
-    files: Files = Files()
-    versions: Versions = Versions()
+    File = _File
+    Version = _Version
 
     @staticmethod
     def run(cmd: Sequence[str]) -> str:
@@ -171,7 +157,7 @@ class Repo:
             The decoded ``stdout``.
 
         Examples:
-            >>> Repo().run(["echo", "1"])
+            >>> Repo.run(["echo", "1"])
             '1\\n'
 
         .. versionadded:: 36.1.0
