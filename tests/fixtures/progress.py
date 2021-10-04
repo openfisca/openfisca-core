@@ -7,7 +7,7 @@ from openfisca_tasks import SupportsProgress
 
 
 @pytest.fixture
-def progress():
+def bar():
 
     def name():
         return inspect.stack()[1][3]

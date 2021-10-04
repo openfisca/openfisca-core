@@ -2,16 +2,16 @@ import re
 
 import pytest
 
-from openfisca_tasks import ProgressBar
+from openfisca_tasks import Bar
 
 COLORS = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
 
 @pytest.fixture
-def progress():
+def bar():
     """A progress bar."""
 
-    return ProgressBar()
+    return Bar()
 
 
 @pytest.fixture
@@ -25,49 +25,49 @@ def capture(capsys):
     return _capture
 
 
-def test_init(progress, capture):
-    progress.init()
+def test_init(bar, capture):
+    bar.init()
     output = "[/] 0%   |··················································|\r"
     assert capture() == output
 
 
-def test_push(progress, capture):
-    progress.push(0, 2)
+def test_push(bar, capture):
+    bar.push(0, 2)
     output = "[/] 50%  |✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓·························|\r"
     assert capture() == output
 
 
-def test_okay(progress, capture):
-    progress.okay("Hello!")
+def test_okay(bar, capture):
+    bar.okay("Hello!")
     output = "[✓] Hello!"
     assert capture() == output
 
 
-def test_info(progress, capture):
-    progress.info("Hello!")
+def test_info(bar, capture):
+    bar.info("Hello!")
     output = "[i] Hello!"
     assert capture() == output
 
 
-def test_warn(progress, capture):
-    progress.warn("Hello!")
+def test_warn(bar, capture):
+    bar.warn("Hello!")
     output = "[!] Hello!"
     assert capture() == output
 
 
-def test_fail(progress, capture):
-    progress.fail()
+def test_fail(bar, capture):
+    bar.fail()
     output = "\r[x]"
     assert capture() == output
 
 
-def test_then(progress, capture):
-    progress.then()
+def test_then(bar, capture):
+    bar.then()
     output = "\n\r"
     assert capture() == output
 
 
-def test_wipe(progress, capture):
-    progress.wipe()
+def test_wipe(bar, capture):
+    bar.wipe()
     output = "                                                             \r"
     assert capture()[-62:] == output
