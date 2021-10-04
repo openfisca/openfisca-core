@@ -39,11 +39,11 @@ def test_find_deprecated(progress):
         checker(progress)
 
     with pytest.raises(SystemExit) as exit:
-        sys.exit(checker.exit)
+        sys.exit(checker.exit.index)
 
     assert exit.value.code == os.EX_OK
-    assert progress.called[-1].name == "warn"
-    assert f"{name}.function:5" in progress.called[-1].args
+    assert progress.called[-2].name == "warn"
+    assert f"{name}.function:5" in progress.called[-2].args
 
 
 def test_find_deprecated_when_expired(progress):
@@ -56,7 +56,7 @@ def test_find_deprecated_when_expired(progress):
         checker(progress)
 
     with pytest.raises(SystemExit) as exit:
-        sys.exit(checker.exit)
+        sys.exit(checker.exit.index)
 
     assert exit.value.code != os.EX_OK
-    assert progress.called[-1].name == "fail"
+    assert progress.called[-2].name == "fail"
