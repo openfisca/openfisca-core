@@ -47,7 +47,7 @@ class Contract:
 
     name: str
     file: str
-    arguments: Optional[Sequence[Argument]] = None
+    arguments: Sequence[Argument] = ()
     returns: Optional[Sequence[RetType]] = None
 
 
@@ -337,6 +337,9 @@ class ContractBuilder(ast.NodeVisitor):
 
         if node is None:
             return None
+
+        if isinstance(node, ast.Ellipsis):
+            return builder("...")
 
         if isinstance(node, ast.Attribute):
             return builder(str(node.attr))
