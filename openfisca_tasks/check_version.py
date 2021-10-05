@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Sequence, Set, TypeVar
+from typing import Optional, Sequence, Set, TypeVar
 
 from openfisca_core.indexed_enums import Enum
 
@@ -121,148 +121,127 @@ class CheckVersion:
             ) -> T:
         """Requires a bump if there's a diff in functions."""
 
+        # We first do a ``hash`` comparison, so it is still grosso modo.
         diff: Set[Contract] = files[0] ^ files[1] & files[0]
         total: int = len(diff)
 
         self.bar.info(f"Checking for {what} functions…\n")
         self.bar.init()
 
-        for count, contract in enumerate(diff):
-            if contract is None or not self._is_functional(contract.file):
+        for count, this in enumerate(diff):
+            name: str
+            that: Optional[Contract]
+
+            self.bar.push(count, total)
+
+            # If it is not a functional change, we move on.
+            if this is None or not self._is_functional(this.file):
                 continue
 
-            bumper(what)
+            # We know we will fail already, but we still need to determine
+            # the needed version bump.
             self.exit = Exit.KO
-            self.bar.wipe()
-            self.bar.warn(f"{str(bumper.what(what))} {contract.name}\n")
-            self.bar.push(count, total)
+
+            # Now we do a ``small-print`` comparison between contracts.
+            # First, trying to find a corresponding contract before/after.
+            name = this.name
+            that = next((that for that in files[1] if that.name == name), None)
+
+            # If we can't find a base contract with the same name, we can just
+            # assume the function was added/removed, so minor/major.
+            if that is None:
+                bumper(what)
+                self.bar.wipe()
+                self.bar.warn(f"{str(bumper.what(what))} {name} => {what}\n")
+                continue
+
+            # If arguments were removed we can safely assume a breaking change,
+            # but not so when we add them, as they can be default arguments.
+            if this.arguments is None and that.arguments is not None:
+                message = [
+                    f"{name} =>",
+                    f"Argument mismatch: 0 != {len(that.arguments)}\n",
+                    ]
+
+                if not all(argument.default for argument in that.arguments):
+                    message = [f"{str(bumper.what('removed'))}", *message]
+                    bumper("removed")
+                    self.bar.wipe()
+                    self.bar.warn(" ".join(message))
+                    continue
+
+                else:
+                    message = [f"{str(bumper.what('added'))}", *message]
+                    bumper("added")
+                    self.bar.wipe()
+                    self.bar.warn(" ".join(message))
+
+            # If both functions' arguments are equal, we can assume a patch
+            # bump as that means a diff in the return types, which are just
+            # annotations.
+            if this.arguments == that.arguments:
+                continue
+
+            # We move on as we'll catch this scenario in a second round.
+            if this.arguments is not None and that.arguments is None:
+                continue
+
+            # Finally, we need to cast this for the type-checker.
+            if this.arguments is None or that.arguments is None:
+                continue
+
+            if len(this.arguments) == len(that.arguments):
+
+                for count, thisarg in enumerate(this.arguments):
+                    thatarg = that.arguments[count]
+
+                    # If there's an argument name mismatch, we can assume a
+                    # major bump is needed.
+                    if thisarg.name != thatarg.name:
+
+                        message = [
+                            f"{str(bumper.what('removed'))} {name} =>",
+                            f"{thisarg.name} != {thatarg.name}\n",
+                            ]
+
+                        bumper("removed")
+                        self.bar.wipe()
+                        self.bar.warn(" ".join(message))
+                        continue
+
+                    # Also if there's a change in default arguments, either
+                    # a minor or a major bump is needed.
+                    if thisarg.default is not None and thatarg.default is None:
+
+                        message = [
+                            f"{str(bumper.what(what))} {name} =>",
+                            f"{thisarg.name} (= {thisarg.default}) !=",
+                            f"{thatarg.name} (= {thatarg.default})\n",
+                            ]
+
+                        bumper(what)
+                        self.bar.wipe()
+                        self.bar.warn(" ".join(message))
+
+            # Finally we take a look at the remaining diff in arguments.
+            thisnames = set(argument.name for argument in this.arguments)
+            thatnames = set(argument.name for argument in that.arguments)
+
+            namesdiff = thisnames ^ thatnames & thisnames
+
+            for thatname in namesdiff:
+                message = [
+                    f"{str(bumper.what(what))} {name} =>",
+                    f"{thatname}!\n",
+                    ]
+
+                bumper(what)
+                self.bar.wipe()
+                self.bar.warn(" ".join(message))
 
         self.bar.wipe()
 
         return self
-
-    # def check_signs(self):
-    #     sys.stdout.write("[i] Analizing signature changes…\n")
-    #     self.__init_progress__()
-    #     self.buffer = []
-
-    #     for count, contract in enumerate(self.after):
-    #         self.__push_progress__(self.after, count)
-
-    #         baseline = next((
-    #             baseline
-    #             for baseline in self.avant
-    #             if baseline.func == contract.func
-    #             ), None)
-
-    #         if baseline is None:
-    #             continue
-
-    #         avant = set(baseline.inputs)
-    #         after = set(contract.inputs)
-
-    #         if len(avant) == len(after):
-    #             for index, argument in enumerate(contract.inputs):
-    #                 base_arg = baseline.inputs[index]
-
-    #                 if argument != base_arg:
-
-    #                     diff_avant = [
-    #                         f"name = {base_arg.name}\n",
-    #                         f"type = {[base_arg.type_, ''][base_arg.type_ is None]}\n",
-    #                         f"default = {[base_arg.default, ''][base_arg.default is None]}\n",
-    #                         ]
-
-    #                     diff_apres = [
-    #                         f"name = {argument.name}\n",
-    #                         f"type = {[argument.type_, ''][argument.type_ is None]}\n",
-    #                         f"default = {[argument.default, ''][argument.default is None]}\n",
-    #                         ]
-
-    #                     self.buffer += [[diff_avant, diff_apres, contract.func]]
-
-    #                     self.__wipe_progress__()
-
-    #                     if argument.name != base_arg:
-    #                         sys.stdout.write(f"[~] Argument => {contract.func} (requires a major release)\n")
-
-    #                     elif argument.default is None and base_arg.default is not None:
-    #                         sys.stdout.write(f"[~] Argument => {contract.func} (requires a major release)\n")
-
-    #                     else:
-    #                         sys.stdout.write(f"[~] Argument => {contract.func} (requires a patch release)\n")
-
-    #         if len(avant) != len(after):
-
-    #             added = (after ^ avant & after)
-
-    #             for argument in added:
-    #                 diff_apres = [
-    #                     f"name = {argument.name}\n",
-    #                     f"type = {[argument.type_, ''][argument.type_ is None]}\n",
-    #                     f"default = {[argument.default, ''][argument.default is None]}\n",
-    #                     ]
-
-    #                 self.buffer += [[["\n"], diff_apres, contract.func]]
-
-    #                 self.__wipe_progress__()
-
-    #                 sys.stdout.write(f"[+] Argument => {contract.func} (requires a minor release)\n")
-
-    #             removed = (avant ^ after & avant)
-
-    #             for argument in removed:
-    #                 diff_avant = [
-    #                     f"name = {argument.name}\n",
-    #                     f"type = {[argument.type_, ''][argument.type_ is None]}\n",
-    #                     f"default = {[argument.default, ''][argument.default is None]}\n",
-    #                     ]
-
-    #                 self.buffer += [[diff_avant, ["\n"], contract.func]]
-
-    #                 self.__wipe_progress__()
-    #                 sys.stdout.write(f"[-] Argument => {contract.func} (requires a major release)\n")
-
-    #         if contract.output != baseline.output:
-
-    #             if baseline.output is None:
-    #                 if isinstance(contract.output, Type):
-    #                     diff_apres = [f"{contract.output}\n"]
-
-    #                 if isinstance(contract.output, tuple):
-    #                     diff_apres = [f"{contract.output}\n"]
-
-    #                 self.buffer += [[["\n"], diff_apres, contract.func]]
-
-    #                 self.__wipe_progress__()
-    #                 sys.stdout.write(f"[+] Returntp => {contract.func} (requires a patch release)\n")
-
-    #             if contract.output is None:
-    #                 if isinstance(baseline.output, Type):
-    #                     diff_avant = [f"{baseline.output}\n"]
-
-    #                 if isinstance(baseline.output, tuple):
-    #                     diff_avant = [f"{baseline.output}\n"]
-
-    #                 self.buffer += [[diff_avant, ["\n"], contract.func]]
-
-    #                 self.__wipe_progress__()
-    #                 sys.stdout.write(f"[-] Returntp => {contract.func} (requires a patch release)\n")
-
-    #     self.__wipe_progress__()
-
-    #     for diff_avant, diff_apres, func in self.buffer:
-    #         sys.stdout.write("\n")
-    #         sys.stdout.writelines(
-    #             difflib.unified_diff(
-    #                 diff_avant,
-    #                 diff_apres,
-    #                 fromfile = func,
-    #                 tofile = func,
-    #                 )
-    #             )
-
-    #     self.__wipe_progress__()
 
     def _check_version_acceptable(self: T, bumper: Bumper) -> T:
         """Requires a bump if there current version is not acceptable."""
