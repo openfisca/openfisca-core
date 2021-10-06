@@ -68,25 +68,25 @@ class FuncChecker:
 
     def score(self) -> int:
         if max(self.diff_args()) == 2:
-            self.reason = "added-args"
+            self.reason = "args-diff"
 
         if max(self.diff_args()) == 3:
-            self.reason = "removed-args"
+            self.reason = "args-diff"
 
         if max(self.diff_name()) == 3:
-            self.reason = "changed-args"
+            self.reason = "args-diff"
 
         if max(self.diff_type()) == 1:
-            self.reason = "changed-types"
+            self.reason = "types-diff"
 
         if max(self.diff_args()) == 0 and max(self.diff_defs()) == 2:
-            self.reason = "added-defaults"
+            self.reason = "defaults-diff"
 
         if max(self.diff_args()) == 0 and max(self.diff_defs()) == 3:
-            self.reason = "removed-defaults"
+            self.reason = "defaults-diff"
 
         if max(self.diff_args()) == 2 and max(self.diff_defs()) == 0:
-            self.reason = "added-args-with-defaults"
+            self.reason = "args/defaults-diff"
 
         return max(
             max(self.diff_hash()),

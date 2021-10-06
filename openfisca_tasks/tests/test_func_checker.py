@@ -54,7 +54,7 @@ def test_when_added_args(this_builder, that_builder):
     assert_equal(checker.diff_type(), [0, 0, 0, 0, 0, 0])
     assert_equal(checker.diff_defs(), [0, 0, 0, 0, 3, 3])
     assert checker.score() == 3
-    assert checker.reason == "added-args"
+    assert checker.reason == "args-diff"
 
 
 def test_when_removed_args(this_builder, that_builder):
@@ -73,7 +73,7 @@ def test_when_removed_args(this_builder, that_builder):
     assert_equal(checker.diff_type(), [0, 0, 0, 0, 0, 0])
     assert_equal(checker.diff_defs(), [0, 0, 0, 0, 2, 2])
     assert checker.score() == 3
-    assert checker.reason == "removed-args"
+    assert checker.reason == "args-diff"
 
 
 def test_when_changed_arg_names(this_builder, that_builder):
@@ -92,7 +92,7 @@ def test_when_changed_arg_names(this_builder, that_builder):
     assert_equal(checker.diff_type(), [0, 0, 0, 0])
     assert_equal(checker.diff_defs(), [0, 0, 0, 0])
     assert checker.score() == 3
-    assert checker.reason == "changed-args"
+    assert checker.reason == "args-diff"
 
 
 def test_when_added_types(this_builder, that_builder):
@@ -111,7 +111,7 @@ def test_when_added_types(this_builder, that_builder):
     assert_equal(checker.diff_type(), [1, 1, 0, 0])
     assert_equal(checker.diff_defs(), [0, 0, 0, 0])
     assert checker.score() == 1
-    assert checker.reason == "changed-types"
+    assert checker.reason == "types-diff"
 
 
 def test_when_removed_types(this_builder, that_builder):
@@ -130,7 +130,7 @@ def test_when_removed_types(this_builder, that_builder):
     assert_equal(checker.diff_type(), [1, 1, 0, 0])
     assert_equal(checker.diff_defs(), [0, 0, 0, 0])
     assert checker.score() == 1
-    assert checker.reason == "changed-types"
+    assert checker.reason == "types-diff"
 
 
 def test_when_added_defaults(this_builder, that_builder):
@@ -149,7 +149,7 @@ def test_when_added_defaults(this_builder, that_builder):
     assert_equal(checker.diff_type(), [0, 0, 0, 0])
     assert_equal(checker.diff_defs(), [0, 0, 2, 2])
     assert checker.score() == 2
-    assert checker.reason == "added-defaults"
+    assert checker.reason == "defaults-diff"
 
 
 def test_when_removed_defaults(this_builder, that_builder):
@@ -168,7 +168,7 @@ def test_when_removed_defaults(this_builder, that_builder):
     assert_equal(checker.diff_type(), [0, 0, 0, 0])
     assert_equal(checker.diff_defs(), [0, 0, 3, 3])
     assert checker.score() == 3
-    assert checker.reason == "removed-defaults"
+    assert checker.reason == "defaults-diff"
 
 
 def test_when_added_args_and_defs(this_builder, that_builder):
@@ -187,4 +187,4 @@ def test_when_added_args_and_defs(this_builder, that_builder):
     assert_equal(checker.diff_type(), [0, 0, 0, 0, 0, 0])
     assert_equal(checker.diff_defs(), [0, 0, 0, 0, 0, 0])
     assert checker.score() == 2
-    assert checker.reason == "added-args-with-defaults"
+    assert checker.reason == "args/defaults-diff"

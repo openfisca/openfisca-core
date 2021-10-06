@@ -159,10 +159,11 @@ class CheckVersion:
             # Now we do a ``small-print`` comparison between contracts.
             f = FuncChecker(this, that)
 
-            if f.score() == bumper.what(what).index:
+            if f.score() == (3 - bumper.what(what).index):
                 bumper(what)
                 self.bar.wipe()
-                self.bar.warn(f"{str(bumper.what(what))} {name} => {f.reason}")
+                self.bar.warn(f"{str(bumper.what(what))} {name} => {f.reason}\n")
+                continue
 
         self.bar.wipe()
 

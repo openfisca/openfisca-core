@@ -84,13 +84,13 @@ def test_files_when_diff_only_parse_changed(checker):
     checker.parser = type(checker.parser)(this = "35.1.0", that = "35.0.0")
     checker()
     calls = [call.args for call in checker.bar.called]
-    assert "+ tools.__init__.assert_datetime_equals\n" in calls
+    assert "+ tools.__init__.assert_datetime_equals => added\n" in calls
 
     checker.parser.diff = []
     checker.bar.called = []
     checker()
     calls = [call.args for call in checker.bar.called]
-    assert "+ tools.__init__.assert_datetime_equals\n" not in calls
+    assert "+ tools.__init__.assert_datetime_equals => added\n" not in calls
 
     with pytest.raises(SystemExit) as exit:
         sys.exit(checker.exit.index)
@@ -160,8 +160,8 @@ def test_funcs_when_duplicates(checker):
     with pytest.raises(SystemExit) as exit:
         sys.exit(checker.exit.index)
 
-    assert "+ openfisca_tasks._builder.total#getter\n" in calls
-    assert "+ openfisca_tasks.bar.init(bis)\n" in calls
-    assert "+ openfisca_tasks.bar.init\n" in calls
+    assert "+ openfisca_tasks._builder.total#getter => added\n" in calls
+    assert "+ openfisca_tasks.bar.init(bis) => added\n" in calls
+    assert "+ openfisca_tasks.bar.init => added\n" in calls
     assert "Version bump required: MAJOR!\n" in calls
     assert exit.value.code != os.EX_OK
