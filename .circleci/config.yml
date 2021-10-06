@@ -20,7 +20,7 @@ jobs:
             echo "source /tmp/venv/openfisca_core/bin/activate" >> $BASH_ENV
 
       - run:
-          name: Install building utils
+          name: Install build dependencies
           command: make install-builder
 
       - run:
