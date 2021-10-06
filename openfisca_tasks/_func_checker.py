@@ -1,4 +1,5 @@
 import dataclasses
+from typing import Optional
 
 import numpy
 
@@ -11,13 +12,13 @@ class SemVer(Enum):
     """An enum just to express a release.
 
     Examples:
-        >>> [version.name for version in Version]
+        >>> [version.name for version in SemVer]
         ['NONES', 'PATCH', 'MINOR', 'MAJOR']
 
-        >>> [version.value for version in Version]
+        >>> [version.value for version in SemVer]
         ['nones', 'patch', 'minor', 'major']
 
-        >>> [version.index for version in Version]
+        >>> [version.index for version in SemVer]
         [0, 1, 2, 3]
 
     """
@@ -33,6 +34,7 @@ class FuncChecker:
 
     this: Contract
     that: Contract
+    reason: Optional[str] = None
 
     def __post_init__(self):
         self.this_len: int = len(self.this.arguments)
@@ -65,6 +67,27 @@ class FuncChecker:
         return numpy.repeat(index, times)
 
     def score(self) -> int:
+        if max(self.diff_args()) == 2:
+            self.reason = "added-args"
+
+        if max(self.diff_args()) == 3:
+            self.reason = "removed-args"
+
+        if max(self.diff_name()) == 3:
+            self.reason = "changed-args"
+
+        if max(self.diff_type()) == 1:
+            self.reason = "changed-types"
+
+        if max(self.diff_args()) == 0 and max(self.diff_defs()) == 2:
+            self.reason = "added-defaults"
+
+        if max(self.diff_args()) == 0 and max(self.diff_defs()) == 3:
+            self.reason = "removed-defaults"
+
+        if max(self.diff_args()) == 2 and max(self.diff_defs()) == 0:
+            self.reason = "added-args-with-defaults"
+
         return max(
             max(self.diff_hash()),
             max(self.diff_args()),
@@ -142,8 +165,6 @@ class FuncChecker:
             [*these, *[self.filler(self.nones), []][len(these) > len(those)]],
             [*those, *[self.filler(self.nones), []][len(those) > len(these)]],
             ))
-
-        print(glued)
 
         conds = [
             [this > that for this, that in glued],

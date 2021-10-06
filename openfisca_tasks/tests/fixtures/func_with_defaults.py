@@ -1,2 +1,2 @@
-def function(a, *, b, c = {1}, d = {"a": 1}):
+def function(a, *, b, c = (1,), d = ("a", 1)):
     ...

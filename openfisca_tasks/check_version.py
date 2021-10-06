@@ -8,6 +8,7 @@ from openfisca_tasks import SupportsProgress
 
 from ._builder import Contract
 from ._bumper import Bumper
+from ._func_checker import FuncChecker
 from ._parser import Parser
 from ._types import HasIndex, What
 
@@ -40,8 +41,8 @@ class CheckVersion:
     """Checks if the current version is acceptable.
 
     Attributes:
+        bar: A progress bar.
         exit: An exit code.
-        progress: A progress bar.
         parser: A file parser.
         bumper: A version bumper.
 
@@ -131,6 +132,7 @@ class CheckVersion:
         for count, this in enumerate(diff):
             name: str
             that: Optional[Contract]
+            checker: FuncChecker
 
             self.bar.push(count, total)
 
@@ -142,8 +144,7 @@ class CheckVersion:
             # the needed version bump.
             self.exit = Exit.KO
 
-            # Now we do a ``small-print`` comparison between contracts.
-            # First, trying to find a corresponding contract before/after.
+            # We will try to find a match between before/after contracts.
             name = this.name
             that = next((that for that in files[1] if that.name == name), None)
 
@@ -155,89 +156,13 @@ class CheckVersion:
                 self.bar.warn(f"{str(bumper.what(what))} {name} => {what}\n")
                 continue
 
-            # If arguments were removed we can safely assume a breaking change,
-            # but not so when we add them, as they can be default arguments.
-            if this.arguments is None and that.arguments is not None:
-                message = [
-                    f"{name} =>",
-                    f"Argument mismatch: 0 != {len(that.arguments)}\n",
-                    ]
+            # Now we do a ``small-print`` comparison between contracts.
+            f = FuncChecker(this, that)
 
-                if not all(argument.default for argument in that.arguments):
-                    message = [f"{str(bumper.what('removed'))}", *message]
-                    bumper("removed")
-                    self.bar.wipe()
-                    self.bar.warn(" ".join(message))
-                    continue
-
-                else:
-                    message = [f"{str(bumper.what('added'))}", *message]
-                    bumper("added")
-                    self.bar.wipe()
-                    self.bar.warn(" ".join(message))
-
-            # If both functions' arguments are equal, we can assume a patch
-            # bump as that means a diff in the return types, which are just
-            # annotations.
-            if this.arguments == that.arguments:
-                continue
-
-            # We move on as we'll catch this scenario in a second round.
-            if this.arguments is not None and that.arguments is None:
-                continue
-
-            # Finally, we need to cast this for the type-checker.
-            if this.arguments is None or that.arguments is None:
-                continue
-
-            if len(this.arguments) == len(that.arguments):
-
-                for count, thisarg in enumerate(this.arguments):
-                    thatarg = that.arguments[count]
-
-                    # If there's an argument name mismatch, we can assume a
-                    # major bump is needed.
-                    if thisarg.name != thatarg.name:
-
-                        message = [
-                            f"{str(bumper.what('removed'))} {name} =>",
-                            f"{thisarg.name} != {thatarg.name}\n",
-                            ]
-
-                        bumper("removed")
-                        self.bar.wipe()
-                        self.bar.warn(" ".join(message))
-                        continue
-
-                    # Also if there's a change in default arguments, either
-                    # a minor or a major bump is needed.
-                    if thisarg.default is not None and thatarg.default is None:
-
-                        message = [
-                            f"{str(bumper.what(what))} {name} =>",
-                            f"{thisarg.name} (= {thisarg.default}) !=",
-                            f"{thatarg.name} (= {thatarg.default})\n",
-                            ]
-
-                        bumper(what)
-                        self.bar.wipe()
-                        self.bar.warn(" ".join(message))
-
-            # Finally we take a look at the remaining diff in arguments.
-            thisnames = set(argument.name for argument in this.arguments)
-            thatnames = set(argument.name for argument in that.arguments)
-
-            namesdiff = thisnames ^ thatnames & thisnames
-
-            for thatname in namesdiff:
-                message = [
-                    f"{str(bumper.what(what))} {name} =>",
-                    f"{thatname}!\n",
-                    ]
-
+            if f.score() == bumper.what(what).index:
                 bumper(what)
                 self.bar.wipe()
-                self.bar.warn(" ".join(message))
+                self.bar.warn(f"{str(bumper.what(what))} {name} => {f.reason}")
 
         self.bar.wipe()
 
