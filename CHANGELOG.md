@@ -1,5 +1,12 @@
 # Changelog
 
+### 35.5.2 [#1048](https://github.com/openfisca/openfisca-core/pull/1048)
+
+#### Bug fix
+
+- In _test_yaml.py_:
+  - Fix yaml tests loading —required for testing against the built version.
+
 ### 35.5.1 [#1046](https://github.com/openfisca/openfisca-core/pull/1046)
 
 #### Non-technical changes
