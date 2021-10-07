@@ -1,5 +1,16 @@
 # Changelog
 
+### 35.5.4 [#1033](https://github.com/openfisca/openfisca-core/pull/1033)
+
+#### Bug Fixes
+
+- Fix doctests of the commons module
+
+#### Dependencies
+
+- `darglint`, `flake8-docstrings`, & `pylint`
+  - For automatic docstring linting & validation.
+
 ### 35.5.3 [#1020](https://github.com/openfisca/openfisca-core/pull/1020)
 
 #### Technical changes

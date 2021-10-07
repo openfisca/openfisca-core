@@ -19,7 +19,7 @@ test-code: test-core test-country test-extension
 ## Run openfisca-core tests.
 test-core: $(shell git ls-files "tests/*.py")
 	@$(call print_help,$@:)
-	@PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=openfisca_core ${pytest_args}" \
+	@PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=openfisca_core --cov=openfisca_web_api ${pytest_args}" \
 		openfisca test $? \
 		${openfisca_args}
 	@$(call print_pass,$@:)

@@ -1,5 +1,5 @@
 ## Lint the codebase.
-lint: check-syntax-errors check-style check-types
+lint: check-syntax-errors check-style lint-doc check-types
 	@$(call print_pass,$@:)
 
 ## Compile python files to check for syntax errors.
@@ -14,10 +14,34 @@ check-style: $(shell git ls-files "*.py")
 	@flake8 $?
 	@$(call print_pass,$@:)
 
+## Run linters to check for syntax and style errors in the doc.
+lint-doc: \
+	lint-doc-commons \
+	lint-doc-types \
+	;
+
+## Run linters to check for syntax and style errors in the doc.
+lint-doc-%:
+	@## These checks are exclusively related to doc/strings/test.
+	@##
+	@## They can be integrated into setup.cfg once all checks pass.
+	@## The reason they're here is because otherwise we wouldn't be
+	@## able to integrate documentation improvements incrementally.
+	@##
+	@## D101:	Each class has to have at least one doctest.
+	@## D102:	Each public method has to have at least one doctest.
+	@## D103:	Each public function has to have at least one doctest.
+	@## DARXXX:	https://github.com/terrencepreilly/darglint#error-codes.
+	@##
+	@$(call print_help,$(subst $*,%,$@:))
+	@flake8 --select=D101,D102,D103,DAR openfisca_core/$*
+	@pylint openfisca_core/$*
+	@$(call print_pass,$@:)
+
 ## Run static type checkers for type errors.
-check-types: openfisca_core openfisca_web_api
+check-types:
 	@$(call print_help,$@:)
-	@mypy $?
+	@mypy --package openfisca_core --package openfisca_web_api
 	@$(call print_pass,$@:)
 
 ## Run code formatters to correct style errors.
