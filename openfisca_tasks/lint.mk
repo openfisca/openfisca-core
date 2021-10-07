@@ -1,5 +1,5 @@
 ## Lint the codebase.
-lint: check-syntax-errors check-style lint-styling-doc check-types
+lint: check-syntax-errors check-style lint-doc check-types
 	@$(call print_pass,$@:)
 
 ## Compile python files to check for syntax errors.
@@ -15,18 +15,18 @@ check-style: $(shell git ls-files "*.py")
 	@$(call print_pass,$@:)
 
 ## Run linters to check for syntax and style errors in the doc.
-lint-styling-doc: \
-	lint-styling-doc-commons \
-	lint-styling-doc-types \
+lint-doc: \
+	lint-doc-commons \
+	lint-doc-types \
 	;
 
 ## Run linters to check for syntax and style errors in the doc.
-lint-styling-doc-%:
+lint-doc-%:
 	@## These checks are exclusively related to doc/strings/test.
 	@##
 	@## They can be integrated into setup.cfg once all checks pass.
 	@## The reason they're here is because otherwise we wouldn't be
-	@## able to integrate documentation improvements progresively.
+	@## able to integrate documentation improvements incrementally.
 	@##
 	@## D101:	Each class has to have at least one doctest.
 	@## D102:	Each public method has to have at least one doctest.
