@@ -2,8 +2,24 @@ import numpy
 
 
 def apply_thresholds(input, thresholds, choices):
-    """
-    Return one of the choices depending on the input position compared to thresholds, for each input.
+    """Makes a choice based on an input and thresholds.
+
+    From a list of ``choices``, this function selects one of these values based on a list
+    of inputs, depending on the value of each ``input`` within a list of
+    ``thresholds``.
+
+    Args:
+        input: A list of inputs to make a choice from.
+        thresholds: A list of thresholds to choose.
+        choices: A list of the possible values to choose from.
+
+    Returns:
+        :obj:`numpy.ndarray` of :obj:`float`:
+        A list of the values chosen.
+
+    Raises:
+        :exc:`AssertionError`: When the number of ``thresholds`` (t) and the
+            number of choices (c) are not either t == c or t == c - 1.
 
     Examples:
         >>> input = numpy.array([4, 5, 6, 7, 8])
@@ -24,7 +40,15 @@ def apply_thresholds(input, thresholds, choices):
 
 
 def concat(this, that):
-    """
+    """Concatenates the values of two arrays.
+
+    Args:
+        this: An array to concatenate.
+        that: Another array to concatenate.
+
+    Returns:
+        :obj:`numpy.ndarray` of :obj:`float`:
+        An array with the concatenated values.
 
     Examples:
         >>> this = ["this", "that"]
@@ -43,9 +67,21 @@ def concat(this, that):
 
 
 def switch(conditions, value_by_condition):
-    '''
-    Reproduces a switch statement: given an array of conditions, return an array of the same size replacing each
-    condition item by the corresponding given value.
+    """Mimicks a switch statement.
+
+    Given an array of conditions, returns an array of the same size,
+    replacing each condition item with the matching given value.
+
+    Args:
+        conditions: An array of conditions.
+        value_by_condition: Values to replace for each condition.
+
+    Returns:
+        :obj:`numpy.ndarray` of :obj:`float`:
+        An array with the replaced values.
+
+    Raises:
+        :exc:`AssertionError`: When ``value_by_condition`` is empty.
 
     Examples:
         >>> conditions = numpy.array([1, 1, 1, 2])
@@ -53,7 +89,7 @@ def switch(conditions, value_by_condition):
         >>> switch(conditions, value_by_condition)
         array([80, 80, 80, 90])
 
-    '''
+    """
 
     assert len(value_by_condition) > 0, \
         "switch must be called with at least one value"

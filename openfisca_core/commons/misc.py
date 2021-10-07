@@ -2,7 +2,13 @@ import numpy
 
 
 def empty_clone(original):
-    """Create a new empty instance of the same class of the original object.
+    """Creates an empty instance of the same class of the original object.
+
+    Args:
+        original: An object to clone.
+
+    Returns:
+        The cloned, empty, object.
 
     Examples:
         >>> Foo = type("Foo", (list,), {})
@@ -20,8 +26,10 @@ def empty_clone(original):
     """
 
     class Dummy(original.__class__):
+        """Dummy class for empty cloning."""
+
         def __init__(self) -> None:
-            pass
+            ...
 
     new = Dummy()
     new.__class__ = original.__class__
@@ -29,8 +37,14 @@ def empty_clone(original):
 
 
 def stringify_array(array: numpy.ndarray) -> str:
-    """
-    Generate a clean string representation of a NumPY array.
+    """Generates a clean string representation of a numpy array.
+
+    Args:
+        array: An array.
+
+    Returns:
+        :obj:`str`:
+        "None" if the ``array`` is None, the stringified ``array`` otherwise.
 
     Examples:
         >>> import numpy

@@ -26,12 +26,7 @@ lint-doc-%:
 	@##
 	@## They can be integrated into setup.cfg once all checks pass.
 	@## The reason they're here is because otherwise we wouldn't be
-	@## able to integrate documentation improvements incrementally.
-	@##
-	@## D101:	Each class has to have at least one doctest.
-	@## D102:	Each public method has to have at least one doctest.
-	@## D103:	Each public function has to have at least one doctest.
-	@## DARXXX:	https://github.com/terrencepreilly/darglint#error-codes.
+	@## able to integrate documentation improvements progresively.
 	@##
 	@$(call print_help,$(subst $*,%,$@:))
 	@flake8 --select=D101,D102,D103,DAR openfisca_core/$*
