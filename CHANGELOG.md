@@ -1,5 +1,12 @@
 # Changelog
 
+### 35.5.4 [#1059](https://github.com/openfisca/openfisca-core/pull/1059)
+
+#### Non-technical changes
+
+- Move published code to `src`.
+- Use `setup.cfg` for metadata.
+
 ### 35.5.3 [#1058](https://github.com/openfisca/openfisca-core/pull/1058)
 
 #### Non-technical changes

@@ -12,6 +12,7 @@ uninstall:
 ## Delete builds and compiled python files.
 clean: \
 	$(shell ls -d * | grep "build\|dist") \
+	$(shell find . -name "*.egg-info")
 	$(shell find . -name "*.pyc")
 	@$(call print_help,$@:)
 	@rm -rf $?

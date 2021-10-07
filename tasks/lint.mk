@@ -9,19 +9,19 @@ check-syntax-errors: .
 	@$(call print_pass,$@:)
 
 ## Run linters to check for syntax and style errors.
-check-style: $(shell git ls-files "*.py")
+check-style:
 	@$(call print_help,$@:)
-	@flake8 $?
+	@flake8 $(shell git ls-files "*.py")
 	@$(call print_pass,$@:)
 
 ## Run static type checkers for type errors.
-check-types: openfisca_core openfisca_web_api
+check-types:
 	@$(call print_help,$@:)
-	@mypy $?
+	@mypy src
 	@$(call print_pass,$@:)
 
 ## Run code formatters to correct style errors.
-format-style: $(shell git ls-files "*.py")
+format-style:
 	@$(call print_help,$@:)
-	@autopep8 $?
+	@autopep8 $(shell find . -name "*.py")
 	@$(call print_pass,$@:)
