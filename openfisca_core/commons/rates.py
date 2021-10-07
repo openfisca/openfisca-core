@@ -5,7 +5,7 @@ def average_rate(target = None, varying = None, trim = None):
     """Computes the average rate of a target net income.
 
     Given a ``target`` net income, and according to the ``varying`` gross
-    income. Optionally, a ``trim`` can be applied consisting on the lower and
+    income. Optionally, a ``trim`` can be applied consisting of the lower and
     upper bounds of the average rate to be computed.
 
     Note:

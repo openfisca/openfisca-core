@@ -1,8 +1,7 @@
 """Common tools for contributors and users.
 
-The tools included in this sub-package are intented, at the same time, to help
-contributors who maintain OpenFisca Core, and to help users building their own
-systems.
+The tools in this sub-package are intended, to help both contributors
+to OpenFisca Core and to country packages.
 
 Official Public API:
     * :func:`.apply_thresholds`
@@ -17,8 +16,8 @@ Deprecated:
     * :class:`.Dummy`
 
 Note:
-    The ``deprecated`` imports are transitional, as so to ensure non-breaking
-    changes, and could be definitely removed from the codebase in the next
+    The ``deprecated`` imports are transitional, in order to ensure non-breaking
+    changes, and could be removed from the codebase in the next
     major release.
 
 Note:

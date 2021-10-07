@@ -4,18 +4,18 @@ import numpy
 def apply_thresholds(input, thresholds, choices):
     """Makes a choice based on an input and thresholds.
 
-    From list of ``choices``, it selects one of them based on a list of
-    inputs, depending on the position of each ``input`` whithin a list of
-    ``thresholds``. It does so for each ``input`` provided.
+    From a list of ``choices``, this function selects one of these values based on a list
+    of inputs, depending on the value of each ``input`` within a list of
+    ``thresholds``.
 
     Args:
-        input: A list of inputs to make a choice.
+        input: A list of inputs to make a choice from.
         thresholds: A list of thresholds to choose.
-        choices: A list of the possible choices.
+        choices: A list of the possible values to choose from.
 
     Returns:
         :obj:`numpy.ndarray` of :obj:`float`:
-        A list of the choices made.
+        A list of the values chosen.
 
     Raises:
         :exc:`AssertionError`: When the number of ``thresholds`` (t) and the
@@ -67,10 +67,10 @@ def concat(this, that):
 
 
 def switch(conditions, value_by_condition):
-    """Reproduces a switch statement.
+    """Mimicks a switch statement.
 
     Given an array of conditions, returns an array of the same size,
-    replacing each condition item by the corresponding given value.
+    replacing each condition item with the matching given value.
 
     Args:
         conditions: An array of conditions.
