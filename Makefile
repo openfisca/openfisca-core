@@ -21,7 +21,7 @@ print_pass = echo $$(tput setaf 2)[✓]$$(tput sgr0) $$(tput setaf 8)$1$$(tput s
 ## Similar to `print_work`, but this will read the comments above a task, and
 ## print them to the user at the start of each task. The `$1` is a function
 ## argument.
-print_help = sed -n "/^$1/ { x ; p ; } ; s/\#\#/$(print_work)/ ; s/\./…/ ; x" ${MAKEFILE_LIST}
+print_help = sed -n "/^$1/ { x ; p ; } ; s/\#\#/\r$(print_work)/ ; s/\./…/ ; x" ${MAKEFILE_LIST}
 
 ## Same as `make`.
 .DEFAULT_GOAL := all
