@@ -3,21 +3,6 @@ updates:
 - package-ecosystem: pip
   directory: "/"
   schedule:
-    interval: daily
-    time: "00:00"
-    timezone: Europe/Paris
-  open-pull-requests-limit: 2
-  reviewers:
-  - Morendil
-  - fpagnoux
-  - sandcha
-  - maukoquiroga
+    interval: monthly
   labels:
-  - kind:improvement
-  ignore:
-  - dependency-name: flake8-bugbear
-    versions:
-    - ">= 20.1.1.a, < 20.1.2"
-  - dependency-name: numpy
-    versions:
-    - ">= 1.18.a, < 1.19"
+  - kind:dependencies
