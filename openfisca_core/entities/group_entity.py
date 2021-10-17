@@ -6,7 +6,7 @@ class GroupEntity(Entity):
     Represents an entity composed of several persons with different roles, on which calculations are run.
     """
 
-    def __init__(self, key, plural, label, doc, roles):
+    def __init__(self, key, plural, label, doc, roles, containing_entities = []):
         super().__init__(key, plural, label, doc)
         self.roles_description = roles
         self.roles = []
@@ -23,3 +23,4 @@ class GroupEntity(Entity):
                 role.max = len(role.subroles)
         self.flattened_roles = sum([role2.subroles or [role2] for role2 in self.roles], [])
         self.is_person = False
+        self.containing_entities = containing_entities
