@@ -1,5 +1,25 @@
 # Changelog
 
+## 35.6.0 [#1054](https://github.com/openfisca/openfisca-core/pull/1054)
+
+#### New Features
+
+- Introduce `openfisca_core.types`
+
+#### Documentation
+
+- Complete typing of the commons module
+
+#### Dependencies
+
+- `nptyping`
+  - To add backport-support for numpy typing
+  - Can be removed once lower-bound numpy version is 1.21+
+
+- `typing_extensions`
+  - To add backport-support for `typing.Protocol` and `typing.Literal`
+  - Can be removed once lower-bound python version is 3.8+
+
 ### 35.5.5 [#1055](https://github.com/openfisca/openfisca-core/pull/1055)
 
 #### Documentation

@@ -7,12 +7,14 @@ from setuptools import setup, find_packages
 
 general_requirements = [
     'dpath >= 1.5.0, < 2.0.0',
+    'nptyping == 1.4.4',
     'numexpr >= 2.7.0, <= 3.0',
     'numpy >= 1.11, < 1.21',
     'psutil >= 5.4.7, < 6.0.0',
     'pytest >= 4.4.1, < 6.0.0',  # For openfisca test
     'PyYAML >= 3.10',
     'sortedcontainers == 2.2.2',
+    'typing-extensions == 3.10.0.2',
     ]
 
 api_requirements = [
@@ -29,8 +31,8 @@ dev_requirements = [
     'flake8-bugbear >= 19.3.0, < 20.0.0',
     'flake8-docstrings == 1.6.0',
     'flake8-print >= 3.1.0, < 4.0.0',
-    'flake8-rst-docstrings < 1.0.0',
-    'mypy >= 0.701, < 0.800',
+    'flake8-rst-docstrings == 0.2.3',
+    'mypy == 0.910',
     'openfisca-country-template >= 3.10.0, < 4.0.0',
     'openfisca-extension-template >= 1.2.0rc0, < 2.0.0',
     'pylint == 2.10.2',
@@ -39,7 +41,7 @@ dev_requirements = [
 
 setup(
     name = 'OpenFisca-Core',
-    version = '35.5.5',
+    version = '35.6.0',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [
