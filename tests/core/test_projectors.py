@@ -2,6 +2,7 @@ from openfisca_core.simulations.simulation_builder import SimulationBuilder
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_core.entities import build_entity
 
+
 def test_shortcut_to_containing_entity_provided():
     """
     Tests that, when an entity provides a containing entity,
@@ -41,9 +42,10 @@ def test_shortcut_to_containing_entity_provided():
     simulation = SimulationBuilder().build_from_dict(system, {})
     assert simulation.populations["family"].household.entity.key == "household"
 
+
 def test_shortcut_to_containing_entity_not_provided():
     """
-    Tests that, when an entity doesn't provide a containing 
+    Tests that, when an entity doesn't provide a containing
     entity, the shortcut to that containing entity is not provided.
     """
     person_entity = build_entity(
@@ -80,7 +82,6 @@ def test_shortcut_to_containing_entity_not_provided():
     simulation = SimulationBuilder().build_from_dict(system, {})
     try:
         simulation.populations["family"].household
-        assert False
+        raise AssertionError()
     except AttributeError:
         pass
-    

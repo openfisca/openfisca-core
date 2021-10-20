@@ -4,7 +4,7 @@ from openfisca_core.entities import Entity, Role
 class GroupEntity(Entity):
     """Represents an entity containing several other entities with different roles.
 
-    A :class:`.GroupEntity` represents an :class:`.Entity` containing 
+    A :class:`.GroupEntity` represents an :class:`.Entity` containing
     several other :class:`.Entity` with different :class:`.Role`, and on
     which calculations can be run.
 
@@ -14,11 +14,11 @@ class GroupEntity(Entity):
         label: A summary description.
         doc: A full description.
         roles: The list of :class:`.Role` of the group entity.
-        containing_entities: The list of keys of group entities whose 
-            members are guaranteed to be a superset of this group's entities.
+        containing_entities: The list of keys of group entities whose
+        members are guaranteed to be a superset of this group's entities.
 
-    .. versionchanged:: 3.7.0     
-        Added ``containing_entities``, that allows the defining of group entities 
+    .. versionchanged:: 3.7.0
+        Added ``containing_entities``, that allows the defining of group entities
         which entirely contain other group entities.
 
     """
