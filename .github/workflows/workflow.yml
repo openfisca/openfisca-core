@@ -11,13 +11,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7
+          python-version: 3.7.12
       - name: Cache build
         id: restore-build
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
-          key: build-${{ env.pythonLocation }}${{ hashFiles('setup.py') }}-${{ github.sha }}
+          key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
           restore-keys: |
             build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
             build-${{ env.pythonLocation }}-
@@ -38,7 +38,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7
+          python-version: 3.7.12
       - name: Cache build
         id: restore-build
         uses: actions/cache@v2
@@ -58,7 +58,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7
+          python-version: 3.7.12
       - name: Cache build
         id: restore-build
         uses: actions/cache@v2
@@ -76,7 +76,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7
+          python-version: 3.7.12
       - name: Cache build
         id: restore-build
         uses: actions/cache@v2
@@ -98,7 +98,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7
+          python-version: 3.7.12
       - name: Cache build
         id: restore-build
         uses: actions/cache@v2
@@ -126,7 +126,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7
+          python-version: 3.7.12
       - name: Cache build
         id: restore-build
         uses: actions/cache@v2
@@ -152,7 +152,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7
+          python-version: 3.7.12
       - name: Cache build
         id: restore-build
         uses: actions/cache@v2
@@ -173,7 +173,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7
+          python-version: 3.7.12
       - name: Check version number has been properly updated
         run: "${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh"
 
@@ -190,7 +190,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7
+          python-version: 3.7.12
       - id: stop-early
         run: "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh"
 
@@ -208,7 +208,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7
+          python-version: 3.7.12
       - name: Cache build
         id: restore-build
         uses: actions/cache@v2
