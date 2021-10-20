@@ -97,9 +97,17 @@ def test_compare_multiplication_and_switch(simulation, month):
 
 
 def test_group_encapsulation():
+    """Projects a calculation to all members of an entity.
+
+    When a household contains more than one family
+    Variables can be defined for the the household
+    And calculations are projected to all the member families.
+
+    """
     from openfisca_core.taxbenefitsystems import TaxBenefitSystem
     from openfisca_core.entities import build_entity
     from openfisca_core.periods import ETERNITY
+
     person_entity = build_entity(
         key="person",
         plural="people",
