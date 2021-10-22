@@ -48,7 +48,7 @@ jobs:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
       - name: Run Core tests
-        run:  env PYTEST_ADDOPTS="--exitfirst" make test
+        run:  make test-core pytest_args="--exitfirst"
       - name: Submit coverage to Coveralls
         run: |
           pip install coveralls
