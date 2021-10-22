@@ -45,8 +45,6 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
-      - name: Build package
-        run: make build
       - name: Run Core tests
         run:  env PYTEST_ADDOPTS="--exitfirst" make test
 
