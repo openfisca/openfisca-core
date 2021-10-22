@@ -35,6 +35,7 @@ jobs:
     needs: [ build ]
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TERM: xterm-256color  # To colorize output of make tasks.
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
