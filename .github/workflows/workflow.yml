@@ -33,6 +33,8 @@ jobs:
   test-core:
     runs-on: ubuntu-latest
     needs: [ build ]
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -93,8 +95,6 @@ jobs:
   test-docs:
     runs-on: ubuntu-latest
     needs: [ build ]
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v2
       - name: Checkout docs
