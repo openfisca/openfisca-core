@@ -61,6 +61,11 @@ class Entity:
         "_tax_benefit_system",
         ))
 
+    key: str
+    plural: str
+    label: str
+    doc: str
+
     def __init__(self, key, plural, label, doc):
         self.key = key
         self.label = label
