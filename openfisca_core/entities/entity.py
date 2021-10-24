@@ -9,8 +9,47 @@ from openfisca_core.entities import Role
 
 @dataclass
 class Entity:
-    """
-    Represents an entity (e.g. a person, a household, etc.) on which calculations can be run.
+    """Represents an entity on which calculations can be run.
+
+    For example an individual, a company, etc. An :class:`.Entity`
+    represents an "abstract" atomic unit of the legislation, as in
+    "any individual", or "any company".
+
+    Attributes:
+        key: Key to identify the :class:`.Entity`.
+        plural: The ``key``, pluralised.
+        label: A summary description.
+        doc: A full description, dedented.
+        is_person: Represents an individual. Defaults to True.
+
+    Args:
+        key: Key to identify the :class:`.Entity`.
+        plural: ``key``, pluralised.
+        label: A summary description.
+        doc: A full description.
+
+    Examples:
+        >>> entity = Entity(
+        ...     "individual",
+        ...     "individuals",
+        ...     "An individual",
+        ...     "The minimal legal entity on which a rule might be applied.",
+        ...    )
+
+        >>> repr(Entity)
+        "<class 'openfisca_core.entities.entity.Entity'>"
+
+        >>> repr(entity)
+        '<Entity(individual)>'
+
+        >>> str(entity)
+        'individuals'
+
+    .. versionchanged:: 35.7.0
+        * Added documentation, doctests, and typing.
+        * Transformed into a :func:`dataclasses.dataclass`.
+        * Added :attr:`object.__slots__` to improve performance.
+
     """
 
     def __init__(self, key, plural, label, doc):
