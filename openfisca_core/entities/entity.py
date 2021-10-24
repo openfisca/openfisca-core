@@ -42,7 +42,7 @@ class Entity:
         "<class 'openfisca_core.entities.entity.Entity'>"
 
         >>> repr(entity)
-        '<Entity(individual)>'
+        'Entity(individual)'
 
         >>> str(entity)
         'individuals'
@@ -71,6 +71,9 @@ class Entity:
     def __post_init__(self, *_args: Any) -> None:
         self.doc = textwrap.dedent(self.doc)
         self.is_person = True
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.key})"
 
     def set_tax_benefit_system(self, tax_benefit_system):
         self._tax_benefit_system = tax_benefit_system
