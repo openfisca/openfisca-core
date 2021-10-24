@@ -81,7 +81,8 @@ class Entity:
     def set_tax_benefit_system(self, tax_benefit_system):
         self._tax_benefit_system = tax_benefit_system
 
-    def check_role_validity(self, role):
+    @staticmethod
+    def check_role_validity(role):
         if role is not None and not type(role) == Role:
             raise ValueError("{} is not a valid role".format(role))
 
