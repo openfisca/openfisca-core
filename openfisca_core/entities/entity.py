@@ -49,7 +49,7 @@ class Entity:
         >>> str(entity)
         'individuals'
 
-    .. versionchanged:: 35.7.0
+    .. versionchanged:: 35.8.0
         Added documentation, doctests, and typing.
 
     """
@@ -94,7 +94,7 @@ class Entity:
         Args:
             tax_benefit_system: To query variables from.
 
-        .. deprecated:: 35.7.0
+        .. deprecated:: 35.8.0
             :meth:`.set_tax_benefit_system` has been deprecated and will be
             removed in the future. The functionality is now provided by
             :attr:`.tax_benefit_system`.
@@ -113,7 +113,7 @@ class Entity:
         Returns:
             None.
 
-        .. deprecated:: 35.7.0
+        .. deprecated:: 35.8.0
             :meth:`.check_role_validity` has been deprecated and will be
             removed in the future. The functionality is now provided by
             :func:`.entities.check_role_validity`.

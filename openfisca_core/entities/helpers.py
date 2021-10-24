@@ -1,17 +1,75 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Optional, Sequence, Union
 
-from .role import Role
+from .role import Role, RoleLike
 from .entity import Entity
 from .group_entity import GroupEntity
 
 
-def build_entity(key, plural, label, doc = "", roles = None, is_person = False, containing_entities = (), class_override = None):
+def build_entity(
+        key: str,
+        plural: str,
+        label: str,
+        doc: str = "",
+        roles: Optional[Sequence[RoleLike]] = None,
+        is_person: bool = False,
+        containing_entities: Sequence[str] = (),
+        class_override: Optional[Any] = None,
+        ) -> Union[Entity, GroupEntity]:
+    """Builds an :class:`.Entity` or a :class:`.GroupEntity`.
+
+    Args:
+        key: Key to identify the :class:`.Entity` or :class:`.GroupEntity`.
+        plural: ``key``, pluralised.
+        label: A summary description.
+        doc: A full description.
+        roles: A list of :class:`.Role`, if it's a :class:`.GroupEntity`.
+        is_person: If is an individual, or not.
+        class_override: ?
+
+    Returns:
+        :obj:`.Entity` or :obj:`.GroupEntity`:
+        :obj:`.Entity`: When ``is_person`` is True.
+        :obj:`.GroupEntity`: When ``is_person`` is False.
+
+    Raises:
+        ValueError: If ``roles`` is not iterable.
+
+    Examples:
+        >>> build_entity(
+        ...     "syndicate",
+        ...     "syndicates",
+        ...     "Banks loaning jointly.",
+        ...     roles = [],
+        ...     )
+        GroupEntity(syndicate)
+
+        >>> build_entity(
+        ...     "company",
+        ...     "companies",
+        ...     "A small or medium company.",
+        ...     is_person = True,
+        ...     )
+        Entity(company)
+
+    .. versionchanged:: 35.8.0
+        Instead of raising :exc:`TypeError` when ``roles`` is None, it does
+        now raise :exc:`ValueError` when ``roles`` is not iterable.
+
+    .. versionchanged:: 35.7.0
+        Builder accepts a ``containing_entities`` attribute, that allows the
+        defining of group entities which entirely contain other group entities.
+
+    """
+
     if is_person:
-        return Entity(key, plural, label, doc, containing_entities)
-    else:
-        return GroupEntity(key, plural, label, doc, roles)
+        return Entity(key, plural, label, doc)
+
+    if isinstance(roles, (list, tuple)):
+        GroupEntity(key, plural, label, doc, roles, containing_entities)
+
+    raise ValueError(f"Invalid value '{roles}' for 'roles', must be a list.")
 
 
 def check_role_validity(role: Any) -> None:
@@ -28,7 +86,7 @@ def check_role_validity(role: Any) -> None:
         >>> role = Role({"key": "key"}, object())
         >>> check_role_validity(role)
 
-    .. versionadded:: 35.7.0
+    .. versionadded:: 35.8.0
 
     """
 
