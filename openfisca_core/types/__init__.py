@@ -7,7 +7,9 @@ and expected behaviours.
 Official Public API:
     * :data:`.ArrayLike`
     * :attr:`.ArrayType`
+    * :class:`.HasRoles`
     * :class:`.HasVariables`
+    * :class:`.SupportsRole`
 
 Note:
     How imports are being used today::
@@ -46,7 +48,9 @@ from ._data_types import (  # noqa: F401
 __all__ = ["ArrayLike", "ArrayType"]
 
 from ._protocols import (  # noqa: F401
+    HasRoles,
     HasVariables,
+    SupportsRole,
     )
 
-__all__ = ["HasVariables", *__all__]
+__all__ = ["HasRoles", "HasVariables", "SupportsRole", *__all__]
