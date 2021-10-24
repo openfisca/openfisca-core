@@ -52,6 +52,15 @@ class Entity:
 
     """
 
+    __slots__ = tuple((
+        "key",
+        "plural",
+        "label",
+        "doc",
+        "is_person",
+        "_tax_benefit_system",
+        ))
+
     def __init__(self, key, plural, label, doc):
         self.key = key
         self.label = label
