@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import os
 import textwrap
 from dataclasses import dataclass
@@ -66,13 +68,9 @@ class Entity:
     label: str
     doc: str
 
-    def __init__(self, key, plural, label, doc):
-        self.key = key
-        self.label = label
-        self.plural = plural
-        self.doc = textwrap.dedent(doc)
+    def __post_init__(self, *_args: Any) -> None:
+        self.doc = textwrap.dedent(self.doc)
         self.is_person = True
-        self._tax_benefit_system = None
 
     def set_tax_benefit_system(self, tax_benefit_system):
         self._tax_benefit_system = tax_benefit_system
