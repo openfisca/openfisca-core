@@ -75,6 +75,9 @@ class Entity:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.key})"
 
+    def __str__(self) -> str:
+        return self.plural
+
     def set_tax_benefit_system(self, tax_benefit_system):
         self._tax_benefit_system = tax_benefit_system
 
