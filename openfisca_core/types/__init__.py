@@ -5,8 +5,9 @@ contributors, to help them better understand and document contracts
 and expected behaviours.
 
 Official Public API:
-    * ``ArrayLike``
+    * :data:`.ArrayLike`
     * :attr:`.ArrayType`
+    * :class:`.HasVariables`
 
 Note:
     How imports are being used today::
@@ -37,9 +38,15 @@ Note:
 
 # Official Public API
 
-from .data_types import (  # noqa: F401
+from ._data_types import (  # noqa: F401
     ArrayLike,
     ArrayType,
     )
 
 __all__ = ["ArrayLike", "ArrayType"]
+
+from ._protocols import (  # noqa: F401
+    HasVariables,
+    )
+
+__all__ = ["HasVariables", *__all__]

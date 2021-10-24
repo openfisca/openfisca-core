@@ -34,10 +34,10 @@ Note:
 Todo:
     * Refactor once numpy version >= 1.21 is used.
 
-.. versionadded:: 35.5.0
-
 .. versionchanged:: 35.6.0
     Moved to :mod:`.types`
+
+.. versionadded:: 35.5.0
 
 .. _mypy:
     https://mypy.readthedocs.io/en/stable/
