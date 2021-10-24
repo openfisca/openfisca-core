@@ -7,9 +7,15 @@ and expected behaviours.
 Official Public API:
     * :data:`.ArrayLike`
     * :attr:`.ArrayType`
+    * :class:`.EntityProtocol`
+    * :class:`.FormulaProtocol`
     * :class:`.GroupEntityProtocol`
     * :class:`.RoleProtocol`
     * :class:`.TaxBenefitSystemProtocol`
+    * :class:`.GroupEntityProtocol`
+    * :class:`.RoleProtocol`
+    * :class:`.TaxBenefitSystemProtocol`
+    * :class:`.RoleSchema`
 
 Note:
     How imports are being used today::
