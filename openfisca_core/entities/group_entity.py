@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, Sequence
+from typing import Any, Iterable, Mapping, Sequence
 from openfisca_core.typing import RoleProtocol, RoleSchema
 
 import dataclasses
@@ -117,7 +117,7 @@ class GroupEntity(Entity):
     containing_entities: Sequence[str]
     flattened_roles: Sequence[RoleProtocol]
     roles_description: Sequence[RoleSchema]
-    _cached_roles: Dict[str, RoleProtocol]
+    _cached_roles: Mapping[str, RoleProtocol]
 
     def __init__(
             self,
@@ -226,7 +226,7 @@ def _flatten_roles(roles: Sequence[RoleProtocol]) -> Sequence[RoleProtocol]:
     return tuple(chain.from_iterable(tree))
 
 
-def _cache_roles(roles: Sequence[RoleProtocol]) -> Dict[str, RoleProtocol]:
+def _cache_roles(roles: Sequence[RoleProtocol]) -> Mapping[str, RoleProtocol]:
     """Create a cached dictionary of :obj:`.Role`.
 
     Args:
