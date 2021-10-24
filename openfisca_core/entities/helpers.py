@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import Any, Optional, Sequence, Union
 
-from .role import Role, RoleLike
+from openfisca_core.types import SupportsRole
+
+from .role import RoleLike
 from .entity import Entity
 from .group_entity import GroupEntity
 
@@ -90,5 +92,5 @@ def check_role_validity(role: Any) -> None:
 
     """
 
-    if role is not None and not isinstance(role, Role):
+    if role is not None and not isinstance(role, SupportsRole):
         raise ValueError(f"{role} is not a valid role")

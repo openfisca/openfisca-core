@@ -3,7 +3,7 @@ from __future__ import annotations
 import abc
 from typing import Any, Optional, Sequence
 
-from typing_extensions import Protocol
+from typing_extensions import Protocol, runtime_checkable
 
 
 class HasRoles(Protocol):
@@ -28,6 +28,7 @@ class HasVariables(Protocol):
         """A tax-benefit system implements :meth:`.get_variable`."""
 
 
+@runtime_checkable
 class SupportsRole(Protocol):
     """Duck-type for roles.
 
