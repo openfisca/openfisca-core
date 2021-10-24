@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Optional
 
 import os
 import textwrap
 from dataclasses import dataclass
+
+from openfisca_core.types import HasVariables
 
 from openfisca_core.entities import Role
 
@@ -48,9 +50,7 @@ class Entity:
         'individuals'
 
     .. versionchanged:: 35.7.0
-        * Added documentation, doctests, and typing.
-        * Transformed into a :func:`dataclasses.dataclass`.
-        * Added :attr:`object.__slots__` to improve performance.
+        Added documentation, doctests, and typing.
 
     """
 
@@ -77,6 +77,16 @@ class Entity:
 
     def __str__(self) -> str:
         return self.plural
+
+    @property
+    def tax_benefit_system(self) -> Optional[HasVariables]:
+        """An :obj:`.Entity` belongs to a :obj:`.TaxBenefitSystem`."""
+
+        return self._tax_benefit_system
+
+    @tax_benefit_system.setter
+    def tax_benefit_system(self, value: HasVariables) -> None:
+        self._tax_benefit_system = value
 
     def set_tax_benefit_system(self, tax_benefit_system):
         self._tax_benefit_system = tax_benefit_system
