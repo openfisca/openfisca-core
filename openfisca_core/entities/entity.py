@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 from openfisca_core.types import HasVariables
 
-from openfisca_core.entities import Role
+from .. import entities
 
 
 @dataclass
@@ -104,9 +104,23 @@ class Entity:
         self.tax_benefit_system = tax_benefit_system
 
     @staticmethod
-    def check_role_validity(role):
-        if role is not None and not type(role) == Role:
-            raise ValueError("{} is not a valid role".format(role))
+    def check_role_validity(role: Any) -> None:
+        """Checks if ``role`` is an instance of :class:`.Role`.
+
+        Args:
+            role: Any object.
+
+        Returns:
+            None.
+
+        .. deprecated:: 35.7.0
+            :meth:`.check_role_validity` has been deprecated and will be
+            removed in the future. The functionality is now provided by
+            :func:`.entities.check_role_validity`.
+
+        """
+
+        return entities.check_role_validity(role)
 
     def get_variable(self, variable_name, check_existence = False):
         return self._tax_benefit_system.get_variable(variable_name, check_existence)

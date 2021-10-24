@@ -1,8 +1,36 @@
-from openfisca_core import entities
+from __future__ import annotations
+
+from typing import Any
+
+from .role import Role
+from .entity import Entity
+from .group_entity import GroupEntity
 
 
-def build_entity(key, plural, label, doc = "", roles = None, is_person = False, class_override = None, containing_entities = ()):
+def build_entity(key, plural, label, doc = "", roles = None, is_person = False, containing_entities = (), class_override = None):
     if is_person:
-        return entities.Entity(key, plural, label, doc)
+        return Entity(key, plural, label, doc, containing_entities)
     else:
-        return entities.GroupEntity(key, plural, label, doc, roles, containing_entities = containing_entities)
+        return GroupEntity(key, plural, label, doc, roles)
+
+
+def check_role_validity(role: Any) -> None:
+    """Checks if ``role`` is an instance of :class:`.Role`.
+
+    Args:
+        role: Any object.
+
+    Raises:
+        ValueError: When ``role`` is not a :class:`.Role`.
+
+    Examples:
+        >>> from openfisca_core.entities import Role
+        >>> role = Role({"key": "key"}, object())
+        >>> check_role_validity(role)
+
+    .. versionadded:: 35.7.0
+
+    """
+
+    if role is not None and not isinstance(role, Role):
+        raise ValueError(f"{role} is not a valid role")

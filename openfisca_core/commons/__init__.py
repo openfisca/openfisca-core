@@ -16,8 +16,8 @@ Deprecated:
     * :class:`.Dummy`
 
 Note:
-    The ``deprecated`` imports are transitional, in order to ensure non-breaking
-    changes, and could be removed from the codebase in the next
+    The ``deprecated`` imports are transitional, in order to ensure
+    non-breaking changes, and could be removed from the codebase in the next
     major release.
 
 Note:
@@ -32,7 +32,7 @@ Note:
     from modularizing the different components of the library, which would make
     them easier to test and to maintain.
 
-    How they could be used in a future release:
+    How they could be used in a future release::
 
         from openfisca_core import commons
         from openfisca_core.commons import deprecated
