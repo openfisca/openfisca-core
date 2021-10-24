@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Sequence, TypeVar, Union
 
 from nptyping import types, NDArray as ArrayType
@@ -34,8 +36,11 @@ Note:
 Todo:
     * Refactor once numpy version >= 1.21 is used.
 
+.. versionchanged:: 35.8.0
+    Moved to :mod:`.openfisca_core.typing`
+
 .. versionchanged:: 35.6.0
-    Moved to :mod:`.types`
+    Moved to ``openfisca_core.types``
 
 .. versionadded:: 35.5.0
 

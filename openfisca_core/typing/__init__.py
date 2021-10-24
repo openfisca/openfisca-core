@@ -7,15 +7,15 @@ and expected behaviours.
 Official Public API:
     * :data:`.ArrayLike`
     * :attr:`.ArrayType`
-    * :class:`.HasRoles`
-    * :class:`.HasVariables`
-    * :class:`.SupportsRole`
+    * :class:`.GroupEntityProtocol`
+    * :class:`.RoleProtocol`
+    * :class:`.TaxBenefitSystemProtocol`
 
 Note:
     How imports are being used today::
 
-        from openfisca_core.types import *  # Bad
-        from openfisca_core.types.data_types.arrays import ArrayLike  # Bad
+        from openfisca_core.typing import *  # Bad
+        from openfisca_core.typing._types import ArrayLike  # Bad
 
 
     The previous examples provoke cyclic dependency problems, that prevents us
@@ -24,7 +24,7 @@ Note:
 
     How could them be used after the next major release::
 
-        from openfisca_core.types import ArrayLike
+        from openfisca_core.typing import ArrayLike
 
         ArrayLike # Good: import types as publicly exposed
 
@@ -40,7 +40,7 @@ Note:
 
 # Official Public API
 
-from ._data_types import (  # noqa: F401
+from ._types import (  # noqa: F401
     ArrayLike,
     ArrayType,
     )
@@ -48,9 +48,16 @@ from ._data_types import (  # noqa: F401
 __all__ = ["ArrayLike", "ArrayType"]
 
 from ._protocols import (  # noqa: F401
-    HasRoles,
-    HasVariables,
-    SupportsRole,
+    EntityProtocol,
+    FormulaProtocol,
+    GroupEntityProtocol,
+    RoleProtocol,
+    TaxBenefitSystemProtocol,
     )
 
-__all__ = ["HasRoles", "HasVariables", "SupportsRole", *__all__]
+__all__ = ["EntityProtocol", "GroupEntityProtocol", "RoleProtocol", *__all__]
+__all__ = ["FormulaProtocol", "TaxBenefitSystemProtocol", *__all__]
+
+from ._schemas import RoleSchema  # noqa: F401
+
+__all__ = ["RoleSchema", *__all__]

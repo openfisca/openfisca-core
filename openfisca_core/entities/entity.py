@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from typing import Any, Optional
+from openfisca_core.typing import TaxBenefitSystemProtocol
 
 import os
 import textwrap
 from dataclasses import dataclass
 
-from openfisca_core.types import HasVariables
 
 from .. import entities
 
@@ -79,16 +79,16 @@ class Entity:
         return self.plural
 
     @property
-    def tax_benefit_system(self) -> Optional[HasVariables]:
+    def tax_benefit_system(self) -> Optional[TaxBenefitSystemProtocol]:
         """An :obj:`.Entity` belongs to a :obj:`.TaxBenefitSystem`."""
 
         return self._tax_benefit_system
 
     @tax_benefit_system.setter
-    def tax_benefit_system(self, value: HasVariables) -> None:
+    def tax_benefit_system(self, value: TaxBenefitSystemProtocol) -> None:
         self._tax_benefit_system = value
 
-    def set_tax_benefit_system(self, tax_benefit_system: HasVariables) -> None:
+    def set_tax_benefit_system(self, tax_benefit_system: TaxBenefitSystemProtocol) -> None:
         """Sets ``_tax_benefit_system``.
 
         Args:

@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 from typing import Optional, Sequence
-from typing_extensions import TypedDict
+from openfisca_core.typing import GroupEntityProtocol, RoleProtocol, RoleSchema
 
 import textwrap
 from dataclasses import dataclass
 
-from openfisca_core.types import HasRoles, SupportsRole
 
-
-@dataclass(init = False)
+@dataclass
 class Role:
     """Role of an :class:`.Entity` within a :class:`.GroupEntity`.
 
@@ -51,22 +49,26 @@ class Role:
         >>> str(role)
         'parent'
 
-    .. versionchanged:: 35.7.0
+    .. versionchanged:: 35.8.0
         Added documentation, doctests, and typing.
 
     """
 
     __slots__ = "entity", "key", "plural", "label", "doc", "max", "subroles"
 
-    entity: HasRoles
+    entity: GroupEntityProtocol
     key: str
     plural: Optional[str]
     label: Optional[str]
     doc: Optional[str]
     max: Optional[int]
-    subroles: Optional[Sequence[SupportsRole]]
+    subroles: Optional[Sequence[RoleProtocol]]
 
-    def __init__(self, description: RoleLike, entity: HasRoles) -> None:
+    def __init__(
+            self,
+            description: RoleSchema,
+            entity: GroupEntityProtocol,
+            ) -> None:
         self.entity = entity
         self.key = description['key']
         self.plural = description.get('plural')
@@ -80,18 +82,3 @@ class Role:
 
     def __str__(self) -> str:
         return self.key
-
-
-class RoleLike(TypedDict, total = False):
-    """Base type for any data castable to a :class:`.Role`.
-
-    .. versionadded:: 35.7.0
-
-    """
-
-    key: str
-    plural: Optional[str]
-    label: Optional[str]
-    doc: Optional[str]
-    max: Optional[int]
-    subroles: Optional[Sequence[str]]

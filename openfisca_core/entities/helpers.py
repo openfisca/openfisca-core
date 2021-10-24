@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 from typing import Any, Optional, Sequence, Union
+from openfisca_core.typing import RoleProtocol, RoleSchema
 
-from openfisca_core.types import SupportsRole
-
-from .role import RoleLike
 from .entity import Entity
 from .group_entity import GroupEntity
 
@@ -14,10 +12,10 @@ def build_entity(
         plural: str,
         label: str,
         doc: str = "",
-        roles: Optional[Sequence[RoleLike]] = None,
+        roles: Optional[Sequence[RoleSchema]] = None,
         is_person: bool = False,
-        containing_entities: Sequence[str] = (),
         class_override: Optional[Any] = None,
+        containing_entities: Sequence[str] = (),
         ) -> Union[Entity, GroupEntity]:
     """Builds an :class:`.Entity` or a :class:`.GroupEntity`.
 
@@ -29,6 +27,7 @@ def build_entity(
         roles: A list of :class:`.Role`, if it's a :class:`.GroupEntity`.
         is_person: If is an individual, or not.
         class_override: ?
+        containing_entities: Keys of contained entities.
 
     Returns:
         :obj:`.Entity` or :obj:`.GroupEntity`:
@@ -44,6 +43,7 @@ def build_entity(
         ...     "syndicates",
         ...     "Banks loaning jointly.",
         ...     roles = [],
+        ...     containing_entities = (),
         ...     )
         GroupEntity(syndicate)
 
@@ -54,6 +54,16 @@ def build_entity(
         ...     is_person = True,
         ...     )
         Entity(company)
+
+        >>> role = Role({"key": "key"}, object())
+        >>> build_entity(
+        ...     "syndicate",
+        ...     "syndicates",
+        ...     "Banks loaning jointly.",
+        ...     roles = role,
+        ...     )
+        Traceback (most recent call last):
+        ValueError: Invalid value 'key' for 'roles', must be a list.
 
     .. versionchanged:: 35.8.0
         Instead of raising :exc:`TypeError` when ``roles`` is None, it does
@@ -69,7 +79,7 @@ def build_entity(
         return Entity(key, plural, label, doc)
 
     if isinstance(roles, (list, tuple)):
-        GroupEntity(key, plural, label, doc, roles, containing_entities)
+        return GroupEntity(key, plural, label, doc, roles, containing_entities)
 
     raise ValueError(f"Invalid value '{roles}' for 'roles', must be a list.")
 
@@ -92,5 +102,5 @@ def check_role_validity(role: Any) -> None:
 
     """
 
-    if role is not None and not isinstance(role, SupportsRole):
+    if role is not None and not isinstance(role, RoleProtocol):
         raise ValueError(f"{role} is not a valid role")
