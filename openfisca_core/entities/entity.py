@@ -59,6 +59,7 @@ class Entity:
         "plural",
         "label",
         "doc",
+        "is_person",
         "_tax_benefit_system",
         ))
 
@@ -66,13 +67,14 @@ class Entity:
     plural: str
     label: str
     doc: str
-    is_person: bool = True
+    is_person: bool
 
     def __init__(self, key: str, plural: str, label: str, doc: str) -> None:
         self.key = key
         self.label = label
         self.plural = plural
         self.doc = textwrap.dedent(doc)
+        self.is_person = True
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.key})"

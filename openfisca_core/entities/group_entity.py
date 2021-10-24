@@ -71,7 +71,6 @@ class GroupEntity(Entity):
         ...     "subroles": ["first_partner", "second_partner"],
         ...     }]
 
-
         >>> household = GroupEntity(
         ...     "household",
         ...     "households",
