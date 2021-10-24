@@ -1,9 +1,13 @@
+from __future__ import annotations
+
 import os
 import textwrap
+from dataclasses import dataclass
 
 from openfisca_core.entities import Role
 
 
+@dataclass
 class Entity:
     """
     Represents an entity (e.g. a person, a household, etc.) on which calculations can be run.
