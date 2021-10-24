@@ -88,8 +88,20 @@ class Entity:
     def tax_benefit_system(self, value: HasVariables) -> None:
         self._tax_benefit_system = value
 
-    def set_tax_benefit_system(self, tax_benefit_system):
-        self._tax_benefit_system = tax_benefit_system
+    def set_tax_benefit_system(self, tax_benefit_system: HasVariables) -> None:
+        """Sets ``_tax_benefit_system``.
+
+        Args:
+            tax_benefit_system: To query variables from.
+
+        .. deprecated:: 35.7.0
+            :meth:`.set_tax_benefit_system` has been deprecated and will be
+            removed in the future. The functionality is now provided by
+            :attr:`.tax_benefit_system`.
+
+        """
+
+        self.tax_benefit_system = tax_benefit_system
 
     @staticmethod
     def check_role_validity(role):
