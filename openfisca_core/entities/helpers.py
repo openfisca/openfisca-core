@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, Optional, Sequence, Union
-from openfisca_core.typing import RoleProtocol, RoleSchema
+from typing import Any, Optional, Sequence
+from openfisca_core.typing import EntityProtocol, RoleSchema
 
 from .entity import Entity
 from .group_entity import GroupEntity
+from .role import Role
 
 
 def build_entity(
@@ -16,7 +17,7 @@ def build_entity(
         is_person: bool = False,
         class_override: Optional[Any] = None,
         containing_entities: Sequence[str] = (),
-        ) -> Union[Entity, GroupEntity]:
+        ) -> EntityProtocol:
     """Builds an :class:`.Entity` or a :class:`.GroupEntity`.
 
     Args:
@@ -102,5 +103,5 @@ def check_role_validity(role: Any) -> None:
 
     """
 
-    if role is not None and not isinstance(role, RoleProtocol):
+    if role is not None and not isinstance(role, Role):
         raise ValueError(f"{role} is not a valid role")
