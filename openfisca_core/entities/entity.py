@@ -7,8 +7,8 @@ from openfisca_core.typing import (
     VariableProtocol,
     )
 
-import textwrap
 import dataclasses
+import textwrap
 
 from ._variable_proxy import _VariableProxy
 
@@ -57,12 +57,12 @@ class Entity:
     """
 
     __slots__ = tuple((
-        "key",
-        "plural",
-        "label",
+        "_tax_benefit_system",
         "doc",
         "is_person",
-        "_tax_benefit_system",
+        "key",
+        "label",
+        "plural",
         ))
 
     key: str

@@ -34,7 +34,7 @@ class Role:
         ...     "key": "parent",
         ...     "label": "Parents",
         ...     "plural": "parents",
-        ...     "doc": "The one or two adults in charge of the household.",
+        ...     "doc": "\t\t\tThe one/two adults in charge of the household.",
         ...     "max": 2,
         ...     }
 
