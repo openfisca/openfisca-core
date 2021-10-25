@@ -48,6 +48,8 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
+      - name: Build package
+        run: make build
       - name: Run Core tests
         run:  make test-core pytest_args="--exitfirst"
       - name: Submit coverage to Coveralls
