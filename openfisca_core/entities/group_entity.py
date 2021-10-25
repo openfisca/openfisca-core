@@ -130,6 +130,7 @@ class GroupEntity(Entity):
             ):
 
         super().__init__(key, plural, label, doc)
+        self.is_person = False
         self.containing_entities = containing_entities
         self.roles = tuple(_build_role(self, desc) for desc in roles)
         self.flattened_roles = _flatten_roles(self.roles)
