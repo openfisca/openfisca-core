@@ -2,11 +2,14 @@ from __future__ import annotations
 
 from typing import Any, Optional, Type
 from typing_extensions import Protocol
+from openfisca_core.typing import (
+    EntityProtocol,
+    TaxBenefitSystemProtocol,
+    VariableProtocol,
+    )
 
 import functools
 import os
-
-from openfisca_core.types import Representable, HasVariables, SupportsFormula
 
 doc_url = "https://openfisca.org/doc/coding-the-legislation"
 
@@ -64,18 +67,18 @@ class _VariableProxy:
 
     .. _descriptor: https://docs.python.org/3/howto/descriptor.html
 
-    .. versionadded:: 35.7.0
+    .. versionadded:: 35.8.0
 
     """
 
-    entity: Optional[Representable] = None
-    tax_benefit_system: Optional[HasVariables] = None
+    entity: Optional[EntityProtocol] = None
+    tax_benefit_system: Optional[TaxBenefitSystemProtocol] = None
     query: _Query
 
     def __get__(
             self,
-            entity: Representable,
-            type: Type[Representable],
+            entity: EntityProtocol,
+            type: Type[EntityProtocol],
             ) -> Optional[_VariableProxy]:
         """Binds :meth:`.TaxBenefitSystem.get_variable`."""
 
@@ -94,10 +97,10 @@ class _VariableProxy:
 
         return self
 
-    def __set__(self, entity: Representable, value: Any) -> None:
+    def __set__(self, entity: EntityProtocol, value: Any) -> None:
         NotImplemented
 
-    def get(self, variable_name: str) -> Optional[SupportsFormula]:
+    def get(self, variable_name: str) -> Optional[VariableProtocol]:
         """Runs the query for ``variable_name``, based on the options given.
 
         Args:
@@ -113,7 +116,7 @@ class _VariableProxy:
             :exc:`.ValueError`: When the :obj:`.Variable` exists but is defined
             for another :obj:`.Entity`.
 
-        .. versionadded:: 35.7.0
+        .. versionadded:: 35.8.0
 
         """
 

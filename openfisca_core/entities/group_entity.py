@@ -62,7 +62,7 @@ class GroupEntity(Entity):
         ...     "family",
         ...     "families",
         ...     "A family",
-        ...     "All the people somehow related living together.",
+        ...     "\t\t\tAll the people somehow related living together.",
         ...     family_roles,
         ...    )
 
@@ -75,7 +75,7 @@ class GroupEntity(Entity):
         ...     "household",
         ...     "households",
         ...     "A household",
-        ...     "All the people who live together in the same place.",
+        ...     "\t\t\tAll the people who live together in the same place.",
         ...     household_roles,
         ...     (family.key,),
         ...    )

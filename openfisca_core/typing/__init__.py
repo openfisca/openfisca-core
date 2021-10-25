@@ -15,6 +15,7 @@ Official Public API:
     * :class:`.GroupEntityProtocol`
     * :class:`.RoleProtocol`
     * :class:`.TaxBenefitSystemProtocol`
+    * :class:`.VariableProtocol`
     * :class:`.RoleSchema`
 
 Note:
@@ -59,10 +60,12 @@ from ._protocols import (  # noqa: F401
     GroupEntityProtocol,
     RoleProtocol,
     TaxBenefitSystemProtocol,
+    VariableProtocol,
     )
 
 __all__ = ["EntityProtocol", "GroupEntityProtocol", "RoleProtocol", *__all__]
 __all__ = ["FormulaProtocol", "TaxBenefitSystemProtocol", *__all__]
+__all__ = ["VariableProtocol", *__all__]
 
 from ._schemas import RoleSchema  # noqa: F401
 

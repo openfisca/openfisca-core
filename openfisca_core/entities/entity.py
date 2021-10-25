@@ -1,17 +1,19 @@
 from __future__ import annotations
 
 from typing import Any, Optional
-from openfisca_core.typing import TaxBenefitSystemProtocol
+from openfisca_core.typing import (
+    RoleProtocol,
+    TaxBenefitSystemProtocol,
+    VariableProtocol,
+    )
 
-import os
 import textwrap
-from dataclasses import dataclass
+import dataclasses
+
+from ._variable_proxy import _VariableProxy
 
 
-from .. import entities
-
-
-@dataclass
+@dataclasses.dataclass
 class Entity:
     """Represents an entity on which calculations can be run.
 
@@ -37,7 +39,7 @@ class Entity:
         ...     "individual",
         ...     "individuals",
         ...     "An individual",
-        ...     "The minimal legal entity on which a rule might be applied.",
+        ...     "\t\t\tThe minimal legal entity on which a rule might be a...",
         ...    )
 
         >>> repr(Entity)
@@ -68,6 +70,11 @@ class Entity:
     label: str
     doc: str
     is_person: bool
+    _variables: _VariableProxy = dataclasses.field(
+        init = False,
+        compare = False,
+        default = _VariableProxy(),
+        )
 
     def __init__(self, key: str, plural: str, label: str, doc: str) -> None:
         self.key = key
@@ -92,7 +99,10 @@ class Entity:
     def tax_benefit_system(self, value: TaxBenefitSystemProtocol) -> None:
         self._tax_benefit_system = value
 
-    def set_tax_benefit_system(self, tax_benefit_system: TaxBenefitSystemProtocol) -> None:
+    def set_tax_benefit_system(
+            self,
+            tax_benefit_system: TaxBenefitSystemProtocol,
+            ) -> None:
         """Sets ``_tax_benefit_system``.
 
         Args:
@@ -107,6 +117,12 @@ class Entity:
 
         self.tax_benefit_system = tax_benefit_system
 
+    @property
+    def variables(self) -> Optional[_VariableProxy]:
+        """An :class:`.Entity` has many :class:`Variables <.Variable>`."""
+
+        return self._variables
+
     @staticmethod
     def check_role_validity(role: Any) -> None:
         """Checks if ``role`` is an instance of :class:`.Role`.
@@ -114,8 +130,8 @@ class Entity:
         Args:
             role: Any object.
 
-        Returns:
-            None.
+        Raises:
+            ValueError: When ``role`` is not a :class:`.Role`.
 
         .. deprecated:: 35.8.0
             :meth:`.check_role_validity` has been deprecated and will be
@@ -124,19 +140,130 @@ class Entity:
 
         """
 
-        return entities.check_role_validity(role)
+        if role is not None and not isinstance(role, RoleProtocol):
+            raise ValueError(f"{role} is not a valid role")
 
-    def get_variable(self, variable_name, check_existence = False):
-        return self._tax_benefit_system.get_variable(variable_name, check_existence)
+    def get_variable(
+            self,
+            variable_name: str,
+            check_existence: bool = False,
+            ) -> Optional[VariableProtocol]:
+        """Gets ``variable_name`` from ``variables``.
 
-    def check_variable_defined_for_entity(self, variable_name):
-        variable_entity = self.get_variable(variable_name, check_existence = True).entity
-        # Should be this:
-        # if variable_entity is not self:
-        if variable_entity.key != self.key:
-            message = os.linesep.join([
-                "You tried to compute the variable '{0}' for the entity '{1}';".format(variable_name, self.plural),
-                "however the variable '{0}' is defined for '{1}'.".format(variable_name, variable_entity.plural),
-                "Learn more about entities in our documentation:",
-                "<https://openfisca.org/doc/coding-the-legislation/50_entities.html>."])
-            raise ValueError(message)
+        Args:
+            variable_name: The variable to be found.
+            check_existence: Was the variable found? Defaults to False.
+
+        Returns:
+            :obj:`.Variable` or :obj:`None`:
+            :obj:`.Variable` when the :obj:`.Variable` exists.
+            :obj:`None` when the :obj:`.Variable` doesn't exist.
+
+        Raises:
+            :exc:`.VariableNotFoundError`: When ``check_existence`` is True and
+            the :obj:`.Variable` doesn't exist.
+
+        Examples:
+            >>> from openfisca_core.taxbenefitsystems import TaxBenefitSystem
+            >>> from openfisca_core.variables import Variable
+
+            >>> this = Entity("this", "", "", "")
+            >>> that = Entity("that", "", "", "")
+
+            >>> this.get_variable("foo")
+
+            >>> this.get_variable("foo", check_existence = True)
+
+            >>> this.tax_benefit_system = TaxBenefitSystem([that])
+
+            >>> this.get_variable("foo")
+
+            >>> this.get_variable("foo", check_existence = True)
+            Traceback (most recent call last):
+            VariableNotFoundError: You tried to calculate or to set a value...
+
+            >>> class foo(Variable):
+            ...     definition_period = "month"
+            ...     value_type = float
+            ...     entity = that
+
+            >>> this.tax_benefit_system.add_variable(foo)
+            <openfisca_core.entities.entity.foo object at ...>
+
+            >>> this.get_variable("foo")
+            <openfisca_core.entities.entity.foo object at ...>
+
+        .. versionchanged:: 35.8.0
+            Added documentation, doctests, and typing.
+
+        """
+
+        if self.variables is None:
+            return None
+
+        if check_existence:
+            return self.variables.exists().get(variable_name)
+
+        return self.variables.get(variable_name)
+
+    def check_variable_defined_for_entity(
+            self,
+            variable_name: str,
+            ) -> Optional[VariableProtocol]:
+        """Checks if ``variable_name`` is defined for ``self``.
+
+        Args:
+            variable_name: The :obj:`.Variable` to be found.
+
+        Returns:
+            :obj:`.Variable` or :obj:`None`:
+            :obj:`.Variable` when the :obj:`.Variable` exists.
+            :obj:`None` when the :attr:`.tax_benefit_system` is not set.
+
+        Raises:
+            :exc:`.VariableNotFoundError`: When :obj:`.Variable` doesn't exist.
+            :exc:`.ValueError`: When the :obj:`.Variable` exists but is defined
+            for another :obj:`.Entity`.
+
+        Examples:
+            >>> from openfisca_core.taxbenefitsystems import TaxBenefitSystem
+            >>> from openfisca_core.variables import Variable
+
+            >>> this = Entity("this", "", "", "")
+            >>> that = Entity("that", "", "", "")
+
+            >>> this.check_variable_defined_for_entity("foo")
+
+            >>> this.tax_benefit_system = TaxBenefitSystem([that])
+            >>> this.check_variable_defined_for_entity("foo")
+            Traceback (most recent call last):
+            VariableNotFoundError: You tried to calculate or to set a value...
+
+            >>> class foo(Variable):
+            ...     definition_period = "month"
+            ...     value_type = float
+            ...     entity = that
+
+            >>> this.tax_benefit_system.add_variable(foo)
+            <openfisca_core.entities.entity.foo object at ...>
+
+            >>> this.check_variable_defined_for_entity("foo")
+            Traceback (most recent call last):
+            ValueError: You tried to compute the variable 'foo' for the enti...
+
+            >>> foo.entity = this
+            >>> this.tax_benefit_system.update_variable(foo)
+            <openfisca_core.entities.entity.foo object at ...>
+
+            >>> this.check_variable_defined_for_entity("foo")
+            <openfisca_core.entities.entity.foo object at ...>
+
+        .. versionchanged:: 35.8.0
+            Added documentation, doctests, and typing.
+
+        """
+
+        if self.variables is None:
+            return None
+
+        return self.variables.isdefined().get(variable_name)

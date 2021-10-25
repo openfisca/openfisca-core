@@ -1,3 +1,5 @@
+# pylint: disable=missing-function-docstring
+
 from __future__ import annotations
 
 from typing import Any, Optional, Sequence
@@ -60,3 +62,11 @@ class TaxBenefitSystemProtocol(Protocol):
     @abc.abstractmethod
     def get_variable(self, __arg1: str, __arg2: bool = False) -> Optional[Any]:
         ...
+
+
+class VariableProtocol(Protocol):
+    """Duck-type for variables.
+
+    .. versionadded:: 35.8.0
+
+    """

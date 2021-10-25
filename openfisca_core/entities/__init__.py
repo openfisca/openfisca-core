@@ -41,9 +41,7 @@ Official Public API:
     * :class:`.GroupEntity`
     * :class:`.Role`
     * :func:`.build_entity`
-    * :func:`.build_role`
     * :func:`.check_role_validity`
-    * :func:`.flatten_roles`
 
 Deprecated:
     * :meth:`.Entity.set_tax_benefit_system`
@@ -85,22 +83,13 @@ Note:
 
 # Official Public API
 
-from .entity import Entity  # noqa: F401
-from .group_entity import GroupEntity  # noqa: F401
-from .role import Role  # noqa: F401
 from .helpers import (  # noqa: F401
+    Entity,
+    GroupEntity,
+    Role,
     build_entity,
-    build_role,
     check_role_validity,
-    flatten_roles,
     )
 
-__all__ = [
-    "Entity",
-    "GroupEntity",
-    "Role",
-    "build_entity",
-    "build_role",
-    "check_role_validity",
-    "flatten_roles",
-    ]
+__all__ = ["Entity", "GroupEntity", "Role"]
+__all__ = ["build_entity", "check_role_validity", *__all__]
