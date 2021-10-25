@@ -4,10 +4,10 @@ from typing import Optional, Sequence
 from openfisca_core.typing import GroupEntityProtocol, RoleProtocol, RoleSchema
 
 import textwrap
-from dataclasses import dataclass
+import dataclasses
 
 
-@dataclass
+@dataclasses.dataclass
 class Role:
     """Role of an :class:`.Entity` within a :class:`.GroupEntity`.
 

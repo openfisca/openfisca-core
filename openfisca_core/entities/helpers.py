@@ -95,9 +95,12 @@ def check_role_validity(role: Any) -> None:
         ValueError: When ``role`` is not a :class:`.Role`.
 
     Examples:
-        >>> from openfisca_core.entities import Role
         >>> role = Role({"key": "key"}, object())
         >>> check_role_validity(role)
+
+        >>> check_role_validity("hey!")
+        Traceback (most recent call last):
+        ValueError: hey! is not a valid role
 
     .. versionadded:: 35.8.0
 
