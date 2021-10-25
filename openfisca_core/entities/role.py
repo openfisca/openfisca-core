@@ -69,6 +69,7 @@ class Role:
             description: RoleSchema,
             entity: GroupEntityProtocol,
             ) -> None:
+
         self.entity = entity
         self.key = description['key']
         self.plural = description.get('plural')
