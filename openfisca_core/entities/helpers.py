@@ -36,7 +36,7 @@ def build_entity(
         :obj:`.GroupEntity`: When ``is_person`` is False.
 
     Raises:
-        ValueError: If ``roles`` is not iterable.
+        ValueError: If ``roles`` is not a sequence.
 
     Examples:
         >>> build_entity(
