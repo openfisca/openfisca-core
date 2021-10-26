@@ -1,9 +1,36 @@
 ## Install project dependencies.
 install:
+	@${MAKE} install-deps
+	@${MAKE} install-dev
+	@${MAKE} install-core
+	@$(call print_pass,$@:)
+
+## Install common dependencies.
+install-deps:
 	@$(call print_help,$@:)
-	@pip install --upgrade pip setuptools
-	@pip install --requirement requirements/dev --upgrade
-	@pip install --editable . --upgrade --no-dependencies
+	@pip install --quiet --upgrade --constraint requirements/common pip setuptools
+
+## Install development dependencies.
+install-dev:
+	@$(call print_help,$@:)
+	@pip install --quiet --upgrade --requirement requirements/install
+	@pip install --quiet --upgrade --requirement requirements/dev
+
+## Install package.
+install-core:
+	@$(call print_help,$@:)
+	@pip uninstall --quiet --yes openfisca-core
+	@pip install --quiet --no-dependencies --editable .
+
+## Install lower-bound dependencies for compatibility check.
+install-compat:
+	@$(call print_help,$@:)
+	@pip install --quiet --upgrade --constraint requirements/compatibility numpy
+
+## Install coverage dependencies.
+install-cov:
+	@$(call print_help,$@:)
+	@pip install --quiet --upgrade --constraint requirements/coverage coveralls
 
 ## Uninstall project dependencies.
 uninstall:

@@ -5,4 +5,4 @@
 twine
 
 # For building the package.
-wheel
+build

@@ -5,13 +5,15 @@ from __future__ import annotations
 from typing import List
 
 import re
+from pathlib import Path
 from setuptools import setup, find_packages
 
 
 def load_requirements_from_file(filename: str) -> List[str]:
     """Allows for composable requirement files with the `-r filename` flag."""
 
-    reqs = open(f"requirements/{filename}").readlines()
+    file = Path(f"./requirements/{filename}").resolve()
+    reqs = open(file).readlines()
     pattern = re.compile(r"^\s*-r\s*(?P<filename>.*)$")
 
     for req in reqs:
@@ -56,6 +58,7 @@ setup(
     python_requires = ">= 3.7",
     install_requires = load_requirements_from_file("install"),
     extras_require = {
+        "common": load_requirements_from_file("common"),
         "coverage": load_requirements_from_file("coverage"),
         "dev": load_requirements_from_file("dev"),
         "publication": load_requirements_from_file("publication"),

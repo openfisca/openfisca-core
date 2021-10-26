@@ -38,8 +38,8 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            pip install --upgrade pip
-            pip install --requirement requirements/dev
+            make install-deps
+            make install-dev
             # pip install --editable git+https://github.com/openfisca/country-template.git@BRANCH_NAME#egg=OpenFisca-Country-Template  # use a specific branch of OpenFisca-Country-Template
             # pip install --editable git+https://github.com/openfisca/extension-template.git@BRANCH_NAME#egg=OpenFisca-Extension-Template  # use a specific branch of OpenFisca-Extension-Template
 
@@ -51,9 +51,8 @@ jobs:
   test:
     docker:
       - image: python:3.7
-
     environment:
-      PYTEST_ADDOPTS: --exitfirst
+      TERM: xterm-256color  # To colorize output of make tasks.
 
     steps:
       - checkout
@@ -67,7 +66,7 @@ jobs:
 
       - run:
           name: Install core
-          command: pip install --editable . --upgrade --no-dependencies
+          command: make install-core
 
       - run:
           name: Run linters
@@ -94,33 +93,6 @@ jobs:
           paths:
             - .coverage
 
-  test_compatibility:
-    docker:
-      - image: python:3.7
-
-    environment:
-      PYTEST_ADDOPTS: --exitfirst
-
-    steps:
-      - checkout
-
-      - restore_cache:
-          key: v1-py3-{{ .Branch }}-{{ checksum "setup.py" }}
-
-      - run:
-          name: Activate virtualenv
-          command: echo "source /tmp/venv/openfisca_core/bin/activate" >> $BASH_ENV
-
-      - run:
-          name: Install core with a constrained Numpy version
-          command: |
-            pip install --requirement requirements/dev --upgrade --constraint requirements/compatibility
-            pip install --editable . --upgrade --no-dependencies
-
-      - run:
-          name: Run core tests
-          command: make test
-
   test_docs:
     docker:
       - image: python:3.7
@@ -145,7 +117,10 @@ jobs:
           command: |
             mkdir -p /tmp/venv/openfisca_doc
             python -m venv /tmp/venv/openfisca_doc
-            echo "source /tmp/venv/openfisca_doc/bin/activate" >> $BASH_ENV
+
+      - run:
+          name: Activate virtualenv
+          command: echo "source /tmp/venv/openfisca_doc/bin/activate" >> $BASH_ENV
 
       - run:
           name: Install dependencies
@@ -159,6 +134,34 @@ jobs:
       - run:
           name: Run doc tests
           command: make test-doc-build
+
+
+  test_compatibility:
+    docker:
+      - image: python:3.7
+
+    environment:
+      PYTEST_ADDOPTS: --exitfirst
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          key: v1-py3-{{ .Branch }}-{{ checksum "setup.py" }}
+
+      - run:
+          name: Activate virtualenv
+          command: echo "source /tmp/venv/openfisca_core/bin/activate" >> $BASH_ENV
+
+      - run:
+          name: Install core with a constrained Numpy version
+          command: |
+            make install-core
+            make install-compat
+
+      - run:
+          name: Run core tests
+          command: make test
 
   submit_coverage:
     docker:
@@ -180,15 +183,9 @@ jobs:
       - run:
           name: Submit coverage to Coveralls
           command: |
-            pip install --requirement requirements/coverage --upgrade
-            pip install --requirement requirements/dev --upgrade
-            pip install --editable . --upgrade --no-dependencies
+            make install-core
+            make install-cov
             coveralls
-
-      - save_cache:
-          key: v1-py3-{{ .Branch }}-{{ checksum "setup.py" }}
-          paths:
-            - /tmp/venv/openfisca_core
 
   deploy:
     docker:
@@ -215,9 +212,8 @@ jobs:
       - run:
           name: Upload a Python package to PyPi
           command: |
-            pip install --requirement requirements/publication --upgrade
-            pip install --editable . --upgrade --no-dependencies
-            .circleci/publish-python-package.sh
+            make build
+            make publish
 
       - run:
           name: Publish a git tag
@@ -237,22 +233,23 @@ workflows:
       - test:
           requires:
             - build
-      - test_compatibility:
-          requires:
-            - build
       - test_docs:
           requires:
             - build
+      - test_compatibility:
+          requires:
+            - test_docs
       - submit_coverage:
           requires:
             - test
+            - test_docs
             - test_compatibility
       - deploy:
           requires:
             - check_version
             - test
-            - test_compatibility
             - test_docs
+            - test_compatibility
           filters:
             branches:
               only: master
