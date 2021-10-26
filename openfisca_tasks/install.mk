@@ -22,6 +22,11 @@ install-core:
 	@pip uninstall --quiet --yes openfisca-core
 	@pip install --quiet --no-dependencies --editable .
 
+## Install the WebAPI tracker.
+install-tracker:
+	@$(call print_help,$@:)
+	@pip install --quiet --upgrade --constraint requirements/tracker openfisca-tracker
+
 ## Install lower-bound dependencies for compatibility check.
 install-compat:
 	@$(call print_help,$@:)

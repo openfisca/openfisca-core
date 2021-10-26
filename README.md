@@ -199,9 +199,8 @@ pip install openfisca_core[tracker]
 Or for an editable installation:
 
 ```
-pip install --requirement requirements/tracker --upgrade
-pip install --requirement requirements/dev --upgrade
-pip install --editable . --upgrade --no-dependencies
+make install
+make install-tracker
 ```
 
 #### Tracker configuration
