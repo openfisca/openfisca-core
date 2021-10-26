@@ -26,7 +26,6 @@ jobs:
       - name: Build package
         run: |
           make install
-          make clean
 
   test-core:
     runs-on: ubuntu-latest
