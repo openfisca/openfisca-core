@@ -209,8 +209,8 @@ jobs:
     if: needs.check-for-functional-changes.outputs.status == 'success'
     env:
       PYPI_USERNAME: openfisca-bot
-      PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }} # Add to GitHub secrets
-      CIRCLE_TOKEN: ${{ secrets.CIRCLE_TOKEN }} # Add to GitHub secrets
+      PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      CIRCLE_TOKEN: ${{ secrets.CIRCLECI_OPENFISCADOC_TOKEN }}
     steps:
       - uses: actions/checkout@v2
         with:
