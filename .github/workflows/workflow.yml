@@ -134,18 +134,8 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.7.12
-      - name: Cache build
-        id: restore-build
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.pythonLocation }}
-          key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
-      - run: make check-syntax-errors
-      - run: make check-style
-      - name: Lint Python files
-        run: "${GITHUB_WORKSPACE}/.github/lint-changed-python-files.sh"
-      - name: Lint YAML tests
-        run: "${GITHUB_WORKSPACE}/.github/lint-changed-yaml-tests.sh"
+      - name: Run linters
+        run: make lint
 
   check-version:
     runs-on: ubuntu-latest
