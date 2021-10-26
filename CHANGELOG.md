@@ -1,5 +1,12 @@
 # Changelog
 
+### 35.7.1 [#1075](https://github.com/openfisca/openfisca-core/pull/1075)
+
+#### Bug fix
+
+- Fix the collection of OpenFisca-Core tests coverage data
+    - Tests within `openfisca_core/*` were not run
+
 ## 35.7.0 [#1070](https://github.com/openfisca/openfisca-core/pulls/1070)
 
 #### New Features
