@@ -20,7 +20,7 @@ test-code: test-core test-country test-extension
 	@$(call print_pass,$@:)
 
 ## Run openfisca-core tests.
-test-core: $(shell pytest -qq --co | cut -f1 -d ":")
+test-core: $(shell pytest --quiet --quiet --collect-only | cut -f 1 -d ":")
 	@$(call print_help,$@:)
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
 		coverage run -m \
