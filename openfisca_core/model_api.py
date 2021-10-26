@@ -19,12 +19,12 @@ from openfisca_core.holders import (  # noqa: F401
 from openfisca_core.indexed_enums import Enum  # noqa: F401
 
 from openfisca_core.parameters import (  # noqa: F401
-    load_parameter_file,
-    ParameterNode,
-    Scale,
-    Bracket,
     Parameter,
+    ParameterNode,
+    ParameterScale,
+    ParameterScaleBracket,
     ValuesHistory,
+    load_parameter_file,
     )
 
 from openfisca_core.periods import DAY, MONTH, YEAR, ETERNITY, period  # noqa: F401

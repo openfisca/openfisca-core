@@ -2,6 +2,7 @@ import numpy
 
 from openfisca_core import taxscales
 from openfisca_core import tools
+from openfisca_core.errors import EmptyArgumentError
 
 import pytest
 
@@ -49,7 +50,7 @@ def test_bracket_indices_without_tax_base():
     tax_scale.add_bracket(2, 0)
     tax_scale.add_bracket(4, 0)
 
-    with pytest.raises(taxscales.EmptyArgumentError):
+    with pytest.raises(EmptyArgumentError):
         tax_scale.bracket_indices(tax_base)
 
 
@@ -57,7 +58,7 @@ def test_bracket_indices_without_brackets():
     tax_base = numpy.array([0, 1, 2, 3, 4, 5])
     tax_scale = taxscales.LinearAverageRateTaxScale()
 
-    with pytest.raises(taxscales.EmptyArgumentError):
+    with pytest.raises(EmptyArgumentError):
         tax_scale.bracket_indices(tax_base)
 
 

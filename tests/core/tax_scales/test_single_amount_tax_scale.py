@@ -49,7 +49,7 @@ def test_to_dict():
 
 # TODO: move, as we're testing Scale, not SingleAmountTaxScale
 def test_assign_thresholds_on_creation(data):
-    scale = parameters.Scale("amount_scale", data, "")
+    scale = parameters.ParameterScale("amount_scale", data, "")
     first_jan = periods.Instant((2017, 11, 1))
     scale_at_instant = scale.get_at_instant(first_jan)
 
@@ -60,7 +60,7 @@ def test_assign_thresholds_on_creation(data):
 
 # TODO: move, as we're testing Scale, not SingleAmountTaxScale
 def test_assign_amounts_on_creation(data):
-    scale = parameters.Scale("amount_scale", data, "")
+    scale = parameters.ParameterScale("amount_scale", data, "")
     first_jan = periods.Instant((2017, 11, 1))
     scale_at_instant = scale.get_at_instant(first_jan)
 
@@ -71,7 +71,7 @@ def test_assign_amounts_on_creation(data):
 
 # TODO: move, as we're testing Scale, not SingleAmountTaxScale
 def test_dispatch_scale_type_on_creation(data):
-    scale = parameters.Scale("amount_scale", data, "")
+    scale = parameters.ParameterScale("amount_scale", data, "")
     first_jan = periods.Instant((2017, 11, 1))
 
     result = scale.get_at_instant(first_jan)

@@ -4,7 +4,7 @@ import datetime
 
 from openfisca_core.model_api import Variable
 from openfisca_core.periods import MONTH, ETERNITY
-from openfisca_core.simulation_builder import SimulationBuilder
+from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.tools import assert_near
 
 import openfisca_country_template as country_template
