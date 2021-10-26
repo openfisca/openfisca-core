@@ -51,7 +51,7 @@ jobs:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
       - name: Run openfisca-core tests
-        run:  make test-core pytest_args="--exitfirst"
+        run:  make test-core
       - name: Submit coverage to Coveralls
         run: |
           pip install coveralls
@@ -75,7 +75,7 @@ jobs:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
       - name: Run Country Template tests
-        run: make test-country pytest_args="--exitfirst"
+        run: make test-country
 
   test-extension-template:
     runs-on: ubuntu-latest
@@ -95,7 +95,7 @@ jobs:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
       - name: Run Extension Template tests
-        run: make test-extension pytest_args="--exitfirst"
+        run: make test-extension
 
   check-numpy:
     runs-on: ubuntu-latest
