@@ -57,6 +57,24 @@ jobs:
           pip install coveralls
           coveralls --service=github
 
+  test-country-template:
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7.12
+      - name: Cache build
+        id: restore-build
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
+      - name: Run Country Template tests
+        run: make test-country pytest_args="--exitfirst"
+
   check-numpy:
     runs-on: ubuntu-latest
     needs: [ build ]
@@ -74,26 +92,6 @@ jobs:
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
       - name: Check NumPy typing against latest 3 minor versions
         run: for i in {1..3}; do VERSION=$(${GITHUB_WORKSPACE}/.github/get-numpy-version.py prev) && pip install numpy==$VERSION && make check-types; done
-
-  test-country-template:
-    runs-on: ubuntu-latest
-    needs: [ build ]
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.7.12
-      - name: Cache build
-        id: restore-build
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.pythonLocation }}
-          key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
-      - name: Run Country Template tests
-        run: |
-          COUNTRY_TEMPLATE_PATH=`python -c "import openfisca_country_template; print(openfisca_country_template.CountryTaxBenefitSystem().get_package_metadata()['location'])"`
-          openfisca test $COUNTRY_TEMPLATE_PATH/openfisca_country_template/tests/
 
   test-docs:
     runs-on: ubuntu-latest
