@@ -171,7 +171,7 @@ jobs:
 
   check-version:
     runs-on: ubuntu-latest
-    needs: [ test-core, check-numpy, test-country-template, test-docs, lint-files ] # Last job to run
+    needs: [ test-core, check-numpy, test-country-template, test-extension-template, test-docs, lint-files ] # Last job to run
     env:
       TERM: xterm-256color
     steps:
