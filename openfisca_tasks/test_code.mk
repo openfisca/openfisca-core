@@ -26,7 +26,6 @@ test-core: $(shell pytest -qq --co | cut -f1 -d ":")
 		coverage run -m \
 		${openfisca} test $? \
 		${openfisca_args}
-	@${MAKE} test-cov
 	@$(call print_pass,$@:)
 
 ## Run country-template tests.
