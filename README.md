@@ -30,9 +30,7 @@ git clone https://github.com/openfisca/openfisca-core.git
 cd openfisca-core
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -U pip
-pip install --requirement requirements/dev --upgrade
-pip install --editable . --upgrade --no-dependencies
+make install
 ```
 
 ## Testing
@@ -46,10 +44,10 @@ make test
 To run all the tests defined on a test file:
 
 ```sh
-pytest tests/core/test_parameters.py
+openfisca test tests/core/test_parameters.py
 ```
 
-To run a single test:
+You can also use `pytest`, for example to run a single test:
 
 ```sh
 pytest tests/core/test_parameters.py -k test_parameter_for_period
