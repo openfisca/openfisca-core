@@ -77,6 +77,26 @@ jobs:
       - name: Run Country Template tests
         run: make test-country pytest_args="--exitfirst"
 
+  test-extension-template:
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    env:
+      TERM: xterm-256color
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7.12
+      - name: Cache build
+        id: restore-build
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
+      - name: Run Extension Template tests
+        run: make test-extension pytest_args="--exitfirst"
+
   check-numpy:
     runs-on: ubuntu-latest
     needs: [ build ]
