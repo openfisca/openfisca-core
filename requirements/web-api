@@ -1,15 +1,14 @@
 # These are dependencies to serve the Web-API, so we always want to support
 # the latest versions.
-#
-# As a safety measure, compatibility could be smoke-tested automatically:
-# https://github.com/openfisca/country-template/pull/113
-#
-# In the meantime, we pin these dependencies.
 
 # For OpenFisca's Web API.
-flask == 1.1.2
-gunicorn == 20.1.0
+#
+# We start from the currently supported versions forward.
+flask >= 1.1.2
+gunicorn >= 20.1.0
 
 # For OpenFisca's Web API users requiring CORS.
-flask-cors == 3.0.10
-werkzeug == 1.0.1
+#
+# We start from the currently supported versions forward.
+flask-cors >= 3.0.10
+werkzeug >= 1.0.1

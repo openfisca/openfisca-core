@@ -28,6 +28,9 @@
 # OpenFisca's Web API: https://github.com/openfisca/openfisca-core/pull/948
 dpath >= 1.3.2, < 2
 
+# For Numpy type-hints.
+nptyping >= 1, < 2
+
 # For evaluating numerical expressions
 #
 # We support numexpr >= 2.7.1 because it is the first version compatible with
@@ -61,3 +64,6 @@ PyYAML >= 5.1, < 6
 
 # For sorting formulas by period.
 sortedcontainers >= 2, < 3
+
+# For typing backports.
+typing-extensions >= 3, < 4
