@@ -13,7 +13,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7.12 # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. Any potentiel difference in patches between jobs will lead to a cache not found error.
+          python-version: 3.7.12  # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
       - name: Cache build
         id: restore-build
         uses: actions/cache@v2
