@@ -24,13 +24,9 @@ jobs:
             build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
             build-${{ env.pythonLocation }}-
       - name: Build package
-        run: make build
-      - name: Cache release
-        id: restore-release
-        uses: actions/cache@v2
-        with:
-          path: dist
-          key: release-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
+        run: |
+          make install
+          make clean
 
   test-core:
     runs-on: ubuntu-latest
