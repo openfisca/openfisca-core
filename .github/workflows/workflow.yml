@@ -171,9 +171,7 @@ jobs:
 
   check-version:
     runs-on: ubuntu-latest
-    needs: [ test-core, check-numpy, test-country-template, test-extension-template, test-docs, lint-files ] # Last job to run
-    env:
-      TERM: xterm-256color
+    needs: [ test-core, test-country-template, test-extension-template, check-numpy, test-docs, lint-files ] # Last job to run
     steps:
       - uses: actions/checkout@v2
         with:
@@ -189,8 +187,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' # Only triggered for the `master` branch
     needs: [ check-version ]
-    env:
-      TERM: xterm-256color
     outputs:
       status: ${{ steps.stop-early.outputs.status }}
     steps:
@@ -212,7 +208,6 @@ jobs:
       PYPI_USERNAME: openfisca-bot
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }} # Add to GitHub secrets
       CIRCLE_TOKEN: ${{ secrets.CIRCLE_TOKEN }} # Add to GitHub secrets
-      TERM: xterm-256color
     steps:
       - uses: actions/checkout@v2
         with:
