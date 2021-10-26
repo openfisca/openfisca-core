@@ -21,8 +21,6 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
-from openfisca_core.errors import EmptyArgumentError  # noqa: F401
-
 from .helpers import combine_tax_scales  # noqa: F401
 from .tax_scale_like import TaxScaleLike  # noqa: F401
 from .rate_tax_scale_like import RateTaxScaleLike  # noqa: F401
