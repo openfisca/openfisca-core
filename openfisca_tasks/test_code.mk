@@ -19,7 +19,7 @@ test-code: test-core test-country test-extension
 ## Run openfisca-core tests.
 test-core: $(shell git ls-files "tests/*.py")
 	@$(call print_help,$@:)
-	@PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=openfisca_core --cov=openfisca_web_api ${pytest_args}" \
+	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
 		openfisca test $? \
 		${openfisca_args}
 	@$(call print_pass,$@:)
@@ -27,7 +27,7 @@ test-core: $(shell git ls-files "tests/*.py")
 ## Run country-template tests.
 test-country:
 	@$(call print_help,$@:)
-	@PYTEST_ADDOPTS="${PYTEST_ADDOPTS} ${pytest_args}" \
+	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
 		openfisca test ${python_packages}/openfisca_country_template/tests \
 		--country-package openfisca_country_template \
 		${openfisca_args}
@@ -36,7 +36,7 @@ test-country:
 ## Run extension-template tests.
 test-extension:
 	@$(call print_help,$@:)
-	@PYTEST_ADDOPTS="${PYTEST_ADDOPTS} ${pytest_args}" \
+	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
 		openfisca test ${python_packages}/openfisca_extension_template/tests \
 		--country-package openfisca_country_template \
 		--extensions openfisca_extension_template \

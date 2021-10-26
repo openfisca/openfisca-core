@@ -36,7 +36,7 @@ dev_requirements = [
     'openfisca-country-template >= 3.10.0, < 4.0.0',
     'openfisca-extension-template >= 1.2.0rc0, < 2.0.0',
     'pylint == 2.10.2',
-    'pytest-cov >= 2.6.1, < 3.0.0',
+    'pytest-cov == 3.0.0',
     ] + api_requirements
 
 setup(
