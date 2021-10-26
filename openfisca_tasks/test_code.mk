@@ -1,3 +1,6 @@
+## The openfisca command module.
+openfisca = openfisca_core.scripts.openfisca_command
+
 ## The path to the installed packages.
 python_packages = $(shell python -c "import sysconfig; print(sysconfig.get_paths()[\"purelib\"])")
 
@@ -17,11 +20,13 @@ test-code: test-core test-country test-extension
 	@$(call print_pass,$@:)
 
 ## Run openfisca-core tests.
-test-core: $(shell git ls-files "tests/*.py")
+test-core: $(shell pytest -qq --co | cut -f1 -d ":")
 	@$(call print_help,$@:)
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
-		openfisca test $? \
+		coverage run -m \
+		${openfisca} test $? \
 		${openfisca_args}
+	@${MAKE} test-cov
 	@$(call print_pass,$@:)
 
 ## Run country-template tests.
@@ -42,3 +47,8 @@ test-extension:
 		--extensions openfisca_extension_template \
 		${openfisca_args}
 	@$(call print_pass,$@:)
+
+## Print the coverage report.
+test-cov:
+	@$(call print_help,$@:)
+	@coverage report

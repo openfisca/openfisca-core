@@ -26,6 +26,7 @@ api_requirements = [
 
 dev_requirements = [
     'autopep8 >= 1.4.0, < 1.6.0',
+    'coverage == 6.0.2',
     'darglint == 1.8.0',
     'flake8 >= 3.9.0, < 4.0.0',
     'flake8-bugbear >= 19.3.0, < 20.0.0',
@@ -36,7 +37,6 @@ dev_requirements = [
     'openfisca-country-template >= 3.10.0, < 4.0.0',
     'openfisca-extension-template >= 1.2.0rc0, < 2.0.0',
     'pylint == 2.10.2',
-    'pytest-cov == 3.0.0',
     ] + api_requirements
 
 setup(
