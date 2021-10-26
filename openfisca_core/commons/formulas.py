@@ -91,6 +91,41 @@ def concat(this: ArrayLike[str], that: ArrayLike[str]) -> ArrayType[str]:
     return numpy.char.add(this, that)
 
 
+<<<<<<< HEAD
+=======
+def flatten(seqs: ArrayLike[ArrayLike[T]]) -> Iterator[T]:
+    """Flattens a sequences of sequences.
+
+    Args:
+        seqs: Any sequence of sequences.
+
+    Returns:
+        An iterator with the values.
+
+    Examples:
+        >>> list(flatten([(1, 2), (3, 4)]))
+        [1, 2, 3, 4]
+
+        >>> list(flatten(["ab", "cd"]))
+        ['a', 'b', 'c', 'd']
+
+        >>> seqs = numpy.array([[1, 2, 3], [4, 5], [[6, [7]]]])
+
+        >>> list(flatten(seqs))
+        [1, 2, 3, 4, 5, [6, [7]]]
+
+        >>> list(flatten(flatten(seqs)))
+        Traceback (most recent call last):
+        TypeError: 'int' object is not iterable
+
+    .. versionadded:: 35.7.0
+
+    """
+
+    return chain.from_iterable(seqs)
+
+
+>>>>>>> 3230e5b1e (Remove unused commons.first)
 def switch(
         conditions: ArrayType[Any],
         value_by_condition: Dict[float, T],
