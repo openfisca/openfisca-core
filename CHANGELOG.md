@@ -1,5 +1,11 @@
 # Changelog
 
+## 35.7.0 [#1070](https://github.com/openfisca/openfisca-core/pulls/1070)
+
+#### New Features
+
+- Add group population shortcut to containing groups entities
+
 ## 35.6.0 [#1054](https://github.com/openfisca/openfisca-core/pull/1054)
 
 #### New Features
