@@ -1,5 +1,11 @@
 # Changelog
 
+### 35.7.0-beta.1 [#1057](https://github.com/openfisca/openfisca-core/pull/1057)
+
+#### Technical changes
+
+- Switch CI provider from CircleCI to GitHub Actions
+
 ## 35.6.0 [#1054](https://github.com/openfisca/openfisca-core/pull/1054)
 
 #### New Features
