@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-if [[ ${GITHUB_REF#refs/heads/} == master  ]]
+if [[ ${GITHUB_REF#refs/heads/} == master ]]
 then
     echo "No need for a version check on master."
     exit 0
