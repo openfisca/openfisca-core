@@ -1,11 +1,10 @@
 import pytest
 
 from openfisca_core.entities import Entity
+from openfisca_core.entities._variable_proxy import _VariableProxy
 from openfisca_core.errors import VariableNotFoundError
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_core.variables import Variable
-
-from .._variable_proxy import _VariableProxy
 
 
 @pytest.fixture()
