@@ -32,8 +32,14 @@ def test_group_entity_with_roles(group_entity):
 
     assert group_entity.PARENT
 
+    with pytest.raises(AttributeError):
+        assert group_entity.CHILD
+
 
 def test_group_entity_with_subroles(group_entity):
     """Assigns a :obj:`.Role` for each subrole-like passed as argument."""
 
     assert group_entity.FIRST_PARENT
+
+    with pytest.raises(AttributeError):
+        assert group_entity.FIRST_CHILD
