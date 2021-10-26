@@ -15,9 +15,9 @@ class GroupEntity(Entity):
         doc: A full description.
         roles: The list of :class:`.Role` of the group entity.
         containing_entities: The list of keys of group entities whose
-        members are guaranteed to be a superset of this group's entities.
+            members are guaranteed to be a superset of this group's entities.
 
-    .. versionchanged:: 3.7.0
+    .. versionchanged:: 35.7.0
         Added ``containing_entities``, that allows the defining of group entities
         which entirely contain other group entities.
 
