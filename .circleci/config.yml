@@ -51,6 +51,7 @@ jobs:
       - image: python:3.7
     environment:
       TERM: xterm-256color  # To colorize output of make tasks.
+      PYTEST_ADDOPTS: --exitfirst
 
     steps:
       - checkout
@@ -72,19 +73,15 @@ jobs:
 
       - run:
           name: Run openfisca-core tests
-          command: make test-core pytest_args="--exitfirst"
+          command: make test-core
 
       - run:
           name: Run country-template tests
-          command: make test-country pytest_args="--exitfirst"
+          command: make test-country
 
       - run:
           name: Run extension-template tests
-          command: make test-extension pytest_args="--exitfirst"
-
-      - run:
-          name: Run core tests
-          command: make test
+          command: make test-extension
 
       - persist_to_workspace:
           root: .
@@ -137,8 +134,8 @@ jobs:
   test_compatibility:
     docker:
       - image: python:3.7
-
     environment:
+      TERM: xterm-256color  # To colorize output of make tasks.
       PYTEST_ADDOPTS: --exitfirst
 
     steps:
@@ -158,8 +155,20 @@ jobs:
             make install-compat
 
       - run:
-          name: Run core tests
-          command: make test
+          name: Run linters
+          command: make lint
+
+      - run:
+          name: Run openfisca-core tests
+          command: make test-core
+
+      - run:
+          name: Run country-template tests
+          command: make test-country
+
+      - run:
+          name: Run extension-template tests
+          command: make test-extension
 
   submit_coverage:
     docker:
