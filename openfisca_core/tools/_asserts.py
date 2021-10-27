@@ -5,7 +5,7 @@ from openfisca_core.indexed_enums import EnumArray
 from . import _misc
 
 
-def assert_near(value, target_value, absolute_error_margin = None, message = '', relative_error_margin = None):
+def assert_near(value, target_value, absolute_error_margin = None, message = '', relative_error_margin = None) -> None:
     '''
 
       :param value: Value returned by the test
@@ -46,10 +46,10 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
                 diff, abs(relative_error_margin * target_value))
 
 
-def assert_datetime_equals(value, target_value, message = ''):
+def assert_datetime_equals(value, target_value, message = '') -> None:
     assert (value == target_value).all(), '{}{} differs from {}.'.format(message, value, target_value)
 
 
-def assert_enum_equals(value, target_value, message = ''):
+def assert_enum_equals(value, target_value, message = '') -> None:
     value = value.decode_to_str()
     assert (value == target_value).all(), '{}{} differs from {}.'.format(message, value, target_value)
