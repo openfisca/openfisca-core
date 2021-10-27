@@ -1,27 +1,38 @@
 from __future__ import annotations
 
-from typing import Sequence
+from typing import Sequence, Generator, Optional, cast
+from openfisca_core.types import TaxBenefitSystemType
 
 import os
 import traceback
 
-import pytest
+from _pytest.python import Package
+from py._path.local import LocalPath
+from pytest import File
 
-from openfisca_core.cases import Case
-
+from ._options_schema import _OptionsSchema
+from ._test_schema import _TestSchema
 from ._yaml import yaml, Loader
 from ._yaml_item import YamlItem
 
 
-class YamlFile(pytest.File):
+class YamlFile(File):
 
-    def __init__(self, path, fspath, parent, tax_benefit_system, options):
+    def __init__(
+            self,
+            path: LocalPath,
+            fspath: LocalPath,
+            parent: Package,
+            tax_benefit_system: TaxBenefitSystemType,
+            options: _OptionsSchema,
+            ) -> None:
+
         super(YamlFile, self).__init__(path, parent)
         self.tax_benefit_system = tax_benefit_system
         self.options = options
 
-    def collect(self):
-        tests: Sequence[Case]
+    def collect(self) -> Generator[YamlItem, None, None]:
+        tests: Sequence[_TestSchema]
 
         try:
             tests = yaml.load(self.fspath.open(), Loader = Loader)
@@ -33,7 +44,7 @@ class YamlFile(pytest.File):
             raise ValueError(message)
 
         if not isinstance(tests, list):
-            tests = [tests]
+            tests = cast(Sequence[_TestSchema], [tests])
 
         for test in tests:
             if not self.should_ignore(test):
@@ -42,11 +53,15 @@ class YamlFile(pytest.File):
                     baseline_tax_benefit_system = self.tax_benefit_system,
                     test = test, options = self.options)
 
-    def should_ignore(self, test):
-        name_filter = self.options.get('name_filter')
+    def should_ignore(self, test: _TestSchema) -> bool:
+        name_filter: Optional[str] = self.options.get('name_filter')
+        stem: str = os.path.splitext(self.fspath.basename)[0]
+        name: str = test.get('name', '')
+        kwds: Sequence[str] = cast(Sequence[str], test.get('keywords', []))
+
         return (
             name_filter is not None
-            and name_filter not in os.path.splitext(self.fspath.basename)[0]
-            and name_filter not in test.get('name', '')
-            and name_filter not in test.get('keywords', [])
+            and name_filter not in stem
+            and name_filter not in name
+            and name_filter not in kwds
             )
