@@ -8,14 +8,16 @@ from urllib import parse
 
 import numexpr
 
-_tax_benefit_system_cache: Dict = {}
+from openfisca_core.taxbenefitsystems import TaxBenefitSystem
+
+_tax_benefit_system_cache: Dict[int, TaxBenefitSystem] = {}
 
 
 def indent(text: str) -> str:
     return "  {}".format(text.replace(os.linesep, "{}  ".format(os.linesep)))
 
 
-def eval_expression(expression: str) -> Optional[str]:
+def eval_expression(expression: str) -> Any:
     try:
         return numexpr.evaluate(expression)
     except (KeyError, TypeError):
@@ -42,7 +44,12 @@ def get_trace_tool_link(
     return url
 
 
-def _get_tax_benefit_system(baseline, reforms, extensions):
+def _get_tax_benefit_system(
+        baseline: TaxBenefitSystem,
+        reforms: object,
+        extensions: object,
+        ) -> Optional[TaxBenefitSystem]:
+
     if not isinstance(reforms, list):
         reforms = [reforms]
     if not isinstance(extensions, list):
