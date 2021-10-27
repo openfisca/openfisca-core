@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Sequence, cast
+from typing import Any, Dict, Sequence, cast
 from openfisca_core.types import TaxBenefitSystemType
 
 import json
