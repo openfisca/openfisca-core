@@ -41,7 +41,6 @@ check-types:
 
 ## Run static type checkers for type errors (strict).
 lint-typing-strict: \
-	lint-typing-strict-cases \
 	lint-typing-strict-commons \
 	lint-typing-strict-tools \
 	lint-typing-strict-types \

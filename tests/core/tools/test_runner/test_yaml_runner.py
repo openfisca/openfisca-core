@@ -58,15 +58,15 @@ class Simulation:
 
 class TestFile(YamlFile):
 
-    def __init__(self):
+    def __init__(self, parent, *, fspath):
         self.config = None
         self.session = None
         self._nodeid = 'testname'
 
 
 class TestItem(YamlItem):
-    def __init__(self, test):
-        super().__init__('', TestFile(), TaxBenefitSystem(), test, {})
+    def __init__(self, parent, test):
+        super().__init__('', parent, TaxBenefitSystem(), test, {})
 
         self.tax_benefit_system = self.baseline_tax_benefit_system
         self.simulation = Simulation()
@@ -84,10 +84,15 @@ class TestVariable(Variable):
         self.dtype = np.float32
 
 
-def test_variable_not_found():
+@pytest.fixture
+def test_file():
+    return TestFile.from_parent(object(), fspath = "")
+
+
+def test_variable_not_found(test_file):
     test = {"output": {"unknown_variable": 0}}
     with pytest.raises(VariableNotFound) as excinfo:
-        test_item = TestItem(test)
+        test_item = TestItem.from_parent(test_file, test = test)
         test_item.check_output()
     assert excinfo.value.variable_name == "unknown_variable"
 
@@ -140,9 +145,9 @@ def test_extensions_order():
     assert xy_tax_benefit_system == yx_tax_benefit_system  # extensions order is ignored in cache
 
 
-def test_performance_graph_option_output():
+def test_performance_graph_option_output(test_file):
     test = {'input': {'salary': {'2017-01': 2000}}, 'output': {'salary': {'2017-01': 2000}}}
-    test_item = TestItem(test)
+    test_item = TestItem.from_parent(test_file, test = test)
     test_item.options = {'performance_graph': True}
 
     paths = ["./performance_graph.html"]
@@ -158,9 +163,9 @@ def test_performance_graph_option_output():
     clean_performance_files(paths)
 
 
-def test_performance_tables_option_output():
+def test_performance_tables_option_output(test_file):
     test = {'input': {'salary': {'2017-01': 2000}}, 'output': {'salary': {'2017-01': 2000}}}
-    test_item = TestItem(test)
+    test_item = TestItem.from_parent(test_file, test = test)
     test_item.options = {'performance_tables': True}
 
     paths = ["performance_table.csv", "aggregated_performance_table.csv"]
