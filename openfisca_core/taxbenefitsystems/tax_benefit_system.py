@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Mapping, Optional
+
 import copy
 import glob
 import importlib
@@ -68,7 +72,7 @@ class TaxBenefitSystem:
             self._base_tax_benefit_system = base_tax_benefit_system = baseline.base_tax_benefit_system
         return base_tax_benefit_system
 
-    def instantiate_entities(self):
+    def instantiate_entities(self) -> Mapping[str, Population]:
         person = self.person_entity
         members = Population(person)
         entities: typing.Dict[Entity.key, Entity] = {person.key: members}
@@ -284,7 +288,11 @@ class TaxBenefitSystem:
 
         return reform(self)
 
-    def get_variable(self, variable_name, check_existence = False):
+    def get_variable(
+            self,
+            variable_name: str,
+            check_existence: bool = False,
+            ) -> Optional[Variable]:
         """
         Get a variable from the tax and benefit system.
 

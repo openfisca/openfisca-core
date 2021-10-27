@@ -7,6 +7,8 @@ and expected behaviours.
 Official Public API:
     * :data:`.ArrayLike`
     * :attr:`.ArrayType`
+    * :class:`.HolderType`
+    * :class:`.PopulationType`
     * :class:`.TaxBenefitSystemType`
 
 Note:
@@ -44,11 +46,15 @@ from ._data_types import (  # noqa: F401
     )
 
 from ._protocols import (  # noqa: F401
+    HolderType,
+    PopulationType,
     TaxBenefitSystemType,
     )
 
 __all__ = [
     "ArrayLike",
     "ArrayType",
+    "HolderType",
+    "PopulationType",
     "TaxBenefitSystemType",
     ]

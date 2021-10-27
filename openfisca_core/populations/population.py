@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Sequence
+from typing import Optional, Sequence
 
 import traceback
 
@@ -17,7 +17,7 @@ class Population:
         self.simulation = None
         self.entity = entity
         self._holders = {}
-        self.count = 0
+        self.count: Optional[int] = 0
         self.ids: Sequence[str] = []
 
     def clone(self, simulation):

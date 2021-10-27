@@ -1,5 +1,11 @@
-# -*- coding: utf-8 -*-
+from __future__ import annotations
 
+from typing import Any, Optional
+from openfisca_core.types import (
+    HolderType,
+    PopulationType,
+    TaxBenefitSystemType,
+    )
 
 import os
 
@@ -10,10 +16,14 @@ from openfisca_core.data_storage import OnDiskStorage
 from openfisca_core.periods import ETERNITY
 
 
-def dump_simulation(simulation, directory):
+def dump_simulation(
+        simulation: Simulation,
+        directory: str
+        ) -> None:
     """
         Write simulation data to directory, so that it can be restored later.
     """
+
     parent_directory = os.path.abspath(os.path.join(directory, os.pardir))
     if not os.path.isdir(parent_directory):  # To deal with reforms
         os.mkdir(parent_directory)
@@ -35,10 +45,15 @@ def dump_simulation(simulation, directory):
             _dump_holder(holder, directory)
 
 
-def restore_simulation(directory, tax_benefit_system, **kwargs):
+def restore_simulation(
+        directory: str,
+        tax_benefit_system: TaxBenefitSystemType,
+        **kwargs: Any,
+        ) -> Simulation:
     """
         Restore simulation from directory
     """
+
     simulation = Simulation(tax_benefit_system, tax_benefit_system.instantiate_entities())
 
     entities_dump_dir = os.path.join(directory, "__entities__")
@@ -60,14 +75,14 @@ def restore_simulation(directory, tax_benefit_system, **kwargs):
     return simulation
 
 
-def _dump_holder(holder, directory):
+def _dump_holder(holder: HolderType, directory: str) -> None:
     disk_storage = holder.create_disk_storage(directory, preserve = True)
     for period in holder.get_known_periods():
         value = holder.get_array(period)
         disk_storage.put(value, period)
 
 
-def _dump_entity(population, directory):
+def _dump_entity(population: PopulationType, directory: str) -> None:
     path = os.path.join(directory, population.entity.key)
     os.mkdir(path)
     np.save(os.path.join(path, "id.npy"), population.ids)
@@ -89,13 +104,17 @@ def _dump_entity(population, directory):
     np.save(os.path.join(path, "members_role.npy"), encoded_roles)
 
 
-def _restore_entity(population, directory):
+def _restore_entity(
+        population: PopulationType,
+        directory: str,
+        ) -> Optional[int]:
+
     path = os.path.join(directory, population.entity.key)
 
     population.ids = np.load(os.path.join(path, "id.npy"))
 
     if population.entity.is_person:
-        return
+        return None
 
     population.members_position = np.load(os.path.join(path, "members_position.npy"))
     population.members_entity_id = np.load(os.path.join(path, "members_entity_id.npy"))
@@ -114,7 +133,12 @@ def _restore_entity(population, directory):
     return person_count
 
 
-def _restore_holder(simulation, variable, directory):
+def _restore_holder(
+        simulation: Simulation,
+        variable: str,
+        directory: str,
+        ) -> None:
+
     storage_dir = os.path.join(directory, variable)
     is_variable_eternal = simulation.tax_benefit_system.get_variable(variable).definition_period == ETERNITY
     disk_storage = OnDiskStorage(
