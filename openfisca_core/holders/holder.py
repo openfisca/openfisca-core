@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, Optional, Sequence
+from openfisca_core.types import ArrayType
 
 import os
 import warnings
@@ -237,7 +238,12 @@ class Holder:
         else:
             self._memory_storage.put(value, period)
 
-    def put_in_cache(self, value, period):
+    def put_in_cache(
+            self,
+            value: ArrayType[Any],
+            period: periods.Period,
+            ) -> None:
+
         if self._do_not_store:
             return
 

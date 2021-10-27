@@ -35,6 +35,10 @@ class HolderType(Protocol):
         """A holder implements :meth:`.create_disk_storage`."""
 
     @abc.abstractmethod
+    def put_in_cache(self, value: ArrayType[Any], period: PeriodType) -> None:
+        """A holder implements :meth:`.put_in_cache`."""
+
+    @abc.abstractmethod
     def get_array(self, period: PeriodType) -> Any:
         """A holder implements :meth:`.get_array`."""
 
@@ -127,3 +131,5 @@ class VariableType(Protocol):
     .. versionadded:: 35.8.0
 
     """
+
+    definition_period: str

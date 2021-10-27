@@ -139,8 +139,13 @@ def _restore_holder(
         directory: str,
         ) -> None:
 
+    variable_ = simulation.tax_benefit_system.get_variable(variable)
+
+    if variable_ is None:
+        return None
+
     storage_dir = os.path.join(directory, variable)
-    is_variable_eternal = simulation.tax_benefit_system.get_variable(variable).definition_period == ETERNITY
+    is_variable_eternal = variable_.definition_period == ETERNITY
     disk_storage = OnDiskStorage(
         storage_dir,
         is_eternal = is_variable_eternal,

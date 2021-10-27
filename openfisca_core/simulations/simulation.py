@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from typing import Mapping, Optional
-from openfisca_core.types import PopulationType, TaxBenefitSystemType
+from openfisca_core.types import (
+    HolderType,
+    PopulationType,
+    TaxBenefitSystemType,
+    )
 
 import tempfile
 import warnings
@@ -326,7 +330,7 @@ class Simulation:
             period = periods.period(period)
         return self.get_holder(variable_name).get_array(period)
 
-    def get_holder(self, variable_name):
+    def get_holder(self, variable_name: str) -> HolderType:
         """
         Get the :obj:`.Holder` associated with the variable ``variable_name`` for the simulation
         """

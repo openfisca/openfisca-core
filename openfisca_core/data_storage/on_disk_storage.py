@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, KeysView
+from typing import Any, KeysView, Union
 from openfisca_core.types import ArrayType
 
 import os
@@ -37,7 +37,7 @@ class OnDiskStorage:
         else:
             return numpy.load(file)
 
-    def get(self, period):
+    def get(self, period: Union[str, periods.Period]) -> ArrayType[Any]:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
         period = periods.period(period)
