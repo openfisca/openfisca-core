@@ -1,16 +1,23 @@
 from __future__ import annotations
 
+from typing import Sequence
+
+from openfisca_core.types import TaxBenefitSystemType
+
 import os
 import sys
 import textwrap
 
-import pytest
+from pytest import File, Item
 
 from openfisca_core.errors import SituationParsingError, VariableNotFoundError
 from openfisca_core.simulations import SimulationBuilder
 
 from . import _asserts
 from . import _misc
+
+from ._options_schema import _OptionsSchema
+from ._test_schema import _TestSchema
 
 TEST_KEYWORDS = {
     'absolute_error_margin',
@@ -29,12 +36,23 @@ TEST_KEYWORDS = {
     }
 
 
-class YamlItem(pytest.Item):
+class YamlItem(Item):
     """
     Terminal nodes of the test collection tree.
     """
 
-    def __init__(self, name, parent, baseline_tax_benefit_system, test, options):
+    name: str = ""
+    test: _TestSchema
+
+    def __init__(
+            self,
+            name: str,
+            parent: File,
+            baseline_tax_benefit_system: TaxBenefitSystemType,
+            test: _TestSchema,
+            options: _OptionsSchema,
+            ) -> None:
+
         super(YamlItem, self).__init__(name, parent)
         self.baseline_tax_benefit_system = baseline_tax_benefit_system
         self.options = options
@@ -42,16 +60,27 @@ class YamlItem(pytest.Item):
         self.simulation = None
         self.tax_benefit_system = None
 
-    def runtest(self):
-        self.name = self.test.get('name', '')
-        if not self.test.get('output'):
+    def runtest(self) -> None:
+        extensions: Sequence[str] = []
+        reforms: Sequence[str] = []
+
+        if "name" in self.test:
+            self.name = self.test["name"]
+
+        if "output" not in self.test:
             raise ValueError("Missing key 'output' in test '{}' in file '{}'".format(self.name, self.fspath))
 
         if not TEST_KEYWORDS.issuperset(self.test.keys()):
             unexpected_keys = set(self.test.keys()).difference(TEST_KEYWORDS)
             raise ValueError("Unexpected keys {} in test '{}' in file '{}'".format(unexpected_keys, self.name, self.fspath))
 
-        self.tax_benefit_system = _misc._get_tax_benefit_system(self.baseline_tax_benefit_system, self.test.get('reforms', []), self.test.get('extensions', []))
+        if "extensions" in self.test:
+            extensions = self.test["extensions"]
+
+        if "reforms" in self.test:
+            reforms = self.test["reforms"]
+
+        self.tax_benefit_system = _misc._get_tax_benefit_system(self.baseline_tax_benefit_system, reforms, extensions)
 
         builder = SimulationBuilder()
         input = self.test.get('input', {})
