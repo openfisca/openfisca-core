@@ -1,6 +1,11 @@
+from __future__ import annotations
+
+import typing
+from typing import Any, Mapping, Optional
+from openfisca_core.types import TaxBenefitSystemType
+
 import copy
 import dpath
-import typing
 
 import numpy
 
@@ -14,7 +19,7 @@ from openfisca_core.variables import Variable
 
 class SimulationBuilder:
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.default_period = None  # Simulation period used for variables when no period is defined
         self.persons_plural = None  # Plural name for person entity in current tax and benefits system
 
@@ -38,7 +43,11 @@ class SimulationBuilder:
         self.axes_memberships: typing.Dict[Entity.plural, typing.List[int]] = {}
         self.axes_roles: typing.Dict[Entity.plural, typing.List[int]] = {}
 
-    def build_from_dict(self, tax_benefit_system, input_dict):
+    def build_from_dict(
+            self,
+            tax_benefit_system: TaxBenefitSystemType,
+            input_dict: Mapping[str, Any],
+            ) -> Simulation:
         """
             Build a simulation from ``input_dict``
 
@@ -322,7 +331,7 @@ class SimulationBuilder:
         self.roles[entity.plural] = self.roles[entity.plural].tolist()
         self.memberships[entity.plural] = self.memberships[entity.plural].tolist()
 
-    def set_default_period(self, period_str):
+    def set_default_period(self, period_str: Optional[str]) -> None:
         if period_str:
             self.default_period = str(periods.period(period_str))
 

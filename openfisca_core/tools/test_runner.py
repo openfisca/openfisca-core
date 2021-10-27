@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from typing import Optional, Sequence, Union
+from openfisca_core.types import TaxBenefitSystemType
+
 import pytest
 
 # For backwards compatibility.
@@ -29,8 +32,14 @@ from ._yaml_item import YamlItem  # noqa: F401
 # For backwards compatibility.
 from ._yaml_plugin import YamlPlugin as OpenFiscaPlugin
 
+from ._options_schema import _OptionsSchema
 
-def run_tests(tax_benefit_system, paths, options = None):
+
+def run_tests(
+        tax_benefit_system: TaxBenefitSystemType,
+        paths: Sequence[str],
+        options: Optional[_OptionsSchema] = None,
+        ) -> Union[int, pytest.ExitCode]:
     """
     Runs all the YAML tests contained in a file or a directory.
 
@@ -58,10 +67,13 @@ def run_tests(tax_benefit_system, paths, options = None):
 
     argv = []
 
-    if options.get('pdb'):
+    if options is None:
+        options = {}
+
+    if "pdb" in options and options["pdb"]:
         argv.append('--pdb')
 
-    if options.get('verbose'):
+    if "verbose" in options and options["verbose"]:
         argv.append('--verbose')
 
     if isinstance(paths, str):

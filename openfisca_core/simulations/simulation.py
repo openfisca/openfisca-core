@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import Mapping, Optional
+from openfisca_core.types import TaxBenefitSystemType
+
 import tempfile
 import warnings
 
@@ -7,6 +12,7 @@ from openfisca_core import commons, periods
 from openfisca_core.errors import CycleError, SpiralError
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import Period
+from openfisca_core.populations import Population
 from openfisca_core.tracers import FullTracer, SimpleTracer, TracingParameterNodeAtInstant
 from openfisca_core.warnings import TempfileWarning
 
@@ -18,14 +24,15 @@ class Simulation:
 
     def __init__(
             self,
-            tax_benefit_system,
-            populations
-            ):
+            tax_benefit_system: TaxBenefitSystemType,
+            populations: Mapping[str, Population]
+            ) -> None:
         """
         This constructor is reserved for internal use; see :any:`SimulationBuilder`,
         which is the preferred way to obtain a Simulation initialized with a consistent
         set of Entities.
         """
+
         self.tax_benefit_system = tax_benefit_system
         assert tax_benefit_system is not None
 
@@ -414,7 +421,11 @@ class Simulation:
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
         return self.populations[variable.entity.key]
 
-    def get_population(self, plural = None):
+    def get_population(
+            self,
+            plural: Optional[str] = None,
+            ) -> Optional[Population]:
+
         return next((population for population in self.populations.values() if population.entity.plural == plural), None)
 
     def get_entity(self, plural = None):

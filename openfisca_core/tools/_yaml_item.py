@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Sequence
+from typing import Any, Mapping, Optional, Sequence, Set, Union
 
 from openfisca_core.types import TaxBenefitSystemType
 
@@ -8,10 +8,12 @@ import os
 import sys
 import textwrap
 
+from _pytest._code.code import ExceptionInfo, TerminalRepr
 from pytest import File, Item
 
 from openfisca_core.errors import SituationParsingError, VariableNotFoundError
-from openfisca_core.simulations import SimulationBuilder
+from openfisca_core.simulations import Simulation, SimulationBuilder
+from openfisca_core.tracers import FullTracer
 
 from . import _asserts
 from . import _misc
@@ -19,6 +21,7 @@ from . import _misc
 from ._options_schema import _OptionsSchema
 from ._test_schema import _TestSchema
 
+TEST_KEYWORDS: Set[str]
 TEST_KEYWORDS = {
     'absolute_error_margin',
     'description',
@@ -41,7 +44,11 @@ class YamlItem(Item):
     Terminal nodes of the test collection tree.
     """
 
+    baseline_tax_benefit_system: TaxBenefitSystemType
     name: str = ""
+    options: _OptionsSchema
+    simulation: Simulation
+    tax_benefit_system: TaxBenefitSystemType
     test: _TestSchema
 
     def __init__(
@@ -53,16 +60,22 @@ class YamlItem(Item):
             options: _OptionsSchema,
             ) -> None:
 
-        super(YamlItem, self).__init__(name, parent)
+        super().__init__(name, parent)
         self.baseline_tax_benefit_system = baseline_tax_benefit_system
         self.options = options
         self.test = test
-        self.simulation = None
-        self.tax_benefit_system = None
 
     def runtest(self) -> None:
+        builder: SimulationBuilder
         extensions: Sequence[str] = []
+        input: Mapping[str, Any] = {}
+        max_spiral_loops: Optional[int] = None
+        performance_graph: bool = False
+        performance_tables: bool = False
+        period: Optional[str] = None
         reforms: Sequence[str] = []
+        unexpected_keys: Set[str]
+        verbose: bool = False
 
         if "name" in self.test:
             self.name = self.test["name"]
@@ -74,21 +87,33 @@ class YamlItem(Item):
             unexpected_keys = set(self.test.keys()).difference(TEST_KEYWORDS)
             raise ValueError("Unexpected keys {} in test '{}' in file '{}'".format(unexpected_keys, self.name, self.fspath))
 
-        if "extensions" in self.test:
-            extensions = self.test["extensions"]
-
         if "reforms" in self.test:
             reforms = self.test["reforms"]
+
+        if "extensions" in self.test:
+            extensions = self.test["extensions"]
 
         self.tax_benefit_system = _misc._get_tax_benefit_system(self.baseline_tax_benefit_system, reforms, extensions)
 
         builder = SimulationBuilder()
-        input = self.test.get('input', {})
-        period = self.test.get('period')
-        max_spiral_loops = self.test.get('max_spiral_loops')
-        verbose = self.options.get('verbose')
-        performance_graph = self.options.get('performance_graph')
-        performance_tables = self.options.get('performance_tables')
+
+        if "input" in self.test:
+            input = self.test["input"]
+
+        if "period" in self.test:
+            period = self.test["period"]
+
+        if "max_spiral_loops" in self.test:
+            max_spiral_loops = self.test["max_spiral_loops"]
+
+        if "verbose" in self.options:
+            verbose = self.options["verbose"]
+
+        if "performance_graph" in self.options:
+            performance_graph = self.options["performance_graph"]
+
+        if "performance_tables" in self.options:
+            performance_tables = self.options["performance_tables"]
 
         try:
             builder.set_default_period(period)
@@ -108,23 +133,26 @@ class YamlItem(Item):
         finally:
             tracer = self.simulation.tracer
             if verbose:
+                assert isinstance(tracer, FullTracer)
                 self.print_computation_log(tracer)
             if performance_graph:
+                assert isinstance(tracer, FullTracer)
                 self.generate_performance_graph(tracer)
             if performance_tables:
+                assert isinstance(tracer, FullTracer)
                 self.generate_performance_tables(tracer)
 
-    def print_computation_log(self, tracer):
+    def print_computation_log(self, tracer: FullTracer) -> None:
         print("Computation log:")  # noqa T001
         tracer.print_computation_log()
 
-    def generate_performance_graph(self, tracer):
+    def generate_performance_graph(self, tracer: FullTracer) -> None:
         tracer.generate_performance_graph('.')
 
-    def generate_performance_tables(self, tracer):
+    def generate_performance_tables(self, tracer: FullTracer) -> None:
         tracer.generate_performance_tables('.')
 
-    def check_output(self):
+    def check_output(self) -> None:
         output = self.test.get('output')
 
         if output is None:
@@ -145,7 +173,14 @@ class YamlItem(Item):
                 else:
                     raise VariableNotFoundError(key, self.tax_benefit_system)
 
-    def check_variable(self, variable_name, expected_value, period, entity_index = None):
+    def check_variable(
+            self,
+            variable_name: str,
+            expected_value: Mapping[str, Any],
+            period: Optional[str],
+            entity_index: Optional[int] = None,
+            ) -> None:
+
         if self.should_ignore_variable(variable_name):
             return
         if isinstance(expected_value, dict):
@@ -165,7 +200,7 @@ class YamlItem(Item):
             relative_error_margin = self.test.get('relative_error_margin'),
             )
 
-    def should_ignore_variable(self, variable_name):
+    def should_ignore_variable(self, variable_name: str) -> bool:
         only_variables = self.options.get('only_variables')
         ignore_variables = self.options.get('ignore_variables')
         variable_ignored = ignore_variables is not None and variable_name in ignore_variables
@@ -173,7 +208,11 @@ class YamlItem(Item):
 
         return variable_ignored or variable_not_tested
 
-    def repr_failure(self, excinfo):
+    def repr_failure(
+            self,
+            excinfo: ExceptionInfo[BaseException],
+            ) -> Union[str, TerminalRepr]:
+
         if not isinstance(excinfo.value, (AssertionError, VariableNotFoundError, SituationParsingError)):
             return super(YamlItem, self).repr_failure(excinfo)
 

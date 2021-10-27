@@ -47,7 +47,7 @@ def _get_tax_benefit_system(
         baseline: TaxBenefitSystemType,
         reforms: Sequence[str],
         extensions: Sequence[str],
-        ) -> Optional[TaxBenefitSystemType]:
+        ) -> TaxBenefitSystemType:
 
     if not isinstance(reforms, list):
         reforms = cast(Sequence[str], [reforms])
@@ -56,8 +56,8 @@ def _get_tax_benefit_system(
 
     # keep reforms order in cache, ignore extensions order
     key = hash((id(baseline), ':'.join(reforms), frozenset(extensions)))
-    if _tax_benefit_system_cache.get(key):
-        return _tax_benefit_system_cache.get(key)
+    if key in _tax_benefit_system_cache:
+        return _tax_benefit_system_cache[key]
 
     current_tax_benefit_system = baseline
 

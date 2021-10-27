@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Sequence
+
 import traceback
 
 import numpy
@@ -14,7 +18,7 @@ class Population:
         self.entity = entity
         self._holders = {}
         self.count = 0
-        self.ids = []
+        self.ids: Sequence[str] = []
 
     def clone(self, simulation):
         result = Population(self.entity)
@@ -36,7 +40,7 @@ class Population:
             raise AttributeError("You tried to use the '{}' of '{}' but that is not a known attribute.".format(attribute, self.entity.key))
         return projector
 
-    def get_index(self, id):
+    def get_index(self, id: str) -> int:
         return self.ids.index(id)
 
     # Calculations

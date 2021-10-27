@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from openfisca_core.types import TaxBenefitSystemType
+
 import os
 
 
@@ -6,7 +10,11 @@ class VariableNotFoundError(Exception):
     Exception raised when a variable has been queried but is not defined in the TaxBenefitSystem.
     """
 
-    def __init__(self, variable_name, tax_benefit_system):
+    def __init__(
+            self,
+            variable_name: str,
+            tax_benefit_system: TaxBenefitSystemType,
+            ) -> None:
         """
         :param variable_name: Name of the variable that was queried.
         :param tax_benefit_system: Tax benefits system that does not contain `variable_name`
