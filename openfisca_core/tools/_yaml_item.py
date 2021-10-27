@@ -8,7 +8,7 @@ import os
 import sys
 import textwrap
 
-from _pytest._code.code import ExceptionInfo, TerminalRepr
+from _pytest._code import code
 from pytest import File, Item
 
 from openfisca_core.errors import SituationParsingError, VariableNotFoundError
@@ -210,8 +210,9 @@ class YamlItem(Item):
 
     def repr_failure(
             self,
-            excinfo: ExceptionInfo[BaseException],
-            ) -> Union[str, TerminalRepr]:
+            excinfo: code.ExceptionInfo[BaseException],
+            style: Optional[code._TracebackStyle] = None,
+            ) -> Union[str, code.TerminalRepr]:
 
         if not isinstance(excinfo.value, (AssertionError, VariableNotFoundError, SituationParsingError)):
             return super(YamlItem, self).repr_failure(excinfo)

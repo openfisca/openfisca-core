@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from typing import Mapping, Optional
+from typing import Any, Mapping, Optional
 from openfisca_core.types import (
+    ArrayType,
     HolderType,
     PopulationType,
     TaxBenefitSystemType,
@@ -94,7 +95,11 @@ class Simulation:
 
     # ----- Calculation methods ----- #
 
-    def calculate(self, variable_name, period):
+    def calculate(
+            self,
+            variable_name: str,
+            period: object,
+            ) -> ArrayType[Any]:
         """Calculate ``variable_name`` for ``period``."""
 
         if period is not None and not isinstance(period, Period):

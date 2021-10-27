@@ -54,7 +54,7 @@ class YamlFile(File):
                     test = test, options = self.options)
 
     def should_ignore(self, test: _TestSchema) -> bool:
-        name_filter: Optional[Sequence[str]] = self.options.get('name_filter')
+        name_filter: Optional[str] = self.options.get('name_filter')
         stem: str = os.path.splitext(self.fspath.basename)[0]
         name: str = test.get('name', '')
         kwds: Sequence[str] = test.get('keywords', [])

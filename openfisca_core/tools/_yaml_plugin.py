@@ -33,10 +33,12 @@ class YamlPlugin:
         """
 
         if path.ext in [".yaml", ".yml"]:
-            return YamlFile.from_parent(
+            return YamlFile.from_parent(  # type: ignore
                 parent,
                 path = path,
                 fspath = path,
                 tax_benefit_system = self.tax_benefit_system,
                 options = self.options,
                 )
+
+        return None

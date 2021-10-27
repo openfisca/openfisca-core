@@ -5,6 +5,7 @@ from typing_extensions import TypedDict
 
 
 class _TestSchema(TypedDict, total = False):
+    absolute_error_margin: float
     extensions: Sequence[str]
     input: Mapping[str, Mapping[str, Any]]
     keywords: Sequence[str]
@@ -13,3 +14,4 @@ class _TestSchema(TypedDict, total = False):
     output: Mapping[str, Mapping[str, Any]]
     period: str
     reforms: Sequence[str]
+    relative_error_margin: float
