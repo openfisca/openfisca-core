@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, KeysView, Union
-from openfisca_core.types import ArrayType
+from typing import Any, AbstractSet, MutableMapping
+from openfisca_core.types import ArrayType, PeriodType
 
 import os
 import shutil
@@ -9,7 +9,7 @@ import shutil
 import numpy
 
 from openfisca_core import periods
-from openfisca_core.indexed_enums import EnumArray
+from openfisca_core.indexed_enums import Enum, EnumArray
 
 
 class OnDiskStorage:
@@ -24,8 +24,8 @@ class OnDiskStorage:
             preserve_storage_dir: bool = False,
             ) -> None:
 
-        self._files = {}
-        self._enums = {}
+        self._files: MutableMapping[PeriodType, ArrayType[Any]] = {}
+        self._enums: MutableMapping[str, Enum] = {}
         self.is_eternal = is_eternal
         self.preserve_storage_dir = preserve_storage_dir
         self.storage_dir = storage_dir
@@ -37,7 +37,7 @@ class OnDiskStorage:
         else:
             return numpy.load(file)
 
-    def get(self, period: Union[str, periods.Period]) -> ArrayType[Any]:
+    def get(self, period: PeriodType) -> ArrayType[Any]:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
         period = periods.period(period)
@@ -47,7 +47,7 @@ class OnDiskStorage:
             return None
         return self._decode_file(values)
 
-    def put(self, value: ArrayType[Any], period: periods.Period) -> None:
+    def put(self, value: ArrayType[Any], period: PeriodType) -> None:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
         period = periods.period(period)
@@ -76,10 +76,11 @@ class OnDiskStorage:
                 if not period.contains(period_item)
                 }
 
-    def get_known_periods(self) -> KeysView[str]:
+    def get_known_periods(self) -> AbstractSet[PeriodType]:
         return self._files.keys()
 
     def restore(self) -> None:
+        files: MutableMapping[PeriodType, ArrayType[Any]]
         self._files = files = {}
         # Restore self._files from content of storage_dir.
         for filename in os.listdir(self.storage_dir):
