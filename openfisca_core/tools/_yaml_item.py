@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Sequence, Set, Union
-
-from openfisca_core.types import TaxBenefitSystemType
+from openfisca_core.types import (
+    TaxBenefitSystemType,
+    OptionsSchema,
+    TestSchema,
+    )
 
 import os
 import sys
@@ -17,9 +20,6 @@ from openfisca_core.tracers import FullTracer
 
 from . import _asserts
 from . import _misc
-
-from ._options_schema import _OptionsSchema
-from ._test_schema import _TestSchema
 
 TEST_KEYWORDS: Set[str]
 TEST_KEYWORDS = {
@@ -46,18 +46,18 @@ class YamlItem(Item):
 
     baseline_tax_benefit_system: TaxBenefitSystemType
     name: str = ""
-    options: _OptionsSchema
+    options: OptionsSchema
     simulation: Simulation
     tax_benefit_system: TaxBenefitSystemType
-    test: _TestSchema
+    test: TestSchema
 
     def __init__(
             self,
             name: str,
             parent: File,
             baseline_tax_benefit_system: TaxBenefitSystemType,
-            test: _TestSchema,
-            options: _OptionsSchema,
+            test: TestSchema,
+            options: OptionsSchema,
             ) -> None:
 
         super().__init__(name, parent)

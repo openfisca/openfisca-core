@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from typing import Sequence, Generator, Optional, cast
-from openfisca_core.types import TaxBenefitSystemType
+from openfisca_core.types import (
+    TaxBenefitSystemType,
+    OptionsSchema,
+    TestSchema,
+    )
 
 import os
 import traceback
@@ -10,8 +14,6 @@ from _pytest.python import Package
 from py._path.local import LocalPath
 from pytest import File
 
-from ._options_schema import _OptionsSchema
-from ._test_schema import _TestSchema
 from ._yaml import yaml, Loader
 from ._yaml_item import YamlItem
 
@@ -24,7 +26,7 @@ class YamlFile(File):
             fspath: LocalPath,
             parent: Package,
             tax_benefit_system: TaxBenefitSystemType,
-            options: _OptionsSchema,
+            options: OptionsSchema,
             ) -> None:
 
         super(YamlFile, self).__init__(path, parent)
@@ -32,7 +34,7 @@ class YamlFile(File):
         self.options = options
 
     def collect(self) -> Generator[YamlItem, None, None]:
-        tests: Sequence[_TestSchema]
+        tests: Sequence[TestSchema]
 
         try:
             tests = yaml.load(self.fspath.open(), Loader = Loader)
@@ -44,7 +46,7 @@ class YamlFile(File):
             raise ValueError(message)
 
         if not isinstance(tests, list):
-            tests = cast(Sequence[_TestSchema], [tests])
+            tests = cast(Sequence[TestSchema], [tests])
 
         for test in tests:
             if not self.should_ignore(test):
@@ -53,7 +55,7 @@ class YamlFile(File):
                     baseline_tax_benefit_system = self.tax_benefit_system,
                     test = test, options = self.options)
 
-    def should_ignore(self, test: _TestSchema) -> bool:
+    def should_ignore(self, test: TestSchema) -> bool:
         name_filter: Optional[str] = self.options.get('name_filter')
         stem: str = os.path.splitext(self.fspath.basename)[0]
         name: str = test.get('name', '')

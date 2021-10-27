@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 from typing import Optional
-from openfisca_core.types import TaxBenefitSystemType
+from openfisca_core.types import TaxBenefitSystemType, OptionsSchema
 
 from _pytest.main import Session
 from py._path.local import LocalPath
 
-
-from ._options_schema import _OptionsSchema
 from ._yaml_file import YamlFile
 
 
@@ -16,7 +14,7 @@ class YamlPlugin:
     def __init__(
             self,
             tax_benefit_system: TaxBenefitSystemType,
-            options: _OptionsSchema,
+            options: OptionsSchema,
             ) -> None:
 
         self.tax_benefit_system = tax_benefit_system

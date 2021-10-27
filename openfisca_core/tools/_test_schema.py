@@ -4,7 +4,7 @@ from typing import Any, Sequence, Mapping
 from typing_extensions import TypedDict
 
 
-class _TestSchema(TypedDict, total = False):
+class TestSchema(TypedDict, total = False):
     absolute_error_margin: float
     extensions: Sequence[str]
     input: Mapping[str, Mapping[str, Any]]

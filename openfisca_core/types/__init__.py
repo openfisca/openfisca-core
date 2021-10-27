@@ -10,6 +10,9 @@ Official Public API:
     * :class:`.HolderType`
     * :class:`.PopulationType`
     * :class:`.TaxBenefitSystemType`
+    * :class:`.OptionsSchema`
+    * :class:`.TestSchema`
+
 
 Note:
     How imports are being used today::
@@ -51,10 +54,17 @@ from ._protocols import (  # noqa: F401
     TaxBenefitSystemType,
     )
 
+from ._schemas import (  # noqa: F401
+    OptionsSchema,
+    TestSchema,
+    )
+
 __all__ = [
     "ArrayLike",
     "ArrayType",
     "HolderType",
     "PopulationType",
     "TaxBenefitSystemType",
+    "OptionsSchema",
+    "TestSchema",
     ]
