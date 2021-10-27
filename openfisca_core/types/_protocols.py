@@ -8,9 +8,23 @@ import abc
 
 class TaxBenefitSystemType(Protocol):
     """Duck-type for tax-benefit systems.
-    .. versionadded:: 35.7.0
+
+    .. versionadded:: 35.8.0
+
     """
+
+    @abc.abstractmethod
+    def apply_reform(self, __arg1: str) -> TaxBenefitSystemType:
+        """A tax-benefit system implements :meth:`.apply_reform`."""
+
+    @abc.abstractmethod
+    def clone(self) -> TaxBenefitSystemType:
+        """A tax-benefit system implements :meth:`.clone`."""
 
     @abc.abstractmethod
     def get_variable(self, __arg1: str, __arg2: bool = False) -> Optional[Any]:
         """A tax-benefit system implements :meth:`.get_variable`."""
+
+    @abc.abstractmethod
+    def load_extension(self, extension: str) -> None:
+        """A tax-benefit system implements :meth:`.load_extension`."""
