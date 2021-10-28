@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from openfisca_core.types import TaxBenefitSystemType
+from openfisca_core.typing import TaxBenefitSystemProtocol
 
 import os
 
@@ -13,7 +13,7 @@ class VariableNotFoundError(Exception):
     def __init__(
             self,
             variable_name: str,
-            tax_benefit_system: TaxBenefitSystemType,
+            tax_benefit_system: TaxBenefitSystemProtocol,
             ) -> None:
         """
         :param variable_name: Name of the variable that was queried.

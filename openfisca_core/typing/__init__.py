@@ -7,10 +7,10 @@ and expected behaviours.
 Official Public API:
     * :data:`.ArrayLike`
     * :attr:`.ArrayType`
-    * :class:`.HolderType`
-    * :class:`.PeriodType`
-    * :class:`.PopulationType`
-    * :class:`.TaxBenefitSystemType`
+    * :class:`.HolderProtocol`
+    * :class:`.PeriodProtocol`
+    * :class:`.PopulationProtocol`
+    * :class:`.TaxBenefitSystemProtocol`
     * :class:`.FrameSchema`
     * :class:`.OptionsSchema`
     * :class:`.TestSchema`
@@ -19,8 +19,8 @@ Official Public API:
 Note:
     How imports are being used today::
 
-        from openfisca_core.types import *  # Bad
-        from openfisca_core.types.data_types.arrays import ArrayLike  # Bad
+        from openfisca_core.typing import *  # Bad
+        from openfisca_core.typing.data_types.arrays import ArrayLike  # Bad
 
 
     The previous examples provoke cyclic dependency problems, that prevents us
@@ -29,7 +29,7 @@ Note:
 
     How could them be used after the next major release::
 
-        from openfisca_core.types import ArrayLike
+        from openfisca_core.typing import ArrayLike
 
         ArrayLike # Good: import types as publicly exposed
 
@@ -45,16 +45,16 @@ Note:
 
 # Official Public API
 
-from ._data_types import (  # noqa: F401
+from ._types import (  # noqa: F401
     ArrayLike,
     ArrayType,
     )
 
 from ._protocols import (  # noqa: F401
-    HolderType,
-    PeriodType,
-    PopulationType,
-    TaxBenefitSystemType,
+    HolderProtocol,
+    PeriodProtocol,
+    PopulationProtocol,
+    TaxBenefitSystemProtocol,
     )
 
 from ._schemas import (  # noqa: F401
@@ -67,10 +67,10 @@ __all__ = [
     "ArrayLike",
     "ArrayType",
     "FrameSchema",
-    "HolderType",
-    "PeriodType",
-    "PopulationType",
-    "TaxBenefitSystemType",
+    "HolderProtocol",
+    "PeriodProtocol",
+    "PopulationProtocol",
+    "TaxBenefitSystemProtocol",
     "OptionsSchema",
     "TestSchema",
     ]

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, Optional
-from openfisca_core.types import ArrayType, ArrayLike
+from openfisca_core.typing import ArrayType, ArrayLike
 
 import datetime
 

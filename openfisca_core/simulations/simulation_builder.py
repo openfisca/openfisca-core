@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import typing
 from typing import Any, Mapping, Optional
-from openfisca_core.types import TaxBenefitSystemType
+from openfisca_core.typing import TaxBenefitSystemProtocol
 
 import copy
 import dpath
@@ -45,7 +45,7 @@ class SimulationBuilder:
 
     def build_from_dict(
             self,
-            tax_benefit_system: TaxBenefitSystemType,
+            tax_benefit_system: TaxBenefitSystemProtocol,
             input_dict: Mapping[str, Any],
             ) -> Simulation:
         """

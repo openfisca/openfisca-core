@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, Optional, Sequence
-from openfisca_core.types import ArrayType
+from openfisca_core.typing import ArrayType
 
 import os
 import warnings

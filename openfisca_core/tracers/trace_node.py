@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Union, Optional, Sequence
-from openfisca_core.types import ArrayLike, PeriodType
+from openfisca_core.typing import ArrayLike, PeriodProtocol
 
 import dataclasses
 
@@ -13,7 +13,7 @@ Array = Union[EnumArray, ArrayLike]
 @dataclasses.dataclass
 class TraceNode:
     name: str
-    period: PeriodType
+    period: PeriodProtocol
     parent: Optional[TraceNode] = None
     children: Sequence[TraceNode] = dataclasses.field(default_factory = list)
     parameters: Sequence[TraceNode] = dataclasses.field(default_factory = list)

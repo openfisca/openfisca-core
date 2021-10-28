@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Mapping, Optional
-from openfisca_core.types import (
+from typing import Any, Mapping, Optional, Set, Tuple
+from openfisca_core.typing import (
     ArrayType,
-    HolderType,
-    PopulationType,
-    TaxBenefitSystemType,
+    HolderProtocol,
+    PeriodProtocol,
+    PopulationProtocol,
+    TaxBenefitSystemProtocol,
     )
 
 import tempfile
@@ -29,8 +30,8 @@ class Simulation:
 
     def __init__(
             self,
-            tax_benefit_system: TaxBenefitSystemType,
-            populations: Mapping[str, PopulationType]
+            tax_benefit_system: TaxBenefitSystemProtocol,
+            populations: Mapping[str, PopulationProtocol]
             ) -> None:
         """
         This constructor is reserved for internal use; see :any:`SimulationBuilder`,
@@ -46,7 +47,7 @@ class Simulation:
         self.link_to_entities_instances()
         self.create_shortcuts()
 
-        self.invalidated_caches = set()
+        self.invalidated_caches: Set[Tuple[str, PeriodProtocol]] = set()
 
         self.debug = False
         self.trace = False
@@ -98,7 +99,7 @@ class Simulation:
     def calculate(
             self,
             variable_name: str,
-            period: object,
+            period: Period,
             ) -> ArrayType[Any]:
         """Calculate ``variable_name`` for ``period``."""
 
@@ -307,10 +308,15 @@ class Simulation:
             message = "Quasicircular definition detected on formula {}@{} involving {}".format(variable, period, self.tracer.stack)
             raise SpiralError(message, variable)
 
-    def invalidate_cache_entry(self, variable: str, period):
+    def invalidate_cache_entry(
+            self,
+            variable: str,
+            period: PeriodProtocol,
+            ) -> None:
+
         self.invalidated_caches.add((variable, period))
 
-    def invalidate_spiral_variables(self, variable: str):
+    def invalidate_spiral_variables(self, variable: str) -> None:
         # Visit the stack, from the bottom (most recent) up; we know that we'll find
         # the variable implicated in the spiral (max_spiral_loops+1) times; we keep the
         # intermediate values computed (to avoid impacting performance) but we mark them
@@ -335,7 +341,7 @@ class Simulation:
             period = periods.period(period)
         return self.get_holder(variable_name).get_array(period)
 
-    def get_holder(self, variable_name: str) -> HolderType:
+    def get_holder(self, variable_name: str) -> HolderProtocol:
         """
         Get the :obj:`.Holder` associated with the variable ``variable_name`` for the simulation
         """

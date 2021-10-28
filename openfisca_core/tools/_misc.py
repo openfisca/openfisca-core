@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, Dict, Sequence, cast
-from openfisca_core.types import TaxBenefitSystemType
+from openfisca_core.typing import TaxBenefitSystemProtocol
 
 import json
 import os
@@ -9,7 +9,7 @@ from urllib import parse
 
 import numexpr
 
-_tax_benefit_system_cache: Dict[int, TaxBenefitSystemType] = {}
+_tax_benefit_system_cache: Dict[int, TaxBenefitSystemProtocol] = {}
 
 
 def indent(text: str) -> str:
@@ -44,10 +44,10 @@ def get_trace_tool_link(
 
 
 def _get_tax_benefit_system(
-        baseline: TaxBenefitSystemType,
+        baseline: TaxBenefitSystemProtocol,
         reforms: Sequence[str],
         extensions: Sequence[str],
-        ) -> TaxBenefitSystemType:
+        ) -> TaxBenefitSystemProtocol:
 
     if not isinstance(reforms, list):
         reforms = cast(Sequence[str], [reforms])

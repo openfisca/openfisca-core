@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from typing import Optional
+from openfisca_core.typing import ArrayLike, ArrayType
 
 import numpy
 
-from openfisca_core.types import ArrayLike, ArrayType
 
 
 def average_rate(

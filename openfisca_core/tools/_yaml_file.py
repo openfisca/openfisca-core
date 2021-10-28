@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from typing import Sequence, Generator, Optional, cast
-from openfisca_core.types import (
-    TaxBenefitSystemType,
+from openfisca_core.typing import (
+    TaxBenefitSystemProtocol,
     OptionsSchema,
     TestSchema,
     )
@@ -25,7 +25,7 @@ class YamlFile(File):
             path: LocalPath,
             fspath: LocalPath,
             parent: Package,
-            tax_benefit_system: TaxBenefitSystemType,
+            tax_benefit_system: TaxBenefitSystemProtocol,
             options: OptionsSchema,
             ) -> None:
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Sequence
-from openfisca_core.types import ArrayLike, FrameSchema, PeriodType
+from openfisca_core.typing import ArrayLike, FrameSchema, PeriodProtocol
 
 Stack = Sequence[FrameSchema]
 
@@ -16,7 +16,7 @@ class SimpleTracer:
     def record_calculation_start(
             self,
             variable: str,
-            period: PeriodType,
+            period: PeriodProtocol,
             ) -> None:
 
         frame: FrameSchema

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from typing import Any, Optional
-from openfisca_core.types import (
-    HolderType,
-    PopulationType,
-    TaxBenefitSystemType,
+from openfisca_core.typing import (
+    HolderProtocol,
+    PopulationProtocol,
+    TaxBenefitSystemProtocol,
     )
 
 import os
@@ -47,7 +47,7 @@ def dump_simulation(
 
 def restore_simulation(
         directory: str,
-        tax_benefit_system: TaxBenefitSystemType,
+        tax_benefit_system: TaxBenefitSystemProtocol,
         **kwargs: Any,
         ) -> Simulation:
     """
@@ -75,14 +75,14 @@ def restore_simulation(
     return simulation
 
 
-def _dump_holder(holder: HolderType, directory: str) -> None:
+def _dump_holder(holder: HolderProtocol, directory: str) -> None:
     disk_storage = holder.create_disk_storage(directory, preserve = True)
     for period in holder.get_known_periods():
         value = holder.get_array(period)
         disk_storage.put(value, period)
 
 
-def _dump_entity(population: PopulationType, directory: str) -> None:
+def _dump_entity(population: PopulationProtocol, directory: str) -> None:
     path = os.path.join(directory, population.entity.key)
     os.mkdir(path)
     np.save(os.path.join(path, "id.npy"), population.ids)
@@ -105,7 +105,7 @@ def _dump_entity(population: PopulationType, directory: str) -> None:
 
 
 def _restore_entity(
-        population: PopulationType,
+        population: PopulationProtocol,
         directory: str,
         ) -> Optional[int]:
 

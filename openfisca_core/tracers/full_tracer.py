@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import time
 from typing import Iterator, Optional, Sequence
-from openfisca_core.types import ArrayLike, FrameSchema, PeriodType
+from openfisca_core.typing import ArrayLike, FrameSchema, PeriodProtocol
 
 from .. import tracers
 
@@ -23,7 +23,7 @@ class FullTracer:
     def record_calculation_start(
             self,
             variable: str,
-            period: PeriodType,
+            period: PeriodProtocol,
             ) -> None:
 
         self._simple_tracer.record_calculation_start(variable, period)
@@ -33,7 +33,7 @@ class FullTracer:
     def _enter_calculation(
             self,
             variable: str,
-            period: PeriodType,
+            period: PeriodProtocol,
             ) -> None:
 
         new_node = tracers.TraceNode(
@@ -53,7 +53,7 @@ class FullTracer:
     def record_parameter_access(
             self,
             parameter: str,
-            period: PeriodType,
+            period: PeriodProtocol,
             value: ArrayLike,
             ) -> None:
 

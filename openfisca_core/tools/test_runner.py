@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Optional, Sequence, Union
-from openfisca_core.types import TaxBenefitSystemType, OptionsSchema
+from openfisca_core.typing import TaxBenefitSystemProtocol, OptionsSchema
 
 import pytest
 
@@ -34,7 +34,7 @@ from ._yaml_plugin import YamlPlugin as OpenFiscaPlugin
 
 
 def run_tests(
-        tax_benefit_system: TaxBenefitSystemType,
+        tax_benefit_system: TaxBenefitSystemProtocol,
         paths: Sequence[str],
         options: Optional[OptionsSchema] = None,
         ) -> Union[int, pytest.ExitCode]:

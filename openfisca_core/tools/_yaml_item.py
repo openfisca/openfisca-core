@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Sequence, Set, Union
-from openfisca_core.types import (
-    TaxBenefitSystemType,
+from openfisca_core.typing import (
+    TaxBenefitSystemProtocol,
     OptionsSchema,
     TestSchema,
     )
@@ -44,18 +44,18 @@ class YamlItem(Item):
     Terminal nodes of the test collection tree.
     """
 
-    baseline_tax_benefit_system: TaxBenefitSystemType
+    baseline_tax_benefit_system: TaxBenefitSystemProtocol
     name: str = ""
     options: OptionsSchema
     simulation: Simulation
-    tax_benefit_system: TaxBenefitSystemType
+    tax_benefit_system: TaxBenefitSystemProtocol
     test: TestSchema
 
     def __init__(
             self,
             name: str,
             parent: File,
-            baseline_tax_benefit_system: TaxBenefitSystemType,
+            baseline_tax_benefit_system: TaxBenefitSystemProtocol,
             test: TestSchema,
             options: OptionsSchema,
             ) -> None:

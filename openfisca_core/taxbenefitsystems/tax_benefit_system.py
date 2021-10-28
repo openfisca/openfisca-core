@@ -363,7 +363,7 @@ class TaxBenefitSystem:
             self._parameters_at_instant_cache[instant] = parameters_at_instant
         return parameters_at_instant
 
-    def get_package_metadata(self):
+    def get_package_metadata(self) -> Mapping[str, str]:
         """
             Gets metatada relative to the country package the tax and benefit system is built from.
 
