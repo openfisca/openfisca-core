@@ -1,6 +1,7 @@
-from typing import TypeVar
+from __future__ import annotations
 
-from openfisca_core.types import ArrayType
+from typing import TypeVar
+from openfisca_core.typing import ArrayType
 
 T = TypeVar("T")
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## 35.8.0 [#1034](https://github.com/openfisca/openfisca-core/pull/1034)
+
+#### Documentation
+
+- Complete docs, doctests, and typing of the entities module
+
 ### 35.7.1 [#1075](https://github.com/openfisca/openfisca-core/pull/1075)
 
 #### Bug fix
