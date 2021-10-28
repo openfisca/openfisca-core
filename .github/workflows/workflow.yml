@@ -238,9 +238,4 @@ jobs:
         run: "${GITHUB_WORKSPACE}/.github/publish-git-tag.sh"
       - name: Update doc
         run: |
-          curl -X POST \
-          -H 'Circle-Token: $CIRCLE_TOKEN' \
-          -H 'Content-Type: application/json' \
-          -H 'Accept: application/json' \
-          -d "{\"branch\":\"${CIRCLE_BRANCH}\"}" \
-          https://circleci.com/api/v2/project/github/openfisca/openfisca-doc/build
+          curl -X POST --header 'Content-Type: application/json' -d '{"branch":"github-actions"}' https://circleci.com/api/v1.1/project/github/openfisca/openfisca-doc/build?circle-token=$CIRCLE_TOKEN
