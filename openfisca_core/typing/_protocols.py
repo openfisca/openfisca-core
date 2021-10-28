@@ -20,6 +20,18 @@ class EntityProtocol(Protocol):
     flattened_roles: Sequence[RoleProtocol]
 
 
+class FormulaProtocol(Protocol):
+    """Duck-type for formulas"""
+
+    def __call__(
+            self,
+            __population: PopulationProtocol,
+            __period: PeriodProtocol,
+            __pararameters: ParametersProtocol,
+            ) -> ArrayType[Any]:
+        ...
+
+
 class HolderProtocol(Protocol):
     """Duck-type for holders.
 
@@ -49,6 +61,36 @@ class HolderProtocol(Protocol):
 
     @abc.abstractmethod
     def get_known_periods(self) -> Sequence[PeriodProtocol]:
+        ...
+
+
+class InstantProtocol(Protocol):
+    """Duck-type for instants.
+
+    .. versionadded:: 35.8.0
+
+    """
+
+
+class ParameterNodeAtInstantProtocol(Protocol):
+    """Duck-type for parameter nodes at instant.
+
+    .. versionadded:: 35.8.0
+
+    """
+
+
+class ParametersProtocol(Protocol):
+    """Duck-type for parameters.
+
+    .. versionadded:: 35.8.0
+
+    """
+
+    def __call__(
+            self,
+            instant: InstantProtocol,
+            ) -> ParameterNodeAtInstantProtocol:
         ...
 
 

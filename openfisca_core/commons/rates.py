@@ -6,7 +6,6 @@ from openfisca_core.typing import ArrayLike, ArrayType
 import numpy
 
 
-
 def average_rate(
         target: ArrayType[float],
         varying: ArrayLike[float],
