@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Mapping, Optional, Sequence
+from typing import Any, Mapping, Optional, Sequence, Set
 from typing_extensions import Protocol
 from ._types import ArrayType
 
@@ -158,6 +158,10 @@ class TaxBenefitSystemProtocol(Protocol):
         ...
 
     @abc.abstractmethod
+    def entities_plural(self) -> Set[str]:
+        ...
+
+    @abc.abstractmethod
     def get_package_metadata(self) -> Mapping[str, str]:
         ...
 
@@ -186,3 +190,4 @@ class VariableProtocol(Protocol):
     """
 
     definition_period: str
+    name: str

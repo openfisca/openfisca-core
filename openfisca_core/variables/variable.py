@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import Optional
+from openfisca_core.typing import FormulaProtocol
+
 import datetime
 import inspect
 import re
@@ -9,7 +14,7 @@ import numpy
 from openfisca_core import periods, tools
 from openfisca_core.entities import Entity
 from openfisca_core.indexed_enums import Enum, EnumArray
-from openfisca_core.periods import Period
+from openfisca_core.periods import Instant, Period
 
 from . import config, helpers
 
@@ -302,7 +307,10 @@ class Variable:
 
         return comments, source_file_path, source_code, start_line_number
 
-    def get_formula(self, period = None):
+    def get_formula(
+            self,
+            period: Optional[Period] = None,
+            ) -> Optional[FormulaProtocol]:
         """
         Returns the formula used to compute the variable at the given period.
 
@@ -312,6 +320,9 @@ class Variable:
         :rtype: callable
 
         """
+
+        instant: Instant
+        to_str: str
 
         if not self.formulas:
             return None
@@ -330,9 +341,10 @@ class Variable:
         if self.end and instant.date > self.end:
             return None
 
-        instant = str(instant)
+        to_str = str(instant)
+
         for start_date in reversed(self.formulas):
-            if start_date <= instant:
+            if start_date <= to_str:
                 return self.formulas[start_date]
 
         return None

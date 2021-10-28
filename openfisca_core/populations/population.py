@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Optional, Sequence
+from openfisca_core.typing import ArrayLike
 
 import traceback
 
@@ -18,7 +19,7 @@ class Population:
         self.entity = entity
         self._holders = {}
         self.count: Optional[int] = 0
-        self.ids: Sequence[str] = []
+        self.ids: ArrayLike[str] = []
 
     def clone(self, simulation):
         result = Population(self.entity)

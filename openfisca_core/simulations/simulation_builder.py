@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import typing
 from typing import Any, Mapping, Optional
-from openfisca_core.typing import TaxBenefitSystemProtocol
+from openfisca_core.typing import ArrayType, TaxBenefitSystemProtocol
 
 import copy
 import dpath
@@ -24,7 +24,7 @@ class SimulationBuilder:
         self.persons_plural = None  # Plural name for person entity in current tax and benefits system
 
         # JSON input - Memory of known input values. Indexed by variable or axis name.
-        self.input_buffer: typing.Dict[Variable.name, typing.Dict[str(periods.period), numpy.array]] = {}
+        self.input_buffer: typing.Dict[Variable.name, typing.Dict[str, ArrayType]] = {}
         self.populations: typing.Dict[Entity.key, Population] = {}
         # JSON input - Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
         self.entity_counts: typing.Dict[Entity.plural, int] = {}

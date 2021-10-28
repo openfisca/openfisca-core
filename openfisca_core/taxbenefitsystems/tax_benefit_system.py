@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Mapping, Optional
+from typing import Mapping, Optional, overload
+from typing_extensions import Literal
 
 import copy
 import glob
@@ -75,7 +76,7 @@ class TaxBenefitSystem:
     def instantiate_entities(self) -> Mapping[str, Population]:
         person = self.person_entity
         members = Population(person)
-        entities: typing.Dict[Entity.key, Entity] = {person.key: members}
+        entities: typing.Dict[Entity.key, Population] = {person.key: members}
 
         for entity in self.group_entities:
             entities[entity.key] = GroupPopulation(entity, members)
@@ -288,6 +289,22 @@ class TaxBenefitSystem:
 
         return reform(self)
 
+    @overload
+    def get_variable(
+            self,
+            variable_name: str,
+            check_existence: Literal[True],
+            ) -> Variable:
+        ...
+
+    @overload
+    def get_variable(
+            self,
+            variable_name: str,
+            check_existence: bool = ...,
+            ) -> Optional[Variable]:
+        ...
+
     def get_variable(
             self,
             variable_name: str,
@@ -315,8 +332,19 @@ class TaxBenefitSystem:
         """
         self.variables[variable_name] = variables.get_neutralized_variable(self.get_variable(variable_name))
 
-    def annualize_variable(self, variable_name: str, period: typing.Optional[Period] = None):
-        self.variables[variable_name] = variables.get_annualized_variable(self.get_variable(variable_name, period))
+    def annualize_variable(
+            self,
+            variable_name: str,
+            period: Optional[Period] = None,
+            ) -> None:
+
+        variable: Variable
+        variable = self.get_variable(variable_name, check_existence = True)
+
+        annualized: Variable
+        annualized = variables.get_annualized_variable(variable, period)
+
+        self.variables[variable_name] = annualized
 
     def load_parameters(self, path_to_yaml_dir):
         """
@@ -392,19 +420,31 @@ class TaxBenefitSystem:
             }
 
         module = inspect.getmodule(self)
+
+        if module is None:
+            return fallback_metadata
+
         if not module.__package__:
             return fallback_metadata
+
         package_name = module.__package__.split('.')[0]
+
         try:
             distribution = pkg_resources.get_distribution(package_name)
+
         except pkg_resources.DistributionNotFound:
             return fallback_metadata
 
-        location = inspect.getsourcefile(module).split(package_name)[0].rstrip('/')
+        sourcefile = inspect.getsourcefile(module)
+
+        if sourcefile is None:
+            return fallback_metadata
+
+        location = sourcefile.split(package_name)[0].rstrip('/')
 
         home_page_metadatas = [
             metadata.split(':', 1)[1].strip(' ')
-            for metadata in distribution._get_metadata(distribution.PKG_INFO) if 'Home-page' in metadata
+            for metadata in distribution._get_metadata(distribution.PKG_INFO) if 'Home-page' in metadata  # type: ignore
             ]
         repository_url = home_page_metadatas[0] if home_page_metadatas else ''
         return {

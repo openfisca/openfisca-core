@@ -7,6 +7,7 @@ and expected behaviours.
 Official Public API:
     * :data:`.ArrayLike`
     * :attr:`.ArrayType`
+    * :class:`.FormulaProtocol`
     * :class:`.HolderProtocol`
     * :class:`.PeriodProtocol`
     * :class:`.PopulationProtocol`
@@ -51,6 +52,7 @@ from ._types import (  # noqa: F401
     )
 
 from ._protocols import (  # noqa: F401
+    FormulaProtocol,
     HolderProtocol,
     PeriodProtocol,
     PopulationProtocol,
@@ -66,11 +68,12 @@ from ._schemas import (  # noqa: F401
 __all__ = [
     "ArrayLike",
     "ArrayType",
-    "FrameSchema",
+    "FormulaProtocol",
     "HolderProtocol",
     "PeriodProtocol",
     "PopulationProtocol",
     "TaxBenefitSystemProtocol",
+    "FrameSchema",
     "OptionsSchema",
     "TestSchema",
     ]
