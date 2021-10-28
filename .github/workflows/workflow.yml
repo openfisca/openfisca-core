@@ -242,5 +242,5 @@ jobs:
           -H 'Circle-Token: $CIRCLE_TOKEN' \
           -H 'Content-Type: application/json' \
           -H 'Accept: application/json' \
-          -d "{\"branch\":\"${CIRCLE_BRANCH}\"} \
+          -d "{\"branch\":\"${CIRCLE_BRANCH}\"}" \
           https://circleci.com/api/v2/project/github/openfisca/openfisca-doc/build
