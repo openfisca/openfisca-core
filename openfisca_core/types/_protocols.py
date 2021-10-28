@@ -15,6 +15,7 @@ class EntityType(Protocol):
     """
 
     key: str
+    plural: str
     is_person: bool
     flattened_roles: Sequence[RoleType]
 
@@ -29,22 +30,22 @@ class HolderType(Protocol):
     @abc.abstractmethod
     def create_disk_storage(
             self,
-            directory: Optional[str] = None,
-            preserve: bool = False,
+            directory: Optional[str] = ...,
+            preserve: bool = ...,
             ) -> StorageType:
-        """A holder implements :meth:`.create_disk_storage`."""
+        ...
 
     @abc.abstractmethod
     def put_in_cache(self, value: ArrayType[Any], period: PeriodType) -> None:
-        """A holder implements :meth:`.put_in_cache`."""
+        ...
 
     @abc.abstractmethod
     def get_array(self, period: PeriodType) -> Any:
-        """A holder implements :meth:`.get_array`."""
+        ...
 
     @abc.abstractmethod
     def get_known_periods(self) -> Sequence[PeriodType]:
-        """A holder implements :meth:`.get_known_periods`."""
+        ...
 
 
 class PeriodType(Protocol):
@@ -90,7 +91,7 @@ class StorageType(Protocol):
 
     @abc.abstractmethod
     def put(self, value: ArrayType[Any], period: PeriodType) -> None:
-        """A storage system implements :meth:`.put`."""
+        ...
 
 
 class TaxBenefitSystemType(Protocol):
@@ -100,29 +101,35 @@ class TaxBenefitSystemType(Protocol):
 
     """
 
+    person_entity: EntityType
+
     @abc.abstractmethod
     def apply_reform(self, reform_path: str) -> TaxBenefitSystemType:
-        """A tax-benefit system implements :meth:`.apply_reform`."""
+        ...
 
     @abc.abstractmethod
     def clone(self) -> TaxBenefitSystemType:
-        """A tax-benefit system implements :meth:`.clone`."""
+        ...
+
+    @abc.abstractmethod
+    def get_package_metadata(self) -> Mapping[str, str]:
+        ...
 
     @abc.abstractmethod
     def get_variable(
             self,
             variable_name: str,
-            check_existence: bool = False,
+            check_existence: bool = ...,
             ) -> Optional[VariableType]:
-        """A tax-benefit system implements :meth:`.get_variable`."""
+        ...
 
     @abc.abstractmethod
     def instantiate_entities(self) -> Mapping[str, PopulationType]:
-        """A tax-benefit system implements :meth:`.instantiate_entities`."""
+        ...
 
     @abc.abstractmethod
     def load_extension(self, extension: str) -> None:
-        """A tax-benefit system implements :meth:`.load_extension`."""
+        ...
 
 
 class VariableType(Protocol):

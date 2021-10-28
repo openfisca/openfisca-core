@@ -8,8 +8,10 @@ Official Public API:
     * :data:`.ArrayLike`
     * :attr:`.ArrayType`
     * :class:`.HolderType`
+    * :class:`.PeriodType`
     * :class:`.PopulationType`
     * :class:`.TaxBenefitSystemType`
+    * :class:`.FrameSchema`
     * :class:`.OptionsSchema`
     * :class:`.TestSchema`
 
@@ -50,11 +52,13 @@ from ._data_types import (  # noqa: F401
 
 from ._protocols import (  # noqa: F401
     HolderType,
+    PeriodType,
     PopulationType,
     TaxBenefitSystemType,
     )
 
 from ._schemas import (  # noqa: F401
+    FrameSchema,
     OptionsSchema,
     TestSchema,
     )
@@ -62,7 +66,9 @@ from ._schemas import (  # noqa: F401
 __all__ = [
     "ArrayLike",
     "ArrayType",
+    "FrameSchema",
     "HolderType",
+    "PeriodType",
     "PopulationType",
     "TaxBenefitSystemType",
     "OptionsSchema",

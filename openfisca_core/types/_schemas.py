@@ -3,6 +3,15 @@ from __future__ import annotations
 from typing import Any, Mapping, Optional, Sequence
 from typing_extensions import TypedDict
 
+from ._protocols import PeriodType
+
+
+class FrameSchema(TypedDict):
+    """Data-schema of tracer stack frames."""
+
+    name: str
+    period: PeriodType
+
 
 class OptionsSchema(TypedDict, total = False):
     """Data-schema of ``openfisca test`` options."""
