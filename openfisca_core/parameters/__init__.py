@@ -21,9 +21,6 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
-from openfisca_core.errors import ParameterNotFound, ParameterParsingError  # noqa: F401
-
-
 from .config import (  # noqa: F401
     ALLOWED_PARAM_TYPES,
     COMMON_KEYS,
@@ -39,6 +36,6 @@ from .parameter_node_at_instant import ParameterNodeAtInstant  # noqa: F401
 from .vectorial_parameter_node_at_instant import VectorialParameterNodeAtInstant  # noqa: F401
 from .parameter import Parameter  # noqa: F401
 from .parameter_node import ParameterNode  # noqa: F401
-from .parameter_scale import ParameterScale, ParameterScale as Scale  # noqa: F401
-from .parameter_scale_bracket import ParameterScaleBracket, ParameterScaleBracket as Bracket  # noqa: F401
+from .parameter_scale import ParameterScale  # noqa: F401
+from .parameter_scale_bracket import ParameterScaleBracket  # noqa: F401
 from .values_history import ValuesHistory  # noqa: F401

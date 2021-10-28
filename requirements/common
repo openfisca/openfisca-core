@@ -1,0 +1,8 @@
+# These are dependencies to build the library, so we always want the latest
+# versions.
+
+# For managing dependencies.
+pip
+
+# For packaging the package.
+setuptools

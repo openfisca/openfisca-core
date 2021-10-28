@@ -17,7 +17,7 @@ This package contains the core features of OpenFisca, which are meant to be used
 
 OpenFisca runs on Python 3.7. More recent versions should work, but are not tested.
 
-OpenFisca also relies strongly on NumPy. Last four minor versions should work, but only latest/stable is tested.
+OpenFisca also relies strongly on NumPy. Only upper and lower bound versions are tested.
 
 ## Installation
 
@@ -30,8 +30,7 @@ git clone https://github.com/openfisca/openfisca-core.git
 cd openfisca-core
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -U pip
-pip install --editable .[dev] --use-deprecated=legacy-resolver
+make install
 ```
 
 ## Testing
@@ -45,10 +44,10 @@ make test
 To run all the tests defined on a test file:
 
 ```sh
-pytest tests/core/test_parameters.py
+openfisca test tests/core/test_parameters.py
 ```
 
-To run a single test:
+You can also use `pytest`, for example to run a single test:
 
 ```sh
 pytest tests/core/test_parameters.py -k test_parameter_for_period
@@ -57,8 +56,6 @@ pytest tests/core/test_parameters.py -k test_parameter_for_period
 ## Types
 
 This repository relies on MyPy for optional dynamic & static type checking.
-
-As NumPy introduced the `typing` module in 1.20.0, to ensure type hints do not break the code at runtime, we run the checker against the last four minor NumPy versions.
 
 Type checking is already run with `make test`. To run the type checker alone:
 
@@ -196,9 +193,15 @@ The OpenFisca Web API comes with an [optional tracker](https://github.com/openfi
 The tracker is not installed by default. To install it, run:
 
 ```sh
-pip install openfisca_core[tracker] --use-deprecated=legacy-resolver # Or `pip install --editable ".[tracker]"` for an editable installation
+pip install openfisca_core[tracker]
 ```
 
+Or for an editable installation:
+
+```
+make install
+make install-tracker
+```
 
 #### Tracker configuration
 

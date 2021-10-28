@@ -1,6 +1,19 @@
 version: 2
 jobs:
-  run_tests:
+  check_version:
+    docker:
+      - image: python:3.7
+
+    steps:
+      - checkout
+
+      - run:
+          name: Check version number has been properly updated
+          command: |
+            git fetch
+            .circleci/is-version-number-acceptable.sh
+
+  build:
     docker:
       - image: python:3.7
     environment:
@@ -17,20 +30,42 @@ jobs:
           command: |
             mkdir -p /tmp/venv/openfisca_core
             python -m venv /tmp/venv/openfisca_core
-            echo "source /tmp/venv/openfisca_core/bin/activate" >> $BASH_ENV
+
+      - run:
+          name: Activate virtualenv
+          command: echo "source /tmp/venv/openfisca_core/bin/activate" >> $BASH_ENV
 
       - run:
           name: Install dependencies
           command: |
-            make install
-            make clean
-            # pip install --editable git+https://github.com/openfisca/country-template.git@BRANCH_NAME#egg=OpenFisca-Country-Template  # use a specific branch of OpenFisca-Country-Template
-            # pip install --editable git+https://github.com/openfisca/extension-template.git@BRANCH_NAME#egg=OpenFisca-Extension-Template  # use a specific branch of OpenFisca-Extension-Template
+            make install-deps
+            make install-dev
 
       - save_cache:
           key: v1-py3-{{ .Branch }}-{{ checksum "setup.py" }}
           paths:
             - /tmp/venv/openfisca_core
+
+  test:
+    docker:
+      - image: python:3.7
+    environment:
+      TERM: xterm-256color  # To colorize output of make tasks.
+      PYTEST_ADDOPTS: --exitfirst
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          key: v1-py3-{{ .Branch }}-{{ checksum "setup.py" }}
+
+      - run:
+          name: Activate virtualenv
+          command: echo "source /tmp/venv/openfisca_core/bin/activate" >> $BASH_ENV
+
+      - run:
+          name: Install core
+          command: make install-core
 
       - run:
           name: Run linters
@@ -38,19 +73,15 @@ jobs:
 
       - run:
           name: Run openfisca-core tests
-          command: make test-core pytest_args="--exitfirst"
+          command: make test-core
 
       - run:
           name: Run country-template tests
-          command: make test-country pytest_args="--exitfirst"
+          command: make test-country
 
       - run:
           name: Run extension-template tests
-          command: make test-extension pytest_args="--exitfirst"
-
-      - run:
-          name: Check NumPy typing against latest 3 minor versions
-          command: for i in {1..3}; do VERSION=$(.circleci/get-numpy-version.py prev) && pip install numpy==$VERSION && make check-types; done
+          command: make test-extension
 
       - persist_to_workspace:
           root: .
@@ -81,7 +112,10 @@ jobs:
           command: |
             mkdir -p /tmp/venv/openfisca_doc
             python -m venv /tmp/venv/openfisca_doc
-            echo "source /tmp/venv/openfisca_doc/bin/activate" >> $BASH_ENV
+
+      - run:
+          name: Activate virtualenv
+          command: echo "source /tmp/venv/openfisca_doc/bin/activate" >> $BASH_ENV
 
       - run:
           name: Install dependencies
@@ -97,18 +131,44 @@ jobs:
           command: make test-doc-build
 
 
-  check_version:
+  test_compatibility:
     docker:
       - image: python:3.7
+    environment:
+      TERM: xterm-256color  # To colorize output of make tasks.
+      PYTEST_ADDOPTS: --exitfirst
 
     steps:
       - checkout
 
+      - restore_cache:
+          key: v1-py3-{{ .Branch }}-{{ checksum "setup.py" }}
+
       - run:
-          name: Check version number has been properly updated
+          name: Activate virtualenv
+          command: echo "source /tmp/venv/openfisca_core/bin/activate" >> $BASH_ENV
+
+      - run:
+          name: Install core with a constrained Numpy version
           command: |
-            git fetch
-            .circleci/is-version-number-acceptable.sh
+            make install-core
+            make install-compat
+
+      - run:
+          name: Run linters
+          command: make lint
+
+      - run:
+          name: Run openfisca-core tests
+          command: make test-core
+
+      - run:
+          name: Run country-template tests
+          command: make test-country
+
+      - run:
+          name: Run extension-template tests
+          command: make test-extension
 
   submit_coverage:
     docker:
@@ -124,20 +184,20 @@ jobs:
           key: v1-py3-{{ .Branch }}-{{ checksum "setup.py" }}
 
       - run:
+          name: Activate virtualenv
+          command: echo "source /tmp/venv/openfisca_core/bin/activate" >> $BASH_ENV
+
+      - run:
           name: Submit coverage to Coveralls
           command: |
-            source /tmp/venv/openfisca_core/bin/activate
-            pip install coveralls
+            make install-core
+            make install-cov
             coveralls
-
-      - save_cache:
-          key: v1-py3-{{ .Branch }}-{{ checksum "setup.py" }}
-          paths:
-            - /tmp/venv/openfisca_core
 
   deploy:
     docker:
       - image: python:3.7
+
     environment:
       PYPI_USERNAME: openfisca-bot
       # PYPI_PASSWORD: this value is set in CircleCI's web interface; do not set it here, it is a secret!
@@ -153,10 +213,14 @@ jobs:
           command: if ! .circleci/has-functional-changes.sh ; then circleci step halt ; fi
 
       - run:
-          name: Upload a Python package to Pypi
+          name: Activate virtualenv
+          command: echo "source /tmp/venv/openfisca_core/bin/activate" >> $BASH_ENV
+
+      - run:
+          name: Upload a Python package to PyPi
           command: |
-            source /tmp/venv/openfisca_core/bin/activate
-            .circleci/publish-python-package.sh
+            make build
+            make publish
 
       - run:
           name: Publish a git tag
@@ -171,17 +235,28 @@ workflows:
   version: 2
   build_and_deploy:
     jobs:
-      - run_tests
-      - test_docs
       - check_version
+      - build
+      - test:
+          requires:
+            - build
+      - test_docs:
+          requires:
+            - build
+      - test_compatibility:
+          requires:
+            - test_docs
       - submit_coverage:
           requires:
-            - run_tests
+            - test
+            - test_docs
+            - test_compatibility
       - deploy:
           requires:
-            - run_tests
-            - test_docs
             - check_version
+            - test
+            - test_docs
+            - test_compatibility
           filters:
             branches:
               only: master

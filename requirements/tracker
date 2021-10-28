@@ -1,0 +1,7 @@
+# Dependencies for tracking are optional, so we always want the latest
+# versions.
+
+# For sending usage statistics to the Matomo third-party service.
+#
+# We start from the currently supported version forward.
+openfisca-tracker >= 0.4.0
