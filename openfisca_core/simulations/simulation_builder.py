@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 import typing
-from typing import Any, Mapping, Optional
-from openfisca_core.typing import ArrayType, TaxBenefitSystemProtocol
+from typing import Any, Mapping, Optional, Sequence
+from openfisca_core.typing import (
+    ArrayType,
+    AxisSchema,
+    TaxBenefitSystemProtocol,
+    )
 
 import copy
 import dpath
@@ -18,6 +22,8 @@ from openfisca_core.variables import Variable
 
 
 class SimulationBuilder:
+
+    default_period: Optional[str]
 
     def __init__(self) -> None:
         self.default_period = None  # Simulation period used for variables when no period is defined
@@ -37,7 +43,7 @@ class SimulationBuilder:
 
         self.variable_entities: typing.Dict[Variable.name, Entity] = {}
 
-        self.axes = [[]]
+        self.axes: Sequence[Sequence[AxisSchema]] = [[]]
         self.axes_entity_counts: typing.Dict[Entity.plural, int] = {}
         self.axes_entity_ids: typing.Dict[Entity.plural, typing.List[int]] = {}
         self.axes_memberships: typing.Dict[Entity.plural, typing.List[int]] = {}

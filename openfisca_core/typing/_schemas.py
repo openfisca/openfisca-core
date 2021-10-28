@@ -6,6 +6,17 @@ from typing_extensions import TypedDict
 from ._protocols import PeriodProtocol
 
 
+class AxisSchema(TypedDict):
+    """Data-schema of axes."""
+
+    count: int
+    index: int
+    max: float
+    min: float
+    name: str
+    period: str
+
+
 class FrameSchema(TypedDict):
     """Data-schema of tracer stack frames."""
 

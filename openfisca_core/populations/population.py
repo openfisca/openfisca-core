@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Sequence
+from typing import Optional
 from openfisca_core.typing import ArrayLike
 
 import traceback

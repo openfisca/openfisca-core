@@ -1,7 +1,9 @@
+# pylint: disable=missing-function-docstring
+
 from __future__ import annotations
 
-from typing import Any, Mapping, Optional, Sequence, Set
-from typing_extensions import Protocol
+from typing import Any, Mapping, Optional, Sequence, Set, overload
+from typing_extensions import Literal, Protocol
 from ._types import ArrayType
 
 import abc
@@ -117,6 +119,10 @@ class PopulationProtocol(Protocol):
     members_position: ArrayType[int]
     members_role: ArrayType[RoleProtocol]
 
+    @abc.abstractmethod
+    def get_index(self, id: str) -> int:
+        ...
+
 
 class RoleProtocol(Protocol):
     """Duck-type for roles.
@@ -163,6 +169,22 @@ class TaxBenefitSystemProtocol(Protocol):
 
     @abc.abstractmethod
     def get_package_metadata(self) -> Mapping[str, str]:
+        ...
+
+    @overload
+    def get_variable(
+            self,
+            variable_name: str,
+            check_existence: Literal[True] = ...,
+            ) -> VariableProtocol:
+        ...
+
+    @overload
+    def get_variable(
+            self,
+            variable_name: str,
+            check_existence: bool = ...,
+            ) -> Optional[VariableProtocol]:
         ...
 
     @abc.abstractmethod

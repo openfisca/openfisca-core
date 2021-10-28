@@ -18,7 +18,6 @@ from openfisca_core import commons, periods
 from openfisca_core.errors import CycleError, SpiralError
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import Period
-from openfisca_core.populations import Population
 from openfisca_core.tracers import FullTracer, SimpleTracer, TracingParameterNodeAtInstant
 from openfisca_core.warnings import TempfileWarning
 
@@ -99,7 +98,7 @@ class Simulation:
     def calculate(
             self,
             variable_name: str,
-            period: Period,
+            period: Optional[Any],
             ) -> ArrayType[Any]:
         """Calculate ``variable_name`` for ``period``."""
 
@@ -439,7 +438,7 @@ class Simulation:
     def get_population(
             self,
             plural: Optional[str] = None,
-            ) -> Optional[Population]:
+            ) -> Optional[PopulationProtocol]:
 
         return next((population for population in self.populations.values() if population.entity.plural == plural), None)
 

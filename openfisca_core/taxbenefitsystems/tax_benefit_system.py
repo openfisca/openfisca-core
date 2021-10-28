@@ -293,7 +293,7 @@ class TaxBenefitSystem:
     def get_variable(
             self,
             variable_name: str,
-            check_existence: Literal[True],
+            check_existence: Literal[True] = ...,
             ) -> Variable:
         ...
 

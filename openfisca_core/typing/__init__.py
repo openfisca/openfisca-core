@@ -12,6 +12,7 @@ Official Public API:
     * :class:`.PeriodProtocol`
     * :class:`.PopulationProtocol`
     * :class:`.TaxBenefitSystemProtocol`
+    * :class:`.AxisSchema`
     * :class:`.FrameSchema`
     * :class:`.OptionsSchema`
     * :class:`.TestSchema`
@@ -60,6 +61,7 @@ from ._protocols import (  # noqa: F401
     )
 
 from ._schemas import (  # noqa: F401
+    AxisSchema,
     FrameSchema,
     OptionsSchema,
     TestSchema,
@@ -73,6 +75,7 @@ __all__ = [
     "PeriodProtocol",
     "PopulationProtocol",
     "TaxBenefitSystemProtocol",
+    "AxisSchema",
     "FrameSchema",
     "OptionsSchema",
     "TestSchema",
