@@ -1,14 +1,9 @@
 from __future__ import annotations
 
-import typing
-from typing import Dict, List, Union
+from typing import Sequence
+from openfisca_core.types import ArrayLike, FrameSchema, PeriodType
 
-if typing.TYPE_CHECKING:
-    from numpy.typing import ArrayLike
-
-    from openfisca_core.periods import Period
-
-    Stack = List[Dict[str, Union[str, Period]]]
+Stack = Sequence[FrameSchema]
 
 
 class SimpleTracer:
@@ -18,8 +13,15 @@ class SimpleTracer:
     def __init__(self) -> None:
         self._stack = []
 
-    def record_calculation_start(self, variable: str, period: Period) -> None:
-        self.stack.append({'name': variable, 'period': period})
+    def record_calculation_start(
+            self,
+            variable: str,
+            period: PeriodType,
+            ) -> None:
+
+        frame: FrameSchema
+        frame = {'name': variable, 'period': period}
+        self.stack = [*self.stack, frame]
 
     def record_calculation_result(self, value: ArrayLike) -> None:
         pass  # ignore calculation result
@@ -28,8 +30,12 @@ class SimpleTracer:
         pass
 
     def record_calculation_end(self) -> None:
-        self.stack.pop()
+        self.stack = self.stack[:-1]
 
     @property
     def stack(self) -> Stack:
         return self._stack
+
+    @stack.setter
+    def stack(self, value: Stack) -> None:
+        self._stack = value

@@ -1,23 +1,18 @@
 from __future__ import annotations
 
 import time
-import typing
-from typing import Dict, Iterator, List, Optional, Union
+from typing import Iterator, Optional, Sequence
+from openfisca_core.types import ArrayLike, FrameSchema, PeriodType
 
 from .. import tracers
 
-if typing.TYPE_CHECKING:
-    from numpy.typing import ArrayLike
-
-    from openfisca_core.periods import Period
-
-    Stack = List[Dict[str, Union[str, Period]]]
+Stack = Sequence[FrameSchema]
 
 
 class FullTracer:
 
     _simple_tracer: tracers.SimpleTracer
-    _trees: list
+    _trees: Sequence[tracers.TraceNode]
     _current_node: Optional[tracers.TraceNode]
 
     def __init__(self) -> None:
@@ -28,8 +23,9 @@ class FullTracer:
     def record_calculation_start(
             self,
             variable: str,
-            period: Period,
+            period: PeriodType,
             ) -> None:
+
         self._simple_tracer.record_calculation_start(variable, period)
         self._enter_calculation(variable, period)
         self._record_start_time()
@@ -37,8 +33,9 @@ class FullTracer:
     def _enter_calculation(
             self,
             variable: str,
-            period: Period,
+            period: PeriodType,
             ) -> None:
+
         new_node = tracers.TraceNode(
             name = variable,
             period = period,
@@ -46,7 +43,7 @@ class FullTracer:
             )
 
         if self._current_node is None:
-            self._trees.append(new_node)
+            self._trees = [*self.trees, new_node]
 
         else:
             self._current_node.append_child(new_node)
@@ -56,14 +53,20 @@ class FullTracer:
     def record_parameter_access(
             self,
             parameter: str,
-            period: Period,
+            period: PeriodType,
             value: ArrayLike,
             ) -> None:
 
         if self._current_node is not None:
-            self._current_node.parameters.append(
-                tracers.TraceNode(name = parameter, period = period, value = value),
+            new_node = tracers.TraceNode(
+                name = parameter,
+                period = period,
+                value = value,
                 )
+
+            parameters = self._current_node.parameters
+
+            self._current_node.parameters = [*parameters, new_node]
 
     def _record_start_time(
             self,
@@ -103,7 +106,7 @@ class FullTracer:
         return self._simple_tracer.stack
 
     @property
-    def trees(self) -> List[tracers.TraceNode]:
+    def trees(self) -> Sequence[tracers.TraceNode]:
         return self._trees
 
     @property
