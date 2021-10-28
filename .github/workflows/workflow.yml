@@ -210,7 +210,7 @@ jobs:
     env:
       PYPI_USERNAME: openfisca-bot
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      CIRCLE_TOKEN: ${{ secrets.CIRCLECI_V1_OPENFISCADOC_TOKEN }}
+      CIRCLE_TOKEN: ${{ secrets.CIRCLECI_V1_OPENFISCADOC_TOKEN }} # Personal API token created in CircleCI to grant full read and write permissions
     steps:
       - uses: actions/checkout@v2
         with:
