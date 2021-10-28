@@ -211,7 +211,6 @@ jobs:
       PYPI_USERNAME: openfisca-bot
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       CIRCLE_TOKEN: ${{ secrets.CIRCLECI_V1_OPENFISCADOC_TOKEN }}
-      CIRCLE_BRANCH: ${{ github.head_ref }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -238,4 +237,4 @@ jobs:
         run: "${GITHUB_WORKSPACE}/.github/publish-git-tag.sh"
       - name: Update doc
         run: |
-          curl -X POST --header "Content-Type: application/json" -d "branch: $CIRCLE_BRANCH" --url https://circleci.com/api/v1.1/project/github/openfisca/openfisca-doc/build?circle-token=$CIRCLE_TOKEN
+          curl -X POST --header "Content-Type: application/json" -d '{"branch":"master"}' https://circleci.com/api/v1.1/project/github/openfisca/openfisca-doc/build?circle-token=$CIRCLE_TOKEN
