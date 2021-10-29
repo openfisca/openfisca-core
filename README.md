@@ -157,7 +157,7 @@ rm -rf doc
 
 7. Finally, open a pull request both in [core](https://github.com/openfisca/openfisca-core/compare/master...fix-doc) and in the [doc](https://github.com/openfisca/openfisca-doc/compare/master...fix-doc).
 
-[CircleCI](.circleci/config.yml) will automatically try to build the documentation from the same branch in both core and the doc (in our example "fix-doc") so we can integrate first our changes to core, and then our changes to the doc.
+Continuous integration will automatically try to build the documentation from the same branch in both core and the doc (in our example "fix-doc") so we can integrate first our changes to Core, and then our changes to the doc.
 
 If no changes were needed to the doc, then your changes to core will be verified against the production version of the doc.
 
