@@ -5,6 +5,6 @@ build:
 	@$(call print_help,$@:)
 	@pip install --upgrade pip build twine
 	@python -m build
-        @pip uninstall --yes openfisca-core
-        @find dist -name "*.whl" -exec pip install {}[dev] \;
+	@pip uninstall --yes openfisca-core
+	@find dist -name "*.whl" -exec pip install {}[dev] \;
 	@$(call print_pass,$@:)
