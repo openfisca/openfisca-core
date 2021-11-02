@@ -4,6 +4,6 @@ build:
 	@## of openfisca-core, the same we put in the hands of users and reusers.
 	@$(call print_help,$@:)
 	@pip install --upgrade pip build twine
-	@python setup.py bdist_wheel
+	@python -m build
 	@find dist -name "*.whl" -exec pip install --force-reinstall {}[dev] \;
 	@$(call print_pass,$@:)
