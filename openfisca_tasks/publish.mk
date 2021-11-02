@@ -1,3 +1,5 @@
+.PHONY: build
+
 ## Install openfisca-core for deployment and publishing.
 build:
 	@## This allows us to be sure tests are run against the packaged version
