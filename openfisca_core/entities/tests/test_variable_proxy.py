@@ -95,7 +95,7 @@ def test_variables_when_doesnt_exist(entity, tbs):
 
 
 def test_variables_when_exists_and_check_exists(entity, tbs, ThisVar):
-    """Raises a VariableNotFoundError when checking for existance."""
+    """Raises a VariableNotFoundError when checking for existence."""
 
     entity.tax_benefit_system = tbs
     variable = entity.variables.exists().get("ThisVar")
@@ -103,7 +103,7 @@ def test_variables_when_exists_and_check_exists(entity, tbs, ThisVar):
 
 
 def test_variables_when_doesnt_exist_and_check_exists(entity, tbs):
-    """Raises a VariableNotFoundError when checking for existance."""
+    """Raises a VariableNotFoundError when checking for existence."""
 
     entity.tax_benefit_system = tbs
 

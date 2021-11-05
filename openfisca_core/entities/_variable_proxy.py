@@ -138,7 +138,7 @@ class _VariableProxy:
     def isdefined(self) -> _VariableProxy:
         """Checks that ``variable_name`` is defined for :attr:`.entity`."""
 
-        # We assume that we're also checking for existance.
+        # We assume that we're also checking for existence.
         self.exists()
 
         self.query = functools.partial(

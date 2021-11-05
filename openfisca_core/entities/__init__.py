@@ -26,8 +26,8 @@ is defined either for an :class:`.Entity` or for a :class:`.GroupEntity`,
 and in the latter case, the way the rule is going to be applied depends
 on the attributes and roles of the members of the group.
 
-Finally, there is a distiction to be made between the "abstract" entities
-described by in a rule system, for example an individual, as in "any"
+Finally, there is a distinction to be made between the "abstract" entities
+described in a rule system, for example an individual, as in "any"
 individual, and an actual individual, like Mauko, Andrea, Mehdi, Seiko,
 or José.
 
