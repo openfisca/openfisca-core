@@ -2,7 +2,7 @@
 
 ### 35.7.3 [#1081](https://github.com/openfisca/openfisca-core/pull/1081)
 
-- Fix misnamed attribute in mis-sized population error message
+- Correct error message in case of mis-sized population 
 
 ### 35.7.2 [#1057](https://github.com/openfisca/openfisca-core/pull/1057)
 
