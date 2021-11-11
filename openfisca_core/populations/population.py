@@ -44,7 +44,7 @@ class Population:
     def check_array_compatible_with_entity(self, array):
         if not self.count == array.size:
             raise ValueError("Input {} is not a valid value for the entity {} (size = {} != {} = count)".format(
-                array, self.key, array.size, self.count))
+                array, self.entity.key, array.size, self.count))
 
     def check_period_validity(self, variable_name, period):
         if period is None:
