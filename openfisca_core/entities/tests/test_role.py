@@ -2,7 +2,7 @@ from openfisca_core.entities import Role
 
 
 def test_init_when_doc_indented():
-    """Dedents the ``doc`` attribute if it is passed at initialisation."""
+    """Unindents the ``doc`` attribute if it is passed at initialisation."""
 
     key = "\tkey"
     doc = "\tdoc"
