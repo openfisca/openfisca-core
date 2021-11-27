@@ -267,6 +267,10 @@ class GroupPopulation(Population):
         # The map is needed b/c the order of the nth persons of each household in the persons vector is not necessarily the same than the household order.
         result[nb_persons_per_entity > n] = array[members_map][positions[members_map] == n]
 
+        # Preserve Enum dtype
+        if isinstance(array, EnumArray):
+            result = EnumArray(result, array.possible_values)
+
         return result
 
     @projectors.projectable
