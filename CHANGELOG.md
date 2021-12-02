@@ -1,5 +1,11 @@
 # Changelog
 
+### 35.7.4 [#1083](https://github.com/openfisca/openfisca-core/pull/1083)
+
+#### Technical changes
+
+- Add GitHub `pull-request` event as a trigger to GitHub Actions workflow
+
 ### 35.7.3 [#1081](https://github.com/openfisca/openfisca-core/pull/1081)
 
 - Correct error message in case of mis-sized population 
