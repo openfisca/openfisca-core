@@ -23,7 +23,6 @@ def check_fails_with_message(file_name, keywords):
     ('indentation', {'Invalid YAML', 'indentation.yaml', 'line 2', 'mapping values are not allowed'}),
     ("wrong_date", {"Error parsing parameter file", "Properties must be valid YYYY-MM-DD instants"}),
     ('wrong_scale', {'Unexpected property', 'scale[1]', 'treshold'}),
-    ('wrong_value', {'not one of the allowed types', 'wrong_value[2015-12-01]', '1A'}),
     ('unexpected_key_in_parameter', {'Unexpected property', 'unexpected_key'}),
     ('wrong_type_in_parameter', {'must be of type object'}),
     ('wrong_type_in_value_history', {'must be of type object'}),
@@ -58,3 +57,10 @@ def test_yaml_hierarchy():
     parameters = ParameterNode('', directory_path = path)
     parameters_at_instant = parameters('2016-01-01')
     assert parameters_at_instant.node1.param == 1.0
+
+
+def test_string_parameter():
+    path = os.path.join(BASE_DIR, 'string_parameter.yaml')
+    parameter = load_parameter_file(path, 'string_parameter')
+    assert parameter("2015-01-01") == "string, without metadata"
+    assert parameter("2016-01-01") == "string, with metadata"
