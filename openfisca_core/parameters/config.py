@@ -19,7 +19,7 @@ except ImportError:
 
 # 'unit' and 'reference' are only listed here for backward compatibility.
 #  It is now recommended to include them in metadata, until a common consensus emerges.
-ALLOWED_PARAM_TYPES = (float, int, bool, type(None), typing.List)
+ALLOWED_PARAM_TYPES = (float, int, bool, type(None), typing.List, str)
 COMMON_KEYS = {'description', 'metadata', 'unit', 'reference', 'documentation'}
 FILE_EXTENSIONS = {'.yaml', '.yml'}
 
