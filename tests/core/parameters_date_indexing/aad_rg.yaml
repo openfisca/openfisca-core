@@ -1,7 +1,7 @@
 description: Age d'annulation de la décote
 age_annulation_decote_en_fonction_date_naissance:
   description: Age d'annulation de la décote en fonction de la date de naissance
-  ne_avant_1951_07_01:
+  before_1951_07_01:
     description: Né avant le 01/07/1951
     annee:
       description: Année
@@ -13,7 +13,7 @@ age_annulation_decote_en_fonction_date_naissance:
       values:
         1983-04-01:
           value: 0.0
-  ne_apres_1951_07_01:
+  after_1951_07_01:
     description: Né après le 01/07/1951
     annee:
       description: Année
@@ -29,7 +29,7 @@ age_annulation_decote_en_fonction_date_naissance:
           value: 4.0
         1983-04-01:
           value: null
-  ne_apres_1952_01_01:
+  after_1952_01_01:
     description: Né après le 01/01/1952
     annee:
       description: Année
@@ -47,7 +47,7 @@ age_annulation_decote_en_fonction_date_naissance:
           value: 8.0
         1983-04-01:
           value: null
-  ne_apres_1953_01_01:
+  after_1953_01_01:
     description: Né après le 01/01/1953
     annee:
       description: Année
@@ -65,7 +65,7 @@ age_annulation_decote_en_fonction_date_naissance:
           value: 0.0
         1983-04-01:
           value: null
-  ne_apres_1954_01_01:
+  after_1954_01_01:
     description: Né après le 01/01/1954
     annee:
       description: Année
@@ -83,7 +83,7 @@ age_annulation_decote_en_fonction_date_naissance:
           value: 4.0
         1983-04-01:
           value: null
-  ne_apres_1955_01_01:
+  after_1955_01_01:
     description: Né après le 01/01/1955
     annee:
       description: Année
@@ -103,7 +103,7 @@ age_annulation_decote_en_fonction_date_naissance:
           value: 8.0
         1983-04-01:
           value: null
-  ne_apres_1956_01_01:
+  after_1956_01_01:
     description: Né après le 01/01/1956
     annee:
       description: Année
