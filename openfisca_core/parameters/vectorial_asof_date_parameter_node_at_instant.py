@@ -39,16 +39,16 @@ class VectorialAsofDateParameterNodeAtInstant(parameters.VectorialParameterNodeA
         # If the key is a vector, e.g. ['1990-11-25', '1983-04-17', '1969-09-09']
         elif isinstance(key, numpy.ndarray):
             assert numpy.issubdtype(key.dtype, numpy.datetime64)
-            names = list(self.dtype.names)  # Get all the names of the subnodes, e.g. ['ne_avant_X', 'ne_apres_X', 'ne_apres_Y']
+            names = list(self.dtype.names)  # Get all the names of the subnodes, e.g. ['before_X', 'after_X', 'after_Y']
             values = numpy.asarray([value for value in self.vector[0]])
             names = [
                 name
                 for name in names
-                if not name.startswith("ne_avant")
+                if not name.startswith("before")
                 ]
             names = [
                 numpy.datetime64(
-                    "-".join(name[9:].split("_"))
+                    "-".join(name[len("after_"):].split("_"))
                     )
                 for name in names
                 ]
