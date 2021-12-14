@@ -1,6 +1,6 @@
 - name: "Result outside neutralized variables"
   period: 2021-01
-  neutralized_variables:
+  neutralize_variables:
     - housing_allowance
   input:
     age: 30
@@ -9,7 +9,7 @@
 
 - name: "Result within neutralized variables"
   period: 2021-01
-  neutralized_variables:
+  neutralize_variables:
     - basic_income
   input:
     age: 30
