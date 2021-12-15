@@ -1,5 +1,11 @@
 # Changelog
 
+### 35.7.5 [#1090](https://github.com/openfisca/openfisca-core/pull/1090)
+
+#### Technical changes
+
+- Remove calls to deprecated imp module
+
 ### 35.7.4 [#1083](https://github.com/openfisca/openfisca-core/pull/1083)
 
 #### Technical changes
