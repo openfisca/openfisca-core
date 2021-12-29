@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 # functional and integration breaks caused by external code updates.
 
 general_requirements = [
-    'dpath >= 1.5.0, < 2.0.0',
+    'dpath >= 1.5.0, < 3.0.0',
     'nptyping == 1.4.4',
     'numexpr >= 2.7.0, <= 3.0',
     'numpy >= 1.11, < 1.21',
