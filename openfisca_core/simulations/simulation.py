@@ -1,3 +1,14 @@
+from __future__ import annotations
+
+from typing import Any, Mapping, Optional, Set, Tuple
+from openfisca_core.typing import (
+    ArrayType,
+    HolderProtocol,
+    PeriodProtocol,
+    PopulationProtocol,
+    TaxBenefitSystemProtocol,
+    )
+
 import tempfile
 import warnings
 
@@ -18,14 +29,15 @@ class Simulation:
 
     def __init__(
             self,
-            tax_benefit_system,
-            populations
-            ):
+            tax_benefit_system: TaxBenefitSystemProtocol,
+            populations: Mapping[str, PopulationProtocol]
+            ) -> None:
         """
         This constructor is reserved for internal use; see :any:`SimulationBuilder`,
         which is the preferred way to obtain a Simulation initialized with a consistent
         set of Entities.
         """
+
         self.tax_benefit_system = tax_benefit_system
         assert tax_benefit_system is not None
 
@@ -34,7 +46,7 @@ class Simulation:
         self.link_to_entities_instances()
         self.create_shortcuts()
 
-        self.invalidated_caches = set()
+        self.invalidated_caches: Set[Tuple[str, PeriodProtocol]] = set()
 
         self.debug = False
         self.trace = False
@@ -83,7 +95,11 @@ class Simulation:
 
     # ----- Calculation methods ----- #
 
-    def calculate(self, variable_name, period):
+    def calculate(
+            self,
+            variable_name: str,
+            period: Optional[Any],
+            ) -> ArrayType[Any]:
         """Calculate ``variable_name`` for ``period``."""
 
         if period is not None and not isinstance(period, Period):
@@ -291,10 +307,15 @@ class Simulation:
             message = "Quasicircular definition detected on formula {}@{} involving {}".format(variable, period, self.tracer.stack)
             raise SpiralError(message, variable)
 
-    def invalidate_cache_entry(self, variable: str, period):
+    def invalidate_cache_entry(
+            self,
+            variable: str,
+            period: PeriodProtocol,
+            ) -> None:
+
         self.invalidated_caches.add((variable, period))
 
-    def invalidate_spiral_variables(self, variable: str):
+    def invalidate_spiral_variables(self, variable: str) -> None:
         # Visit the stack, from the bottom (most recent) up; we know that we'll find
         # the variable implicated in the spiral (max_spiral_loops+1) times; we keep the
         # intermediate values computed (to avoid impacting performance) but we mark them
@@ -319,7 +340,7 @@ class Simulation:
             period = periods.period(period)
         return self.get_holder(variable_name).get_array(period)
 
-    def get_holder(self, variable_name):
+    def get_holder(self, variable_name: str) -> HolderProtocol:
         """
         Get the :obj:`.Holder` associated with the variable ``variable_name`` for the simulation
         """
@@ -414,7 +435,11 @@ class Simulation:
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
         return self.populations[variable.entity.key]
 
-    def get_population(self, plural = None):
+    def get_population(
+            self,
+            plural: Optional[str] = None,
+            ) -> Optional[PopulationProtocol]:
+
         return next((population for population in self.populations.values() if population.entity.plural == plural), None)
 
     def get_entity(self, plural = None):

@@ -17,7 +17,7 @@ check-style: $(shell git ls-files "*.py")
 ## Run linters to check for syntax and style errors in the doc.
 lint-doc: \
 	lint-doc-commons \
-	lint-doc-types \
+	lint-doc-typing \
 	;
 
 ## Run linters to check for syntax and style errors in the doc.
@@ -42,7 +42,8 @@ check-types:
 ## Run static type checkers for type errors (strict).
 lint-typing-strict: \
 	lint-typing-strict-commons \
-	lint-typing-strict-types \
+	lint-typing-strict-tools \
+	lint-typing-strict-typing \
 	;
 
 ## Run static type checkers for type errors (strict).

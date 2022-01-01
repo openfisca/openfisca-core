@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import Any, Optional, Sequence
+from openfisca_core.typing import ArrayType
+
 import os
 import warnings
 
@@ -48,7 +53,12 @@ class Holder:
 
         return new
 
-    def create_disk_storage(self, directory = None, preserve = False):
+    def create_disk_storage(
+            self,
+            directory: Optional[str] = None,
+            preserve: bool = False,
+            ) -> OnDiskStorage:
+
         if directory is None:
             directory = self.simulation.data_storage_dir
         storage_dir = os.path.join(directory, self.variable.name)
@@ -71,12 +81,13 @@ class Holder:
         if self._disk_storage:
             self._disk_storage.delete(period)
 
-    def get_array(self, period):
+    def get_array(self, period: periods.Period) -> Any:
         """
         Get the value of the variable for the given period.
 
         If the value is not known, return ``None``.
         """
+
         if self.variable.is_neutralized:
             return self.default_array()
         value = self._memory_storage.get(period)
@@ -122,7 +133,7 @@ class Holder:
 
         return usage
 
-    def get_known_periods(self):
+    def get_known_periods(self) -> Sequence[periods.Period]:
         """
         Get the list of periods the variable value is known for.
         """
@@ -227,7 +238,12 @@ class Holder:
         else:
             self._memory_storage.put(value, period)
 
-    def put_in_cache(self, value, period):
+    def put_in_cache(
+            self,
+            value: ArrayType[Any],
+            period: periods.Period,
+            ) -> None:
+
         if self._do_not_store:
             return
 

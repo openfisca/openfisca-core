@@ -1,6 +1,15 @@
+from __future__ import annotations
+
+import typing
+from typing import Any, Mapping, Optional, Sequence
+from openfisca_core.typing import (
+    ArrayType,
+    AxisSchema,
+    TaxBenefitSystemProtocol,
+    )
+
 import copy
 import dpath
-import typing
 
 import numpy
 
@@ -14,12 +23,14 @@ from openfisca_core.variables import Variable
 
 class SimulationBuilder:
 
-    def __init__(self):
+    default_period: Optional[str]
+
+    def __init__(self) -> None:
         self.default_period = None  # Simulation period used for variables when no period is defined
         self.persons_plural = None  # Plural name for person entity in current tax and benefits system
 
         # JSON input - Memory of known input values. Indexed by variable or axis name.
-        self.input_buffer: typing.Dict[Variable.name, typing.Dict[str(periods.period), numpy.array]] = {}
+        self.input_buffer: typing.Dict[Variable.name, typing.Dict[str, ArrayType]] = {}
         self.populations: typing.Dict[Entity.key, Population] = {}
         # JSON input - Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
         self.entity_counts: typing.Dict[Entity.plural, int] = {}
@@ -32,13 +43,17 @@ class SimulationBuilder:
 
         self.variable_entities: typing.Dict[Variable.name, Entity] = {}
 
-        self.axes = [[]]
+        self.axes: Sequence[Sequence[AxisSchema]] = [[]]
         self.axes_entity_counts: typing.Dict[Entity.plural, int] = {}
         self.axes_entity_ids: typing.Dict[Entity.plural, typing.List[int]] = {}
         self.axes_memberships: typing.Dict[Entity.plural, typing.List[int]] = {}
         self.axes_roles: typing.Dict[Entity.plural, typing.List[int]] = {}
 
-    def build_from_dict(self, tax_benefit_system, input_dict):
+    def build_from_dict(
+            self,
+            tax_benefit_system: TaxBenefitSystemProtocol,
+            input_dict: Mapping[str, Any],
+            ) -> Simulation:
         """
             Build a simulation from ``input_dict``
 
@@ -322,7 +337,7 @@ class SimulationBuilder:
         self.roles[entity.plural] = self.roles[entity.plural].tolist()
         self.memberships[entity.plural] = self.memberships[entity.plural].tolist()
 
-    def set_default_period(self, period_str):
+    def set_default_period(self, period_str: Optional[str]) -> None:
         if period_str:
             self.default_period = str(periods.period(period_str))
 

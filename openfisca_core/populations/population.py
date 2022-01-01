@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import Optional
+from openfisca_core.typing import ArrayLike
+
 import traceback
 
 import numpy
@@ -13,8 +18,8 @@ class Population:
         self.simulation = None
         self.entity = entity
         self._holders = {}
-        self.count = 0
-        self.ids = []
+        self.count: Optional[int] = 0
+        self.ids: ArrayLike[str] = []
 
     def clone(self, simulation):
         result = Population(self.entity)
@@ -36,7 +41,7 @@ class Population:
             raise AttributeError("You tried to use the '{}' of '{}' but that is not a known attribute.".format(attribute, self.entity.key))
         return projector
 
-    def get_index(self, id):
+    def get_index(self, id: str) -> int:
         return self.ids.index(id)
 
     # Calculations
