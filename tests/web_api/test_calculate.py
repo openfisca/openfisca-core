@@ -314,6 +314,41 @@ def test_periods(test_client):
     assert monthly_variable == {'2017-01': 'tenant'}
 
 
+def test_two_periods(test_client):
+    '''
+    Made to test the else of 'if computation_results == {}:' in handlers.py->calculate
+    '''
+    simulation_json = json.dumps({
+        "persons": {
+            "bill": {}
+            },
+        "households": {
+            "_": {
+                "parents": ["bill"],
+                "housing_tax": {
+                    "2017": None,
+                    "2018": None
+                    },
+                "housing_occupancy_status": {
+                    "2017-01": None,
+                    "2018-01": None
+                    }
+                }
+            }
+        })
+
+    response = post_json(test_client, simulation_json)
+    assert response.status_code == client.OK
+
+    response_json = json.loads(response.data.decode('utf-8'))
+
+    yearly_variable = dpath.util.get(response_json, 'households/_/housing_tax')  # web api year is an int
+    assert yearly_variable == {'2017': 200.0, '2018': 200.0}
+
+    monthly_variable = dpath.util.get(response_json, 'households/_/housing_occupancy_status')  # web api month is a string
+    assert monthly_variable == {'2017-01': 'tenant', '2018-01': 'tenant'}
+
+
 def test_handle_period_mismatch_error(test_client):
 
     variable = "housing_tax"
