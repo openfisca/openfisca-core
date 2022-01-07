@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 # functional and integration breaks caused by external code updates.
 
 general_requirements = [
-    'dpath >= 1.5.0, < 2.0.0',
+    'dpath >= 1.5.0, < 3.0.0',
     'nptyping == 1.4.4',
     'numexpr >= 2.7.0, <= 3.0',
     'numpy >= 1.11, < 1.21',
@@ -18,7 +18,7 @@ general_requirements = [
     ]
 
 api_requirements = [
-    'flask == 1.1.2',
+    'flask == 2.0.2',
     'flask-cors == 3.0.10',
     'gunicorn >= 20.0.0, < 21.0.0',
     'werkzeug >= 1.0.0, < 2.0.0',
@@ -41,7 +41,7 @@ dev_requirements = [
 
 setup(
     name = 'OpenFisca-Core',
-    version = '35.7.5',
+    version = '35.7.6',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [
