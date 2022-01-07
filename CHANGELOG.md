@@ -5,6 +5,7 @@
 #### Technical changes
 
 - Made code compatible with dpath versions >=1.5.0,<3.0.0, instead of >=1.5.0,<2.0.0
+
 ### 35.7.5 [#1090](https://github.com/openfisca/openfisca-core/pull/1090)
 
 #### Technical changes
