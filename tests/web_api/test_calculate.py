@@ -316,6 +316,8 @@ def test_periods(test_client):
 
 def test_two_periods(test_client):
     '''
+    Test `calculate` on a request with mixed types periods: yearly periods following
+    monthly or daily periods to check dpath limitation on numeric keys (yearly periods).
     Made to test the case where we have more than one path with a numeric in it.
     See https://github.com/dpath-maintainers/dpath-python/issues/160 for more informations.
     '''
