@@ -25,21 +25,22 @@ def calculate(tax_benefit_system, input_data):
             entity_result = str(result[entity_index])
         else:
             entity_result = result.tolist()[entity_index]
-        # Don't use dpath if we have a key that is numeric,
-        # mandatory for dpath upgrade, see https://github.com/dpath-maintainers/dpath-python/issues/160
-        if period.isnumeric():
-            if computation_results == {}:
-                computation_results = {entity_plural: {entity_id: {variable_name: {period: entity_result}}}}
-            else:
-                if entity_plural in computation_results and entity_id in computation_results[entity_plural]:
+        # Don't use dpath.util.new, because there is a problem with dpath>=2.0
+        # when we have a key that is numeric, like the year.
+        # See https://github.com/dpath-maintainers/dpath-python/issues/160
+        if computation_results == {}:
+            computation_results = {entity_plural: {entity_id: {variable_name: {period: entity_result}}}}
+        else:
+            if entity_plural in computation_results:
+                if entity_id in computation_results[entity_plural]:
                     if variable_name in computation_results[entity_plural][entity_id]:
                         computation_results[entity_plural][entity_id][variable_name][period] = entity_result
                     else:
-                        computation_results[entity_plural][entity_id] = {variable_name: {period: entity_result}}
+                        computation_results[entity_plural][entity_id][variable_name] = {period: entity_result}
                 else:
-                    computation_results[entity_plural] = {entity_id: {variable_name: {period: entity_result}}}
-        else:
-            dpath.util.new(computation_results, path, entity_result)
+                    computation_results[entity_plural][entity_id] = {variable_name: {period: entity_result}}
+            else:
+                computation_results[entity_plural] = {entity_id: {variable_name: {period: entity_result}}}
     dpath.util.merge(input_data, computation_results)
 
     return input_data

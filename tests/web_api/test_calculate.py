@@ -316,7 +316,8 @@ def test_periods(test_client):
 
 def test_two_periods(test_client):
     '''
-    Made to test the else of 'if computation_results == {}:' in handlers.py->calculate
+    Made to test the case where we have more than one path with a numeric in it.
+    See https://github.com/dpath-maintainers/dpath-python/issues/160 for more informations.
     '''
     simulation_json = json.dumps({
         "persons": {
