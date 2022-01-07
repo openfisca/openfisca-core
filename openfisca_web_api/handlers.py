@@ -11,7 +11,7 @@ def calculate(tax_benefit_system, input_data: dict) -> dict:
     '''
     simulation = SimulationBuilder().build_from_entities(tax_benefit_system, input_data)
     requested_computations = dpath.util.search(input_data, '*/*/*/*', afilter = lambda t: t is None, yielded = True)
-    computation_results = {}
+    computation_results: dict = {}
     for computation in requested_computations:
         path = computation[0]  # format: entity_plural/entity_instance_id/openfisca_variable_name/period
         entity_plural, entity_id, variable_name, period = path.split('/')
