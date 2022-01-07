@@ -5,7 +5,10 @@ from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.indexed_enums import Enum
 
 
-def calculate(tax_benefit_system, input_data):
+def calculate(tax_benefit_system, input_data: dict) -> dict:
+    '''
+    Returns the input_data where the None values are replaced by the calculated values.
+    '''
     simulation = SimulationBuilder().build_from_entities(tax_benefit_system, input_data)
     requested_computations = dpath.util.search(input_data, '*/*/*/*', afilter = lambda t: t is None, yielded = True)
     computation_results = {}
