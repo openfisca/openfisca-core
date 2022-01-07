@@ -1,4 +1,4 @@
-import dpath
+import dpath.util
 import json
 import pytest
 from http import client
@@ -34,21 +34,21 @@ def test_paths(body):
 
 
 def test_entity_definition(body):
-    assert 'parents' in dpath.get(body, 'definitions/Household/properties')
-    assert 'children' in dpath.get(body, 'definitions/Household/properties')
-    assert 'salary' in dpath.get(body, 'definitions/Person/properties')
-    assert 'rent' in dpath.get(body, 'definitions/Household/properties')
-    assert 'number' == dpath.get(body, 'definitions/Person/properties/salary/additionalProperties/type')
+    assert 'parents' in dpath.util.get(body, 'definitions/Household/properties')
+    assert 'children' in dpath.util.get(body, 'definitions/Household/properties')
+    assert 'salary' in dpath.util.get(body, 'definitions/Person/properties')
+    assert 'rent' in dpath.util.get(body, 'definitions/Household/properties')
+    assert 'number' == dpath.util.get(body, 'definitions/Person/properties/salary/additionalProperties/type')
 
 
 def test_situation_definition(body):
     situation_input = body['definitions']['SituationInput']
     situation_output = body['definitions']['SituationOutput']
     for situation in situation_input, situation_output:
-        assert 'households' in dpath.get(situation, '/properties')
-        assert 'persons' in dpath.get(situation, '/properties')
-        assert "#/definitions/Household" == dpath.get(situation, '/properties/households/additionalProperties/$ref')
-        assert "#/definitions/Person" == dpath.get(situation, '/properties/persons/additionalProperties/$ref')
+        assert 'households' in dpath.util.get(situation, '/properties')
+        assert 'persons' in dpath.util.get(situation, '/properties')
+        assert "#/definitions/Household" == dpath.util.get(situation, '/properties/households/additionalProperties/$ref')
+        assert "#/definitions/Person" == dpath.util.get(situation, '/properties/persons/additionalProperties/$ref')
 
 
 def test_host(body):

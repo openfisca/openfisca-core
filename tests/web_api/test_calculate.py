@@ -1,5 +1,5 @@
 import copy
-import dpath
+import dpath.util
 import json
 from http import client
 import os
@@ -99,12 +99,12 @@ def test_basic_calculation(test_client):
     response = post_json(test_client, simulation_json)
     assert response.status_code == client.OK
     response_json = json.loads(response.data.decode('utf-8'))
-    assert dpath.get(response_json, 'persons/bill/basic_income/2017-12') == 600  # Universal basic income
-    assert dpath.get(response_json, 'persons/bill/income_tax/2017-12') == 300  # 15% of the salary
-    assert dpath.get(response_json, 'persons/bill/age/2017-12') == 37  # 15% of the salary
-    assert dpath.get(response_json, 'persons/bob/basic_income/2017-12') == 600
-    assert dpath.get(response_json, 'persons/bob/social_security_contribution/2017-12') == 816  # From social_security_contribution.yaml test
-    assert dpath.get(response_json, 'households/first_household/housing_tax/2017') == 3000
+    assert dpath.util.get(response_json, 'persons/bill/basic_income/2017-12') == 600  # Universal basic income
+    assert dpath.util.get(response_json, 'persons/bill/income_tax/2017-12') == 300  # 15% of the salary
+    assert dpath.util.get(response_json, 'persons/bill/age/2017-12') == 37  # 15% of the salary
+    assert dpath.util.get(response_json, 'persons/bob/basic_income/2017-12') == 600
+    assert dpath.util.get(response_json, 'persons/bob/social_security_contribution/2017-12') == 816  # From social_security_contribution.yaml test
+    assert dpath.util.get(response_json, 'households/first_household/housing_tax/2017') == 3000
 
 
 def test_enums_sending_identifier(test_client):
@@ -131,7 +131,7 @@ def test_enums_sending_identifier(test_client):
     response = post_json(test_client, simulation_json)
     assert response.status_code == client.OK
     response_json = json.loads(response.data.decode('utf-8'))
-    assert dpath.get(response_json, 'households/_/housing_tax/2017') == 0
+    assert dpath.util.get(response_json, 'households/_/housing_tax/2017') == 0
 
 
 def test_enum_output(test_client):
@@ -152,7 +152,7 @@ def test_enum_output(test_client):
     response = post_json(test_client, simulation_json)
     assert response.status_code == client.OK
     response_json = json.loads(response.data.decode('utf-8'))
-    assert dpath.get(response_json, "households/_/housing_occupancy_status/2017-01") == "tenant"
+    assert dpath.util.get(response_json, "households/_/housing_occupancy_status/2017-01") == "tenant"
 
 
 def test_enum_wrong_value(test_client):
@@ -174,7 +174,7 @@ def test_enum_wrong_value(test_client):
     assert response.status_code == client.BAD_REQUEST
     response_json = json.loads(response.data.decode('utf-8'))
     message = "Possible values are ['owner', 'tenant', 'free_lodger', 'homeless']"
-    text = dpath.get(response_json, "households/_/housing_occupancy_status/2017-01")
+    text = dpath.util.get(response_json, "households/_/housing_occupancy_status/2017-01")
     assert message in text
 
 
@@ -201,7 +201,7 @@ def test_encoding_variable_value(test_client):
     assert response.status_code == client.BAD_REQUEST, response.data.decode('utf-8')
     response_json = json.loads(response.data.decode('utf-8'))
     message = "'Locataire ou sous-locataire d‘un logement loué vide non-HLM' is not a known value for 'housing_occupancy_status'. Possible values are "
-    text = dpath.get(response_json, 'households/_/housing_occupancy_status/2017-07')
+    text = dpath.util.get(response_json, 'households/_/housing_occupancy_status/2017-07')
     assert message in text
 
 
@@ -307,11 +307,49 @@ def test_periods(test_client):
 
     response_json = json.loads(response.data.decode('utf-8'))
 
-    yearly_variable = dpath.get(response_json, 'households/_/housing_tax')  # web api year is an int
+    yearly_variable = dpath.util.get(response_json, 'households/_/housing_tax')  # web api year is an int
     assert yearly_variable == {'2017': 200.0}
 
-    monthly_variable = dpath.get(response_json, 'households/_/housing_occupancy_status')  # web api month is a string
+    monthly_variable = dpath.util.get(response_json, 'households/_/housing_occupancy_status')  # web api month is a string
     assert monthly_variable == {'2017-01': 'tenant'}
+
+
+def test_two_periods(test_client):
+    '''
+    Test `calculate` on a request with mixed types periods: yearly periods following
+    monthly or daily periods to check dpath limitation on numeric keys (yearly periods).
+    Made to test the case where we have more than one path with a numeric in it.
+    See https://github.com/dpath-maintainers/dpath-python/issues/160 for more informations.
+    '''
+    simulation_json = json.dumps({
+        "persons": {
+            "bill": {}
+            },
+        "households": {
+            "_": {
+                "parents": ["bill"],
+                "housing_tax": {
+                    "2017": None,
+                    "2018": None
+                    },
+                "housing_occupancy_status": {
+                    "2017-01": None,
+                    "2018-01": None
+                    }
+                }
+            }
+        })
+
+    response = post_json(test_client, simulation_json)
+    assert response.status_code == client.OK
+
+    response_json = json.loads(response.data.decode('utf-8'))
+
+    yearly_variable = dpath.util.get(response_json, 'households/_/housing_tax')  # web api year is an int
+    assert yearly_variable == {'2017': 200.0, '2018': 200.0}
+
+    monthly_variable = dpath.util.get(response_json, 'households/_/housing_occupancy_status')  # web api month is a string
+    assert monthly_variable == {'2017-01': 'tenant', '2018-01': 'tenant'}
 
 
 def test_handle_period_mismatch_error(test_client):
@@ -338,7 +376,7 @@ def test_handle_period_mismatch_error(test_client):
 
     response_json = json.loads(response.data)
 
-    error = dpath.get(response_json, f'households/_/housing_tax/{period}')
+    error = dpath.util.get(response_json, f'households/_/housing_tax/{period}')
     message = f'Unable to set a value for variable "{variable}" for month-long period "{period}"'
     assert message in error
 
