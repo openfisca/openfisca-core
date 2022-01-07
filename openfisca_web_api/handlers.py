@@ -38,8 +38,8 @@ def calculate(tax_benefit_system, input_data):
                         computation_results[entity_plural][entity_id] = {variable_name: {period: entity_result}}
                 else:
                     computation_results[entity_plural] = {entity_id: {variable_name: {period: entity_result}}}
-            continue
-        dpath.util.new(computation_results, path, entity_result)
+        else:
+            dpath.util.new(computation_results, path, entity_result)
     dpath.util.merge(input_data, computation_results)
 
     return input_data
