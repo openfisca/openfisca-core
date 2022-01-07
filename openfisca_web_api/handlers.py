@@ -13,7 +13,7 @@ def calculate(tax_benefit_system, input_data: dict) -> dict:
     requested_computations = dpath.util.search(input_data, '*/*/*/*', afilter = lambda t: t is None, yielded = True)
     computation_results = {}
     for computation in requested_computations:
-        path = computation[0]
+        path = computation[0]  # format: entity_plural/entity_instance_id/openfisca_variable_name/period
         entity_plural, entity_id, variable_name, period = path.split('/')
         variable = tax_benefit_system.get_variable(variable_name)
         result = simulation.calculate(variable_name, period)
