@@ -25,10 +25,20 @@ OpenFisca also relies strongly on NumPy. Last four minor versions should work, b
 
 If you're developing your own country package, you don't need to explicitly install OpenFisca-Core. It just needs to appear [in your package dependencies](https://github.com/openfisca/openfisca-france/blob/100.0.0/setup.py#L60).
 
-Please note that since version [35.7.6](https://anaconda.org/conda-forge/openfisca-core), you could use conda to install OpenFisca-Core with one of this command :
+Please note that since version [35.7.6](https://anaconda.org/conda-forge/openfisca-core), you could use conda to install OpenFisca-Core with one of this command to run in `Anaconda Powershell Prompt` :
+- `conda create --name openfisca python=3.7` to create an openfisca environment.
+- `conda activate openfisca` to use your new environment.
 - `conda install -c conda-forge openfisca-core` for default dependencies.
-- `conda install -c cf-staging openfisca-core-api` if you want the API part.
-- `conda install -c cf-staging openfisca-core-dev` if you want all the dependencies needed to contribute to the project.
+- `conda install -c conda-forge openfisca-core-api` if you want the API part.
+- `conda install -c conda-forge openfisca-core-dev` if you want all the dependencies needed to contribute to the project.
+
+Conda is the easiest way to use OpenFisca under Windows as by installing Anaconda you will get:
+- Python
+- The package manager [Anaconda.org](https://docs.anaconda.com/anacondaorg/user-guide/)
+- A virtual environment manager : [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html)
+- A GUI [Anaconda Navigator](https://docs.anaconda.com/anaconda/navigator/index.html) if you choose to install the full [Anaconda](https://www.anaconda.com/products/individual)
+
+If you are familiar with command line you could use [Miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/windows.html), wich need very much less disk space than Anaconda.
 
 For informations on how we publish to conda-forge, see [openfisca-core-feedstock](https://github.com/openfisca/openfisca-core-feedstock/blob/master/recipe/README.md).
 
