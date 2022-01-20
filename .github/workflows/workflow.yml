@@ -268,7 +268,7 @@ jobs:
           conda info
           conda config --set anaconda_upload yes
       - name: Conda build
-        run: conda build --token ${{ secrets.ANACONDA_TOKEN }} --user openfisca .conda
+        run: conda build -c conda-forge --token ${{ secrets.ANACONDA_TOKEN }} --user openfisca .conda
 
   test-on-windows:
     runs-on: "windows-latest"
