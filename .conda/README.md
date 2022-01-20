@@ -1,9 +1,10 @@
 # Publish Open-Fisca-Core to conda
 
-We use to system to publish to conda:
+We use two systems to publish to conda:
 - A fully automatic in Open-Fisca-Core CI that publish to an "openfisca" channel. See below for more information.
 - A more complex in Conda-Forge CI, that publish to Conda-Forge. See https://www.youtube.com/watch?v=N2XwK9BkJpA for an introduction to Conda-Forge, and https://github.com/openfisca/openfisca-core-feedstock for the project use for Conda-Forge.
 
+We use both as with conda-forge our users get an easiest way to install and use openfisca-core : conda-forge is the default channels in Anaconda and it allow publishing packages that depend on openfisca-core to conda-forge.
 
 ## Automatic upload
 
