@@ -1,5 +1,11 @@
 # Changelog
 
+### 35.8.1 [#1105](https://github.com/openfisca/openfisca-core/pull/1105)
+
+#### Technical changes
+
+- Add publish to Anaconda in CI. See file .conda/README.md.
+
 ### 35.8.0 [#1114](https://github.com/openfisca/openfisca-core/pull/1114)
 
 #### New Features
@@ -45,7 +51,7 @@
 
 ### 35.7.3 [#1081](https://github.com/openfisca/openfisca-core/pull/1081)
 
-- Correct error message in case of mis-sized population 
+- Correct error message in case of mis-sized population
 
 ### 35.7.2 [#1057](https://github.com/openfisca/openfisca-core/pull/1057)
 
@@ -184,7 +190,7 @@
   - When libraries do not implement their own types, MyPy provides stubs, or type sheds
   - Thanks to `__future__.annotations`, those stubs or type sheds are casted to `typing.Any`
   - Since 1.20.x, NumPy now provides their own type definitions
-  - The introduction of NumPy 1.20.x in #990 caused one major problem: 
+  - The introduction of NumPy 1.20.x in #990 caused one major problem:
     - It is general practice to do not import at runtime modules only used for typing purposes, thanks to the `typing.TYPE_CHEKING` variable
     - The new `numpy.typing` module was being imported at runtime, rendering OpenFisca unusable to all users depending on previous versions of NumPy (1.20.x-)
   - These changes revert #990 and solve #1009 and #1012
