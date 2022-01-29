@@ -5,9 +5,9 @@ import inspect
 import logging
 import os
 import pkg_resources
+import sys
 import traceback
 import typing
-from imp import find_module, load_module
 
 from openfisca_core import commons, periods, variables
 from openfisca_core.entities import Entity
@@ -188,11 +188,13 @@ class TaxBenefitSystem:
             #  As Python remembers loaded modules by name, in order to prevent collisions, we need to make sure that:
             #  - Files with the same name, but located in different directories, have a different module names. Hence the file path hash in the module name.
             #  - The same file, loaded by different tax and benefit systems, has distinct module names. Hence the `id(self)` in the module name.
-            module_name = '{}_{}_{}'.format(id(self), hash(os.path.abspath(file_path)), file_name)
+            module_name = f"{id(self)}_{hash(os.path.abspath(file_path))}_{file_name}"
 
-            module_directory = os.path.dirname(file_path)
             try:
-                module = load_module(module_name, *find_module(file_name, [module_directory]))
+                spec = importlib.util.spec_from_file_location(module_name, file_path)
+                module = importlib.util.module_from_spec(spec)
+                sys.modules[module_name] = module
+                spec.loader.exec_module(module)
             except NameError as e:
                 logging.error(str(e) + ": if this code used to work, this error might be due to a major change in OpenFisca-Core. Checkout the changelog to learn more: <https://github.com/openfisca/openfisca-core/blob/master/CHANGELOG.md>")
                 raise
