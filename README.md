@@ -9,7 +9,7 @@
 [![PyPi](https://img.shields.io/pypi/v/openfisca-core.svg?style=flat)](https://pypi.python.org/pypi/openfisca-core)
 
 
-Conda-forge release info : [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/openfisca-core.svg)](https://anaconda.org/conda-forge/openfisca-core)  [![Conda Version](https://img.shields.io/conda/vn/conda-forge/openfisca-core.svg)](https://anaconda.org/conda-forge/openfisca-core) 
+Conda-forge release info : [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/openfisca-core.svg)](https://anaconda.org/conda-forge/openfisca-core)  [![Conda Version](https://img.shields.io/conda/vn/conda-forge/openfisca-core.svg)](https://anaconda.org/conda-forge/openfisca-core)
 
 [OpenFisca](https://openfisca.org/doc/) is a versatile microsimulation free software. Check the [online documentation](https://openfisca.org/doc/) for more details.
 
@@ -25,7 +25,7 @@ OpenFisca also relies strongly on NumPy. Last four minor versions should work, b
 
 If you're developing your own country package, you don't need to explicitly install OpenFisca-Core. It just needs to appear [in your package dependencies](https://github.com/openfisca/openfisca-france/blob/100.0.0/setup.py#L60).
 
-Please note that since version [35.7.6](https://anaconda.org/conda-forge/openfisca-core), you could use conda to install OpenFisca-Core with one of this command to run in `Anaconda Powershell Prompt` :
+Please note that since version [35.7.7](https://anaconda.org/conda-forge/openfisca-core), you could use conda to install OpenFisca-Core with one of this command to run in `Anaconda Powershell Prompt` :
 - `conda create --name openfisca python=3.7` to create an openfisca environment.
 - `conda activate openfisca` to use your new environment.
 - `conda install -c conda-forge openfisca-core` for default dependencies.
