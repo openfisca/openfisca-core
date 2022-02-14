@@ -1,5 +1,5 @@
 import copy
-import dpath
+import dpath.util
 from http import client
 import json
 
