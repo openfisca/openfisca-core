@@ -15,7 +15,7 @@ general_requirements = [
     "PyYAML >= 3.10",
     "sortedcontainers == 2.2.2",
     "typing-extensions == 3.10.0.2",
-]
+    ]
 
 api_requirements = [
     "markupsafe == 2.0.1",  # While flask revision < 2
@@ -23,7 +23,7 @@ api_requirements = [
     "flask-cors == 3.0.10",
     "gunicorn >= 20.0.0, < 21.0.0",
     "werkzeug >= 1.0.0, < 2.0.0",
-]
+    ]
 
 dev_requirements = [
     "autopep8 >= 1.4.0, < 1.6.0",
@@ -38,7 +38,7 @@ dev_requirements = [
     "openfisca-country-template >= 3.10.0, < 4.0.0",
     "openfisca-extension-template >= 1.2.0rc0, < 2.0.0",
     "pylint == 2.10.2",
-] + api_requirements
+    ] + api_requirements
 
 setup(
     name="OpenFisca-Core",
@@ -53,7 +53,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Topic :: Scientific/Engineering :: Information Analysis",
-    ],
+        ],
     description="A versatile microsimulation free software",
     keywords="benefit microsimulation social tax",
     license="https://www.fsf.org/licensing/licenses/agpl-3.0.html",
@@ -62,22 +62,22 @@ setup(
         (
             "share/openfisca/openfisca-core",
             ["CHANGELOG.md", "LICENSE", "README.md"],
-        ),
-    ],
+            ),
+        ],
     entry_points={
         "console_scripts": [
             "openfisca=openfisca_core.scripts.openfisca_command:main",
             "openfisca-run-test=openfisca_core.scripts.openfisca_command:main",
-        ],
-    },
+            ],
+        },
     extras_require={
         "web-api": api_requirements,
         "dev": dev_requirements,
         "tracker": [
             "openfisca-tracker == 0.4.0",
-        ],
-    },
+            ],
+        },
     include_package_data=True,  # Will read MANIFEST.in
     install_requires=general_requirements,
     packages=find_packages(exclude=["tests*"]),
-)
+    )
