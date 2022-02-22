@@ -14,7 +14,7 @@ This package contains the core features of OpenFisca, which are meant to be used
 
 ## Environment
 
-OpenFisca runs on Python 3.7. More recent versions should work, but are not tested.
+OpenFisca runs on Python 3.7 and 3.8. More recent versions should work, but are not tested.
 
 OpenFisca also relies strongly on NumPy. Last four minor versions should work, but only latest/stable is tested.
 
@@ -59,7 +59,7 @@ This repository relies on MyPy for optional dynamic & static type checking.
 
 As NumPy introduced the `typing` module in 1.20.0, to ensure type hints do not break the code at runtime, we run the checker against the last four minor NumPy versions.
 
-Type checking is already run with `make test`. To run the type checker alone:
+Type checking is already run with `make test` . To run the type checker alone:
 
 ```sh
 make check-types
@@ -69,7 +69,7 @@ make check-types
 
 This repository adheres to a [certain coding style](STYLEGUIDE.md), and we invite you to follow it for your contributions to be integrated promptly.
 
-Style checking is already run with `make test`. To run the style checker alone:
+Style checking is already run with `make test` . To run the style checker alone:
 
 ```sh
 make check-style
@@ -169,7 +169,7 @@ That's it! 🙌
 
 OpenFisca-Core provides a Web-API. It is by default served on the `5000` port.
 
-To run it with the mock country package `openfisca_country_template` and another port value such as `2000`, run:
+To run it with the mock country package `openfisca_country_template` and another port value such as `2000` , run:
 
 ```sh
 openfisca serve --country-package openfisca_country_template --port 2000
@@ -184,6 +184,7 @@ You can test that the API is running by executing the command:
 ```sh
 curl http://localhost:2000/parameters
 ```
+
 For more information about endpoints and input formatting, see the [official documentation](https://openfisca.org/doc/openfisca-web-api).
 
 ### Tracker
@@ -197,7 +198,6 @@ The tracker is not installed by default. To install it, run:
 ```sh
 pip install openfisca_core[tracker] --use-deprecated=legacy-resolver # Or `pip install --editable ".[tracker]"` for an editable installation
 ```
-
 
 #### Tracker configuration
 
