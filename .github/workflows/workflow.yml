@@ -7,7 +7,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
+        # Patch version must be specified to avoid any cache confusion, since
+        # the cache key depends on the full Python version.
+        # If left unspecified, different patch versions could be allocated
+        # between jobs, and any such difference would lead to a cache not
+        # found error.
         python-version: ["3.7.12", "3.8.12"]
     env:
       TERM: xterm-256color # To colorize output of make tasks.
@@ -41,7 +45,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         python-version: ["3.7.12", "3.8.12"]
     needs: [build]
     env:
@@ -70,7 +73,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         python-version: ["3.7.12", "3.8.12"]
     needs: [build]
     env:
@@ -94,7 +96,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         python-version: ["3.7.12", "3.8.12"]
     needs: [build]
     env:
@@ -118,7 +119,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         python-version: ["3.7.12", "3.8.12"]
     needs: [build]
     env:
@@ -142,7 +142,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         python-version: ["3.7.12", "3.8.12"]
     needs: [build]
     env:
@@ -176,7 +175,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         python-version: ["3.7.12", "3.8.12"]
     needs: [build]
     env:
@@ -202,7 +200,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         python-version: ["3.7.12", "3.8.12"]
     needs: [
         test-core,
@@ -230,7 +227,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         python-version: ["3.7.12", "3.8.12"]
     if: github.ref == 'refs/heads/master' # Only triggered for the `master` branch
     needs: [check-version]
@@ -251,7 +247,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         python-version: ["3.7.12", "3.8.12"]
     needs: [check-for-functional-changes]
     if: needs.check-for-functional-changes.outputs.status == 'success'
