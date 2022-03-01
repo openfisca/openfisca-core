@@ -287,7 +287,19 @@ def test_enum_projects_between_containing_groups():
         def formula(family, period):
             return family.household("household_level_variable", period)
 
-    system.add_variables(household_level_variable, projected_family_level_variable)
+    class decoded_projected_family_level_variable(Variable):
+        value_type = str
+        entity = family_entity
+        definition_period = ETERNITY
+
+        def formula(family, period):
+            return family.household("household_level_variable", period).decode_to_str()
+
+    system.add_variables(
+        household_level_variable,
+        projected_family_level_variable,
+        decoded_projected_family_level_variable
+        )
 
     simulation = SimulationBuilder().build_from_dict(system, {
         "people": {
@@ -314,3 +326,4 @@ def test_enum_projects_between_containing_groups():
         })
 
     assert (simulation.calculate("projected_family_level_variable", "2021-01-01").decode_to_str() == np.array(["SECOND_OPTION"])).all()
+    assert (simulation.calculate("decoded_projected_family_level_variable", "2021-01-01") == np.array(["SECOND_OPTION"])).all()
