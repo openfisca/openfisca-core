@@ -1,8 +1,16 @@
 # Changelog
 
-### 35.7.7 [#1086](https://github.com/openfisca/openfisca-core/pull/1086)
+### 35.7.8 [#1086](https://github.com/openfisca/openfisca-core/pull/1086)
 
 #### Technical changes
+
+### 35.7.7 [#1109](https://github.com/openfisca/openfisca-core/pull/1109)
+
+#### Technical changes
+
+- Fix `openfisca-core` Web API error triggered by `Flask` dependencies updates
+  - Bump `Flask` patch revision to fix `cannot import name 'json' from 'itsdangerous'` on Web API.
+  - Then, fix `MarkupSafe` revision to avoid `cannot import name 'soft_unicode' from 'markupsafe'` error on Web API.
 
 ### 35.7.6 [#1065](https://github.com/openfisca/openfisca-core/pull/1065)
 
