@@ -10,7 +10,8 @@ We use both as with conda-forge our users get an easiest way to install and use 
 
 The CI automaticaly upload the PyPi package, see the `.github/workflow.yml`, step `publish-to-conda`.
 
-## Manual actions made to make it works the first time
+## Manual actions for first time publishing
+
 
 - Create an account on https://anaconda.org.
 - Create a token on https://anaconda.org/openfisca/settings/access with _Allow write access to the API site_. Warning, it expire on 2023/01/13.
