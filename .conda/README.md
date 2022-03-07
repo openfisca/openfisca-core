@@ -17,7 +17,8 @@ The CI automaticaly upload the PyPi package, see the `.github/workflow.yml`, ste
 - Create a token on https://anaconda.org/openfisca/settings/access with _Allow write access to the API site_. Warning, it expire on 2023/01/13.
 - Put the token in a CI env variable ANACONDA_TOKEN.
 
-## Manual actions before CI exist
+## Manual actions before CI configuration
+
 
 To create the package you can do the following in the project root folder:
 
