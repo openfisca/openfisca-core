@@ -97,4 +97,4 @@ about:
   summary: "A versatile microsimulation free software"
   doc_url: https://openfisca.org
   dev_url: https://github.com/openfisca/openfisca-core/
-  description: This package contains the core features of OpenFisca, which are meant to be used by country packages such as OpenFisca-France.
+  description: This package contains the core features of OpenFisca, which are meant to be used by country packages such as OpenFisca-Country-Template.
