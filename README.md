@@ -24,8 +24,22 @@ OpenFisca also relies strongly on NumPy. Last four minor versions should work, b
 ## Installation
 
 If you're developing your own country package, you don't need to explicitly install OpenFisca-Core. It just needs to appear [in your package dependencies](https://github.com/openfisca/openfisca-france/blob/100.0.0/setup.py#L60).
+If you want to contribute to OpenFisca-Core itself, welcome!
+To install it locally you can use one of these two options:
+* [conda](https://docs.conda.io/en/latest/) package manager that we recommend for Windows operating system users,
+* or standard Python [pip](https://packaging.python.org/en/latest/key_projects/#pip) package manager.
 
-Please note that since version [35.7.7](https://anaconda.org/conda-forge/openfisca-core), you could use conda to install OpenFisca-Core with one of this command to run in `Anaconda Powershell Prompt` :
+### Installing `openfisca-core with `pip`
+
+This installation requires [Python](https://www.python.org/downloads/) 3.7+ and [GIT](https://git-scm.com) installations.
+
+To install `openfisca-core` locally in development mode run the following commands in a shell terminal:
+
+[🚧 move here the commands described below the new paragraph]
+
+### Installing `openfisca-core` with `conda`
+
+Since `openfisca-core` version [35.7.7](https://anaconda.org/conda-forge/openfisca-core), you could use conda to install it with one of this command to run in an `Anaconda Powershell Prompt`:
 - `conda create --name openfisca python=3.7` to create an openfisca environment.
 - `conda activate openfisca` to use your new environment.
 - `conda install -c conda-forge openfisca-core` for default dependencies.
