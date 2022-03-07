@@ -42,9 +42,10 @@ To install `openfisca-core` locally in development mode run the following comman
 Since `openfisca-core` version [35.7.7](https://anaconda.org/conda-forge/openfisca-core), you could use conda to install it with one of this command to run in an `Anaconda Powershell Prompt`:
 - `conda create --name openfisca python=3.7` to create an openfisca environment.
 - `conda activate openfisca` to use your new environment.
-- `conda install -c conda-forge openfisca-core` for default dependencies.
-- `conda install -c conda-forge openfisca-core-api` if you want the API part.
-- `conda install -c conda-forge openfisca-core-dev` if you want all the dependencies needed to contribute to the project.
+Then choose one of the following options according to your use case:
+- `conda install -c conda-forge openfisca-core` for default dependencies,
+- or `conda install -c conda-forge openfisca-core-api` if you want the Web API part,
+- or `conda install -c conda-forge openfisca-core-dev` if you want all the dependencies needed to contribute to the project.
 
 Conda is the easiest way to use OpenFisca under Windows as by installing Anaconda you will get:
 - Python
