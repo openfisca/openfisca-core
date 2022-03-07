@@ -6,7 +6,7 @@
 
 - Add publish to Anaconda in CI. See file .conda/README.md.
 
-### 35.8.0 [#1114](https://github.com/openfisca/openfisca-core/pull/1114)
+## 35.8.0 [#1114](https://github.com/openfisca/openfisca-core/pull/1114)
 
 #### New Features
 
@@ -19,6 +19,7 @@
 - Introduce `threshold_from_tax_base` method on `RateTaxScaleLike` class
   - Allows for the determination of the lower threshold based on the tax base
 
+- Add publish openfisca-core library to Anaconda in CI. See file .conda/README.md.
 ### 35.7.8 [#1086](https://github.com/openfisca/openfisca-core/pull/1086)
 
 #### Technical changes
