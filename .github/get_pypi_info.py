@@ -21,7 +21,7 @@ def get_info(package_name: str = "") -> dict:
     if package_name == "":
         raise ValueError("Package name not provided.")
     url = f"https://pypi.org/pypi/{package_name}/json"
-    print(f"Calling {url}")
+    print(f"Calling {url}")  # noqa: T001
     resp = requests.get(url)
     if resp.status_code != 200:
         raise Exception(f"ERROR calling PyPI ({url}) : {resp}")
@@ -37,7 +37,7 @@ def get_info(package_name: str = "") -> dict:
             package_name = "pytables"
         package_version = (
             re.search("\(([^)]+)", package).group(1).replace(" ", "")  # noqa: W605
-        )  # "openfisca-france (>=113.0.2)"
+            )  # "openfisca-france (>=113.0.2)"
         deps_and_version[package_name] = package_version
 
     for v in resp["releases"][version]:
@@ -47,7 +47,7 @@ def get_info(package_name: str = "") -> dict:
                 "url": v["url"],
                 "sha256": v["digests"]["sha256"],
                 "deps_and_version": deps_and_version,
-            }
+                }
     return {}
 
 
@@ -66,7 +66,7 @@ def replace_in_file(filepath: str, info: dict):
     deps_and_version = ""
     for name, version in info["deps_and_version"].items():
         deps_and_version += f"    - {name} {version}\n"
-    print(f"Adding dependencies to conda:\n{deps_and_version}")
+    print(f"Adding dependencies to conda:\n{deps_and_version}")  # noqa: T001
     meta = meta.replace("PYPI_DEPS", deps_and_version)
     with open(filepath, "wt", encoding="utf-8") as fout:
         fout.write(meta)
@@ -82,17 +82,15 @@ if __name__ == "__main__":
         default="",
         required=True,
         help="The name of the package",
-    )
+        )
     parser.add_argument(
         "-f",
         "--filename",
         type=str,
         default=".conda/meta.yaml",
         help="Path to meta.yaml, with filename",
-    )
+        )
     args = parser.parse_args()
     info = get_info(args.package)
-    print(
-        "Information of the last published PyPi package :", info["last_version"]
-    )  # noqa: T001
+    print("Information of the last published PyPi package :", info["last_version"])  # noqa: T001
     replace_in_file(args.filename, info)
