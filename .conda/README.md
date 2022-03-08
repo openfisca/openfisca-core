@@ -11,7 +11,8 @@ We use both channels. With conda-forge our users get an easier way to install an
 
 ## Automatic upload
 
-The CI automaticaly upload the PyPi package, see the `.github/workflow.yml`, step `publish-to-conda`.
+The CI automatically uploads the PyPi package; see the `.github/workflow.yml`, step `publish-to-conda`.
+
 
 ## Manual actions for first time publishing
 
