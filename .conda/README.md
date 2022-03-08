@@ -6,7 +6,8 @@ We use two systems to publish to conda:
 - A more complex in Conda-Forge CI, that publishes to [Conda-Forge](https://conda-forge.org). See this [YouTube video](https://www.youtube.com/watch?v=N2XwK9BkJpA) as an introduction to Conda-Forge, and [openfisca-core-feedstock repository](https://github.com/openfisca/openfisca-core-feedstock) for the project publishing process on Conda-Forge.
 
 
-We use both as with conda-forge our users get an easiest way to install and use openfisca-core : conda-forge is the default channels in Anaconda and it allow publishing packages that depend on openfisca-core to conda-forge.
+We use both channels. With conda-forge our users get an easier way to install and use openfisca-core : conda-forge is the default channels in Anaconda and it allow publishing packages that depend on openfisca-core to conda-forge.
+
 
 ## Automatic upload
 
