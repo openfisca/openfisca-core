@@ -3,7 +3,7 @@
 This script use get_info to get the info (yes !) and replace_in_file to
 write them into .conda/meta.yaml.
 Sample call:
-python3 .github/get_pypi_info.py -p OpenFisca-Country-Template
+python3 .github/get_pypi_info.py -p OpenFisca-Core
 """
 
 import argparse
