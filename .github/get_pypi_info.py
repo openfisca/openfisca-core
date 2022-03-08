@@ -29,6 +29,8 @@ def get_info(package_name: str = "") -> dict:
     version = resp["info"]["version"]
     deps_and_version = {}
     for package in resp["info"]["requires_dist"]:
+        if "; extra ==" in package:
+            continue
         package_name = package.split("(")[0].replace(" ", "")
         package_name = package_name.replace("[pipeline]", "")
         if package_name == "tables":
