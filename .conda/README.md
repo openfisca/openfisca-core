@@ -1,4 +1,5 @@
-# Publish Open-Fisca-Core to conda
+# Publish OpenFisca-Core to conda
+
 
 We use two systems to publish to conda:
 - A fully automatic in Open-Fisca-Core CI that publish to an "openfisca" channel. See below for more information.
