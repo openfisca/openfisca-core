@@ -252,7 +252,6 @@ jobs:
         with:
           auto-update-conda: true
           python-version: 3.7.12
-          # Add conda-forge for dependencies
           channels: conda-forge
           activate-environment: true
       - uses: actions/checkout@v2
@@ -277,7 +276,7 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
-          python-version: "3.9.9"  # 3.7.12 don't exist on GHA Windows https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
+          python-version: "3.7.9"  # 3.7.12 don't exist on GHA Windows https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
           channels: conda-forge
           activate-environment: true
       - uses: actions/checkout@v2
