@@ -16,7 +16,7 @@ def get_message(error):
 
 
 def test_on_leaf():
-    parameter_at_instant = parameters.trimtp_rg('1995-01-01')
+    parameter_at_instant = parameters.full_rate_required_duration('1995-01-01')
     birthdate = numpy.array(['1930-01-01', '1935-01-01', '1940-01-01', '1945-01-01'], dtype = 'datetime64[D]')
     assert_near(parameter_at_instant.contribution_quarters_required_by_birthdate[birthdate], [150, 152, 157, 160])
 
