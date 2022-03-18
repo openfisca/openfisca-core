@@ -1,5 +1,5 @@
 description: Full rate age
-full_rate_age_by_birthdateage_annulation_decote_en_fonction_date_naissance:
+full_rate_age_by_birthdate:
   description: Full rate age by birthdate
   before_1951_07_01:
     description: Born before 01/07/1951
