@@ -1,5 +1,5 @@
 description: Required contribution duration for full rate
-contribution_quarters_required_by_birthdate:nombre_trimestres_cibles_par_generation:
+contribution_quarters_required_by_birthdate:
   description: Contribution quarters required by birthdate
   before_1934_01_01:
     description: before 1934
