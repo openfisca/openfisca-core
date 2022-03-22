@@ -62,7 +62,14 @@ class ParameterScale(AtInstantLike):
             )
 
     def get_descendants(self):
-        return iter(())
+        returned_any_results = False
+        for bracket in self.brackets:
+            for allowed_key_name in bracket._allowed_keys:
+                if hasattr(bracket, allowed_key_name):
+                    yield getattr(bracket, allowed_key_name)
+                    returned_any_results = True
+        if not returned_any_results:
+            return iter(())
 
     def clone(self):
         clone = commons.empty_clone(self)
