@@ -1,5 +1,11 @@
 # Changelog
 
+### 35.7.9 [#1113](https://github.com/openfisca/openfisca-core/pull/1113)
+
+### Technical changes
+
+- Fixed a bug where `get_descendants` would not return rates and thresholds from `ParameterScale`s.
+
 ### 35.7.8 [#1086](https://github.com/openfisca/openfisca-core/pull/1086)
 
 #### Technical changes
