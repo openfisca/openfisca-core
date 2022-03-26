@@ -185,6 +185,40 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
 
         return (base1 - thresholds1 >= 0).sum(axis = 1) - 1
 
+    def rate_from_bracket_indice(
+            self,
+            bracket_indice: numpy.int_,
+            ) -> numpy.float_:
+        """
+        Compute the relevant tax rates for the given bracket indices.
+
+        :param: ndarray bracket_indice: Array of the bracket indices.
+
+        :returns: Floating array with relevant tax rates
+                  for the given bracket indices.
+
+        For instance:
+
+        >>> tax_scale = MarginalRateTaxScale()
+        >>> tax_scale.add_bracket(0, 0)
+        >>> tax_scale.add_bracket(200, 0.1)
+        >>> tax_scale.add_bracket(500, 0.25)
+        >>> tax_base = array([50, 150, 1_000])
+        >>> bracket_indice = tax_scale.bracket_indices(tax_base)
+        >>> tax_scale.rate_from_bracket_indice(bracket_indice)
+        [0., 0., 0.25]
+        """
+
+        if bracket_indice.max() > len(self.rates) - 1:
+            raise IndexError(
+                f"bracket_indice parameter ({bracket_indice}) "
+                f"contains one or more bracket indice which is unavailable "
+                f"inside current {self.__class__.__name__} :\n"
+                f"{self}"
+                )
+
+        return numpy.array(self.rates)[bracket_indice]
+
     def to_dict(self) -> dict:
         return {
             str(threshold): self.rates[index]
