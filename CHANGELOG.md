@@ -1,5 +1,13 @@
 # Changelog
 
+### [#1114](https://github.com/openfisca/openfisca-core/pull/1114)
+
+#### New Features
+
+- Introduce `rate_from_bracket_indice` method on `RateTaxScaleLike` class
+  - Allows for the determination of the tax rate based on the tax bracket indice
+
+
 ### 35.7.8 [#1086](https://github.com/openfisca/openfisca-core/pull/1086)
 
 #### Technical changes
