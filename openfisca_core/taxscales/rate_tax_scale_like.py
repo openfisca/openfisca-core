@@ -219,6 +219,31 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
 
         return numpy.array(self.rates)[bracket_indice]
 
+    def rate_from_tax_base(
+            self,
+            tax_base: NumericalArray,
+            ) -> numpy.float_:
+        """
+        Compute the relevant tax rates for the given tax bases.
+
+        :param: ndarray tax_base: Array of the tax bases.
+
+        :returns: Floating array with relevant tax rates
+                  for the given tax bases.
+
+        For instance:
+
+        >>> tax_scale = MarginalRateTaxScale()
+        >>> tax_scale.add_bracket(0, 0)
+        >>> tax_scale.add_bracket(200, 0.1)
+        >>> tax_scale.add_bracket(500, 0.25)
+        >>> tax_base = array([50, 150, 1_000])
+        >>> tax_scale.rate_from_tax_base(tax_base)
+        [0., 0., 0.25]
+        """
+
+        return self.rate_from_bracket_indice(self.bracket_indices(tax_base))
+
     def to_dict(self) -> dict:
         return {
             str(threshold): self.rates[index]
