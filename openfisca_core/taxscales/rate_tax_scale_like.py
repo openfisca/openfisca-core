@@ -199,13 +199,15 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
 
         For instance:
 
-        >>> tax_scale = MarginalRateTaxScale()
+        >>> import numpy
+        >>> from openfisca_core import taxscales
+        >>> tax_scale = taxscales.MarginalRateTaxScale()
         >>> tax_scale.add_bracket(0, 0)
         >>> tax_scale.add_bracket(200, 0.1)
         >>> tax_scale.add_bracket(500, 0.25)
-        >>> tax_base = array([50, 150, 1_000])
+        >>> tax_base = numpy.array([450, 1_150, 10])
         >>> tax_scale.threshold_from_tax_base(tax_base)
-        [0., 0., 500.]
+        array([200, 500,   0])
         """
 
         return numpy.array(self.thresholds)[self.bracket_indices(tax_base)]
