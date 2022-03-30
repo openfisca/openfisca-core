@@ -148,6 +148,67 @@ class MarginalRateTaxScale(RateTaxScaleLike):
 
         return numpy.array(self.rates)[bracket_indices]
 
+    def rate_from_bracket_indice(
+            self,
+            bracket_indice: numpy.int_,
+            ) -> numpy.float_:
+        """
+        Compute the relevant tax rates for the given bracket indices.
+
+        :param: ndarray bracket_indice: Array of the bracket indices.
+
+        :returns: Floating array with relevant tax rates
+                  for the given bracket indices.
+
+        For instance:
+
+        >>> import numpy
+        >>> tax_scale = MarginalRateTaxScale()
+        >>> tax_scale.add_bracket(0, 0)
+        >>> tax_scale.add_bracket(200, 0.1)
+        >>> tax_scale.add_bracket(500, 0.25)
+        >>> tax_base = numpy.array([50, 1_000, 250])
+        >>> bracket_indice = tax_scale.bracket_indices(tax_base)
+        >>> tax_scale.rate_from_bracket_indice(bracket_indice)
+        array([0.  , 0.25, 0.1 ])
+        """
+
+        if bracket_indice.max() > len(self.rates) - 1:
+            raise IndexError(
+                f"bracket_indice parameter ({bracket_indice}) "
+                f"contains one or more bracket indice which is unavailable "
+                f"inside current {self.__class__.__name__} :\n"
+                f"{self}"
+                )
+
+        return numpy.array(self.rates)[bracket_indice]
+
+    def rate_from_tax_base(
+            self,
+            tax_base: NumericalArray,
+            ) -> numpy.float_:
+        """
+        Compute the relevant tax rates for the given tax bases.
+
+        :param: ndarray tax_base: Array of the tax bases.
+
+        :returns: Floating array with relevant tax rates
+                  for the given tax bases.
+
+        For instance:
+
+        >>> import numpy
+        >>> tax_scale = MarginalRateTaxScale()
+        >>> tax_scale.add_bracket(0, 0)
+        >>> tax_scale.add_bracket(200, 0.1)
+        >>> tax_scale.add_bracket(500, 0.25)
+        >>> tax_base = numpy.array([1_000, 50, 450])
+        >>> tax_scale.rate_from_tax_base(tax_base)
+        array([0.25, 0.  , 0.1 ])
+        """
+
+        return self.rate_from_bracket_indice(self.bracket_indices(tax_base))
+
     def inverse(self) -> MarginalRateTaxScale:
         """
         Returns a new instance of MarginalRateTaxScale.
