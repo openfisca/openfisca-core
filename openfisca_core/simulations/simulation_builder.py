@@ -19,7 +19,7 @@ class SimulationBuilder:
         self.persons_plural = None  # Plural name for person entity in current tax and benefits system
 
         # JSON input - Memory of known input values. Indexed by variable or axis name.
-        self.input_buffer: typing.Dict[Variable.name, typing.Dict[str(periods.period), numpy.array]] = {}
+        self.input_buffer: typing.Dict[Variable.name, typing.Dict[str(periods.period), tuple(numpy.array, numpy.array)]] = {}
         self.populations: typing.Dict[Entity.key, Population] = {}
         # JSON input - Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
         self.entity_counts: typing.Dict[Entity.plural, int] = {}
@@ -379,20 +379,21 @@ class SimulationBuilder:
         if value is None:
             return
 
-        array = self.get_input(variable.name, str(period_str))
+        data_tuple = self.get_input(variable.name, str(period_str))
 
-        if array is None:
+        if data_tuple is None:
             array_size = self.get_count(entity.plural)
             array = variable.default_array(array_size)
-
+            data_tuple = (numpy.full(array_size, False), array)
         try:
             value = variable.check_set_value(value)
         except ValueError as error:
             raise SituationParsingError(path_in_json, *error.args)
 
+        (present, array) = data_tuple
+        present[instance_index] = True
         array[instance_index] = value
-
-        self.input_buffer[variable.name][str(periods.period(period_str))] = array
+        self.input_buffer[variable.name][str(periods.period(period_str))] = data_tuple
 
     def finalize_variables_init(self, population):
         # Due to set_input mechanism, we must bufferize all inputs, then actually set them,
@@ -409,10 +410,11 @@ class SimulationBuilder:
                 holder = population.get_holder(variable_name)
             except ValueError:  # Wrong entity, we can just ignore that
                 continue
-            buffer = self.input_buffer[variable_name]
-            unsorted_periods = [periods.period(period_str) for period_str in self.input_buffer[variable_name].keys()]
+            buffer = holder.solve_input_data(self.input_buffer[variable_name])
+
+            unsorted_periods = [periods.period(period_str) for period_str in buffer.keys()]
             # We need to handle small periods first for set_input to work
-            sorted_periods = sorted(unsorted_periods, key = periods.key_period_size)
+            sorted_periods = sorted(unsorted_periods, key=periods.key_period_size)
             for period_value in sorted_periods:
                 values = buffer[str(period_value)]
                 # Hack to replicate the values in the persons entity
@@ -480,9 +482,9 @@ class SimulationBuilder:
             # Adjust counts
             self.axes_entity_counts[entity_name] = self.get_count(entity_name) * cell_count
             # Adjust ids
-            original_ids = self.get_ids(entity_name) * cell_count
-            indices = numpy.arange(0, cell_count * self.entity_counts[entity_name])
-            adjusted_ids = [id + str(ix) for id, ix in zip(original_ids, indices)]
+            original_ids = self.get_ids(entity_name)
+            indices = numpy.arange(0, cell_count)
+            adjusted_ids = [id + str(ix) for ix in indices for id in original_ids]
             self.axes_entity_ids[entity_name] = adjusted_ids
             # Adjust roles
             original_roles = self.get_roles(entity_name)
@@ -506,22 +508,30 @@ class SimulationBuilder:
             axis_entity_step_size = self.entity_counts[axis_entity.plural]
             # Distribute values along axes
             for axis in parallel_axes:
-                axis_index = axis.get('index', 0)
                 axis_period = axis.get('period', self.default_period)
                 axis_name = axis['name']
                 variable = axis_entity.get_variable(axis_name)
-                array = self.get_input(axis_name, str(axis_period))
-                if array is None:
+
+                data_tuple = self.get_input(axis_name, axis_period)
+                if data_tuple is None:
                     array = variable.default_array(axis_count * axis_entity_step_size)
-                elif array.size == axis_entity_step_size:
-                    array = numpy.tile(array, axis_count)
-                array[axis_index:: axis_entity_step_size] = numpy.linspace(
-                    axis['min'],
-                    axis['max'],
-                    num = axis_count,
+                    present = numpy.full(array.size, True)
+                elif data_tuple[1].size == axis_entity_step_size:
+                    array = numpy.tile(data_tuple[1], cell_count)
+                    present = numpy.full(array.size, True)
+                else:
+                    array, present = data_tuple
+                array[:] = numpy.repeat(
+                    numpy.linspace(
+                        axis['min'],
+                        axis['max'],
+                        axis_count
+                        ),
+                    axis_entity_step_size
                     )
+
                 # Set input
-                self.input_buffer[axis_name][str(axis_period)] = array
+                self.input_buffer[axis_name][str(axis_period)] = (present, array)
         else:
             first_axes_count: typing.List[int] = (
                 parallel_axes[0]["count"]
@@ -541,18 +551,22 @@ class SimulationBuilder:
                 axis_entity_step_size = self.entity_counts[axis_entity.plural]
                 # Distribute values along the grid
                 for axis in parallel_axes:
-                    axis_index = axis.get('index', 0)
                     axis_period = axis['period'] or self.default_period
                     axis_name = axis['name']
                     variable = axis_entity.get_variable(axis_name)
-                    array = self.get_input(axis_name, str(axis_period))
-                    if array is None:
+                    data_tuple = self.get_input(axis_name, axis_period)
+                    if data_tuple is None:
                         array = variable.default_array(cell_count * axis_entity_step_size)
-                    elif array.size == axis_entity_step_size:
-                        array = numpy.tile(array, cell_count)
-                    array[axis_index:: axis_entity_step_size] = axis['min'] \
+                        present = numpy.full(array.size, True)
+                    elif data_tuple[1].size == axis_entity_step_size:
+                        array = numpy.tile(data_tuple[1], cell_count)
+                        present = numpy.full(array.size, True)
+                    else:
+                        array, present = data_tuple
+
+                    array[:] = axis['min'] \
                         + mesh.reshape(cell_count) * (axis['max'] - axis['min']) / (axis_count - 1)
-                    self.input_buffer[axis_name][str(axis_period)] = array
+                    self.input_buffer[axis_name][str(axis_period)] = (present, array)
 
     def get_variable_entity(self, variable_name):
         return self.variable_entities[variable_name]

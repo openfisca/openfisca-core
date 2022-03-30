@@ -102,7 +102,7 @@ def test_add_person_entity_with_values(persons):
     persons_json = {'Alicia': {'salary': {'2018-11': 3000}}, 'Javier': {}}
     simulation_builder = SimulationBuilder()
     simulation_builder.add_person_entity(persons, persons_json)
-    tools.assert_near(simulation_builder.get_input('salary', '2018-11'), [3000, 0])
+    tools.assert_near(simulation_builder.get_input('salary', '2018-11')[1], [3000, 0])
 
 
 def test_add_person_values_with_default_period(persons):
@@ -110,7 +110,7 @@ def test_add_person_values_with_default_period(persons):
     simulation_builder = SimulationBuilder()
     simulation_builder.set_default_period('2018-11')
     simulation_builder.add_person_entity(persons, persons_json)
-    tools.assert_near(simulation_builder.get_input('salary', '2018-11'), [3000, 0])
+    tools.assert_near(simulation_builder.get_input('salary', '2018-11')[1], [3000, 0])
 
 
 def test_add_person_values_with_default_period_old_syntax(persons):
@@ -118,7 +118,7 @@ def test_add_person_values_with_default_period_old_syntax(persons):
     simulation_builder = SimulationBuilder()
     simulation_builder.set_default_period('month:2018-11')
     simulation_builder.add_person_entity(persons, persons_json)
-    tools.assert_near(simulation_builder.get_input('salary', '2018-11'), [3000, 0])
+    tools.assert_near(simulation_builder.get_input('salary', '2018-11')[1], [3000, 0])
 
 
 def test_add_group_entity(households):
@@ -151,7 +151,7 @@ def test_add_variable_value(persons):
     simulation_builder = SimulationBuilder()
     simulation_builder.entity_counts['persons'] = 1
     simulation_builder.add_variable_value(persons, salary, instance_index, 'Alicia', '2018-11', 3000)
-    input_array = simulation_builder.get_input('salary', '2018-11')
+    input_array = simulation_builder.get_input('salary', '2018-11')[1]
     assert input_array[instance_index] == pytest.approx(3000)
 
 
@@ -161,7 +161,7 @@ def test_add_variable_value_as_expression(persons):
     simulation_builder = SimulationBuilder()
     simulation_builder.entity_counts['persons'] = 1
     simulation_builder.add_variable_value(persons, salary, instance_index, 'Alicia', '2018-11', '3 * 1000')
-    input_array = simulation_builder.get_input('salary', '2018-11')
+    input_array = simulation_builder.get_input('salary', '2018-11')[1]
     assert input_array[instance_index] == pytest.approx(3000)
 
 

@@ -8,6 +8,7 @@ from openfisca_core import commons, periods, tools
 from openfisca_core.errors import PeriodMismatchError
 from openfisca_core.data_storage import InMemoryStorage, OnDiskStorage
 from openfisca_core.indexed_enums import Enum
+from openfisca_core.holders.helpers import set_input_divide_by_period
 
 
 class Holder:
@@ -129,6 +130,87 @@ class Holder:
 
         return list(self._memory_storage.get_known_periods()) + list((
             self._disk_storage.get_known_periods() if self._disk_storage else []))
+
+    def solve_input_data(self, buffer):
+        """
+            Determines individual period values given a input buffer with potentiel overlapping periods and data
+        """
+        if self.variable.set_input == set_input_divide_by_period and self.variable.definition_period == periods.MONTH:
+            # Create grid and determine start and end month
+            keys = buffer.keys()
+            periodMap = {k: periods.period(k) for k in keys}
+            for k in keys:
+                p = periodMap[k]
+                if p.unit == periods.ETERNITY and self.variable.definition_period != periods.ETERNITY:
+                    error_message = os.linesep.join([
+                        'Unable to set a value for variable {0} for ETERNITY.',
+                        '{0} is only defined for {1}s. Please adapt your input.',
+                        ]).format(
+                            self.variable.name,
+                            self.variable.definition_period
+                        )
+                    raise PeriodMismatchError(
+                        self.variable.name,
+                        p,
+                        self.variable.definition_period,
+                        error_message
+                        )
+
+            periodValues = periodMap.values()
+            starts = [p.start for p in periodValues]
+            start = min(starts)
+            ends = [p.offset(p.size_in_months - 1, unit=periods.MONTH).start for p in periodValues]
+            end = max(ends)
+
+            def month_index(instant):
+                return (instant.year - start.year) * 12 + (instant.month - start.month)
+
+            size = month_index(end) + 1
+
+            full_size = (self.population.count, size)
+            presence = numpy.full(full_size, False)
+            values = self.variable.default_array(full_size)
+            dim1, dim2 = numpy.indices(full_size)
+
+            # Set single period values
+            for k in keys:
+                p = periodMap[k]
+                if p.size_in_months == 1:
+                    column = month_index(p.start)
+                    p_presence, p_values = buffer[k]
+                    tile_count = self.population.count // p_values.size
+                    presence[:, column] = numpy.tile(p_presence, tile_count)
+                    values[:, column] = numpy.tile(p_values, tile_count)
+
+            # Set values for multiple period input
+            for k in keys:
+                p = periodMap[k]
+                if p.size_in_months != 1:
+                    # Determine period indexes
+                    start_index = month_index(p.start)
+                    idx = slice(start_index, start_index + p.size_in_months)
+
+                    counts = p.size_in_months - presence[:, idx].sum(axis=1)
+                    current_sum = values[:, idx].sum(axis=1)
+
+                    p_presence, p_values = buffer[k]
+                    spread_value = (p_values - current_sum) / counts
+
+                    i1 = dim1[p_presence, idx][~presence[p_presence, idx]]
+                    i2 = dim2[p_presence, idx][~presence[p_presence, idx]]
+                    values[i1, i2] = numpy.repeat(spread_value[p_presence], counts[p_presence])
+                    presence[i1, i2] = True
+
+            # Extract relevant slices
+            first = start.period(periods.MONTH)
+            new_buffer = {}
+            for i in range(size):
+                p = first.offset(i)
+                if presence[:, i].any():
+                    new_buffer[str(p)] = values[:, i]
+            return new_buffer
+
+        return {periodKey: buffer[periodKey][1] for periodKey in buffer}
 
     def set_input(self, period, array):
         """
