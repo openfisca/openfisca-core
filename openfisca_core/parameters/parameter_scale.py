@@ -73,6 +73,14 @@ class ParameterScale(AtInstantLike):
 
         return clone
 
+    def to_yaml(self):
+        """Return a representation of the Scale ready to be serialized to YAML."""
+        return helpers._without_none_values({
+            "brackets": [bracket.to_yaml() for bracket in self.brackets],
+            "description": self.description,
+            "metadata": self.metadata or None,
+        })
+
     def _get_at_instant(self, instant):
         brackets = [bracket.get_at_instant(instant) for bracket in self.brackets]
 

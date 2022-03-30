@@ -151,5 +151,13 @@ class ParameterNode(AtInstantLike):
 
         return clone
 
+    def to_yaml(self):
+        """Return a representation of the ParameterNode ready to be serialized to YAML."""
+        return helpers._without_none_values({
+            "description": self.description,
+            "documentation": self.documentation,
+            "metadata": self.metadata or None,
+        })
+
     def _get_at_instant(self, instant):
         return ParameterNodeAtInstant(self.name, self, instant)

@@ -1,7 +1,9 @@
 import os
+import re
 import traceback
 
 import numpy
+import yaml
 
 from openfisca_core import parameters, periods
 from openfisca_core.errors import ParameterParsingError
@@ -27,6 +29,31 @@ def load_parameter_file(file_path, name = ''):
         return parameters.ParameterNode(name, directory_path = file_path)
     data = _load_yaml_file(file_path)
     return _parse_child(name, data, file_path)
+
+
+def save_parameters_to_dir(node, dir_path):
+    def dump_node(file_basename: str):
+        file_path = dir_path / "{}.yaml".format(file_basename)
+        node_yaml = node.to_yaml()
+        if node_yaml:
+            node_text = yaml.dump(node_yaml, allow_unicode=True, default_flow_style=False, sort_keys=False)
+            # Hack: remove quotes from dict keys containing dates.
+            # Cf https://github.com/fpagnoux/baremes-ipp-parser/blob/master/bareme_ipp_parsers/commons.py
+            node_text = re.sub(r"'(\d{4}-\d{2}-\d{2})':", r"\1:", node_text)
+            file_path.write_text(node_text)
+
+    if isinstance(node, (parameters.Parameter, parameters.ParameterScale)):
+        file_basename = node.name.split(".")[-1]
+        dump_node(file_basename=file_basename)
+    else:
+        dump_node(file_basename="index")
+        for name, sub_node in node.children.items():
+            if isinstance(sub_node, (parameters.Parameter, parameters.ParameterScale)):
+                save_parameters_to_dir(node=sub_node, dir_path=dir_path)
+            else:
+                sub_dir = dir_path / name
+                sub_dir.mkdir(exist_ok=True)
+                save_parameters_to_dir(node=sub_node, dir_path=sub_dir)
 
 
 def _compose_name(path, child_name = None, item_name = None):
@@ -97,3 +124,6 @@ def _validate_parameter(parameter, data, data_type = None, allowed_keys = None):
                     .format(key, parameter.name, list(allowed_keys)),
                     parameter.file_path
                     )
+
+def _without_none_values(d):
+    return {k: v for k, v in d.items() if v is not None}

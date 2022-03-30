@@ -1,6 +1,7 @@
 import copy
 import os
 import typing
+from collections import OrderedDict
 
 from openfisca_core import commons, periods
 from openfisca_core.errors import ParameterParsingError
@@ -168,6 +169,21 @@ class Parameter(AtInstantLike):
 
     def get_descendants(self):
         return iter(())
+
+    def to_yaml(self):
+        """Return a representation of the Parameter ready to be serialized to YAML."""
+        return helpers._without_none_values({
+            "description": self.description,
+            "documentation": self.documentation,
+            "metadata": self.metadata or None,
+            "values": self.values_as_yaml(),
+        })
+
+    def values_as_yaml(self):
+        return OrderedDict([
+            (value.instant_str, {"value": value.value})
+            for value in self.values_list
+        ])
 
     def _get_at_instant(self, instant):
         for value_at_instant in self.values_list:
