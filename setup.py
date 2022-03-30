@@ -32,7 +32,7 @@ dev_requirements = [
     'flake8 >= 3.9.0, < 4.0.0',
     'flake8-bugbear >= 19.3.0, < 20.0.0',
     'flake8-docstrings == 1.6.0',
-    'flake8-print >= 3.1.0, < 4.0.0',
+    'flake8-print >= 3.1.0, < 5.0.0',
     'flake8-rst-docstrings == 0.2.3',
     'mypy == 0.910',
     'openfisca-country-template >= 3.10.0, < 4.0.0',
