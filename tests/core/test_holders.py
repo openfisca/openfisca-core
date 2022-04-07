@@ -103,6 +103,12 @@ def test_delete_arrays(single):
     assert simulation.person('salary', '2017-01') == 2500
     assert simulation.person('salary', '2018-01') == 5000
     salary_holder.delete_arrays(period = 2018)
+
+    salary_array = simulation.get_array('salary', '2017-01')
+    assert salary_array is not None
+    salary_array = simulation.get_array('salary', '2018-01')
+    assert salary_array is None
+    
     salary_holder.set_input(periods.period(2018), numpy.asarray([15000]))
     assert simulation.person('salary', '2017-01') == 2500
     assert simulation.person('salary', '2018-01') == 1250
