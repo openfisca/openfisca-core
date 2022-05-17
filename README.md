@@ -63,7 +63,7 @@ After installing conda, run these commands in an `Anaconda Powershell Prompt`:
 Then, choose one of the following options according to your use case:
 - `conda install -c conda-forge openfisca-core` for default dependencies,
 - or `conda install -c conda-forge openfisca-core-api` if you want the Web API part,
-- or `conda install -c conda-forge openfisca-core-dev` if you want all the dependencies needed to contribute to the project.
+- or `conda install -c conda-forge -c openfisca openfisca-core-dev` if you want all the dependencies needed to contribute to the project.
 
 For informations on how we publish to conda-forge, see [openfisca-core-feedstock](https://github.com/openfisca/openfisca-core-feedstock/blob/master/recipe/README.md).
 
