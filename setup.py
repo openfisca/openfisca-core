@@ -16,12 +16,12 @@ general_requirements = [
     'PyYAML >= 3.10',
     'sortedcontainers == 2.1.0',
     'numexpr == 2.6.9',
+    'flask == 1.1.4',
+    'flask-cors == 3.0.10',
+    'gunicorn >= 19.7.1',
     ]
 
 api_requirements = [
-    'flask == 1.1.1',
-    'flask-cors == 3.0.7',
-    'gunicorn >= 19.7.1',
     ]
 
 dev_requirements = [
@@ -32,7 +32,10 @@ dev_requirements = [
     'pytest-cov >= 2.6.1, < 3.0.0',
     'mypy >= 0.701, < 0.800',
     'openfisca-country-template >= 3.6.0rc0, < 4.0.0',
-    'openfisca-extension-template >= 1.2.0rc0, < 2.0.0'
+    'openfisca-extension-template >= 1.2.0rc0, < 2.0.0',
+    'flask == 1.1.4',
+    'flask-cors == 3.0.10',
+    'gunicorn >= 19.7.1',
     ] + api_requirements
 
 setup(
