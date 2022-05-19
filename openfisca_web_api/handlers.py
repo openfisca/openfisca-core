@@ -5,28 +5,13 @@ from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.indexed_enums import Enum
 
 
-# Patch for dpath
-# See https://github.com/dpath-maintainers/dpath-python/issues/160
-def dict_creator(current, segments, i, hints=()):
-    segment = segments[i]
-
-    if isinstance(segment, int):
-        dpath.segments.extend(current, segment)
-
-    # Infer the type from the hints provided.
-    if i < len(hints):
-        current[segment] = hints[i][1]()
-    else:
-        current[segment] = {}
-
-
 def calculate(tax_benefit_system, input_data: dict) -> dict:
     '''
     Returns the input_data where the None values are replaced by the calculated values.
     '''
     simulation = SimulationBuilder().build_from_entities(tax_benefit_system, input_data)
     requested_computations = dpath.util.search(input_data, '*/*/*/*', afilter = lambda t: t is None, yielded = True)
-    computation_results: dict = input_data
+    computation_results: dict = {}
     for computation in requested_computations:
         path = computation[0]  # format: entity_plural/entity_instance_id/openfisca_variable_name/period
         entity_plural, entity_id, variable_name, period = path.split('/')
@@ -43,9 +28,22 @@ def calculate(tax_benefit_system, input_data: dict) -> dict:
             entity_result = str(result[entity_index])
         else:
             entity_result = result.tolist()[entity_index]
-        dpath.util.new(computation_results, path, entity_result, creator=dict_creator)
-    print("computation_results", computation_results)  # noqa: T001
-    print("input_data", input_data)  # noqa: T001
+        # Don't use dpath.util.new, because there is a problem with dpath>=2.0
+        # when we have a key that is numeric, like the year.
+        # See https://github.com/dpath-maintainers/dpath-python/issues/160
+        if computation_results == {}:
+            computation_results = {entity_plural: {entity_id: {variable_name: {period: entity_result}}}}
+        else:
+            if entity_plural in computation_results:
+                if entity_id in computation_results[entity_plural]:
+                    if variable_name in computation_results[entity_plural][entity_id]:
+                        computation_results[entity_plural][entity_id][variable_name][period] = entity_result
+                    else:
+                        computation_results[entity_plural][entity_id][variable_name] = {period: entity_result}
+                else:
+                    computation_results[entity_plural][entity_id] = {variable_name: {period: entity_result}}
+            else:
+                computation_results[entity_plural] = {entity_id: {variable_name: {period: entity_result}}}
     dpath.util.merge(input_data, computation_results)
 
     return input_data
