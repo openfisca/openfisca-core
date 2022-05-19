@@ -13,7 +13,8 @@ The CI automatically uploads the PyPi package; see the `.github/workflow.yml`, s
 ## Manual actions for first time publishing
 
 - Create an account on https://anaconda.org.
-- Create a token on https://anaconda.org/openfisca/settings/access with _Allow write access to the API site_. Warning, it expire on 2023/01/13.
+- Create a token on https://anaconda.org/openfisca/settings/access with `Allow write access to the API site`. Warning, it expires on 2023/01/13.
+
 - Put the token in a CI env variable ANACONDA_TOKEN.
 
 ## Manual actions before CI configuration
