@@ -1,6 +1,9 @@
 name: OpenFisca Core
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+    types: [opened, reopened]
 
 jobs:
   build:
@@ -238,3 +241,48 @@ jobs:
       - name: Update doc
         run: |
           curl -X POST --header "Content-Type: application/json" -d '{"branch":"master"}' https://circleci.com/api/v1.1/project/github/openfisca/openfisca-doc/build?circle-token=${{ secrets.CIRCLECI_V1_OPENFISCADOC_TOKEN }}
+
+  publish-to-conda:
+    runs-on: "ubuntu-latest"
+    needs: [ deploy ]
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          python-version: 3.7.12
+          channels: conda-forge
+          activate-environment: true
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # Fetch all the tags
+      - name: Update meta.yaml
+        run: |
+          python3 -m pip install requests argparse
+          python3 .github/get_pypi_info.py -p OpenFisca-Core
+      - name: Conda Config
+        run: |
+          conda install conda-build anaconda-client
+          conda info
+          conda config --set anaconda_upload yes
+      - name: Conda build
+        run: conda build -c conda-forge --token ${{ secrets.ANACONDA_TOKEN }} --user openfisca .conda
+
+  test-on-windows:
+    runs-on: "windows-latest"
+    needs: [ publish-to-conda ]
+    steps:
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          python-version: "3.7.9"  # 3.7.12 don't exist on GHA Windows https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
+          channels: conda-forge
+          activate-environment: true
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # Fetch all the tags
+      - name: Install with conda
+        run: conda install -c openfisca openfisca-core
+      - name: Test openfisca
+        run: openfisca --help
