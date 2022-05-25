@@ -19,17 +19,19 @@ The CI automatically uploads the PyPi package; see the `.github/workflow.yml`, s
 - Put the token in a CI environment variable named `ANACONDA_TOKEN`.
 
 
-## Manual actions before CI configuration
+## Manual actions to test before CI
 
-To create the package you can do the following in the project root folder:
+Everything is done by the CI but if you want to test it locally, here is how to do it.
 
-- Edit `.conda/meta.yaml` and update it if needed:
-    - Version number
-    - Hash SHA256
-    - Package URL on PyPi
+Do the following in the project root folder:
 
-- Build & Upload package:
+- Auto-update `.conda/meta.yaml` with last infos from pypi by running:
+    - `python .github/get_pypi_info.py -p OPenfisca-core`
+
+- Build package:
     - `conda install -c anaconda conda-build anaconda-client`
-    - `conda build .conda`
+    - `conda build -c conda-forge .conda`
+
+ - Upload the package to Anaconda.org, but DON'T do it if you don't understand what you are doing:
     - `anaconda login`
     - `anaconda upload openfisca-core-<VERSION>-py_0.tar.bz2`
