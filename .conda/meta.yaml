@@ -1,6 +1,6 @@
 ###############################################################################
 ## File for Anaconda.org
-## WARNING : strings PYPI VERSION, PYPI URL, PYPI SHA256 and PYPI DEPS will be replaced
+## WARNING : strings PYPI VERSION, PYPI URL and PYPI SHA256 will be replaced
 ## by CI script get_pypi_info.py, leave them as is.
 ###############################################################################
 
@@ -29,11 +29,12 @@ requirements:
     - pip
   run:
     - python >=3.6,<4.0
+    - dpath >=1.5.0,<3.0.0
     - nptyping ==1.4.4
-    - numexpr <=3.0,>=2.7.0
-    - numpy <1.21,>=1.11
-    - psutil <6.0.0,>=5.4.7
-    - pytest <6.0.0,>=4.4.1
+    - numexpr >=2.7.0,<=3.0
+    - numpy >=1.11,<1.21
+    - psutil >=5.4.7,<6.0.0
+    - pytest >=4.4.1,<6.0.0
     - PyYAML >=3.10
     - sortedcontainers ==2.2.2
     - typing-extensions ==3.10.0.2

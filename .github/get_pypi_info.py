@@ -63,11 +63,6 @@ def replace_in_file(filepath: str, info: dict):
     meta = meta.replace("PYPI_VERSION", info["last_version"])
     meta = meta.replace("PYPI_URL", info["url"])
     meta = meta.replace("PYPI_SHA256", info["sha256"])
-    deps_and_version = ""
-    for name, version in info["deps_and_version"].items():
-        deps_and_version += f"    - {name} {version}\n"
-    print(f"Adding dependencies to conda:\n{deps_and_version}")  # noqa: T001
-    meta = meta.replace("PYPI_DEPS", deps_and_version)
     with open(filepath, "wt", encoding="utf-8") as fout:
         fout.write(meta)
     print(f"File {filepath} has been updated with info from PyPi.")  # noqa: T001
