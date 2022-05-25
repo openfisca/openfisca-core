@@ -29,7 +29,7 @@ Do the following in the project root folder:
     - `python .github/get_pypi_info.py -p OpenFisca-Core`
 
 - Build package:
-    - `conda install -c anaconda conda-build anaconda-client`
+    - `conda install -c anaconda conda-build anaconda-client` (`conda-build` to build the package and [anaconda-client](https://github.com/Anaconda-Platform/anaconda-client) to push the package to anaconda.org)
     - `conda build -c conda-forge .conda`
 
  - Upload the package to Anaconda.org, but DON'T do it if you don't understand what you are doing:
