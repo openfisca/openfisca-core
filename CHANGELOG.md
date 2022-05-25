@@ -1,5 +1,11 @@
 # Changelog
 
+### 35.8.2 [#1128](https://github.com/openfisca/openfisca-core/pull/1128)
+
+#### Technical changes
+
+- Remove ambiguous links in docstrings.
+
 ### 35.8.1 [#1105](https://github.com/openfisca/openfisca-core/pull/1105)
 
 #### Technical changes
