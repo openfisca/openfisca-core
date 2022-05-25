@@ -7,7 +7,6 @@ python3 .github/get_pypi_info.py -p OpenFisca-Core
 """
 
 import argparse
-import re
 
 import requests
 
@@ -27,26 +26,14 @@ def get_info(package_name: str = "") -> dict:
         raise Exception(f"ERROR calling PyPI ({url}) : {resp}")
     resp = resp.json()
     version = resp["info"]["version"]
-    deps_and_version = {}
-    for package in resp["info"]["requires_dist"]:
-        if "; extra ==" in package:
-            continue
-        package_name = package.split("(")[0].replace(" ", "")
-        package_name = package_name.replace("[pipeline]", "")
-        if package_name == "tables":
-            package_name = "pytables"
-        package_version = (
-            re.search("\(([^)]+)", package).group(1).replace(" ", "")  # noqa: W605
-            )  # "openfisca-france (>=113.0.2)"
-        deps_and_version[package_name] = package_version
 
     for v in resp["releases"][version]:
-        if v["packagetype"] == "sdist":  # for .tag.gz
+        # Find packagetype=="sdist" to get source code in .tar.gz
+        if v["packagetype"] == "sdist":
             return {
                 "last_version": version,
                 "url": v["url"],
                 "sha256": v["digests"]["sha256"],
-                "deps_and_version": deps_and_version,
                 }
     return {}
 
