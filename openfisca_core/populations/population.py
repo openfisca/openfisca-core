@@ -114,7 +114,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     @projectors.projectable
     def has_role(self, role):
         """
-            Check if a person has a given role within its :any:`GroupEntity`
+            Check if a person has a given role within its `GroupEntity`
 
             Example:
 
