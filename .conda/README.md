@@ -26,7 +26,7 @@ Everything is done by the CI but if you want to test it locally, here is how to 
 Do the following in the project root folder:
 
 - Auto-update `.conda/meta.yaml` with last infos from pypi by running:
-    - `python .github/get_pypi_info.py -p OPenfisca-core`
+    - `python .github/get_pypi_info.py -p OpenFisca-Core`
 
 - Build package:
     - `conda install -c anaconda conda-build anaconda-client`
