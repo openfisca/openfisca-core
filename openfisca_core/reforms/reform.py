@@ -11,7 +11,7 @@ class Reform(TaxBenefitSystem):
 
         All reforms must subclass `Reform` and implement a method `apply()`.
 
-        In this method, the reform can add or replace variables and call :any:`modify_parameters` to modify the parameters of the legislation.
+        In this method, the reform can add or replace variables and call `modify_parameters` to modify the parameters of the legislation.
 
         Example:
 
