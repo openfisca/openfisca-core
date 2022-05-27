@@ -29,7 +29,7 @@ To install it locally you can use one of these two options:
 * [conda](https://docs.conda.io/en/latest/) package manager that we recommend for Windows operating system users,
 * or standard Python [pip](https://packaging.python.org/en/latest/key_projects/#pip) package manager.
 
-### Installing `openfisca-core with `pip`
+### Installing `openfisca-core` with `pip`
 
 This installation requires [Python](https://www.python.org/downloads/) 3.7+ and [GIT](https://git-scm.com) installations.
 
