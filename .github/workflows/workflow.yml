@@ -260,6 +260,8 @@ jobs:
       - name: Update meta.yaml
         run: |
           python3 -m pip install requests argparse
+          # Sleep to allow PyPi to update its API
+          sleep 60
           python3 .github/get_pypi_info.py -p OpenFisca-Core
       - name: Conda Config
         run: |
