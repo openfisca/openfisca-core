@@ -1,6 +1,9 @@
+from __future__ import annotations
+
+from typing import Dict, List, Optional
+
 import copy
 import os
-import typing
 
 from openfisca_core import commons, periods
 from openfisca_core.errors import ParameterParsingError
@@ -8,14 +11,18 @@ from openfisca_core.parameters import config, helpers, AtInstantLike, ParameterA
 
 
 class Parameter(AtInstantLike):
-    """
-    A parameter of the legislation. Parameters can change over time.
+    """A parameter of the legislation.
 
-    :param string name: Name of the parameter, e.g. "taxes.some_tax.some_param"
-    :param dict data: Data loaded from a YAML file.
-    :param string file_path: File the parameter was loaded from.
-    :param string documentation: Documentation describing parameter usage and context.
+    Parameters can change over time.
 
+    Attributes:
+        values_list: List of the values, in reverse chronological order.
+
+
+    Args:
+        name: Name of the parameter, e.g. "taxes.some_tax.some_param".
+        data: Data loaded from a YAML file.
+        file_path: File the parameter was loaded from.
 
     Instantiate a parameter without metadata:
 
@@ -34,17 +41,14 @@ class Parameter(AtInstantLike):
                 }
             })
 
-    .. attribute:: values_list
-
-       List of the values, in reverse chronological order
     """
 
-    def __init__(self, name, data, file_path = None):
+    def __init__(self, name: str, data: dict, file_path: Optional[str] = None):
         self.name: str = name
         self.file_path: str = file_path
         helpers._validate_parameter(self, data, data_type = dict)
         self.description: str = None
-        self.metadata: typing.Dict = {}
+        self.metadata: Dict = {}
         self.documentation: str = None
         self.values_history = self  # Only for backward compatibility
 
@@ -85,7 +89,7 @@ class Parameter(AtInstantLike):
             value_at_instant = ParameterAtInstant(value_name, instant_str, data = instant_info, file_path = self.file_path, metadata = self.metadata)
             values_list.append(value_at_instant)
 
-        self.values_list: typing.List[ParameterAtInstant] = values_list
+        self.values_list: List[ParameterAtInstant] = values_list
 
     def __repr__(self):
         return os.linesep.join([
