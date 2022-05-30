@@ -256,19 +256,20 @@ class TaxBenefitSystem:
             extension_parameters = ParameterNode(directory_path = param_dir)
             self.parameters.merge(extension_parameters)
 
-    def apply_reform(self, reform_path):
-        """
-        Generates a new tax and benefit system applying a reform to the tax and benefit system.
+    def apply_reform(self, reform_path: str) -> "TaxBenefitSystem":
+        """Generates a new tax and benefit system applying a reform to the tax and benefit system.
 
         The current tax and benefit system is **not** mutated.
 
-        :param string reform_path: The reform to apply. Must respect the format *installed_package.sub_module.reform*
+        Args:
+            reform_path: The reform to apply. Must respect the format *installed_package.sub_module.reform*
 
-        :returns: A reformed tax and benefit system.
+        Returns:
+            TaxBenefitSystem: A reformed tax and benefit system.
 
         Example:
 
-        >>> self.apply_reform('openfisca_france.reforms.inversion_revenus')
+            >>> self.apply_reform('openfisca_france.reforms.inversion_revenus')
 
         """
         from openfisca_core.reforms import Reform
