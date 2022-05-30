@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Optional, Sequence
+
 import copy
 import glob
 import importlib
@@ -27,13 +31,12 @@ class TaxBenefitSystem:
 
     It stores parameters (values defined for everyone) and variables (values defined for some given entity e.g. a person).
 
-    :param entities: Entities used by the tax benefit system.
-    :param string parameters: Directory containing the YAML parameter files.
+    Attributes:
+        parameters: Directory containing the YAML parameter files.
 
+    Args:
+        entities: Entities used by the tax benefit system.
 
-    .. attribute:: parameters
-
-       :obj:`.ParameterNode` containing the legislation parameters
     """
     _base_tax_benefit_system = None
     _parameters_at_instant_cache = None
@@ -43,9 +46,9 @@ class TaxBenefitSystem:
     cache_blacklist = None
     decomposition_file_path = None
 
-    def __init__(self, entities):
+    def __init__(self, entities: Sequence[Entity]) -> None:
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
-        self.parameters = None
+        self.parameters: Optional[ParameterNode] = None
         self._parameters_at_instant_cache = {}  # weakref.WeakValueDictionary()
         self.variables = {}
         self.open_api_config = {}
