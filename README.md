@@ -67,6 +67,46 @@ Then, choose one of the following options according to your use case:
 
 For informations on how we publish to conda-forge, see [openfisca-core-feedstock](https://github.com/openfisca/openfisca-core-feedstock/blob/master/recipe/README.md).
 
+### Compiling `numpy` from source
+
+If you're running on an Apple M1 or any ARMv8.X-A CPU, chances are `numpy` fails to install. If that is so, you can either:
+
+1. Bump `numpy` to 1.22+ an create a pull request to help us fully support that version :)
+2. Install OpenFisca-Core via Conda (see below)
+3. Compile `numpy` from source
+
+For the latter, run in your console:
+
+```sh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install gcc
+export CC=/opt/homebrew/opt/gcc@11/bin/gcc-11
+export LD=/opt/homebrew/opt/gcc@11/bin/gcc-11
+export CXX=/opt/homebrew/opt/gcc@11/bin/g++-11
+export CPP=/opt/homebrew/opt/gcc@11/bin/cpp-11
+brew install blis pyenv
+brew install --build-from-source zlib libffi libyaml libressl readline openblas
+export CPPFLAGS="-I$(brew --prefix libressl)/include -I$(brew --prefix readline)/include -I$(brew --prefix zlib)/include -I/$(brew --prefix libffi)/include -I/$(brew --prefix libyaml)/include"
+export LDFLAGS="-L$(brew --prefix libre)/lib -L$(brew --prefix readline)/lib -L$(brew --prefix zlib)/lib -L$(brew --prefix libffi)/lib -L$(brew --prefix libyaml)/lib"
+git clone git@github.com:numpy/numpy.git
+cd numpy
+git checkout v1.20.3
+xargs -I % echo % > site.cfg << EOF
+[openblas]
+libraries = openblas
+library_dirs = /opt/homebrew/opt/openblas/lib
+include_dirs = /opt/homebrew/opt/include
+runtime_library_dirs = /opt/homebrew/opt/openblas
+[blis]
+libraries = blis
+library_dirs = /opt/homebrew/opt/blis/lib
+include_dirs = /opt/homebrew/opt/blis/include/blis
+runtime_library_dirs = /opt/homebrew/opt/blis/lib
+EOF
+pyenv install --version 3.8.X --force
+python setup.py build --cpu-baseline=min --cpu-dispatch=none install 
+```
+
 ## Testing
 
 To run the entire test suite:
