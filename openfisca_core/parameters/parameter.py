@@ -43,7 +43,7 @@ class Parameter(AtInstantLike):
 
     """
 
-    def __init__(self, name: str, data: dict, file_path: Optional[str] = None):
+    def __init__(self, name: str, data: dict, file_path: Optional[str] = None) -> None:
         self.name: str = name
         self.file_path: str = file_path
         helpers._validate_parameter(self, data, data_type = dict)
