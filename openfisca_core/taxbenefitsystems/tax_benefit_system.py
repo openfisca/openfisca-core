@@ -142,13 +142,15 @@ class TaxBenefitSystem:
 
         return variable
 
-    def add_variable(self, variable):
-        """
-        Adds an OpenFisca variable to the tax and benefit system.
+    def add_variable(self, variable: Variable) -> Variable:
+        """Adds an OpenFisca variable to the tax and benefit system.
 
-        :param .Variable variable: The variable to add. Must be a subclass of Variable.
+        Args:
+            variable: The variable to add. Must be a subclass of :class:`.Variable`.
 
-        :raises: :exc:`.VariableNameConflictError` if a variable with the same name have previously been added to the tax and benefit system.
+        Raises:
+            VariableNameConflictError: if a variable with the same name have previously been added to the tax and benefit system.
+
         """
         return self.load_variable(variable, update = False)
 
