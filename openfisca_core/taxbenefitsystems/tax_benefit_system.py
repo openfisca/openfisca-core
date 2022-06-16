@@ -146,7 +146,7 @@ class TaxBenefitSystem:
         """Adds an OpenFisca variable to the tax and benefit system.
 
         Args:
-            variable: The variable to add. Must be a subclass of :class:`Variable`.
+            variable: The variable to add. Must be a subclass of Variable.
 
         Raises:
             VariableNameConflictError: if a variable with the same name have previously been added to the tax and benefit system.
