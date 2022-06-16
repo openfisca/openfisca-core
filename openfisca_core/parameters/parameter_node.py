@@ -19,10 +19,10 @@ class ParameterNode(AtInstantLike):
         """
         Instantiate a ParameterNode either from a dict, (using `data`), or from a directory containing YAML files (using `directory_path`).
 
-        :param string name: Name of the node, eg "taxes.some_tax".
-        :param string directory_path: Directory containing YAML files describing the node.
+        :param str name: Name of the node, eg "taxes.some_tax".
+        :param str directory_path: Directory containing YAML files describing the node.
         :param dict data: Object representing the parameter node. It usually has been extracted from a YAML file.
-        :param string file_path: YAML file from which the `data` has been extracted from.
+        :param str file_path: YAML file from which the `data` has been extracted from.
 
 
         Instantiate a ParameterNode from a dict:

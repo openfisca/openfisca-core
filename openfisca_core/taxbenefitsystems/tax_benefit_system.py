@@ -236,7 +236,7 @@ class TaxBenefitSystem:
         """
         Loads an extension to the tax and benefit system.
 
-        :param string extension: The extension to load. Can be an absolute path pointing to an extension directory, or the name of an OpenFisca extension installed as a pip package.
+        :param str extension: The extension to load. Can be an absolute path pointing to an extension directory, or the name of an OpenFisca extension installed as a pip package.
 
         """
         # Load extension from installed pip package
@@ -418,9 +418,9 @@ class TaxBenefitSystem:
         """
         Gets all variables contained in a tax and benefit system.
 
-        :param .Entity entity: If set, returns only the variable defined for the given entity.
+        :param Entity entity: If set, returns only the variable defined for the given entity.
 
-        :returns: A dictionnary, indexed by variable names.
+        :returns: A dictionary, indexed by variable names.
         :rtype: dict
 
         """
