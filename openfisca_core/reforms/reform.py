@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Callable
-
 import copy
 
 from openfisca_core.parameters import ParameterNode
@@ -65,7 +63,7 @@ class Reform(TaxBenefitSystem):
             key = '.'.join([baseline_full_key, key])
         return key
 
-    def modify_parameters(self, modifier_function: Callable[[ParameterNode], ParameterNode]) -> None:
+    def modify_parameters(self, modifier_function):
         """Make modifications on the parameters of the legislation.
 
         Call this function in `apply()` if the reform asks for legislation parameter modifications.
