@@ -149,7 +149,7 @@ class TaxBenefitSystem:
             variable: The variable to add. Must be a subclass of Variable.
 
         Raises:
-            VariableNameConflictError: if a variable with the same name have previously been added to the tax and benefit system.
+            openfisca_core.errors.VariableNameConflictError: if a variable with the same name have previously been added to the tax and benefit system.
 
         """
         return self.load_variable(variable, update = False)
