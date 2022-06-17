@@ -1,10 +1,16 @@
 # Changelog
 
+### 35.8.4 [#1131](https://github.com/openfisca/openfisca-core/pull/1131)
+
+#### Technical changes
+
+- Correct some type hints and docstrings.
+
 ### 35.8.3 [#1127](https://github.com/openfisca/openfisca-core/pull/1127)
 
 #### Technical changes
 
-- Fix the build for Anaconda in CI. The conda build failed on master because of a replacement in a comment string. 
+- Fix the build for Anaconda in CI. The conda build failed on master because of a replacement in a comment string.
   - The _ were removed in the comment to avoid a replace.
 
 ### 35.8.2 [#1128](https://github.com/openfisca/openfisca-core/pull/1128)

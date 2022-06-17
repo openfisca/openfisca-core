@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 
 from openfisca_core.parameters import ParameterNode
@@ -5,13 +7,11 @@ from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 
 
 class Reform(TaxBenefitSystem):
-    """
-        A modified TaxBenefitSystem
+    """A modified TaxBenefitSystem
 
+    All reforms must subclass `Reform` and implement a method `apply()`.
 
-        All reforms must subclass `Reform` and implement a method `apply()`.
-
-        In this method, the reform can add or replace variables and call `modify_parameters` to modify the parameters of the legislation.
+    In this method, the reform can add or replace variables and call `modify_parameters` to modify the parameters of the legislation.
 
         Example:
 
@@ -64,12 +64,12 @@ class Reform(TaxBenefitSystem):
         return key
 
     def modify_parameters(self, modifier_function):
-        """
-        Make modifications on the parameters of the legislation
+        """Make modifications on the parameters of the legislation.
 
         Call this function in `apply()` if the reform asks for legislation parameter modifications.
 
-        :param modifier_function: A function that takes an object of type :any:`ParameterNode` and should return an object of the same type.
+        Args:
+            modifier_function: A function that takes a :obj:`.ParameterNode` and should return an object of the same type.
         """
         baseline_parameters = self.baseline.parameters
         baseline_parameters_copy = copy.deepcopy(baseline_parameters)

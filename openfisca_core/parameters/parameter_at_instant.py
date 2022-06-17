@@ -16,8 +16,8 @@ class ParameterAtInstant:
 
     def __init__(self, name, instant_str, data = None, file_path = None, metadata = None):
         """
-        :param string name: name of the parameter, e.g. "taxes.some_tax.some_param"
-        :param string instant_str: Date of the value in the format `YYYY-MM-DD`.
+        :param str name: name of the parameter, e.g. "taxes.some_tax.some_param"
+        :param str instant_str: Date of the value in the format `YYYY-MM-DD`.
         :param dict data: Data, usually loaded from a YAML file.
         """
         self.name: str = name
