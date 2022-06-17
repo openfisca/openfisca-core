@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Sequence
+from typing import Any, Dict, Optional, Sequence
 
 import copy
 import glob
@@ -39,7 +39,7 @@ class TaxBenefitSystem:
 
     """
     _base_tax_benefit_system = None
-    _parameters_at_instant_cache = None
+    _parameters_at_instant_cache: Optional[Dict[Any, Any]] = None
     person_key_plural = None
     preprocess_parameters = None
     baseline = None  # Baseline tax-benefit system. Used only by reforms. Note: Reforms can be chained.
@@ -50,8 +50,8 @@ class TaxBenefitSystem:
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
         self.parameters: Optional[ParameterNode] = None
         self._parameters_at_instant_cache = {}  # weakref.WeakValueDictionary()
-        self.variables = {}
-        self.open_api_config = {}
+        self.variables: Dict[Any, Any] = {}
+        self.open_api_config: Dict[Any, Any] = {}
         # Tax benefit systems are mutable, so entities (which need to know about our variables) can't be shared among them
         if entities is None or len(entities) == 0:
             raise Exception("A tax and benefit sytem must have at least an entity.")

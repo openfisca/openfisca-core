@@ -45,11 +45,11 @@ class Parameter(AtInstantLike):
 
     def __init__(self, name: str, data: dict, file_path: Optional[str] = None) -> None:
         self.name: str = name
-        self.file_path: str = file_path
+        self.file_path: Optional[str] = file_path
         helpers._validate_parameter(self, data, data_type = dict)
-        self.description: str = None
+        self.description: Optional[str] = None
         self.metadata: Dict = {}
-        self.documentation: str = None
+        self.documentation: Optional[str] = None
         self.values_history = self  # Only for backward compatibility
 
         # Normal parameter declaration: the values are declared under the 'values' key: parse the description and metadata.
