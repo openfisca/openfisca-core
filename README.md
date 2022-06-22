@@ -11,7 +11,7 @@
 
 Conda-forge release info : [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/openfisca-core.svg)](https://anaconda.org/conda-forge/openfisca-core)  [![Conda Version](https://img.shields.io/conda/vn/conda-forge/openfisca-core.svg)](https://anaconda.org/conda-forge/openfisca-core)
 
-[OpenFisca](https://openfisca.org/doc/) is a versatile microsimulation-free software. Check the [online documentation](https://openfisca.org/doc/) for more details.
+[OpenFisca](https://openfisca.org/doc/) is a versatile microsimulation free software. Check the [online documentation](https://openfisca.org/doc/) for more details.
 
 This package contains the core features of OpenFisca, which are meant to be used by country packages such as [OpenFisca-France](https://github.com/openfisca/openfisca-france). Bootstrapping your own country package should not take more than 5 minutes: check our [country package template](https://github.com/openfisca/country-template).
 
