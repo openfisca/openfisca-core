@@ -17,9 +17,9 @@ This package contains the core features of OpenFisca, which are meant to be used
 
 ## Environment
 
-OpenFisca runs on Python 3.7. More recent versions should work, but are not tested.
+OpenFisca runs on Python 3.7. More recent versions should work but are not tested.
 
-OpenFisca also relies strongly on NumPy. Last four minor versions should work, but only latest/stable is tested.
+OpenFisca also relies strongly on NumPy. The last four minor versions should work, but only the latest/stable is tested.
 
 ## Installation
 
@@ -54,7 +54,7 @@ Conda is the easiest way to use OpenFisca under Windows as by installing Anacond
 - A virtual environment manager : [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html)
 - A GUI [Anaconda Navigator](https://docs.anaconda.com/anaconda/navigator/index.html) if you choose to install the full [Anaconda](https://www.anaconda.com/products/individual)
 
-If you are familiar with command line you could use [Miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/windows.html), wich need very much less disk space than Anaconda.
+If you are familiar with the command line you could use [Miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/windows.html), which needs very much less disk space than Anaconda.
 
 After installing conda, run these commands in an `Anaconda Powershell Prompt`:
 - `conda create --name openfisca python=3.7` to create an `openfisca` environment.
@@ -65,7 +65,7 @@ Then, choose one of the following options according to your use case:
 - or `conda install -c conda-forge openfisca-core-api` if you want the Web API part,
 - or `conda install -c conda-forge -c openfisca openfisca-core-dev` if you want all the dependencies needed to contribute to the project.
 
-For informations on how we publish to conda-forge, see [openfisca-core-feedstock](https://github.com/openfisca/openfisca-core-feedstock/blob/master/recipe/README.md).
+For information on how we publish to conda-forge, see [openfisca-core-feedstock](https://github.com/openfisca/openfisca-core-feedstock/blob/master/recipe/README.md).
 
 ## Testing
 
@@ -131,7 +131,7 @@ END
 
 ## Documentation
 
-Yet however OpenFisca does not follow a common convention for docstrings, our current toolchain allows to check whether documentation builds correctly and to update it automatically with each contribution to this repository.
+OpenFisca’s toolchain checks whether documentation builds correctly and updates it automatically with each contribution to this repository.
 
 In the meantime, please take a look at our [contributing guidelines](CONTRIBUTING.md) for some general tips on how to document your contributions, and at our official documentation's [repository](https://github.com/openfisca/openfisca-doc/blob/master/README.md) to in case you want to know how to build it by yourself —and improve it!
 
@@ -166,7 +166,7 @@ git checkout -b fix-doc
 sh -c "cd doc && git checkout -b `git branch --show-current`"
 ```
 
-4. Fix the offending problems —they could be in core, in the doc, or in both.
+4. Fix the offending problems —they could be in core, in the doc, or both.
 
 You can test-drive your fixes by checking that each change works as expected:
 
@@ -239,7 +239,7 @@ The tracker is activated when these two options are set:
 
 * `--tracker-url`: An URL ending with `piwik.php`. It defines the Piwik instance that will receive the tracking information. To use the main OpenFisca Piwik instance, use `https://stats.data.gouv.fr/piwik.php`.
 * `--tracker-idsite`: An integer. It defines the identifier of the tracked site on your Piwik instance. To use the main OpenFisca piwik instance, use `4`.
-* `--tracker-token`: A string. It defines the Piwik API Authentification token to differentiate API calls based on the user IP. Otherwise, all API calls will seem to come from your server. The Piwik API Authentification token can be found in your Piwik interface, when you are logged.
+* `--tracker-token`: A string. It defines the Piwik API Authentification token to differentiate API calls based on the user IP. Otherwise, all API calls will seem to come from your server. The Piwik API Authentification token can be found in your Piwik interface when you are logged in.
 
 For instance, to run the Web API with the mock country package `openfisca_country_template` and the tracker activated, run:
 
