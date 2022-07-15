@@ -74,5 +74,5 @@ test-doc-install:
 ## Dry-build the doc.
 test-doc-build:
 	@$(call print_help,$@:)
-	@sphinx-build -M dummy doc/source doc/build -n -q -W
+	@sphinx-build -M dummy doc/source doc/build -n -q
 	@$(call print_pass,$@:)
