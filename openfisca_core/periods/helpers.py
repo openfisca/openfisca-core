@@ -143,6 +143,7 @@ def period(value) -> Period:
         >>> period("day:2014-2-2:3")
         Period((<DateUnit.DAY: 'day'>, Instant((2014, 2, 2)), 3))
 
+
     """
 
     if isinstance(value, Period):
