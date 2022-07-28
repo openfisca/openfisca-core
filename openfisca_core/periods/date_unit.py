@@ -18,10 +18,10 @@ class DateUnit(StrEnum):
         {<DateUnit.DAY: 'day'>: 'day'}
 
         >>> list(DateUnit)
-        [<DateUnit.DAY: 'day'>, <DateUnit.MONTH: 'month'>, ...]
+        [<DateUnit.WEEK: 'week'>, <DateUnit.DAY: 'day'>, ...]
 
         >>> len(DateUnit)
-        4
+        5
 
         >>> DateUnit["DAY"]
         <DateUnit.DAY: 'day'>
@@ -48,6 +48,7 @@ class DateUnit(StrEnum):
 
     """
 
+    WEEK = "week"
     DAY = "day"
     MONTH = "month"
     YEAR = "year"

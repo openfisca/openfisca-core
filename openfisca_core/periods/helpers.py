@@ -131,6 +131,12 @@ def period(value) -> Period:
         >>> period("year:2014")
         Period((<DateUnit.YEAR: 'year'>, Instant((2014, 1, 1)), 1))
 
+        >>> period("2014-2")
+        Period((<DateUnit.MONTH: 'month'>, Instant((2014, 2, 1)), 1))
+
+        >>> period("2014-02")
+        Period((<DateUnit.MONTH: 'month'>, Instant((2014, 2, 1)), 1))
+
         >>> period("month:2014-2")
         Period((<DateUnit.MONTH: 'month'>, Instant((2014, 2, 1)), 1))
 
