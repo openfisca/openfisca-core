@@ -11,21 +11,40 @@ from .period_ import Period
 def instant(instant):
     """Return a new instant, aka a triple of integers (year, month, day).
 
-    >>> instant(2014)
-    Instant((2014, 1, 1))
-    >>> instant('2014')
-    Instant((2014, 1, 1))
-    >>> instant('2014-02')
-    Instant((2014, 2, 1))
-    >>> instant('2014-3-2')
-    Instant((2014, 3, 2))
-    >>> instant(instant('2014-3-2'))
-    Instant((2014, 3, 2))
-    >>> instant(period('month', '2014-3-2'))
-    Instant((2014, 3, 2))
+    Args:
+        instant: An ``instant-like`` object.
 
-    >>> instant(None)
+    Returns:
+        None: When ``instant`` is None.
+        :obj:`.Instant`: Otherwise.
+
+    Raises:
+        :exc:`ValueError`: When the arguments were invalid, like "2021-32-13".
+
+    Examples:
+        >>> instant((2021,))
+        Instant((2021, 1, 1))
+
+        >>> instant((2021, 9))
+        Instant((2021, 9, 1))
+
+        >>> instant(datetime.date(2021, 9, 16))
+        Instant((2021, 9, 16))
+
+        >>> instant(Instant((2021, 9, 16)))
+        Instant((2021, 9, 16))
+
+        >>> instant(Period(("year", Instant((2021, 9, 16)), 1)))
+        Instant((2021, 9, 16))
+
+        >>> instant(2021)
+        Instant((2021, 1, 1))
+
+        >>> instant("2021")
+        Instant((2021, 1, 1))
+
     """
+
     if instant is None:
         return None
     if isinstance(instant, Instant):
@@ -58,6 +77,21 @@ def instant(instant):
 
 
 def instant_date(instant):
+    """Returns the date representation of an :class:`.Instant`.
+
+    Args:
+        instant (:obj:`.Instant`, optional):
+
+    Returns:
+        None: When ``instant`` is None.
+        :obj:`datetime.date`: Otherwise.
+
+    Examples:
+        >>> instant_date(Instant((2021, 1, 1)))
+        datetime.date(2021, 1, 1)
+
+    """
+
     if instant is None:
         return None
     instant_date = config.date_by_instant_cache.get(instant)
@@ -69,21 +103,48 @@ def instant_date(instant):
 def period(value) -> Period:
     """Return a new period, aka a triple (unit, start_instant, size).
 
-    >>> period('2014')
-    Period((YEAR, Instant((2014, 1, 1)), 1))
-    >>> period('year:2014')
-    Period((YEAR, Instant((2014, 1, 1)), 1))
+    Args:
+        value: A ``period-like`` object.
 
-    >>> period('2014-2')
-    Period((MONTH, Instant((2014, 2, 1)), 1))
-    >>> period('2014-02')
-    Period((MONTH, Instant((2014, 2, 1)), 1))
-    >>> period('month:2014-2')
-    Period((MONTH, Instant((2014, 2, 1)), 1))
+    Returns:
+        :obj:`.Period`: A period.
 
-    >>> period('year:2014-2')
-    Period((YEAR, Instant((2014, 2, 1)), 1))
+    Raises:
+        :exc:`ValueError`: When the arguments were invalid, like "2021-32-13".
+
+    Examples:
+        >>> period(Period(("year", Instant((2021, 1, 1)), 1)))
+        Period(('year', Instant((2021, 1, 1)), 1))
+
+        >>> period(Instant((2021, 1, 1)))
+        Period(('day', Instant((2021, 1, 1)), 1))
+
+        >>> period("eternity")
+        Period(('eternity', Instant((1, 1, 1)), inf))
+
+        >>> period(2021)
+        Period(('year', Instant((2021, 1, 1)), 1))
+
+        >>> period("2014")
+        Period(('year', Instant((2014, 1, 1)), 1))
+
+        >>> period("year:2014")
+        Period(('year', Instant((2014, 1, 1)), 1))
+
+        >>> period("month:2014-2")
+        Period(('month', Instant((2014, 2, 1)), 1))
+
+        >>> period("year:2014-2")
+        Period(('year', Instant((2014, 2, 1)), 1))
+
+        >>> period("day:2014-2-2")
+        Period(('day', Instant((2014, 2, 2)), 1))
+
+        >>> period("day:2014-2-2:3")
+        Period(('day', Instant((2014, 2, 2)), 3))
+
     """
+
     if isinstance(value, Period):
         return value
 
@@ -91,9 +152,12 @@ def period(value) -> Period:
         return Period((config.DAY, value, 1))
 
     def parse_simple_period(value):
+        """Parses simple periods respecting the ISO format.
+
+        Such as 2012 or 2015-03.
+
         """
-        Parses simple periods respecting the ISO format, such as 2012 or 2015-03
-        """
+
         try:
             date = datetime.datetime.strptime(value, "%Y")
         except ValueError:
@@ -176,18 +240,33 @@ def period(value) -> Period:
 
 
 def key_period_size(period):
-    """
-    Defines a key in order to sort periods by length. It uses two aspects : first unit then size
+    """Defines a key in order to sort periods by length.
 
-    :param period: an OpenFisca period
-    :return: a string
+    It uses two aspects: first, ``unit``, then, ``size``.
 
-    >>> key_period_size(period('2014'))
-    '2_1'
-    >>> key_period_size(period('2013'))
-    '2_1'
-    >>> key_period_size(period('2014-01'))
-    '1_1'
+    Args:
+        period: An :mod:`.openfisca_core` :obj:`.Period`.
+
+    Returns:
+        :obj:`str`: A string.
+
+    Examples:
+        >>> instant = Instant((2021, 9, 14))
+        >>> period = Period(("day", instant, 1))
+        >>> key_period_size(period)
+        '100_1'
+
+        >>> period = Period(("month", instant, 2))
+        >>> key_period_size(period)
+        '200_2'
+
+        >>> period = Period(("year", instant, 3))
+        >>> key_period_size(period)
+        '300_3'
+
+        >>> period = Period(("eternity", instant, 4))
+        >>> key_period_size(period)
+        '400_4'
 
     """
 

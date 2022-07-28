@@ -12,17 +12,15 @@ class Period(tuple):
     A :class:`.Period` is a triple (``unit``, ``start``, ``size``).
 
     Attributes:
-        unit (:obj:`.DateUnit`):
-            Either an :meth:`~DateUnit.isoformat` unit (``day``, ``month``,
-            ``year``), an :meth:`~DateUnit.isocalendar` one (``week_day``,
-            ``week``, ``year``), or :obj:`~DateUnit.ETERNITY`.
+        unit (:obj:`str`):
+            Either ``year``, ``month``, ``day`` or ``eternity``.
         start (:obj:`.Instant`):
             The "instant" the :obj:`.Period` starts at.
         size (:obj:`int`):
             The amount of ``unit``, starting at ``start``, at least ``1``.
 
     Args:
-        fragments (tuple(.DateUnit, .Instant, int)):
+        (tuple(tuple(str, .Instant, int))):
             The ``unit``, ``start``, and ``size``, accordingly.
 
     Examples:
