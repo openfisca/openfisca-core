@@ -1,5 +1,11 @@
 # Changelog
 
+### 35.8.6 [#1138](https://github.com/openfisca/openfisca-core/pull/1138)
+
+#### Technical changes
+
+- Fix `openfisca_core.periods` doctests.
+
 ### 35.8.5 [#1137](https://github.com/openfisca/openfisca-core/pull/1137)
 
 #### Technical changes
