@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import calendar
 import datetime
 
@@ -78,31 +80,31 @@ class Instant(tuple):
 
     """
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}({super().__repr__()})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         instant_str = config.str_by_instant_cache.get(self)
         if instant_str is None:
             config.str_by_instant_cache[self] = instant_str = self.date.isoformat()
         return instant_str
 
     @property
-    def date(self):
+    def date(self) -> datetime.date:
         instant_date = config.date_by_instant_cache.get(self)
         if instant_date is None:
             config.date_by_instant_cache[self] = instant_date = datetime.date(*self)
         return instant_date
 
     @property
-    def day(self):
+    def day(self) -> int:
         return self[2]
 
     @property
-    def month(self):
+    def month(self) -> int:
         return self[1]
 
-    def offset(self, offset, unit):
+    def offset(self, offset: int | str, unit: str) -> Instant:
         """Increments/decrements the given instant with offset units.
 
         Args:
@@ -115,7 +117,7 @@ class Instant(tuple):
         Raises:
             :exc:`AssertionError`: When ``unit`` is not a date unit.
             :exc:`AssertionError`: When ``offset`` is not either ``first-of``,
-                ``last-of``, or any :obj:`int`.
+            ``last-of``, or any :obj:`int`.
 
         Examples:
             >>> Instant((2020, 12, 31)).offset("first-of", "month")
@@ -195,5 +197,5 @@ class Instant(tuple):
         return self.__class__((year, month, day))
 
     @property
-    def year(self):
+    def year(self) -> int:
         return self[0]
