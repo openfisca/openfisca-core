@@ -14,7 +14,7 @@ class Instant(tuple):
     :obj:`instants <.Instant>` can be thought of as "day dates".
 
     Args:
-        tuple(tuple(int, int, int)):
+        (tuple(tuple(int, int, int))):
             The ``year``, ``month``, and ``day``, accordingly.
 
     Examples:
