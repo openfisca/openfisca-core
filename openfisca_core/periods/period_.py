@@ -1,6 +1,11 @@
 from __future__ import annotations
 
+from typing import Optional, Sequence, Union
+
 import calendar
+import datetime
+
+from openfisca_core import types
 
 from . import config, helpers
 from .instant_ import Instant
@@ -12,17 +17,15 @@ class Period(tuple):
     A :class:`.Period` is a triple (``unit``, ``start``, ``size``).
 
     Attributes:
-        unit (:obj:`.DateUnit`):
-            Either an :meth:`~DateUnit.isoformat` unit (``day``, ``month``,
-            ``year``), an :meth:`~DateUnit.isocalendar` one (``week_day``,
-            ``week``, ``year``), or :obj:`~DateUnit.ETERNITY`.
+        unit (:obj:`str`):
+            Either ``year``, ``month``, ``day`` or ``eternity``.
         start (:obj:`.Instant`):
             The "instant" the :obj:`.Period` starts at.
         size (:obj:`int`):
             The amount of ``unit``, starting at ``start``, at least ``1``.
 
     Args:
-        fragments (tuple(.DateUnit, .Instant, int)):
+        (tuple(tuple(str, .Instant, int))):
             The ``unit``, ``start``, and ``size``, accordingly.
 
     Examples:
@@ -125,10 +128,10 @@ class Period(tuple):
 
     """
 
-    def __repr__(self):
-        return '{}({})'.format(self.__class__.__name__, super(Period, self).__repr__())
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({super(Period, self).__repr__()})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Transform period to a string.
 
         Examples:
@@ -191,57 +194,17 @@ class Period(tuple):
         return '{}:{}-{:02d}:{}'.format(unit, year, month, size)
 
     @property
-    def date(self):
+    def date(self) -> datetime.date:
         assert self.size == 1, '"date" is undefined for a period of size > 1: {}'.format(self)
         return self.start.date
 
     @property
-    def days(self):
+    def days(self) -> int:
         """Count the number of days in period."""
 
         return (self.stop.date - self.start.date).days + 1
 
-    def intersection(self, start, stop):
-        if start is None and stop is None:
-            return self
-        period_start = self[1]
-        period_stop = self.stop
-        if start is None:
-            start = period_start
-        if stop is None:
-            stop = period_stop
-        if stop < period_start or period_stop < start:
-            return None
-        intersection_start = max(period_start, start)
-        intersection_stop = min(period_stop, stop)
-        if intersection_start == period_start and intersection_stop == period_stop:
-            return self
-        if intersection_start.day == 1 and intersection_start.month == 1 \
-                and intersection_stop.day == 31 and intersection_stop.month == 12:
-            return self.__class__((
-                'year',
-                intersection_start,
-                intersection_stop.year - intersection_start.year + 1,
-                ))
-        if intersection_start.day == 1 and intersection_stop.day == calendar.monthrange(intersection_stop.year,
-                intersection_stop.month)[1]:
-            return self.__class__((
-                'month',
-                intersection_start,
-                (
-                    (intersection_stop.year - intersection_start.year) * 12
-                    + intersection_stop.month
-                    - intersection_start.month
-                    + 1
-                    ),
-                ))
-        return self.__class__((
-            'day',
-            intersection_start,
-            (intersection_stop.date - intersection_start.date).days + 1,
-            ))
-
-    def get_subperiods(self, unit):
+    def get_subperiods(self, unit: str) -> Sequence[types.Period]:
         """Return the list of all the periods of unit ``unit`` contained in self.
 
         Examples:
@@ -267,7 +230,11 @@ class Period(tuple):
         if unit == config.DAY:
             return [self.first_day.offset(i, config.DAY) for i in range(self.size_in_days)]
 
-    def offset(self, offset, unit = None):
+    def offset(
+            self,
+            offset: Union[str, int],
+            unit: Optional[str] = None,
+            ) -> types.Period:
         """Increment (or decrement) the given period with offset units.
 
         Examples:
@@ -443,7 +410,7 @@ class Period(tuple):
 
         return self.__class__((self[0], self[1].offset(offset, self[0] if unit is None else unit), self[2]))
 
-    def contains(self, other: Period) -> bool:
+    def contains(self, other: types.Period) -> bool:
         """Returns ``True`` if the period contains ``other``.
 
         For instance, ``period(2015)`` contains ``period(2015-01)``.
@@ -453,13 +420,13 @@ class Period(tuple):
         return self.start <= other.start and self.stop >= other.stop
 
     @property
-    def size(self):
+    def size(self) -> int:
         """Return the size of the period."""
 
         return self[2]
 
     @property
-    def size_in_months(self):
+    def size_in_months(self) -> int:
         """Return the size of the period in months."""
 
         if (self[0] == config.MONTH):
@@ -469,7 +436,7 @@ class Period(tuple):
         raise ValueError("Cannot calculate number of months in {0}".format(self[0]))
 
     @property
-    def size_in_days(self):
+    def size_in_days(self) -> int:
         """Return the size of the period in days."""
 
         unit, instant, length = self
@@ -483,13 +450,13 @@ class Period(tuple):
         raise ValueError("Cannot calculate number of days in {0}".format(unit))
 
     @property
-    def start(self) -> Instant:
+    def start(self) -> types.Instant:
         """Return the first day of the period as an Instant instance."""
 
         return self[1]
 
     @property
-    def stop(self) -> Instant:
+    def stop(self) -> types.Instant:
         """Return the last day of the period as an Instant instance.
 
         Examples:
@@ -570,34 +537,34 @@ class Period(tuple):
     # Reference periods
 
     @property
-    def last_month(self) -> Period:
+    def last_month(self) -> types.Period:
         return self.first_month.offset(-1)
 
     @property
-    def last_3_months(self) -> Period:
-        start: Instant = self.first_month.start
+    def last_3_months(self) -> types.Period:
+        start: types.Instant = self.first_month.start
         return self.__class__((config.MONTH, start, 3)).offset(-3)
 
     @property
-    def last_year(self) -> Period:
-        start: Instant = self.start.offset("first-of", config.YEAR)
+    def last_year(self) -> types.Period:
+        start: types.Instant = self.start.offset("first-of", config.YEAR)
         return self.__class__((config.YEAR, start, 1)).offset(-1)
 
     @property
-    def n_2(self) -> Period:
-        start: Instant = self.start.offset("first-of", config.YEAR)
+    def n_2(self) -> types.Period:
+        start: types.Instant = self.start.offset("first-of", config.YEAR)
         return self.__class__((config.YEAR, start, 1)).offset(-2)
 
     @property
-    def this_year(self) -> Period:
-        start: Instant = self.start.offset("first-of", config.YEAR)
+    def this_year(self) -> types.Period:
+        start: types.Instant = self.start.offset("first-of", config.YEAR)
         return self.__class__((config.YEAR, start, 1))
 
     @property
-    def first_month(self) -> Period:
-        start: Instant = self.start.offset("first-of", config.MONTH)
+    def first_month(self) -> types.Period:
+        start: types.Instant = self.start.offset("first-of", config.MONTH)
         return self.__class__((config.MONTH, start, 1))
 
     @property
-    def first_day(self) -> Period:
+    def first_day(self) -> types.Period:
         return self.__class__((config.DAY, self.start, 1))

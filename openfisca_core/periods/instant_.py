@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+from typing import Union
+
 import calendar
 import datetime
+
+from openfisca_core import types
 
 from . import config
 
@@ -16,7 +20,7 @@ class Instant(tuple):
     :obj:`instants <.Instant>` can be thought of as "day dates".
 
     Args:
-        tuple(tuple(int, int, int)):
+        (tuple(tuple(int, int, int))):
             The ``year``, ``month``, and ``day``, accordingly.
 
     Examples:
@@ -80,31 +84,39 @@ class Instant(tuple):
 
     """
 
-    def __repr__(self):
-        return '{}({})'.format(self.__class__.__name__, super(Instant, self).__repr__())
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({super(Instant, self).__repr__()})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         instant_str = config.str_by_instant_cache.get(self)
+
         if instant_str is None:
             config.str_by_instant_cache[self] = instant_str = self.date.isoformat()
+
         return instant_str
 
     @property
-    def date(self):
-        instant_date = config.date_by_instant_cache.get(self)
-        if instant_date is None:
-            config.date_by_instant_cache[self] = instant_date = datetime.date(*self)
-        return instant_date
+    def year(self) -> int:
+        return self[0]
 
     @property
-    def day(self):
+    def month(self) -> int:
+        return self[1]
+
+    @property
+    def day(self) -> int:
         return self[2]
 
     @property
-    def month(self):
-        return self[1]
+    def date(self) -> datetime.date:
+        instant_date = config.date_by_instant_cache.get(self)
 
-    def offset(self, offset, unit):
+        if instant_date is None:
+            config.date_by_instant_cache[self] = instant_date = datetime.date(*self)
+
+        return instant_date
+
+    def offset(self, offset: Union[str, int], unit: str) -> types.Instant:
         """Increments/decrements the given instant with offset units.
 
         Args:
@@ -189,7 +201,3 @@ class Instant(tuple):
                     day = month_last_day
 
         return self.__class__((year, month, day))
-
-    @property
-    def year(self):
-        return self[0]

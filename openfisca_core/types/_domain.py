@@ -58,6 +58,10 @@ class Holder(Protocol):
 class Instant(Protocol):
     """Instant protocol."""
 
+    @abc.abstractmethod
+    def offset(self, offset: Any, unit: Any) -> Any:
+        """Abstract method."""
+
 
 @typing_extensions.runtime_checkable
 class ParameterNodeAtInstant(Protocol):
@@ -80,9 +84,18 @@ class Period(Protocol):
     @abc.abstractmethod
     def start(self) -> Any:
         """Abstract method."""
+
     @property
     @abc.abstractmethod
     def unit(self) -> Any:
+        """Abstract method."""
+
+    @abc.abstractmethod
+    def offset(self, offset: Any, unit: Any = None) -> Any:
+        """Abstract method."""
+
+    @abc.abstractmethod
+    def stop(self) -> Any:
         """Abstract method."""
 
 
