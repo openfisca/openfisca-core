@@ -1,8 +1,8 @@
 import calendar
 import datetime
 
-from openfisca_core import periods
-from openfisca_core.periods import config
+from .. import periods
+from . import config
 
 
 class Instant(tuple):
@@ -15,7 +15,7 @@ class Instant(tuple):
     :obj:`instants <.Instant>` can be thought of as "day dates".
 
     Args:
-        tuple(tuple(int, int, int)):
+        (tuple(tuple(int, int, int))):
             The ``year``, ``month``, and ``day``, accordingly.
 
     Examples:
