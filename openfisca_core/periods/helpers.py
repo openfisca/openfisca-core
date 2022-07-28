@@ -54,7 +54,10 @@ def instant(value: Any) -> Optional[types.Instant]:
 
     if isinstance(value, str):
         if not config.INSTANT_PATTERN.match(value):
-            raise ValueError(f"'{value}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'.")
+            raise ValueError(
+                f"'{value}' is not a valid instant. Instants are described"
+                "using the 'YYYY-MM-DD' format, for instance '2015-06-15'."
+                )
 
         instant = Instant(
             int(fragment)
@@ -186,7 +189,7 @@ def period(value: Any) -> types.Period:
     if ":" not in value:
         _raise_error(value)
 
-    components = value.split(':')
+    components = value.split(":")
 
     # Left-most component must be a valid unit
     unit = components[0]
@@ -242,18 +245,24 @@ def _parse_simple_period(value: str) -> Optional[types.Period]:
 
     try:
         date = datetime.datetime.strptime(value, '%Y')
+
     except ValueError:
         try:
             date = datetime.datetime.strptime(value, '%Y-%m')
+
         except ValueError:
             try:
                 date = datetime.datetime.strptime(value, '%Y-%m-%d')
+
             except ValueError:
                 return None
+
             else:
                 return Period((config.DAY, Instant((date.year, date.month, date.day)), 1))
+
         else:
             return Period((config.MONTH, Instant((date.year, date.month, 1)), 1))
+
     else:
         return Period((config.YEAR, Instant((date.year, date.month, 1)), 1))
 
@@ -264,15 +273,18 @@ def _raise_error(value: str) -> NoReturn:
     Examples:
         >>> _raise_error("Oi mate!")
         Traceback (most recent call last):
-        ValueError: Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: 'Oi mate!'.
+        ValueError: Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got:
+        'Oi mate!'. Learn more about legal period formats in OpenFisca:
+        <https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-simulations>.
 
     """
 
     message = os.linesep.join([
-        "Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: '{}'.".format(value),
-        "Learn more about legal period formats in OpenFisca:",
+        "Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got:",
+        f"'{value}'. Learn more about legal period formats in OpenFisca:",
         "<https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-simulations>."
         ])
+
     raise ValueError(message)
 
 
@@ -302,7 +314,7 @@ def key_period_size(period: types.Period) -> str:
 
     unit, start, size = period
 
-    return '{}_{}'.format(unit_weight(unit), size)
+    return f"{unit_weight(unit)}_{size}"
 
 
 def unit_weights() -> Dict[str, int]:

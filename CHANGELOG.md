@@ -1,5 +1,15 @@
 # Changelog
 
+# 39.0.0 [#1138](https://github.com/openfisca/openfisca-core/pull/1138)
+
+#### Breaking changes
+
+- Deprecate `periods.intersect`.
+
+#### Technical changes
+
+- Fix `openfisca_core.periods` doctests.
+
 # 38.0.0 [#989](https://github.com/openfisca/openfisca-core/pull/989)
 
 #### New Features

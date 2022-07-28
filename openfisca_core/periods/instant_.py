@@ -7,7 +7,6 @@ import datetime
 
 from openfisca_core import types
 
-from .. import periods
 from . import config
 
 
@@ -76,6 +75,7 @@ class Instant(tuple):
 
         return instant_str
 
+    @property
     def year(self) -> int:
         """The ``year`` of the ``Instant``.
 
@@ -175,56 +175,77 @@ class Instant(tuple):
         """
 
         year, month, day = self
+
         assert unit in (config.DAY, config.MONTH, config.YEAR), 'Invalid unit: {} of type {}'.format(unit, type(unit))
+
         if offset == 'first-of':
             if unit == config.MONTH:
                 day = 1
+
             elif unit == config.YEAR:
                 month = 1
                 day = 1
+
         elif offset == 'last-of':
             if unit == config.MONTH:
                 day = calendar.monthrange(year, month)[1]
+
             elif unit == config.YEAR:
                 month = 12
                 day = 31
+
         else:
             assert isinstance(offset, int), 'Invalid offset: {} of type {}'.format(offset, type(offset))
+
             if unit == config.DAY:
                 day += offset
+
                 if offset < 0:
                     while day < 1:
                         month -= 1
+
                         if month == 0:
                             year -= 1
                             month = 12
+
                         day += calendar.monthrange(year, month)[1]
+
                 elif offset > 0:
                     month_last_day = calendar.monthrange(year, month)[1]
+
                     while day > month_last_day:
                         month += 1
+
                         if month == 13:
                             year += 1
                             month = 1
+
                         day -= month_last_day
                         month_last_day = calendar.monthrange(year, month)[1]
+
             elif unit == config.MONTH:
                 month += offset
+
                 if offset < 0:
                     while month < 1:
                         year -= 1
                         month += 12
+
                 elif offset > 0:
                     while month > 12:
                         year += 1
                         month -= 12
                 month_last_day = calendar.monthrange(year, month)[1]
+
                 if day > month_last_day:
                     day = month_last_day
+
             elif unit == config.YEAR:
                 year += offset
+
                 # Handle february month of leap year.
                 month_last_day = calendar.monthrange(year, month)[1]
+
                 if day > month_last_day:
                     day = month_last_day
 

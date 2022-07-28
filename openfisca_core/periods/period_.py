@@ -157,7 +157,7 @@ class Period(tuple):
             >>> period = Period((config.YEAR, instant, 3))
             >>> period.date
             Traceback (most recent call last):
-            ValueError: "date" is undefined for a period of size > 1: year:2021-09:3.
+            ValueError: "date" is undefined for a period of size > 1: year:2021-10:3.
 
         """
 
@@ -247,7 +247,7 @@ class Period(tuple):
         if(self[0] == config.YEAR):
             return self[2] * 12
 
-        raise ValueError(f"Cannot calculate number of months in {self[0]}")
+        raise ValueError(f"Cannot calculate number of months in {self[0]}.")
 
     @property
     def size_in_days(self) -> int:
