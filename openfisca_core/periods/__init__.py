@@ -23,6 +23,7 @@
 
 from .config import (  # noqa: F401
     DAY,
+    WEEK,
     MONTH,
     YEAR,
     ETERNITY,
