@@ -30,7 +30,8 @@ class Holder:
         self.population = population
         self.variable = variable
         self.simulation = population.simulation
-        self._memory_storage = storage.InMemoryStorage(is_eternal = (self.variable.definition_period == periods.ETERNITY))
+        self._eternal = self.variable.definition_period == periods.DateUnit.ETERNITY
+        self._memory_storage = storage.InMemoryStorage(is_eternal = self._eternal)
 
         # By default, do not activate on-disk storage, or variable dropping
         self._disk_storage = None
@@ -67,7 +68,7 @@ class Holder:
             os.mkdir(storage_dir)
         return storage.OnDiskStorage(
             storage_dir,
-            is_eternal = (self.variable.definition_period == periods.ETERNITY),
+            self._eternal,
             preserve_storage_dir = preserve
             )
 
@@ -211,9 +212,10 @@ class Holder:
         """
 
         period = periods.period(period)
-        if period.unit == periods.ETERNITY and self.variable.definition_period != periods.ETERNITY:
+
+        if period.unit == periods.DateUnit.ETERNITY and not self._eternal:
             error_message = os.linesep.join([
-                'Unable to set a value for variable {0} for periods.ETERNITY.',
+                'Unable to set a value for variable {0} for DateUnit.ETERNITY.',
                 '{0} is only defined for {1}s. Please adapt your input.',
                 ]).format(
                     self.variable.name,
@@ -260,9 +262,9 @@ class Holder:
 
     def _set(self, period, value):
         value = self._to_array(value)
-        if self.variable.definition_period != periods.ETERNITY:
+        if not self._eternal:
             if period is None:
-                raise ValueError('A period must be specified to set values, except for variables with periods.ETERNITY as as period_definition.')
+                raise ValueError('A period must be specified to set values, except for variables with DateUnit.ETERNITY as as period_definition.')
             if (self.variable.definition_period != period.unit or period.size > 1):
                 name = self.variable.name
                 period_size_adj = f'{period.unit}' if (period.size == 1) else f'{period.size}-{period.unit}s'

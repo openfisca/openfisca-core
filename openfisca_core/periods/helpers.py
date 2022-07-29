@@ -1,10 +1,10 @@
-from typing import Dict
+from typing import Dict, NoReturn, Optional
 
 import datetime
 import os
-from typing import Dict, NoReturn, Optional
 
 from . import config
+from .date_unit import DateUnit
 from .instant_ import Instant
 from .period_ import Period
 
@@ -35,7 +35,7 @@ def instant(instant) -> Optional[Instant]:
         >>> instant(Instant((2021, 9, 16)))
         Instant((2021, 9, 16))
 
-        >>> instant(Period(("year", Instant((2021, 9, 16)), 1)))
+        >>> instant(Period((DateUnit.YEAR, Instant((2021, 9, 16)), 1)))
         Instant((2021, 9, 16))
 
         >>> instant(2021)
@@ -113,35 +113,35 @@ def period(value) -> Period:
         :exc:`ValueError`: When the arguments were invalid, like "2021-32-13".
 
     Examples:
-        >>> period(Period(("year", Instant((2021, 1, 1)), 1)))
-        Period(('year', Instant((2021, 1, 1)), 1))
+        >>> period(Period((DateUnit.YEAR, Instant((2021, 1, 1)), 1)))
+        Period((<DateUnit.YEAR: 'year'>, Instant((2021, 1, 1)), 1))
 
         >>> period(Instant((2021, 1, 1)))
-        Period(('day', Instant((2021, 1, 1)), 1))
+        Period((<DateUnit.DAY: 'day'>, Instant((2021, 1, 1)), 1))
 
-        >>> period("eternity")
-        Period(('eternity', Instant((1, 1, 1)), inf))
+        >>> period(DateUnit.ETERNITY)
+        Period((<DateUnit.ETERNITY: 'eternity'>, Instant((1, 1, 1)), inf))
 
         >>> period(2021)
-        Period(('year', Instant((2021, 1, 1)), 1))
+        Period((<DateUnit.YEAR: 'year'>, Instant((2021, 1, 1)), 1))
 
         >>> period("2014")
-        Period(('year', Instant((2014, 1, 1)), 1))
+        Period((<DateUnit.YEAR: 'year'>, Instant((2014, 1, 1)), 1))
 
         >>> period("year:2014")
-        Period(('year', Instant((2014, 1, 1)), 1))
+        Period((<DateUnit.YEAR: 'year'>, Instant((2014, 1, 1)), 1))
 
         >>> period("month:2014-2")
-        Period(('month', Instant((2014, 2, 1)), 1))
+        Period((<DateUnit.MONTH: 'month'>, Instant((2014, 2, 1)), 1))
 
         >>> period("year:2014-2")
-        Period(('year', Instant((2014, 2, 1)), 1))
+        Period((<DateUnit.YEAR: 'year'>, Instant((2014, 2, 1)), 1))
 
         >>> period("day:2014-2-2")
-        Period(('day', Instant((2014, 2, 2)), 1))
+        Period((<DateUnit.DAY: 'day'>, Instant((2014, 2, 2)), 1))
 
         >>> period("day:2014-2-2:3")
-        Period(('day', Instant((2014, 2, 2)), 3))
+        Period((<DateUnit.DAY: 'day'>, Instant((2014, 2, 2)), 3))
 
     """
 
@@ -149,14 +149,14 @@ def period(value) -> Period:
         return value
 
     if isinstance(value, Instant):
-        return Period((config.DAY, value, 1))
+        return Period((DateUnit.DAY, value, 1))
 
-    if value == 'ETERNITY' or value == config.ETERNITY:
-        return Period(('eternity', instant(datetime.date.min), float("inf")))
+    if value == 'ETERNITY' or value == DateUnit.ETERNITY:
+        return Period((DateUnit.ETERNITY, instant(datetime.date.min), float("inf")))
 
     # check the type
     if isinstance(value, int):
-        return Period((config.YEAR, Instant((value, 1, 1)), 1))
+        return Period((DateUnit.YEAR, Instant((value, 1, 1)), 1))
     if not isinstance(value, str):
         _raise_error(value)
 
@@ -173,8 +173,12 @@ def period(value) -> Period:
 
     # left-most component must be a valid unit
     unit = components[0]
-    if unit not in (config.DAY, config.MONTH, config.YEAR):
+
+    if unit not in (DateUnit.DAY, DateUnit.MONTH, DateUnit.YEAR):
         _raise_error(value)
+
+    else:
+        unit = DateUnit(unit)
 
     # middle component must be a valid iso period
     base_period = _parse_simple_period(components[1])
@@ -208,13 +212,13 @@ def _parse_simple_period(value: str) -> Optional[Period]:
 
     Examples:
         >>> _parse_simple_period("2022")
-        Period(('year', Instant((2022, 1, 1)), 1))
+        Period((<DateUnit.YEAR: 'year'>, Instant((2022, 1, 1)), 1))
 
         >>> _parse_simple_period("2022-02")
-        Period(('month', Instant((2022, 2, 1)), 1))
+        Period((<DateUnit.MONTH: 'month'>, Instant((2022, 2, 1)), 1))
 
         >>> _parse_simple_period("2022-02-13")
-        Period(('day', Instant((2022, 2, 13)), 1))
+        Period((<DateUnit.DAY: 'day'>, Instant((2022, 2, 13)), 1))
 
     """
 
@@ -229,11 +233,11 @@ def _parse_simple_period(value: str) -> Optional[Period]:
             except ValueError:
                 return None
             else:
-                return Period((config.DAY, Instant((date.year, date.month, date.day)), 1))
+                return Period((DateUnit.DAY, Instant((date.year, date.month, date.day)), 1))
         else:
-            return Period((config.MONTH, Instant((date.year, date.month, 1)), 1))
+            return Period((DateUnit.MONTH, Instant((date.year, date.month, 1)), 1))
     else:
-        return Period((config.YEAR, Instant((date.year, date.month, 1)), 1))
+        return Period((DateUnit.YEAR, Instant((date.year, date.month, 1)), 1))
 
 
 def _raise_error(value: str) -> NoReturn:
@@ -242,7 +246,7 @@ def _raise_error(value: str) -> NoReturn:
     Examples:
         >>> _raise_error("Oi mate!")
         Traceback (most recent call last):
-        ValueError: Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: 'Oi mate!'.
+        ValueError: Expected a period (eg. '2017', ...); got: 'Oi mate!'.
 
     """
 
@@ -268,11 +272,11 @@ def key_period_size(period: Period) -> str:
     Examples:
         >>> instant = Instant((2021, 9, 14))
 
-        >>> period = Period(("day", instant, 1))
+        >>> period = Period((DateUnit.DAY, instant, 1))
         >>> key_period_size(period)
         '100_1'
 
-        >>> period = Period(("year", instant, 3))
+        >>> period = Period((DateUnit.YEAR, instant, 3))
         >>> key_period_size(period)
         '300_3'
 
@@ -288,15 +292,15 @@ def unit_weights() -> Dict[str, int]:
 
     Examples:
         >>> unit_weights()
-        {'day': 100, ...}
+        {<DateUnit.DAY: 'day'>: 100, ...<DateUnit.ETERNITY: 'eternity'>: 400}
 
     """
 
     return {
-        config.DAY: 100,
-        config.MONTH: 200,
-        config.YEAR: 300,
-        config.ETERNITY: 400,
+        DateUnit.DAY: 100,
+        DateUnit.MONTH: 200,
+        DateUnit.YEAR: 300,
+        DateUnit.ETERNITY: 400,
         }
 
 
@@ -304,7 +308,7 @@ def unit_weight(unit: str) -> int:
     """Retrieves a specific date unit weight.
 
     Examples:
-        >>> unit_weight("day")
+        >>> unit_weight(DateUnit.DAY)
         100
 
     """

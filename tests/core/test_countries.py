@@ -2,6 +2,7 @@ import pytest
 
 from openfisca_core import periods, populations, tools
 from openfisca_core.errors import VariableNameConflictError, VariableNotFoundError
+from openfisca_core.periods import DateUnit
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.variables import Variable
 
@@ -102,7 +103,7 @@ def test_variable_with_reference(make_simulation, isolated_tax_benefit_system):
     assert result > 0
 
     class disposable_income(Variable):
-        definition_period = periods.MONTH
+        definition_period = DateUnit.MONTH
 
         def formula(household, period):
             return household.empty_array()
@@ -119,7 +120,7 @@ def test_variable_name_conflict(tax_benefit_system):
 
     class disposable_income(Variable):
         reference = "disposable_income"
-        definition_period = periods.MONTH
+        definition_period = DateUnit.MONTH
 
         def formula(household, period):
             return household.empty_array()

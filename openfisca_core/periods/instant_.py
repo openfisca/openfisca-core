@@ -2,13 +2,14 @@ import calendar
 import datetime
 
 from . import config
+from .date_unit import DateUnit
 
 
 class Instant(tuple):
     """An instant in time (year, month, day).
 
     An :class:`.Instant` represents the most atomic and indivisible
-    legislation's time unit.
+    legislation's date unit.
 
     Current implementation considers this unit to be a day, so
     :obj:`instants <.Instant>` can be thought of as "day dates".
@@ -118,37 +119,37 @@ class Instant(tuple):
                 ``last-of``, or any :obj:`int`.
 
         Examples:
-            >>> Instant((2020, 12, 31)).offset("first-of", "month")
+            >>> Instant((2020, 12, 31)).offset("first-of", DateUnit.MONTH)
             Instant((2020, 12, 1))
 
-            >>> Instant((2020, 1, 1)).offset("last-of", "year")
+            >>> Instant((2020, 1, 1)).offset("last-of", DateUnit.YEAR)
             Instant((2020, 12, 31))
 
-            >>> Instant((2020, 1, 1)).offset(1, "year")
+            >>> Instant((2020, 1, 1)).offset(1, DateUnit.YEAR)
             Instant((2021, 1, 1))
 
-            >>> Instant((2020, 1, 1)).offset(-3, "day")
+            >>> Instant((2020, 1, 1)).offset(-3, DateUnit.DAY)
             Instant((2019, 12, 29))
 
         """
 
         year, month, day = self
-        assert unit in (config.DAY, config.MONTH, config.YEAR), 'Invalid unit: {} of type {}'.format(unit, type(unit))
+        assert unit in (DateUnit.DAY, DateUnit.MONTH, DateUnit.YEAR), 'Invalid unit: {} of type {}'.format(unit, type(unit))
         if offset == 'first-of':
-            if unit == config.MONTH:
+            if unit == DateUnit.MONTH:
                 day = 1
-            elif unit == config.YEAR:
+            elif unit == DateUnit.YEAR:
                 month = 1
                 day = 1
         elif offset == 'last-of':
-            if unit == config.MONTH:
+            if unit == DateUnit.MONTH:
                 day = calendar.monthrange(year, month)[1]
-            elif unit == config.YEAR:
+            elif unit == DateUnit.YEAR:
                 month = 12
                 day = 31
         else:
             assert isinstance(offset, int), 'Invalid offset: {} of type {}'.format(offset, type(offset))
-            if unit == config.DAY:
+            if unit == DateUnit.DAY:
                 day += offset
                 if offset < 0:
                     while day < 1:
@@ -166,7 +167,7 @@ class Instant(tuple):
                             month = 1
                         day -= month_last_day
                         month_last_day = calendar.monthrange(year, month)[1]
-            elif unit == config.MONTH:
+            elif unit == DateUnit.MONTH:
                 month += offset
                 if offset < 0:
                     while month < 1:
@@ -179,7 +180,7 @@ class Instant(tuple):
                 month_last_day = calendar.monthrange(year, month)[1]
                 if day > month_last_day:
                     day = month_last_day
-            elif unit == config.YEAR:
+            elif unit == DateUnit.YEAR:
                 year += offset
                 # Handle february month of leap year.
                 month_last_day = calendar.monthrange(year, month)[1]

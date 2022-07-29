@@ -27,6 +27,7 @@ long_description = (this_directory / "README.md").read_text()
 
 general_requirements = [
     'PyYAML >= 3.10',
+    'StrEnum >= 0.4.8, < 0.5.0',  # 3.11.x backport
     'dpath >= 1.5.0, < 3.0.0',
     'idna >= 3.4.0, < 4.0.0',
     'importlib-metadata < 4.3.0',  # Required for Python 3.7 and Flake8
