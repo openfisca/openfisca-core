@@ -1,5 +1,13 @@
 # Changelog
 
+## 35.9.0 [#1139](https://github.com/openfisca/openfisca-core/pull/1139)
+
+#### New features
+
+- Introduce `DateUnit` to `periods`
+  - Allows for transparent encapsulation of the atomic units of `periods` (`year`, `month`, ...).
+  - This helps with testing, refactoring and exrtension of `periods` (`weeks` for example).
+
 ### 35.8.6 [#1138](https://github.com/openfisca/openfisca-core/pull/1138)
 
 #### Technical changes
