@@ -122,7 +122,7 @@ class Variable:
         else:
             self.default_value = self.set(attr, 'default_value', allowed_type = self.value_type, default = config.VALUE_TYPES[self.value_type].get('default'))
         self.entity = self.set(attr, 'entity', required = True, setter = self.set_entity)
-        self.definition_period = self.set(attr, 'definition_period', required = True, allowed_values = (DateUnit.DAY, DateUnit.MONTH, DateUnit.YEAR, DateUnit.ETERNITY))
+        self.definition_period = self.set(attr, 'definition_period', required = True, allowed_values = DateUnit)
         self.label = self.set(attr, 'label', allowed_type = str, setter = self.set_label)
         self.end = self.set(attr, 'end', allowed_type = str, setter = self.set_end)
         self.reference = self.set(attr, 'reference', setter = self.set_reference)
