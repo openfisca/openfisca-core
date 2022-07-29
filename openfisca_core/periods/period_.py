@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import calendar
 
-from . import config, helpers
+from . import helpers
+from .date_unit import DateUnit
 from .instant_ import Instant
 
 
@@ -25,13 +26,13 @@ class Period(tuple):
 
     Examples:
         >>> instant = Instant((2021, 9, 1))
-        >>> period = Period(("year", instant, 3))
+        >>> period = Period((DateUnit.YEAR, instant, 3))
 
         >>> repr(Period)
         "<class 'openfisca_core.periods.period_.Period'>"
 
         >>> repr(period)
-        "Period(('year', Instant((2021, 9, 1)), 3))"
+        "Period((<DateUnit.YEAR: 'year'>, Instant((2021, 9, 1)), 3))"
 
         >>> str(period)
         'year:2021-09:3'
@@ -41,10 +42,10 @@ class Period(tuple):
         ValueError: dictionary update sequence element #0 has length 3...
 
         >>> list(period)
-        ['year', Instant((2021, 9, 1)), 3]
+        [<DateUnit.YEAR: 'year'>, Instant((2021, 9, 1)), 3]
 
         >>> period[0]
-        'year'
+        <DateUnit.YEAR: 'year'>
 
         >>> period[0] in period
         True
@@ -52,29 +53,29 @@ class Period(tuple):
         >>> len(period)
         3
 
-        >>> period == Period(("year", instant, 3))
+        >>> period == Period((DateUnit.YEAR, instant, 3))
         True
 
-        >>> period != Period(("year", instant, 3))
+        >>> period != Period((DateUnit.YEAR, instant, 3))
         False
 
-        >>> period > Period(("year", instant, 3))
+        >>> period > Period((DateUnit.YEAR, instant, 3))
         False
 
-        >>> period < Period(("year", instant, 3))
+        >>> period < Period((DateUnit.YEAR, instant, 3))
         False
 
-        >>> period >= Period(("year", instant, 3))
+        >>> period >= Period((DateUnit.YEAR, instant, 3))
         True
 
-        >>> period <= Period(("year", instant, 3))
+        >>> period <= Period((DateUnit.YEAR, instant, 3))
         True
 
         >>> period.date
         Traceback (most recent call last):
         AssertionError: "date" is undefined for a period of size > 1
 
-        >>> Period(("year", instant, 1)).date
+        >>> Period((DateUnit.YEAR, instant, 1)).date
         datetime.date(2021, 9, 1)
 
         >>> period.days
@@ -96,28 +97,28 @@ class Period(tuple):
         Instant((2024, 8, 31))
 
         >>> period.unit
-        'year'
+        <DateUnit.YEAR: 'year'>
 
         >>> period.last_3_months
-        Period(('month', Instant((2021, 6, 1)), 3))
+        Period((<DateUnit.MONTH: 'month'>, Instant((2021, 6, 1)), 3))
 
         >>> period.last_month
-        Period(('month', Instant((2021, 8, 1)), 1))
+        Period((<DateUnit.MONTH: 'month'>, Instant((2021, 8, 1)), 1))
 
         >>> period.last_year
-        Period(('year', Instant((2020, 1, 1)), 1))
+        Period((<DateUnit.YEAR: 'year'>, Instant((2020, 1, 1)), 1))
 
         >>> period.n_2
-        Period(('year', Instant((2019, 1, 1)), 1))
+        Period((<DateUnit.YEAR: 'year'>, Instant((2019, 1, 1)), 1))
 
         >>> period.this_year
-        Period(('year', Instant((2021, 1, 1)), 1))
+        Period((<DateUnit.YEAR: 'year'>, Instant((2021, 1, 1)), 1))
 
         >>> period.first_month
-        Period(('month', Instant((2021, 9, 1)), 1))
+        Period((<DateUnit.MONTH: 'month'>, Instant((2021, 9, 1)), 1))
 
         >>> period.first_day
-        Period(('day', Instant((2021, 9, 1)), 1))
+        Period((<DateUnit.DAY: 'day'>, Instant((2021, 9, 1)), 1))
 
     """
 
@@ -126,26 +127,26 @@ class Period(tuple):
 
     def __str__(self) -> str:
         unit, start_instant, size = self
-        if unit == config.ETERNITY:
+        if unit == DateUnit.ETERNITY:
             return 'ETERNITY'
         year, month, day = start_instant
 
         # 1 year long period
-        if (unit == config.MONTH and size == 12 or unit == config.YEAR and size == 1):
+        if (unit == DateUnit.MONTH and size == 12 or unit == DateUnit.YEAR and size == 1):
             if month == 1:
                 # civil year starting from january
                 return str(year)
             else:
                 # rolling year
-                return '{}:{}-{:02d}'.format(config.YEAR, year, month)
+                return '{}:{}-{:02d}'.format(DateUnit.YEAR, year, month)
         # simple month
-        if unit == config.MONTH and size == 1:
+        if unit == DateUnit.MONTH and size == 1:
             return '{}-{:02d}'.format(year, month)
         # several civil years
-        if unit == config.YEAR and month == 1:
+        if unit == DateUnit.YEAR and month == 1:
             return '{}:{}:{}'.format(unit, year, size)
 
-        if unit == config.DAY:
+        if unit == DateUnit.DAY:
             if size == 1:
                 return '{}-{:02d}-{:02d}'.format(year, month, day)
             else:
@@ -182,14 +183,14 @@ class Period(tuple):
         if intersection_start.day == 1 and intersection_start.month == 1 \
                 and intersection_stop.day == 31 and intersection_stop.month == 12:
             return self.__class__((
-                'year',
+                DateUnit.YEAR,
                 intersection_start,
                 intersection_stop.year - intersection_start.year + 1,
                 ))
         if intersection_start.day == 1 and intersection_stop.day == calendar.monthrange(intersection_stop.year,
                 intersection_stop.month)[1]:
             return self.__class__((
-                'month',
+                DateUnit.MONTH,
                 intersection_start,
                 (
                     (intersection_stop.year - intersection_start.year) * 12
@@ -199,7 +200,7 @@ class Period(tuple):
                     ),
                 ))
         return self.__class__((
-            'day',
+            DateUnit.DAY,
             intersection_start,
             (intersection_stop.date - intersection_start.date).days + 1,
             ))
@@ -208,199 +209,199 @@ class Period(tuple):
         """Return the list of periods of unit ``unit`` contained in self.
 
         Examples:
-            >>> period = Period(("year", Instant((2021, 1, 1)), 1))
-            >>> period.get_subperiods("month")
-            [Period(('month', Instant((2021, 1, 1)), 1)),...2021, 12, 1)), 1))]
+            >>> period = Period((DateUnit.YEAR, Instant((2021, 1, 1)), 1))
+            >>> period.get_subperiods(DateUnit.MONTH)
+            [Period((<DateUnit.MONTH: 'month'>, Instant((2021, 1, 1)), 1)),...2021, 12, 1)), 1))]
 
-            >>> period = Period(("year", Instant((2021, 1, 1)), 2))
-            >>> period.get_subperiods("year")
-            [Period(('year', Instant((2021, 1, 1)), 1)),...((2022, 1, 1)), 1))]
+            >>> period = Period((DateUnit.YEAR, Instant((2021, 1, 1)), 2))
+            >>> period.get_subperiods(DateUnit.YEAR)
+            [Period((<DateUnit.YEAR: 'year'>, Instant((2021, 1, 1)), 1)),...((2022, 1, 1)), 1))]
 
         """
 
         if helpers.unit_weight(self.unit) < helpers.unit_weight(unit):
             raise ValueError('Cannot subdivide {0} into {1}'.format(self.unit, unit))
 
-        if unit == config.YEAR:
-            return [self.this_year.offset(i, config.YEAR) for i in range(self.size)]
+        if unit == DateUnit.YEAR:
+            return [self.this_year.offset(i, DateUnit.YEAR) for i in range(self.size)]
 
-        if unit == config.MONTH:
-            return [self.first_month.offset(i, config.MONTH) for i in range(self.size_in_months)]
+        if unit == DateUnit.MONTH:
+            return [self.first_month.offset(i, DateUnit.MONTH) for i in range(self.size_in_months)]
 
-        if unit == config.DAY:
-            return [self.first_day.offset(i, config.DAY) for i in range(self.size_in_days)]
+        if unit == DateUnit.DAY:
+            return [self.first_day.offset(i, DateUnit.DAY) for i in range(self.size_in_days)]
 
     def offset(self, offset, unit = None):
         """Increment (or decrement) the given period with offset units.
 
         Examples:
-            >>> Period(("day", Instant((2021, 1, 1)), 365)).offset(1)
-            Period(('day', Instant((2021, 1, 2)), 365))
+            >>> Period((DateUnit.DAY, Instant((2021, 1, 1)), 365)).offset(1)
+            Period((<DateUnit.DAY: 'day'>, Instant((2021, 1, 2)), 365))
 
-            >>> Period(("day", Instant((2021, 1, 1)), 365)).offset(1, "day")
-            Period(('day', Instant((2021, 1, 2)), 365))
+            >>> Period((DateUnit.DAY, Instant((2021, 1, 1)), 365)).offset(1, DateUnit.DAY)
+            Period((<DateUnit.DAY: 'day'>, Instant((2021, 1, 2)), 365))
 
-            >>> Period(("day", Instant((2021, 1, 1)), 365)).offset(1, "month")
-            Period(('day', Instant((2021, 2, 1)), 365))
+            >>> Period((DateUnit.DAY, Instant((2021, 1, 1)), 365)).offset(1, DateUnit.MONTH)
+            Period((<DateUnit.DAY: 'day'>, Instant((2021, 2, 1)), 365))
 
-            >>> Period(("day", Instant((2021, 1, 1)), 365)).offset(1, "year")
-            Period(('day', Instant((2022, 1, 1)), 365))
+            >>> Period((DateUnit.DAY, Instant((2021, 1, 1)), 365)).offset(1, DateUnit.YEAR)
+            Period((<DateUnit.DAY: 'day'>, Instant((2022, 1, 1)), 365))
 
-            >>> Period(("month", Instant((2021, 1, 1)), 12)).offset(1)
-            Period(('month', Instant((2021, 2, 1)), 12))
+            >>> Period((DateUnit.MONTH, Instant((2021, 1, 1)), 12)).offset(1)
+            Period((<DateUnit.MONTH: 'month'>, Instant((2021, 2, 1)), 12))
 
-            >>> Period(("month", Instant((2021, 1, 1)), 12)).offset(1, "day")
-            Period(('month', Instant((2021, 1, 2)), 12))
+            >>> Period((DateUnit.MONTH, Instant((2021, 1, 1)), 12)).offset(1, DateUnit.DAY)
+            Period((<DateUnit.MONTH: 'month'>, Instant((2021, 1, 2)), 12))
 
-            >>> Period(("month", Instant((2021, 1, 1)), 12)).offset(1, "month")
-            Period(('month', Instant((2021, 2, 1)), 12))
+            >>> Period((DateUnit.MONTH, Instant((2021, 1, 1)), 12)).offset(1, DateUnit.MONTH)
+            Period((<DateUnit.MONTH: 'month'>, Instant((2021, 2, 1)), 12))
 
-            >>> Period(("month", Instant((2021, 1, 1)), 12)).offset(1, "year")
-            Period(('month', Instant((2022, 1, 1)), 12))
+            >>> Period((DateUnit.MONTH, Instant((2021, 1, 1)), 12)).offset(1, DateUnit.YEAR)
+            Period((<DateUnit.MONTH: 'month'>, Instant((2022, 1, 1)), 12))
 
-            >>> Period(("year", Instant((2021, 1, 1)), 1)).offset(1)
-            Period(('year', Instant((2022, 1, 1)), 1))
+            >>> Period((DateUnit.YEAR, Instant((2021, 1, 1)), 1)).offset(1)
+            Period((<DateUnit.YEAR: 'year'>, Instant((2022, 1, 1)), 1))
 
-            >>> Period(("year", Instant((2021, 1, 1)), 1)).offset(1, "day")
-            Period(('year', Instant((2021, 1, 2)), 1))
+            >>> Period((DateUnit.YEAR, Instant((2021, 1, 1)), 1)).offset(1, DateUnit.DAY)
+            Period((<DateUnit.YEAR: 'year'>, Instant((2021, 1, 2)), 1))
 
-            >>> Period(("year", Instant((2021, 1, 1)), 1)).offset(1, "month")
-            Period(('year', Instant((2021, 2, 1)), 1))
+            >>> Period((DateUnit.YEAR, Instant((2021, 1, 1)), 1)).offset(1, DateUnit.MONTH)
+            Period((<DateUnit.YEAR: 'year'>, Instant((2021, 2, 1)), 1))
 
-            >>> Period(("year", Instant((2021, 1, 1)), 1)).offset(1, "year")
-            Period(('year', Instant((2022, 1, 1)), 1))
+            >>> Period((DateUnit.YEAR, Instant((2021, 1, 1)), 1)).offset(1, DateUnit.YEAR)
+            Period((<DateUnit.YEAR: 'year'>, Instant((2022, 1, 1)), 1))
 
-            >>> Period(("day", Instant((2011, 2, 28)), 1)).offset(1)
-            Period(('day', Instant((2011, 3, 1)), 1))
+            >>> Period((DateUnit.DAY, Instant((2011, 2, 28)), 1)).offset(1)
+            Period((<DateUnit.DAY: 'day'>, Instant((2011, 3, 1)), 1))
 
-            >>> Period(("month", Instant((2011, 2, 28)), 1)).offset(1)
-            Period(('month', Instant((2011, 3, 28)), 1))
+            >>> Period((DateUnit.MONTH, Instant((2011, 2, 28)), 1)).offset(1)
+            Period((<DateUnit.MONTH: 'month'>, Instant((2011, 3, 28)), 1))
 
-            >>> Period(("year", Instant((2011, 2, 28)), 1)).offset(1)
-            Period(('year', Instant((2012, 2, 28)), 1))
+            >>> Period((DateUnit.YEAR, Instant((2011, 2, 28)), 1)).offset(1)
+            Period((<DateUnit.YEAR: 'year'>, Instant((2012, 2, 28)), 1))
 
-            >>> Period(("day", Instant((2011, 3, 1)), 1)).offset(-1)
-            Period(('day', Instant((2011, 2, 28)), 1))
+            >>> Period((DateUnit.DAY, Instant((2011, 3, 1)), 1)).offset(-1)
+            Period((<DateUnit.DAY: 'day'>, Instant((2011, 2, 28)), 1))
 
-            >>> Period(("month", Instant((2011, 3, 1)), 1)).offset(-1)
-            Period(('month', Instant((2011, 2, 1)), 1))
+            >>> Period((DateUnit.MONTH, Instant((2011, 3, 1)), 1)).offset(-1)
+            Period((<DateUnit.MONTH: 'month'>, Instant((2011, 2, 1)), 1))
 
-            >>> Period(("year", Instant((2011, 3, 1)), 1)).offset(-1)
-            Period(('year', Instant((2010, 3, 1)), 1))
+            >>> Period((DateUnit.YEAR, Instant((2011, 3, 1)), 1)).offset(-1)
+            Period((<DateUnit.YEAR: 'year'>, Instant((2010, 3, 1)), 1))
 
-            >>> Period(("day", Instant((2014, 1, 30)), 1)).offset(3)
-            Period(('day', Instant((2014, 2, 2)), 1))
+            >>> Period((DateUnit.DAY, Instant((2014, 1, 30)), 1)).offset(3)
+            Period((<DateUnit.DAY: 'day'>, Instant((2014, 2, 2)), 1))
 
-            >>> Period(("month", Instant((2014, 1, 30)), 1)).offset(3)
-            Period(('month', Instant((2014, 4, 30)), 1))
+            >>> Period((DateUnit.MONTH, Instant((2014, 1, 30)), 1)).offset(3)
+            Period((<DateUnit.MONTH: 'month'>, Instant((2014, 4, 30)), 1))
 
-            >>> Period(("year", Instant((2014, 1, 30)), 1)).offset(3)
-            Period(('year', Instant((2017, 1, 30)), 1))
+            >>> Period((DateUnit.YEAR, Instant((2014, 1, 30)), 1)).offset(3)
+            Period((<DateUnit.YEAR: 'year'>, Instant((2017, 1, 30)), 1))
 
-            >>> Period(("day", Instant((2021, 1, 1)), 365)).offset(-3)
-            Period(('day', Instant((2020, 12, 29)), 365))
+            >>> Period((DateUnit.DAY, Instant((2021, 1, 1)), 365)).offset(-3)
+            Period((<DateUnit.DAY: 'day'>, Instant((2020, 12, 29)), 365))
 
-            >>> Period(("month", Instant((2021, 1, 1)), 12)).offset(-3)
-            Period(('month', Instant((2020, 10, 1)), 12))
+            >>> Period((DateUnit.MONTH, Instant((2021, 1, 1)), 12)).offset(-3)
+            Period((<DateUnit.MONTH: 'month'>, Instant((2020, 10, 1)), 12))
 
-            >>> Period(("year", Instant((2014, 1, 1)), 1)).offset(-3)
-            Period(('year', Instant((2011, 1, 1)), 1))
+            >>> Period((DateUnit.YEAR, Instant((2014, 1, 1)), 1)).offset(-3)
+            Period((<DateUnit.YEAR: 'year'>, Instant((2011, 1, 1)), 1))
 
-            >>> Period(("day", Instant((2014, 2, 3)), 1)).offset("first-of", "month")
-            Period(('day', Instant((2014, 2, 1)), 1))
+            >>> Period((DateUnit.DAY, Instant((2014, 2, 3)), 1)).offset("first-of", DateUnit.MONTH)
+            Period((<DateUnit.DAY: 'day'>, Instant((2014, 2, 1)), 1))
 
-            >>> Period(("day", Instant((2014, 2, 3)), 1)).offset("first-of", "year")
-            Period(('day', Instant((2014, 1, 1)), 1))
+            >>> Period((DateUnit.DAY, Instant((2014, 2, 3)), 1)).offset("first-of", DateUnit.YEAR)
+            Period((<DateUnit.DAY: 'day'>, Instant((2014, 1, 1)), 1))
 
-            >>> Period(("day", Instant((2014, 2, 3)), 4)).offset("first-of", "month")
-            Period(('day', Instant((2014, 2, 1)), 4))
+            >>> Period((DateUnit.DAY, Instant((2014, 2, 3)), 4)).offset("first-of", DateUnit.MONTH)
+            Period((<DateUnit.DAY: 'day'>, Instant((2014, 2, 1)), 4))
 
-            >>> Period(("day", Instant((2014, 2, 3)), 4)).offset("first-of", "year")
-            Period(('day', Instant((2014, 1, 1)), 4))
+            >>> Period((DateUnit.DAY, Instant((2014, 2, 3)), 4)).offset("first-of", DateUnit.YEAR)
+            Period((<DateUnit.DAY: 'day'>, Instant((2014, 1, 1)), 4))
 
-            >>> Period(("month", Instant((2014, 2, 3)), 1)).offset("first-of")
-            Period(('month', Instant((2014, 2, 1)), 1))
+            >>> Period((DateUnit.MONTH, Instant((2014, 2, 3)), 1)).offset("first-of")
+            Period((<DateUnit.MONTH: 'month'>, Instant((2014, 2, 1)), 1))
 
-            >>> Period(("month", Instant((2014, 2, 3)), 1)).offset("first-of", "month")
-            Period(('month', Instant((2014, 2, 1)), 1))
+            >>> Period((DateUnit.MONTH, Instant((2014, 2, 3)), 1)).offset("first-of", DateUnit.MONTH)
+            Period((<DateUnit.MONTH: 'month'>, Instant((2014, 2, 1)), 1))
 
-            >>> Period(("month", Instant((2014, 2, 3)), 1)).offset("first-of", "year")
-            Period(('month', Instant((2014, 1, 1)), 1))
+            >>> Period((DateUnit.MONTH, Instant((2014, 2, 3)), 1)).offset("first-of", DateUnit.YEAR)
+            Period((<DateUnit.MONTH: 'month'>, Instant((2014, 1, 1)), 1))
 
-            >>> Period(("month", Instant((2014, 2, 3)), 4)).offset("first-of")
-            Period(('month', Instant((2014, 2, 1)), 4))
+            >>> Period((DateUnit.MONTH, Instant((2014, 2, 3)), 4)).offset("first-of")
+            Period((<DateUnit.MONTH: 'month'>, Instant((2014, 2, 1)), 4))
 
-            >>> Period(("month", Instant((2014, 2, 3)), 4)).offset("first-of", "month")
-            Period(('month', Instant((2014, 2, 1)), 4))
+            >>> Period((DateUnit.MONTH, Instant((2014, 2, 3)), 4)).offset("first-of", DateUnit.MONTH)
+            Period((<DateUnit.MONTH: 'month'>, Instant((2014, 2, 1)), 4))
 
-            >>> Period(("month", Instant((2014, 2, 3)), 4)).offset("first-of", "year")
-            Period(('month', Instant((2014, 1, 1)), 4))
+            >>> Period((DateUnit.MONTH, Instant((2014, 2, 3)), 4)).offset("first-of", DateUnit.YEAR)
+            Period((<DateUnit.MONTH: 'month'>, Instant((2014, 1, 1)), 4))
 
-            >>> Period(("year", Instant((2014, 1, 30)), 1)).offset("first-of")
-            Period(('year', Instant((2014, 1, 1)), 1))
+            >>> Period((DateUnit.YEAR, Instant((2014, 1, 30)), 1)).offset("first-of")
+            Period((<DateUnit.YEAR: 'year'>, Instant((2014, 1, 1)), 1))
 
-            >>> Period(("year", Instant((2014, 1, 30)), 1)).offset("first-of", "month")
-            Period(('year', Instant((2014, 1, 1)), 1))
+            >>> Period((DateUnit.YEAR, Instant((2014, 1, 30)), 1)).offset("first-of", DateUnit.MONTH)
+            Period((<DateUnit.YEAR: 'year'>, Instant((2014, 1, 1)), 1))
 
-            >>> Period(("year", Instant((2014, 1, 30)), 1)).offset("first-of", "year")
-            Period(('year', Instant((2014, 1, 1)), 1))
+            >>> Period((DateUnit.YEAR, Instant((2014, 1, 30)), 1)).offset("first-of", DateUnit.YEAR)
+            Period((<DateUnit.YEAR: 'year'>, Instant((2014, 1, 1)), 1))
 
-            >>> Period(("year", Instant((2014, 2, 3)), 1)).offset("first-of")
-            Period(('year', Instant((2014, 1, 1)), 1))
+            >>> Period((DateUnit.YEAR, Instant((2014, 2, 3)), 1)).offset("first-of")
+            Period((<DateUnit.YEAR: 'year'>, Instant((2014, 1, 1)), 1))
 
-            >>> Period(("year", Instant((2014, 2, 3)), 1)).offset("first-of", "month")
-            Period(('year', Instant((2014, 2, 1)), 1))
+            >>> Period((DateUnit.YEAR, Instant((2014, 2, 3)), 1)).offset("first-of", DateUnit.MONTH)
+            Period((<DateUnit.YEAR: 'year'>, Instant((2014, 2, 1)), 1))
 
-            >>> Period(("year", Instant((2014, 2, 3)), 1)).offset("first-of", "year")
-            Period(('year', Instant((2014, 1, 1)), 1))
+            >>> Period((DateUnit.YEAR, Instant((2014, 2, 3)), 1)).offset("first-of", DateUnit.YEAR)
+            Period((<DateUnit.YEAR: 'year'>, Instant((2014, 1, 1)), 1))
 
-            >>> Period(("day", Instant((2014, 2, 3)), 1)).offset("last-of", "month")
-            Period(('day', Instant((2014, 2, 28)), 1))
+            >>> Period((DateUnit.DAY, Instant((2014, 2, 3)), 1)).offset("last-of", DateUnit.MONTH)
+            Period((<DateUnit.DAY: 'day'>, Instant((2014, 2, 28)), 1))
 
-            >>> Period(("day", Instant((2014, 2, 3)), 1)).offset("last-of", "year")
-            Period(('day', Instant((2014, 12, 31)), 1))
+            >>> Period((DateUnit.DAY, Instant((2014, 2, 3)), 1)).offset("last-of", DateUnit.YEAR)
+            Period((<DateUnit.DAY: 'day'>, Instant((2014, 12, 31)), 1))
 
-            >>> Period(("day", Instant((2014, 2, 3)), 4)).offset("last-of", "month")
-            Period(('day', Instant((2014, 2, 28)), 4))
+            >>> Period((DateUnit.DAY, Instant((2014, 2, 3)), 4)).offset("last-of", DateUnit.MONTH)
+            Period((<DateUnit.DAY: 'day'>, Instant((2014, 2, 28)), 4))
 
-            >>> Period(("day", Instant((2014, 2, 3)), 4)).offset("last-of", "year")
-            Period(('day', Instant((2014, 12, 31)), 4))
+            >>> Period((DateUnit.DAY, Instant((2014, 2, 3)), 4)).offset("last-of", DateUnit.YEAR)
+            Period((<DateUnit.DAY: 'day'>, Instant((2014, 12, 31)), 4))
 
-            >>> Period(("month", Instant((2014, 2, 3)), 1)).offset("last-of")
-            Period(('month', Instant((2014, 2, 28)), 1))
+            >>> Period((DateUnit.MONTH, Instant((2014, 2, 3)), 1)).offset("last-of")
+            Period((<DateUnit.MONTH: 'month'>, Instant((2014, 2, 28)), 1))
 
-            >>> Period(("month", Instant((2014, 2, 3)), 1)).offset("last-of", "month")
-            Period(('month', Instant((2014, 2, 28)), 1))
+            >>> Period((DateUnit.MONTH, Instant((2014, 2, 3)), 1)).offset("last-of", DateUnit.MONTH)
+            Period((<DateUnit.MONTH: 'month'>, Instant((2014, 2, 28)), 1))
 
-            >>> Period(("month", Instant((2014, 2, 3)), 1)).offset("last-of", "year")
-            Period(('month', Instant((2014, 12, 31)), 1))
+            >>> Period((DateUnit.MONTH, Instant((2014, 2, 3)), 1)).offset("last-of", DateUnit.YEAR)
+            Period((<DateUnit.MONTH: 'month'>, Instant((2014, 12, 31)), 1))
 
-            >>> Period(("month", Instant((2014, 2, 3)), 4)).offset("last-of")
-            Period(('month', Instant((2014, 2, 28)), 4))
+            >>> Period((DateUnit.MONTH, Instant((2014, 2, 3)), 4)).offset("last-of")
+            Period((<DateUnit.MONTH: 'month'>, Instant((2014, 2, 28)), 4))
 
-            >>> Period(("month", Instant((2014, 2, 3)), 4)).offset("last-of", "month")
-            Period(('month', Instant((2014, 2, 28)), 4))
+            >>> Period((DateUnit.MONTH, Instant((2014, 2, 3)), 4)).offset("last-of", DateUnit.MONTH)
+            Period((<DateUnit.MONTH: 'month'>, Instant((2014, 2, 28)), 4))
 
-            >>> Period(("month", Instant((2014, 2, 3)), 4)).offset("last-of", "year")
-            Period(('month', Instant((2014, 12, 31)), 4))
+            >>> Period((DateUnit.MONTH, Instant((2014, 2, 3)), 4)).offset("last-of", DateUnit.YEAR)
+            Period((<DateUnit.MONTH: 'month'>, Instant((2014, 12, 31)), 4))
 
-            >>> Period(("year", Instant((2014, 2, 3)), 1)).offset("last-of")
-            Period(('year', Instant((2014, 12, 31)), 1))
+            >>> Period((DateUnit.YEAR, Instant((2014, 2, 3)), 1)).offset("last-of")
+            Period((<DateUnit.YEAR: 'year'>, Instant((2014, 12, 31)), 1))
 
-            >>> Period(("year", Instant((2014, 1, 1)), 1)).offset("last-of", "month")
-            Period(('year', Instant((2014, 1, 31)), 1))
+            >>> Period((DateUnit.YEAR, Instant((2014, 1, 1)), 1)).offset("last-of", DateUnit.MONTH)
+            Period((<DateUnit.YEAR: 'year'>, Instant((2014, 1, 31)), 1))
 
-            >>> Period(("year", Instant((2014, 2, 3)), 1)).offset("last-of", "year")
-            Period(('year', Instant((2014, 12, 31)), 1))
+            >>> Period((DateUnit.YEAR, Instant((2014, 2, 3)), 1)).offset("last-of", DateUnit.YEAR)
+            Period((<DateUnit.YEAR: 'year'>, Instant((2014, 12, 31)), 1))
 
-            >>> Period(("year", Instant((2014, 2, 3)), 1)).offset("last-of")
-            Period(('year', Instant((2014, 12, 31)), 1))
+            >>> Period((DateUnit.YEAR, Instant((2014, 2, 3)), 1)).offset("last-of")
+            Period((<DateUnit.YEAR: 'year'>, Instant((2014, 12, 31)), 1))
 
-            >>> Period(("year", Instant((2014, 2, 3)), 1)).offset("last-of", "month")
-            Period(('year', Instant((2014, 2, 28)), 1))
+            >>> Period((DateUnit.YEAR, Instant((2014, 2, 3)), 1)).offset("last-of", DateUnit.MONTH)
+            Period((<DateUnit.YEAR: 'year'>, Instant((2014, 2, 28)), 1))
 
-            >>> Period(("year", Instant((2014, 2, 3)), 1)).offset("last-of", "year")
-            Period(('year', Instant((2014, 12, 31)), 1))
+            >>> Period((DateUnit.YEAR, Instant((2014, 2, 3)), 1)).offset("last-of", DateUnit.YEAR)
+            Period((<DateUnit.YEAR: 'year'>, Instant((2014, 12, 31)), 1))
 
         """
 
@@ -425,9 +426,9 @@ class Period(tuple):
     def size_in_months(self):
         """Return the size of the period in months."""
 
-        if (self[0] == config.MONTH):
+        if (self[0] == DateUnit.MONTH):
             return self[2]
-        if(self[0] == config.YEAR):
+        if(self[0] == DateUnit.YEAR):
             return self[2] * 12
         raise ValueError("Cannot calculate number of months in {0}".format(self[0]))
 
@@ -437,10 +438,10 @@ class Period(tuple):
 
         unit, instant, length = self
 
-        if unit == config.DAY:
+        if unit == DateUnit.DAY:
             return length
-        if unit in [config.MONTH, config.YEAR]:
-            last_day = self.start.offset(length, unit).offset(-1, config.DAY)
+        if unit in [DateUnit.MONTH, DateUnit.YEAR]:
+            last_day = self.start.offset(length, unit).offset(-1, DateUnit.DAY)
             return (last_day.date - self.start.date).days + 1
 
         raise ValueError("Cannot calculate number of days in {0}".format(unit))
@@ -456,40 +457,40 @@ class Period(tuple):
         """Return the last day of the period as an Instant instance.
 
         Examples:
-            >>> Period(("year", Instant((2022, 1, 1)), 1)).stop
+            >>> Period((DateUnit.YEAR, Instant((2022, 1, 1)), 1)).stop
             Instant((2022, 12, 31))
 
-            >>> Period(("month", Instant((2022, 1, 1)), 12)).stop
+            >>> Period((DateUnit.MONTH, Instant((2022, 1, 1)), 12)).stop
             Instant((2022, 12, 31))
 
-            >>> Period(("day", Instant((2022, 1, 1)), 365)).stop
+            >>> Period((DateUnit.DAY, Instant((2022, 1, 1)), 365)).stop
             Instant((2022, 12, 31))
 
-            >>> Period(("year", Instant((2012, 2, 29)), 1)).stop
+            >>> Period((DateUnit.YEAR, Instant((2012, 2, 29)), 1)).stop
             Instant((2013, 2, 28))
 
-            >>> Period(("month", Instant((2012, 2, 29)), 1)).stop
+            >>> Period((DateUnit.MONTH, Instant((2012, 2, 29)), 1)).stop
             Instant((2012, 3, 28))
 
-            >>> Period(("day", Instant((2012, 2, 29)), 1)).stop
+            >>> Period((DateUnit.DAY, Instant((2012, 2, 29)), 1)).stop
             Instant((2012, 2, 29))
 
-            >>> Period(("year", Instant((2012, 2, 29)), 2)).stop
+            >>> Period((DateUnit.YEAR, Instant((2012, 2, 29)), 2)).stop
             Instant((2014, 2, 28))
 
-            >>> Period(("month", Instant((2012, 2, 29)), 2)).stop
+            >>> Period((DateUnit.MONTH, Instant((2012, 2, 29)), 2)).stop
             Instant((2012, 4, 28))
 
-            >>> Period(("day", Instant((2012, 2, 29)), 2)).stop
+            >>> Period((DateUnit.DAY, Instant((2012, 2, 29)), 2)).stop
             Instant((2012, 3, 1))
 
         """
 
         unit, start_instant, size = self
         year, month, day = start_instant
-        if unit == config.ETERNITY:
+        if unit == DateUnit.ETERNITY:
             return Instant((float("inf"), float("inf"), float("inf")))
-        if unit == 'day':
+        if unit == DateUnit.DAY:
             if size > 1:
                 day += size - 1
                 month_last_day = calendar.monthrange(year, month)[1]
@@ -501,13 +502,13 @@ class Period(tuple):
                     day -= month_last_day
                     month_last_day = calendar.monthrange(year, month)[1]
         else:
-            if unit == 'month':
+            if unit == DateUnit.MONTH:
                 month += size
                 while month > 12:
                     year += 1
                     month -= 12
             else:
-                assert unit == 'year', 'Invalid unit: {} of type {}'.format(unit, type(unit))
+                assert unit == DateUnit.YEAR, 'Invalid unit: {} of type {}'.format(unit, type(unit))
                 year += size
             day -= 1
             if day < 1:
@@ -534,7 +535,7 @@ class Period(tuple):
 
     @property
     def last_3_months(self):
-        return self.first_month.start.period('month', 3).offset(-3)
+        return self.first_month.start.period(DateUnit.MONTH, 3).offset(-3)
 
     @property
     def last_month(self):
@@ -542,20 +543,20 @@ class Period(tuple):
 
     @property
     def last_year(self):
-        return self.start.offset("first-of", "year").period('year').offset(-1)
+        return self.start.offset("first-of", DateUnit.YEAR).period(DateUnit.YEAR).offset(-1)
 
     @property
     def n_2(self):
-        return self.start.offset("first-of", "year").period('year').offset(-2)
+        return self.start.offset("first-of", DateUnit.YEAR).period(DateUnit.YEAR).offset(-2)
 
     @property
     def this_year(self):
-        return self.start.offset("first-of", "year").period('year')
+        return self.start.offset("first-of", DateUnit.YEAR).period(DateUnit.YEAR)
 
     @property
     def first_month(self):
-        return self.start.offset("first-of", "month").period('month')
+        return self.start.offset("first-of", DateUnit.MONTH).period(DateUnit.MONTH)
 
     @property
     def first_day(self):
-        return self.start.period('day')
+        return self.start.period(DateUnit.DAY)

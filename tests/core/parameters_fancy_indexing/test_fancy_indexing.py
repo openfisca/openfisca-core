@@ -7,9 +7,10 @@ import numpy as np
 import pytest
 
 
-from openfisca_core.tools import assert_near
 from openfisca_core.parameters import ParameterNode, Parameter, ParameterNotFound
-from openfisca_core.model_api import *  # noqa
+from openfisca_core.indexed_enums import Enum
+from openfisca_core.tools import assert_near
+
 
 LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
 

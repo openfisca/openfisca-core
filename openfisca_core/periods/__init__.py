@@ -42,5 +42,6 @@ from .helpers import (  # noqa: F401
     unit_weight,
     )
 
+from .date_unit import DateUnit  # noqa: F401
 from .instant_ import Instant  # noqa: F401
 from .period_ import Period  # noqa: F401

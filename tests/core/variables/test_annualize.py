@@ -1,10 +1,11 @@
 import numpy as np
 from pytest import fixture
 
-from openfisca_core import periods
-from openfisca_core.model_api import *  # noqa analysis:ignore
 from openfisca_country_template.entities import Person
-from openfisca_core.variables import get_annualized_variable
+
+from openfisca_core import periods
+from openfisca_core.periods import DateUnit
+from openfisca_core.variables import Variable, get_annualized_variable
 
 
 @fixture
@@ -15,7 +16,7 @@ def monthly_variable():
     class monthly_variable(Variable):
         value_type = int
         entity = Person
-        definition_period = MONTH
+        definition_period = DateUnit.MONTH
 
         def formula(person, period, parameters):
             variable.calculation_count += 1
@@ -47,7 +48,7 @@ def test_without_annualize(monthly_variable):
 
     yearly_sum = sum(
         person('monthly_variable', month)
-        for month in period.get_subperiods(MONTH)
+        for month in period.get_subperiods(DateUnit.MONTH)
         )
 
     assert monthly_variable.calculation_count == 11
@@ -62,7 +63,7 @@ def test_with_annualize(monthly_variable):
 
     yearly_sum = sum(
         person('monthly_variable', month)
-        for month in period.get_subperiods(MONTH)
+        for month in period.get_subperiods(DateUnit.MONTH)
         )
 
     assert monthly_variable.calculation_count == 0
@@ -77,7 +78,7 @@ def test_with_partial_annualize(monthly_variable):
 
     yearly_sum = sum(
         person('monthly_variable', month)
-        for month in period.get_subperiods(MONTH)
+        for month in period.get_subperiods(DateUnit.MONTH)
         )
 
     assert monthly_variable.calculation_count == 11
