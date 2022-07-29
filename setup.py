@@ -36,6 +36,7 @@ general_requirements = [
     "pytest >=7.2.2, < 8.0",
     "sortedcontainers >=2.4.0, < 3.0",
     "typing_extensions >=4.5.0, < 5.0",
+    "StrEnum >= 0.4.8, < 0.5.0",  # 3.11.x backport
 ]
 
 api_requirements = [
