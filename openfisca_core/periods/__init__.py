@@ -22,8 +22,9 @@
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
 from .config import (  # noqa: F401
-    DAY,
+    WEEKDAY,
     WEEK,
+    DAY,
     MONTH,
     YEAR,
     ETERNITY,

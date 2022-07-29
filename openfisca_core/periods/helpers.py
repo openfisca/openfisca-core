@@ -131,12 +131,6 @@ def period(value) -> Period:
         >>> period("year:2014")
         Period((<DateUnit.YEAR: 'year'>, Instant((2014, 1, 1)), 1))
 
-        >>> period("2014-2")
-        Period((<DateUnit.MONTH: 'month'>, Instant((2014, 2, 1)), 1))
-
-        >>> period("2014-02")
-        Period((<DateUnit.MONTH: 'month'>, Instant((2014, 2, 1)), 1))
-
         >>> period("month:2014-2")
         Period((<DateUnit.MONTH: 'month'>, Instant((2014, 2, 1)), 1))
 
@@ -300,11 +294,13 @@ def unit_weights() -> Dict[str, int]:
 
     Examples:
         >>> unit_weights()
-        {<DateUnit.DAY: 'day'>: 100, ...<DateUnit.ETERNITY: 'eternity'>: 400}
+        {<DateUnit.WEEKDAY: 'weekday'>: 100, ...ETERNITY: 'eternity'>: 400}
 
     """
 
     return {
+        DateUnit.WEEKDAY: 100,
+        DateUnit.WEEK: 200,
         DateUnit.DAY: 100,
         DateUnit.MONTH: 200,
         DateUnit.YEAR: 300,

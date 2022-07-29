@@ -199,6 +199,8 @@ def test__parse_simple_period_with_a_valid_argument(arg, expected):
 
 
 @pytest.mark.parametrize("arg, expected", [
+    [Period((DateUnit.WEEKDAY, Instant((1, 1, 1)), 5)), "100_5"],
+    [Period((DateUnit.WEEK, Instant((1, 1, 1)), 26)), "200_26"],
     [Period((DateUnit.DAY, Instant((1, 1, 1)), 365)), "100_365"],
     [Period((DateUnit.MONTH, Instant((1, 1, 1)), 12)), "200_12"],
     [Period((DateUnit.YEAR, Instant((1, 1, 1)), 2)), "300_2"],

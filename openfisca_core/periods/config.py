@@ -3,6 +3,7 @@ from typing import Dict
 
 from .date_unit import DateUnit
 
+WEEKDAY = DateUnit.WEEKDAY
 WEEK = DateUnit.WEEK
 DAY = DateUnit.DAY
 MONTH = DateUnit.MONTH

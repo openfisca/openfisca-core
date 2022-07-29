@@ -13,13 +13,18 @@ def variable(persons):
     return TestVariable
 
 
-def test_day_variable(variable):
-    variable.definition_period = periods.DAY
+def test_weekday_variable(variable):
+    variable.definition_period = periods.WEEKDAY
     assert variable()
 
 
 def test_week_variable(variable):
     variable.definition_period = periods.WEEK
+    assert variable()
+
+
+def test_day_variable(variable):
+    variable.definition_period = periods.DAY
     assert variable()
 
 
