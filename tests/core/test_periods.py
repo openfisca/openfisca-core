@@ -10,29 +10,8 @@ first_march = Instant((2014, 3, 1))
 
 
 '''
-Test Period -> String
-'''
-
-
-# Months
-
-
-
-# Days
-
-def test_day():
-    assert str(Period((DAY, first_jan, 1))) == '2014-01-01'
-
-
-def test_several_days():
-    assert str(Period((DAY, first_jan, 3))) == 'day:2014-01-01:3'
-    assert str(Period((DAY, first_march, 3))) == 'day:2014-03-01:3'
-
-
-'''
 Test String -> Period
 '''
-
 
 # Years
 
