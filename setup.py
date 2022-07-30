@@ -34,7 +34,7 @@ dev_requirements = [
     'autopep8 >= 1.4.0, < 1.6.0',
     'coverage == 6.0.2',
     'darglint == 1.8.0',
-    'flake8 >= 3.9.0, < 4.0.0',
+    'flake8 >= 4.0.0, < 4.1.0',
     'flake8-bugbear >= 19.3.0, < 20.0.0',
     'flake8-docstrings == 1.6.0',
     'flake8-print >= 3.1.0, < 4.0.0',
@@ -47,7 +47,7 @@ dev_requirements = [
 
 setup(
     name = 'OpenFisca-Core',
-    version = '35.8.4',
+    version = '35.8.5',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [

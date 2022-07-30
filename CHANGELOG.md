@@ -1,5 +1,12 @@
 # Changelog
 
+### 35.8.5 [#1137](https://github.com/openfisca/openfisca-core/pull/1137)
+
+#### Technical changes
+
+- Fix pylint dependency in fresh editable installations
+  - Ignore pytest requirement, used to collect test cases, if it is not yet installed.
+
 ### 35.8.4 [#1131](https://github.com/openfisca/openfisca-core/pull/1131)
 
 #### Technical changes
