@@ -102,7 +102,7 @@ def instant_date(instant: Optional[Instant]) -> Optional[datetime.date]:
     return instant_date
 
 
-def period(value):
+def period(value) -> Period:
     """Build a new period, aka a triple (unit, start_instant, size).
 
     Args:
