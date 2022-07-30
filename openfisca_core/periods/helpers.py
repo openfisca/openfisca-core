@@ -286,4 +286,12 @@ def unit_weights() -> Dict[str, int]:
 
 
 def unit_weight(unit: str) -> int:
+    """Retrieves a specific date unit weight.
+
+    Examples:
+        >>> unit_weight(DateUnit.DAY)
+        100
+
+    """
+
     return unit_weights()[unit]
