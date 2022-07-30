@@ -203,7 +203,6 @@ class Period(tuple):
     @property
     def days(self) -> int:
         """Count the number of days in period."""
-
         return (self.stop.date - self.start.date).days + 1
 
     def get_subperiods(self, unit: str) -> Sequence[types.Period]:
