@@ -2,13 +2,14 @@ from typing import Dict
 
 import datetime
 import os
+from typing import Dict, NoReturn, Optional
 
 from . import config
 from .instant_ import Instant
 from .period_ import Period
 
 
-def instant(instant):
+def instant(instant) -> Optional[Instant]:
     """Build a new instant, aka a triple of integers (year, month, day).
 
     Args:
@@ -75,7 +76,7 @@ def instant(instant):
     return Instant(instant)
 
 
-def instant_date(instant):
+def instant_date(instant: Optional[Instant]) -> Optional[datetime.date]:
     """Returns the date representation of an :class:`.Instant`.
 
     Args:
@@ -150,33 +151,6 @@ def period(value) -> Period:
     if isinstance(value, Instant):
         return Period((config.DAY, value, 1))
 
-    def parse_simple_period(value):
-        """Parse simple periods respecting the ISO format.
-
-        Such as 2012 or 2015-03.
-
-        Examples:
-            >>> 1 > 2
-
-        """
-
-        try:
-            date = datetime.datetime.strptime(value, '%Y')
-        except ValueError:
-            try:
-                date = datetime.datetime.strptime(value, '%Y-%m')
-            except ValueError:
-                try:
-                    date = datetime.datetime.strptime(value, '%Y-%m-%d')
-                except ValueError:
-                    return None
-                else:
-                    return Period((config.DAY, Instant((date.year, date.month, date.day)), 1))
-            else:
-                return Period((config.MONTH, Instant((date.year, date.month, 1)), 1))
-        else:
-            return Period((config.YEAR, Instant((date.year, date.month, 1)), 1))
-
     if value == 'ETERNITY' or value == config.ETERNITY:
         return Period(('eternity', instant(datetime.date.min), float("inf")))
 
@@ -187,7 +161,7 @@ def period(value) -> Period:
         _raise_error(value)
 
     # try to parse as a simple period
-    period = parse_simple_period(value)
+    period = _parse_simple_period(value)
     if period is not None:
         return period
 
@@ -203,7 +177,7 @@ def period(value) -> Period:
         _raise_error(value)
 
     # middle component must be a valid iso period
-    base_period = parse_simple_period(components[1])
+    base_period = _parse_simple_period(components[1])
     if not base_period:
         _raise_error(value)
 
@@ -227,7 +201,42 @@ def period(value) -> Period:
     return Period((unit, base_period.start, size))
 
 
-def _raise_error(value):
+def _parse_simple_period(value: str) -> Optional[Period]:
+    """Parse simple periods respecting the ISO format.
+
+    Such as "2012" or "2015-03".
+
+    Examples:
+        >>> _parse_simple_period("2022")
+        Period(('year', Instant((2022, 1, 1)), 1))
+
+        >>> _parse_simple_period("2022-02")
+        Period(('month', Instant((2022, 2, 1)), 1))
+
+        >>> _parse_simple_period("2022-02-13")
+        Period(('day', Instant((2022, 2, 13)), 1))
+
+    """
+
+    try:
+        date = datetime.datetime.strptime(value, '%Y')
+    except ValueError:
+        try:
+            date = datetime.datetime.strptime(value, '%Y-%m')
+        except ValueError:
+            try:
+                date = datetime.datetime.strptime(value, '%Y-%m-%d')
+            except ValueError:
+                return None
+            else:
+                return Period((config.DAY, Instant((date.year, date.month, date.day)), 1))
+        else:
+            return Period((config.MONTH, Instant((date.year, date.month, 1)), 1))
+    else:
+        return Period((config.YEAR, Instant((date.year, date.month, 1)), 1))
+
+
+def _raise_error(value: str) -> NoReturn:
     """Raise an error.
 
     Examples:
@@ -245,7 +254,7 @@ def _raise_error(value):
     raise ValueError(message)
 
 
-def key_period_size(period):
+def key_period_size(period: Period) -> str:
     """Define a key in order to sort periods by length.
 
     It uses two aspects: first, ``unit``, then, ``size``.

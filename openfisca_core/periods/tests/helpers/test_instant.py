@@ -17,6 +17,7 @@ from openfisca_core.periods import Instant, Period
     [999, Instant((999, 1, 1))],
     [1000, Instant((1000, 1, 1))],
     ["1000", Instant((1000, 1, 1))],
+    ["1000-01", Instant((1000, 1, 1))],
     ["1000-01-01", Instant((1000, 1, 1))],
     [(None,), Instant((None, 1, 1))],
     [(None, None), Instant((None, None, 1))],
@@ -38,12 +39,16 @@ def test_instant_with_a_valid_argument(arg, expected):
 
 
 @pytest.mark.parametrize("arg, error", [
+    [periods.YEAR, ValueError],
+    [periods.ETERNITY, ValueError],
     ["1000-0", ValueError],
     ["1000-0-0", ValueError],
     ["1000-1", ValueError],
     ["1000-1-1", ValueError],
     ["1", ValueError],
     ["a", ValueError],
+    ["year", ValueError],
+    ["eternity", ValueError],
     ["999", ValueError],
     ["1:1000-01-01", ValueError],
     ["a:1000-01-01", ValueError],
