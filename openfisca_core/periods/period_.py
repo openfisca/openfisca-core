@@ -121,42 +121,10 @@ class Period(tuple):
 
     """
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '{}({})'.format(self.__class__.__name__, super(Period, self).__repr__())
 
-    def __str__(self):
-        """Transform period to a string.
-
-        Examples:
-            >>> str(Period(("year", Instant((2021, 1, 1)), 1)))
-            '2021'
-
-            >>> str(Period(("year", Instant((2021, 2, 1)), 1)))
-            'year:2021-02'
-
-            >>> str(Period(("month", Instant((2021, 2, 1)), 1)))
-            '2021-02'
-
-            >>> str(Period(("year", Instant((2021, 1, 1)), 2)))
-            'year:2021:2'
-
-            >>> str(Period(("month", Instant((2021, 1, 1)), 2)))
-            'month:2021-01:2'
-
-            >>> str(Period(("month", Instant((2021, 1, 1)), 12)))
-            '2021'
-
-            >>> str(Period(("year", Instant((2021, 3, 1)), 2)))
-            'year:2021-03:2'
-
-            >>> str(Period(("month", Instant((2021, 3, 1)), 2)))
-            'month:2021-03:2'
-
-            >>> str(Period(("month", Instant((2021, 3, 1)), 12)))
-            'year:2021-03'
-
-        """
-
+    def __str__(self) -> str:
         unit, start_instant, size = self
         if unit == config.ETERNITY:
             return 'ETERNITY'
