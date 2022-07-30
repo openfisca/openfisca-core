@@ -14,26 +14,6 @@ Test Period -> String
 '''
 
 
-# Years
-
-def test_year():
-    assert str(Period((YEAR, first_jan, 1))) == '2014'
-
-
-def test_12_months_is_a_year():
-    assert str(Period((MONTH, first_jan, 12))) == '2014'
-
-
-def test_rolling_year():
-    assert str(Period((MONTH, first_march, 12))) == 'year:2014-03'
-    assert str(Period((YEAR, first_march, 1))) == 'year:2014-03'
-
-
-def test_several_years():
-    assert str(Period((YEAR, first_jan, 3))) == 'year:2014:3'
-    assert str(Period((YEAR, first_march, 3))) == 'year:2014-03:3'
-
-
 # Months
 
 def test_month():
