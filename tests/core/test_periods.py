@@ -16,13 +16,6 @@ Test Period -> String
 
 # Months
 
-def test_month():
-    assert str(Period((MONTH, first_jan, 1))) == '2014-01'
-
-
-def test_several_months():
-    assert str(Period((MONTH, first_jan, 3))) == 'month:2014-01:3'
-    assert str(Period((MONTH, first_march, 3))) == 'month:2014-03:3'
 
 
 # Days
