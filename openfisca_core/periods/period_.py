@@ -43,7 +43,7 @@ class Period(tuple):
 
         >>> dict([period, instant])
         Traceback (most recent call last):
-        ValueError: dictionary update sequence element #0 has length 3; 2 is required
+        ValueError: dictionary update sequence element #0 has length 3...
 
         >>> list(period)
         ['year', Instant((2021, 9, 1)), 3]
@@ -205,16 +205,16 @@ class Period(tuple):
         return (self.stop.date - self.start.date).days + 1
 
     def get_subperiods(self, unit: str) -> Sequence[types.Period]:
-        """Return the list of all the periods of unit ``unit`` contained in self.
+        """Return the list of all the periods of unit ``unit``.
 
         Examples:
             >>> period = Period(("year", Instant((2021, 1, 1)), 1))
             >>> period.get_subperiods("month")
-            [Period(('month', Instant((2021, 1, 1)), 1)), ...2021, 12, 1)), 1))]
+            [Period(('month', Instant((2021, 1, 1)), 1)),...2021, 12, 1)), 1))]
 
             >>> period = Period(("year", Instant((2021, 1, 1)), 2))
             >>> period.get_subperiods("year")
-            [Period(('year', Instant((2021, 1, 1)), 1)), ...((2022, 1, 1)), 1))]
+            [Period(('year', Instant((2021, 1, 1)), 1)),...((2022, 1, 1)), 1))]
 
         """
 
