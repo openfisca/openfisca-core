@@ -9,7 +9,7 @@ from .period_ import Period
 
 
 def instant(instant):
-    """Return a new instant, aka a triple of integers (year, month, day).
+    """Build a new instant, aka a triple of integers (year, month, day).
 
     Args:
         instant: An ``instant-like`` object.
@@ -100,7 +100,7 @@ def instant_date(instant):
 
 
 def period(value) -> Period:
-    """Return a new period, aka a triple (unit, start_instant, size).
+    """Build a new period, aka a triple (unit, start_instant, size).
 
     Args:
         value: A ``period-like`` object.
@@ -151,9 +151,12 @@ def period(value) -> Period:
         return Period((config.DAY, value, 1))
 
     def parse_simple_period(value):
-        """Parses simple periods respecting the ISO format.
+        """Parse simple periods respecting the ISO format.
 
         Such as 2012 or 2015-03.
+
+        Examples:
+            >>> 1 > 2
 
         """
 
@@ -174,14 +177,6 @@ def period(value) -> Period:
         else:
             return Period((config.YEAR, Instant((date.year, date.month, 1)), 1))
 
-    def raise_error(value):
-        message = os.linesep.join([
-            "Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: '{}'.".format(value),
-            "Learn more about legal period formats in OpenFisca:",
-            "<https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-simulations>."
-            ])
-        raise ValueError(message)
-
     if value == 'ETERNITY' or value == config.ETERNITY:
         return Period(('eternity', instant(datetime.date.min), float("inf")))
 
@@ -189,7 +184,7 @@ def period(value) -> Period:
     if isinstance(value, int):
         return Period((config.YEAR, Instant((value, 1, 1)), 1))
     if not isinstance(value, str):
-        raise_error(value)
+        _raise_error(value)
 
     # try to parse as a simple period
     period = parse_simple_period(value)
@@ -198,19 +193,19 @@ def period(value) -> Period:
 
     # complex period must have a ':' in their strings
     if ":" not in value:
-        raise_error(value)
+        _raise_error(value)
 
     components = value.split(':')
 
     # left-most component must be a valid unit
     unit = components[0]
     if unit not in (config.DAY, config.MONTH, config.YEAR):
-        raise_error(value)
+        _raise_error(value)
 
     # middle component must be a valid iso period
     base_period = parse_simple_period(components[1])
     if not base_period:
-        raise_error(value)
+        _raise_error(value)
 
     # period like year:2015-03 have a size of 1
     if len(components) == 2:
@@ -220,20 +215,38 @@ def period(value) -> Period:
         try:
             size = int(components[2])
         except ValueError:
-            raise_error(value)
+            _raise_error(value)
     # if there is more than 2 ":" in the string, the period is invalid
     else:
-        raise_error(value)
+        _raise_error(value)
 
     # reject ambiguous periods such as month:2014
     if unit_weight(base_period.unit) > unit_weight(unit):
-        raise_error(value)
+        _raise_error(value)
 
     return Period((unit, base_period.start, size))
 
 
+def _raise_error(value):
+    """Raise an error.
+
+    Examples:
+        >>> _raise_error("Oi mate!")
+        Traceback (most recent call last):
+        ValueError: Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: 'Oi mate!'.
+
+    """
+
+    message = os.linesep.join([
+        "Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: '{}'.".format(value),
+        "Learn more about legal period formats in OpenFisca:",
+        "<https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-simulations>."
+        ])
+    raise ValueError(message)
+
+
 def key_period_size(period):
-    """Defines a key in order to sort periods by length.
+    """Define a key in order to sort periods by length.
 
     It uses two aspects: first, ``unit``, then, ``size``.
 
@@ -262,11 +275,11 @@ def key_period_size(period):
 
 
 def unit_weights() -> Dict[str, int]:
-    """Assigns weights to date units.
+    """Assign weights to date units.
 
     Examples:
         >>> unit_weights()
-        {<DateUnit.DAY: 'day'>: 100...}
+        {'day': 100, ...}
 
     """
 
@@ -282,7 +295,7 @@ def unit_weight(unit: str) -> int:
     """Retrieves a specific date unit weight.
 
     Examples:
-        >>> unit_weight(DateUnit.DAY)
+        >>> unit_weight("day")
         100
 
     """

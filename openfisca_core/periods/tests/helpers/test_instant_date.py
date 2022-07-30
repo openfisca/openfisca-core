@@ -3,7 +3,7 @@ import datetime
 import pytest
 
 from openfisca_core import periods
-from openfisca_core.periods import DateUnit, Instant, Period
+from openfisca_core.periods import Instant, Period
 
 
 @pytest.mark.parametrize("arg, expected", [
@@ -25,7 +25,7 @@ def test_instant_date_with_a_valid_argument(arg, expected):
     [Instant((1, 1, 32)), ValueError],
     [Instant((1, 2, 29)), ValueError],
     [Instant(("1", 1, 1)), TypeError],
-    [Period((DateUnit.YEAR, Instant((1, 1, 1)), 1)), TypeError],
+    [Period((periods.YEAR, Instant((1, 1, 1)), 1)), TypeError],
     [1, TypeError],
     ["1", TypeError],
     [(), TypeError],
