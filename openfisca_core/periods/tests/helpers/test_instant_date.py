@@ -6,10 +6,6 @@ from openfisca_core import periods
 from openfisca_core.periods import DateUnit, Instant, Period
 
 
-def test_instant_date():
-    assert periods.instant_date((2022, 1, 1)) == datetime.date(2022, 1, 1)
-
-
 @pytest.mark.parametrize("arg, expected", [
     [None, None],
     [Instant((1, 1, 1)), datetime.date(1, 1, 1)],
