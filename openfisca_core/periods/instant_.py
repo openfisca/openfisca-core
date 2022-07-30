@@ -1,8 +1,7 @@
 import calendar
 import datetime
 
-from openfisca_core import periods
-from openfisca_core.periods import config
+from . import config
 
 
 class Instant(tuple):
@@ -81,21 +80,6 @@ class Instant(tuple):
         2
         """
         return self[1]
-
-    def period(self, unit, size = 1):
-        """
-        Create a new period starting at instant.
-
-        >>> instant(2014).period('month')
-        Period(('month', Instant((2014, 1, 1)), 1))
-        >>> instant('2014-2').period('year', 2)
-        Period(('year', Instant((2014, 2, 1)), 2))
-        >>> instant('2014-2-3').period('day', size = 2)
-        Period(('day', Instant((2014, 2, 3)), 2))
-        """
-        assert unit in (config.DAY, config.MONTH, config.YEAR), 'Invalid unit: {} of type {}'.format(unit, type(unit))
-        assert isinstance(size, int) and size >= 1, 'Invalid size: {} of type {}'.format(size, type(size))
-        return periods.Period((unit, self, size))
 
     def offset(self, offset, unit):
         """
