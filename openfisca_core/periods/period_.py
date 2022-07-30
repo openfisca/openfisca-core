@@ -165,8 +165,10 @@ class Period(tuple):
         """
 
         unit, start_instant, size = self
+
         if unit == config.ETERNITY:
-            return 'ETERNITY'
+            return "ETERNITY"
+
         year, month, day = start_instant
 
         # 1 year long period

@@ -15,6 +15,7 @@ Test String -> Period
 
 # Years
 
+
 def test_parsing_year():
     assert period('2014') == Period((YEAR, first_jan, 1))
 
