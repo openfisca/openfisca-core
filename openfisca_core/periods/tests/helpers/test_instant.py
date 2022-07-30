@@ -7,7 +7,7 @@ from openfisca_core.periods import DateUnit, Instant, Period
 
 
 def test_instant():
-	assert periods.instant((2022, 1, 1)) ==  Instant((2022, 1, 1))
+    assert periods.instant((2022, 1, 1)) == Instant((2022, 1, 1))
 
 
 @pytest.mark.parametrize("arg, expected", [
@@ -44,7 +44,7 @@ def test_instant_with_a_valid_argument(arg, expected):
 @pytest.mark.parametrize("arg, error", [
     ["1000-0", ValueError],
     ["1000-0-0", ValueError],
-	["1000-1", ValueError],
+    ["1000-1", ValueError],
     ["1000-1-1", ValueError],
     ["1", ValueError],
     ["a", ValueError],
@@ -61,4 +61,4 @@ def test_instant_with_a_valid_argument(arg, expected):
     ])
 def test_instant_with_an_invalid_argument(arg, error):
     with pytest.raises(error):
-    	periods.instant(arg)
+        periods.instant(arg)
