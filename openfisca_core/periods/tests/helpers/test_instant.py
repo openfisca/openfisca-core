@@ -58,6 +58,8 @@ def test_instant_with_a_valid_argument(arg, expected):
     ["1000-01-01:a", ValueError],
     ["1000-01-01:1", ValueError],
     [(), AssertionError],
+    [{}, AssertionError],
+    ["", ValueError],
     [(None, None, None, None), AssertionError],
     ])
 def test_instant_with_an_invalid_argument(arg, error):
