@@ -1,16 +1,14 @@
-from __future__ import annotations
-
-import calendar
-import datetime
+import pendulum
 
 from . import config
+from .date_unit import DateUnit
 
 
 class Instant(tuple):
     """An instant in time (year, month, day).
 
     An :class:`.Instant` represents the most atomic and indivisible
-    legislation's time unit.
+    legislation's date unit.
 
     Current implementation considers this unit to be a day, so
     :obj:`instants <.Instant>` can be thought of as "day dates".
@@ -74,37 +72,41 @@ class Instant(tuple):
         13
 
         >>> instant.date
-        datetime.date(2021, 9, 13)
+        Date(2021, 9, 13)
 
         >>> year, month, day = instant
 
     """
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return f"{self.__class__.__name__}({super().__repr__()})"
 
-    def __str__(self) -> str:
+    def __str__(self):
         instant_str = config.str_by_instant_cache.get(self)
+
         if instant_str is None:
             config.str_by_instant_cache[self] = instant_str = self.date.isoformat()
+
         return instant_str
 
     @property
-    def date(self) -> datetime.date:
+    def date(self):
         instant_date = config.date_by_instant_cache.get(self)
+
         if instant_date is None:
-            config.date_by_instant_cache[self] = instant_date = datetime.date(*self)
+            config.date_by_instant_cache[self] = instant_date = pendulum.date(*self)
+
         return instant_date
 
     @property
-    def day(self) -> int:
+    def day(self):
         return self[2]
 
     @property
-    def month(self) -> int:
+    def month(self):
         return self[1]
 
-    def offset(self, offset: int | str, unit: str) -> Instant:
+    def offset(self, offset, unit):
         """Increments/decrements the given instant with offset units.
 
         Args:
@@ -117,85 +119,80 @@ class Instant(tuple):
         Raises:
             :exc:`AssertionError`: When ``unit`` is not a date unit.
             :exc:`AssertionError`: When ``offset`` is not either ``first-of``,
-            ``last-of``, or any :obj:`int`.
+                ``last-of``, or any :obj:`int`.
 
         Examples:
-            >>> Instant((2020, 12, 31)).offset("first-of", "month")
+            >>> Instant((2020, 12, 31)).offset("first-of", DateUnit.MONTH)
             Instant((2020, 12, 1))
 
-            >>> Instant((2020, 1, 1)).offset("last-of", "year")
+            >>> Instant((2020, 1, 1)).offset("last-of", DateUnit.YEAR)
             Instant((2020, 12, 31))
 
-            >>> Instant((2020, 1, 1)).offset(1, "year")
+            >>> Instant((2020, 1, 1)).offset(1, DateUnit.YEAR)
             Instant((2021, 1, 1))
 
-            >>> Instant((2020, 1, 1)).offset(-3, "day")
+            >>> Instant((2020, 1, 1)).offset(-3, DateUnit.DAY)
             Instant((2019, 12, 29))
 
         """
 
         year, month, day = self
-        assert unit in (
-            config.DAY,
-            config.MONTH,
-            config.YEAR,
-        ), "Invalid unit: {} of type {}".format(unit, type(unit))
-        if offset == "first-of":
-            if unit == config.MONTH:
-                day = 1
-            elif unit == config.YEAR:
-                month = 1
-                day = 1
-        elif offset == "last-of":
-            if unit == config.MONTH:
-                day = calendar.monthrange(year, month)[1]
-            elif unit == config.YEAR:
-                month = 12
-                day = 31
-        else:
-            assert isinstance(offset, int), "Invalid offset: {} of type {}".format(
-                offset, type(offset)
-            )
-            if unit == config.DAY:
-                day += offset
-                if offset < 0:
-                    while day < 1:
-                        month -= 1
-                        if month == 0:
-                            year -= 1
-                            month = 12
-                        day += calendar.monthrange(year, month)[1]
-                elif offset > 0:
-                    month_last_day = calendar.monthrange(year, month)[1]
-                    while day > month_last_day:
-                        month += 1
-                        if month == 13:
-                            year += 1
-                            month = 1
-                        day -= month_last_day
-                        month_last_day = calendar.monthrange(year, month)[1]
-            elif unit == config.MONTH:
-                month += offset
-                if offset < 0:
-                    while month < 1:
-                        year -= 1
-                        month += 12
-                elif offset > 0:
-                    while month > 12:
-                        year += 1
-                        month -= 12
-                month_last_day = calendar.monthrange(year, month)[1]
-                if day > month_last_day:
-                    day = month_last_day
-            elif unit == config.YEAR:
-                year += offset
-                # Handle february month of leap year.
-                month_last_day = calendar.monthrange(year, month)[1]
-                if day > month_last_day:
-                    day = month_last_day
 
-        return self.__class__((year, month, day))
+        assert unit in (
+            DateUnit.isoformat + DateUnit.isocalendar
+        ), f"Invalid unit: {unit} of type {type(unit)}"
+
+        if offset == "first-of":
+            if unit == DateUnit.YEAR:
+                return self.__class__((year, 1, 1))
+
+            elif unit == DateUnit.MONTH:
+                return self.__class__((year, month, 1))
+
+            elif unit == DateUnit.WEEK:
+                date = self.date
+                date = date.start_of("week")
+                return self.__class__((date.year, date.month, date.day))
+
+        elif offset == "last-of":
+            if unit == DateUnit.YEAR:
+                return self.__class__((year, 12, 31))
+
+            elif unit == DateUnit.MONTH:
+                date = self.date
+                date = date.end_of("month")
+                return self.__class__((date.year, date.month, date.day))
+
+            elif unit == DateUnit.WEEK:
+                date = self.date
+                date = date.end_of("week")
+                return self.__class__((date.year, date.month, date.day))
+
+        else:
+            assert isinstance(
+                offset, int
+            ), f"Invalid offset: {offset} of type {type(offset)}"
+
+            if unit == DateUnit.YEAR:
+                date = self.date
+                date = date.add(years=offset)
+                return self.__class__((date.year, date.month, date.day))
+
+            elif unit == DateUnit.MONTH:
+                date = self.date
+                date = date.add(months=offset)
+                return self.__class__((date.year, date.month, date.day))
+
+            elif unit == DateUnit.WEEK:
+                date = self.date
+                date = date.add(weeks=offset)
+                return self.__class__((date.year, date.month, date.day))
+
+            elif unit in (DateUnit.DAY, DateUnit.WEEKDAY):
+                date = self.date
+                date = date.add(days=offset)
+                return self.__class__((date.year, date.month, date.day))
 
     @property
-    def year(self) -> int:
+    def year(self):
         return self[0]

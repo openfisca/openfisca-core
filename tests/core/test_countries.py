@@ -2,6 +2,7 @@ import pytest
 
 from openfisca_core import periods, populations, tools
 from openfisca_core.errors import VariableNameConflictError, VariableNotFoundError
+from openfisca_core.periods import DateUnit
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.variables import Variable
 
@@ -66,12 +67,6 @@ def test_calculate_variable_with_wrong_definition_period(simulation):
 
 
 @pytest.mark.parametrize("simulation", [({}, PERIOD)], indirect=True)
-def test_divide_option_on_month_defined_variable(simulation):
-    with pytest.raises(ValueError):
-        simulation.person("disposable_income", PERIOD, options=[populations.DIVIDE])
-
-
-@pytest.mark.parametrize("simulation", [({}, PERIOD)], indirect=True)
 def test_divide_option_with_complex_period(simulation):
     quarter = PERIOD.last_3_months
 
@@ -79,7 +74,7 @@ def test_divide_option_with_complex_period(simulation):
         simulation.household("housing_tax", quarter, options=[populations.DIVIDE])
 
     error_message = str(error.value)
-    expected_words = ["DIVIDE", "one-year", "one-month", "period"]
+    expected_words = ["Can't", "calculate", "month", "year"]
 
     for word in expected_words:
         assert (
@@ -106,7 +101,7 @@ def test_variable_with_reference(make_simulation, isolated_tax_benefit_system):
     assert result > 0
 
     class disposable_income(Variable):
-        definition_period = periods.MONTH
+        definition_period = DateUnit.MONTH
 
         def formula(household, period):
             return household.empty_array()
@@ -122,7 +117,7 @@ def test_variable_with_reference(make_simulation, isolated_tax_benefit_system):
 def test_variable_name_conflict(tax_benefit_system):
     class disposable_income(Variable):
         reference = "disposable_income"
-        definition_period = periods.MONTH
+        definition_period = DateUnit.MONTH
 
         def formula(household, period):
             return household.empty_array()

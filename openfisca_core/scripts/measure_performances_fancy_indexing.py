@@ -1,17 +1,18 @@
 # flake8: noqa T001
 
-import numpy
 import timeit
+
+import numpy as np
+
 from openfisca_france import CountryTaxBenefitSystem
-from openfisca_core.model_api import *  # noqa analysis:ignore
 
 
 tbs = CountryTaxBenefitSystem()
 N = 200000
 al_plaf_acc = tbs.get_parameters_at_instant("2015-01-01").prestations.al_plaf_acc
-zone_apl = numpy.random.choice([1, 2, 3], N)
-al_nb_pac = numpy.random.choice(6, N)
-couple = numpy.random.choice([True, False], N)
+zone_apl = np.random.choice([1, 2, 3], N)
+al_nb_pac = np.random.choice(6, N)
+couple = np.random.choice([True, False], N)
 formatted_zone = concat(
     "plafond_pour_accession_a_la_propriete_zone_", zone_apl
 )  # zone_apl returns 1, 2 or 3 but the parameters have a long name

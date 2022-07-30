@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-import numpy
+import abc
+
 import typing_extensions
 from typing import Any, Optional
 from typing_extensions import Protocol
 
-import abc
+import numpy
 
 
 class Entity(Protocol):

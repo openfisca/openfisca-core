@@ -5,9 +5,10 @@ import pytest
 
 from openfisca_country_template import entities, situation_examples
 
-from openfisca_core import periods, tools
+from openfisca_core import tools
 from openfisca_core.errors import SituationParsingError
 from openfisca_core.indexed_enums import Enum
+from openfisca_core.periods import DateUnit
 from openfisca_core.populations import Population
 from openfisca_core.simulations import Simulation, SimulationBuilder
 from openfisca_core.tools import test_runner
@@ -17,7 +18,7 @@ from openfisca_core.variables import Variable
 @pytest.fixture
 def int_variable(persons):
     class intvar(Variable):
-        definition_period = periods.ETERNITY
+        definition_period = DateUnit.ETERNITY
         value_type = int
         entity = persons
 
@@ -30,7 +31,7 @@ def int_variable(persons):
 @pytest.fixture
 def date_variable(persons):
     class datevar(Variable):
-        definition_period = periods.ETERNITY
+        definition_period = DateUnit.ETERNITY
         value_type = datetime.date
         entity = persons
 
@@ -43,7 +44,7 @@ def date_variable(persons):
 @pytest.fixture
 def enum_variable():
     class TestEnum(Variable):
-        definition_period = periods.ETERNITY
+        definition_period = DateUnit.ETERNITY
         value_type = Enum
         dtype = "O"
         default_value = "0"
