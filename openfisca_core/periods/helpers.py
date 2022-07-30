@@ -247,21 +247,14 @@ def key_period_size(period):
 
     Examples:
         >>> instant = Instant((2021, 9, 14))
+
         >>> period = Period(("day", instant, 1))
         >>> key_period_size(period)
         '100_1'
 
-        >>> period = Period(("month", instant, 2))
-        >>> key_period_size(period)
-        '200_2'
-
         >>> period = Period(("year", instant, 3))
         >>> key_period_size(period)
         '300_3'
-
-        >>> period = Period(("eternity", instant, 4))
-        >>> key_period_size(period)
-        '400_4'
 
     """
 
