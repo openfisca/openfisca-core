@@ -14,17 +14,3 @@ from openfisca_core.periods import Instant, Period
     ])
 def test_key_period_size_with_a_valid_argument(arg, expected):
     assert periods.key_period_size(arg) == expected
-
-
-@pytest.mark.parametrize("arg, error", [
-    [None, TypeError],
-    [Instant((1, 1, 1)), KeyError],
-    [1, TypeError],
-    ["1", ValueError],
-    ["111", KeyError],
-    [(), ValueError],
-    [(1, 1, 1), KeyError],
-    ])
-def test_key_period_size_with_an_invalid_argument(arg, error):
-    with pytest.raises(error):
-        periods.key_period_size(arg)
