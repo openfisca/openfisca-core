@@ -281,4 +281,12 @@ def unit_weights():
 
 
 def unit_weight(unit):
+    """Retrieves a specific date unit weight.
+
+    Examples:
+        >>> unit_weight(DateUnit.DAY)
+        100
+
+    """
+
     return unit_weights()[unit]
