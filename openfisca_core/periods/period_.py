@@ -162,7 +162,6 @@ class Period(tuple):
     @property
     def days(self):
         """Count the number of days in period."""
-
         return (self.stop.date - self.start.date).days + 1
 
     def intersection(self, start, stop):
