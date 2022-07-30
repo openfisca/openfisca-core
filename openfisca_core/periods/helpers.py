@@ -264,6 +264,14 @@ def key_period_size(period):
 
 
 def unit_weights():
+    """Assigns weights to date units.
+
+    Examples:
+        >>> unit_weights()
+        {<DateUnit.DAY: 'day'>: 100...}
+
+    """
+
     return {
         config.DAY: 100,
         config.MONTH: 200,
