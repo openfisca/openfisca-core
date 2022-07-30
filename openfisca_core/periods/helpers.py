@@ -157,6 +157,7 @@ def period(value) -> Period:
     # check the type
     if isinstance(value, int):
         return Period((DateUnit.YEAR, Instant((value, 1, 1)), 1))
+
     if not isinstance(value, str):
         _raise_error(value)
 

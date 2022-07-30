@@ -452,7 +452,6 @@ class Period(tuple):
     @property
     def start(self) -> Instant:
         """Return the first day of the period as an Instant instance."""
-
         return self[1]
 
     @property
