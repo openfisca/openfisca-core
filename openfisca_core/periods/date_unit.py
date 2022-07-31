@@ -1,7 +1,56 @@
+from __future__ import annotations
+
+from enum import EnumMeta
+from typing import Tuple
+
 from strenum import StrEnum
 
 
-class DateUnit(StrEnum):
+class DateUnitMeta(EnumMeta):
+    @property
+    def isoformat(self) -> Tuple[DateUnit, ...]:
+        """Creates a :obj:`tuple` of ``key`` with isoformat items.
+
+        Returns:
+            tuple(str): A :obj:`tuple` containing the ``keys``.
+
+        Examples:
+            >>> DateUnit.isoformat
+            (<DateUnit.DAY: 'day'>, <DateUnit.MONTH: 'month'>, <DateUnit.YE...)
+
+            >>> DateUnit.DAY in DateUnit.isoformat
+            True
+
+            >>> DateUnit.WEEK in DateUnit.isoformat
+            False
+
+        """
+
+        return DateUnit.DAY, DateUnit.MONTH, DateUnit.YEAR
+
+    @property
+    def isocalendar(self) -> Tuple[DateUnit, ...]:
+        """Creates a :obj:`tuple` of ``key`` with isocalendar items.
+
+        Returns:
+            tuple(str): A :obj:`tuple` containing the ``keys``.
+
+        Examples:
+            >>> DateUnit.isocalendar
+            (<DateUnit.WEEKDAY: 'weekday'>, <DateUnit.WEEK: 'week'>, <DateU...)
+
+            >>> DateUnit.WEEK in DateUnit.isocalendar
+            True
+
+            >>> "day" in DateUnit.isocalendar
+            False
+
+        """
+
+        return DateUnit.WEEKDAY, DateUnit.WEEK, DateUnit.YEAR
+
+
+class DateUnit(StrEnum, metaclass = DateUnitMeta):
     """The date units of a rule system.
 
     Examples:
