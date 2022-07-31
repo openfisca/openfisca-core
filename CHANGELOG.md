@@ -1,5 +1,18 @@
 # Changelog
 
+# 37.0.0 [#1142](https://github.com/openfisca/openfisca-core/pull/1142)
+
+#### Deprecations
+
+- In _periods.Instant_:
+  - Remove `period`, method used to build a `Period` from an `Instant`.
+  - This method created an upward circular dependency between `Instant` and `Period` causing lots of trouble.
+  - The functionality is still provided by `periods.period` and the `Period` constructor.
+
+#### Migration details
+
+- Replace `some_period.start.period` and similar methods with `Period((unit, some_period.start, 1))`.
+
 # 36.0.0 [#1149](https://github.com/openfisca/openfisca-core/pull/1162)
 
 #### Breaking changes
@@ -869,7 +882,7 @@ _Note: this version has been unpublished due to an issue introduced by 34.2.9 in
   - Much more detail (and class diagrams) in the PR description
 - Remove support from the syntax `some_entity.SOME_ROLE` to access roles (where `some_entity` is the entity passed to a formula).
 
-### Migration details
+#### Migration details
 
 - Use the standard SomeEntity.SOME_ROLE instead. (Where SomeEntity is the capitalized entity or instance, Household.PARENT.)
 - Code that relied excessively on internal implementation details of Entity may break, and should be updated to access methods of Entity/Population instead.
