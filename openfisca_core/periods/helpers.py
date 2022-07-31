@@ -3,7 +3,7 @@ from typing import Dict, NoReturn, Optional
 import datetime
 import os
 
-from . import config
+from . import _parsers, config
 from .date_unit import DateUnit
 from .instant_ import Instant
 from .period_ import Period
@@ -149,25 +149,50 @@ def period(value) -> Period:
     if isinstance(value, Period):
         return value
 
+    # We return a "day-period", for example
+    # ``<Period(('day', <Instant(2021, 1, 1)>, 1))>``.
     if isinstance(value, Instant):
         return Period((DateUnit.DAY, value, 1))
 
-    if value == 'ETERNITY' or value == DateUnit.ETERNITY:
-        return Period((DateUnit.ETERNITY, instant(datetime.date.min), float("inf")))
+    # For example ``datetime.date(2021, 9, 16)``.
+    if isinstance(value, datetime.date):
+        return Period((DateUnit.DAY, instant(value), 1))
 
-    # check the type
+    # We return an "eternity-period", for example
+    # ``<Period(('eternity', <Instant(1, 1, 1)>, inf))>``.
+    if value == DateUnit.ETERNITY:
+        return Period((
+            DateUnit.ETERNITY,
+            instant(datetime.date.min),
+            float("inf"),
+            ))
+
+    # For example ``2021`` gives
+    # ``<Period(('year', <Instant(2021, 1, 1)>, 1))>``.
     if isinstance(value, int):
-        return Period((DateUnit.YEAR, Instant((value, 1, 1)), 1))
+        return Period((DateUnit.YEAR, instant(value), 1))
 
+    # Up to this point, if ``value`` is not a :obj:`str`, we desist.
     if not isinstance(value, str):
         _raise_error(value)
 
-    # try to parse as a simple period
-    period = _parse_simple_period(value)
+    # There can't be empty strings.
+    if not value:
+        _raise_error(value)
+
+    # Try to parse as an ISO format period.
+    period = _parsers._from_isoformat(value)
+
     if period is not None:
         return period
 
-    # complex period must have a ':' in their strings
+    # Try to parse as an ISO calendar period.
+    period = _parsers._from_isocalendar(value)
+
+    if period is not None:
+        return period
+
+    # A complex period has a ':' in its string.
     if ":" not in value:
         _raise_error(value)
 
@@ -176,26 +201,33 @@ def period(value) -> Period:
     # left-most component must be a valid unit
     unit = components[0]
 
-    if unit not in (DateUnit.DAY, DateUnit.MONTH, DateUnit.YEAR):
+    if unit not in list(DateUnit) or unit == DateUnit.ETERNITY:
         _raise_error(value)
 
-    else:
-        unit = DateUnit(unit)
+    # Cast ``unit`` to DateUnit.
+    unit = DateUnit(unit)
 
     # middle component must be a valid iso period
-    base_period = _parse_simple_period(components[1])
+    base_period = (
+        _parsers._from_isoformat(components[1]) or
+        _parsers._from_isocalendar(components[1])
+        )
+
     if not base_period:
         _raise_error(value)
 
     # period like year:2015-03 have a size of 1
     if len(components) == 2:
         size = 1
+
     # if provided, make sure the size is an integer
     elif len(components) == 3:
         try:
             size = int(components[2])
+
         except ValueError:
             _raise_error(value)
+
     # if there is more than 2 ":" in the string, the period is invalid
     else:
         _raise_error(value)
@@ -205,41 +237,6 @@ def period(value) -> Period:
         _raise_error(value)
 
     return Period((unit, base_period.start, size))
-
-
-def _parse_simple_period(value: str) -> Optional[Period]:
-    """Parse simple periods respecting the ISO format.
-
-    Such as "2012" or "2015-03".
-
-    Examples:
-        >>> _parse_simple_period("2022")
-        Period((<DateUnit.YEAR: 'year'>, Instant((2022, 1, 1)), 1))
-
-        >>> _parse_simple_period("2022-02")
-        Period((<DateUnit.MONTH: 'month'>, Instant((2022, 2, 1)), 1))
-
-        >>> _parse_simple_period("2022-02-13")
-        Period((<DateUnit.DAY: 'day'>, Instant((2022, 2, 13)), 1))
-
-    """
-
-    try:
-        date = datetime.datetime.strptime(value, '%Y')
-    except ValueError:
-        try:
-            date = datetime.datetime.strptime(value, '%Y-%m')
-        except ValueError:
-            try:
-                date = datetime.datetime.strptime(value, '%Y-%m-%d')
-            except ValueError:
-                return None
-            else:
-                return Period((DateUnit.DAY, Instant((date.year, date.month, date.day)), 1))
-        else:
-            return Period((DateUnit.MONTH, Instant((date.year, date.month, 1)), 1))
-    else:
-        return Period((DateUnit.YEAR, Instant((date.year, date.month, 1)), 1))
 
 
 def _raise_error(value: str) -> NoReturn:

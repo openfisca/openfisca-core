@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import calendar
+import datetime
 
 from . import helpers
 from .date_unit import DateUnit
@@ -130,33 +131,57 @@ class Period(tuple):
 
     def __str__(self) -> str:
         unit, start_instant, size = self
+
         if unit == DateUnit.ETERNITY:
-            return 'ETERNITY'
-        year, month, day = start_instant
+            return unit
+
+        # ISO format date units.
+        f_year, month, day = start_instant
+
+        # ISO calendar date units.
+        c_year, week, weekday = datetime.date(f_year, month, day).isocalendar()
 
         # 1 year long period
         if (unit == DateUnit.MONTH and size == 12 or unit == DateUnit.YEAR and size == 1):
             if month == 1:
                 # civil year starting from january
-                return str(year)
+                return str(f_year)
             else:
                 # rolling year
-                return '{}:{}-{:02d}'.format(DateUnit.YEAR, year, month)
+                return '{}:{}-{:02d}'.format(DateUnit.YEAR, f_year, month)
+
         # simple month
         if unit == DateUnit.MONTH and size == 1:
-            return '{}-{:02d}'.format(year, month)
+            return '{}-{:02d}'.format(f_year, month)
+
         # several civil years
         if unit == DateUnit.YEAR and month == 1:
-            return '{}:{}:{}'.format(unit, year, size)
+            return '{}:{}:{}'.format(unit, f_year, size)
 
         if unit == DateUnit.DAY:
             if size == 1:
-                return '{}-{:02d}-{:02d}'.format(year, month, day)
+                return '{}-{:02d}-{:02d}'.format(f_year, month, day)
             else:
-                return '{}:{}-{:02d}-{:02d}:{}'.format(unit, year, month, day, size)
+                return '{}:{}-{:02d}-{:02d}:{}'.format(unit, f_year, month, day, size)
+
+        # 1 week
+        if (unit == DateUnit.WEEK and size == 1):
+            return f"{c_year}-W{week}"
+
+        # several weeks
+        if (unit == DateUnit.WEEK and size > 1):
+            return f"{unit}:{c_year}-W{week}:{size}"
+
+        # 1 weekday
+        if (unit == DateUnit.WEEKDAY and size == 1):
+            return f"{c_year}-W{week}-{weekday}"
+
+        # several weekdays
+        if (unit == DateUnit.WEEKDAY and size > 1):
+            return f"{unit}:{c_year}-W{week}-{weekday}:{size}"
 
         # complex period
-        return '{}:{}-{:02d}:{}'.format(unit, year, month, size)
+        return '{}:{}-{:02d}:{}'.format(unit, f_year, month, size)
 
     @property
     def date(self):
@@ -490,8 +515,10 @@ class Period(tuple):
 
         unit, start_instant, size = self
         year, month, day = start_instant
+
         if unit == DateUnit.ETERNITY:
             return Instant((float("inf"), float("inf"), float("inf")))
+
         if unit == DateUnit.DAY:
             if size > 1:
                 day += size - 1
