@@ -215,9 +215,10 @@ class Holder:
 
         if period.unit == periods.DateUnit.ETERNITY and not self._eternal:
             error_message = os.linesep.join([
-                'Unable to set a value for variable {0} for DateUnit.ETERNITY.',
-                '{0} is only defined for {1}s. Please adapt your input.',
+                'Unable to set a value for variable {1} for {0}.',
+                '{1} is only defined for {2}s. Please adapt your input.',
                 ]).format(
+                    periods.DateUnit.ETERNITY.upper(),
                     self.variable.name,
                     self.variable.definition_period
                 )
@@ -264,7 +265,10 @@ class Holder:
         value = self._to_array(value)
         if not self._eternal:
             if period is None:
-                raise ValueError('A period must be specified to set values, except for variables with DateUnit.ETERNITY as as period_definition.')
+                raise ValueError(
+                    f'A period must be specified to set values, except for variables with '
+                    f'{periods.DateUnit.ETERNITY.upper()} as as period_definition.',
+                    )
             if (self.variable.definition_period != period.unit or period.size > 1):
                 name = self.variable.name
                 period_size_adj = f'{period.unit}' if (period.size == 1) else f'{period.size}-{period.unit}s'

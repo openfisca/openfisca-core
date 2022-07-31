@@ -160,7 +160,7 @@ def period(value) -> Period:
 
     # We return an "eternity-period", for example
     # ``<Period(('eternity', <Instant(1, 1, 1)>, inf))>``.
-    if value == DateUnit.ETERNITY:
+    if str(value).lower() == DateUnit.ETERNITY:
         return Period((
             DateUnit.ETERNITY,
             instant(datetime.date.min),

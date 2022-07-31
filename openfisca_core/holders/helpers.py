@@ -20,7 +20,7 @@ def set_input_dispatch_by_period(holder, period, array):
     period_size = period.size
     period_unit = period.unit
 
-    if holder.variable.definition_period == periods.DateUnit.ETERNITY:
+    if holder.variable.definition_period not in (periods.DateUnit.isoformat + periods.DateUnit.isocalendar):
         raise ValueError("set_input_dispatch_by_period can't be used for eternal variables.")
 
     cached_period_unit = holder.variable.definition_period
@@ -52,7 +52,7 @@ def set_input_divide_by_period(holder, period, array):
     period_size = period.size
     period_unit = period.unit
 
-    if holder.variable.definition_period == periods.DateUnit.ETERNITY:
+    if holder.variable.definition_period not in (periods.DateUnit.isoformat + periods.DateUnit.isocalendar):
         raise ValueError("set_input_divide_by_period can't be used for eternal variables.")
 
     cached_period_unit = holder.variable.definition_period

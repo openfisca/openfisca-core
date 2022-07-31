@@ -28,6 +28,7 @@ from openfisca_core.periods import DateUnit, Instant, Period, _parsers
 def test__from_isoformat_period(arg, expected):
     assert _parsers._from_isoformat(arg) == expected
 
+
 @pytest.mark.parametrize("arg, error", [
     [None, AttributeError],
     [{}, AttributeError],

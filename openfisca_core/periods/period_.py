@@ -133,7 +133,7 @@ class Period(tuple):
         unit, start_instant, size = self
 
         if unit == DateUnit.ETERNITY:
-            return unit
+            return unit.upper()
 
         # ISO format date units.
         f_year, month, day = start_instant
