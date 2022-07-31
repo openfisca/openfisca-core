@@ -36,158 +36,63 @@ def population(people):
     return population
 
 
-@pytest.fixture
-def beggining_of_year():
-    return Instant((2022, 1, 1))
-
-
-@pytest.fixture
-def three_years(beggining_of_year):
-    return Period((periods.YEAR, beggining_of_year, 3))
-
-
-@pytest.fixture
-def three_months(beggining_of_year):
-    return Period((periods.MONTH, beggining_of_year, 3))
-
-
-@pytest.fixture
-def three_days(beggining_of_year):
-    return Period((periods.DAY, beggining_of_year, 3))
-
-
-@pytest.mark.parametrize("definition_period, values, expected", [
-    [periods.YEAR, [43800.], [131400.]],
-    [periods.MONTH, [3650.], [131400.]],
-    # [periods.DAY, [120.], [131400.]],
+@pytest.mark.parametrize("dispatch_unit, definition_unit, values, expected", [
+    [periods.YEAR, periods.YEAR, [1.], [3.]],
+    [periods.YEAR, periods.MONTH, [1.], [36.]],
+    [periods.YEAR, periods.DAY, [1.], [1096.]],
+    [periods.MONTH, periods.YEAR, [1.], [1.]],
+    [periods.MONTH, periods.MONTH, [1.], [3.]],
+    [periods.MONTH, periods.DAY, [1.], [90.]],
+    [periods.DAY, periods.YEAR, [1.], [1.]],
+    [periods.DAY, periods.MONTH, [1.], [1.]],
+    [periods.DAY, periods.DAY, [1.], [3.]],
     ])
-def test_set_input_dispatch_by_period_over_3_years(
+def test_set_input_dispatch_by_period(
         Income,
-        definition_period,
         population,
-        three_years,
+        dispatch_unit,
+        definition_unit,
         values,
         expected,
         ):
-    Income.definition_period = definition_period
+    Income.definition_period = definition_unit
     income = Income()
     holder = Holder(income, population)
+    instant = Instant((2022, 1, 1))
+    dispatch_period = Period((dispatch_unit, instant, 3))
 
-    holders.set_input_dispatch_by_period(holder, three_years, values)
+    holders.set_input_dispatch_by_period(holder, dispatch_period, values)
     total = sum(map(holder.get_array, holder.get_known_periods()))
 
     tools.assert_near(total, expected, absolute_error_margin = 0.001)
 
 
-@pytest.mark.parametrize("definition_period, values, expected", [
-    [periods.YEAR, [43800.], [43800.]],
-    [periods.MONTH, [3650.], [10950.]],
-    # [periods.DAY, [120.], [131400.]],
+@pytest.mark.parametrize("divide_unit, definition_unit, values, expected", [
+    [periods.YEAR, periods.YEAR, [3.], [1.]],
+    [periods.YEAR, periods.MONTH, [36.], [1.]],
+    [periods.YEAR, periods.DAY, [1095.], [1.]],
+    [periods.MONTH, periods.YEAR, [1.], [1.]],
+    [periods.MONTH, periods.MONTH, [3.], [1.]],
+    [periods.MONTH, periods.DAY, [90.], [1.]],
+    [periods.DAY, periods.YEAR, [1.], [1.]],
+    [periods.DAY, periods.MONTH, [1.], [1.]],
+    [periods.DAY, periods.DAY, [3.], [1.]],
     ])
-def test_set_input_dispatch_by_period_over_3_months(
+def test_set_input_divide_by_period(
         Income,
-        definition_period,
         population,
-        three_months,
+        divide_unit,
+        definition_unit,
         values,
         expected,
         ):
-    Income.definition_period = definition_period
+    Income.definition_period = definition_unit
     income = Income()
     holder = Holder(income, population)
+    instant = Instant((2022, 1, 1))
+    divide_period = Period((divide_unit, instant, 3))
 
-    holders.set_input_dispatch_by_period(holder, three_months, values)
-    total = sum(map(holder.get_array, holder.get_known_periods()))
-
-    tools.assert_near(total, expected, absolute_error_margin = 0.001)
-
-
-@pytest.mark.parametrize("definition_period, values, expected", [
-    [periods.YEAR, [43800.], [43800.]],
-    [periods.MONTH, [3650.], [3650.]],
-    # [periods.DAY, [120.], [131400.]],
-    ])
-def test_set_input_dispatch_by_period_over_3_days(
-        Income,
-        definition_period,
-        population,
-        three_days,
-        values,
-        expected,
-        ):
-    Income.definition_period = definition_period
-    income = Income()
-    holder = Holder(income, population)
-
-    holders.set_input_dispatch_by_period(holder, three_days, values)
-    total = sum(map(holder.get_array, holder.get_known_periods()))
-
-    tools.assert_near(total, expected, absolute_error_margin = 0.001)
-
-@pytest.mark.parametrize("definition_period, values, expected", [
-    [periods.YEAR, [131400.], [43800.]],
-    [periods.MONTH, [131400.], [3650.]],
-    # [periods.DAY, [120.], [131400.]],
-    ])
-def test_set_input_divide_by_period_over_3_years(
-        Income,
-        definition_period,
-        population,
-        three_years,
-        values,
-        expected,
-        ):
-    Income.definition_period = definition_period
-    income = Income()
-    holder = Holder(income, population)
-
-    holders.set_input_divide_by_period(holder, three_years, values)
-    last = holder.get_array(holder.get_known_periods()[-1])
-
-    tools.assert_near(last, expected, absolute_error_margin = 0.001)
-
-
-@pytest.mark.parametrize("definition_period, values, expected", [
-    [periods.YEAR, [43800.], [43800.]],
-    [periods.MONTH, [10950.], [3650.]],
-    # [periods.DAY, [120.], [131400.]],
-    ])
-def test_set_input_divide_by_period_over_3_months(
-        Income,
-        definition_period,
-        population,
-        three_months,
-        values,
-        expected,
-        ):
-    Income.definition_period = definition_period
-    income = Income()
-    holder = Holder(income, population)
-
-    holders.set_input_divide_by_period(holder, three_months, values)
-    last = holder.get_array(holder.get_known_periods()[-1])
-
-    tools.assert_near(last, expected, absolute_error_margin = 0.001)
-
-
-@pytest.mark.parametrize("definition_period, values, expected", [
-    [periods.YEAR, [43800.], [43800.]],
-    [periods.MONTH, [3650.], [3650.]],
-    # [periods.DAY, [120.], [131400.]],
-    ])
-def test_set_input_divide_by_period_over_3_days(
-        Income,
-        definition_period,
-        population,
-        three_days,
-        values,
-        expected,
-        ):
-    Income.definition_period = definition_period
-    income = Income()
-    holder = Holder(income, population)
-
-    holders.set_input_divide_by_period(holder, three_days, values)
+    holders.set_input_divide_by_period(holder, divide_period, values)
     last = holder.get_array(holder.get_known_periods()[-1])
 
     tools.assert_near(last, expected, absolute_error_margin = 0.001)
