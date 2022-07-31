@@ -38,18 +38,18 @@ general_requirements = [
     ]
 
 api_requirements = [
-    'markupsafe == 2.0.1',  # While flask revision < 2
-    'flask == 1.1.4',
+    'markupsafe >= 2.0.1, < 2.1.0',
+    'flask >= 1.1.4, < 2.0.0',
     'flask-cors == 3.0.10',
     'gunicorn >= 20.0.0, < 21.0.0',
-    'werkzeug >= 1.0.0, < 2.0.0',
+    'werkzeug >= 1.0.1, < 2.0.0',
     ]
 
 dev_requirements = [
     'autopep8 >= 1.4.0, < 1.6.0',
     'coverage == 6.0.2',
     'darglint == 1.8.0',
-    'flake8 >= 4.0.0, < 4.1.0',
+    'flake8 >= 3.9.0, < 4.0.0',
     'flake8-bugbear >= 19.3.0, < 20.0.0',
     'flake8-docstrings == 1.6.0',
     'flake8-print >= 3.1.0, < 4.0.0',
