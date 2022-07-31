@@ -1,5 +1,14 @@
 # Changelog
 
+### 35.10.1 [#1143](https://github.com/openfisca/openfisca-core/pull/1143)
+
+#### Bug fix
+
+- Reintroduce support for the ``day`` date unit in `holders.set_input_dispatch_by_period` and `holders.
+  set_input_divide_by_period`
+  - Allows for dispatching values per day, for example, to provide a daily (week, fortnight) to an yearly variable.
+  - Inversely, allows for calculating the daily (week, fortnight) value of a yearly input.
+
 ## 35.10.0 [#1151](https://github.com/openfisca/openfisca-core/pull/1151)
 
 #### New features
