@@ -57,22 +57,67 @@ def three_days(beggining_of_year):
     return Period((periods.DAY, beggining_of_year, 3))
 
 
-def test_set_input_dispatch_by_period(
+@pytest.mark.parametrize("definition_period, values, expected", [
+    [periods.YEAR, [43800.], [43800. * 3]],
+    [periods.MONTH, [3650.], [3650. * 12 * 3]],
+    # [periods.DAY, [120.], [131400.]],
+    ])
+def test_set_input_dispatch_by_period_over_3_years(
         Income,
+        definition_period,
         population,
         three_years,
+        values,
+        expected,
         ):
-    """Yearly income propagates evenly to the following years."""
-
-    Income.definition_period = periods.MONTH
+    Income.definition_period = definition_period
     income = Income()
     holder = Holder(income, population)
-    values = [1000.]
 
     holders.set_input_dispatch_by_period(holder, three_years, values)
 
-    known_periods = holder.get_known_periods()
-    period_count = len(known_periods)
+    assert sum(map(holder.get_array, holder.get_known_periods())) == expected
 
-    assert period_count == 36  # Three years in months
-    assert sum(map(holder.get_array, known_periods)) == [36000.]
+
+@pytest.mark.parametrize("definition_period, values, expected", [
+    [periods.YEAR, [43800.], [43800.]],
+    [periods.MONTH, [3650.], [3650. * 3]],
+    # [periods.DAY, [120.], [131400.]],
+    ])
+def test_set_input_dispatch_by_period_over_3_months(
+        Income,
+        definition_period,
+        population,
+        three_months,
+        values,
+        expected,
+        ):
+    Income.definition_period = definition_period
+    income = Income()
+    holder = Holder(income, population)
+
+    holders.set_input_dispatch_by_period(holder, three_months, values)
+
+    assert sum(map(holder.get_array, holder.get_known_periods())) == expected
+
+
+@pytest.mark.parametrize("definition_period, values, expected", [
+    [periods.YEAR, [43800.], [43800.]],
+    [periods.MONTH, [3650.], [3650.]],
+    # [periods.DAY, [120.], [131400.]],
+    ])
+def test_set_input_dispatch_by_period_over_3_days(
+        Income,
+        definition_period,
+        population,
+        three_days,
+        values,
+        expected,
+        ):
+    Income.definition_period = definition_period
+    income = Income()
+    holder = Holder(income, population)
+
+    holders.set_input_dispatch_by_period(holder, three_days, values)
+
+    assert sum(map(holder.get_array, holder.get_known_periods())) == expected
