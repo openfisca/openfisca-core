@@ -7,13 +7,14 @@ from openfisca_core.periods import DateUnit, Instant, Period, _parsers
 @pytest.mark.parametrize(
     "arg, expected",
     [
-        ["1000", Period((DateUnit.YEAR, Instant((1000, 1, 1)), 1))],
-        ["1000-01", Period((DateUnit.MONTH, Instant((1000, 1, 1)), 1))],
-        ["1000-12", Period((DateUnit.MONTH, Instant((1000, 12, 1)), 1))],
-        ["1000-01-01", Period((DateUnit.DAY, Instant((1000, 1, 1)), 1))],
-        ["1000-W01", Period((DateUnit.WEEK, Instant((999, 12, 30)), 1))],
-        ["1000-W52", Period((DateUnit.WEEK, Instant((1000, 12, 22)), 1))],
-        ["1000-W01-1", Period((DateUnit.WEEKDAY, Instant((999, 12, 30)), 1))],
+        ["1001", Period((DateUnit.YEAR, Instant((1001, 1, 1)), 1))],
+        ["1001-01", Period((DateUnit.MONTH, Instant((1001, 1, 1)), 1))],
+        ["1001-12", Period((DateUnit.MONTH, Instant((1001, 12, 1)), 1))],
+        ["1001-01-1", Period((DateUnit.DAY, Instant((1001, 1, 1)), 1))],
+        ["1001-01-01", Period((DateUnit.DAY, Instant((1001, 1, 1)), 1))],
+        ["1001-W01", Period((DateUnit.WEEK, Instant((1000, 12, 29)), 1))],
+        ["1001-W52", Period((DateUnit.WEEK, Instant((1001, 12, 21)), 1))],
+        ["1001-W01-1", Period((DateUnit.WEEKDAY, Instant((1000, 12, 29)), 1))],
     ],
 )
 def test__parse_period(arg, expected):
@@ -30,7 +31,7 @@ def test__parse_period(arg, expected):
         [1, AttributeError],
         ["", AttributeError],
         ["à", ParserError],
-        ["1", ParserError],
+        ["1", ValueError],
         ["-1", ValueError],
         ["999", ParserError],
         ["1000-0", ParserError],
@@ -38,7 +39,6 @@ def test__parse_period(arg, expected):
         ["1000-1-1", ParserError],
         ["1000-00", ParserError],
         ["1000-13", ParserError],
-        ["1000-01-1", ParserError],
         ["1000-01-00", ParserError],
         ["1000-01-99", ParserError],
         ["1000-W0", ParserError],

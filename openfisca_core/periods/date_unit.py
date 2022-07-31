@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 from enum import EnumMeta
 
 from strenum import StrEnum

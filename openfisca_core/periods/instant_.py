@@ -119,7 +119,7 @@ class Instant(tuple):
         Raises:
             :exc:`AssertionError`: When ``unit`` is not a date unit.
             :exc:`AssertionError`: When ``offset`` is not either ``first-of``,
-                ``last-of``, or any :obj:`int`.
+            ``last-of``, or any :obj:`int`.
 
         Examples:
             >>> Instant((2020, 12, 31)).offset("first-of", DateUnit.MONTH)

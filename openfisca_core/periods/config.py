@@ -1,5 +1,3 @@
-from typing import Dict
-
 import re
 
 from .date_unit import DateUnit
