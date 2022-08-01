@@ -32,19 +32,20 @@ api_requirements = [
     ]
 
 dev_requirements = [
-    'autopep8 >= 1.4.0, < 1.6.0',
-    'coverage == 6.0.2',
-    'darglint == 1.8.0',
-    'flake8 >= 5.0.0, < 5.1.0',
-    'flake8-bugbear >= 22.0.0, < 23.0.0',
+    'autopep8 == 1.5.0',
+    'coverage == 6.4.2',
+    'darglint == 1.8.1',
+    'flake8 == 3.9.2',
+    'flake8-bugbear == 22.7.1',
     'flake8-docstrings == 1.6.0',
-    'flake8-print >= 3.1.0, < 4.0.0',
-    'flake8-rst-docstrings == 0.2.3',
+    'flake8-print == 5.0.0',
+    'flake8-rst-docstrings == 0.2.7',
+    'importlib-metadata == 4.12.0',
     'mypy == 0.910',
     'openfisca-country-template >= 3.10.0, < 4.0.0',
     'openfisca-extension-template >= 1.2.0rc0, < 2.0.0',
-    'pycodestyle >= 2.9.0, < 2.10.0',
-    'pylint >= 2.13.0, < 2.14.0',
+    'pycodestyle == 2.7.0',
+    'pylint == 2.14.5',
     ] + api_requirements
 
 setup(
