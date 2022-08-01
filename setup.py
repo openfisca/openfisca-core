@@ -27,6 +27,7 @@ api_requirements = [
     'flask >= 1.1.4, < 2.0.0',
     'flask-cors == 3.0.10',
     'gunicorn >= 20.0.0, < 21.0.0',
+    'jinja2 >= 2.11.0, < 3.0.0',
     'werkzeug >= 1.0.1, < 2.0.0',
     ]
 
@@ -34,7 +35,7 @@ dev_requirements = [
     'autopep8 >= 1.4.0, < 1.6.0',
     'coverage == 6.0.2',
     'darglint == 1.8.0',
-    'flake8 >= 3.9.0, < 4.0.0',
+    'flake8 >= 5.0.0, < 5.1.0',
     'flake8-bugbear >= 19.3.0, < 20.0.0',
     'flake8-docstrings == 1.6.0',
     'flake8-print >= 3.1.0, < 4.0.0',
@@ -42,8 +43,8 @@ dev_requirements = [
     'mypy == 0.910',
     'openfisca-country-template >= 3.10.0, < 4.0.0',
     'openfisca-extension-template >= 1.2.0rc0, < 2.0.0',
-    'pycodestyle >= 2.7.0, < 2.8.0',
-    'pylint == 2.10.2',
+    'pycodestyle >= 2.9.0, < 2.10.0',
+    'pylint >= 2.13.0, < 2.14.0',
     ] + api_requirements
 
 setup(
