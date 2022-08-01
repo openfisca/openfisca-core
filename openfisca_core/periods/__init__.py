@@ -22,27 +22,25 @@
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
 from .config import (  # noqa: F401
-    WEEKDAY,
-    WEEK,
     DAY,
-    MONTH,
-    YEAR,
     ETERNITY,
     INSTANT_PATTERN,
+    MONTH,
+    WEEK,
+    WEEKDAY,
+    YEAR,
     date_by_instant_cache,
     str_by_instant_cache,
     year_or_month_or_day_re,
     )
-
+from .date_unit import DateUnit  # noqa: F401
 from .helpers import (  # noqa: F401
     instant,
     instant_date,
-    period,
     key_period_size,
-    unit_weights,
+    period,
     unit_weight,
+    unit_weights,
     )
-
-from .date_unit import DateUnit  # noqa: F401
 from .instant_ import Instant  # noqa: F401
 from .period_ import Period  # noqa: F401

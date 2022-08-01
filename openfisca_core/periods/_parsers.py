@@ -1,5 +1,6 @@
-import re
 from typing import Optional
+
+import re
 
 import pendulum
 from pendulum.datetime import Date
