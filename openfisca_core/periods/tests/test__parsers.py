@@ -25,6 +25,7 @@ def test__parse_period(arg, expected):
     [[], AttributeError],
     [1, AttributeError],
     ["", AttributeError],
+    ["à", ParserError],
     ["1", ParserError],
     ["-1", ValueError],
     ["999", ParserError],

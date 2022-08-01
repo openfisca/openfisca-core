@@ -4,6 +4,7 @@ import datetime
 import os
 
 import pendulum
+from pendulum.parsing import ParserError
 
 from . import _parsers, config
 from .date_unit import DateUnit
@@ -186,7 +187,11 @@ def period(value) -> Period:
         _raise_error(value)
 
     # Try to parse from an ISO format/calendar period.
-    period = _parsers._parse_period(value)
+    try:
+        period = _parsers._parse_period(value)
+
+    except (AttributeError, ParserError, ValueError):
+        _raise_error(value)
 
     if period is not None:
         return period
@@ -207,7 +212,11 @@ def period(value) -> Period:
     unit = DateUnit(unit)
 
     # middle component must be a valid iso period
-    base_period = _parsers._parse_period(components[1])
+    try:
+        base_period = _parsers._parse_period(components[1])
+
+    except (AttributeError, ParserError, ValueError):
+        _raise_error(value)
 
     if not base_period:
         _raise_error(value)

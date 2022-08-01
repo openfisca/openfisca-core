@@ -1,5 +1,4 @@
 import datetime
-from pendulum.parsing import ParserError
 
 import pytest
 
@@ -62,8 +61,8 @@ def test_period(arg, expected):
 @pytest.mark.parametrize("arg, error", [
     [None, ValueError],
     [DateUnit.YEAR, ValueError],
-    ["1", ParserError],
-    ["999", ParserError],
+    ["1", ValueError],
+    ["999", ValueError],
     ["1000-0", ValueError],
     ["1000-13", ValueError],
     ["1000-W0", ValueError],
