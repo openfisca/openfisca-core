@@ -3,6 +3,8 @@ from __future__ import annotations
 import calendar
 import datetime
 
+import pendulum
+
 from . import helpers
 from .date_unit import DateUnit
 from .instant_ import Instant
@@ -494,7 +496,7 @@ class Period(tuple):
             Instant((2022, 12, 31))
 
             >>> Period((DateUnit.YEAR, Instant((2012, 2, 29)), 1)).stop
-            Instant((2013, 2, 28))
+            Instant((2013, 2, 27))
 
             >>> Period((DateUnit.MONTH, Instant((2012, 2, 29)), 1)).stop
             Instant((2012, 3, 28))
@@ -503,7 +505,7 @@ class Period(tuple):
             Instant((2012, 2, 29))
 
             >>> Period((DateUnit.YEAR, Instant((2012, 2, 29)), 2)).stop
-            Instant((2014, 2, 28))
+            Instant((2014, 2, 27))
 
             >>> Period((DateUnit.MONTH, Instant((2012, 2, 29)), 2)).stop
             Instant((2012, 4, 28))
@@ -519,42 +521,24 @@ class Period(tuple):
         if unit == DateUnit.ETERNITY:
             return Instant((float("inf"), float("inf"), float("inf")))
 
-        if unit == DateUnit.DAY:
-            if size > 1:
-                day += size - 1
-                month_last_day = calendar.monthrange(year, month)[1]
-                while day > month_last_day:
-                    month += 1
-                    if month == 13:
-                        year += 1
-                        month = 1
-                    day -= month_last_day
-                    month_last_day = calendar.monthrange(year, month)[1]
+        elif unit == DateUnit.YEAR:
+            date = start_instant.date.add(years = size, days = - 1)
+            return Instant((date.year, date.month, date.day))
+
+        elif unit == DateUnit.MONTH:
+            date = start_instant.date.add(months = size, days = - 1)
+            return Instant((date.year, date.month, date.day))
+
+        elif unit == DateUnit.WEEK:
+            date = start_instant.date.add(weeks = size, days = - 1)
+            return Instant((date.year, date.month, date.day))
+
+        elif unit in (DateUnit.DAY, DateUnit.WEEKDAY):
+            date = start_instant.date.add(days = size - 1)
+            return Instant((date.year, date.month, date.day))
+
         else:
-            if unit == DateUnit.MONTH:
-                month += size
-                while month > 12:
-                    year += 1
-                    month -= 12
-            else:
-                assert unit == DateUnit.YEAR, 'Invalid unit: {} of type {}'.format(unit, type(unit))
-                year += size
-            day -= 1
-            if day < 1:
-                month -= 1
-                if month == 0:
-                    year -= 1
-                    month = 12
-                day += calendar.monthrange(year, month)[1]
-            else:
-                month_last_day = calendar.monthrange(year, month)[1]
-                if day > month_last_day:
-                    month += 1
-                    if month == 13:
-                        year += 1
-                        month = 1
-                    day -= month_last_day
-        return Instant((year, month, day))
+            raise ValueError
 
     @property
     def unit(self) -> str:
