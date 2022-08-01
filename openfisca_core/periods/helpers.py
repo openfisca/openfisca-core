@@ -55,7 +55,7 @@ def instant(instant) -> Optional[Instant]:
         return instant
     if isinstance(instant, str):
         if not config.INSTANT_PATTERN.match(instant):
-            raise ValueError("'{}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'.".format(instant))
+            raise ValueError(f"'{instant}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'.")
         instant = Instant(
             int(fragment)
             for fragment in instant.split('-', 2)[:3]
@@ -255,7 +255,7 @@ def _raise_error(value: str) -> NoReturn:
     """
 
     message = os.linesep.join([
-        "Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: '{}'.".format(value),
+        f"Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: '{value}'.",
         "Learn more about legal period formats in OpenFisca:",
         "<https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-simulations>."
         ])
@@ -288,7 +288,7 @@ def key_period_size(period: Period) -> str:
 
     unit, start, size = period
 
-    return '{}_{}'.format(unit_weight(unit), size)
+    return f'{unit_weight(unit)}_{size}'
 
 
 def unit_weights() -> Dict[str, int]:

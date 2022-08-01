@@ -79,7 +79,7 @@ class Instant(tuple):
     """
 
     def __repr__(self):
-        return '{}({})'.format(self.__class__.__name__, super(Instant, self).__repr__())
+        return f'{self.__class__.__name__}({super().__repr__()})'
 
     def __str__(self):
         instant_str = config.str_by_instant_cache.get(self)
@@ -138,7 +138,7 @@ class Instant(tuple):
 
         year, month, day = self
 
-        assert unit in (DateUnit.isoformat + DateUnit.isocalendar), 'Invalid unit: {} of type {}'.format(unit, type(unit))
+        assert unit in (DateUnit.isoformat + DateUnit.isocalendar), f'Invalid unit: {unit} of type {type(unit)}'
 
         if offset == "first-of":
             if unit == DateUnit.YEAR:
@@ -167,7 +167,7 @@ class Instant(tuple):
                 return self.__class__((date.year, date.month, date.day))
 
         else:
-            assert isinstance(offset, int), 'Invalid offset: {} of type {}'.format(offset, type(offset))
+            assert isinstance(offset, int), f'Invalid offset: {offset} of type {type(offset)}'
 
             if unit == DateUnit.YEAR:
                 date = self.date

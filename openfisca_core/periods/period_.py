@@ -129,7 +129,7 @@ class Period(tuple):
     """
 
     def __repr__(self) -> str:
-        return '{}({})'.format(self.__class__.__name__, super(self.__class__, self).__repr__())
+        return f'{self.__class__.__name__}({super().__repr__()})'
 
     def __str__(self) -> str:
         unit, start_instant, size = self
@@ -150,21 +150,21 @@ class Period(tuple):
                 return str(f_year)
             else:
                 # rolling year
-                return '{}:{}-{:02d}'.format(DateUnit.YEAR, f_year, month)
+                return f'{DateUnit.YEAR}:{f_year}-{month:02d}'
 
         # simple month
         if unit == DateUnit.MONTH and size == 1:
-            return '{}-{:02d}'.format(f_year, month)
+            return f'{f_year}-{month:02d}'
 
         # several civil years
         if unit == DateUnit.YEAR and month == 1:
-            return '{}:{}:{}'.format(unit, f_year, size)
+            return f'{unit}:{f_year}:{size}'
 
         if unit == DateUnit.DAY:
             if size == 1:
-                return '{}-{:02d}-{:02d}'.format(f_year, month, day)
+                return f'{f_year}-{month:02d}-{day:02d}'
             else:
-                return '{}:{}-{:02d}-{:02d}:{}'.format(unit, f_year, month, day, size)
+                return f'{unit}:{f_year}-{month:02d}-{day:02d}:{size}'
 
         # 1 week
         if (unit == DateUnit.WEEK and size == 1):
@@ -183,11 +183,11 @@ class Period(tuple):
             return f"{unit}:{c_year}-W0{week}-{weekday}:{size}"
 
         # complex period
-        return '{}:{}-{:02d}:{}'.format(unit, f_year, month, size)
+        return f'{unit}:{f_year}-{month:02d}:{size}'
 
     @property
     def date(self):
-        assert self.size == 1, '"date" is undefined for a period of size > 1: {}'.format(self)
+        assert self.size == 1, f'"date" is undefined for a period of size > 1: {self}'
         return self.start.date
 
     @property
@@ -250,7 +250,7 @@ class Period(tuple):
         """
 
         if helpers.unit_weight(self.unit) < helpers.unit_weight(unit):
-            raise ValueError('Cannot subdivide {0} into {1}'.format(self.unit, unit))
+            raise ValueError(f'Cannot subdivide {self.unit} into {unit}')
 
         if unit == DateUnit.YEAR:
             return [self.this_year.offset(i, DateUnit.YEAR) for i in range(self.size)]
@@ -460,7 +460,7 @@ class Period(tuple):
             return self[2]
         if(self[0] == DateUnit.YEAR):
             return self[2] * 12
-        raise ValueError("Cannot calculate number of months in {0}".format(self[0]))
+        raise ValueError(f"Cannot calculate number of months in {self[0]}")
 
     @property
     def size_in_days(self):
@@ -474,7 +474,7 @@ class Period(tuple):
             last_day = self.start.offset(length, unit).offset(-1, DateUnit.DAY)
             return (last_day.date - self.start.date).days + 1
 
-        raise ValueError("Cannot calculate number of days in {0}".format(unit))
+        raise ValueError(f"Cannot calculate number of days in {unit}")
 
     @property
     def start(self) -> Instant:
