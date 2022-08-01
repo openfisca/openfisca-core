@@ -20,11 +20,10 @@ test-code: test-core test-country test-extension
 	@$(call print_pass,$@:)
 
 ## Run openfisca-core tests.
-test-core: $(shell pytest --quiet --quiet --collect-only 2> /dev/null | cut -f 1 -d ":")
+test-core:
 	@$(call print_help,$@:)
-	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
-		coverage run -m \
-		${openfisca} test $? \
+	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" coverage run -m ${openfisca} test \
+		$(shell pytest --quiet --quiet --collect-only 2> /dev/null | cut -f 1 -d ":") \
 		${openfisca_args}
 	@$(call print_pass,$@:)
 
