@@ -39,8 +39,8 @@ test-doc-checkout:
 			&& { \
 				{ \
 					>&2 echo "$(print_info) Trying to checkout the branch 'openfisca-doc/${branch}'..." ; \
-					git branch -D ${branch} 2> /dev/null ; \
-					git checkout ${branch} 2> /dev/null ; \
+					git branch -D ${branch} ; \
+					git checkout ${branch} ; \
 				} \
 					&& git pull --ff-only origin ${branch} \
 					|| { \
@@ -61,14 +61,14 @@ test-doc-checkout:
 					} \
 			} \
 			|| git pull --ff-only origin master ; \
-	} 1> /dev/null
+	}
 	@$(call print_pass,$@:)
 
 ## Install doc dependencies.
 test-doc-install:
 	@$(call print_help,$@:)
-	@pip install --requirement doc/requirements.txt 1> /dev/null
-	@pip install --editable .[dev] --upgrade 1> /dev/null
+	@pip install --requirement doc/requirements.txt
+	@pip install --editable .[dev] --upgrade
 	@$(call print_pass,$@:)
 
 ## Dry-build the doc.
