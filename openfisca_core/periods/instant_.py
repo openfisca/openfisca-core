@@ -1,5 +1,4 @@
-import calendar
-import datetime
+import pendulum
 
 from . import config
 from .date_unit import DateUnit
@@ -73,7 +72,7 @@ class Instant(tuple):
         13
 
         >>> instant.date
-        datetime.date(2021, 9, 13)
+        Date(2021, 9, 13)
 
         >>> year, month, day = instant
 
@@ -84,15 +83,19 @@ class Instant(tuple):
 
     def __str__(self):
         instant_str = config.str_by_instant_cache.get(self)
+
         if instant_str is None:
             config.str_by_instant_cache[self] = instant_str = self.date.isoformat()
+
         return instant_str
 
     @property
     def date(self):
         instant_date = config.date_by_instant_cache.get(self)
+
         if instant_date is None:
-            config.date_by_instant_cache[self] = instant_date = datetime.date(*self)
+            config.date_by_instant_cache[self] = instant_date = pendulum.date(*self)
+
         return instant_date
 
     @property
@@ -134,60 +137,57 @@ class Instant(tuple):
         """
 
         year, month, day = self
-        assert unit in (DateUnit.DAY, DateUnit.MONTH, DateUnit.YEAR), 'Invalid unit: {} of type {}'.format(unit, type(unit))
-        if offset == 'first-of':
-            if unit == DateUnit.MONTH:
-                day = 1
-            elif unit == DateUnit.YEAR:
-                month = 1
-                day = 1
-        elif offset == 'last-of':
-            if unit == DateUnit.MONTH:
-                day = calendar.monthrange(year, month)[1]
-            elif unit == DateUnit.YEAR:
-                month = 12
-                day = 31
+
+        assert unit in (DateUnit.isoformat + DateUnit.isocalendar), 'Invalid unit: {} of type {}'.format(unit, type(unit))
+
+        if offset == "first-of":
+            if unit == DateUnit.YEAR:
+                return self.__class__((year, 1, 1))
+
+            elif unit == DateUnit.MONTH:
+                return self.__class__((year, month, 1))
+
+            elif unit == DateUnit.WEEK:
+                date = self.date
+                date = date.start_of("week")
+                return self.__class__((date.year, date.month, date.day))
+
+        elif offset == "last-of":
+            if unit == DateUnit.YEAR:
+                return self.__class__((year, 12, 31))
+
+            elif unit == DateUnit.MONTH:
+                date = self.date
+                date = date.end_of("month")
+                return self.__class__((date.year, date.month, date.day))
+
+            elif unit == DateUnit.WEEK:
+                date = self.date
+                date = date.end_of("week")
+                return self.__class__((date.year, date.month, date.day))
+
         else:
             assert isinstance(offset, int), 'Invalid offset: {} of type {}'.format(offset, type(offset))
-            if unit == DateUnit.DAY:
-                day += offset
-                if offset < 0:
-                    while day < 1:
-                        month -= 1
-                        if month == 0:
-                            year -= 1
-                            month = 12
-                        day += calendar.monthrange(year, month)[1]
-                elif offset > 0:
-                    month_last_day = calendar.monthrange(year, month)[1]
-                    while day > month_last_day:
-                        month += 1
-                        if month == 13:
-                            year += 1
-                            month = 1
-                        day -= month_last_day
-                        month_last_day = calendar.monthrange(year, month)[1]
-            elif unit == DateUnit.MONTH:
-                month += offset
-                if offset < 0:
-                    while month < 1:
-                        year -= 1
-                        month += 12
-                elif offset > 0:
-                    while month > 12:
-                        year += 1
-                        month -= 12
-                month_last_day = calendar.monthrange(year, month)[1]
-                if day > month_last_day:
-                    day = month_last_day
-            elif unit == DateUnit.YEAR:
-                year += offset
-                # Handle february month of leap year.
-                month_last_day = calendar.monthrange(year, month)[1]
-                if day > month_last_day:
-                    day = month_last_day
 
-        return self.__class__((year, month, day))
+            if unit == DateUnit.YEAR:
+                date = self.date
+                date = date.add(years = offset)
+                return self.__class__((date.year, date.month, date.day))
+
+            elif unit == DateUnit.MONTH:
+                date = self.date
+                date = date.add(months = offset)
+                return self.__class__((date.year, date.month, date.day))
+
+            elif unit == DateUnit.WEEK:
+                date = self.date
+                date = date.add(weeks = offset)
+                return self.__class__((date.year, date.month, date.day))
+
+            elif unit in (DateUnit.DAY, DateUnit.WEEKDAY):
+                date = self.date
+                date = date.add(days = offset)
+                return self.__class__((date.year, date.month, date.day))
 
     @property
     def year(self):

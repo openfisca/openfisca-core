@@ -34,6 +34,7 @@ general_requirements = [
     'nptyping == 1.4.4',
     'numexpr >= 2.7.0, <= 3.0',
     'numpy >= 1.11, < 1.21',
+    'pendulum >= 2.1.2, < 3.0.0',
     'psutil >= 5.4.7, < 6.0.0',
     'pytest >= 4.4.1, < 6.0.0',  # For openfisca test
     'sortedcontainers == 2.2.2',

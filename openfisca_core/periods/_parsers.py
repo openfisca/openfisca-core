@@ -1,149 +1,101 @@
-import datetime
+import re
 from typing import Optional
+
+import pendulum
+from pendulum.datetime import Date
+from pendulum.parsing import ParserError
 
 from .date_unit import DateUnit
 from .instant_ import Instant
 from .period_ import Period
 
+invalid_week = re.compile(r".*(W[1-9]|W[1-9]-[0-9]|W[0-5][0-9]-0)$")
 
-def _from_isoformat(value: str) -> Optional[Period]:
-    """Parses ISO format periods.
+
+def _parse_period(value: str) -> Optional[Period]:
+    """Parses ISO format/calendar periods.
 
     Such as "2012" or "2015-03".
 
     Examples:
-        >>> _from_isoformat("2022")
+        >>> _parse_period("2022")
         Period((<DateUnit.YEAR: 'year'>, Instant((2022, 1, 1)), 1))
 
-        >>> _from_isoformat("2022-02")
+        >>> _parse_period("2022-02")
         Period((<DateUnit.MONTH: 'month'>, Instant((2022, 2, 1)), 1))
 
-        >>> _from_isoformat("2022-02-13")
-        Period((<DateUnit.DAY: 'day'>, Instant((2022, 2, 13)), 1))
+        >>> _parse_period("2022-W02-7")
+        Period((<DateUnit.WEEKDAY: 'weekday'>, Instant((2022, 1, 16)), 1))
 
     """
 
-    # If it's complex, next!
+    # If it's a complex period, next!
     if len(value.split(":")) != 1:
         return None
 
-    # If there are weeks, next!
-    if value.find("W") != -1:
-        return None
+    # Check for a non-empty string.
+    if not (value and isinstance(value, str)):
+        raise AttributeError
 
-    # If it's just a year...
-    if len(value.split("-")) == 1:
-        try:
-            date = datetime.date(int(value), 1, 1)
+    # If it's negative, next!
+    if value[0] == "-":
+        raise ValueError
 
-            return Period((
-                DateUnit.YEAR,
-                Instant((date.year, 1, 1)),
-                1,
-                ))
+    # If it's an invalid week, next!
+    if invalid_week.match(value):
+        raise ParserError
 
-        except ValueError:
-            return None
+    unit = _parse_unit(value)
+    date = pendulum.parse(value, exact = True)
 
-    try:
-        components = list(map(int, value.split("-")))
+    if not isinstance(date, Date):
+        raise ValueError
 
-    except ValueError:
-        return None
+    instant = Instant((date.year, date.month, date.day))
 
-    if len(components) == 2:
-        try:
-            year, month = components
-            date = datetime.date(year, month, 1)
-
-            return Period((
-                DateUnit.MONTH,
-                Instant((date.year, date.month, 1)),
-                1,
-                ))
-
-        except ValueError:
-            return None
-
-    if len(components) == 3:
-        try:
-            year, month, day = components
-            date = datetime.date(year, month, day)
-
-            return Period((
-                DateUnit.DAY,
-                Instant((date.year, date.month, date.day)),
-                1,
-                ))
-
-        except ValueError:
-            return None
-
-    return None
+    return Period((unit, instant, 1))
 
 
-def _from_isocalendar(value: str) -> Optional[Period]:
-    """Parses ISO calendar periods.
+def _parse_unit(value: str) -> DateUnit:
+    """Determine the date unit of a date string.
 
-    Such as "2010-W3" or "2012-W5-7".
+    Args:
+        value (str): The date string to parse.
+
+    Returns:
+        A DateUnit.
+
+    Raises:
+        ValueError when no DateUnit can be determined.
 
     Examples:
-        >>> _from_isocalendar("2022")
+        >>> _parse_unit("2022")
+        <DateUnit.YEAR: 'year'>
 
-        >>> _from_isocalendar("2022-W3")
-        Period((<DateUnit.WEEK: 'week'>, Instant((2022, 1, 17)), 1))
-
-        >>> _from_isocalendar("2022-W9-3")
-        Period((<DateUnit.WEEKDAY: 'weekday'>, Instant((2022, 3, 2)), 1))
+        >>> _parse_unit("2022-W03-01")
+        <DateUnit.WEEKDAY: 'weekday'>
 
     """
 
-    # If it's complex, next!
-    if len(value.split(":")) != 1:
-        return None
+    length = len(value.split("-"))
+    isweek = value.find("W") != -1
 
-    # If it's just a year, next!
-    if len(value.split("-")) == 1:
-        return None
+    if length == 1:
+        return DateUnit.YEAR
 
-    # If there are no weeks, next!
-    if value.find("W") == -1:
-        return None
+    elif length == 2:
+        if isweek:
+            return DateUnit.WEEK
 
-    try:
-        value = value.replace("W", "")
-        components = list(map(int, value.split("-")))
+        else:
+            return DateUnit.MONTH
 
-    except ValueError:
-        return None
+    elif length == 3:
+        if isweek:
+            return DateUnit.WEEKDAY
 
-    # If it has no weekdays return a week period.
-    if len(components) == 2:
-        try:
-            year, week = components
-            date = datetime.date.fromisocalendar(year, week, 1)
+        else:
+            return DateUnit.DAY
 
-            return Period((
-                DateUnit.WEEK,
-                Instant((date.year, date.month, date.day)),
-                1,
-                ))
-
-        except ValueError:
-            return None
-
-    # If it has weekdays return a weekday period
-    if len(components) == 3:
-        try:
-            year, week, weekday = components
-            date = datetime.date.fromisocalendar(year, week, weekday)
-            return Period((
-                DateUnit.WEEKDAY,
-                Instant((date.year, date.month, date.day)),
-                1,
-                ))
-
-        except ValueError:
-            return None
-
-    return None
+    else:
+        raise ValueError

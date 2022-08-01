@@ -77,7 +77,7 @@ class Period(tuple):
         AssertionError: "date" is undefined for a period of size > 1
 
         >>> Period((DateUnit.YEAR, instant, 1)).date
-        datetime.date(2021, 9, 1)
+        Date(2021, 9, 1)
 
         >>> period.days
         1096
@@ -166,19 +166,19 @@ class Period(tuple):
 
         # 1 week
         if (unit == DateUnit.WEEK and size == 1):
-            return f"{c_year}-W{week}"
+            return f"{c_year}-W0{week}"
 
         # several weeks
         if (unit == DateUnit.WEEK and size > 1):
-            return f"{unit}:{c_year}-W{week}:{size}"
+            return f"{unit}:{c_year}-W0{week}:{size}"
 
         # 1 weekday
         if (unit == DateUnit.WEEKDAY and size == 1):
-            return f"{c_year}-W{week}-{weekday}"
+            return f"{c_year}-W0{week}-{weekday}"
 
         # several weekdays
         if (unit == DateUnit.WEEKDAY and size > 1):
-            return f"{unit}:{c_year}-W{week}-{weekday}:{size}"
+            return f"{unit}:{c_year}-W0{week}-{weekday}:{size}"
 
         # complex period
         return '{}:{}-{:02d}:{}'.format(unit, f_year, month, size)

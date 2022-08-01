@@ -3,6 +3,8 @@ from typing import Dict, NoReturn, Optional
 import datetime
 import os
 
+import pendulum
+
 from . import _parsers, config
 from .date_unit import DateUnit
 from .instant_ import Instant
@@ -88,15 +90,18 @@ def instant_date(instant: Optional[Instant]) -> Optional[datetime.date]:
 
     Examples:
         >>> instant_date(Instant((2021, 1, 1)))
-        datetime.date(2021, 1, 1)
+        Date(2021, 1, 1)
 
     """
 
     if instant is None:
         return None
+
     instant_date = config.date_by_instant_cache.get(instant)
+
     if instant_date is None:
-        config.date_by_instant_cache[instant] = instant_date = datetime.date(*instant)
+        config.date_by_instant_cache[instant] = instant_date = pendulum.date(*instant)
+
     return instant_date
 
 
@@ -131,16 +136,16 @@ def period(value) -> Period:
         >>> period("year:2014")
         Period((<DateUnit.YEAR: 'year'>, Instant((2014, 1, 1)), 1))
 
-        >>> period("month:2014-2")
+        >>> period("month:2014-02")
         Period((<DateUnit.MONTH: 'month'>, Instant((2014, 2, 1)), 1))
 
-        >>> period("year:2014-2")
+        >>> period("year:2014-02")
         Period((<DateUnit.YEAR: 'year'>, Instant((2014, 2, 1)), 1))
 
-        >>> period("day:2014-2-2")
+        >>> period("day:2014-02-02")
         Period((<DateUnit.DAY: 'day'>, Instant((2014, 2, 2)), 1))
 
-        >>> period("day:2014-2-2:3")
+        >>> period("day:2014-02-02:3")
         Period((<DateUnit.DAY: 'day'>, Instant((2014, 2, 2)), 3))
 
 
@@ -180,14 +185,8 @@ def period(value) -> Period:
     if not value:
         _raise_error(value)
 
-    # Try to parse as an ISO format period.
-    period = _parsers._from_isoformat(value)
-
-    if period is not None:
-        return period
-
-    # Try to parse as an ISO calendar period.
-    period = _parsers._from_isocalendar(value)
+    # Try to parse from an ISO format/calendar period.
+    period = _parsers._parse_period(value)
 
     if period is not None:
         return period
@@ -208,10 +207,7 @@ def period(value) -> Period:
     unit = DateUnit(unit)
 
     # middle component must be a valid iso period
-    base_period = (
-        _parsers._from_isoformat(components[1]) or
-        _parsers._from_isocalendar(components[1])
-        )
+    base_period = _parsers._parse_period(components[1])
 
     if not base_period:
         _raise_error(value)
