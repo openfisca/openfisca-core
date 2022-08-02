@@ -4,6 +4,11 @@ from openfisca_core import periods
 from openfisca_core.periods import Instant, Period
 
 
+@pytest.fixture
+def instant():
+    return Instant((2022, 12, 31))
+
+
 @pytest.mark.parametrize("date_unit, instant, size, expected", [
     [periods.YEAR, Instant((2022, 1, 1)), 1, "2022"],
     [periods.MONTH, Instant((2022, 1, 1)), 12, "2022"],
@@ -34,20 +39,48 @@ def test_str_with_days(date_unit, instant, size, expected):
     assert str(Period((date_unit, instant, size))) == expected
 
 
-@pytest.mark.parametrize("period, unit, length, first, last", [
-    (periods.period('year:2014:2'), periods.YEAR, 2, periods.period('2014'), periods.period('2015')),
-    (periods.period(2017), periods.MONTH, 12, periods.period('2017-01'), periods.period('2017-12')),
-    (periods.period('year:2014:2'), periods.MONTH, 24, periods.period('2014-01'), periods.period('2015-12')),
-    (periods.period('month:2014-03:3'), periods.MONTH, 3, periods.period('2014-03'), periods.period('2014-05')),
-    (periods.period(2017), periods.DAY, 365, periods.period('2017-01-01'), periods.period('2017-12-31')),
-    (periods.period('year:2014:2'), periods.DAY, 730, periods.period('2014-01-01'), periods.period('2015-12-31')),
-    (periods.period('month:2014-03:3'), periods.DAY, 92, periods.period('2014-03-01'), periods.period('2014-05-31')),
+@pytest.mark.parametrize("period_unit, unit, start, cease, count", [
+    [periods.YEAR, periods.YEAR, Instant((2022, 1, 1)), Instant((2024, 1, 1)), 3],
+    [periods.YEAR, periods.MONTH, Instant((2022, 12, 1)), Instant((2025, 11, 1)), 36],
+    [periods.YEAR, periods.DAY, Instant((2022, 12, 31)), Instant((2025, 12, 30)), 1096],
+    [periods.MONTH, periods.MONTH, Instant((2022, 12, 1)), Instant((2023, 2, 1)), 3],
+    [periods.MONTH, periods.DAY, Instant((2022, 12, 31)), Instant((2023, 3, 30)), 90],
+    [periods.DAY, periods.DAY, Instant((2022, 12, 31)), Instant((2023, 1, 2)), 3],
     ])
-def test_subperiods(period, unit, length, first, last):
+def test_subperiods(instant, period_unit, unit, start, cease, count):
+    period = Period((period_unit, instant, 3))
     subperiods = period.get_subperiods(unit)
-    assert len(subperiods) == length
-    assert subperiods[0] == first
-    assert subperiods[-1] == last
+    assert len(subperiods) == count
+    assert subperiods[0] == Period((unit, start, 1))
+    assert subperiods[-1] == Period((unit, cease, 1))
+
+
+@pytest.mark.parametrize("period_unit, offset, unit, expected", [
+    [periods.YEAR, "first-of", periods.YEAR, Period(('year', Instant((2022, 1, 1)), 3))],
+    [periods.YEAR, "first-of", periods.MONTH, Period(('year', Instant((2022, 12, 1)), 3))],
+    [periods.YEAR, "last-of", periods.YEAR, Period(('year', Instant((2022, 12, 31)), 3))],
+    [periods.YEAR, "last-of", periods.MONTH, Period(('year', Instant((2022, 12, 31)), 3))],
+    [periods.YEAR, -3, periods.YEAR, Period(('year', Instant((2019, 12, 31)), 3))],
+    [periods.YEAR, 1, periods.MONTH, Period(('year', Instant((2023, 1, 31)), 3))],
+    [periods.YEAR, 3, periods.DAY, Period(('year', Instant((2023, 1, 3)), 3))],
+    [periods.MONTH, "first-of", periods.YEAR, Period(('month', Instant((2022, 1, 1)), 3))],
+    [periods.MONTH, "first-of", periods.MONTH, Period(('month', Instant((2022, 12, 1)), 3))],
+    [periods.MONTH, "last-of", periods.YEAR, Period(('month', Instant((2022, 12, 31)), 3))],
+    [periods.MONTH, "last-of", periods.MONTH, Period(('month', Instant((2022, 12, 31)), 3))],
+    [periods.MONTH, -3, periods.YEAR, Period(('month', Instant((2019, 12, 31)), 3))],
+    [periods.MONTH, 1, periods.MONTH, Period(('month', Instant((2023, 1, 31)), 3))],
+    [periods.MONTH, 3, periods.DAY, Period(('month', Instant((2023, 1, 3)), 3))],
+    [periods.DAY, "first-of", periods.YEAR, Period(('day', Instant((2022, 1, 1)), 3))],
+    [periods.DAY, "first-of", periods.MONTH, Period(('day', Instant((2022, 12, 1)), 3))],
+    [periods.DAY, "last-of", periods.YEAR, Period(('day', Instant((2022, 12, 31)), 3))],
+    [periods.DAY, "last-of", periods.MONTH, Period(('day', Instant((2022, 12, 31)), 3))],
+    [periods.DAY, -3, periods.YEAR, Period(('day', Instant((2019, 12, 31)), 3))],
+    [periods.DAY, 1, periods.MONTH, Period(('day', Instant((2023, 1, 31)), 3))],
+    [periods.DAY, 3, periods.DAY, Period(('day', Instant((2023, 1, 3)), 3))],
+    ])
+def test_offset(instant, period_unit, offset, unit, expected):
+    period = Period((period_unit, instant, 3))
+    assert period.offset(offset, unit) == expected
 
 
 @pytest.mark.parametrize("date_unit, instant, size, expected", [

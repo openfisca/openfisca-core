@@ -34,6 +34,7 @@ test-core: $(shell pytest --quiet --quiet --collect-only 2> /dev/null | cut -f 1
 	@pytest --quiet --capture=no --xdoctest --xdoctest-verbose=0 \
 		openfisca_core/commons \
 		openfisca_core/holders \
+		openfisca_core/periods \
 		openfisca_core/types
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
 		coverage run -m \

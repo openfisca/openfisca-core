@@ -7,6 +7,7 @@ import datetime
 
 from openfisca_core import types
 
+from .. import periods
 from . import config
 
 
@@ -75,7 +76,6 @@ class Instant(tuple):
 
         return instant_str
 
-    @property
     def year(self) -> int:
         """The ``year`` of the ``Instant``.
 

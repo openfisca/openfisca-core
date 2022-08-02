@@ -314,8 +314,10 @@ class Period(tuple):
 
         unit, start_instant, size = self
         year, month, day = start_instant
+
         if unit == config.ETERNITY:
             return Instant((float("inf"), float("inf"), float("inf")))
+
         if unit == 'day':
             if size > 1:
                 day += size - 1
@@ -327,6 +329,7 @@ class Period(tuple):
                         month = 1
                     day -= month_last_day
                     month_last_day = calendar.monthrange(year, month)[1]
+
         else:
             if unit == 'month':
                 month += size
@@ -351,6 +354,7 @@ class Period(tuple):
                         year += 1
                         month = 1
                     day -= month_last_day
+
         return Instant((year, month, day))
 
     @property
