@@ -24,4 +24,4 @@ def instant():
     [3, periods.DAY, Instant((2020, 3, 3))],
     ])
 def test_offset(instant, offset, unit, expected):
-    assert expected == instant.offset(offset, unit)
+    assert instant.offset(offset, unit) == expected
