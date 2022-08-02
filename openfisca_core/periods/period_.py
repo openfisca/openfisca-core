@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import typing
+
 import calendar
 import datetime
 
@@ -8,6 +10,9 @@ import pendulum
 from . import helpers
 from .date_unit import DateUnit
 from .instant_ import Instant
+
+if typing.TYPE_CHECKING:
+    from pendulum.datetime import Date
 
 
 class Period(tuple):
@@ -28,24 +33,24 @@ class Period(tuple):
             The ``unit``, ``start``, and ``size``, accordingly.
 
     Examples:
-        >>> instant = Instant((2021, 9, 1))
+        >>> instant = Instant((2021, 10, 1))
         >>> period = Period((DateUnit.YEAR, instant, 3))
 
         >>> repr(Period)
         "<class 'openfisca_core.periods.period_.Period'>"
 
         >>> repr(period)
-        "Period((<DateUnit.YEAR: 'year'>, Instant((2021, 9, 1)), 3))"
+        "Period((<DateUnit.YEAR: 'year'>, Instant((2021, 10, 1)), 3))"
 
         >>> str(period)
-        'year:2021-09:3'
+        'year:2021-10:3'
 
         >>> dict([period, instant])
         Traceback (most recent call last):
         ValueError: dictionary update sequence element #0 has length 3...
 
         >>> list(period)
-        [<DateUnit.YEAR: 'year'>, Instant((2021, 9, 1)), 3]
+        [<DateUnit.YEAR: 'year'>, Instant((2021, 10, 1)), 3]
 
         >>> period[0]
         <DateUnit.YEAR: 'year'>
@@ -74,18 +79,8 @@ class Period(tuple):
         >>> period <= Period((DateUnit.YEAR, instant, 3))
         True
 
-        >>> period.date
-        Traceback (most recent call last):
-        AssertionError: "date" is undefined for a period of size > 1
-
-        >>> Period((DateUnit.YEAR, instant, 1)).date
-        Date(2021, 9, 1)
-
         >>> period.days
         1096
-
-        >>> period.size
-        3
 
         >>> period.size_in_months
         36
@@ -93,20 +88,17 @@ class Period(tuple):
         >>> period.size_in_days
         1096
 
-        >>> period.start
-        Instant((2021, 9, 1))
-
         >>> period.stop
-        Instant((2024, 8, 31))
+        Instant((2024, 9, 30))
 
         >>> period.unit
         <DateUnit.YEAR: 'year'>
 
         >>> period.last_3_months
-        Period((<DateUnit.MONTH: 'month'>, Instant((2021, 6, 1)), 3))
+        Period((<DateUnit.MONTH: 'month'>, Instant((2021, 7, 1)), 3))
 
         >>> period.last_month
-        Period((<DateUnit.MONTH: 'month'>, Instant((2021, 8, 1)), 1))
+        Period((<DateUnit.MONTH: 'month'>, Instant((2021, 9, 1)), 1))
 
         >>> period.last_year
         Period((<DateUnit.YEAR: 'year'>, Instant((2020, 1, 1)), 1))
@@ -118,10 +110,10 @@ class Period(tuple):
         Period((<DateUnit.YEAR: 'year'>, Instant((2021, 1, 1)), 1))
 
         >>> period.first_month
-        Period((<DateUnit.MONTH: 'month'>, Instant((2021, 9, 1)), 1))
+        Period((<DateUnit.MONTH: 'month'>, Instant((2021, 10, 1)), 1))
 
         >>> period.first_day
-        Period((<DateUnit.DAY: 'day'>, Instant((2021, 9, 1)), 1))
+        Period((<DateUnit.DAY: 'day'>, Instant((2021, 10, 1)), 1))
 
 
     Since a period is a triple it can be used as a dictionary key.
@@ -186,13 +178,212 @@ class Period(tuple):
         return f'{unit}:{f_year}-{month:02d}:{size}'
 
     @property
-    def date(self):
-        assert self.size == 1, f'"date" is undefined for a period of size > 1: {self}'
+    def unit(self) -> str:
+        """The ``unit`` of the ``Period``.
+
+        Example:
+            >>> instant = Instant((2021, 10, 1))
+            >>> period = Period((DateUnit.YEAR, instant, 3))
+            >>> period.unit
+            <DateUnit.YEAR: 'year'>
+
+        """
+
+        return self[0]
+
+    @property
+    def start(self) -> "Instant":
+        """The ``Instant`` at which the ``Period`` starts.
+
+        Example:
+            >>> instant = Instant((2021, 10, 1))
+            >>> period = Period((DateUnit.YEAR, instant, 3))
+            >>> period.start
+            Instant((2021, 10, 1))
+
+        """
+
+        return self[1]
+
+    @property
+    def size(self) -> int:
+        """The ``size`` of the ``Period``.
+
+        Example:
+            >>> instant = Instant((2021, 10, 1))
+            >>> period = Period((DateUnit.YEAR, instant, 3))
+            >>> period.size
+            3
+
+        """
+
+        return self[2]
+
+    @property
+    def date(self) -> "Date":
+        """The date representation of the ``Period`` start date.
+
+        Examples:
+            >>> instant = Instant((2021, 10, 1))
+
+            >>> period = Period((DateUnit.YEAR, instant, 1))
+            >>> period.date
+            Date(2021, 10, 1)
+
+            >>> period = Period((DateUnit.YEAR, instant, 3))
+            >>> period.date
+            Traceback (most recent call last):
+            ValueError: "date" is undefined for a period of size > 1: year:2021-09:3.
+
+        """
+
+        if self.size != 1:
+            raise ValueError(f'"date" is undefined for a period of size > 1: {self}.')
+
         return self.start.date
 
     @property
+    def size_in_years(self) -> int:
+        """The ``size`` of the ``Period`` in years.
+
+        Examples:
+            >>> instant = Instant((2021, 10, 1))
+
+            >>> period = Period((DateUnit.YEAR, instant, 3))
+            >>> period.size_in_years
+            3
+
+            >>> period = Period((DateUnit.MONTH, instant, 3))
+            >>> period.size_in_years
+            Traceback (most recent call last):
+            ValueError: Cannot calculate number of years in month.
+
+        """
+
+        if self.unit == DateUnit.YEAR:
+            return self.size
+
+        raise ValueError(f"Cannot calculate number of years in {self.unit}.")
+
+    @property
+    def size_in_months(self) -> int:
+        """The ``size`` of the ``Period`` in months.
+
+        Examples:
+            >>> instant = Instant((2021, 10, 1))
+
+            >>> period = Period((DateUnit.YEAR, instant, 3))
+            >>> period.size_in_months
+            36
+
+            >>> period = Period((DateUnit.DAY, instant, 3))
+            >>> period.size_in_months
+            Traceback (most recent call last):
+            ValueError: Cannot calculate number of months in day.
+
+        """
+
+        if self.unit == DateUnit.YEAR:
+            return self.size * 12
+
+        if self.unit == DateUnit.MONTH:
+            return self.size
+
+        raise ValueError(f"Cannot calculate number of months in {self.unit}.")
+
+    @property
+    def size_in_days(self) -> int:
+        """The ``size`` of the ``Period`` in days.
+
+        Examples:
+            >>> instant = Instant((2019, 10, 1))
+
+            >>> period = Period((DateUnit.YEAR, instant, 3))
+            >>> period.size_in_days
+            1096
+
+            >>> period = Period((DateUnit.MONTH, instant, 3))
+            >>> period.size_in_days
+            92
+
+        """
+
+        if self.unit in (DateUnit.YEAR, DateUnit.MONTH):
+            last_day = (
+                self
+                .start
+                .offset(self.size, self.unit)
+                .offset(-1, DateUnit.DAY)
+                )
+            return (last_day.date - self.start.date).days + 1
+
+        if self.unit == DateUnit.WEEK:
+            return self.size * 7
+
+        if self.unit in (DateUnit.DAY, DateUnit.WEEKDAY):
+            return self.size
+
+        raise ValueError(f"Cannot calculate number of days in {self.unit}.")
+
+    @property
+    def size_in_weeks(self):
+        """The ``size`` of the ``Period`` in weeks.
+
+        Examples:
+            >>> instant = Instant((2019, 10, 1))
+
+            >>> period = Period((DateUnit.YEAR, instant, 3))
+            >>> period.size_in_weeks
+            156
+
+            >>> period = Period((DateUnit.YEAR, instant, 5))
+            >>> period.size_in_weeks
+            261
+
+        """
+
+        if self.unit == DateUnit.YEAR:
+            start = self.start.date
+            cease = start.add(years = self.size)
+            delta = pendulum.period(start, cease)
+            return delta.as_interval().weeks
+
+        if self.unit == DateUnit.WEEK:
+            return self.size
+
+        raise ValueError(f"Cannot calculate number of weeks in {self.unit}.")
+
+    @property
+    def size_in_weekdays(self):
+        """The ``size`` of the ``Period`` in weekdays.
+
+        Examples:
+            >>> instant = Instant((2019, 10, 1))
+
+            >>> period = Period((DateUnit.YEAR, instant, 3))
+            >>> period.size_in_weekdays
+            1092
+
+            >>> period = Period((DateUnit.WEEK, instant, 3))
+            >>> period.size_in_weekdays
+            21
+
+        """
+
+        if self.unit == DateUnit.YEAR:
+            return self.size_in_weeks * 7
+
+        if self.unit == DateUnit.WEEK:
+            return self.size * 7
+
+        if self.unit in (DateUnit.DAY, DateUnit.WEEKDAY):
+            return self.size
+
+        raise ValueError(f"Cannot calculate number of weekdays in {self.unit}.")
+
+    @property
     def days(self):
-        """Count the number of days in period."""
+        """Same as ``size_in_days``."""
         return (self.stop.date - self.start.date).days + 1
 
     def intersection(self, start, stop):
@@ -447,41 +638,6 @@ class Period(tuple):
         return self.start <= other.start and self.stop >= other.stop
 
     @property
-    def size(self):
-        """Return the size of the period."""
-
-        return self[2]
-
-    @property
-    def size_in_months(self):
-        """Return the size of the period in months."""
-
-        if (self[0] == DateUnit.MONTH):
-            return self[2]
-        if(self[0] == DateUnit.YEAR):
-            return self[2] * 12
-        raise ValueError(f"Cannot calculate number of months in {self[0]}")
-
-    @property
-    def size_in_days(self):
-        """Return the size of the period in days."""
-
-        unit, instant, length = self
-
-        if unit == DateUnit.DAY:
-            return length
-        if unit in [DateUnit.MONTH, DateUnit.YEAR]:
-            last_day = self.start.offset(length, unit).offset(-1, DateUnit.DAY)
-            return (last_day.date - self.start.date).days + 1
-
-        raise ValueError(f"Cannot calculate number of days in {unit}")
-
-    @property
-    def start(self) -> Instant:
-        """Return the first day of the period as an Instant instance."""
-        return self[1]
-
-    @property
     def stop(self) -> Instant:
         """Return the last day of the period as an Instant instance.
 
@@ -539,10 +695,6 @@ class Period(tuple):
 
         else:
             raise ValueError
-
-    @property
-    def unit(self) -> str:
-        return self[0]
 
     # Reference periods
 
