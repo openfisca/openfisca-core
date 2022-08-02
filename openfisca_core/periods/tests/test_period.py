@@ -1,6 +1,5 @@
 import pytest
 
-from openfisca_core import periods
 from openfisca_core.periods import DateUnit, Instant, Period
 
 
@@ -54,23 +53,25 @@ def test_str_with_weekdays(date_unit, instant, size, expected):
     assert str(Period((date_unit, instant, size))) == expected
 
 
-@pytest.mark.parametrize("period, unit, length, first, last", [
-    [periods.period("year:2014:2"), DateUnit.YEAR, 2, periods.period("2014"), periods.period("2015")],
-    [periods.period(2017), DateUnit.MONTH, 12, periods.period("2017-01"), periods.period("2017-12")],
-    [periods.period("year:2014:2"), DateUnit.MONTH, 24, periods.period("2014-01"), periods.period("2015-12")],
-    [periods.period("month:2014-03:3"), DateUnit.MONTH, 3, periods.period("2014-03"), periods.period("2014-05")],
-    [periods.period(2017), DateUnit.DAY, 365, periods.period("2017-01-01"), periods.period("2017-12-31")],
-    [periods.period("year:2014:2"), DateUnit.DAY, 730, periods.period("2014-01-01"), periods.period("2015-12-31")],
-    [periods.period("month:2014-03:3"), DateUnit.DAY, 92, periods.period("2014-03-01"), periods.period("2014-05-31")],
-    # [periods.period(2017), DateUnit.WEEK, 52, periods.period("2017-W01"), periods.period("2017-W12")],
-    # [periods.period("year:2014:2"), DateUnit.WEEK, 105, periods.period("2014-01"), periods.period("2015-12")],
-    # [periods.period("week:2014-W9:3"), DateUnit.WEEK, 3, periods.period("2014-03"), periods.period("2014-05")],
-    # [periods.period(2014), DateUnit.WEEKDAY, 92, periods.period("2014-03-01"), periods.period("2014-05-31")],
-    # [periods.period("week:2014-W9:2"), DateUnit.WEEKDAY, 92, periods.period("2014-03-01"), periods.period("2014-05-31")],
-    # [periods.period("week:2014-W9-3:3"), DateUnit.WEEKDAY, 92, periods.period("2014-03-01"), periods.period("2014-05-31")],
+@pytest.mark.parametrize("period_unit, sub_unit, instant, start, cease, count", [
+    [DateUnit.YEAR, DateUnit.YEAR, Instant((2022, 12, 31)), Instant((2022, 1, 1)), Instant((2024, 1, 1)), 3],
+    [DateUnit.YEAR, DateUnit.MONTH, Instant((2022, 12, 31)), Instant((2022, 12, 1)), Instant((2025, 11, 1)), 36],
+    [DateUnit.YEAR, DateUnit.DAY, Instant((2022, 12, 31)), Instant((2022, 12, 31)), Instant((2025, 12, 30)), 1096],
+    [DateUnit.YEAR, DateUnit.WEEK, Instant((2022, 12, 31)), Instant((2022, 12, 26)), Instant((2025, 12, 15)), 156],
+    [DateUnit.YEAR, DateUnit.WEEKDAY, Instant((2022, 12, 31)), Instant((2022, 12, 31)), Instant((2025, 12, 26)), 1092],
+    [DateUnit.MONTH, DateUnit.MONTH, Instant((2022, 12, 31)), Instant((2022, 12, 1)), Instant((2023, 2, 1)), 3],
+    [DateUnit.MONTH, DateUnit.DAY, Instant((2022, 12, 31)), Instant((2022, 12, 31)), Instant((2023, 3, 30)), 90],
+    [DateUnit.DAY, DateUnit.DAY, Instant((2022, 12, 31)), Instant((2022, 12, 31)), Instant((2023, 1, 2)), 3],
+    [DateUnit.DAY, DateUnit.WEEKDAY, Instant((2022, 12, 31)), Instant((2022, 12, 31)), Instant((2023, 1, 2)), 3],
+    [DateUnit.WEEK, DateUnit.DAY, Instant((2022, 12, 31)), Instant((2022, 12, 31)), Instant((2023, 1, 20)), 21],
+    [DateUnit.WEEK, DateUnit.WEEK, Instant((2022, 12, 31)), Instant((2022, 12, 26)), Instant((2023, 1, 9)), 3],
+    [DateUnit.WEEK, DateUnit.WEEKDAY, Instant((2022, 12, 31)), Instant((2022, 12, 31)), Instant((2023, 1, 20)), 21],
+    [DateUnit.WEEKDAY, DateUnit.DAY, Instant((2022, 12, 31)), Instant((2022, 12, 31)), Instant((2023, 1, 2)), 3],
+    [DateUnit.WEEKDAY, DateUnit.WEEKDAY, Instant((2022, 12, 31)), Instant((2022, 12, 31)), Instant((2023, 1, 2)), 3],
     ])
-def test_subperiods(period, unit, length, first, last):
-    subperiods = period.get_subperiods(unit)
-    assert len(subperiods) == length
-    assert subperiods[0] == first
-    assert subperiods[-1] == last
+def test_subperiods(period_unit, sub_unit, instant, start, cease, count):
+    period = Period((period_unit, instant, 3))
+    subperiods = period.get_subperiods(sub_unit)
+    assert len(subperiods) == count
+    assert subperiods[0] == Period((sub_unit, start, 1))
+    assert subperiods[-1] == Period((sub_unit, cease, 1))

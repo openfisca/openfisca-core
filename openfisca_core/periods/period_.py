@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import typing
+from typing import Sequence
 
 import calendar
 import datetime
@@ -426,7 +427,7 @@ class Period(tuple):
             (intersection_stop.date - intersection_start.date).days + 1,
             ))
 
-    def get_subperiods(self, unit):
+    def get_subperiods(self, unit: "DateUnit") -> Sequence["Period"]:
         """Return the list of periods of unit ``unit`` contained in self.
 
         Examples:
@@ -451,6 +452,14 @@ class Period(tuple):
 
         if unit == DateUnit.DAY:
             return [self.first_day.offset(i, DateUnit.DAY) for i in range(self.size_in_days)]
+
+        if unit == DateUnit.WEEK:
+            return [self.first_week.offset(i, DateUnit.WEEK) for i in range(self.size_in_weeks)]
+
+        if unit == DateUnit.WEEKDAY:
+            return [self.first_weekday.offset(i, DateUnit.WEEKDAY) for i in range(self.size_in_weekdays)]
+
+        raise ValueError(f'Cannot subdivide {self.unit} into {unit}')
 
     def offset(self, offset, unit = None):
         """Increment (or decrement) the given period with offset units.
@@ -730,3 +739,12 @@ class Period(tuple):
     @property
     def first_day(self) -> Period:
         return self.__class__((DateUnit.DAY, self.start, 1))
+
+    @property
+    def first_week(self) -> Period:
+        start: Instant = self.start.offset("first-of", DateUnit.WEEK)
+        return self.__class__((DateUnit.WEEK, start, 1))
+
+    @property
+    def first_weekday(self) -> Period:
+        return self.__class__((DateUnit.WEEKDAY, self.start, 1))
