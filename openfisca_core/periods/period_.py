@@ -708,6 +708,30 @@ class Period(tuple):
     # Reference periods
 
     @property
+    def last_week(self) -> Period:
+        return self.first_week.offset(-1)
+
+    @property
+    def last_fortnight(self) -> Period:
+        start: Instant = self.first_week.start
+        return self.__class__((DateUnit.WEEK, start, 1)).offset(-2)
+
+    @property
+    def last_2_weeks(self) -> Period:
+        start: Instant = self.first_week.start
+        return self.__class__((DateUnit.WEEK, start, 2)).offset(-2)
+
+    @property
+    def last_26_weeks(self) -> Period:
+        start: Instant = self.first_week.start
+        return self.__class__((DateUnit.WEEK, start, 26)).offset(-26)
+
+    @property
+    def last_52_weeks(self) -> Period:
+        start: Instant = self.first_week.start
+        return self.__class__((DateUnit.WEEK, start, 52)).offset(-52)
+
+    @property
     def last_month(self) -> Period:
         return self.first_month.offset(-1)
 
