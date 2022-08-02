@@ -11,35 +11,39 @@ from . import config
 
 
 class Instant(tuple):
-    """An instant in time (year, month, day).
+    """An instant in time (``year``, ``month``, ``day``).
 
-    An :class:`.Instant` represents the most atomic and indivisible
-    legislation's time unit.
+    An ``Instant`` represents the most atomic and indivisible
+    legislation's date unit.
 
     Current implementation considers this unit to be a day, so
-    :obj:`instants <.Instant>` can be thought of as "day dates".
+    ``instants`` can be thought of as "day dates".
 
     Args:
-        (tuple(tuple(int, int, int))):
+        (tuple(int, int, int)):
             The ``year``, ``month``, and ``day``, accordingly.
 
     Examples:
         >>> instant = Instant((2021, 9, 13))
 
-        >>> repr(Instant)
-        "<class 'openfisca_core.periods.instant_.Instant'>"
+        ``Instants`` are represented as a ``tuple`` containing the date units:
 
         >>> repr(instant)
         'Instant((2021, 9, 13))'
 
+        However, their user-friendly representation is as a date in the
+        ISO format:
+
         >>> str(instant)
         '2021-09-13'
+
+        Because ``Instants`` are ``tuples``, they are immutable, which allows
+        us to use them as keys in hashmaps:
 
         >>> dict([(instant, (2021, 9, 13))])
         {Instant((2021, 9, 13)): (2021, 9, 13)}
 
-        >>> list(instant)
-        [2021, 9, 13]
+        All the rest of the ``tuple`` protocols are inherited as well:
 
         >>> instant[0]
         2021
@@ -53,32 +57,8 @@ class Instant(tuple):
         >>> instant == (2021, 9, 13)
         True
 
-        >>> instant != (2021, 9, 13)
-        False
-
         >>> instant > (2020, 9, 13)
         True
-
-        >>> instant < (2020, 9, 13)
-        False
-
-        >>> instant >= (2020, 9, 13)
-        True
-
-        >>> instant <= (2020, 9, 13)
-        False
-
-        >>> instant.year
-        2021
-
-        >>> instant.month
-        9
-
-        >>> instant.day
-        13
-
-        >>> instant.date
-        datetime.date(2021, 9, 13)
 
         >>> year, month, day = instant
 
@@ -97,18 +77,66 @@ class Instant(tuple):
 
     @property
     def year(self) -> int:
+        """The ``year`` of the ``Instant``.
+
+        Example:
+            >>> instant = Instant((2021, 10, 1))
+            >>> instant.year
+            2021
+
+        Returns:
+            An int.
+
+        """
+
         return self[0]
 
     @property
     def month(self) -> int:
+        """The ``month`` of the ``Instant``.
+
+        Example:
+            >>> instant = Instant((2021, 10, 1))
+            >>> instant.month
+            10
+
+        Returns:
+            An int.
+
+        """
+
         return self[1]
 
     @property
     def day(self) -> int:
+        """The ``day`` of the ``Instant``.
+
+        Example:
+            >>> instant = Instant((2021, 10, 1))
+            >>> instant.day
+            1
+
+        Returns:
+            An int.
+
+        """
+
         return self[2]
 
     @property
     def date(self) -> datetime.date:
+        """The date representation of the ``Instant``.
+
+        Example:
+            >>> instant = Instant((2021, 10, 1))
+            >>> instant.date
+            datetime.date(2021, 10, 1)
+
+        Returns:
+            A datetime.time.
+
+        """
+
         instant_date = config.date_by_instant_cache.get(self)
 
         if instant_date is None:
@@ -120,16 +148,16 @@ class Instant(tuple):
         """Increments/decrements the given instant with offset units.
 
         Args:
-            offset: How much of ``unit`` to offset.
-            unit: What to offset
+            offset (str | int): How much of ``unit`` to offset.
+            unit (str): What to offset.
 
         Returns:
-            :obj:`.Instant`: A new :obj:`.Instant` in time.
+            Instant: A new one.
 
         Raises:
-            :exc:`AssertionError`: When ``unit`` is not a date unit.
-            :exc:`AssertionError`: When ``offset`` is not either ``first-of``,
-                ``last-of``, or any :obj:`int`.
+            AssertionError: When ``unit`` is not a date unit.
+            AssertionError: When ``offset`` is not either ``first-of``,
+                ``last-of``, or any ``int``.
 
         Examples:
             >>> Instant((2020, 12, 31)).offset("first-of", "month")
