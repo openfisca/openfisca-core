@@ -1,0 +1,121 @@
+description: Full rate age
+full_rate_age_by_birthdate:
+  description: Full rate age by birthdate
+  before_1951_07_01:
+    description: Born before 01/07/1951
+    year:
+      description: Year
+      values:
+        1983-04-01:
+          value: 65.0
+    month:
+      description: Month
+      values:
+        1983-04-01:
+          value: 0.0
+  after_1951_07_01:
+    description: Born after 01/07/1951
+    year:
+      description: Year
+      values:
+        2011-07-01:
+          value: 65.0
+        1983-04-01:
+          value: null
+    month:
+      description: Month
+      values:
+        2011-07-01:
+          value: 4.0
+        1983-04-01:
+          value: null
+  after_1952_01_01:
+    description: Born after 01/01/1952
+    year:
+      description: Year
+      values:
+        2011-07-01:
+          value: 65.0
+        1983-04-01:
+          value: null
+    month:
+      description: Month
+      values:
+        2012-01-01:
+          value: 9.0
+        2011-07-01:
+          value: 8.0
+        1983-04-01:
+          value: null
+  after_1953_01_01:
+    description: Born after 01/01/1953
+    year:
+      description: Year
+      values:
+        2011-07-01:
+          value: 66.0
+        1983-04-01:
+          value: null
+    month:
+      description: Month
+      values:
+        2012-01-01:
+          value: 2.0
+        2011-07-01:
+          value: 0.0
+        1983-04-01:
+          value: null
+  after_1954_01_01:
+    description: Born after 01/01/1954
+    year:
+      description: Year
+      values:
+        2011-07-01:
+          value: 66.0
+        1983-04-01:
+          value: null
+    month:
+      description: Month
+      values:
+        2012-01-01:
+          value: 7.0
+        2011-07-01:
+          value: 4.0
+        1983-04-01:
+          value: null
+  after_1955_01_01:
+    description: Born after 01/01/1955
+    year:
+      description: Year
+      values:
+        2012-01-01:
+          value: 67.0
+        2011-07-01:
+          value: 66.0
+        1983-04-01:
+          value: null
+    month:
+      description: Month
+      values:
+        2012-01-01:
+          value: 0.0
+        2011-07-01:
+          value: 8.0
+        1983-04-01:
+          value: null
+  after_1956_01_01:
+    description: Born after 01/01/1956
+    year:
+      description: Year
+      values:
+        2011-07-01:
+          value: 67.0
+        1983-04-01:
+          value: null
+    month:
+      description: Month
+      values:
+        2011-07-01:
+          value: 0.0
+        1983-04-01:
+          value: null
