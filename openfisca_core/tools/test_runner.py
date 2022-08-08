@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import collections
 import warnings
 import sys
 import os
@@ -216,21 +217,19 @@ class YamlItem(pytest.Item):
 
         actual_value = self.simulation.calculate(variable_name, period)
 
-        absolute_error_margin = self.test.get("absolute_error_margin")
-
-        if isinstance(absolute_error_margin, Dict):
-            absolute_error_margin = absolute_error_margin.get(
-                variable_name,
-                absolute_error_margin.get("default"),
-                )
+        absolute_error_margin = self.test.get('absolute_error_margin')
+        variable_absolute_error_margin = (
+            absolute_error_margin.get(variable_name, absolute_error_margin.get("default"))
+            if isinstance(absolute_error_margin, collections.Mapping)
+            else absolute_error_margin
+            )
 
         relative_error_margin = self.test.get('relative_error_margin')
-
-        if isinstance(relative_error_margin, Dict):
-            relative_error_margin = relative_error_margin.get(
-                variable_name,
-                relative_error_margin.get("default"),
-                )
+        variable_relative_error_margin = (
+            relative_error_margin.get(variable_name, relative_error_margin.get("default"))
+            if isinstance(relative_error_margin, collections.Mapping)
+            else relative_error_margin
+            )
 
         if entity_index is not None:
             actual_value = actual_value[entity_index]
@@ -238,9 +237,9 @@ class YamlItem(pytest.Item):
         return assert_near(
             actual_value,
             expected_value,
-            absolute_error_margin,
+            absolute_error_margin = variable_absolute_error_margin,
             message = f"{variable_name}@{period}: ",
-            relative_error_margin = relative_error_margin,
+            relative_error_margin = variable_relative_error_margin,
             )
 
     def should_ignore_variable(self, variable_name: str):
