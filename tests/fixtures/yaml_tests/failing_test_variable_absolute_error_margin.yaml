@@ -1,0 +1,9 @@
+- name: "Failing test: result out of variable specific absolute error margin"
+  period: 2015-01
+  absolute_error_margin:
+    default: 100
+    income_tax: 50
+  input:
+    salary: 2000
+  output:
+    income_tax: 351 # 300
