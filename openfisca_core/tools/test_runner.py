@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
+from __future__ import annotations
 
-import collections
 import warnings
 import sys
 import os
@@ -208,35 +207,40 @@ class YamlItem(pytest.Item):
     def check_variable(self, variable_name: str, expected_value, period, entity_index = None):
         if self.should_ignore_variable(variable_name):
             return
-        if isinstance(expected_value, dict):
+
+        if isinstance(expected_value, Dict):
             for requested_period, expected_value_at_period in expected_value.items():
                 self.check_variable(variable_name, expected_value_at_period, requested_period, entity_index)
-            return
+
+            return None
 
         actual_value = self.simulation.calculate(variable_name, period)
 
-        absolute_error_margin = self.test.get('absolute_error_margin')
-        variable_absolute_error_margin = (
-            absolute_error_margin.get(variable_name, absolute_error_margin.get("default"))
-            if isinstance(absolute_error_margin, collections.Mapping)
-            else absolute_error_margin
-            )
+        absolute_error_margin = self.test.get("absolute_error_margin")
+
+        if isinstance(absolute_error_margin, Dict):
+            absolute_error_margin = absolute_error_margin.get(
+                variable_name,
+                absolute_error_margin.get("default"),
+                )
 
         relative_error_margin = self.test.get('relative_error_margin')
-        variable_relative_error_margin = (
-            relative_error_margin.get(variable_name, relative_error_margin.get("default"))
-            if isinstance(relative_error_margin, collections.Mapping)
-            else relative_error_margin
-            )
+
+        if isinstance(relative_error_margin, Dict):
+            relative_error_margin = relative_error_margin.get(
+                variable_name,
+                relative_error_margin.get("default"),
+                )
 
         if entity_index is not None:
             actual_value = actual_value[entity_index]
+
         return assert_near(
             actual_value,
             expected_value,
-            absolute_error_margin = variable_absolute_error_margin,
+            absolute_error_margin,
             message = f"{variable_name}@{period}: ",
-            relative_error_margin = variable_relative_error_margin,
+            relative_error_margin = relative_error_margin,
             )
 
     def should_ignore_variable(self, variable_name: str):

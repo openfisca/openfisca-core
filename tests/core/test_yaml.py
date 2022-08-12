@@ -37,7 +37,6 @@ def test_relative_error_margin_success(tax_benefit_system):
 
 def test_relative_error_margin_fail(tax_benefit_system):
     assert run_yaml_test(tax_benefit_system, 'failing_test_relative_error_margin.yaml') == EXIT_TESTSFAILED
-    assert run_yaml_test(tax_benefit_system, 'failing_test_variable_relative_error_margin.yaml') == EXIT_TESTSFAILED
 
 
 def test_absolute_error_margin_success(tax_benefit_system):
@@ -46,7 +45,6 @@ def test_absolute_error_margin_success(tax_benefit_system):
 
 def test_absolute_error_margin_fail(tax_benefit_system):
     assert run_yaml_test(tax_benefit_system, 'failing_test_absolute_error_margin.yaml') == EXIT_TESTSFAILED
-    assert run_yaml_test(tax_benefit_system, 'failing_test_variable_absolute_error_margin.yaml') == EXIT_TESTSFAILED
 
 
 def test_run_tests_from_directory(tax_benefit_system):
