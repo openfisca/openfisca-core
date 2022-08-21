@@ -120,36 +120,6 @@ jobs:
       - name: Check NumPy typing against latest 3 minor versions
         run: for i in {1..3}; do VERSION=$(${GITHUB_WORKSPACE}/.github/get-numpy-version.py prev) && pip install numpy==$VERSION && make check-types; done
 
-  test-docs:
-    runs-on: ubuntu-latest
-    needs: [ build ]
-    env:
-      TERM: xterm-256color
-    steps:
-      - uses: actions/checkout@v2
-      - name: Checkout docs
-        run: make test-doc-checkout branch=${GITHUB_REF#refs/heads/}
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.7.12
-      - name: Cache build
-        id: restore-build
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.pythonLocation }}
-          key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
-      - name: Cache docs
-        id: restore-docs
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.pythonLocation }}
-          key: docs-${{ env.pythonLocation }}-${{ hashFiles('doc/requirements.txt') }}--${{ github.sha }}
-      - name: Install dependencies
-        run: make test-doc-install
-      - name: Run doc tests
-        run: make test-doc-build
-
   lint-files:
     runs-on: ubuntu-latest
     needs: [ build ]
@@ -174,7 +144,7 @@ jobs:
 
   check-version:
     runs-on: ubuntu-latest
-    needs: [ test-core, test-country-template, test-extension-template, check-numpy, test-docs, lint-files ] # Last job to run
+    needs: [ test-core, test-country-template, test-extension-template, check-numpy, lint-files ] # Last job to run
     steps:
       - uses: actions/checkout@v2
         with:

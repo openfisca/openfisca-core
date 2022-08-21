@@ -42,12 +42,13 @@ dev_requirements = [
     'mypy == 0.910',
     'openfisca-country-template >= 3.10.0, < 4.0.0',
     'openfisca-extension-template >= 1.2.0rc0, < 2.0.0',
+    'pycodestyle >= 2.8.0, < 2.9.0',
     'pylint == 2.10.2',
     ] + api_requirements
 
 setup(
     name = 'OpenFisca-Core',
-    version = '35.8.5',
+    version = '35.8.6',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [
