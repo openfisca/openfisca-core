@@ -1,5 +1,12 @@
 # Changelog
 
+### 35.8.6 [#1145](https://github.com/openfisca/openfisca-core/pull/1145)
+
+#### Technical changes
+
+- Removes the automatic documentation build check
+  - It has been proven difficult to maintain, specifically due _dependency hell_ and a very contrived build workflow.
+
 ### 35.8.5 [#1137](https://github.com/openfisca/openfisca-core/pull/1137)
 
 #### Technical changes
