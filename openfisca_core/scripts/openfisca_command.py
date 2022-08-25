@@ -41,6 +41,7 @@ def get_parser():
         parser.add_argument('-v', '--verbose', action = 'store_true', default = False, help = "increase output verbosity")
         parser.add_argument('-o', '--only-variables', nargs = '*', default = None, help = "variables to test. If specified, only test the given variables.")
         parser.add_argument('-i', '--ignore-variables', nargs = '*', default = None, help = "variables to ignore. If specified, do not test the given variables.")
+        parser.add_argument('-d', '--depth_max', type = int, default = None, help = "Maximal depth of the log. If not specified, display all the computation")
 
         return parser
 

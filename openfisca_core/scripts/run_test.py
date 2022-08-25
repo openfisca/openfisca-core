@@ -22,6 +22,7 @@ def main(parser):
         'name_filter': args.name_filter,
         'only_variables': args.only_variables,
         'ignore_variables': args.ignore_variables,
+        'depth_max': args.depth_max,
         }
 
     paths = [os.path.abspath(path) for path in args.path]

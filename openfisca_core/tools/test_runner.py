@@ -146,6 +146,7 @@ class YamlItem(pytest.Item):
         verbose = self.options.get('verbose')
         performance_graph = self.options.get('performance_graph')
         performance_tables = self.options.get('performance_tables')
+        depth_max = self.options.get('depth_max')
 
         try:
             builder.set_default_period(period)
@@ -165,15 +166,15 @@ class YamlItem(pytest.Item):
         finally:
             tracer = self.simulation.tracer
             if verbose:
-                self.print_computation_log(tracer)
+                self.print_computation_log(tracer, depth_max)
             if performance_graph:
                 self.generate_performance_graph(tracer)
             if performance_tables:
                 self.generate_performance_tables(tracer)
 
-    def print_computation_log(self, tracer):
+    def print_computation_log(self, tracer, depth_max = None):
         print("Computation log:")  # noqa T001
-        tracer.print_computation_log()
+        tracer.print_computation_log(depth_max = depth_max)
 
     def generate_performance_graph(self, tracer):
         tracer.generate_performance_graph('.')
