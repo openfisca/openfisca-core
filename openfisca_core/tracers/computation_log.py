@@ -61,8 +61,8 @@ class ComputationLog:
 
             return f"{indent}{node.name}<{node.period}> >> {formatted_value}"
 
-        if depth_max is not None and depth > depth_max:
-            return
+        if (depth_max is not None) and (depth > depth_max):
+            return [""]
 
         node_log = [print_line(depth, node)]
 
@@ -70,7 +70,7 @@ class ComputationLog:
             self._get_node_log(child, depth + 1, aggregate, depth_max = depth_max)
             for child
             in node.children
-            if self._get_node_log(child, depth + 1, aggregate, depth_max = depth_max) is not None
+            if self._get_node_log(child, depth + 1, aggregate, depth_max = depth_max) != [""]
             ]
 
         return node_log + self._flatten(children_logs)
@@ -81,7 +81,7 @@ class ComputationLog:
             ) -> List[str]:
         return [item for _list in list_of_lists for item in _list]
 
-    def lines(self, aggregate: bool = False, depth_max:int = None) -> List[str]:
+    def lines(self, aggregate: bool = False, depth_max: int = None) -> List[str]:
         depth = 1
 
         lines_by_tree = [
