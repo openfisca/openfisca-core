@@ -30,64 +30,22 @@ class ComputationLog:
 
         return numpy.array2string(value, max_line_width = float("inf"))
 
-    def _get_node_log(
+    def lines(
             self,
-            node: tracers.TraceNode,
-            depth: int,
-            aggregate: bool,
+            aggregate: bool = False,
+            max_depth: Optional[int] = None,
             ) -> List[str]:
-
-        def print_line(depth: int, node: tracers.TraceNode) -> str:
-            indent = '  ' * depth
-            value = node.value
-
-            if value is None:
-                formatted_value = "{'avg': '?', 'max': '?', 'min': '?'}"
-
-            elif aggregate:
-                try:
-                    formatted_value = str({
-                        'avg': numpy.mean(value),
-                        'max': numpy.max(value),
-                        'min': numpy.min(value),
-                        })
-
-                except TypeError:
-                    formatted_value = "{'avg': '?', 'max': '?', 'min': '?'}"
-
-            else:
-                formatted_value = self.display(value)
-
-            return f"{indent}{node.name}<{node.period}> >> {formatted_value}"
-
-        node_log = [print_line(depth, node)]
-
-        children_logs = [
-            self._get_node_log(child, depth + 1, aggregate)
-            for child
-            in node.children
-            ]
-
-        return node_log + self._flatten(children_logs)
-
-    def _flatten(
-            self,
-            list_of_lists: List[List[str]],
-            ) -> List[str]:
-        return [item for _list in list_of_lists for item in _list]
-
-    def lines(self, aggregate: bool = False) -> List[str]:
         depth = 1
 
         lines_by_tree = [
-            self._get_node_log(node, depth, aggregate)
+            self._get_node_log(node, depth, aggregate, max_depth)
             for node
             in self._full_tracer.trees
             ]
 
         return self._flatten(lines_by_tree)
 
-    def print_log(self, aggregate = False) -> None:
+    def print_log(self, aggregate = False, max_depth = None) -> None:
         """
         Print the computation log of a simulation.
 
@@ -98,6 +56,67 @@ class ComputationLog:
         average value of each computed vector.
 
         This mode is more suited for simulations on a large population.
+
+        If ``max_depth`` is ``None`` (default), print the entire computation.
+
+        If ``max_depth`` is set, for example to ``3``, only print computed
+        vectors up to a depth of ``max_depth``.
         """
-        for line in self.lines(aggregate):
+        for line in self.lines(aggregate, max_depth):
             print(line)  # noqa T001
+
+    def _get_node_log(
+            self,
+            node: tracers.TraceNode,
+            depth: int,
+            aggregate: bool,
+            max_depth: Optional[int],
+            ) -> List[str]:
+
+        if max_depth is not None and depth > max_depth:
+            return []
+
+        node_log = [self._print_line(depth, node, aggregate, max_depth)]
+
+        children_logs = [
+            self._get_node_log(child, depth + 1, aggregate, max_depth)
+            for child
+            in node.children
+            ]
+
+        return node_log + self._flatten(children_logs)
+
+    def _print_line(
+            self,
+            depth: int,
+            node: tracers.TraceNode,
+            aggregate: bool,
+            max_depth: Optional[int],
+            ) -> str:
+        indent = '  ' * depth
+        value = node.value
+
+        if value is None:
+            formatted_value = "{'avg': '?', 'max': '?', 'min': '?'}"
+
+        elif aggregate:
+            try:
+                formatted_value = str({
+                    'avg': numpy.mean(value),
+                    'max': numpy.max(value),
+                    'min': numpy.min(value),
+                    })
+
+            except TypeError:
+                formatted_value = "{'avg': '?', 'max': '?', 'min': '?'}"
+
+        else:
+            formatted_value = self.display(value)
+
+        return f"{indent}{node.name}<{node.period}> >> {formatted_value}"
+
+    def _flatten(
+            self,
+            lists: List[List[str]],
+            ) -> List[str]:
+        return [item for list_ in lists for item in list_]

@@ -1,5 +1,12 @@
 # Changelog
 
+### 35.9.0 [#1150](https://github.com/openfisca/openfisca-core/pull/1150)
+
+#### New Features
+
+- Introduce a maximal depth for compuation logs
+  - Allows for limiting the depth of the computation log chain
+
 ### 35.8.6 [#1145](https://github.com/openfisca/openfisca-core/pull/1145)
 
 #### Technical changes

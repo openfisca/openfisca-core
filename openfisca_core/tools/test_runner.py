@@ -144,6 +144,8 @@ class YamlItem(pytest.Item):
         period = self.test.get('period')
         max_spiral_loops = self.test.get('max_spiral_loops')
         verbose = self.options.get('verbose')
+        aggregate = self.options.get('aggregate')
+        max_depth = self.options.get('max_depth')
         performance_graph = self.options.get('performance_graph')
         performance_tables = self.options.get('performance_tables')
 
@@ -165,15 +167,15 @@ class YamlItem(pytest.Item):
         finally:
             tracer = self.simulation.tracer
             if verbose:
-                self.print_computation_log(tracer)
+                self.print_computation_log(tracer, aggregate, max_depth)
             if performance_graph:
                 self.generate_performance_graph(tracer)
             if performance_tables:
                 self.generate_performance_tables(tracer)
 
-    def print_computation_log(self, tracer):
+    def print_computation_log(self, tracer, aggregate, max_depth):
         print("Computation log:")  # noqa T001
-        tracer.print_computation_log()
+        tracer.print_computation_log(aggregate, max_depth)
 
     def generate_performance_graph(self, tracer):
         tracer.generate_performance_graph('.')
