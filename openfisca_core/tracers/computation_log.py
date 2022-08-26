@@ -43,7 +43,7 @@ class ComputationLog:
             in self._full_tracer.trees
             ]
 
-        return self._compact(self._flatten(lines_by_tree))
+        return self._flatten(lines_by_tree)
 
     def print_log(self, aggregate = False, max_depth = None) -> None:
         """
@@ -71,7 +71,10 @@ class ComputationLog:
             depth: int,
             aggregate: bool,
             max_depth: Optional[int],
-            ) -> List[Optional[str]]:
+            ) -> List[str]:
+
+        if max_depth is not None and (depth > max_depth):
+            return []
 
         node_log = [self._print_line(depth, node, aggregate, max_depth)]
 
@@ -89,12 +92,9 @@ class ComputationLog:
             node: tracers.TraceNode,
             aggregate: bool,
             max_depth: Optional[int],
-            ) -> Optional[str]:
+            ) -> str:
         indent = '  ' * depth
         value = node.value
-
-        if max_depth is not None and (depth > max_depth):
-            return None
 
         if value is None:
             formatted_value = "{'avg': '?', 'max': '?', 'min': '?'}"
@@ -115,14 +115,8 @@ class ComputationLog:
 
         return f"{indent}{node.name}<{node.period}> >> {formatted_value}"
 
-    def _compact(
-            self,
-            list_: List[Optional[str]],
-            ) -> List[str]:
-        return [item for item in list_ if item is not None]
-
     def _flatten(
             self,
-            lists: List[List[Optional[str]]],
-            ) -> List[Optional[str]]:
+            lists: List[List[str]],
+            ) -> List[str]:
         return [item for list_ in lists for item in list_]
