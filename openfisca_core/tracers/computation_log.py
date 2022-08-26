@@ -73,7 +73,7 @@ class ComputationLog:
             max_depth: Optional[int],
             ) -> List[str]:
 
-        if max_depth is not None and (depth > max_depth):
+        if max_depth is not None and depth > max_depth:
             return []
 
         node_log = [self._print_line(depth, node, aggregate, max_depth)]
