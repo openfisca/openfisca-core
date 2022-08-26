@@ -380,32 +380,6 @@ def test_log_format(tracer):
     assert lines[1] == '    B<2017> >> [1]'
 
 
-def test_log_format_max_depth(tracer):
-    tracer._enter_calculation("A", 2017)
-    tracer._enter_calculation("B", 2017)
-    tracer._enter_calculation("C", 2017)
-    tracer.record_calculation_result(np.asarray([1]))
-    tracer._exit_calculation()
-    tracer.record_calculation_result(np.asarray([2]))
-    tracer._exit_calculation()
-    tracer.record_calculation_result(np.asarray([3]))
-    tracer._exit_calculation()
-
-    lines = tracer.computation_log.lines()
-    assert lines[0] == '  A<2017> >> [3]'
-    assert lines[1] == '    B<2017> >> [2]'
-    assert lines[2] == '      C<2017> >> [1]'
-
-    lines = tracer.computation_log.lines(depth_max = 2)
-    assert lines[0] == '  A<2017> >> [3]'
-    assert lines[1] == '    B<2017> >> [2]'
-    assert len(lines) == 2
-
-    lines = tracer.computation_log.lines(depth_max = 1)
-    assert lines[0] == '  A<2017> >> [3]'
-    assert len(lines) == 1
-
-
 def test_log_format_forest(tracer):
     tracer._enter_calculation("A", 2017)
     tracer.record_calculation_result(np.asarray([1]))
@@ -445,6 +419,25 @@ def test_log_aggregate_with_strings(tracer):
 
     lines = tracer.computation_log.lines(aggregate = True)
     assert lines[0] == "  A<2017> >> {'avg': '?', 'max': '?', 'min': '?'}"
+
+
+def test_log_max_depth(tracer):
+    tracer._enter_calculation("A", 2017)
+    tracer._enter_calculation("B", 2017)
+    tracer._enter_calculation("C", 2017)
+    tracer.record_calculation_result(np.asarray([3]))
+    tracer._exit_calculation()
+    tracer.record_calculation_result(np.asarray([2]))
+    tracer._exit_calculation()
+    tracer.record_calculation_result(np.asarray([1]))
+    tracer._exit_calculation()
+
+    assert len(tracer.computation_log.lines()) == 3
+    assert len(tracer.computation_log.lines(max_depth = 4)) == 3
+    assert len(tracer.computation_log.lines(max_depth = 3)) == 3
+    assert len(tracer.computation_log.lines(max_depth = 2)) == 2
+    assert len(tracer.computation_log.lines(max_depth = 1)) == 1
+    assert len(tracer.computation_log.lines(max_depth = 0)) == 0
 
 
 def test_no_wrapping(tracer):

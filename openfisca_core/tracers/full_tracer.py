@@ -121,8 +121,8 @@ class FullTracer:
     def _get_time_in_sec(self) -> float:
         return time.time_ns() / (10**9)
 
-    def print_computation_log(self, depth_max = None, aggregate = False):
-        self.computation_log.print_log(aggregate, depth_max = depth_max)
+    def print_computation_log(self, aggregate = False, max_depth = None):
+        self.computation_log.print_log(aggregate, max_depth)
 
     def generate_performance_graph(self, dir_path: str) -> None:
         self.performance_log.generate_graph(dir_path)
