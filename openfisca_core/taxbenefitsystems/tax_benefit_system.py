@@ -292,7 +292,7 @@ class TaxBenefitSystem:
 
         return reform(self)
 
-    def get_variable(self, variable_name, check_existence = False):
+    def get_variable(self, variable_name: str, check_existence = False):
         """
         Get a variable from the tax and benefit system.
 
@@ -305,7 +305,7 @@ class TaxBenefitSystem:
             raise VariableNotFoundError(variable_name, self)
         return found
 
-    def neutralize_variable(self, variable_name):
+    def neutralize_variable(self, variable_name: str):
         """
         Neutralizes an OpenFisca variable existing in the tax and benefit system.
 

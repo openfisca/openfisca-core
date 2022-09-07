@@ -6,17 +6,19 @@ from openfisca_core import projectors
 from openfisca_core.holders import Holder
 from openfisca_core.populations import config
 from openfisca_core.projectors import Projector
+from openfisca_core.simulations import Simulation
+from openfisca_core.entities import Entity
 
 
 class Population:
     def __init__(self, entity):
         self.simulation = None
-        self.entity = entity
+        self.entity: Entity = entity
         self._holders = {}
         self.count = 0
         self.ids = []
 
-    def clone(self, simulation):
+    def clone(self, simulation: Simulation):
         result = Population(self.entity)
         result.simulation = simulation
         result._holders = {variable: holder.clone(result) for (variable, holder) in self._holders.items()}
@@ -46,7 +48,7 @@ class Population:
             raise ValueError("Input {} is not a valid value for the entity {} (size = {} != {} = count)".format(
                 array, self.entity.key, array.size, self.count))
 
-    def check_period_validity(self, variable_name, period):
+    def check_period_validity(self, variable_name: str, period):
         if period is None:
             stack = traceback.extract_stack()
             filename, line_number, function_name, line_of_code = stack[-3]
@@ -58,7 +60,7 @@ When you request the computation of a variable within a formula, you must always
 See more information at <https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-variable-definition>.
 '''.format(variable_name, filename, line_number, line_of_code))
 
-    def __call__(self, variable_name, period = None, options = None):
+    def __call__(self, variable_name: str, period = None, options = None):
         """
             Calculate the variable ``variable_name`` for the entity and the period ``period``, using the variable formula if it exists.
 
@@ -86,7 +88,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
     # Helpers
 
-    def get_holder(self, variable_name):
+    def get_holder(self, variable_name: str):
         self.entity.check_variable_defined_for_entity(variable_name)
         holder = self._holders.get(variable_name)
         if holder:

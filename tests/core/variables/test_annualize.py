@@ -33,7 +33,7 @@ class PopulationMock:
     def __init__(self, variable):
         self.variable = variable
 
-    def __call__(self, variable_name, period):
+    def __call__(self, variable_name: str, period):
         if period.start.month == 1:
             return np.asarray([100])
         else:

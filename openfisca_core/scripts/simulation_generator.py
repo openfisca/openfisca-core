@@ -44,7 +44,7 @@ def make_simulation(tax_benefit_system, nb_persons, nb_groups, **kwargs):
     return simulation
 
 
-def randomly_init_variable(simulation, variable_name, period, max_value, condition = None):
+def randomly_init_variable(simulation, variable_name: str, period, max_value, condition = None):
     """
         Initialise a variable with random values (from 0 to max_value) for the given period.
         If a condition vector is provided, only set the value of persons or groups for which condition is True.

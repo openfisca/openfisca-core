@@ -554,8 +554,8 @@ class SimulationBuilder:
                         + mesh.reshape(cell_count) * (axis['max'] - axis['min']) / (axis_count - 1)
                     self.input_buffer[axis_name][str(axis_period)] = array
 
-    def get_variable_entity(self, variable_name):
+    def get_variable_entity(self, variable_name: str):
         return self.variable_entities[variable_name]
 
-    def register_variable(self, variable_name, entity):
+    def register_variable(self, variable_name: str, entity):
         self.variable_entities[variable_name] = entity

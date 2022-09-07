@@ -4,11 +4,15 @@ import warnings
 import numpy
 
 from openfisca_core import commons, periods
+from openfisca_core.entities import Entity
 from openfisca_core.errors import CycleError, SpiralError
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import Period
 from openfisca_core.tracers import FullTracer, SimpleTracer, TracingParameterNodeAtInstant
 from openfisca_core.warnings import TempfileWarning
+from openfisca_core.taxbenefitsystems import TaxBenefitSystem
+from openfisca_core.populations import Population
+from typing import Dict
 
 
 class Simulation:
@@ -18,8 +22,8 @@ class Simulation:
 
     def __init__(
             self,
-            tax_benefit_system,
-            populations
+            tax_benefit_system: TaxBenefitSystem,
+            populations: Dict[str, Population],
             ):
         """
         This constructor is reserved for internal use; see :any:`SimulationBuilder`,
@@ -42,7 +46,7 @@ class Simulation:
         self.opt_out_cache = False
 
         # controls the spirals detection; check for performance impact if > 1
-        self.max_spiral_loops = 1
+        self.max_spiral_loops: int = 1
         self.memory_config = None
         self._data_storage_dir = None
 
@@ -83,7 +87,7 @@ class Simulation:
 
     # ----- Calculation methods ----- #
 
-    def calculate(self, variable_name, period):
+    def calculate(self, variable_name: str, period):
         """Calculate ``variable_name`` for ``period``."""
 
         if period is not None and not isinstance(period, Period):
@@ -100,7 +104,7 @@ class Simulation:
             self.tracer.record_calculation_end()
             self.purge_cache_of_invalid_values()
 
-    def _calculate(self, variable_name, period: Period):
+    def _calculate(self, variable_name: str, period: Period):
         """
         Calculate the variable ``variable_name`` for the period ``period``, using the variable formula if it exists.
 
@@ -145,7 +149,7 @@ class Simulation:
             holder.delete_arrays(_period)
         self.invalidated_caches = set()
 
-    def calculate_add(self, variable_name, period):
+    def calculate_add(self, variable_name: str, period):
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
 
         if period is not None and not isinstance(period, Period):
@@ -169,7 +173,7 @@ class Simulation:
             for sub_period in period.get_subperiods(variable.definition_period)
             )
 
-    def calculate_divide(self, variable_name, period):
+    def calculate_divide(self, variable_name: str, period):
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
 
         if period is not None and not isinstance(period, Period):
@@ -194,7 +198,7 @@ class Simulation:
             variable_name,
             period))
 
-    def calculate_output(self, variable_name, period):
+    def calculate_output(self, variable_name: str, period):
         """
         Calculate the value of a variable using the ``calculate_output`` attribute of the variable.
         """
@@ -309,7 +313,7 @@ class Simulation:
 
     # ----- Methods to access stored values ----- #
 
-    def get_array(self, variable_name, period):
+    def get_array(self, variable_name: str, period):
         """
         Return the value of ``variable_name`` for ``period``, if this value is alreay in the cache (if it has been set as an input or previously calculated).
 
@@ -319,7 +323,7 @@ class Simulation:
             period = periods.period(period)
         return self.get_holder(variable_name).get_array(period)
 
-    def get_holder(self, variable_name):
+    def get_holder(self, variable_name: str):
         """
         Get the :obj:`.Holder` associated with the variable ``variable_name`` for the simulation
         """
@@ -387,7 +391,7 @@ class Simulation:
         """
         return self.get_holder(variable).get_known_periods()
 
-    def set_input(self, variable_name, period, value):
+    def set_input(self, variable_name: str, period, value):
         """
         Set a variable's value for a given period
 
@@ -410,14 +414,14 @@ class Simulation:
             return
         self.get_holder(variable_name).set_input(period, value)
 
-    def get_variable_population(self, variable_name):
+    def get_variable_population(self, variable_name: str) -> Population:
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
         return self.populations[variable.entity.key]
 
-    def get_population(self, plural = None):
+    def get_population(self, plural = None) -> Population:
         return next((population for population in self.populations.values() if population.entity.plural == plural), None)
 
-    def get_entity(self, plural = None):
+    def get_entity(self, plural = None) -> Entity:
         population = self.get_population(plural)
         return population and population.entity
 
