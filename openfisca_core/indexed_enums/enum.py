@@ -6,7 +6,8 @@ import enum
 
 import numpy
 
-from . import ENUM_ARRAY_DTYPE, EnumArray
+from .config import ENUM_ARRAY_DTYPE
+from .enum_array import EnumArray
 
 
 class Enum(enum.Enum):

@@ -6,7 +6,7 @@ from typing import Any, NoReturn, Optional, Type
 import numpy
 
 if typing.TYPE_CHECKING:
-    from openfisca_core.indexed_enums import Enum
+    from . import Enum
 
 
 class EnumArray(numpy.ndarray):
