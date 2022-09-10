@@ -30,7 +30,6 @@ def empty_clone(original: T) -> T:
     """
 
     Dummy: object
-    new: T
 
     Dummy = type(
         "Dummy",
