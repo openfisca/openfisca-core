@@ -5,7 +5,8 @@ import numpy
 
 from openfisca_core import parameters, tools
 from openfisca_core.errors import ParameterNotFoundError
-from openfisca_core.parameters import helpers
+
+from . import helpers
 
 
 class ParameterNodeAtInstant:

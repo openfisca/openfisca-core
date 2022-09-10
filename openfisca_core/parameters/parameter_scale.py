@@ -5,13 +5,15 @@ import os
 
 from openfisca_core import commons, parameters, tools
 from openfisca_core.errors import ParameterParsingError
-from openfisca_core.parameters import AtInstantLike, config, helpers
 from openfisca_core.taxscales import (
     LinearAverageRateTaxScale,
     MarginalAmountTaxScale,
     MarginalRateTaxScale,
     SingleAmountTaxScale,
     )
+
+from . import config, helpers
+from .at_instant_like import AtInstantLike
 
 
 class ParameterScale(AtInstantLike):

@@ -5,7 +5,8 @@ import numpy
 
 from openfisca_core import parameters, periods
 from openfisca_core.errors import ParameterParsingError
-from openfisca_core.parameters import config
+
+from . import config
 
 
 def contains_nan(vector):

@@ -7,7 +7,10 @@ import os
 
 from openfisca_core import commons, periods
 from openfisca_core.errors import ParameterParsingError
-from openfisca_core.parameters import AtInstantLike, ParameterAtInstant, config, helpers
+
+from . import config, helpers
+from .at_instant_like import AtInstantLike
+from .parameter_at_instant import ParameterAtInstant
 
 
 class Parameter(AtInstantLike):

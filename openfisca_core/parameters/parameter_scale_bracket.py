@@ -1,4 +1,4 @@
-from openfisca_core.parameters import ParameterNode
+from .parameter_node import ParameterNode
 
 
 class ParameterScaleBracket(ParameterNode):

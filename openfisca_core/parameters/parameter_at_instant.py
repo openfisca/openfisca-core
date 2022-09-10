@@ -4,7 +4,8 @@ import copy
 
 from openfisca_core import commons
 from openfisca_core.errors import ParameterParsingError
-from openfisca_core.parameters import config, helpers
+
+from . import config, helpers
 
 
 class ParameterAtInstant:
