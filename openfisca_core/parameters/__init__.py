@@ -21,7 +21,7 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
-from openfisca_core.errors import ParameterNotFound, ParameterParsingError  # noqa: F401
+from openfisca_core.errors import ParameterNotFoundError, ParameterParsingError  # noqa: F401
 
 from .at_instant_like import AtInstantLike  # noqa: F401
 from .config import (  # noqa: F401

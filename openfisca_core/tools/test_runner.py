@@ -11,7 +11,7 @@ import pytest
 
 from openfisca_core import commons
 from openfisca_core.errors import SituationParsingError, VariableNotFound
-from openfisca_core.simulation_builder import SimulationBuilder
+from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.tools import assert_near
 
 yaml, Loader = commons.import_yaml()
