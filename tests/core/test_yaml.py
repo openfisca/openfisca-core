@@ -8,9 +8,9 @@ import openfisca_extension_template
 
 from openfisca_core.tools.test_runner import run_tests
 
+from tests.fixtures import yaml_tests
 
-openfisca_core_dir = pkg_resources.get_distribution('OpenFisca-Core').location
-yaml_tests_dir = os.path.join(openfisca_core_dir, 'tests', 'core', 'yaml_tests')
+yaml_tests_dir = os.path.dirname(yaml_tests.__file__)
 EXIT_OK = 0
 EXIT_TESTSFAILED = 1
 

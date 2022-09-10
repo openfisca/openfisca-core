@@ -53,7 +53,7 @@ class Population:
     def check_array_compatible_with_entity(self, array):
         if not self.count == array.size:
             raise ValueError("Input {} is not a valid value for the entity {} (size = {} != {} = count)".format(
-                array, self.key, array.size, self.count))
+                array, self.entity.key, array.size, self.count))
 
     @staticmethod
     def check_period_validity(variable_name, period):
@@ -126,7 +126,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     @projectors.projectable
     def has_role(self, role):
         """
-            Check if a person has a given role within its :any:`GroupEntity`
+            Check if a person has a given role within its `GroupEntity`
 
             Example:
 

@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any, Dict, Optional, Sequence
+
 import copy
 import glob
 import importlib
@@ -28,28 +32,27 @@ class TaxBenefitSystem:
 
     It stores parameters (values defined for everyone) and variables (values defined for some given entity e.g. a person).
 
-    :param entities: Entities used by the tax benefit system.
-    :param string parameters: Directory containing the YAML parameter files.
+    Attributes:
+        parameters: Directory containing the YAML parameter files.
 
+    Args:
+        entities: Entities used by the tax benefit system.
 
-    .. attribute:: parameters
-
-       :obj:`.ParameterNode` containing the legislation parameters
     """
     _base_tax_benefit_system = None
-    _parameters_at_instant_cache = None
+    _parameters_at_instant_cache: Optional[Dict[Any, Any]] = None
     person_key_plural = None
     preprocess_parameters = None
     baseline = None  # Baseline tax-benefit system. Used only by reforms. Note: Reforms can be chained.
     cache_blacklist = None
     decomposition_file_path = None
 
-    def __init__(self, entities):
+    def __init__(self, entities: Sequence[Entity]) -> None:
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
-        self.parameters = None
+        self.parameters: Optional[ParameterNode] = None
         self._parameters_at_instant_cache = {}  # weakref.WeakValueDictionary()
-        self.variables = {}
-        self.open_api_config = {}
+        self.variables: Dict[Any, Any] = {}
+        self.open_api_config: Dict[Any, Any] = {}
         # Tax benefit systems are mutable, so entities (which need to know about our variables) can't be shared among them
         if entities is None or len(entities) == 0:
             raise Exception("A tax and benefit sytem must have at least an entity.")
@@ -143,13 +146,15 @@ class TaxBenefitSystem:
 
         return variable
 
-    def add_variable(self, variable):
-        """
-        Adds an OpenFisca variable to the tax and benefit system.
+    def add_variable(self, variable: Variable) -> Variable:
+        """Adds an OpenFisca variable to the tax and benefit system.
 
-        :param .Variable variable: The variable to add. Must be a subclass of Variable.
+        Args:
+            variable: The variable to add. Must be a subclass of Variable.
 
-        :raises: :exc:`.VariableNameConflictError` if a variable with the same name have previously been added to the tax and benefit system.
+        Raises:
+            openfisca_core.errors.VariableNameConflictError: if a variable with the same name have previously been added to the tax and benefit system.
+
         """
         return self.load_variable(variable, update = False)
 
@@ -192,7 +197,7 @@ class TaxBenefitSystem:
             #  As Python remembers loaded modules by name, in order to prevent collisions, we need to make sure that:
             #  - Files with the same name, but located in different directories, have a different module names. Hence the file path hash in the module name.
             #  - The same file, loaded by different tax and benefit systems, has distinct module names. Hence the `id(self)` in the module name.
-            module_name = f'{id(self)}_{hash(os.path.abspath(file_path))}_{file_name}'
+            module_name = f"{id(self)}_{hash(os.path.abspath(file_path))}_{file_name}"
 
             try:
                 spec = importlib.util.spec_from_file_location(module_name, file_path)
@@ -235,7 +240,7 @@ class TaxBenefitSystem:
         """
         Loads an extension to the tax and benefit system.
 
-        :param string extension: The extension to load. Can be an absolute path pointing to an extension directory, or the name of an OpenFisca extension installed as a pip package.
+        :param str extension: The extension to load. Can be an absolute path pointing to an extension directory, or the name of an OpenFisca extension installed as a pip package.
 
         """
         # Load extension from installed pip package
@@ -255,19 +260,20 @@ class TaxBenefitSystem:
             extension_parameters = ParameterNode(directory_path = param_dir)
             self.parameters.merge(extension_parameters)
 
-    def apply_reform(self, reform_path):
-        """
-        Generates a new tax and benefit system applying a reform to the tax and benefit system.
+    def apply_reform(self, reform_path: str) -> "TaxBenefitSystem":
+        """Generates a new tax and benefit system applying a reform to the tax and benefit system.
 
         The current tax and benefit system is **not** mutated.
 
-        :param string reform_path: The reform to apply. Must respect the format *installed_package.sub_module.reform*
+        Args:
+            reform_path: The reform to apply. Must respect the format *installed_package.sub_module.reform*
 
-        :returns: A reformed tax and benefit system.
+        Returns:
+            TaxBenefitSystem: A reformed tax and benefit system.
 
         Example:
 
-        >>> self.apply_reform('openfisca_france.reforms.inversion_revenus')
+            >>> self.apply_reform('openfisca_france.reforms.inversion_revenus')
 
         """
 
@@ -420,9 +426,9 @@ class TaxBenefitSystem:
         """
         Gets all variables contained in a tax and benefit system.
 
-        :param .Entity entity: If set, returns only the variable defined for the given entity.
+        :param Entity entity: If set, returns only the variable defined for the given entity.
 
-        :returns: A dictionnary, indexed by variable names.
+        :returns: A dictionary, indexed by variable names.
         :rtype: dict
 
         """

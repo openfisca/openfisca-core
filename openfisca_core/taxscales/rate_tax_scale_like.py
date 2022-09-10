@@ -185,6 +185,33 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
 
         return (base1 - thresholds1 >= 0).sum(axis = 1) - 1
 
+    def threshold_from_tax_base(
+            self,
+            tax_base: NumericalArray,
+            ) -> NumericalArray:
+        """
+        Compute the relevant thresholds for the given tax bases.
+
+        :param: ndarray tax_base: Array of the tax bases.
+
+        :returns: Floating array with relevant thresholds
+                  for the given tax bases.
+
+        For instance:
+
+        >>> import numpy
+        >>> from openfisca_core import taxscales
+        >>> tax_scale = taxscales.MarginalRateTaxScale()
+        >>> tax_scale.add_bracket(0, 0)
+        >>> tax_scale.add_bracket(200, 0.1)
+        >>> tax_scale.add_bracket(500, 0.25)
+        >>> tax_base = numpy.array([450, 1_150, 10])
+        >>> tax_scale.threshold_from_tax_base(tax_base)
+        array([200, 500,   0])
+        """
+
+        return numpy.array(self.thresholds)[self.bracket_indices(tax_base)]
+
     def to_dict(self) -> dict:
         return {
             str(threshold): self.rates[index]

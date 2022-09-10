@@ -17,6 +17,8 @@ def main(parser):
         'performance_graph': args.performance_graph,
         'performance_tables': args.performance_tables,
         'verbose': args.verbose,
+        'aggregate': args.aggregate,
+        'max_depth': args.max_depth,
         'name_filter': args.name_filter,
         'only_variables': args.only_variables,
         'ignore_variables': args.ignore_variables,

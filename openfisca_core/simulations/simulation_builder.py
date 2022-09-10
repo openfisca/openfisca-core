@@ -435,9 +435,12 @@ class SimulationBuilder:
         # We do a basic research to find the culprit path
         culprit_path = next(
             dpath.search(json, f"*/{e.variable_name}/{str(e.period)}", yielded = True),
-            None)
+            None,
+            )
+
         if culprit_path:
             path = [entity.plural] + culprit_path[0].split('/')
+
         else:
             path = [entity.plural]  # Fallback: if we can't find the culprit, just set the error at the entities level
 

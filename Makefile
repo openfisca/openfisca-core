@@ -1,156 +1,34 @@
-help = sed -n "/^$1/ { x ; p ; } ; s/\#\#/\r[⚙]/ ; s/\./…/ ; x" ${MAKEFILE_LIST}
-list = $(shell git ls-files "*.py" | paste -sd ",")
-size = $(shell IFS="," read -a list <<< ${list} ; echo $$(($${\#list[@]} / 4 + 1)))
-set1 = $(shell IFS="," read -a list <<< ${list} ; echo $${list[@]:0:${size}})
-set2 = $(shell IFS="," read -a list <<< ${list} ; echo $${list[@]:${size}:${size}})
-set3 = $(shell IFS="," read -a list <<< ${list} ; echo $${list[@]:$$((${size} * 2)):${size}})
-set4 = $(shell IFS="," read -a list <<< ${list} ; echo $${list[@]:$$((${size} * 3)):${size}})
-repo = https://github.com/openfisca/openfisca-doc
-branch = $(shell git branch --show-current)
+include openfisca_tasks/install.mk
+include openfisca_tasks/lint.mk
+include openfisca_tasks/publish.mk
+include openfisca_tasks/serve.mk
+include openfisca_tasks/test_code.mk
+
+## To share info with the user, but no action is needed.
+print_info = $$(tput setaf 6)[i]$$(tput sgr0)
+
+## To warn the user of something, but no action is needed.
+print_warn = $$(tput setaf 3)[!]$$(tput sgr0)
+
+## To let the user know where we are in the task pipeline.
+print_work = $$(tput setaf 5)[⚙]$$(tput sgr0)
+
+## To let the user know the task in progress succeded.
+## The `$1` is a function argument, passed from a task (usually the task name).
+print_pass = echo $$(tput setaf 2)[✓]$$(tput sgr0) $$(tput setaf 8)$1$$(tput sgr0)$$(tput setaf 2)passed$$(tput sgr0) $$(tput setaf 1)❤$$(tput sgr0)
+
+## Similar to `print_work`, but this will read the comments above a task, and
+## print them to the user at the start of each task. The `$1` is a function
+## argument.
+print_help = sed -n "/^$1/ { x ; p ; } ; s/\#\#/\r$(print_work)/ ; s/\./…/ ; x" ${MAKEFILE_LIST}
+
+## Same as `make`.
+.DEFAULT_GOAL := all
 
 ## Same as `make test`.
 all: test
+	@$(call print_pass,$@:)
 
-## Run openfisca-core tests.
-test: \
-	clean \
-	check-syntax-errors \
-	check-style \
-	check-types \
-	test-code \
-	;
-
-
-## Install project dependencies.
-install:
-	@$(call help,$@:)
-	@pip install --upgrade pip twine wheel
-	@pip install --editable .[dev] --upgrade --use-deprecated=legacy-resolver
-
-## Install openfisca-core for deployment and publishing.
-build: setup.py
-	@## This allows us to be sure tests are run against the packaged version
-	@## of openfisca-core, the same we put in the hands of users and reusers.
-	@$(call help,$@:)
-	@python $? bdist_wheel
-	@find dist -name "*.whl" -exec pip install --force-reinstall {}[dev] \;
-
-## Uninstall project dependencies.
-uninstall:
-	@$(call help,$@:)
-	@pip freeze | grep -v "^-e" | sed "s/@.*//" | xargs pip uninstall -y
-
-## Delete builds and compiled python files.
-clean: \
-	$(shell ls -d * | grep "build\|dist") \
-	$(shell find . -name "*.pyc")
-	@$(call help,$@:)
-	@rm -rf $?
-
-## Compile python files to check for syntax errors.
-check-syntax-errors: .
-	@$(call help,$@:)
-	@python -m compileall -q $?
-
-## Run linters to check for syntax and style errors.
-check-style: \
-	check-style-1 \
-	check-style-2 \
-	check-style-3 \
-	check-style-4 \
-	;
-
-## Run linters to check for syntax and style errors.
-check-style-%:
-	@$(call help,$(subst $*,%,$@:))
-	@flake8 ${set$*}
-	@{ pylint --load-plugins pylint_pytest ${set$*} & } \
-		&& pid=$$! \
-		&& acc="$$(tput setaf 1)♥$$(tput sgr0)" \
-		&& { \
-			while kill -0 $${pid} 2> /dev/null ; \
-			do printf "\r[/] $${acc}"; \
-			sleep 1 ; \
-			acc="$$(tput setaf 2)·$$(tput sgr0)$${acc}" ; \
-			done \
-		}
-	@printf "\033[2K"
-
-## Run code formatters to correct style errors.
-format-style: $(shell git ls-files "*.py")
-	@$(call help,$@:)
-	@pyupgrade $? --py36-plus --keep-runtime-typing
-	@autopep8 $?
-
-## Run static type checkers for type errors.
-check-types: openfisca_core openfisca_web_api
-	@$(call help,$@:)
-	@mypy $?
-
-## Run openfisca-core tests.
-test-code:
-	@$(call help,$@:)
-	@env PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=openfisca_core" pytest
-
-## Check that the current changes do not break the doc.
-test-doc:
-	@##	Usage:
-	@##
-	@##		make test-doc [branch=BRANCH]
-	@##
-	@##	Examples:
-	@##
-	@##		# Will check the current branch in openfisca-doc.
-	@##		make test-doc
-	@##
-	@##		# Will check "test-doc" in openfisca-doc.
-	@##		make test-doc branch=test-doc
-	@##
-	@##		# Will check "master" if "asdf1234" does not exist.
-	@##		make test-doc branch=asdf1234
-	@##
-	@$(call help,$@:)
-	@${MAKE} test-doc-checkout
-	@${MAKE} test-doc-install
-	@${MAKE} test-doc-build
-
-## Update the local copy of the doc.
-test-doc-checkout:
-	@$(call help,$@:)
-	@[ ! -d doc ] && git clone ${repo} doc || :
-	@cd doc && { \
-		git reset --hard ; \
-		git fetch --all ; \
-		[ $$(git branch --show-current) != master ] && git checkout master || : ; \
-		[ ${branch} != "master" ] \
-			&& { \
-				{ \
-					git branch -D ${branch} 2> /dev/null ; \
-					git checkout ${branch} ; \
-				} \
-					&& git pull --ff-only origin ${branch} \
-					|| { \
-						>&2 echo "[!] The branch '${branch}' doesn't exist, checking out 'master' instead..." ; \
-						git pull --ff-only origin master ; \
-					} \
-			} \
-			|| git pull --ff-only origin master ; \
-	} 1> /dev/null
-
-## Install doc dependencies.
-test-doc-install:
-	@$(call help,$@:)
-	@pip install --requirement doc/requirements.txt 1> /dev/null
-	@pip install --editable .[dev] --upgrade 1> /dev/null
-
-## Dry-build the doc.
-test-doc-build:
-	@$(call help,$@:)
-	@sphinx-build -M dummy doc/source doc/build -n -q -W
-
-## Serve the openfisca Web API.
-api:
-	@$(call help,$@:)
-	@openfisca serve \
-		--country-package openfisca_country_template \
-		--extensions openfisca_extension_template
+## Run all lints and tests.
+test: clean lint test-code
+	@$(call print_pass,$@:)
