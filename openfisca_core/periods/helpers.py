@@ -1,7 +1,8 @@
+from typing import Tuple
+
 import calendar
 import datetime
 import os
-from typing import Tuple
 
 from openfisca_core import periods
 from openfisca_core.periods import config

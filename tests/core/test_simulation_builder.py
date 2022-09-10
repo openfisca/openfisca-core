@@ -1,8 +1,8 @@
-import datetime
 from typing import Iterable
 
-import pytest
+import datetime
 
+import pytest
 from openfisca_country_template import entities, situation_examples
 
 from openfisca_core import periods, tools

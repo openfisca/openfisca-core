@@ -4,7 +4,7 @@ import numpy
 
 from openfisca_core.parameters import ParameterNodeAtInstant
 from openfisca_core.periods import Instant, Period
-from openfisca_core.populations import Population, GroupPopulation
+from openfisca_core.populations import GroupPopulation, Population
 
 #: A collection of :obj:`.Entity` or :obj:`.GroupEntity`.
 People = Union[Population, GroupPopulation]

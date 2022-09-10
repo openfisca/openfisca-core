@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import typing
 from typing import Any, Dict, Optional, Sequence
 
 import copy
@@ -10,7 +11,6 @@ import logging
 import os
 import sys
 import traceback
-import typing
 
 import pkg_resources
 
@@ -19,7 +19,7 @@ from openfisca_core.entities import Entity
 from openfisca_core.errors import VariableNameConflictError, VariableNotFoundError
 from openfisca_core.parameters import ParameterNode
 from openfisca_core.periods import Instant, Period
-from openfisca_core.populations import Population, GroupPopulation
+from openfisca_core.populations import GroupPopulation, Population
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.variables import Variable
 
@@ -260,7 +260,7 @@ class TaxBenefitSystem:
             extension_parameters = ParameterNode(directory_path = param_dir)
             self.parameters.merge(extension_parameters)
 
-    def apply_reform(self, reform_path: str) -> "TaxBenefitSystem":
+    def apply_reform(self, reform_path: str) -> TaxBenefitSystem:
         """Generates a new tax and benefit system applying a reform to the tax and benefit system.
 
         The current tax and benefit system is **not** mutated.

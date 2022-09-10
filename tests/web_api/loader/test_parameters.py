@@ -1,6 +1,5 @@
 from openfisca_core.parameters import Scale
-
-from openfisca_web_api.loader.parameters import build_api_scale, build_api_parameter
+from openfisca_web_api.loader.parameters import build_api_parameter, build_api_scale
 
 
 def test_build_rate_scale():

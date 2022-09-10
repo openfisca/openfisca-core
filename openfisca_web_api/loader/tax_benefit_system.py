@@ -1,5 +1,5 @@
-import traceback
 import logging
+import traceback
 
 from openfisca_core import commons
 

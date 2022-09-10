@@ -3,7 +3,6 @@ import pytest
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.tools import test_runner
 
-
 # With periods
 
 

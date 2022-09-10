@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import dataclasses
 import typing
+
+import dataclasses
 
 if typing.TYPE_CHECKING:
     import numpy

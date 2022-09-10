@@ -10,10 +10,10 @@ Measure and compare different vectorial condition notations:
 
 The aim of this script is to compare the time taken by the calculation of the values
 """
-from contextlib import contextmanager
 import argparse
 import sys
 import time
+from contextlib import contextmanager
 
 import numpy as np
 

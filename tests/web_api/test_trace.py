@@ -3,8 +3,7 @@ import json
 from http import client
 
 import dpath
-
-from openfisca_country_template.situation_examples import single, couple
+from openfisca_country_template.situation_examples import couple, single
 
 
 def assert_items_equal(x, y):

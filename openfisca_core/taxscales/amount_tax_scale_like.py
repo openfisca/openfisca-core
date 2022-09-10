@@ -1,7 +1,8 @@
+import typing
+
 import abc
 import bisect
 import os
-import typing
 
 from openfisca_core import tools
 from openfisca_core.taxscales import TaxScaleLike

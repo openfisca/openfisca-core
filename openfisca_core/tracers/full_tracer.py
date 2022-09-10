@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-import time
 import typing
 from typing import Dict, Iterator, List, Optional, Union
+
+import time
 
 from .. import tracers
 

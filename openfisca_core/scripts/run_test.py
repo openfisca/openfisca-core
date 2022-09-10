@@ -1,9 +1,9 @@
 import logging
-import sys
 import os
+import sys
 
-from openfisca_core.tools.test_runner import run_tests
 from openfisca_core.scripts import build_tax_benefit_system
+from openfisca_core.tools.test_runner import run_tests
 
 
 def main(parser):

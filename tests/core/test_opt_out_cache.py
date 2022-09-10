@@ -1,11 +1,9 @@
 import pytest
-
 from openfisca_country_template.entities import Person
 
 from openfisca_core import periods
 from openfisca_core.periods import MONTH
 from openfisca_core.variables import Variable
-
 
 PERIOD = periods.period("2016-01")
 

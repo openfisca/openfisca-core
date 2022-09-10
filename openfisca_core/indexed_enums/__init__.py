@@ -22,5 +22,5 @@
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
 from .config import ENUM_ARRAY_DTYPE  # noqa: F401
-from .enum_array import EnumArray  # noqa: F401
 from .enum import Enum  # noqa: F401
+from .enum_array import EnumArray  # noqa: F401

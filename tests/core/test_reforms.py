@@ -1,11 +1,10 @@
 import warnings
 
 import pytest
-
 from openfisca_country_template.entities import Household, Person
 
 from openfisca_core import holders, periods, simulations, tools
-from openfisca_core.parameters import ValuesHistory, ParameterNode
+from openfisca_core.parameters import ParameterNode, ValuesHistory
 from openfisca_core.periods import Instant
 from openfisca_core.reforms import Reform
 from openfisca_core.variables import Variable

@@ -1,15 +1,16 @@
-import os
 from typing import List
 
-import pytest
-import numpy as np
+import os
 
-from openfisca_core.tools.test_runner import _get_tax_benefit_system, YamlItem
-from openfisca_core.errors import VariableNotFound
-from openfisca_core.variables import Variable
-from openfisca_core.populations import Population
+import numpy as np
+import pytest
+
 from openfisca_core.entities import Entity
+from openfisca_core.errors import VariableNotFound
 from openfisca_core.periods import ETERNITY
+from openfisca_core.populations import Population
+from openfisca_core.tools.test_runner import YamlItem, _get_tax_benefit_system
+from openfisca_core.variables import Variable
 
 
 class TaxBenefitSystem:

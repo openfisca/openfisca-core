@@ -1,8 +1,9 @@
+import numpy as np
+
+from openfisca_core.entities import build_entity
+from openfisca_core.model_api import ETERNITY, Enum, Variable
 from openfisca_core.simulations.simulation_builder import SimulationBuilder
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
-from openfisca_core.entities import build_entity
-from openfisca_core.model_api import Enum, Variable, ETERNITY
-import numpy as np
 
 
 def test_shortcut_to_containing_entity_provided():

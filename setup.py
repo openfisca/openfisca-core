@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 
-from setuptools import setup, find_packages
 from pathlib import Path
+
+from setuptools import find_packages, setup
 
 # Read the contents of our README file for PyPi
 this_directory = Path(__file__).parent
@@ -39,6 +40,7 @@ dev_requirements = [
     'flake8-docstrings == 1.6.0',
     'flake8-print >= 3.1.0, < 4.0.0',
     'flake8-rst-docstrings == 0.2.3',
+    'isort == 5.10.1',
     'mypy == 0.910',
     'openfisca-country-template >= 3.10.0, < 4.0.0',
     'openfisca-extension-template >= 1.2.0rc0, < 2.0.0',

@@ -2,9 +2,9 @@ import datetime
 import inspect
 import re
 import textwrap
-import sortedcontainers
 
 import numpy
+import sortedcontainers
 
 from openfisca_core import periods, tools
 from openfisca_core.entities import Entity

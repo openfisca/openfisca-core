@@ -44,7 +44,7 @@ def replace_in_file(filepath: str, info: dict):
     ::filepath:: Path to meta.yaml, with filename.
     ::info:: Dict with information to populate.
     """
-    with open(filepath, "rt", encoding="utf-8") as fin:
+    with open(filepath, encoding="utf-8") as fin:
         meta = fin.read()
     # Replace with info from PyPi
     meta = meta.replace("PYPI_VERSION", info["last_version"])

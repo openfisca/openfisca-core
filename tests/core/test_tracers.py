@@ -3,13 +3,12 @@ import json
 import os
 
 import numpy as np
-from pytest import fixture, mark, raises, approx
-
 from openfisca_country_template.variables.housing import HousingOccupancyStatus
+from pytest import approx, fixture, mark, raises
 
 from openfisca_core.entities import Entity
-from openfisca_core.simulations import Simulation, CycleError, SpiralError
-from openfisca_core.tracers import SimpleTracer, FullTracer, TracingParameterNodeAtInstant, TraceNode
+from openfisca_core.simulations import CycleError, Simulation, SpiralError
+from openfisca_core.tracers import FullTracer, SimpleTracer, TraceNode, TracingParameterNodeAtInstant
 
 from .parameters_fancy_indexing.test_fancy_indexing import parameters
 

@@ -1,5 +1,6 @@
-import copy
 import typing
+
+import copy
 
 from openfisca_core import commons
 from openfisca_core.errors import ParameterParsingError

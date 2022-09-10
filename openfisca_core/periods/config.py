@@ -1,5 +1,6 @@
-import re
 import typing
+
+import re
 
 DAY = 'day'
 MONTH = 'month'

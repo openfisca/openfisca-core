@@ -59,6 +59,7 @@ lint-typing-strict-%:
 ## Run code formatters to correct style errors.
 format-style: $(shell git ls-files "*.py")
 	@$(call print_help,$@:)
-	@pyupgrade $? --py37-plus --keep-runtime-typing
+	@isort $?
 	@autopep8 $?
+	@pyupgrade $? --py37-plus --keep-runtime-typing
 	@$(call print_pass,$@:)

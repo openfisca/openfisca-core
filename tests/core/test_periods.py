@@ -1,6 +1,6 @@
 import pytest
 
-from openfisca_core.periods import Period, Instant, YEAR, MONTH, DAY, period
+from openfisca_core.periods import DAY, MONTH, YEAR, Instant, Period, period
 
 first_jan = Instant((2014, 1, 1))
 first_march = Instant((2014, 3, 1))

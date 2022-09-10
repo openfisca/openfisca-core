@@ -1,8 +1,8 @@
 """Define the `openfisca serve` command line interface."""
 
+import logging
 import pathlib
 import sys
-import logging
 from importlib import util
 
 from openfisca_core.scripts import build_tax_benefit_system
@@ -10,8 +10,8 @@ from openfisca_web_api.app import create_app
 from openfisca_web_api.errors import handle_import_error
 
 try:
-    from gunicorn.app.base import BaseApplication
     from gunicorn import config
+    from gunicorn.app.base import BaseApplication
 except ImportError as error:
     handle_import_error(error)
 

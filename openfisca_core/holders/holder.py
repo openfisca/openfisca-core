@@ -5,8 +5,8 @@ import numpy
 import psutil
 
 from openfisca_core import commons, periods, tools
-from openfisca_core.errors import PeriodMismatchError
 from openfisca_core.data_storage import InMemoryStorage, OnDiskStorage
+from openfisca_core.errors import PeriodMismatchError
 from openfisca_core.indexed_enums import Enum
 
 

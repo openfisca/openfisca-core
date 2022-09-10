@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import typing
+
 import warnings
 
 from openfisca_core.taxscales import RateTaxScaleLike

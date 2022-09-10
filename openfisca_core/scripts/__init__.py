@@ -1,7 +1,7 @@
-import traceback
 import importlib
 import logging
 import pkgutil
+import traceback
 from os import linesep
 
 from openfisca_core import commons

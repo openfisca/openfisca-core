@@ -1,6 +1,6 @@
+from nptyping import NDArray as ArrayType
+from nptyping import types
 from typing import Sequence, TypeVar, Union
-
-from nptyping import types, NDArray as ArrayType
 
 import numpy
 
