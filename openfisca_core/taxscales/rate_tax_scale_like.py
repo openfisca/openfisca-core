@@ -10,7 +10,8 @@ import numpy
 
 from openfisca_core import tools
 from openfisca_core.errors import EmptyArgumentError
-from openfisca_core.taxscales import TaxScaleLike
+
+from .tax_scale_like import TaxScaleLike
 
 if typing.TYPE_CHECKING:
     NumArray = typing.Union[numpy.int_, numpy.float_]

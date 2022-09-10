@@ -4,8 +4,9 @@ import numpy
 
 from openfisca_core import projectors
 from openfisca_core.holders import Holder
-from openfisca_core.populations import config
 from openfisca_core.projectors import Projector
+
+from . import config
 
 
 class Population:

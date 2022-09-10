@@ -1,8 +1,8 @@
 import calendar
 import datetime
 
-from openfisca_core import periods
-from openfisca_core.periods import config, helpers
+from .. import periods
+from . import config, helpers
 
 
 class Instant(tuple):

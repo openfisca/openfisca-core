@@ -1,4 +1,4 @@
-from openfisca_core import entities
+from .. import entities
 
 
 def build_entity(key, plural, label, doc = "", roles = None, is_person = False, class_override = None, containing_entities = ()):

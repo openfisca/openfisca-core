@@ -1,7 +1,7 @@
 import os
 import textwrap
 
-from openfisca_core.entities import Role
+from .role import Role
 
 
 class Entity:

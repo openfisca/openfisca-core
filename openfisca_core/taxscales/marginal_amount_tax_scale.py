@@ -4,7 +4,7 @@ import typing
 
 import numpy
 
-from openfisca_core.taxscales import AmountTaxScaleLike
+from .amount_tax_scale_like import AmountTaxScaleLike
 
 if typing.TYPE_CHECKING:
     NumArray = typing.Union[numpy.int_, numpy.float_]

@@ -1,4 +1,4 @@
-from openfisca_core.parameters import Parameter, ParameterNode, Scale
+from openfisca_core.parameters import Parameter, ParameterNode, ParameterScale
 
 
 def build_api_values_history(values_history):
@@ -75,7 +75,7 @@ def build_api_parameter(parameter, country_package_metadata):
         if parameter.documentation:
             api_parameter['documentation'] = parameter.documentation.strip()
         api_parameter['values'] = build_api_values_history(parameter)
-    elif isinstance(parameter, Scale):
+    elif isinstance(parameter, ParameterScale):
         if 'rate' in parameter.brackets[0].children:
             api_parameter['brackets'] = build_api_scale(parameter, 'rate')
         elif 'amount' in parameter.brackets[0].children:

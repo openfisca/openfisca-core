@@ -4,8 +4,8 @@ import calendar
 import datetime
 import os
 
-from openfisca_core import periods
-from openfisca_core.periods import config
+from .. import periods
+from . import config
 
 
 def N_(message):

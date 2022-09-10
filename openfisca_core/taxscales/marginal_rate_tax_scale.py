@@ -8,7 +8,8 @@ import itertools
 import numpy
 
 from openfisca_core import taxscales
-from openfisca_core.taxscales import RateTaxScaleLike
+
+from .rate_tax_scale_like import RateTaxScaleLike
 
 if typing.TYPE_CHECKING:
     NumArray = typing.Union[numpy.int_, numpy.float_]

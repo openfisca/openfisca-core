@@ -1,4 +1,4 @@
-from openfisca_core import projectors
+from .. import projectors
 
 
 def projectable(function):

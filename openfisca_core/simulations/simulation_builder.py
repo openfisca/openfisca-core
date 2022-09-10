@@ -9,8 +9,10 @@ from openfisca_core import periods
 from openfisca_core.entities import Entity
 from openfisca_core.errors import PeriodMismatchError, SituationParsingError, VariableNotFoundError
 from openfisca_core.populations import Population
-from openfisca_core.simulations import Simulation, helpers
 from openfisca_core.variables import Variable
+
+from . import helpers
+from .simulation import Simulation
 
 
 class SimulationBuilder:

@@ -21,10 +21,6 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
-from openfisca_core.errors import EmptyArgumentError  # noqa: F401
-
-from .abstract_rate_tax_scale import AbstractRateTaxScale  # noqa: F401
-from .abstract_tax_scale import AbstractTaxScale  # noqa: F401
 from .amount_tax_scale_like import AmountTaxScaleLike  # noqa: F401
 from .helpers import combine_tax_scales  # noqa: F401
 from .linear_average_rate_tax_scale import LinearAverageRateTaxScale  # noqa: F401
