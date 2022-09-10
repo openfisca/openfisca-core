@@ -1,10 +1,10 @@
 from datetime import date  # noqa: F401 # pylint: disable=unused-import
 
 from numpy import logical_not as not_  # noqa: F401 # pylint: disable=unused-import
-from numpy import maximum as max_
-from numpy import minimum as min_
-from numpy import round as round_
-from numpy import select, where
+from numpy import maximum as max_  # noqa: F401
+from numpy import minimum as min_  # noqa: F401
+from numpy import round as round_  # noqa: F401
+from numpy import select, where  # noqa: F401
 
 from openfisca_core.commons import apply_thresholds, concat, switch  # noqa: F401 # pylint: disable=unused-import
 from openfisca_core.holders import (  # noqa: F401 # pylint: disable=unused-import
