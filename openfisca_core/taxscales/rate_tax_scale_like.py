@@ -187,8 +187,8 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
 
     def threshold_from_tax_base(
             self,
-            tax_base: NumericalArray,
-            ) -> NumericalArray:
+            tax_base: NumArray,
+            ) -> NumArray:
         """
         Compute the relevant thresholds for the given tax bases.
 

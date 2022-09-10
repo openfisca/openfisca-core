@@ -85,8 +85,8 @@ class ComputationLog:
 
         return node_log + self._flatten(children_logs)
 
-    @staticmethod
     def _print_line(
+            self,
             depth: int,
             node: tracers.TraceNode,
             aggregate: bool,

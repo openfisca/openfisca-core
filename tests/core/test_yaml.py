@@ -1,7 +1,6 @@
 import os
 import subprocess
 
-import pkg_resources
 import pytest
 
 import openfisca_extension_template

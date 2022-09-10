@@ -184,7 +184,7 @@ class MarginalRateTaxScale(RateTaxScaleLike):
 
     def rate_from_tax_base(
             self,
-            tax_base: NumericalArray,
+            tax_base: NumArray,
             ) -> numpy.float_:
         """
         Compute the relevant tax rates for the given tax bases.
