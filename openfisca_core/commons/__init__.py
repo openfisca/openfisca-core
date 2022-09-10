@@ -12,14 +12,6 @@ Official Public API:
     * :func:`.stringify_array`
     * :func:`.switch`
 
-Deprecated:
-    * :class:`.Dummy`
-
-Note:
-    The ``deprecated`` imports are transitional, in order to ensure non-breaking
-    changes, and could be removed from the codebase in the next
-    major release.
-
 Note:
     How imports are being used today::
 
@@ -60,9 +52,3 @@ from .rates import average_rate, marginal_rate  # noqa: F401
 __all__ = ["apply_thresholds", "concat", "switch"]
 __all__ = ["empty_clone", "stringify_array", *__all__]
 __all__ = ["average_rate", "marginal_rate", *__all__]
-
-# Deprecated
-
-from .dummy import Dummy  # noqa: F401
-
-__all__ = ["Dummy", *__all__]
