@@ -8,5 +8,5 @@ build:
 	@pip install --upgrade pip build twine
 	@python -m build
 	@pip uninstall --yes openfisca-core
-	@find dist -name "*.whl" -exec pip install {}[dev] \;
+	@find dist -name "*.whl" -exec pip install {}[dev,test] \;
 	@$(call print_pass,$@:)

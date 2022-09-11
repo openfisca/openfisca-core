@@ -32,23 +32,26 @@ api_requirements = [
     ]
 
 dev_requirements = [
-    'autopep8 >= 1.4.0, < 1.6.0',
-    'coverage == 6.0.2',
-    'darglint == 1.8.0',
-    'flake8 >= 4.0.0, < 4.1.0',
-    'flake8-bugbear >= 19.3.0, < 20.0.0',
-    'flake8-docstrings == 1.6.0',
-    'flake8-print >= 3.1.0, < 4.0.0',
-    'flake8-rst-docstrings == 0.2.3',
-    'isort == 5.10.1',
-    'mypy == 0.910',
-    'openfisca-country-template >= 3.10.0, < 4.0.0',
-    'openfisca-extension-template >= 1.2.0rc0, < 2.0.0',
-    'pycodestyle >= 2.8.0, < 2.9.0',
-    'pylint == 2.10.2',
-    'pylint-pytest == 1.1.2',
-    'pyupgrade == 2.28.0',
+    'autopep8',
+    'coverage',
+    'darglint',
+    'flake8',
+    'flake8-bugbear',
+    'flake8-docstrings',
+    'flake8-print',
+    'flake8-rst-docstrings',
+    'isort',
+    'mypy',
+    'pycodestyle',
+    'pylint',
+    'pylint-pytest',
+    'pyupgrade',
     ] + api_requirements
+
+test_requirements = [
+    'openfisca-country-template >= 3.0.0, < 4.0.0',
+    'openfisca-extension-template >= 1.0.0, < 2.0.0',
+    ] + dev_requirements
 
 setup(
     name = 'OpenFisca-Core',
@@ -88,6 +91,7 @@ setup(
         },
     extras_require = {
         'web-api': api_requirements,
+        'test': test_requirements,
         'dev': dev_requirements,
         'tracker': [
             'openfisca-tracker == 0.4.0',
