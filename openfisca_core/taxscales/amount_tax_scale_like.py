@@ -1,6 +1,5 @@
 import typing
 
-import abc
 import bisect
 import os
 
@@ -9,7 +8,7 @@ from openfisca_core import tools
 from .tax_scale_like import TaxScaleLike
 
 
-class AmountTaxScaleLike(TaxScaleLike, abc.ABC):
+class AmountTaxScaleLike(TaxScaleLike):
     """
     Base class for various types of amount-based tax scales: single amount,
     marginal amount...

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import typing
 
-import abc
 import bisect
 import os
 
@@ -17,7 +16,7 @@ if typing.TYPE_CHECKING:
     NumArray = typing.Union[numpy.int_, numpy.float_]
 
 
-class RateTaxScaleLike(TaxScaleLike, abc.ABC):
+class RateTaxScaleLike(TaxScaleLike):
     """
     Base class for various types of rate-based tax scales: marginal rate,
     linear average rate...
