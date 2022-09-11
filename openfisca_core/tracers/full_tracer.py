@@ -32,10 +32,10 @@ class FullTracer:
             period: Period,
             ) -> None:
         self._simple_tracer.record_calculation_start(variable, period)
-        self._enter_calculation(variable, period)
+        self.enter_calculation(variable, period)
         self._record_start_time()
 
-    def _enter_calculation(self, variable: str, period: Period) -> None:
+    def enter_calculation(self, variable: str, period: Period) -> None:
         new_node = tracers.TraceNode(
             name = variable,
             period = period,
@@ -49,8 +49,6 @@ class FullTracer:
             self._current_node.append_child(new_node)
 
         self._current_node = new_node
-
-    enter_calculation = _enter_calculation
 
     def record_parameter_access(
             self,
@@ -80,7 +78,7 @@ class FullTracer:
     def record_calculation_end(self) -> None:
         self._simple_tracer.record_calculation_end()
         self._record_end_time()
-        self._exit_calculation()
+        self.exit_calculation()
 
     def _record_end_time(self, time_in_s: Optional[float] = None) -> None:
         if time_in_s is None:
@@ -91,11 +89,9 @@ class FullTracer:
 
     record_end_time = _record_end_time
 
-    def _exit_calculation(self) -> None:
+    def exit_calculation(self) -> None:
         if self._current_node is not None:
             self._current_node = self._current_node.parent
-
-    exit_calculation = _exit_calculation
 
     @property
     def stack(self) -> Stack:
