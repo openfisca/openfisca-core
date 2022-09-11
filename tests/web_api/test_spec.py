@@ -14,7 +14,7 @@ def test_return_code(test_client):
     assert openAPI_response.status_code == client.OK
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope = "module")
 def body(test_client):
     openAPI_response = test_client.get('/spec')
     return json.loads(openAPI_response.data.decode('utf-8'))

@@ -20,11 +20,11 @@ class Reform(TaxBenefitSystem):
         >>>
         >>> def modify_my_parameters(parameters):
         >>>     # Add new parameters
-        >>>     new_parameters = load_parameter_file(name='reform_name', file_path='path_to_yaml_file.yaml')
+        >>>     new_parameters = load_parameter_file(name = 'reform_name', file_path = 'path_to_yaml_file.yaml')
         >>>     parameters.add_child('reform_name', new_parameters)
         >>>
         >>>     # Update a value
-        >>>     parameters.taxes.some_tax.some_param.update(period=some_period, value=1000.0)
+        >>>     parameters.taxes.some_tax.some_param.update(period = some_period, value = 1000.0)
         >>>
         >>>    return parameters
         >>>

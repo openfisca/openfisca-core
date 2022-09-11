@@ -138,7 +138,7 @@ def create_app(tax_benefit_system,
 
         abort(make_response(json_response, 400))
 
-    @app.route('/calculate', methods=['POST'])
+    @app.route('/calculate', methods = ['POST'])
     def calculate():
         tax_benefit_system = data['tax_benefit_system']
         request.on_json_loading_failed = handle_invalid_json
@@ -151,7 +151,7 @@ def create_app(tax_benefit_system,
             abort(make_response(jsonify({"error": "'" + e[1] + "' is not a valid ASCII value."}), 400))
         return jsonify(result)
 
-    @app.route('/trace', methods=['POST'])
+    @app.route('/trace', methods = ['POST'])
     def trace():
         tax_benefit_system = data['tax_benefit_system']
         request.on_json_loading_failed = handle_invalid_json

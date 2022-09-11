@@ -71,8 +71,8 @@ setup(
     license = 'https://www.fsf.org/licensing/licenses/agpl-3.0.html',
     license_files = ("LICENSE",),
     url = 'https://github.com/openfisca/openfisca-core',
-    long_description=long_description,
-    long_description_content_type='text/markdown',
+    long_description = long_description,
+    long_description_content_type = 'text/markdown',
 
     data_files = [
         (
@@ -95,5 +95,5 @@ setup(
         },
     include_package_data = True,  # Will read MANIFEST.in
     install_requires = general_requirements,
-    packages = find_packages(exclude=['tests*']),
+    packages = find_packages(exclude = ['tests*']),
     )

@@ -389,7 +389,7 @@ Here is a subset of the deprecations that you might find in your model with some
   * Before `np.select([], [])` result was `0` (for a `default` argument value set to `0`).
     * Now, we have to check for empty conditions and, return `0` or the defined default argument value when we want to keep the same behavior.
   * Before, integer conditions where transformed to booleans.
-    * For example, `np.select([0, 1, 0], ['a', 'b', 'c'])` result was `array('b', dtype='<U21')`. Now, we have to update such code to: `np.select(np.array([0, 1, 0]).astype(bool), ['a', 'b', 'c'])`.
+    * For example, `np.select([0, 1, 0], ['a', 'b', 'c'])` result was `array('b', dtype = '<U21')`. Now, we have to update such code to: `np.select(np.array([0, 1, 0]).astype(bool), ['a', 'b', 'c'])`.
 * `np.linspace parameter num must be an integer.`
   * No surprise here, update the `num` parameter in [np.linspace](https://numpy.org/doc/1.18/reference/generated/numpy.linspace.html) in order to get an integer.
 * `Array order only accepts ‘C’, ‘F’, ‘A’, and ‘K’.`
@@ -2670,7 +2670,7 @@ For more information, check the [documentation](https://openfisca.org/doc/coding
 
     def reform_modify_parameters(parameters):
         file_path = os.path.join(dir_path, 'plf2016.yaml')
-        reform_parameters_subtree = load_parameter_file(name = 'plf2016', file_path=file_path)
+        reform_parameters_subtree = load_parameter_file(name = 'plf2016', file_path = file_path)
         parameters.add_child('plf2016', reform_parameters_subtree)
         return parameters
 
@@ -3268,14 +3268,14 @@ Unlike simple formulas, a `DatedVariable` have several functions. We thus need t
 
 ## 2.2.0
 
-* Implement simulation.calculate `print_trace=True` argument. Options: `max_depth` and `show_default_values`
+* Implement simulation.calculate `print_trace = True` argument. Options: `max_depth` and `show_default_values`
 
   Examples:
   ```python
-  simulation = scenario.new_simulation(trace=True)
-  simulation.calculate('irpp', 2014, print_trace=True)
-  simulation.calculate('irpp', 2014, print_trace=True, max_depth=-1)
-  simulation.calculate('irpp', 2014, print_trace=True, max_depth=-1, show_default_values=False)
+  simulation = scenario.new_simulation(trace = True)
+  simulation.calculate('irpp', 2014, print_trace = True)
+  simulation.calculate('irpp', 2014, print_trace = True, max_depth = -1)
+  simulation.calculate('irpp', 2014, print_trace = True, max_depth = -1, show_default_values = False)
   ```
 
 ## 2.1.0 – [diff](https://github.com/openfisca/openfisca-core/compare/2.0.3...2.0.4)

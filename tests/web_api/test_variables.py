@@ -49,7 +49,7 @@ def test_return_code_existing_input_variable(input_variable_response):
     assert input_variable_response.status_code == client.OK
 
 
-def check_input_variable_value(key, expected_value, input_variable=None):
+def check_input_variable_value(key, expected_value, input_variable = None):
     assert input_variable[key] == expected_value
 
 
@@ -79,7 +79,7 @@ def test_return_code_existing_variable(test_client):
     assert variable_response.status_code == client.OK
 
 
-def check_variable_value(key, expected_value, variable=None):
+def check_variable_value(key, expected_value, variable = None):
     assert variable[key] == expected_value
 
 
@@ -93,7 +93,7 @@ def check_variable_value(key, expected_value, variable=None):
 def test_variable_value(expected_values, test_client):
     variable_response = test_client.get('/variable/income_tax')
     variable = json.loads(variable_response.data.decode('utf-8'))
-    check_variable_value(*expected_values, variable=variable)
+    check_variable_value(*expected_values, variable = variable)
 
 
 def test_variable_formula_github_link(test_client):

@@ -107,27 +107,27 @@ def test_group_encapsulation():
     from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 
     person_entity = build_entity(
-        key="person",
-        plural="people",
-        label="A person",
-        is_person=True,
+        key = "person",
+        plural = "people",
+        label = "A person",
+        is_person = True,
         )
     family_entity = build_entity(
-        key="family",
-        plural="families",
-        label="A family (all members in the same household)",
-        containing_entities=["household"],
-        roles=[{
+        key = "family",
+        plural = "families",
+        label = "A family (all members in the same household)",
+        containing_entities = ["household"],
+        roles = [{
             "key": "member",
             "plural": "members",
             "label": "Member",
             }]
         )
     household_entity = build_entity(
-        key="household",
-        plural="households",
-        label="A household, containing one or more families",
-        roles=[{
+        key = "household",
+        plural = "households",
+        label = "A household, containing one or more families",
+        roles = [{
             "key": "member",
             "plural": "members",
             "label": "Member",

@@ -90,7 +90,7 @@ def test_input_variable_neutralization(make_simulation, tax_benefit_system):
 
     reform = test_salary_neutralization(tax_benefit_system)
 
-    with warnings.catch_warnings(record=True) as raised_warnings:
+    with warnings.catch_warnings(record = True) as raised_warnings:
         reform_simulation = make_simulation(reform, {'salary': [1200, 1000]}, period)
         assert 'You cannot set a value for the variable' in raised_warnings[0].message.args[0]
     salary = reform_simulation.calculate('salary', period)
@@ -109,7 +109,7 @@ def test_permanent_variable_neutralization(make_simulation, tax_benefit_system):
 
     period = '2017-01'
     simulation = make_simulation(reform.base_tax_benefit_system, {'birth': '1980-01-01'}, period)
-    with warnings.catch_warnings(record=True) as raised_warnings:
+    with warnings.catch_warnings(record = True) as raised_warnings:
         reform_simulation = make_simulation(reform, {'birth': '1980-01-01'}, period)
         assert 'You cannot set a value for the variable' in raised_warnings[0].message.args[0]
     assert str(simulation.calculate('birth', None)[0]) == '1980-01-01'
@@ -118,7 +118,7 @@ def test_permanent_variable_neutralization(make_simulation, tax_benefit_system):
 
 def test_update_items():
     def check_update_items(_description, value_history, start_instant, stop_instant, value, expected_items):
-        value_history.update(period=None, start=start_instant, stop=stop_instant, value=value)
+        value_history.update(period = None, start = start_instant, stop = stop_instant, value = value)
         assert value_history == expected_items
 
     check_update_items(

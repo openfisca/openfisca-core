@@ -301,16 +301,16 @@ def test_value_nth_person(tax_benefit_system):
     household = simulation.household
     array = household.members('age', MONTH)
 
-    result0 = household.value_nth_person(0, array, default=-1)
+    result0 = household.value_nth_person(0, array, default = -1)
     tools.assert_near(result0, [40, 54])
 
-    result1 = household.value_nth_person(1, array, default=-1)
+    result1 = household.value_nth_person(1, array, default = -1)
     tools.assert_near(result1, [37, 20])
 
-    result2 = household.value_nth_person(2, array, default=-1)
+    result2 = household.value_nth_person(2, array, default = -1)
     tools.assert_near(result2, [7, -1])
 
-    result3 = household.value_nth_person(3, array, default=-1)
+    result3 = household.value_nth_person(3, array, default = -1)
     tools.assert_near(result3, [9, -1])
 
 

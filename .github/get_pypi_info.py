@@ -44,13 +44,13 @@ def replace_in_file(filepath: str, info: dict):
     ::filepath:: Path to meta.yaml, with filename.
     ::info:: Dict with information to populate.
     """
-    with open(filepath, encoding="utf-8") as fin:
+    with open(filepath, encoding = "utf-8") as fin:
         meta = fin.read()
     # Replace with info from PyPi
     meta = meta.replace("PYPI_VERSION", info["last_version"])
     meta = meta.replace("PYPI_URL", info["url"])
     meta = meta.replace("PYPI_SHA256", info["sha256"])
-    with open(filepath, "wt", encoding="utf-8") as fout:
+    with open(filepath, "wt", encoding = "utf-8") as fout:
         fout.write(meta)
     print(f"File {filepath} has been updated with info from PyPi.")  # noqa: T001
 

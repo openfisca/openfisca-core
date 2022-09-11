@@ -12,27 +12,27 @@ def test_shortcut_to_containing_entity_provided():
     the shortcut to that containing entity is provided.
     """
     person_entity = build_entity(
-        key="person",
-        plural="people",
-        label="A person",
-        is_person=True,
+        key = "person",
+        plural = "people",
+        label = "A person",
+        is_person = True,
         )
     family_entity = build_entity(
-        key="family",
-        plural="families",
-        label="A family (all members in the same household)",
-        containing_entities=["household"],
-        roles=[{
+        key = "family",
+        plural = "families",
+        label = "A family (all members in the same household)",
+        containing_entities = ["household"],
+        roles = [{
             "key": "member",
             "plural": "members",
             "label": "Member",
             }]
         )
     household_entity = build_entity(
-        key="household",
-        plural="households",
-        label="A household, containing one or more families",
-        roles=[{
+        key = "household",
+        plural = "households",
+        label = "A household, containing one or more families",
+        roles = [{
             "key": "member",
             "plural": "members",
             "label": "Member",
@@ -52,27 +52,27 @@ def test_shortcut_to_containing_entity_not_provided():
     entity, the shortcut to that containing entity is not provided.
     """
     person_entity = build_entity(
-        key="person",
-        plural="people",
-        label="A person",
-        is_person=True,
+        key = "person",
+        plural = "people",
+        label = "A person",
+        is_person = True,
         )
     family_entity = build_entity(
-        key="family",
-        plural="families",
-        label="A family (all members in the same household)",
-        containing_entities=[],
-        roles=[{
+        key = "family",
+        plural = "families",
+        label = "A family (all members in the same household)",
+        containing_entities = [],
+        roles = [{
             "key": "member",
             "plural": "members",
             "label": "Member",
             }]
         )
     household_entity = build_entity(
-        key="household",
-        plural="households",
-        label="A household, containing one or more families",
-        roles=[{
+        key = "household",
+        plural = "households",
+        label = "A household, containing one or more families",
+        roles = [{
             "key": "member",
             "plural": "members",
             "label": "Member",
@@ -97,16 +97,16 @@ def test_enum_projects_downwards():
     """
 
     person = build_entity(
-        key="person",
-        plural="people",
-        label="A person",
-        is_person=True,
+        key = "person",
+        plural = "people",
+        label = "A person",
+        is_person = True,
         )
     household = build_entity(
-        key="household",
-        plural="households",
-        label="A household",
-        roles=[{
+        key = "household",
+        plural = "households",
+        label = "A household",
+        roles = [{
             "key": "member",
             "plural": "members",
             "label": "Member",
@@ -166,16 +166,16 @@ def test_enum_projects_upwards():
     """
 
     person = build_entity(
-        key="person",
-        plural="people",
-        label="A person",
-        is_person=True,
+        key = "person",
+        plural = "people",
+        label = "A person",
+        is_person = True,
         )
     household = build_entity(
-        key="household",
-        plural="households",
-        label="A household",
-        roles=[{
+        key = "household",
+        plural = "households",
+        label = "A household",
+        roles = [{
             "key": "member",
             "plural": "members",
             "label": "Member",
@@ -236,27 +236,27 @@ def test_enum_projects_between_containing_groups():
     """
 
     person_entity = build_entity(
-        key="person",
-        plural="people",
-        label="A person",
-        is_person=True,
+        key = "person",
+        plural = "people",
+        label = "A person",
+        is_person = True,
         )
     family_entity = build_entity(
-        key="family",
-        plural="families",
-        label="A family (all members in the same household)",
-        containing_entities=["household"],
-        roles=[{
+        key = "family",
+        plural = "families",
+        label = "A family (all members in the same household)",
+        containing_entities = ["household"],
+        roles = [{
             "key": "member",
             "plural": "members",
             "label": "Member",
             }]
         )
     household_entity = build_entity(
-        key="household",
-        plural="households",
-        label="A household, containing one or more families",
-        roles=[{
+        key = "household",
+        plural = "households",
+        label = "A household, containing one or more families",
+        roles = [{
             "key": "member",
             "plural": "members",
             "label": "Member",
