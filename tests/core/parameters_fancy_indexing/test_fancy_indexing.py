@@ -5,8 +5,9 @@ import numpy
 import pytest
 
 from openfisca_core import tools
+from openfisca_core.errors import ParameterNotFoundError
 from openfisca_core.indexed_enums import Enum
-from openfisca_core.parameters import Parameter, ParameterNode, ParameterNotFound
+from openfisca_core.parameters import Parameter, ParameterNode
 
 LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -57,7 +58,7 @@ def test_triple_fancy_indexing():
 def test_wrong_key():
     zone = numpy.asarray(['z1', 'z2', 'z2', 'toto'])
 
-    with pytest.raises(ParameterNotFound) as e:
+    with pytest.raises(ParameterNotFoundError) as e:
         assert P.single.owner[zone]
 
     assert "'rate.single.owner.toto' was not found" in get_message(e.value)

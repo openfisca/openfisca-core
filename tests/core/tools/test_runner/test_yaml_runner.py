@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from openfisca_core.entities import Entity
-from openfisca_core.errors import VariableNotFound
+from openfisca_core.errors import VariableNotFoundError
 from openfisca_core.periods import ETERNITY
 from openfisca_core.populations import Population
 from openfisca_core.tools.test_runner import YamlItem, _get_tax_benefit_system
@@ -95,7 +95,7 @@ class MyVariable(Variable):
 
 def test_variable_not_found():
     test = {"output": {"unknown_variable": 0}}
-    with pytest.raises(VariableNotFound) as excinfo:
+    with pytest.raises(VariableNotFoundError) as excinfo:
         test_item = MyItem(test)
         test_item.check_output()
     assert excinfo.value.variable_name == "unknown_variable"

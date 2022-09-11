@@ -1,10 +1,10 @@
 from datetime import date  # noqa: F401 # pylint: disable=unused-import
 
 from numpy import logical_not as not_  # noqa: F401 # pylint: disable=unused-import
-from numpy import maximum as max_  # noqa: F401
-from numpy import minimum as min_  # noqa: F401
-from numpy import round as round_  # noqa: F401
-from numpy import select, where  # noqa: F401
+from numpy import maximum as max_  # noqa: F401 # pylint: disable=unused-import
+from numpy import minimum as min_  # noqa: F401 # pylint: disable=unused-import
+from numpy import round as round_  # noqa: F401 # pylint: disable=unused-import
+from numpy import select, where  # noqa: F401 # pylint: disable=unused-import
 
 from openfisca_core.commons import apply_thresholds, concat, switch  # noqa: F401 # pylint: disable=unused-import
 from openfisca_core.holders import (  # noqa: F401 # pylint: disable=unused-import
@@ -13,10 +13,10 @@ from openfisca_core.holders import (  # noqa: F401 # pylint: disable=unused-impo
     )
 from openfisca_core.indexed_enums import Enum  # noqa: F401 # pylint: disable=unused-import
 from openfisca_core.parameters import (  # noqa: F401 # pylint: disable=unused-import
-    Bracket,
     Parameter,
     ParameterNode,
-    Scale,
+    ParameterScale,
+    ParameterScaleBracket,
     ValuesHistory,
     load_parameter_file,
     )

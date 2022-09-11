@@ -5,8 +5,8 @@ from openfisca_country_template.variables import housing
 
 from openfisca_core import holders, periods, tools
 from openfisca_core.errors import PeriodMismatchError
+from openfisca_core.experimental import MemoryConfig
 from openfisca_core.holders import Holder
-from openfisca_core.memory_config import MemoryConfig
 from openfisca_core.simulations import SimulationBuilder
 
 

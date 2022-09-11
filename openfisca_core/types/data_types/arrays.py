@@ -1,8 +1,8 @@
-from nptyping import NDArray as ArrayType
-from nptyping import types
 from typing import Sequence, TypeVar, Union
 
 import numpy
+from nptyping import NDArray as ArrayType
+from nptyping import types
 
 T = TypeVar("T", bool, bytes, float, int, object, str)
 

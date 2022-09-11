@@ -2,7 +2,8 @@ import os
 
 import pytest
 
-from openfisca_core.parameters import ParameterNode, ParameterParsingError, load_parameter_file
+from openfisca_core.errors import ParameterParsingError
+from openfisca_core.parameters import ParameterNode, load_parameter_file
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 year = 2016

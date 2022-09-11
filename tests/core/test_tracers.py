@@ -7,7 +7,8 @@ from openfisca_country_template.variables.housing import HousingOccupancyStatus
 from pytest import approx, fixture, mark, raises
 
 from openfisca_core.entities import Entity
-from openfisca_core.simulations import CycleError, Simulation, SpiralError
+from openfisca_core.errors import CycleError, SpiralError
+from openfisca_core.simulations import Simulation
 from openfisca_core.tracers import FullTracer, SimpleTracer, TraceNode, TracingParameterNodeAtInstant
 
 from .parameters_fancy_indexing.test_fancy_indexing import parameters

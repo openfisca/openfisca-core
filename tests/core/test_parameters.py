@@ -2,7 +2,8 @@ import tempfile
 
 import pytest
 
-from openfisca_core.parameters import ParameterNode, ParameterNodeAtInstant, ParameterNotFound, load_parameter_file
+from openfisca_core.errors import ParameterNotFoundError
+from openfisca_core.parameters import ParameterNode, ParameterNodeAtInstant, load_parameter_file
 
 
 def test_get_at_instant(tax_benefit_system):
@@ -27,7 +28,7 @@ def test_param_values(tax_benefit_system):
 
 
 def test_param_before_it_is_defined(tax_benefit_system):
-    with pytest.raises(ParameterNotFound):
+    with pytest.raises(ParameterNotFoundError):
         assert tax_benefit_system.get_parameters_at_instant('1997-12-31').taxes.income_tax_rate
 
 
@@ -41,7 +42,7 @@ def test_stopped_parameter_before_end_value(tax_benefit_system):
 
 
 def test_stopped_parameter_after_end_value(tax_benefit_system):
-    with pytest.raises(ParameterNotFound):
+    with pytest.raises(ParameterNotFoundError):
         assert tax_benefit_system.get_parameters_at_instant('2016-12-01').benefits.housing_allowance
 
 

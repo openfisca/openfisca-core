@@ -10,7 +10,7 @@ import traceback
 import pytest
 
 from openfisca_core import commons
-from openfisca_core.errors import SituationParsingError, VariableNotFound
+from openfisca_core.errors import SituationParsingError, VariableNotFoundError
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.tools import assert_near
 
@@ -138,7 +138,7 @@ class YamlItem(pytest.Item):
         try:
             builder.set_default_period(period)
             self.simulation = builder.build_from_dict(self.tax_benefit_system, input)
-        except (VariableNotFound, SituationParsingError):
+        except (VariableNotFoundError, SituationParsingError):
             raise
         except Exception as e:
             error_message = os.linesep.join([str(e), '', f"Unexpected error raised while parsing '{self.fspath}'"])
@@ -191,7 +191,7 @@ class YamlItem(pytest.Item):
                             entity_index = population.get_index(instance_id)
                             self.check_variable(variable_name, value, self.test.get('period'), entity_index)
                 else:
-                    raise VariableNotFound(key, self.tax_benefit_system)
+                    raise VariableNotFoundError(key, self.tax_benefit_system)
 
     def check_variable(self, variable_name, expected_value, period, entity_index = None):
         if self.should_ignore_variable(variable_name):
@@ -223,7 +223,10 @@ class YamlItem(pytest.Item):
         return variable_ignored or variable_not_tested
 
     def repr_failure(self, excinfo, __arg = None):
-        if not isinstance(excinfo.value, (AssertionError, VariableNotFound, SituationParsingError)):
+        if not isinstance(
+                excinfo.value,
+                (AssertionError, VariableNotFoundError, SituationParsingError),
+                ):
             return super().repr_failure(excinfo)
 
         message = excinfo.value.args[0]
@@ -233,7 +236,7 @@ class YamlItem(pytest.Item):
         return os.linesep.join([
             f"{str(self.fspath)}:",
             f"  Test '{str(self.name)}':",
-            textwrap.indent(message, '    ')
+            textwrap.indent(message, '    '),
             ])
 
 
