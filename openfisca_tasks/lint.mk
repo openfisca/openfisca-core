@@ -12,7 +12,7 @@ check-syntax-errors: .
 check-style: $(shell git ls-files "*.py")
 	@$(call print_help,$@:)
 	@flake8 $?
-	@pylint --load-plugins pylint_pytest $?
+	@pylint $?
 	@$(call print_pass,$@:)
 
 ## Run linters to check for syntax and style errors in the doc.
