@@ -178,7 +178,7 @@ class Holder:
             array = tools.eval_expression(array)
         if self.variable.set_input:
             return self.variable.set_input(self, period, array)
-        return self._set(period, array)
+        return self.put(period, array)
 
     def to_array(self, value):
         if not isinstance(value, numpy.ndarray):
@@ -202,7 +202,7 @@ class Holder:
         return value
 
 
-    def _set(self, period, value):
+    def put(self, period, value):
         value = self.to_array(value)
         if self.variable.definition_period != periods.ETERNITY:
             if period is None:
@@ -234,8 +234,6 @@ class Holder:
         else:
             self._memory_storage.put(value, period)
 
-    set_ = _set
-
     def put_in_cache(self, value, period):
         if self._do_not_store:
             return
@@ -245,7 +243,7 @@ class Holder:
                 self.variable.name in self.simulation.tax_benefit_system.cache_blacklist):
             return
 
-        self._set(period, value)
+        self.put(period, value)
 
     def default_array(self):
         """
