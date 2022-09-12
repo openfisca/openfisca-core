@@ -180,7 +180,7 @@ class Holder:
             return self.variable.set_input(self, period, array)
         return self._set(period, array)
 
-    def _to_array(self, value):
+    def to_array(self, value):
         if not isinstance(value, numpy.ndarray):
             value = numpy.asarray(value)
         if value.ndim == 0:
@@ -201,10 +201,9 @@ class Holder:
                     ) from e
         return value
 
-    to_array = _to_array
 
     def _set(self, period, value):
-        value = self._to_array(value)
+        value = self.to_array(value)
         if self.variable.definition_period != periods.ETERNITY:
             if period is None:
                 raise ValueError('A period must be specified to set values, except for variables with periods.ETERNITY as as period_definition.')
