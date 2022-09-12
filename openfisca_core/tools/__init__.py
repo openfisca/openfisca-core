@@ -39,12 +39,10 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
     diff = abs(target_value - value)
     if absolute_error_margin is not None:
         assert (diff <= absolute_error_margin).all(), \
-            '{}{} differs from {} with an absolute margin {} > {}'.format(message, value, target_value,
-                diff, absolute_error_margin)
+            f'{message}{value} differs from {target_value} with an absolute margin {diff} > {absolute_error_margin}'
     if relative_error_margin is not None:
         assert (diff <= abs(relative_error_margin * target_value)).all(), \
-            '{}{} differs from {} with a relative margin {} > {}'.format(message, value, target_value,
-                diff, abs(relative_error_margin * target_value))
+            f'{message}{value} differs from {target_value} with a relative margin {diff} > {abs(relative_error_margin * target_value)}'
 
     return None
 
@@ -59,7 +57,8 @@ def assert_enum_equals(value, target_value, message = ''):
 
 
 def indent(text):
-    return "  {}".format(text.replace(os.linesep, f"{os.linesep}  "))
+    linesep_text = text.replace(os.linesep, f"{os.linesep}  ")
+    return f"  {linesep_text}"
 
 
 def get_trace_tool_link(scenario, variables, api_url, trace_tool_url):
