@@ -130,9 +130,13 @@ class Variable:
         self.formulas = self.set_formulas(formulas_attr)
 
         if unexpected_attrs:
+            sorted_keys = sorted(unexpected_attrs.keys())
+            joint_keys = ", ".join(sorted_keys)
+
             raise ValueError(
-                'Unexpected attributes in definition of variable "{}": {!r}'
-                .format(self.name, ', '.join(sorted(unexpected_attrs.keys()))))
+                "Unexpected attributes in definition of variable "
+                f'"{self.name}": {joint_keys!r}'
+                )
 
         self.is_neutralized = False
 
@@ -145,14 +149,12 @@ class Variable:
         if required and value is None:
             raise ValueError(f"Missing attribute '{attribute_name}' in definition of variable '{self.name}'.")
         if allowed_values is not None and value not in allowed_values:
-            raise ValueError("Invalid value '{}' for attribute '{}' in variable '{}'. Allowed values are '{}'."
-                .format(value, attribute_name, self.name, allowed_values))
+            raise ValueError(f"Invalid value '{value}' for attribute '{attribute_name}' in variable '{self.name}'. Allowed values are '{allowed_values}'.")
         if allowed_type is not None and value is not None and not isinstance(value, allowed_type):
             if allowed_type == float and isinstance(value, int):
                 value = float(value)
             else:
-                raise ValueError("Invalid value '{}' for attribute '{}' in variable '{}'. Must be of type '{}'."
-                    .format(value, attribute_name, self.name, allowed_type))
+                raise ValueError(f"Invalid value '{value}' for attribute '{attribute_name}' in variable '{self.name}'. Must be of type '{allowed_type}'.")
         if setter is not None:
             value = setter(value)
         if value is None and default is not None:
@@ -166,8 +168,7 @@ class Variable:
 
     def set_possible_values(self, possible_values):
         if not issubclass(possible_values, Enum):
-            raise ValueError("Invalid value '{}' for attribute 'possible_values' in variable '{}'. Must be a subclass of {}."
-            .format(possible_values, self.name, Enum))
+            raise ValueError(f"Invalid value '{possible_values}' for attribute 'possible_values' in variable '{self.name}'. Must be a subclass of {Enum}.")
         return possible_values
 
     @staticmethod
@@ -200,8 +201,8 @@ class Variable:
             for element in reference:
                 if not isinstance(element, str):
                     raise TypeError(
-                        'The reference of the variable {} is a {} instead of a String or a List of Strings.'.format(
-                            self.name, type(reference)))
+                        f'The reference of the variable {self.name} is a {type(reference)} instead of a String or a List of Strings.'
+                        )
 
         return reference
 
@@ -228,8 +229,7 @@ class Variable:
             starting_date = self.parse_formula_name(formula_name)
 
             if self.end is not None and starting_date > self.end:
-                raise ValueError('You declared that "{}" ends on "{}", but you wrote a formula to calculate it from "{}" ({}). The "end" attribute of a variable must be posterior to the start dates of all its formulas.'
-                    .format(self.name, self.end, starting_date, formula_name))
+                raise ValueError(f'You declared that "{self.name}" ends on "{self.end}", but you wrote a formula to calculate it from "{starting_date}" ({formula_name}). The "end" attribute of a variable must be posterior to the start dates of all its formulas.')
 
             formulas[str(starting_date)] = formula
 
@@ -258,8 +258,8 @@ class Variable:
 
         def raise_error():
             raise ValueError(
-                'Unrecognized formula name in variable "{}". Expecting "formula_YYYY" or "formula_YYYY_MM" or "formula_YYYY_MM_DD where YYYY, MM and DD are year, month and day. Found: "{}".'
-                .format(self.name, attribute_name))
+                f'Unrecognized formula name in variable "{self.name}". Expecting "formula_YYYY" or "formula_YYYY_MM" or "formula_YYYY_MM_DD where YYYY, MM and DD are year, month and day. Found: "{attribute_name}".'
+                )
 
         if attribute_name == config.FORMULA_NAME_PREFIX:
             return datetime.date.min
@@ -284,7 +284,7 @@ class Variable:
         """
         return len(self.formulas) == 0
 
-    @classmethod
+    @ classmethod
     def get_introspection_data(cls, tax_benefit_system):
         """
         Get instrospection data about the code of the variable.
@@ -355,17 +355,17 @@ class Variable:
                 value = self.possible_values[value].index
             except KeyError as e:
                 possible_values = [item.name for item in self.possible_values]
+                joint_values = "', '".join(possible_values)
+
                 raise ValueError(
-                    "'{}' is not a known value for '{}'. Possible values are ['{}'].".format(
-                        value, self.name, "', '".join(possible_values))
+                    f"'{value}' is not a known value for '{self.name}'. Possible values are ['{joint_values}']."
                     ) from e
         if self.value_type in (float, int) and isinstance(value, str):
             try:
                 value = tools.eval_expression(value)
             except SyntaxError as e:
                 raise ValueError(
-                    "I couldn't understand '{}' as a value for '{}'".format(
-                        value, self.name)
+                    f"I couldn't understand '{value}' as a value for '{self.name}'"
                     ) from e
 
         try:
