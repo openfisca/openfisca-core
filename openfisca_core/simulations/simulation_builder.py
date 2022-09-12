@@ -408,31 +408,40 @@ class SimulationBuilder:
         # Due to set_input mechanism, we must bufferize all inputs, then actually set them,
         # so that the months are set first and the years last.
         plural_key = population.entity.plural
+
         if plural_key in self.entity_counts:
             population.count = self.get_count(plural_key)
             population.ids = self.get_ids(plural_key)
+
         if plural_key in self.memberships:
             population.members_entity_id = numpy.array(self.get_memberships(plural_key))
             population.members_role = numpy.array(self.get_roles(plural_key))
-        for variable_name, _ in self.input_buffer.items():
+
+        for variable, periods_ in self.input_buffer.items():
             try:
-                holder = population.get_holder(variable_name)
+                holder = population.get_holder(variable)
+
             except ValueError:  # Wrong entity, we can just ignore that
                 continue
-            buffer = self.input_buffer[variable_name]
-            unsorted_periods = [periods.period(period_str) for period_str in self.input_buffer[variable_name].keys()]
+
+            unsorted_periods = [
+                periods.period(period)
+                for period in periods_.keys()
+                ]
+
             # We need to handle small periods first for set_input to work
             sorted_periods = sorted(unsorted_periods, key = periods.key_period_size)
-            for period_value in sorted_periods:
-                values = buffer[str(period_value)]
+
+            for period in sorted_periods:
+                values = periods_[str(period)]
                 # Hack to replicate the values in the persons entity
                 # when we have an axis along a group entity but not persons
                 array = numpy.tile(values, population.count // len(values))
                 variable = holder.variable
                 # TODO - this duplicates the check in Simulation.set_input, but
                 # fixing that requires improving Simulation's handling of entities
-                if variable.end is None or period_value.start.date <= variable.end:
-                    holder.set_input(period_value, array)
+                if variable.end is None or period.start.date <= variable.end:
+                    holder.set_input(period, array)
 
     @staticmethod
     def raise_period_mismatch(entity, json, e):
