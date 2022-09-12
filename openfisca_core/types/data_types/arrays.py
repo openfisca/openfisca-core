@@ -6,7 +6,7 @@ from nptyping import types
 
 T = TypeVar("T", bool, bytes, float, int, object, str)
 
-types._ndarray_meta._Type = Union[type, numpy.dtype, TypeVar]
+types._ndarray_meta._Type = Union[type, numpy.dtype, TypeVar]  # pylint: disable=protected-access
 
 ArrayLike = Union[ArrayType[T], Sequence[T]]
 """:obj:`typing.Generic`: Type of any castable to :class:`numpy.ndarray`.
