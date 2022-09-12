@@ -5,7 +5,7 @@ import datetime
 import re
 import sys
 
-import numpy as np
+import numpy
 
 assert len(sys.argv) == 2
 filename = sys.argv[1]
@@ -183,7 +183,7 @@ for code_begining, code_end in position_code:
         for local_i in comment_list
         ]
 
-    order = np.argsort(deb_list)[::-1]
+    order = numpy.argsort(deb_list)[::-1]
     lines_5 += [
         lines_4[local_i + code_begining]
         for local_i in order

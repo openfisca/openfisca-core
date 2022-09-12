@@ -2,7 +2,7 @@ from typing import List
 
 import os
 
-import numpy as np
+import numpy
 import pytest
 
 from openfisca_core.entities import Entity
@@ -90,7 +90,7 @@ class MyVariable(Variable):
         self.end = None
         self.is_neutralized = False
         self.set_input = None
-        self.dtype = np.float32
+        self.dtype = numpy.float32
 
 
 def test_variable_not_found():
