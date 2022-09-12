@@ -85,4 +85,4 @@ def set_input_divide_by_period(holder, period, array):
                 holder.set_(sub_period, divided_array)
             sub_period = sub_period.offset(1)
     elif not (remaining_array == 0).all():
-        raise ValueError("Inconsistent input: variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} doesn't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period.".format(holder.variable.name, period, array, array - remaining_array))
+        raise ValueError(f"Inconsistent input: variable {holder.variable.name} has already been set for all months contained in period {period}, and value {array} provided for {period} doesn't match the total ({array - remaining_array}). This error may also be thrown if you try to call set_input twice for the same variable and period.")

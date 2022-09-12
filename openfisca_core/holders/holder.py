@@ -188,8 +188,8 @@ class Holder:
             value = value.reshape(1)
         if len(value) != self.population.count:
             raise ValueError(
-                'Unable to set value "{}" for variable "{}", as its length is {} while there are {} {} in the simulation.'
-                .format(value, self.variable.name, len(value), self.population.count, self.population.entity.plural))
+                f'Unable to set value "{value}" for variable "{self.variable.name}", as its length is {len(value)} while there are {self.population.count} {self.population.entity.plural} in the simulation.'
+                )
         if self.variable.value_type == Enum:
             value = self.variable.possible_values.encode(value)
         if value.dtype != self.variable.dtype:
@@ -197,8 +197,8 @@ class Holder:
                 value = value.astype(self.variable.dtype)
             except ValueError as e:
                 raise ValueError(
-                    'Unable to set value "{}" for variable "{}", as the variable dtype "{}" does not match the value dtype "{}".'
-                    .format(value, self.variable.name, self.variable.dtype, value.dtype)) from e
+                    f'Unable to set value "{value}" for variable "{self.variable.name}", as the variable dtype "{self.variable.dtype}" does not match the value dtype "{value.dtype}".'
+                    ) from e
         return value
 
     to_array = _to_array
