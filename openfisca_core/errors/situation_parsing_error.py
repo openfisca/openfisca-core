@@ -1,6 +1,6 @@
 import os
 
-import dpath.util
+import dpath
 
 
 class SituationParsingError(Exception):

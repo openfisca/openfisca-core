@@ -1,6 +1,7 @@
 import warnings
 
 import pytest
+
 from openfisca_country_template.entities import Household, Person
 
 from openfisca_core import holders, periods, simulations, tools

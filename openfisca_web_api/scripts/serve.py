@@ -1,9 +1,9 @@
 """Define the `openfisca serve` command line interface."""
 
+import importlib
 import logging
 import pathlib
 import sys
-from importlib import util
 
 from openfisca_core.scripts import build_tax_benefit_system
 from openfisca_web_api.app import create_app
@@ -33,8 +33,8 @@ def read_user_configuration(default_configuration, command_line_parser):
 
         with open(args.configuration_file, encoding = "utf-8") as file:
             file_path = pathlib.Path(file.name).resolve()
-            file_spec = util.spec_from_file_location(file.name, file_path)
-            file_conf = util.module_from_spec(file_spec)
+            file_spec = importlib.util.spec_from_file_location(file.name, file_path)
+            file_conf = importlib.util.module_from_spec(file_spec)
             sys.modules[file.name] = file_conf
             file_spec.loader.exec_module(file_conf)
 

@@ -1,9 +1,10 @@
 import datetime
 
+from pytest import fixture, mark, raises
+
 import openfisca_country_template as country_template
 import openfisca_country_template.situation_examples
 from openfisca_country_template.entities import Person
-from pytest import fixture, mark, raises
 
 from openfisca_core.model_api import Variable
 from openfisca_core.periods import ETERNITY, MONTH

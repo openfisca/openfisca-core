@@ -2,6 +2,7 @@ import shutil
 import tempfile
 
 from numpy import testing
+
 from openfisca_country_template import situation_examples
 
 from openfisca_core.simulations import SimulationBuilder

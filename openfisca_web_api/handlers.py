@@ -1,4 +1,4 @@
-import dpath
+import dpath.util
 
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.simulations import SimulationBuilder

@@ -1,7 +1,7 @@
 import os
 from copy import deepcopy
 
-import dpath
+import dpath.util
 import yaml
 
 from openfisca_core.indexed_enums import Enum
@@ -56,9 +56,9 @@ def build_openAPI_specification(api_data):
         dpath.util.new(spec, 'definitions/Trace/example', handlers.trace(tax_benefit_system, simulation_example))
     else:
         message = f"No simulation example has been defined for this tax and benefit system. If you are the maintainer of {country_package_name}, you can define an example by following this documentation: https://openfisca.org/doc/openfisca-web-api/config-openapi.html"
-        dpath.new(spec, 'definitions/SituationInput/example', message)
-        dpath.new(spec, 'definitions/SituationOutput/example', message)
-        dpath.new(spec, 'definitions/Trace/example', message)
+        dpath.util.new(spec, 'definitions/SituationInput/example', message)
+        dpath.util.new(spec, 'definitions/SituationOutput/example', message)
+        dpath.util.new(spec, 'definitions/Trace/example', message)
     return spec
 
 
