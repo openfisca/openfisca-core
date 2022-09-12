@@ -53,21 +53,20 @@ class Population:
 
     def check_array_compatible_with_entity(self, array):
         if not self.count == array.size:
-            raise ValueError("Input {} is not a valid value for the entity {} (size = {} != {} = count)".format(
-                array, self.entity.key, array.size, self.count))
+            raise ValueError(f"Input {array} is not a valid value for the entity {self.entity.key} (size = {array.size} != {self.count} = count)")
 
     @staticmethod
     def check_period_validity(variable_name, period):
         if period is None:
             stack = traceback.extract_stack()
             filename, line_number, _function_name, line_of_code = stack[-3]
-            raise ValueError('''
-You requested computation of variable "{}", but you did not specify on which period in "{}:{}":
-    {}
+            raise ValueError(f'''
+You requested computation of variable "{variable_name}", but you did not specify on which period in "{filename}:{line_number}":
+    {line_of_code}
 When you request the computation of a variable within a formula, you must always specify the period as the second parameter. The convention is to call this parameter "period". For example:
     computed_salary = person('salary', period).
 See more information at <https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-variable-definition>.
-'''.format(variable_name, filename, line_number, line_of_code))
+''')
 
     def __call__(self, variable_name, period = None, options = None):
         """

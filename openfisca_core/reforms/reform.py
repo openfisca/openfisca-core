@@ -76,8 +76,7 @@ class Reform(TaxBenefitSystem):
         reform_parameters = modifier_function(baseline_parameters_copy)
         if not isinstance(reform_parameters, ParameterNode):
             return ValueError(
-                'modifier_function {} in module {} must return a ParameterNode'
-                .format(modifier_function.__name__, modifier_function.__module__,)
+                f'modifier_function {modifier_function.__name__} in module {modifier_function.__module__} must return a ParameterNode'
                 )
         self.parameters = reform_parameters
         self._parameters_at_instant_cache = {}

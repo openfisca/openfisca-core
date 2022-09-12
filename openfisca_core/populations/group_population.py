@@ -237,8 +237,7 @@ class GroupPopulation(Population):
         self.entity.check_role_validity(role)
         if role.max != 1:
             raise Exception(
-                'You can only use value_from_person with a role that is unique in {}. Role {} is not unique.'
-                .format(self.key, role.key)
+                f'You can only use value_from_person with a role that is unique in {self.key}. Role {role.key} is not unique.'
                 )
         self.members.check_array_compatible_with_entity(array)
         members_map = self.ordered_members_map
