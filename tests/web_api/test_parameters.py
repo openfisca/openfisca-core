@@ -57,7 +57,7 @@ def test_parameter_values(test_client):
     # 'documentation' attribute exists only when a value is defined
     response = test_client.get('/parameter/benefits/housing_allowance')
     parameter = json.loads(response.data)
-    assert sorted(list(parameter.keys())), ['description', 'documentation', 'id', 'metadata', 'source' == 'values']
+    assert sorted(list(parameter.keys())) == ["description", "documentation", "id", "metadata", "source", "values"]
     assert (
         parameter['documentation'] ==
         'A fraction of the rent.\nFrom the 1st of Dec 2016, the housing allowance no longer exists.'
@@ -68,7 +68,7 @@ def test_parameter_node(tax_benefit_system, test_client):
     response = test_client.get('/parameter/benefits')
     assert response.status_code == client.OK
     parameter = json.loads(response.data)
-    assert sorted(list(parameter.keys())), ['description', 'documentation', 'id', 'metadata', 'source' == 'subparams']
+    assert sorted(list(parameter.keys())) == ["description", "documentation", "id", "metadata", "source", "subparams"]
     assert parameter['documentation'] == (
         "Government support for the citizens and residents of society."
         "\nThey may be provided to people of any income level, as with social security,"
@@ -94,7 +94,7 @@ def test_stopped_parameter_values(test_client):
 def test_scale(test_client):
     response = test_client.get('/parameter/taxes/social_security_contribution')
     parameter = json.loads(response.data)
-    assert sorted(list(parameter.keys())), ['brackets', 'description', 'id', 'metadata' == 'source']
+    assert sorted(list(parameter.keys())) == ["brackets", "description", "id", "metadata", "source"]
     assert parameter['brackets'] == {
         '2013-01-01': {"0.0": 0.03, "12000.0": 0.10},
         '2014-01-01': {"0.0": 0.03, "12100.0": 0.10},
