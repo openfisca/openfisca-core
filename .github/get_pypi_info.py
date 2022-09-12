@@ -21,7 +21,7 @@ def get_info(package_name: str = "") -> dict:
         raise ValueError("Package name not provided.")
     url = f"https://pypi.org/pypi/{package_name}/json"
     print(f"Calling {url}")  # noqa: T201
-    resp = requests.get(url)
+    resp = requests.get(url, timeout = 30)
     if resp.status_code != 200:
         raise Exception(f"ERROR calling PyPI ({url}) : {resp}")
     resp = resp.json()
