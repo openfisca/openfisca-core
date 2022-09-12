@@ -10,27 +10,7 @@ if typing.TYPE_CHECKING:
 
 
 class EnumArray(numpy.ndarray):
-    """Numpy array subclass representing an array of enum items.
-
-    EnumArrays are encoded as ``int`` arrays to improve performance
-
-    Examples:
-        >>> from openfisca_core.indexed_enums import Enum
-        >>> from openfisca_core.variables import Variable
-
-        >>> class Housing(Enum):
-        ...     OWNER = "Owner"
-        ...     TENANT = "Tenant"
-        ...     FREE_LODGER = "Free lodger"
-        ...     HOMELESS = "Homeless"
-
-        >>> array = numpy.array([1])
-        >>> enum_array = EnumArray(array, Housing)
-
-        >>> enum_array.possible_values
-        <enum 'Housing'>
-
-    """
+    """Numpy array subclass representing an array of enum items."""
 
     possible_values: Optional[Type[Enum]]
 
@@ -83,21 +63,7 @@ class EnumArray(numpy.ndarray):
     __or__ = _forbidden_operation
 
     def decode(self) -> Optional[numpy.object_]:
-        """Return the array of enum items corresponding to self.
-
-        Examples:
-            >>> from openfisca_core.indexed_enums import Enum
-
-            >>> class MyEnum(Enum):
-            ...     FOO = b"foo"
-            ...     BAR = b"bar"
-
-            >>> array = numpy.array([1])
-            >>> enum_array = EnumArray(array, MyEnum)
-            >>> enum_array.decode()
-            array([<MyEnum.BAR: b'bar'>], dtype=object)
-
-        """
+        """Return the array of enum items corresponding to self."""
 
         if self.possible_values is None:
             return None
@@ -108,21 +74,7 @@ class EnumArray(numpy.ndarray):
             )
 
     def decode_to_str(self) -> Optional[numpy.str_]:
-        """Return the array of string identifiers corresponding to self.
-
-        Examples:
-            >>> from openfisca_core.indexed_enums import Enum
-
-            >>> class MyEnum(Enum):
-            ...     FOO = b"foo"
-            ...     BAR = b"bar"
-
-            >>> array = numpy.array([1])
-            >>> enum_array = EnumArray(array, MyEnum)
-            >>> enum_array.decode_to_str()
-            array(['BAR']...)
-
-        """
+        """Return the array of string identifiers corresponding to self."""
 
         if self.possible_values is None:
             return None

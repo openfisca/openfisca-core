@@ -15,15 +15,15 @@ class Holder:
     A holder keeps tracks of a variable values after they have been calculated, or set as an input.
     """
 
-    @property
-    def memory_storage(self):
-        return self._memory_storage
+    _eternal: bool
+    _memory_storage: InMemoryStorage
 
     def __init__(self, variable, population):
         self.population = population
         self.variable = variable
         self.simulation = population.simulation
-        self._memory_storage = InMemoryStorage(is_eternal = (self.variable.definition_period == periods.ETERNITY))
+        self._eternal = self.variable.definition_period == periods.ETERNITY
+        self._memory_storage = InMemoryStorage(is_eternal = self._eternal)
 
         # By default, do not activate on-disk storage, or variable dropping
         self._disk_storage = None
@@ -35,6 +35,10 @@ class Holder:
                 self._on_disk_storable = True
             if self.variable.name in self.simulation.memory_config.variables_to_drop:
                 self._do_not_store = True
+
+    @property
+    def memory_storage(self):
+        return self._memory_storage
 
     def clone(self, population):
         """
@@ -60,8 +64,8 @@ class Holder:
             os.mkdir(storage_dir)
         return OnDiskStorage(
             storage_dir,
-            is_eternal = (self.variable.definition_period == periods.ETERNITY),
-            preserve_storage_dir = preserve
+            self._eternal,
+            preserve_storage_dir = preserve,
             )
 
     def delete_arrays(self, period = None):
@@ -154,7 +158,7 @@ class Holder:
         """
 
         period = periods.period(period)
-        if period.unit == periods.ETERNITY and self.variable.definition_period != periods.ETERNITY:
+        if period.unit == periods.ETERNITY and not self._eternal:
             error_message = os.linesep.join([
                 'Unable to set a value for variable {0} for periods.ETERNITY.',
                 '{0} is only defined for {1}s. Please adapt your input.',
@@ -200,7 +204,6 @@ class Holder:
                     f'Unable to set value "{value}" for variable "{self.variable.name}", as the variable dtype "{self.variable.dtype}" does not match the value dtype "{value.dtype}".'
                     ) from e
         return value
-
 
     def put(self, period, value):
         value = self.to_array(value)
