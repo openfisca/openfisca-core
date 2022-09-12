@@ -40,9 +40,8 @@ class ParameterScale(AtInstantLike):
 
         if not isinstance(data.get('brackets', []), list):
             raise ParameterParsingError(
-                "Property 'brackets' of scale '{}' must be of type array."
-                .format(self.name),
-                self.file_path
+                f"Property 'brackets' of scale '{self.name}' must be of type array.",
+                self.file_path,
                 )
 
         brackets = []

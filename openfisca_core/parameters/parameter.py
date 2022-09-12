@@ -78,9 +78,9 @@ class Parameter(AtInstantLike):
         for instant_str in instants:
             if not periods.INSTANT_PATTERN.match(instant_str):
                 raise ParameterParsingError(
-                    "Invalid property '{}' in '{}'. Properties must be valid YYYY-MM-DD instants, such as 2017-01-15."
-                    .format(instant_str, self.name),
-                    file_path)
+                    f"Invalid property '{instant_str}' in '{self.name}'. Properties must be valid YYYY-MM-DD instants, such as 2017-01-15.",
+                    file_path,
+                    )
 
             instant_info = values[instant_str]
 
@@ -96,7 +96,8 @@ class Parameter(AtInstantLike):
 
     def __repr__(self):
         return os.linesep.join([
-            '{}: {}'.format(value.instant_str, value.value if value.value is not None else 'null') for value in self.values_list
+            f"{value.instant_str}: {value.value if value.value is not None else 'null'}"
+            for value in self.values_list
             ])
 
     def __eq__(self, other):

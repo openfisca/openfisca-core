@@ -101,9 +101,8 @@ def _validate_parameter(parameter, data, data_type = None, allowed_keys = None):
         for key in keys:
             if key not in allowed_keys:
                 raise ParameterParsingError(
-                    "Unexpected property '{}' in '{}'. Allowed properties are {}."
-                    .format(key, parameter.name, list(allowed_keys)),
-                    parameter.file_path
+                    f"Unexpected property '{key}' in '{parameter.name}'. Allowed properties are {list(allowed_keys)}.",
+                    parameter.file_path,
                     )
 
 
