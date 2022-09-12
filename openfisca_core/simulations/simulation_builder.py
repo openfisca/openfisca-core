@@ -354,7 +354,7 @@ class SimulationBuilder:
         if person_id not in persons_to_allocate:
             raise SituationParsingError(
                 [entity_plural, entity_id, role_id],
-                "{person_id} has been declared more than once in {entity_plural}",
+                f"{person_id} has been declared more than once in {entity_plural}",
                 )
 
     def init_variable_values(self, entity, instance_object, instance_id):
