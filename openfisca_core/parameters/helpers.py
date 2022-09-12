@@ -30,7 +30,7 @@ def load_parameter_file(file_path, name = ''):
     return _parse_child(name, data, file_path)
 
 
-def _compose_name(path, child_name = None, item_name = None):
+def compose_name(path, child_name = None, item_name = None):
     if not path:
         return child_name
     if child_name is not None:
@@ -39,9 +39,6 @@ def _compose_name(path, child_name = None, item_name = None):
         return f'{path}[{item_name}]'
 
     return None
-
-
-compose_name = _compose_name
 
 
 def _load_yaml_file(file_path):
