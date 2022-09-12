@@ -75,7 +75,7 @@ class Simulation:
         if self._data_storage_dir is None:
             self._data_storage_dir = tempfile.mkdtemp(prefix = "openfisca_")
             message = [
-                ("Intermediate results will be stored on disk in {} in case of memory overflow.").format(self._data_storage_dir),
+                f"Intermediate results will be stored on disk in {self._data_storage_dir} in case of memory overflow."
                 "You should remove this directory once you're done with your simulation."
                 ]
             warnings.warn(" ".join(message), TempfileWarning)
@@ -153,16 +153,10 @@ class Simulation:
 
         # Check that the requested period matches definition_period
         if periods.unit_weight(variable.definition_period) > periods.unit_weight(period.unit):
-            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' can only be computed for {2}-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.".format(
-                variable.name,
-                period,
-                variable.definition_period
-                ))
+            raise ValueError(f"Unable to compute variable '{variable.name}' for period {period}: '{variable.name}' can only be computed for {variable.definition_period}-long periods. You can use the DIVIDE option to get an estimate of {variable.name} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.")
 
         if variable.definition_period not in [periods.DAY, periods.MONTH, periods.YEAR]:
-            raise ValueError("Unable to sum constant variable '{}' over period {}: only variables defined daily, monthly, or yearly can be summed over time.".format(
-                variable.name,
-                period))
+            raise ValueError(f"Unable to sum constant variable '{variable.name}' over period {period}: only variables defined daily, monthly, or yearly can be summed over time.")
 
         return sum(
             self.calculate(variable_name, sub_period)
@@ -177,9 +171,7 @@ class Simulation:
 
         # Check that the requested period matches definition_period
         if variable.definition_period != periods.YEAR:
-            raise ValueError("Unable to divide the value of '{}' over time on period {}: only variables defined yearly can be divided over time.".format(
-                variable_name,
-                period))
+            raise ValueError(f"Unable to divide the value of '{variable_name}' over time on period {period}: only variables defined yearly can be divided over time.")
 
         if period.size != 1:
             raise ValueError("DIVIDE option can only be used for a one-year or a one-month requested period")
@@ -191,9 +183,7 @@ class Simulation:
         if period.unit == periods.YEAR:
             return self.calculate(variable_name, period)
 
-        raise ValueError("Unable to divide the value of '{}' to match period {}.".format(
-            variable_name,
-            period))
+        raise ValueError(f"Unable to divide the value of '{variable_name}' to match period {period}.")
 
     def calculate_output(self, variable_name, period):
         """
@@ -243,23 +233,15 @@ class Simulation:
             return  # For variables which values are constant in time, all periods are accepted
 
         if variable.definition_period == periods.MONTH and period.unit != periods.MONTH:
-            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole month. You can use the ADD option to sum '{0}' over the requested period, or change the requested period to 'period.first_month'.".format(
-                variable.name,
-                period
-                ))
+            raise ValueError(f"Unable to compute variable '{variable.name}' for period {period}: '{variable.name}' must be computed for a whole month. You can use the ADD option to sum '{variable.name}' over the requested period, or change the requested period to 'period.first_month'.")
 
         if variable.definition_period == periods.YEAR and period.unit != periods.YEAR:
-            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.".format(
-                variable.name,
-                period
-                ))
+            raise ValueError(f"Unable to compute variable '{variable.name}' for period {period}: '{variable.name}' must be computed for a whole year. You can use the DIVIDE option to get an estimate of {variable.name} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.")
 
         if period.size != 1:
-            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole {2}. You can use the ADD option to sum '{0}' over the requested period.".format(
-                variable.name,
-                period,
-                'month' if variable.definition_period == periods.MONTH else 'year'
-                ))
+            definition_period = 'month' if variable.definition_period == periods.MONTH else 'year'
+
+            raise ValueError(f"Unable to compute variable '{variable.name}' for period {period}: '{variable.name}' must be computed for a whole {definition_period}. You can use the ADD option to sum '{variable.name}' over the requested period.")
 
     def _cast_formula_result(self, value, variable):
         if variable.value_type == Enum and not isinstance(value, EnumArray):

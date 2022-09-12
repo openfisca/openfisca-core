@@ -96,8 +96,10 @@ class SimulationBuilder:
         persons_json = input_dict.get(tax_benefit_system.person_entity.plural, None)
 
         if not persons_json:
-            raise SituationParsingError([tax_benefit_system.person_entity.plural],
-                'No {0} found. At least one {0} must be defined to run a simulation.'.format(tax_benefit_system.person_entity.key))
+            raise SituationParsingError(
+                [tax_benefit_system.person_entity.plural],
+                f'No {tax_benefit_system.person_entity.key} found. At least one {tax_benefit_system.person_entity.key} must be defined to run a simulation.',
+                )
 
         persons_ids = self.add_person_entity(simulation.persons.entity, persons_json)
 
@@ -344,14 +346,15 @@ class SimulationBuilder:
                                   persons_to_allocate, index):
         helpers.check_type(person_id, str, [entity_plural, entity_id, role_id, str(index)])
         if person_id not in persons_ids:
-            raise SituationParsingError([entity_plural, entity_id, role_id],
-                "Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(
-                    person_id, entity_id, role_id, persons_plural)
+            raise SituationParsingError(
+                [entity_plural, entity_id, role_id],
+                f"Unexpected value: {person_id}. {person_id} has been declared in {entity_id} {role_id}, but has not been declared in {persons_plural}.",
                 )
+
         if person_id not in persons_to_allocate:
-            raise SituationParsingError([entity_plural, entity_id, role_id],
-                "{} has been declared more than once in {}".format(
-                    person_id, entity_plural)
+            raise SituationParsingError(
+                [entity_plural, entity_id, role_id],
+                "{person_id} has been declared more than once in {entity_plural}",
                 )
 
     def init_variable_values(self, entity, instance_object, instance_id):
