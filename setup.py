@@ -49,7 +49,7 @@ dev_requirements = [
     ] + api_requirements
 
 test_requirements = [
-    'openfisca-country-template >= 3.0.0, < 4.0.0',
+    "openfisca-country-template @ git+https://github.com/openfisca/country-template.git@add-pylint",
     'openfisca-extension-template >= 1.0.0, < 2.0.0',
     ] + dev_requirements
 
