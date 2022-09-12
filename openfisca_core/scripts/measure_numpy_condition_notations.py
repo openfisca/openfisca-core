@@ -85,7 +85,7 @@ def test_switch_fromiter(choice):
             2: calculate_choice_2_value,
             3: calculate_choice_3_value,
             },
-        dtype = numpy.int,
+        dtype = int,
         )
     return result
 
@@ -129,7 +129,7 @@ def main():
 
     sys.stdout.write(f"{args}\n")
 
-    sys.modules[__name__].__setattr__("args", args)
+    sys.modules[__name__].args = args
 
     test_all_notations()
 
