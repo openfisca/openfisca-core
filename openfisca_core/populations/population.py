@@ -11,14 +11,6 @@ from . import config
 
 class Population:
 
-    @property
-    def holders(self):
-        return self._holders
-
-    @holders.setter
-    def holders(self, value):
-        self._holders = value
-
     def __init__(self, entity):
         self.simulation = None
         self.entity = entity
@@ -29,7 +21,7 @@ class Population:
     def clone(self, simulation):
         result = Population(self.entity)
         result.simulation = simulation
-        result.holders = {variable: holder.clone(result) for (variable, holder) in self._holders.items()}
+        result.holders = {variable: holder.clone(result) for (variable, holder) in self.holders.items()}
         result.count = self.count
         result.ids = self.ids
         return result
@@ -100,17 +92,17 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
     def get_holder(self, variable_name):
         self.entity.check_variable_defined_for_entity(variable_name)
-        holder = self._holders.get(variable_name)
+        holder = self.holders.get(variable_name)
         if holder:
             return holder
         variable = self.entity.get_variable(variable_name)
-        self._holders[variable_name] = holder = Holder(variable, self)
+        self.holders[variable_name] = holder = Holder(variable, self)
         return holder
 
     def get_memory_usage(self, variables = None):
         holders_memory_usage = {
             variable_name: holder.get_memory_usage()
-            for variable_name, holder in self._holders.items()
+            for variable_name, holder in self.holders.items()
             if variables is None or variable_name in variables
             }
 

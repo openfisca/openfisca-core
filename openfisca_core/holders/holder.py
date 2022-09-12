@@ -15,15 +15,15 @@ class Holder:
     A holder keeps tracks of a variable values after they have been calculated, or set as an input.
     """
 
+    memory_storage: InMemoryStorage
     _eternal: bool
-    _memory_storage: InMemoryStorage
 
     def __init__(self, variable, population):
         self.population = population
         self.variable = variable
         self.simulation = population.simulation
         self._eternal = self.variable.definition_period == periods.ETERNITY
-        self._memory_storage = InMemoryStorage(is_eternal = self._eternal)
+        self.memory_storage = InMemoryStorage(is_eternal = self._eternal)
 
         # By default, do not activate on-disk storage, or variable dropping
         self._disk_storage = None
@@ -35,10 +35,6 @@ class Holder:
                 self._on_disk_storable = True
             if self.variable.name in self.simulation.memory_config.variables_to_drop:
                 self._do_not_store = True
-
-    @property
-    def memory_storage(self):
-        return self._memory_storage
 
     def clone(self, population):
         """
@@ -75,7 +71,7 @@ class Holder:
         If ``period`` is not ``None``, only remove all values for any period included in period (e.g. if period is "2017", values for "2017-01", "2017-07", etc. would be removed)
         """
 
-        self._memory_storage.delete(period)
+        self.memory_storage.delete(period)
         if self._disk_storage:
             self._disk_storage.delete(period)
 
@@ -87,7 +83,7 @@ class Holder:
         """
         if self.variable.is_neutralized:
             return self.default_array()
-        value = self._memory_storage.get(period)
+        value = self.memory_storage.get(period)
         if value is not None:
             return value
         if self._disk_storage:
@@ -121,7 +117,7 @@ class Holder:
             dtype = self.variable.dtype,
             )
 
-        usage.update(self._memory_storage.get_memory_usage())
+        usage.update(self.memory_storage.get_memory_usage())
 
         if self.simulation.trace:
             nb_requests = self.simulation.tracer.get_nb_requests(self.variable.name)
@@ -137,7 +133,7 @@ class Holder:
         Get the list of periods the variable value is known for.
         """
 
-        return list(self._memory_storage.get_known_periods()) + list(
+        return list(self.memory_storage.get_known_periods()) + list(
             self._disk_storage.get_known_periods() if self._disk_storage else [])
 
     def set_input(self, period, array):
@@ -228,14 +224,14 @@ class Holder:
 
         should_store_on_disk = (
             self._on_disk_storable and
-            self._memory_storage.get(period) is None and  # If there is already a value in memory, replace it and don't put a new value in the disk storage
+            self.memory_storage.get(period) is None and  # If there is already a value in memory, replace it and don't put a new value in the disk storage
             psutil.virtual_memory().percent >= self.simulation.memory_config.max_memory_occupation_pc
             )
 
         if should_store_on_disk:
             self._disk_storage.put(value, period)
         else:
-            self._memory_storage.put(value, period)
+            self.memory_storage.put(value, period)
 
     def put_in_cache(self, value, period):
         if self._do_not_store:

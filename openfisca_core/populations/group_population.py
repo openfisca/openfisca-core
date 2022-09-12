@@ -21,7 +21,7 @@ class GroupPopulation(Population):
     def clone(self, simulation):
         result = GroupPopulation(self.entity, self.members)
         result.simulation = simulation
-        result.holders = {variable: holder.clone(self) for (variable, holder) in self._holders.items()}
+        result.holders = {variable: holder.clone(self) for (variable, holder) in self.holders.items()}
         result.count = self.count
         result.ids = self.ids
         result.members_entity_id = self._members_entity_id

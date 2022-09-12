@@ -14,17 +14,8 @@ class ParameterNodeAtInstant:
     Parameter node of the legislation, at a given instant.
     """
 
-    @property
-    def children(self):
-        return self._children
-
-    @property
-    def instant_str(self):
-        return self._instant_str
-
-    @property
-    def name(self):
-        return self._name
+    name: str
+    instant_str: str
 
     def __init__(self, name, node, instant_str):
         """
@@ -34,9 +25,9 @@ class ParameterNodeAtInstant:
         """
 
         # The "technical" attributes are hidden, so that the node children can be easily browsed with auto-completion without pollution
-        self._name = name
-        self._instant_str = instant_str
-        self._children = {}
+        self.name = name
+        self.instant_str = instant_str
+        self.children = {}
 
         for child_name, child in node.children.items():
             child_at_instant = child._get_at_instant(instant_str)
@@ -44,27 +35,27 @@ class ParameterNodeAtInstant:
                 self.add_child(child_name, child_at_instant)
 
     def add_child(self, child_name, child_at_instant):
-        self._children[child_name] = child_at_instant
+        self.children[child_name] = child_at_instant
         setattr(self, child_name, child_at_instant)
 
     def __getattr__(self, key):
-        param_name = helpers.compose_name(self._name, item_name = key)
-        raise ParameterNotFoundError(param_name, self._instant_str)
+        param_name = helpers.compose_name(self.name, item_name = key)
+        raise ParameterNotFoundError(param_name, self.instant_str)
 
     def __getitem__(self, key):
         # If fancy indexing is used, cast to a vectorial node
         if isinstance(key, numpy.ndarray):
             return parameters.VectorialParameterNodeAtInstant.build_from_node(self)[key]
-        return self._children[key]
+        return self.children[key]
 
     def __iter__(self):
-        return iter(self._children)
+        return iter(self.children)
 
     def __repr__(self):
         result = os.linesep.join(
             [os.linesep.join(
                 ["{}:", "{}"]).format(name, tools.indent(repr(value)))
-                for name, value in self._children.items()]
+                for name, value in self.children.items()]
             )
         if sys.version_info < (3, 0):
             return result

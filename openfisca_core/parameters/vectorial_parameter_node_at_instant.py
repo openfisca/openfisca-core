@@ -13,13 +13,8 @@ class VectorialParameterNodeAtInstant:
     Vectorized parameters allow requests such as parameters.housing_benefit[zipcode], where zipcode is a vector
     """
 
-    @property
-    def instant_str(self):
-        return self._instant_str
-
-    @property
-    def name(self):
-        return self._name
+    name: str
+    instant_str: str
 
     @staticmethod
     def build_from_node(node):
@@ -138,8 +133,8 @@ class VectorialParameterNodeAtInstant:
     def __init__(self, name, vector, instant_str):
 
         self.vector = vector
-        self._name = name
-        self._instant_str = instant_str
+        self.name = name
+        self.instant_str = instant_str
 
     def __getattr__(self, attribute):
         result = getattr(self.vector, attribute)
@@ -171,11 +166,11 @@ class VectorialParameterNodeAtInstant:
             result = numpy.select(conditions, values, default)
             if helpers.contains_nan(result):
                 unexpected_key = set(key).difference(self.vector.dtype.names).pop()
-                raise ParameterNotFoundError('.'.join([self._name, unexpected_key]), self._instant_str)
+                raise ParameterNotFoundError('.'.join([self.name, unexpected_key]), self.instant_str)
 
             # If the result is not a leaf, wrap the result in a vectorial node.
             if numpy.issubdtype(result.dtype, numpy.record):
-                return VectorialParameterNodeAtInstant(self._name, result.view(numpy.recarray), self._instant_str)
+                return VectorialParameterNodeAtInstant(self.name, result.view(numpy.recarray), self.instant_str)
 
             return result
 
