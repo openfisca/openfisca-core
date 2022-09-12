@@ -25,12 +25,13 @@ def get_default_value(variable):
 
 def build_source_url(country_package_metadata, source_file_path, start_line_number, source_code):
     nb_lines = source_code.count('\n')
-    return '{}/blob/{}{}#L{}-L{}'.format(
-        country_package_metadata['repository_url'],
-        country_package_metadata['version'],
-        source_file_path,
-        start_line_number,
-        start_line_number + nb_lines - 1,
+    return (
+        f"{country_package_metadata['repository_url']}"
+        f"/blob/"
+        f"{country_package_metadata['version']}"
+        f"{source_file_path}"
+        f"#L{start_line_number}"
+        f"-L{start_line_number + nb_lines - 1}"
         )
 
 

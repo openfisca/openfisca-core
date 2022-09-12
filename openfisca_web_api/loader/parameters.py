@@ -56,10 +56,11 @@ def build_api_scale(scale, value_key_name):
 
 def build_source_url(absolute_file_path, country_package_metadata):
     relative_path = absolute_file_path.replace(country_package_metadata['location'], '')
-    return '{}/blob/{}{}'.format(
-        country_package_metadata['repository_url'],
-        country_package_metadata['version'],
-        relative_path
+    return (
+        f"{country_package_metadata['repository_url']}"
+        f"/blob/"
+        f"{country_package_metadata['version']}"
+        f"{relative_path}"
         )
 
 
