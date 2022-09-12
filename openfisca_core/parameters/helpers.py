@@ -81,7 +81,7 @@ def _set_backward_compatibility_metadata(parameter, data):
         parameter.metadata['reference'] = data['reference']
 
 
-def _validate_parameter(parameter, data, data_type = None, allowed_keys = None):
+def validate_parameter(parameter, data, data_type = None, allowed_keys = None):
     type_map = {
         dict: 'object',
         list: 'array',
@@ -101,6 +101,3 @@ def _validate_parameter(parameter, data, data_type = None, allowed_keys = None):
                     f"Unexpected property '{key}' in '{parameter.name}'. Allowed properties are {list(allowed_keys)}.",
                     parameter.file_path,
                     )
-
-
-validate_parameter = _validate_parameter
