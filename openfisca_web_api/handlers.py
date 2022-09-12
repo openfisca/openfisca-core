@@ -30,7 +30,7 @@ def calculate(tax_benefit_system, input_data: dict) -> dict:
         # Don't use dpath.util.new, because there is a problem with dpath>=2.0
         # when we have a key that is numeric, like the year.
         # See https://github.com/dpath-maintainers/dpath-python/issues/160
-        if computation_results == {}:
+        if not computation_results:
             computation_results = {entity_plural: {entity_id: {variable_name: {period: entity_result}}}}
         else:
             if entity_plural in computation_results:
