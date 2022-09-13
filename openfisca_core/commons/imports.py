@@ -1,3 +1,6 @@
+from types import ModuleType
+from typing import Tuple
+
 import importlib
 import os
 import traceback
@@ -8,7 +11,7 @@ import yaml
 from openfisca_core.warnings import LibYAMLWarning
 
 
-def import_country_package(country_package_name):
+def import_country_package(country_package_name: str) -> ModuleType:
     """Import a country package."""
 
     try:
@@ -27,7 +30,7 @@ def import_country_package(country_package_name):
         raise ImportError(message) from error
 
 
-def import_yaml():
+def import_yaml() -> Tuple[ModuleType, yaml.cyaml.CLoader]:
     """Import the yaml library."""
 
     try:

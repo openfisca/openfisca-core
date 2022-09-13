@@ -21,7 +21,7 @@ class Enum(enum.Enum):
         # When the enum item is initialized, self._member_names_ contains the
         # names of the previously initialized items, so its length is the index
         # of this item.
-        self.index = len(self._member_names_)
+        self.index = len(self._member_names_)  # type: ignore
 
     # Bypass the slow Enum.__eq__
     __eq__ = object.__eq__

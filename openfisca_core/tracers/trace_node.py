@@ -8,7 +8,6 @@ if typing.TYPE_CHECKING:
     import numpy
 
     from openfisca_core.indexed_enums import EnumArray
-    from openfisca_core.periods import Period
 
     Array = typing.Union[EnumArray, numpy.typing.ArrayLike]
     Time = typing.Union[float, int]
