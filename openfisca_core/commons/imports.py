@@ -9,6 +9,8 @@ from openfisca_core.warnings import LibYAMLWarning
 
 
 def import_country_package(country_package_name):
+    """Import a country package."""
+
     try:
         return importlib.import_module(country_package_name)
 
@@ -26,8 +28,11 @@ def import_country_package(country_package_name):
 
 
 def import_yaml():
+    """Import the yaml library."""
+
     try:
         return yaml, yaml.__getattribute__("CLoader")
+
     except AttributeError:
         message = [
             "libyaml is not installed in your environment.",

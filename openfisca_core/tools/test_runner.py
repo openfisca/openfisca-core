@@ -222,12 +222,12 @@ class YamlItem(pytest.Item):
 
         return variable_ignored or variable_not_tested
 
-    def repr_failure(self, excinfo, __arg = None):
+    def repr_failure(self, excinfo, style = None):
         if not isinstance(
                 excinfo.value,
                 (AssertionError, VariableNotFoundError, SituationParsingError),
                 ):
-            return super().repr_failure(excinfo)
+            return super().repr_failure(excinfo, style)
 
         message = excinfo.value.args[0]
         if isinstance(excinfo.value, SituationParsingError):
