@@ -130,7 +130,7 @@ class TaxBenefitSystem:
         return ScenarioAdapter(self)
 
     @staticmethod
-    def prefill_cache(self):
+    def prefill_cache():
         ...
 
     def load_variable(self, variable_class, update = False):
