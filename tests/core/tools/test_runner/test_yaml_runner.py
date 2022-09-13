@@ -28,7 +28,7 @@ class TaxBenefitSystem:
 
     @staticmethod
     def load_extension(_extension):
-        pass
+        ...
 
     @staticmethod
     def entities_by_singular():

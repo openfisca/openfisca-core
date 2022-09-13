@@ -129,8 +129,9 @@ class TaxBenefitSystem:
 
         return ScenarioAdapter(self)
 
+    @staticmethod
     def prefill_cache(self):
-        pass
+        ...
 
     def load_variable(self, variable_class, update = False):
         name = variable_class.__name__

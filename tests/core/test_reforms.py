@@ -315,8 +315,7 @@ def test_replace_variable(tax_benefit_system):
 
 def test_wrong_reform(tax_benefit_system):
     class wrong_reform(Reform):
-        # A Reform must implement an `apply` method
-        pass
+        """A Reform must implement an `apply` method."""
 
     with pytest.raises(Exception):
         wrong_reform(tax_benefit_system)
@@ -385,7 +384,7 @@ def test_formulas_removal(tax_benefit_system):
         def apply(self):
 
             class basic_income(Variable):
-                pass
+                ...
 
             self.update_variable(basic_income)
             self.variables['basic_income'].formulas.clear()

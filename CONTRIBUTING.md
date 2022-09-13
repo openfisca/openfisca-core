@@ -137,7 +137,7 @@ class Cache:
     """
 
     def __init__(self, type: str) -> None:
-        pass
+        ...
 
 ```
 
@@ -196,7 +196,5 @@ def get(self, key: str) -> Any:
     .. _documentation: https://openfisca.org/doc/
 
     """
-
-    pass
 
 ```

@@ -45,10 +45,10 @@ class StubSimulation(Simulation):
             raise self.exception
 
     def invalidate_cache_entry(self, variable, period):
-        pass
+        ...
 
     def purge_cache_of_invalid_values(self):
-        pass
+        ...
 
 
 class MockTracer:

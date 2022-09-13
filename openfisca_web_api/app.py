@@ -20,6 +20,7 @@ except ImportError as error:
 try:
     from openfisca_tracker.piwik import PiwikTracker
 
+# Do nothing, unless you try to actually activate the tracker (below).
 except ImportError:
     ...
 
@@ -30,36 +31,46 @@ def init_tracker(url, idsite, tracker_token):
     try:
         tracker = PiwikTracker(url, idsite, tracker_token)
 
-        info = os.linesep.join(['You chose to activate the `tracker` module. ',
-                                'Tracking data will be sent to: ' + url,
-                                'For more information, see <https://github.com/openfisca/openfisca-core#tracker-configuration>.'])
+        info = os.linesep.join([
+            'You chose to activate the `tracker` module. ',
+            'Tracking data will be sent to: ' + url,
+            'For more information, see <https://github.com/openfisca/openfisca-core#tracker-configuration>.',
+            ])
+
         log.info(info)
+
         return tracker
 
     except NameError:
-        message = os.linesep.join([traceback.format_exc(),
-                                'You chose to activate the `tracker` module, but it is not installed.',
-                                'For more information, see <https://github.com/openfisca/openfisca-core#tracker-installation>.'])
+        message = os.linesep.join([
+            traceback.format_exc(),
+            'You chose to activate the `tracker` module, but it is not installed.',
+            'For more information, see <https://github.com/openfisca/openfisca-core#tracker-installation>.',
+            ])
+
         warnings.warn(message, UserWarning)
 
     return None
 
 
-def create_app(tax_benefit_system,
-               tracker_url = None,
-               tracker_idsite = None,
-               tracker_token = None,
-               welcome_message = None,
-               ):
-
+def create_app(
+        tax_benefit_system,
+        tracker_url = None,
+        tracker_idsite = None,
+        tracker_token = None,
+        welcome_message = None,
+        ):
     if not tracker_url or not tracker_idsite:
         tracker = None
+
     else:
         tracker = init_tracker(tracker_url, tracker_idsite, tracker_token)
 
     app = Flask(__name__)
+
     # Fix request.remote_addr to get the real client IP address
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for = 1, x_host = 1)
+
     CORS(app, origins = '*')
 
     app.config['JSON_AS_ASCII'] = False  # When False, lets jsonify encode to utf-8
@@ -69,7 +80,7 @@ def create_app(tax_benefit_system,
 
     data = build_data(tax_benefit_system)
 
-    DEFAULT_WELCOME_MESSAGE = "This is the root of an OpenFisca Web API. To learn how to use it, check the general documentation (https://openfisca.org/doc/) and the OpenAPI specification of this instance ({}spec)."
+    DEFAULT_WELCOME_MESSAGE = "This is the root of an OpenFisca Web API. To learn how to use it, check the general documentation (https://openfisca.org/doc/) and the OpenAPI specification of this instance ({}spec)."
 
     @app.route('/')
     def get_root():

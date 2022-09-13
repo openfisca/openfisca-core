@@ -12,6 +12,7 @@ from openfisca_web_api.errors import handle_import_error
 try:
     from gunicorn import config
     from gunicorn.app.base import BaseApplication
+
 except ImportError as error:
     handle_import_error(error)
 
@@ -51,6 +52,7 @@ def read_user_configuration(default_configuration, command_line_parser):
     gunicorn_parser = config.Config().parser()
     configuration = update(configuration, vars(args))
     configuration = update(configuration, vars(gunicorn_parser.parse_args(unknown_args)))
+
     if configuration['args']:
         command_line_parser.print_help()
         log.error(f"Unexpected positional argument {configuration['args']}")
@@ -65,6 +67,7 @@ def update(configuration, new_options):
             configuration[key] = value
             if key == "port":
                 configuration['bind'] = configuration['bind'][:-4] + str(configuration['port'])
+
     return configuration
 
 
