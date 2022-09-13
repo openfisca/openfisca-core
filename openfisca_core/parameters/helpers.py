@@ -42,9 +42,9 @@ def compose_name(path, child_name = None, item_name = None):
 
 
 def _load_yaml_file(file_path):
-    with open(file_path, encoding = "utf-8") as f:
+    with open(file_path, encoding = "utf-8") as file:
         try:
-            return config.yaml.load(f, Loader = config.Loader)
+            return config.yaml.load(file, Loader = config.Loader)
         except (config.yaml.scanner.ScannerError, config.yaml.parser.ParserError) as e:
             stack_trace = traceback.format_exc()
             raise ParameterParsingError(

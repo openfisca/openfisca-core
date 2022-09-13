@@ -9,11 +9,13 @@ import pytest
 from openfisca_country_template.situation_examples import couple
 
 
-def post_json(test_client, data = None, file = None):
-    if file:
-        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets', file)
-        with open(file_path, encoding = "utf-8") as f:
-            data = f.read()
+def post_json(test_client, data = None, file_name = None):
+    if file_name:
+        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets', file_name)
+
+        with open(file_path, encoding = "utf-8") as file:
+            data = file.read()
+
     return test_client.post('/calculate', data = data, content_type = 'application/json')
 
 

@@ -22,7 +22,7 @@ class PerformanceLog:
         self._full_tracer = full_tracer
 
     def generate_graph(self, dir_path: str) -> None:
-        with open(os.path.join(dir_path, 'performance_graph.html'), 'w', encoding = "utf-8") as f:
+        with open(os.path.join(dir_path, 'performance_graph.html'), 'w', encoding = "utf-8") as file:
             template = importlib.resources.read_text(
                 'openfisca_core.scripts.assets',
                 'index.html',
@@ -33,7 +33,7 @@ class PerformanceLog:
                 json.dumps(self.json()),
                 )
 
-            f.write(perf_graph_html)
+            file.write(perf_graph_html)
 
     def generate_performance_tables(self, dir_path: str) -> None:
         flat_trace = self._full_tracer.get_flat_trace()

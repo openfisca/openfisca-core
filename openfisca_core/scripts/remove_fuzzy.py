@@ -8,10 +8,10 @@ import sys
 import numpy
 
 assert len(sys.argv) == 2
-filename = sys.argv[1]
+file_path = sys.argv[1]
 
-with open(filename, encoding = "utf-8") as f:
-    lines = f.readlines()
+with open(file_path, encoding = "utf-8") as file:
+    lines = file.readlines()
 
 
 # Remove fuzzy
@@ -241,6 +241,6 @@ lines_6 = [
 
 # Write
 
-with open(filename, 'w', encoding = "utf-8") as f:
+with open(file_path, 'w', encoding = "utf-8") as file:
     for line in lines_6:
-        f.write(line)
+        file.write(line)

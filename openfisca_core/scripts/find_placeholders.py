@@ -25,9 +25,9 @@ def find_param_files(input_dir):
     return param_files
 
 
-def find_placeholders(filename_input):
-    with open(filename_input, encoding = "utf-8") as f:
-        xml_content = f.read()
+def find_placeholders(file_path):
+    with open(file_path, encoding = "utf-8") as file:
+        xml_content = file.read()
 
     xml_parsed = BeautifulSoup(xml_content, "lxml-xml")
 
