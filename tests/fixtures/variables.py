@@ -2,7 +2,7 @@ from openfisca_core import periods
 from openfisca_core.variables import Variable
 
 
-class MyVariable(Variable):
+class FixtureVariable(Variable):
     definition_period = periods.ETERNITY
     value_type = float
 

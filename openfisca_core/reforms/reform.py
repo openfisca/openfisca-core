@@ -28,7 +28,7 @@ class Reform(TaxBenefitSystem):
         >>>
         >>>    return parameters
         >>>
-        >>> class MyReform(reforms.Reform):
+        >>> class FixtureReform(reforms.Reform):
         >>>    def apply(self):
         >>>        self.add_variable(some_variable)
         >>>        self.update_variable(some_other_variable)

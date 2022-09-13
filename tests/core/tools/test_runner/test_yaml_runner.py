@@ -15,7 +15,7 @@ from openfisca_core.variables import Variable
 
 class TaxBenefitSystem:
     def __init__(self):
-        self.variables = {'salary': MyVariable()}
+        self.variables = {'salary': FixtureVariable()}
         self.person_entity = Entity('person', 'persons', None, "")
         self.person_entity.set_tax_benefit_system(self)
 
@@ -64,7 +64,7 @@ class Simulation:
         return None
 
 
-class MyFile:
+class FixtureFile:
 
     def __init__(self):
         self.config = None
@@ -72,15 +72,15 @@ class MyFile:
         self.session = None
 
 
-class MyItem(YamlItem):
+class FixtureItem(YamlItem):
     def __init__(self, test):
-        super().__init__('', MyFile(), TaxBenefitSystem(), test, {})
+        super().__init__('', FixtureFile(), TaxBenefitSystem(), test, {})
 
         self.tax_benefit_system = self.baseline_tax_benefit_system
         self.simulation = Simulation()
 
 
-class MyVariable(Variable):
+class FixtureVariable(Variable):
     definition_period = ETERNITY
     entity = Entity('person', 'persons', None, "")
     value_type = float
@@ -96,7 +96,7 @@ class MyVariable(Variable):
 def test_variable_not_found():
     test = {"output": {"unknown_variable": 0}}
     with pytest.raises(VariableNotFoundError) as excinfo:
-        test_item = MyItem(test)
+        test_item = FixtureItem(test)
         test_item.check_output()
     assert excinfo.value.variable_name == "unknown_variable"
 
@@ -151,7 +151,7 @@ def test_extensions_order():
 
 def test_performance_graph_option_output():
     test = {'input': {'salary': {'2017-01': 2000}}, 'output': {'salary': {'2017-01': 2000}}}
-    test_item = MyItem(test)
+    test_item = FixtureItem(test)
     test_item.options = {'performance_graph': True}
 
     paths = ["./performance_graph.html"]
@@ -169,7 +169,7 @@ def test_performance_graph_option_output():
 
 def test_performance_tables_option_output():
     test = {'input': {'salary': {'2017-01': 2000}}, 'output': {'salary': {'2017-01': 2000}}}
-    test_item = MyItem(test)
+    test_item = FixtureItem(test)
     test_item.options = {'performance_tables': True}
 
     paths = ["performance_table.csv", "aggregated_performance_table.csv"]

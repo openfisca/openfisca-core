@@ -47,15 +47,15 @@ def date_variable(persons):
 @pytest.fixture
 def enum_variable():
 
-    class MyEnum(Enum):
+    class FixtureEnum(Enum):
         FOO = b"foo"
         BAR = b"bar"
 
     class TestEnum(Variable):
-        default_value = MyEnum.FOO
+        default_value = FixtureEnum.FOO
         definition_period = periods.ETERNITY
         entity = Entity("key", "plural", "label", "doc")
-        possible_values = MyEnum
+        possible_values = FixtureEnum
         set_input = None
         value_type = Enum
 

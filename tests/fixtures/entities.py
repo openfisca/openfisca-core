@@ -2,12 +2,12 @@ import pytest
 
 from openfisca_core.entities import Entity, GroupEntity
 
-from .variables import MyVariable
+from .variables import FixtureVariable
 
 
-class MyEntity(Entity):
+class FixtureEntity(Entity):
     def get_variable(self, variable_name, __arg = None):
-        result = MyVariable(self)
+        result = FixtureVariable(self)
         result.name = variable_name
         return result
 
@@ -15,9 +15,9 @@ class MyEntity(Entity):
         return True
 
 
-class MyGroupEntity(GroupEntity):
+class FixtureGroupEntity(GroupEntity):
     def get_variable(self, variable_name, __arg = None):
-        result = MyVariable(self)
+        result = FixtureVariable(self)
         result.name = variable_name
         return result
 
@@ -27,7 +27,7 @@ class MyGroupEntity(GroupEntity):
 
 @pytest.fixture
 def persons():
-    return MyEntity("person", "persons", "", "")
+    return FixtureEntity("person", "persons", "", "")
 
 
 @pytest.fixture
@@ -41,4 +41,4 @@ def households():
         'plural': 'children'
         }]
 
-    return MyGroupEntity("household", "households", "", "", roles)
+    return FixtureGroupEntity("household", "households", "", "", roles)
