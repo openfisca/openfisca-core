@@ -10,7 +10,7 @@ try:
 
 except ImportError:
     message = [
-        "You tried to use the 'openfisca_france' package, or it is not",
+        "You tried to use the 'openfisca_france' package, but it is not",
         "currently installed. Try running",
         "`pip install --user openfisca_france`.",
         ]
