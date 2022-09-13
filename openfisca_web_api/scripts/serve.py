@@ -77,6 +77,9 @@ class OpenFiscaWebAPIApplication(BaseApplication):
         self.options = options
         super().__init__()
 
+    # As this method is abstract in `BaseApplication`, it has to be
+    # overriden. This just means we're using the class in a way the
+    # `gunicorn` developers didn't expect us to.
     def init(self, __parser, __opts, __args):
         ...
 
