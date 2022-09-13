@@ -10,7 +10,7 @@ try:
 
 except ImportError:
     message = [
-        "You tried to use the 'bs4' package, or it is not currently",
+        "You tried to use the 'bs4' package, but it is not currently",
         "installed. Try running `pip install --user bs4`.",
         ]
     warnings.warn(" ".join(message), UserWarning)
