@@ -17,7 +17,7 @@ if typing.TYPE_CHECKING:
 @dataclasses.dataclass
 class TraceNode:
     name: str
-    period: Period
+    period: str
     parent: typing.Optional[TraceNode] = None
     children: typing.List[TraceNode] = dataclasses.field(default_factory = list)
     parameters: typing.List[TraceNode] = dataclasses.field(default_factory = list)
