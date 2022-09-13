@@ -33,7 +33,7 @@ class MarginalRateTaxScale(RateTaxScaleLike):
                 tax_scale.thresholds[-1],
                 )
 
-    def calc(  # pylint: disable=arguments-differ
+    def calc(  # pylint: disable=arguments-renamed
             self,
             tax_base: NumArray,
             factor: float = 1.0,
