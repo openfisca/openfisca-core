@@ -49,6 +49,9 @@ def run_tests(tax_benefit_system, paths, options = None):
 
     argv = []
 
+    if options is None:
+        options = {}
+
     if options.get('pdb'):
         argv.append('--pdb')
 
@@ -57,9 +60,6 @@ def run_tests(tax_benefit_system, paths, options = None):
 
     if isinstance(paths, str):
         paths = [paths]
-
-    if options is None:
-        options = {}
 
     return pytest.main([*argv, *paths], plugins = [OpenFiscaPlugin(tax_benefit_system, options)])
 
