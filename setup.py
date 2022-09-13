@@ -50,12 +50,12 @@ dev_requirements = [
 
 test_requirements = [
     "openfisca-country-template @ git+https://github.com/openfisca/country-template.git@add-pylint",
-    'openfisca-extension-template >= 1.0.0, < 2.0.0',
+    'openfisca-extension-template @ git+https://github.com/openfisca/extension-template.git@add-pylint',
     ] + dev_requirements
 
 setup(
     name = 'OpenFisca-Core',
-    version = '35.10.0',
+    version = '36.0.0',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [
