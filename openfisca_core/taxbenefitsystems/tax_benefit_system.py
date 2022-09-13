@@ -342,13 +342,11 @@ class TaxBenefitSystem:
 
         self.parameters = parameters
 
-    def _get_baseline_parameters_at_instant(self, instant):
+    def get_baseline_parameters_at_instant(self, instant):
         baseline = self.baseline
         if baseline is None:
             return self.get_parameters_at_instant(instant)
         return baseline.get_baseline_parameters_at_instant(instant)
-
-    get_baseline_parameters_at_instant = _get_baseline_parameters_at_instant
 
     def get_parameters_at_instant(self, instant):
         """

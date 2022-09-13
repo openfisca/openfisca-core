@@ -32,7 +32,7 @@ def transform_to_strict_syntax(data):
     return data
 
 
-def _get_person_count(input_dict):
+def get_person_count(input_dict):
     try:
         first_value = next(iter(input_dict.values()))
         if isinstance(first_value, dict):
@@ -43,6 +43,3 @@ def _get_person_count(input_dict):
         return len(first_value)
     except (StopIteration, TypeError):
         return 1
-
-
-get_person_count = _get_person_count

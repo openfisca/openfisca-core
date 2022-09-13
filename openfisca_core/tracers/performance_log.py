@@ -30,7 +30,7 @@ class PerformanceLog:
 
             perf_graph_html = template.replace(
                 '{{data}}',
-                json.dumps(self._json()),
+                json.dumps(self.json()),
                 )
 
             f.write(perf_graph_html)
@@ -103,7 +103,7 @@ class PerformanceLog:
             in itertools.groupby(all_calculations, _groupby)
             }
 
-    def _json(self) -> dict:
+    def json(self) -> dict:
         children = [self._json_tree(tree) for tree in self._full_tracer.trees]
         calculations_total_time = sum(child['value'] for child in children)
 
@@ -112,8 +112,6 @@ class PerformanceLog:
             'value': calculations_total_time,
             'children': children,
             }
-
-    json = _json
 
     def _json_tree(self, tree: tracers.TraceNode) -> dict:
         calculation_total_time = tree.calculation_time()

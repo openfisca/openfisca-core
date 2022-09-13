@@ -121,7 +121,7 @@ class Simulation:
 
         # First, try to run a formula
         try:
-            self._check_for_cycle(variable.name, period)
+            self.check_for_cycle(variable.name, period)
             array = self._run_formula(variable, population, period)
 
             # If no result, use the default value and cache it
@@ -258,7 +258,7 @@ class Simulation:
 
     # ----- Handle circular dependencies in a calculation ----- #
 
-    def _check_for_cycle(self, variable: str, period):
+    def check_for_cycle(self, variable: str, period):
         """
         Raise an exception in the case of a circular definition, where evaluating a variable for
         a given period loops around to evaluating the same variable/period pair. Also guards, as
@@ -274,8 +274,6 @@ class Simulation:
             self.invalidate_spiral_variables(variable)
             message = f"Quasicircular definition detected on formula {variable}@{period} involving {self.tracer.stack}"
             raise SpiralError(message, variable)
-
-    check_for_cycle = _check_for_cycle
 
     def invalidate_cache_entry(self, variable: str, period):
         self.invalidated_caches.add((variable, period))
