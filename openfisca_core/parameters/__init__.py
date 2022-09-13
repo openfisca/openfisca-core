@@ -36,5 +36,4 @@ from .parameter_node import ParameterNode  # noqa: F401
 from .parameter_node_at_instant import ParameterNodeAtInstant  # noqa: F401
 from .parameter_scale import ParameterScale  # noqa: F401
 from .parameter_scale_bracket import ParameterScaleBracket  # noqa: F401
-from .values_history import ValuesHistory  # noqa: F401
 from .vectorial_parameter_node_at_instant import VectorialParameterNodeAtInstant  # noqa: F401

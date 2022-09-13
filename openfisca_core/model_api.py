@@ -17,7 +17,6 @@ from openfisca_core.parameters import (  # noqa: F401 # pylint: disable=unused-i
     ParameterNode,
     ParameterScale,
     ParameterScaleBracket,
-    ValuesHistory,
     load_parameter_file,
     )
 from openfisca_core.periods import DAY, ETERNITY, MONTH, YEAR, period  # noqa: F401 # pylint: disable=unused-import

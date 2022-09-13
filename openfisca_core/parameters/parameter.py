@@ -53,7 +53,6 @@ class Parameter(AtInstantLike):
         self.description: Optional[str] = None
         self.metadata: Dict = {}
         self.documentation: Optional[str] = None
-        self.values_history = self  # Only for backward compatibility
 
         # Normal parameter declaration: the values are declared under the 'values' key: parse the description and metadata.
         if data.get('values'):
