@@ -41,7 +41,7 @@ cd openfisca-core
 python3 -m venv .venv
 source .venv/bin/activate
 pip install --user pip
-pip install --editable ".[dev,test]"
+pip install --editable ".[dev]"
 ```
 
 ### Installing `openfisca-core` with `conda`
