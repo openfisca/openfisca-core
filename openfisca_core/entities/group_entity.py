@@ -32,10 +32,10 @@ class GroupEntity(Entity):
             role = Role(role_description, self)
             setattr(self, role.key.upper(), role)
             self.roles.append(role)
-            if role_description.get('subroles'):
+            if role_description.get("subroles"):
                 role.subroles = []
-                for subrole_key in role_description['subroles']:
-                    subrole = Role({'key': subrole_key, 'max': 1}, self)
+                for subrole_key in role_description["subroles"]:
+                    subrole = Role({"key": subrole_key, "max": 1}, self)
                     setattr(self, subrole.key.upper(), subrole)
                     role.subroles.append(subrole)
                 role.max = len(role.subroles)

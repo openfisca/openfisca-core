@@ -12,10 +12,10 @@ class VariableNotFoundError(Exception):
         :param tax_benefit_system: Tax benefits system that does not contain `variable_name`
         """
         country_package_metadata = tax_benefit_system.get_package_metadata()
-        country_package_name = country_package_metadata['name']
-        country_package_version = country_package_metadata['version']
+        country_package_name = country_package_metadata["name"]
+        country_package_version = country_package_metadata["version"]
         if country_package_version:
-            country_package_id = f'{country_package_name}@{country_package_version}'
+            country_package_id = f"{country_package_name}@{country_package_version}"
         else:
             country_package_id = country_package_name
         message = os.linesep.join([

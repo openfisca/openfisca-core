@@ -55,18 +55,18 @@ class Parameter(AtInstantLike):
         self.documentation: Optional[str] = None
 
         # Normal parameter declaration: the values are declared under the 'values' key: parse the description and metadata.
-        if data.get('values'):
+        if data.get("values"):
             # 'unit' and 'reference' are only listed here for backward compatibility
-            helpers.validate_parameter(self, data, allowed_keys = config.COMMON_KEYS.union({'values'}))
-            self.description = data.get('description')
+            helpers.validate_parameter(self, data, allowed_keys = config.COMMON_KEYS.union({"values"}))
+            self.description = data.get("description")
 
             helpers._set_backward_compatibility_metadata(self, data)
-            self.metadata.update(data.get('metadata', {}))
+            self.metadata.update(data.get("metadata", {}))
 
-            helpers.validate_parameter(self, data['values'], data_type = dict)
-            values = data['values']
+            helpers.validate_parameter(self, data["values"], data_type = dict)
+            values = data["values"]
 
-            self.documentation = data.get('documentation')
+            self.documentation = data.get("documentation")
 
         else:  # Simplified parameter declaration: only values are provided
             values = data
@@ -129,7 +129,7 @@ class Parameter(AtInstantLike):
         if start is None:
             raise ValueError("You must provide either a start or a period")
         start_str = str(start)
-        stop_str = str(stop.offset(1, 'day')) if stop else None
+        stop_str = str(stop.offset(1, "day")) if stop else None
 
         old_values = self.values_list
         new_values = []
@@ -150,16 +150,16 @@ class Parameter(AtInstantLike):
                 if i < n:
                     overlapped_value = old_values[i].value
                     value_name = helpers.compose_name(self.name, item_name = stop_str)
-                    new_interval = ParameterAtInstant(value_name, stop_str, data = {'value': overlapped_value})
+                    new_interval = ParameterAtInstant(value_name, stop_str, data = {"value": overlapped_value})
                     new_values.append(new_interval)
                 else:
                     value_name = helpers.compose_name(self.name, item_name = stop_str)
-                    new_interval = ParameterAtInstant(value_name, stop_str, data = {'value': None})
+                    new_interval = ParameterAtInstant(value_name, stop_str, data = {"value": None})
                     new_values.append(new_interval)
 
         # Insert new interval
         value_name = helpers.compose_name(self.name, item_name = start_str)
-        new_interval = ParameterAtInstant(value_name, start_str, data = {'value': value})
+        new_interval = ParameterAtInstant(value_name, start_str, data = {"value": value})
         new_values.append(new_interval)
 
         # Remove covered intervals

@@ -22,7 +22,7 @@ class ParameterScale(AtInstantLike):
     """
 
     # 'unit' and 'reference' are only listed here for backward compatibility
-    _allowed_keys = config.COMMON_KEYS.union({'brackets'})
+    _allowed_keys = config.COMMON_KEYS.union({"brackets"})
 
     def __init__(self, name, data, file_path):
         """
@@ -33,19 +33,19 @@ class ParameterScale(AtInstantLike):
         self.name: str = name
         self.file_path: str = file_path
         helpers.validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
-        self.description: str = data.get('description')
+        self.description: str = data.get("description")
         self.metadata: typing.Dict = {}
         helpers._set_backward_compatibility_metadata(self, data)
-        self.metadata.update(data.get('metadata', {}))
+        self.metadata.update(data.get("metadata", {}))
 
-        if not isinstance(data.get('brackets', []), list):
+        if not isinstance(data.get("brackets", []), list):
             raise ParameterParsingError(
                 f"Property 'brackets' of scale '{self.name}' must be of type array.",
                 self.file_path,
                 )
 
         brackets = []
-        for i, bracket_data in enumerate(data.get('brackets', [])):
+        for i, bracket_data in enumerate(data.get("brackets", [])):
             bracket_name = helpers.compose_name(name, item_name = i)
             bracket = parameters.ParameterScaleBracket(name = bracket_name, data = bracket_data, file_path = file_path)
             brackets.append(bracket)
@@ -59,8 +59,8 @@ class ParameterScale(AtInstantLike):
 
     def __repr__(self):
         return os.linesep.join(
-            ['brackets:']
-            + [tools.indent('-' + tools.indent(repr(bracket))[1:]) for bracket in self.brackets]
+            ["brackets:"]
+            + [tools.indent("-" + tools.indent(repr(bracket))[1:]) for bracket in self.brackets]
             )
 
     @staticmethod
@@ -79,33 +79,33 @@ class ParameterScale(AtInstantLike):
     def _get_at_instant(self, instant):
         brackets = [bracket.get_at_instant(instant) for bracket in self.brackets]
 
-        if self.metadata.get('type') == 'single_amount':
+        if self.metadata.get("type") == "single_amount":
             scale = SingleAmountTaxScale()
             for bracket in brackets:
-                if 'amount' in bracket.children and 'threshold' in bracket.children:
+                if "amount" in bracket.children and "threshold" in bracket.children:
                     amount = bracket.amount
                     threshold = bracket.threshold
                     scale.add_bracket(threshold, amount)
             return scale
 
-        if any('amount' in bracket.children for bracket in brackets):
+        if any("amount" in bracket.children for bracket in brackets):
             scale = MarginalAmountTaxScale()
             for bracket in brackets:
-                if 'amount' in bracket.children and 'threshold' in bracket.children:
+                if "amount" in bracket.children and "threshold" in bracket.children:
                     amount = bracket.amount
                     threshold = bracket.threshold
                     scale.add_bracket(threshold, amount)
             return scale
 
-        if any('average_rate' in bracket.children for bracket in brackets):
+        if any("average_rate" in bracket.children for bracket in brackets):
             scale = LinearAverageRateTaxScale()
 
             for bracket in brackets:
-                if 'base' in bracket.children:
+                if "base" in bracket.children:
                     base = bracket.base
                 else:
                     base = 1.
-                if 'average_rate' in bracket.children and 'threshold' in bracket.children:
+                if "average_rate" in bracket.children and "threshold" in bracket.children:
                     average_rate = bracket.average_rate
                     threshold = bracket.threshold
                     scale.add_bracket(threshold, average_rate * base)
@@ -114,11 +114,11 @@ class ParameterScale(AtInstantLike):
         scale = MarginalRateTaxScale()
 
         for bracket in brackets:
-            if 'base' in bracket.children:
+            if "base" in bracket.children:
                 base = bracket.base
             else:
                 base = 1.
-            if 'rate' in bracket.children and 'threshold' in bracket.children:
+            if "rate" in bracket.children and "threshold" in bracket.children:
                 rate = bracket.rate
                 threshold = bracket.threshold
                 scale.add_bracket(threshold, rate * base)

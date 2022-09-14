@@ -18,7 +18,7 @@ class Instant(tuple):
         >>> repr(instant('2014-2-3'))
         'Instant((2014, 2, 3))'
         """
-        return f'{self.__class__.__name__}({super().__repr__()})'
+        return f"{self.__class__.__name__}({super().__repr__()})"
 
     def __str__(self):
         """
@@ -93,8 +93,8 @@ class Instant(tuple):
         >>> instant('2014-2-3').period('day', size = 2)
         Period(('day', Instant((2014, 2, 3)), 2))
         """
-        assert unit in (config.DAY, config.MONTH, config.YEAR), f'Invalid unit: {unit} of type {type(unit)}'
-        assert isinstance(size, int) and size >= 1, f'Invalid size: {size} of type {type(size)}'
+        assert unit in (config.DAY, config.MONTH, config.YEAR), f"Invalid unit: {unit} of type {type(unit)}"
+        assert isinstance(size, int) and size >= 1, f"Invalid size: {size} of type {type(size)}"
         return periods.Period((unit, self, size))
 
     def offset(self, offset, unit):
@@ -179,21 +179,21 @@ class Instant(tuple):
         Instant((2014, 12, 31))
         """
         year, month, day = self
-        assert unit in (config.DAY, config.MONTH, config.YEAR), f'Invalid unit: {unit} of type {type(unit)}'
-        if offset == 'first-of':
+        assert unit in (config.DAY, config.MONTH, config.YEAR), f"Invalid unit: {unit} of type {type(unit)}"
+        if offset == "first-of":
             if unit == config.MONTH:
                 day = 1
             elif unit == config.YEAR:
                 month = 1
                 day = 1
-        elif offset == 'last-of':
+        elif offset == "last-of":
             if unit == config.MONTH:
                 day = calendar.monthrange(year, month)[1]
             elif unit == config.YEAR:
                 month = 12
                 day = 31
         else:
-            assert isinstance(offset, int), f'Invalid offset: {offset} of type {type(offset)}'
+            assert isinstance(offset, int), f"Invalid offset: {offset} of type {type(offset)}"
             if unit == config.DAY:
                 day += offset
                 if offset < 0:

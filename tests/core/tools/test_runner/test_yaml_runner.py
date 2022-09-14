@@ -15,8 +15,8 @@ from openfisca_core.variables import Variable
 
 class TaxBenefitSystem:
     def __init__(self):
-        self.variables = {'salary': FixtureVariable()}
-        self.person_entity = Entity('person', 'persons', None, "")
+        self.variables = {"salary": FixtureVariable()}
+        self.person_entity = Entity("person", "persons", None, "")
         self.person_entity.set_tax_benefit_system(self)
 
     @staticmethod
@@ -39,7 +39,7 @@ class TaxBenefitSystem:
         return {}
 
     def instantiate_entities(self):
-        return {'person': Population(self.person_entity)}
+        return {"person": Population(self.person_entity)}
 
     def get_variable(self, variable_name, check_existence = False):
         return self.variables.get(variable_name, check_existence)
@@ -68,13 +68,13 @@ class FixtureFile:
 
     def __init__(self):
         self.config = None
-        self.nodeid = 'testname'
+        self.nodeid = "testname"
         self.session = None
 
 
 class FixtureItem(YamlItem):
     def __init__(self, test):
-        super().__init__('', FixtureFile(), TaxBenefitSystem(), test, {})
+        super().__init__("", FixtureFile(), TaxBenefitSystem(), test, {})
 
         self.tax_benefit_system = self.baseline_tax_benefit_system
         self.simulation = Simulation()
@@ -82,7 +82,7 @@ class FixtureItem(YamlItem):
 
 class FixtureVariable(Variable):
     definition_period = ETERNITY
-    entity = Entity('person', 'persons', None, "")
+    entity = Entity("person", "persons", None, "")
     value_type = float
 
     def __init__(self):
@@ -104,55 +104,55 @@ def test_variable_not_found():
 def test_tax_benefit_systems_with_reform_cache():
     baseline = TaxBenefitSystem()
 
-    ab_tax_benefit_system = _get_tax_benefit_system(baseline, 'ab', [])
-    ba_tax_benefit_system = _get_tax_benefit_system(baseline, 'ba', [])
+    ab_tax_benefit_system = _get_tax_benefit_system(baseline, "ab", [])
+    ba_tax_benefit_system = _get_tax_benefit_system(baseline, "ba", [])
     assert ab_tax_benefit_system != ba_tax_benefit_system
 
 
 def test_reforms_formats():
     baseline = TaxBenefitSystem()
 
-    lonely_reform_tbs = _get_tax_benefit_system(baseline, 'lonely_reform', [])
-    list_lonely_reform_tbs = _get_tax_benefit_system(baseline, ['lonely_reform'], [])
+    lonely_reform_tbs = _get_tax_benefit_system(baseline, "lonely_reform", [])
+    list_lonely_reform_tbs = _get_tax_benefit_system(baseline, ["lonely_reform"], [])
     assert lonely_reform_tbs == list_lonely_reform_tbs
 
 
 def test_reforms_order():
     baseline = TaxBenefitSystem()
 
-    abba_tax_benefit_system = _get_tax_benefit_system(baseline, ['ab', 'ba'], [])
-    baab_tax_benefit_system = _get_tax_benefit_system(baseline, ['ba', 'ab'], [])
+    abba_tax_benefit_system = _get_tax_benefit_system(baseline, ["ab", "ba"], [])
+    baab_tax_benefit_system = _get_tax_benefit_system(baseline, ["ba", "ab"], [])
     assert abba_tax_benefit_system != baab_tax_benefit_system  # keep reforms order in cache
 
 
 def test_tax_benefit_systems_with_extensions_cache():
     baseline = TaxBenefitSystem()
 
-    xy_tax_benefit_system = _get_tax_benefit_system(baseline, [], 'xy')
-    yx_tax_benefit_system = _get_tax_benefit_system(baseline, [], 'yx')
+    xy_tax_benefit_system = _get_tax_benefit_system(baseline, [], "xy")
+    yx_tax_benefit_system = _get_tax_benefit_system(baseline, [], "yx")
     assert xy_tax_benefit_system != yx_tax_benefit_system
 
 
 def test_extensions_formats():
     baseline = TaxBenefitSystem()
 
-    lonely_extension_tbs = _get_tax_benefit_system(baseline, [], 'lonely_extension')
-    list_lonely_extension_tbs = _get_tax_benefit_system(baseline, [], ['lonely_extension'])
+    lonely_extension_tbs = _get_tax_benefit_system(baseline, [], "lonely_extension")
+    list_lonely_extension_tbs = _get_tax_benefit_system(baseline, [], ["lonely_extension"])
     assert lonely_extension_tbs == list_lonely_extension_tbs
 
 
 def test_extensions_order():
     baseline = TaxBenefitSystem()
 
-    xy_tax_benefit_system = _get_tax_benefit_system(baseline, [], ['x', 'y'])
-    yx_tax_benefit_system = _get_tax_benefit_system(baseline, [], ['y', 'x'])
+    xy_tax_benefit_system = _get_tax_benefit_system(baseline, [], ["x", "y"])
+    yx_tax_benefit_system = _get_tax_benefit_system(baseline, [], ["y", "x"])
     assert xy_tax_benefit_system == yx_tax_benefit_system  # extensions order is ignored in cache
 
 
 def test_performance_graph_option_output():
-    test = {'input': {'salary': {'2017-01': 2000}}, 'output': {'salary': {'2017-01': 2000}}}
+    test = {"input": {"salary": {"2017-01": 2000}}, "output": {"salary": {"2017-01": 2000}}}
     test_item = FixtureItem(test)
-    test_item.options = {'performance_graph': True}
+    test_item.options = {"performance_graph": True}
 
     paths = ["./performance_graph.html"]
 
@@ -168,9 +168,9 @@ def test_performance_graph_option_output():
 
 
 def test_performance_tables_option_output():
-    test = {'input': {'salary': {'2017-01': 2000}}, 'output': {'salary': {'2017-01': 2000}}}
+    test = {"input": {"salary": {"2017-01": 2000}}, "output": {"salary": {"2017-01": 2000}}}
     test_item = FixtureItem(test)
-    test_item.options = {'performance_tables': True}
+    test_item.options = {"performance_tables": True}
 
     paths = ["performance_table.csv", "aggregated_performance_table.csv"]
 

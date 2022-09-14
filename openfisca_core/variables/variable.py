@@ -99,32 +99,32 @@ class Variable:
         self.name = self.__class__.__name__
         attr = {
             name: value for name, value in self.__class__.__dict__.items()
-            if not name.startswith('__')}
+            if not name.startswith("__")}
         self.baseline_variable = baseline_variable
-        self.value_type = self.set(attr, 'value_type', required = True, allowed_values = config.VALUE_TYPES.keys())
-        self.dtype = config.VALUE_TYPES[self.value_type]['dtype']
-        self.json_type = config.VALUE_TYPES[self.value_type]['json_type']
+        self.value_type = self.set(attr, "value_type", required = True, allowed_values = config.VALUE_TYPES.keys())
+        self.dtype = config.VALUE_TYPES[self.value_type]["dtype"]
+        self.json_type = config.VALUE_TYPES[self.value_type]["json_type"]
         if self.value_type == Enum:
-            self.possible_values = self.set(attr, 'possible_values', required = True, setter = self.set_possible_values)
+            self.possible_values = self.set(attr, "possible_values", required = True, setter = self.set_possible_values)
         if self.value_type == str:
-            self.max_length = self.set(attr, 'max_length', allowed_type = int)
+            self.max_length = self.set(attr, "max_length", allowed_type = int)
             if self.max_length:
-                self.dtype = f'|S{self.max_length}'
+                self.dtype = f"|S{self.max_length}"
         if self.value_type == Enum:
-            self.default_value = self.set(attr, 'default_value', allowed_type = self.possible_values, required = True)
+            self.default_value = self.set(attr, "default_value", allowed_type = self.possible_values, required = True)
         else:
-            self.default_value = self.set(attr, 'default_value', allowed_type = self.value_type, default = config.VALUE_TYPES[self.value_type].get('default'))
-        self.entity = self.set(attr, 'entity', required = True, setter = self.set_entity)
-        self.definition_period = self.set(attr, 'definition_period', required = True, allowed_values = (periods.DAY, periods.MONTH, periods.YEAR, periods.ETERNITY))
-        self.label = self.set(attr, 'label', allowed_type = str, setter = self.set_label)
-        self.end = self.set(attr, 'end', allowed_type = str, setter = self.set_end)
-        self.reference = self.set(attr, 'reference', setter = self.set_reference)
-        self.cerfa_field = self.set(attr, 'cerfa_field', allowed_type = (str, dict))
-        self.unit = self.set(attr, 'unit', allowed_type = str)
-        self.documentation = self.set(attr, 'documentation', allowed_type = str, setter = self.set_documentation)
-        self.set_input = self.set_set_input(attr.pop('set_input', None))
-        self.calculate_output = self.set_calculate_output(attr.pop('calculate_output', None))
-        self.is_period_size_independent = self.set(attr, 'is_period_size_independent', allowed_type = bool, default = config.VALUE_TYPES[self.value_type]['is_period_size_independent'])
+            self.default_value = self.set(attr, "default_value", allowed_type = self.value_type, default = config.VALUE_TYPES[self.value_type].get("default"))
+        self.entity = self.set(attr, "entity", required = True, setter = self.set_entity)
+        self.definition_period = self.set(attr, "definition_period", required = True, allowed_values = (periods.DAY, periods.MONTH, periods.YEAR, periods.ETERNITY))
+        self.label = self.set(attr, "label", allowed_type = str, setter = self.set_label)
+        self.end = self.set(attr, "end", allowed_type = str, setter = self.set_end)
+        self.reference = self.set(attr, "reference", setter = self.set_reference)
+        self.cerfa_field = self.set(attr, "cerfa_field", allowed_type = (str, dict))
+        self.unit = self.set(attr, "unit", allowed_type = str)
+        self.documentation = self.set(attr, "documentation", allowed_type = str, setter = self.set_documentation)
+        self.set_input = self.set_set_input(attr.pop("set_input", None))
+        self.calculate_output = self.set_calculate_output(attr.pop("calculate_output", None))
+        self.is_period_size_independent = self.set(attr, "is_period_size_independent", allowed_type = bool, default = config.VALUE_TYPES[self.value_type]["is_period_size_independent"])
 
         formulas_attr, unexpected_attrs = helpers._partition(attr, lambda name, value: name.startswith(config.FORMULA_NAME_PREFIX))
         self.formulas = self.set_formulas(formulas_attr)
@@ -181,7 +181,7 @@ class Variable:
     def set_end(self, end):
         if end:
             try:
-                return datetime.datetime.strptime(end, '%Y-%m-%d').date()
+                return datetime.datetime.strptime(end, "%Y-%m-%d").date()
             except ValueError as e:
                 raise ValueError(f"Incorrect 'end' attribute format in '{self.name}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {end}") from e
 
@@ -196,12 +196,12 @@ class Variable:
             elif isinstance(reference, tuple):
                 reference = list(reference)
             else:
-                raise TypeError(f'The reference of the variable {self.name} is a {type(reference)} instead of a String or a List of Strings.')
+                raise TypeError(f"The reference of the variable {self.name} is a {type(reference)} instead of a String or a List of Strings.")
 
             for element in reference:
                 if not isinstance(element, str):
                     raise TypeError(
-                        f'The reference of the variable {self.name} is a {type(reference)} instead of a String or a List of Strings.'
+                        f"The reference of the variable {self.name} is a {type(reference)} instead of a String or a List of Strings."
                         )
 
         return reference
@@ -264,15 +264,16 @@ class Variable:
         if attribute_name == config.FORMULA_NAME_PREFIX:
             return datetime.date.min
 
-        FORMULA_REGEX = r'formula_(\d{4})(?:_(\d{2}))?(?:_(\d{2}))?$'  # YYYY or YYYY_MM or YYYY_MM_DD
+        # YYYY or YYYY_MM or YYYY_MM_DD
+        FORMULA_REGEX = r"formula_(\d{4})(?:_(\d{2}))?(?:_(\d{2}))?$"
 
         match = re.match(FORMULA_REGEX, attribute_name)
         if not match:
             raise_error()
-        date_str = '-'.join([match.group(1), match.group(2) or '01', match.group(3) or '01'])
+        date_str = "-".join([match.group(1), match.group(2) or "01", match.group(3) or "01"])
 
         try:
-            return datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+            return datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
         except ValueError:  # formula_2005_99_99 for instance
             raise_error()
 
@@ -284,7 +285,7 @@ class Variable:
         """
         return len(self.formulas) == 0
 
-    @ classmethod
+    @classmethod
     def get_introspection_data(cls, tax_benefit_system):
         """
         Get instrospection data about the code of the variable.
@@ -301,10 +302,10 @@ class Variable:
         except TypeError:
             source_file_path = None
         else:
-            source_file_path = absolute_file_path.replace(tax_benefit_system.get_package_metadata()['location'], '')
+            source_file_path = absolute_file_path.replace(tax_benefit_system.get_package_metadata()["location"], "")
         try:
             source_lines, start_line_number = inspect.getsourcelines(cls)
-            source_code = textwrap.dedent(''.join(source_lines))
+            source_code = textwrap.dedent("".join(source_lines))
         except (OSError, TypeError):
             source_code, start_line_number = None, None
 

@@ -76,21 +76,21 @@ class SimulationBuilder:
         for (variable_name, _variable) in tax_benefit_system.variables.items():
             self.register_variable(variable_name, simulation.get_variable_population(variable_name).entity)
 
-        helpers.check_type(input_dict, dict, ['error'])
-        axes = input_dict.pop('axes', None)
+        helpers.check_type(input_dict, dict, ["error"])
+        axes = input_dict.pop("axes", None)
 
         unexpected_entities = [entity for entity in input_dict if entity not in tax_benefit_system.entities_plural()]
         if unexpected_entities:
             unexpected_entity = unexpected_entities[0]
             raise SituationParsingError([unexpected_entity],
-                ''.join([
+                "".join([
                     "Some entities in the situation are not defined in the loaded tax and benefit system.",
                     "These entities are not found: {0}.",
                     "The defined entities are: {1}."]
                     )
                 .format(
-                ', '.join(unexpected_entities),
-                ', '.join(tax_benefit_system.entities_plural())
+                ", ".join(unexpected_entities),
+                ", ".join(tax_benefit_system.entities_plural())
                     )
                 )
         persons_json = input_dict.get(tax_benefit_system.person_entity.plural, None)
@@ -98,7 +98,7 @@ class SimulationBuilder:
         if not persons_json:
             raise SituationParsingError(
                 [tax_benefit_system.person_entity.plural],
-                f'No {tax_benefit_system.person_entity.key} found. At least one {tax_benefit_system.person_entity.key} must be defined to run a simulation.',
+                f"No {tax_benefit_system.person_entity.key} found. At least one {tax_benefit_system.person_entity.key} must be defined to run a simulation.",
                 )
 
         persons_ids = self.add_person_entity(simulation.persons.entity, persons_json)
@@ -454,7 +454,7 @@ class SimulationBuilder:
             )
 
         if culprit_path:
-            path = [entity.plural] + culprit_path[0].split('/')
+            path = [entity.plural] + culprit_path[0].split("/")
 
         else:
             path = [entity.plural]  # Fallback: if we can't find the culprit, just set the error at the entities level
@@ -495,7 +495,7 @@ class SimulationBuilder:
         cell_count = 1
         for parallel_axes in perpendicular_dimensions:
             first_axis = parallel_axes[0]
-            axis_count = first_axis['count']
+            axis_count = first_axis["count"]
             cell_count *= axis_count
 
         # Scale the "prototype" situation, repeating it cell_count times
@@ -524,14 +524,14 @@ class SimulationBuilder:
         if len(self.axes) == 1 and len(self.axes[0]) > 0:
             parallel_axes = self.axes[0]
             first_axis = parallel_axes[0]
-            axis_count: int = first_axis['count']
-            axis_entity = self.get_variable_entity(first_axis['name'])
+            axis_count: int = first_axis["count"]
+            axis_entity = self.get_variable_entity(first_axis["name"])
             axis_entity_step_size = self.entity_counts[axis_entity.plural]
             # Distribute values along axes
             for axis in parallel_axes:
-                axis_index = axis.get('index', 0)
-                axis_period = axis.get('period', self.default_period)
-                axis_name = axis['name']
+                axis_index = axis.get("index", 0)
+                axis_period = axis.get("period", self.default_period)
+                axis_name = axis["name"]
                 variable = axis_entity.get_variable(axis_name)
                 array = self.get_input(axis_name, str(axis_period))
                 if array is None:
@@ -539,8 +539,8 @@ class SimulationBuilder:
                 elif array.size == axis_entity_step_size:
                     array = numpy.tile(array, axis_count)
                 array[axis_index:: axis_entity_step_size] = numpy.linspace(
-                    axis['min'],
-                    axis['max'],
+                    axis["min"],
+                    axis["max"],
                     num = axis_count,
                     )
                 # Set input
@@ -559,22 +559,22 @@ class SimulationBuilder:
             axes_meshes = numpy.meshgrid(*axes_linspaces)
             for parallel_axes, mesh in zip(self.axes, axes_meshes):
                 first_axis = parallel_axes[0]
-                axis_count = first_axis['count']
-                axis_entity = self.get_variable_entity(first_axis['name'])
+                axis_count = first_axis["count"]
+                axis_entity = self.get_variable_entity(first_axis["name"])
                 axis_entity_step_size = self.entity_counts[axis_entity.plural]
                 # Distribute values along the grid
                 for axis in parallel_axes:
-                    axis_index = axis.get('index', 0)
-                    axis_period = axis['period'] or self.default_period
-                    axis_name = axis['name']
+                    axis_index = axis.get("index", 0)
+                    axis_period = axis["period"] or self.default_period
+                    axis_name = axis["name"]
                     variable = axis_entity.get_variable(axis_name)
                     array = self.get_input(axis_name, str(axis_period))
                     if array is None:
                         array = variable.default_array(cell_count * axis_entity_step_size)
                     elif array.size == axis_entity_step_size:
                         array = numpy.tile(array, cell_count)
-                    array[axis_index:: axis_entity_step_size] = axis['min'] \
-                        + mesh.reshape(cell_count) * (axis['max'] - axis['min']) / (axis_count - 1)
+                    array[axis_index:: axis_entity_step_size] = axis["min"] \
+                        + mesh.reshape(cell_count) * (axis["max"] - axis["min"]) / (axis_count - 1)
                     self.input_buffer[axis_name][str(axis_period)] = array
 
     def get_variable_entity(self, variable_name):

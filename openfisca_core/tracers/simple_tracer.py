@@ -19,7 +19,7 @@ class SimpleTracer:
         self._stack = []
 
     def record_calculation_start(self, variable: str, period: str) -> None:
-        self.stack.append({'name': variable, 'period': period})
+        self.stack.append({"name": variable, "period": period})
 
     def record_calculation_result(self, value: ArrayLike) -> None:
         """Ignore calculation result."""

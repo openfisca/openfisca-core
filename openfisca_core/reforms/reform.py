@@ -47,7 +47,7 @@ class Reform(TaxBenefitSystem):
         self.variables = baseline.variables.copy()
         self.decomposition_file_path = baseline.decomposition_file_path
         self.key = self.__class__.__name__
-        if not hasattr(self, 'apply'):
+        if not hasattr(self, "apply"):
             raise Exception(f"Reform {self.key} must define an `apply` function")
         self.apply()
 
@@ -57,10 +57,10 @@ class Reform(TaxBenefitSystem):
     @property
     def full_key(self):
         key = self.key
-        assert key is not None, f'key was not set for reform {self} (name: {self.name!r})'
-        if self.baseline is not None and hasattr(self.baseline, 'key'):
+        assert key is not None, f"key was not set for reform {self} (name: {self.name!r})"
+        if self.baseline is not None and hasattr(self.baseline, "key"):
             baseline_full_key = self.baseline.full_key
-            key = '.'.join([baseline_full_key, key])
+            key = ".".join([baseline_full_key, key])
         return key
 
     def modify_parameters(self, modifier_function):
@@ -76,7 +76,7 @@ class Reform(TaxBenefitSystem):
         reform_parameters = modifier_function(baseline_parameters_copy)
         if not isinstance(reform_parameters, ParameterNode):
             return ValueError(
-                f'modifier_function {modifier_function.__name__} in module {modifier_function.__module__} must return a ParameterNode'
+                f"modifier_function {modifier_function.__name__} in module {modifier_function.__module__} must return a ParameterNode"
                 )
         self.parameters = reform_parameters
         self._parameters_at_instant_cache = {}

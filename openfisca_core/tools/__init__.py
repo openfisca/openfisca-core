@@ -8,8 +8,8 @@ import numpy
 from openfisca_core.indexed_enums import EnumArray
 
 
-def assert_near(value, target_value, absolute_error_margin = None, message = '', relative_error_margin = None):
-    '''
+def assert_near(value, target_value, absolute_error_margin = None, message = "", relative_error_margin = None):
+    """
 
       :param value: Value returned by the test
       :param target_value: Value that the test should return to pass
@@ -19,7 +19,7 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
 
       Limit : This function cannot be used to assert near periods.
 
-    '''
+    """
 
     if absolute_error_margin is None and relative_error_margin is None:
         absolute_error_margin = 0
@@ -39,21 +39,21 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
     diff = abs(target_value - value)
     if absolute_error_margin is not None:
         assert (diff <= absolute_error_margin).all(), \
-            f'{message}{value} differs from {target_value} with an absolute margin {diff} > {absolute_error_margin}'
+            f"{message}{value} differs from {target_value} with an absolute margin {diff} > {absolute_error_margin}"
     if relative_error_margin is not None:
         assert (diff <= abs(relative_error_margin * target_value)).all(), \
-            f'{message}{value} differs from {target_value} with a relative margin {diff} > {abs(relative_error_margin * target_value)}'
+            f"{message}{value} differs from {target_value} with a relative margin {diff} > {abs(relative_error_margin * target_value)}"
 
     return None
 
 
-def assert_datetime_equals(value, target_value, message = ''):
-    assert (value == target_value).all(), f'{message}{value} differs from {target_value}.'
+def assert_datetime_equals(value, target_value, message = ""):
+    assert (value == target_value).all(), f"{message}{value} differs from {target_value}."
 
 
-def assert_enum_equals(value, target_value, message = ''):
+def assert_enum_equals(value, target_value, message = ""):
     value = value.decode_to_str()
-    assert (value == target_value).all(), f'{message}{value} differs from {target_value}.'
+    assert (value == target_value).all(), f"{message}{value} differs from {target_value}."
 
 
 def indent(text):
@@ -64,12 +64,12 @@ def indent(text):
 def get_trace_tool_link(scenario, variables, api_url, trace_tool_url):
     scenario_json = scenario.to_json()
     simulation_json = {
-        'scenarios': [scenario_json],
-        'variables': variables,
+        "scenarios": [scenario_json],
+        "variables": variables,
         }
-    url = trace_tool_url + '?' + urllib.urlencode({
-        'simulation': json.dumps(simulation_json),
-        'api_url': api_url,
+    url = trace_tool_url + "?" + urllib.urlencode({
+        "simulation": json.dumps(simulation_json),
+        "api_url": api_url,
         })
     return url
 

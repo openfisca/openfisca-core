@@ -92,7 +92,7 @@ class ComputationLog:
             aggregate: bool,
             max_depth: Optional[int],
             ) -> str:
-        indent = '  ' * depth
+        indent = "  " * depth
         value = node.value
 
         if value is None:
@@ -101,9 +101,9 @@ class ComputationLog:
         elif aggregate:
             try:
                 formatted_value = str({
-                    'avg': numpy.mean(value),
-                    'max': numpy.max(value),
-                    'min': numpy.min(value),
+                    "avg": numpy.mean(value),
+                    "max": numpy.max(value),
+                    "min": numpy.min(value),
                     })
 
             except TypeError:

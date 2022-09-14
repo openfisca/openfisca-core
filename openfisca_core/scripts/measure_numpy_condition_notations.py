@@ -25,7 +25,7 @@ def measure_time(title):
     t1 = time.time()
     yield
     t2 = time.time()
-    print(f'{title}\t: {t2 - t1:.8f} seconds elapsed')
+    print(f"{title}\t: {t2 - t1:.8f} seconds elapsed")
 
 
 def switch_fromiter(conditions, function_by_condition, dtype):
@@ -109,20 +109,20 @@ def test_all_notations():
     # choice is an array with 1 and 2 items like [2, 1, ..., 1, 2]
     choice = numpy.random.randint(2, size = args.array_length) + 1
 
-    with measure_time('multiplication'):
+    with measure_time("multiplication"):
         test_multiplication(choice)
 
-    with measure_time('switch_select'):
+    with measure_time("switch_select"):
         test_switch_select(choice)
 
-    with measure_time('switch_fromiter'):
+    with measure_time("switch_fromiter"):
         test_switch_fromiter(choice)
 
 
 def main():
     parser = argparse.ArgumentParser(description = __doc__)
-    parser.add_argument('--array-length', default = 1000, type = int, help = "length of the array")
-    parser.add_argument('--calculate-time', default = 0.1, type = float,
+    parser.add_argument("--array-length", default = 1000, type = int, help = "length of the array")
+    parser.add_argument("--calculate-time", default = 0.1, type = float,
         help = "time taken by the calculation in seconds")
 
     args = parser.parse_args()

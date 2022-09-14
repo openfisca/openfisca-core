@@ -7,15 +7,15 @@ yaml, Loader = commons.import_yaml()
 # 'unit' and 'reference' are only listed here for backward compatibility.
 #  It is now recommended to include them in metadata, until a common consensus emerges.
 ALLOWED_PARAM_TYPES = (float, int, bool, type(None), typing.List)
-COMMON_KEYS = {'description', 'metadata', 'unit', 'reference', 'documentation'}
-FILE_EXTENSIONS = {'.yaml', '.yml'}
+COMMON_KEYS = {"description", "metadata", "unit", "reference", "documentation"}
+FILE_EXTENSIONS = {".yaml", ".yml"}
 
 
 def date_constructor(_loader, node):
     return node.value
 
 
-yaml.add_constructor('tag:yaml.org,2002:timestamp', date_constructor, Loader = Loader)
+yaml.add_constructor("tag:yaml.org,2002:timestamp", date_constructor, Loader = Loader)
 
 
 def dict_no_duplicate_constructor(loader, node, deep = False):
@@ -23,7 +23,7 @@ def dict_no_duplicate_constructor(loader, node, deep = False):
 
     if len(keys) != len(set(keys)):
         duplicate = next(key for key in keys if keys.count(key) > 1)
-        raise yaml.parser.ParserError('', node.start_mark, f"Found duplicate key '{duplicate}'")
+        raise yaml.parser.ParserError("", node.start_mark, f"Found duplicate key '{duplicate}'")
 
     return loader.construct_mapping(node, deep)
 

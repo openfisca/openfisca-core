@@ -44,11 +44,11 @@ class Holder:
         new_dict = new.__dict__
 
         for key, value in self.__dict__.items():
-            if key not in ('population', 'formula', 'simulation'):
+            if key not in ("population", "formula", "simulation"):
                 new_dict[key] = value
 
-        new_dict['population'] = population
-        new_dict['simulation'] = population.simulation
+        new_dict["population"] = population
+        new_dict["simulation"] = population.simulation
 
         return new
 
@@ -123,7 +123,7 @@ class Holder:
             nb_requests = self.simulation.tracer.get_nb_requests(self.variable.name)
             usage.update(dict(
                 nb_requests = nb_requests,
-                nb_requests_by_array = nb_requests / float(usage['nb_arrays']) if usage['nb_arrays'] > 0 else numpy.nan
+                nb_requests_by_array = nb_requests / float(usage["nb_arrays"]) if usage["nb_arrays"] > 0 else numpy.nan
                 ))
 
         return usage
@@ -156,8 +156,8 @@ class Holder:
         period = periods.period(period)
         if period.unit == periods.ETERNITY and not self._eternal:
             error_message = os.linesep.join([
-                'Unable to set a value for variable {0} for periods.ETERNITY.',
-                '{0} is only defined for {1}s. Please adapt your input.',
+                "Unable to set a value for variable {0} for periods.ETERNITY.",
+                "{0} is only defined for {1}s. Please adapt your input.",
                 ]).format(
                     self.variable.name,
                     self.variable.definition_period
@@ -205,10 +205,10 @@ class Holder:
         value = self.to_array(value)
         if self.variable.definition_period != periods.ETERNITY:
             if period is None:
-                raise ValueError('A period must be specified to set values, except for variables with periods.ETERNITY as as period_definition.')
+                raise ValueError("A period must be specified to set values, except for variables with periods.ETERNITY as as period_definition.")
             if self.variable.definition_period != period.unit or period.size > 1:
                 name = self.variable.name
-                period_size_adj = f'{period.unit}' if (period.size == 1) else f'{period.size}-{period.unit}s'
+                period_size_adj = f"{period.unit}" if (period.size == 1) else f"{period.size}-{period.unit}s"
                 error_message = os.linesep.join([
                     f'Unable to set a value for variable "{name}" for {period_size_adj}-long period "{period}".',
                     f'"{name}" can only be set for one {self.variable.definition_period} at a time. Please adapt your input.',

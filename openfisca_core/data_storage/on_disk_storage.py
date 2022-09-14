@@ -42,7 +42,7 @@ class OnDiskStorage:
         period = periods.period(period)
 
         filename = str(period)
-        path = os.path.join(self.storage_dir, filename) + '.npy'
+        path = os.path.join(self.storage_dir, filename) + ".npy"
         if isinstance(value, EnumArray):
             self._enums[path] = value.possible_values
             value = value.view(numpy.ndarray)
@@ -72,10 +72,10 @@ class OnDiskStorage:
         self._files = files = {}
         # Restore self._files from content of storage_dir.
         for filename in os.listdir(self.storage_dir):
-            if not filename.endswith('.npy'):
+            if not filename.endswith(".npy"):
                 continue
             path = os.path.join(self.storage_dir, filename)
-            filename_core = filename.rsplit('.', 1)[0]
+            filename_core = filename.rsplit(".", 1)[0]
             period = periods.period(filename_core)
             files[period] = path
 

@@ -11,7 +11,7 @@ class Projector:
             return projector
 
         reference_attr = getattr(self.reference_entity, attribute)
-        if not hasattr(reference_attr, 'projectable'):
+        if not hasattr(reference_attr, "projectable"):
             return reference_attr
 
         def projector_function(*args, **kwargs):

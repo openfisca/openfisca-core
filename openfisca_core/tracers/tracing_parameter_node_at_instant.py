@@ -68,7 +68,7 @@ class TracingParameterNodeAtInstant:
             name = self.parameter_node_at_instant.name
 
         else:
-            name = '.'.join([self.parameter_node_at_instant.name, key])
+            name = ".".join([self.parameter_node_at_instant.name, key])
 
         if isinstance(child, (numpy.ndarray,) + parameters.ALLOWED_PARAM_TYPES):
             self.tracer.record_parameter_access(name, period, child)

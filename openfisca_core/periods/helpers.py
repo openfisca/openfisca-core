@@ -39,7 +39,7 @@ def instant(instant):
             raise ValueError(f"'{instant}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'.")
         instant = periods.Instant(
             int(fragment)
-            for fragment in instant.split('-', 2)[:3]
+            for fragment in instant.split("-", 2)[:3]
             )
     elif isinstance(instant, datetime.date):
         instant = periods.Instant((instant.year, instant.month, instant.day))
@@ -98,13 +98,13 @@ def period(value):
         Parses simple periods respecting the ISO format, such as 2012 or 2015-03
         """
         try:
-            date = datetime.datetime.strptime(value, '%Y')
+            date = datetime.datetime.strptime(value, "%Y")
         except ValueError:
             try:
-                date = datetime.datetime.strptime(value, '%Y-%m')
+                date = datetime.datetime.strptime(value, "%Y-%m")
             except ValueError:
                 try:
-                    date = datetime.datetime.strptime(value, '%Y-%m-%d')
+                    date = datetime.datetime.strptime(value, "%Y-%m-%d")
                 except ValueError:
                     return None
                 else:
@@ -122,8 +122,8 @@ def period(value):
             ])
         raise ValueError(message)
 
-    if value in ('ETERNITY', config.ETERNITY):
-        return periods.Period(('eternity', instant(datetime.date.min), float("inf")))
+    if value in ("ETERNITY", config.ETERNITY):
+        return periods.Period(("eternity", instant(datetime.date.min), float("inf")))
 
     # check the type
     if isinstance(value, int):
@@ -140,7 +140,7 @@ def period(value):
     if ":" not in value:
         raise_error(value)
 
-    components = value.split(':')
+    components = value.split(":")
 
     # left-most component must be a valid unit
     unit = components[0]
@@ -190,7 +190,7 @@ def key_period_size(period):
 
     unit, _start, size = period
 
-    return f'{unit_weight(unit)}_{size}'
+    return f"{unit_weight(unit)}_{size}"
 
 
 def unit_weights():

@@ -10,9 +10,9 @@ log = logging.getLogger(__name__)
 
 
 def add_tax_benefit_system_arguments(parser):
-    parser.add_argument('-c', '--country-package', action = 'store', help = 'country package to use. If not provided, an automatic detection will be attempted by scanning the python packages installed in your environment which name contains the word "openfisca".')
-    parser.add_argument('-e', '--extensions', action = 'store', help = 'extensions to load', nargs = '*')
-    parser.add_argument('-r', '--reforms', action = 'store', help = 'reforms to apply to the country package', nargs = '*')
+    parser.add_argument("-c", "--country-package", action = "store", help = 'country package to use. If not provided, an automatic detection will be attempted by scanning the python packages installed in your environment which name contains the word "openfisca".')
+    parser.add_argument("-e", "--extensions", action = "store", help = "extensions to load", nargs = "*")
+    parser.add_argument("-r", "--reforms", action = "store", help = "reforms to apply to the country package", nargs = "*")
 
     return parser
 
@@ -23,8 +23,8 @@ def build_tax_benefit_system(country_package_name, extensions, reforms):
 
     country_package = commons.import_country_package(country_package_name)
 
-    if not hasattr(country_package, 'CountryTaxBenefitSystem'):
-        raise ImportError(f'`{country_package_name}` does not seem to be a valid Openfisca country package.')
+    if not hasattr(country_package, "CountryTaxBenefitSystem"):
+        raise ImportError(f"`{country_package_name}` does not seem to be a valid Openfisca country package.")
 
     country_package = importlib.import_module(country_package_name)
     tax_benefit_system = country_package.CountryTaxBenefitSystem()
@@ -48,19 +48,21 @@ def detect_country_package():
     installed_country_packages = []
     for module_description in pkgutil.iter_modules():
         module_name = module_description[1]
-        if 'openfisca' in module_name.lower():
+        if "openfisca" in module_name.lower():
             try:
                 module = importlib.import_module(module_name)
             except ImportError as e:
-                message = linesep.join([traceback.format_exc(),
-                                        f'Could not import module `{module_name}`.',
-                                        'Look at the stack trace above to determine the error that stopped installed modules detection.'])
+                message = linesep.join([
+                    traceback.format_exc(),
+                    f"Could not import module `{module_name}`.",
+                    "Look at the stack trace above to determine the error that stopped installed modules detection.",
+                    ])
                 raise ImportError(message) from e
-            if hasattr(module, 'CountryTaxBenefitSystem'):
+            if hasattr(module, "CountryTaxBenefitSystem"):
                 installed_country_packages.append(module_name)
 
     if len(installed_country_packages) == 0:
-        raise ImportError('No country package has been detected on your environment. If your country package is installed but not detected, please use the --country-package option.')
+        raise ImportError("No country package has been detected on your environment. If your country package is installed but not detected, please use the --country-package option.")
     if len(installed_country_packages) > 1:
         log.warning(f"Several country packages detected : `{', '.join(installed_country_packages)}`. Using `{installed_country_packages[0]}` by default. To use another package, please use the --country-package option.")
     return installed_country_packages[0]

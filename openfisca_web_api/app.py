@@ -24,7 +24,7 @@ try:
 except ImportError:
     ...
 
-log = logging.getLogger('gunicorn.error')
+log = logging.getLogger("gunicorn.error")
 
 
 def init_tracker(url, idsite, tracker_token):
@@ -32,9 +32,9 @@ def init_tracker(url, idsite, tracker_token):
         tracker = PiwikTracker(url, idsite, tracker_token)
 
         info = os.linesep.join([
-            'You chose to activate the `tracker` module. ',
-            'Tracking data will be sent to: ' + url,
-            'For more information, see <https://github.com/openfisca/openfisca-core#tracker-configuration>.',
+            "You chose to activate the `tracker` module. ",
+            "Tracking data will be sent to: " + url,
+            "For more information, see <https://github.com/openfisca/openfisca-core#tracker-configuration>.",
             ])
 
         log.info(info)
@@ -44,8 +44,8 @@ def init_tracker(url, idsite, tracker_token):
     except NameError:
         message = os.linesep.join([
             traceback.format_exc(),
-            'You chose to activate the `tracker` module, but it is not installed.',
-            'For more information, see <https://github.com/openfisca/openfisca-core#tracker-installation>.',
+            "You chose to activate the `tracker` module, but it is not installed.",
+            "For more information, see <https://github.com/openfisca/openfisca-core#tracker-installation>.",
             ])
 
         warnings.warn(message, UserWarning)
@@ -71,87 +71,87 @@ def create_app(
     # Fix request.remote_addr to get the real client IP address
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for = 1, x_host = 1)
 
-    CORS(app, origins = '*')
+    CORS(app, origins = "*")
 
-    app.config['JSON_AS_ASCII'] = False  # When False, lets jsonify encode to utf-8
+    app.config["JSON_AS_ASCII"] = False  # When False, lets jsonify encode to utf-8
     app.url_map.strict_slashes = False  # Accept url like /parameters/
     app.url_map.merge_slashes = False  # Do not eliminate // in paths
-    app.config['JSON_SORT_KEYS'] = False  # Don't sort JSON keys in the Web API
+    app.config["JSON_SORT_KEYS"] = False  # Don't sort JSON keys in the Web API
 
     data = build_data(tax_benefit_system)
 
     DEFAULT_WELCOME_MESSAGE = "This is the root of an OpenFisca Web API. To learn how to use it, check the general documentation (https://openfisca.org/doc/) and the OpenAPI specification of this instance ({}spec)."
 
-    @app.route('/')
+    @app.route("/")
     def get_root():
         return jsonify({
-            'welcome': welcome_message or DEFAULT_WELCOME_MESSAGE.format(request.host_url)
+            "welcome": welcome_message or DEFAULT_WELCOME_MESSAGE.format(request.host_url)
             }), 300
 
-    @app.route('/parameters')
+    @app.route("/parameters")
     def get_parameters():
         parameters = {
-            parameter['id']: {
-                'description': parameter['description'],
-                'href': f'{request.host_url}parameter/{name}'
+            parameter["id"]: {
+                "description": parameter["description"],
+                "href": f"{request.host_url}parameter/{name}"
                 }
-            for name, parameter in data['parameters'].items()
-            if parameter.get('subparams') is None  # For now and for backward compat, don't show nodes in overview
+            for name, parameter in data["parameters"].items()
+            if parameter.get("subparams") is None  # For now and for backward compat, don't show nodes in overview
             }
 
         return jsonify(parameters)
 
-    @app.route('/parameter/<path:parameter_id>')
+    @app.route("/parameter/<path:parameter_id>")
     def get_parameter(parameter_id):
-        parameter = data['parameters'].get(parameter_id)
+        parameter = data["parameters"].get(parameter_id)
         if parameter is None:
             # Try legacy route
-            parameter_new_id = parameter_id.replace('.', '/')
-            parameter = data['parameters'].get(parameter_new_id)
+            parameter_new_id = parameter_id.replace(".", "/")
+            parameter = data["parameters"].get(parameter_new_id)
         if parameter is None:
             abort(404)
         return jsonify(parameter)
 
-    @app.route('/variables')
+    @app.route("/variables")
     def get_variables():
         variables = {
             name: {
-                'description': variable['description'],
-                'href': f'{request.host_url}variable/{name}'
+                "description": variable["description"],
+                "href": f"{request.host_url}variable/{name}"
                 }
-            for name, variable in data['variables'].items()
+            for name, variable in data["variables"].items()
             }
         return jsonify(variables)
 
-    @app.route('/variable/<id>')
+    @app.route("/variable/<id>")
     def get_variable(id):
-        variable = data['variables'].get(id)
+        variable = data["variables"].get(id)
         if variable is None:
             abort(404)
         return jsonify(variable)
 
-    @app.route('/entities')
+    @app.route("/entities")
     def get_entities():
-        return jsonify(data['entities'])
+        return jsonify(data["entities"])
 
-    @app.route('/spec')
+    @app.route("/spec")
     def get_spec():
         return jsonify({
-            **data['openAPI_spec'],
-            **{'host': request.host},
-            **{'schemes': [request.environ['wsgi.url_scheme']]}
+            **data["openAPI_spec"],
+            **{"host": request.host},
+            **{"schemes": [request.environ["wsgi.url_scheme"]]}
             })
 
     def handle_invalid_json(error):
         json_response = jsonify({
-            'error': f'Invalid JSON: {error.args[0]}',
+            "error": f"Invalid JSON: {error.args[0]}",
             })
 
         abort(make_response(json_response, 400))
 
-    @app.route('/calculate', methods = ['POST'])
+    @app.route("/calculate", methods = ["POST"])
     def calculate():
-        tax_benefit_system = data['tax_benefit_system']
+        tax_benefit_system = data["tax_benefit_system"]
         request.on_json_loading_failed = handle_invalid_json
         input_data = request.get_json()
         try:
@@ -162,9 +162,9 @@ def create_app(
             abort(make_response(jsonify({"error": "'" + e[1] + "' is not a valid ASCII value."}), 400))
         return jsonify(result)
 
-    @app.route('/trace', methods = ['POST'])
+    @app.route("/trace", methods = ["POST"])
     def trace():
-        tax_benefit_system = data['tax_benefit_system']
+        tax_benefit_system = data["tax_benefit_system"]
         request.on_json_loading_failed = handle_invalid_json
         input_data = request.get_json()
         try:
@@ -176,8 +176,8 @@ def create_app(
     @app.after_request
     def apply_headers(response):
         response.headers.extend({
-            'Country-Package': data['country_package_metadata']['name'],
-            'Country-Package-Version': data['country_package_metadata']['version']
+            "Country-Package": data["country_package_metadata"]["name"],
+            "Country-Package-Version": data["country_package_metadata"]["version"]
             })
         return response
 
@@ -185,10 +185,10 @@ def create_app(
     def track_requests(response):
 
         if tracker:
-            if request.headers.get('dnt'):
+            if request.headers.get("dnt"):
                 source_ip = ""
-            elif request.headers.get('X-Forwarded-For'):
-                source_ip = request.headers['X-Forwarded-For'].split(', ')[0]
+            elif request.headers.get("X-Forwarded-For"):
+                source_ip = request.headers["X-Forwarded-For"].split(", ")[0]
             else:
                 source_ip = request.remote_addr
 

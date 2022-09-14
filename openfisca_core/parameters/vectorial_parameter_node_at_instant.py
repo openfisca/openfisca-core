@@ -30,7 +30,7 @@ class VectorialParameterNodeAtInstant:
         recarray = numpy.array(
             [vectorial_subnodes],
             dtype = [
-                (subnode_name, subnode.dtype if isinstance(subnode, numpy.recarray) else 'float')
+                (subnode_name, subnode.dtype if isinstance(subnode, numpy.recarray) else "float")
                 for (subnode_name, subnode) in zip(subnodes_name, vectorial_subnodes)
                 ]
             )
@@ -54,8 +54,8 @@ class VectorialParameterNodeAtInstant:
                 MESSAGE_PART_4,
                 ]).format(
                 node.name,
-                '.'.join([node_with_key, missing_key]),
-                '.'.join([node_without_key, missing_key]),
+                ".".join([node_with_key, missing_key]),
+                ".".join([node_without_key, missing_key]),
                 )
 
             raise ValueError(message)
@@ -88,7 +88,7 @@ class VectorialParameterNodeAtInstant:
 
         def extract_named_children(node):
             return {
-                '.'.join([node.name, key]): value
+                ".".join([node.name, key]): value
                 for key, value in node.children.items()
                 }
 
@@ -158,7 +158,7 @@ class VectorialParameterNodeAtInstant:
                     enum = key.possible_values
                     key = numpy.select([key == item.index for item in enum], [item.name for item in enum])
                 else:
-                    key = key.astype('str')
+                    key = key.astype("str")
             names = list(self.dtype.names)  # Get all the names of the subnodes, e.g. ['zone_1', 'zone_2']
             default = numpy.full_like(self.vector[key[0]], numpy.nan)  # In case of unexpected key, we will set the corresponding value to NaN.
             conditions = [key == name for name in names]
@@ -166,7 +166,7 @@ class VectorialParameterNodeAtInstant:
             result = numpy.select(conditions, values, default)
             if helpers.contains_nan(result):
                 unexpected_key = set(key).difference(self.vector.dtype.names).pop()
-                raise ParameterNotFoundError('.'.join([self.name, unexpected_key]), self.instant_str)
+                raise ParameterNotFoundError(".".join([self.name, unexpected_key]), self.instant_str)
 
             # If the result is not a leaf, wrap the result in a vectorial node.
             if numpy.issubdtype(result.dtype, numpy.record):

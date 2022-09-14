@@ -48,7 +48,7 @@ class FlatTrace:
         return {
             key: {
                 **flat_trace,
-                'value': self.serialize(flat_trace['value'])
+                "value": self.serialize(flat_trace["value"])
                 }
             for key, flat_trace in self.get_trace().items()
             }
@@ -75,18 +75,18 @@ class FlatTrace:
 
         node_trace = {
             key: {
-                'dependencies': [
+                "dependencies": [
                     self.key(child) for child in node.children
                     ],
-                'parameters': {
+                "parameters": {
                     self.key(parameter):
                         self.serialize(parameter.value)
                         for parameter
                         in node.parameters
                     },
-                'value': node.value,
-                'calculation_time': node.calculation_time(),
-                'formula_time': node.formula_time(),
+                "value": node.value,
+                "calculation_time": node.calculation_time(),
+                "formula_time": node.formula_time(),
                 },
             }
 

@@ -9,7 +9,7 @@ from openfisca_core.variables import VALUE_TYPES
 def get_next_day(date):
     parsed_date = date
     next_day = parsed_date + datetime.timedelta(days = 1)
-    return next_day.isoformat().split('T')[0]
+    return next_day.isoformat().split("T")[0]
 
 
 def get_default_value(variable):
@@ -24,7 +24,7 @@ def get_default_value(variable):
 
 
 def build_source_url(country_package_metadata, source_file_path, start_line_number, source_code):
-    nb_lines = source_code.count('\n')
+    nb_lines = source_code.count("\n")
     return (
         f"{country_package_metadata['repository_url']}"
         f"/blob/"
@@ -38,20 +38,20 @@ def build_source_url(country_package_metadata, source_file_path, start_line_numb
 def build_formula(formula, country_package_metadata, source_file_path, tax_benefit_system):
     source_code, start_line_number = inspect.getsourcelines(formula)
 
-    source_code = textwrap.dedent(''.join(source_code))
+    source_code = textwrap.dedent("".join(source_code))
 
     api_formula = {
-        'source': build_source_url(
+        "source": build_source_url(
             country_package_metadata,
             source_file_path,
             start_line_number,
             source_code
             ),
-        'content': source_code,
+        "content": source_code,
         }
 
     if formula.__doc__:
-        api_formula['documentation'] = textwrap.dedent(formula.__doc__)
+        api_formula["documentation"] = textwrap.dedent(formula.__doc__)
 
     return api_formula
 
@@ -66,16 +66,16 @@ def build_formulas(formulas, country_package_metadata, source_file_path, tax_ben
 def build_variable(variable, country_package_metadata, tax_benefit_system):
     _comments, source_file_path, source_code, start_line_number = variable.get_introspection_data(tax_benefit_system)
     result = {
-        'id': variable.name,
-        'description': variable.label,
-        'valueType': VALUE_TYPES[variable.value_type]['formatted_value_type'],
-        'defaultValue': get_default_value(variable),
-        'definitionPeriod': variable.definition_period.upper(),
-        'entity': variable.entity.key,
+        "id": variable.name,
+        "description": variable.label,
+        "valueType": VALUE_TYPES[variable.value_type]["formatted_value_type"],
+        "defaultValue": get_default_value(variable),
+        "definitionPeriod": variable.definition_period.upper(),
+        "entity": variable.entity.key,
         }
 
     if source_code:
-        result['source'] = build_source_url(
+        result["source"] = build_source_url(
             country_package_metadata,
             source_file_path,
             start_line_number,
@@ -83,19 +83,19 @@ def build_variable(variable, country_package_metadata, tax_benefit_system):
             )
 
     if variable.documentation:
-        result['documentation'] = variable.documentation.strip()
+        result["documentation"] = variable.documentation.strip()
 
     if variable.reference:
-        result['references'] = variable.reference
+        result["references"] = variable.reference
 
     if len(variable.formulas) > 0:
-        result['formulas'] = build_formulas(variable.formulas, country_package_metadata, source_file_path, tax_benefit_system)
+        result["formulas"] = build_formulas(variable.formulas, country_package_metadata, source_file_path, tax_benefit_system)
 
         if variable.end:
-            result['formulas'][get_next_day(variable.end)] = None
+            result["formulas"][get_next_day(variable.end)] = None
 
     if variable.value_type == Enum:
-        result['possibleValues'] = {item.name: item.value for item in list(variable.possible_values)}
+        result["possibleValues"] = {item.name: item.value for item in list(variable.possible_values)}
 
     return result
 

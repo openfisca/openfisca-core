@@ -73,7 +73,7 @@ class Enum(enum.Enum):
 
         # String array
         if isinstance(array, numpy.ndarray) and \
-                array.dtype.kind in {'U', 'S'}:
+                array.dtype.kind in {"U", "S"}:
             array = numpy.select(
                 [array == item.name for item in kind],
                 [item.index for item in kind],
@@ -81,7 +81,7 @@ class Enum(enum.Enum):
 
         # Enum items arrays
         elif isinstance(array, numpy.ndarray) and \
-                array.dtype.kind == 'O':
+                array.dtype.kind == "O":
             # Ensure we are comparing the comparable. The problem this fixes:
             # On entering this method "cls" will generally come from
             # variable.possible_values, while the array values may come from

@@ -69,13 +69,13 @@ class ParameterNode(AtInstantLike):
                     if ext not in config.FILE_EXTENSIONS:
                         continue
 
-                    if child_name == 'index':
+                    if child_name == "index":
                         data = helpers._load_yaml_file(child_path) or {}
                         helpers.validate_parameter(self, data, allowed_keys = config.COMMON_KEYS)
-                        self.description = data.get('description')
-                        self.documentation = data.get('documentation')
+                        self.description = data.get("description")
+                        self.documentation = data.get("documentation")
                         helpers._set_backward_compatibility_metadata(self, data)
-                        self.metadata.update(data.get('metadata', {}))
+                        self.metadata.update(data.get("metadata", {}))
                     else:
                         child_name_expanded = helpers.compose_name(name, child_name)
                         child = helpers.load_parameter_file(child_path, child_name_expanded)
@@ -90,10 +90,10 @@ class ParameterNode(AtInstantLike):
         else:
             self.file_path = file_path
             helpers.validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
-            self.description = data.get('description')
-            self.documentation = data.get('documentation')
+            self.description = data.get("description")
+            self.documentation = data.get("documentation")
             helpers._set_backward_compatibility_metadata(self, data)
-            self.metadata.update(data.get('metadata', {}))
+            self.metadata.update(data.get("metadata", {}))
             for child_name, child in data.items():
                 if child_name in config.COMMON_KEYS:
                     continue  # do not treat reserved keys as subparameters.

@@ -25,7 +25,7 @@ def set_input_dispatch_by_period(holder, period, array):
     elif holder.variable.definition_period == periods.YEAR:
         cached_period_unit = periods.YEAR
     else:
-        raise ValueError('set_input_dispatch_by_period can be used only for yearly or monthly variables.')
+        raise ValueError("set_input_dispatch_by_period can be used only for yearly or monthly variables.")
 
     after_instant = period.start.offset(period_size, period_unit)
 
@@ -60,7 +60,7 @@ def set_input_divide_by_period(holder, period, array):
     elif holder.variable.definition_period == periods.YEAR:
         cached_period_unit = periods.YEAR
     else:
-        raise ValueError('set_input_divide_by_period can be used only for yearly or monthly variables.')
+        raise ValueError("set_input_divide_by_period can be used only for yearly or monthly variables.")
 
     after_instant = period.start.offset(period_size, period_unit)
 

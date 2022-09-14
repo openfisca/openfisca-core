@@ -17,13 +17,13 @@ with open(file_path, encoding = "utf-8") as file:
 # Remove fuzzy
 
 lines_2 = [
-    line.replace(' fuzzy="true"', '')
+    line.replace(' fuzzy="true"', "")
     for line in lines
     ]
 
-regex_indent = r'^(\s*)<VALUE '
+regex_indent = r"^(\s*)<VALUE "
 regex_fin = r' fin="([0-9\-]+)"'
-regex_iso8601 = r'([0-9]+)-([0-9]+)-([0-9]+)'
+regex_iso8601 = r"([0-9]+)-([0-9]+)-([0-9]+)"
 one_day = datetime.timedelta(days=1)
 
 lines_3 = []
@@ -50,10 +50,10 @@ for line in lines_2:
 
 # Remove useless END tags
 
-regex_code = '<(CODE|SEUIL|TAUX|ASSIETTE)'
-regex_code_end = '</(CODE|SEUIL|TAUX|ASSIETTE)'
-regex_value = '<VALUE'
-regex_end = '<END'
+regex_code = "<(CODE|SEUIL|TAUX|ASSIETTE)"
+regex_code_end = "</(CODE|SEUIL|TAUX|ASSIETTE)"
+regex_value = "<VALUE"
+regex_end = "<END"
 
 bool_code = [
     bool(re.search(regex_code, line))
@@ -176,7 +176,7 @@ for code_begining, code_end in position_code:
             deb_list.append(deb_tmp)
         else:
             comment_list.append(local_i)
-            deb_list.append('z')
+            deb_list.append("z")
 
     lines_5 += [
         lines_4[local_i + code_begining]
@@ -187,7 +187,7 @@ for code_begining, code_end in position_code:
     lines_5 += [
         lines_4[local_i + code_begining]
         for local_i in order
-        if deb_list[local_i] != 'z'
+        if deb_list[local_i] != "z"
         ]
 
     i += 1
@@ -241,6 +241,6 @@ lines_6 = [
 
 # Write
 
-with open(file_path, 'w', encoding = "utf-8") as file:
+with open(file_path, "w", encoding = "utf-8") as file:
     for line in lines_6:
         file.write(line)

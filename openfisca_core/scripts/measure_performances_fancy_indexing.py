@@ -20,11 +20,11 @@ from openfisca_core import commons
 
 tbs = CountryTaxBenefitSystem()
 N = 200000
-al_plaf_acc = tbs.get_parameters_at_instant('2015-01-01').prestations.al_plafonds_accession
+al_plaf_acc = tbs.get_parameters_at_instant("2015-01-01").prestations.al_plafonds_accession
 zone_apl = numpy.random.choice([1, 2, 3], N)
 al_nb_pac = numpy.random.choice(6, N)
 couple = numpy.random.choice([True, False], N)
-formatted_zone = commons.concat('zone_', zone_apl)  # zone_apl returns 1, 2 or 3 but the parameters have a long name
+formatted_zone = commons.concat("zone_", zone_apl)  # zone_apl returns 1, 2 or 3 but the parameters have a long name
 
 
 def formula_with():
@@ -79,10 +79,10 @@ def formula_without():
         )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-    time_with = timeit.timeit('formula_with()', setup = "from __main__ import formula_with", number = 50)
-    time_without = timeit.timeit('formula_without()', setup = "from __main__ import formula_without", number = 50)
+    time_with = timeit.timeit("formula_with()", setup = "from __main__ import formula_with", number = 50)
+    time_without = timeit.timeit("formula_without()", setup = "from __main__ import formula_without", number = 50)
 
     print(f"Computing with dynamic legislation computing took {time_with}")
     print(f"Computing without dynamic legislation computing took {time_without}")

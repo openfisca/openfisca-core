@@ -1,6 +1,6 @@
 import logging
 
-log = logging.getLogger('gunicorn.error')
+log = logging.getLogger("gunicorn.error")
 
 
 def handle_import_error(error):

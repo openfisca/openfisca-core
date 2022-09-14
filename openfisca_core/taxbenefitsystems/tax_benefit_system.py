@@ -160,7 +160,7 @@ class TaxBenefitSystem:
             except NameError as e:
                 logging.error(f"{str(e)}: if this code used to work, this error might be due to a major change in OpenFisca-Core. Checkout the changelog to learn more: <https://github.com/openfisca/openfisca-core/blob/master/CHANGELOG.md>")
                 raise
-            potential_variables = [getattr(module, item) for item in dir(module) if not item.startswith('__')]
+            potential_variables = [getattr(module, item) for item in dir(module) if not item.startswith("__")]
             for pot_variable in potential_variables:
                 # We only want to get the module classes defined in this module (not imported)
                 if inspect.isclass(pot_variable) and issubclass(pot_variable, Variable) and pot_variable.__module__ == module_name:
@@ -201,14 +201,16 @@ class TaxBenefitSystem:
             package = importlib.import_module(extension)
             extension_directory = package.__path__[0]
         except ImportError as e:
-            message = os.linesep.join([traceback.format_exc(),
-                                    f'Error loading extension: `{extension}` is neither a directory, nor a package.',
-                                    'Are you sure it is installed in your environment? If so, look at the stack trace above to determine the origin of this error.',
-                                    'See more at <https://github.com/openfisca/openfisca-extension-template#installing>.'])
+            message = os.linesep.join([
+                traceback.format_exc(),
+                f"Error loading extension: `{extension}` is neither a directory, nor a package.",
+                "Are you sure it is installed in your environment? If so, look at the stack trace above to determine the origin of this error.",
+                "See more at <https://github.com/openfisca/openfisca-extension-template#installing>.",
+                ])
             raise ValueError(message) from e
 
         self.add_variables_from_directory(extension_directory)
-        param_dir = os.path.join(extension_directory, 'parameters')
+        param_dir = os.path.join(extension_directory, "parameters")
         if os.path.isdir(param_dir):
             extension_parameters = ParameterNode(directory_path = param_dir)
             self.parameters.merge(extension_parameters)
@@ -233,21 +235,23 @@ class TaxBenefitSystem:
         # TODO: this is a circular import, fix then enable check.
         from openfisca_core.reforms import Reform  # pylint: disable=import-outside-toplevel
         try:
-            reform_package, reform_name = reform_path.rsplit('.', 1)
+            reform_package, reform_name = reform_path.rsplit(".", 1)
         except ValueError as e:
-            raise ValueError(f'`{reform_path}` does not seem to be a path pointing to a reform. A path looks like `some_country_package.reforms.some_reform.`') from e
+            raise ValueError(f"`{reform_path}` does not seem to be a path pointing to a reform. A path looks like `some_country_package.reforms.some_reform.`") from e
         try:
             reform_module = importlib.import_module(reform_package)
         except ImportError as e:
-            message = os.linesep.join([traceback.format_exc(),
-                                    f'Could not import `{reform_package}`.',
-                                    'Are you sure of this reform module name? If so, look at the stack trace above to determine the origin of this error.'])
+            message = os.linesep.join([
+                traceback.format_exc(),
+                f"Could not import `{reform_package}`.",
+                "Are you sure of this reform module name? If so, look at the stack trace above to determine the origin of this error.",
+                ])
             raise ValueError(message) from e
         reform = getattr(reform_module, reform_name, None)
         if reform is None:
-            raise ValueError(f'{reform_package} has no attribute {reform_name}')
+            raise ValueError(f"{reform_package} has no attribute {reform_name}")
         if not issubclass(reform, Reform):
-            raise ValueError(f'`{reform_path}` does not seem to be a valid Openfisca reform.')
+            raise ValueError(f"`{reform_path}` does not seem to be a valid Openfisca reform.")
 
         return reform(self)
 
@@ -288,7 +292,7 @@ class TaxBenefitSystem:
         >>> self.load_parameters('/path/to/yaml/parameters/dir')
         """
 
-        parameters = ParameterNode('', directory_path = path_to_yaml_dir)
+        parameters = ParameterNode("", directory_path = path_to_yaml_dir)
 
         if self.preprocess_parameters is not None:
             parameters = self.preprocess_parameters(parameters)
@@ -344,33 +348,33 @@ class TaxBenefitSystem:
             return self.baseline.get_package_metadata()
 
         fallback_metadata = {
-            'name': self.__class__.__name__,
-            'version': '',
-            'repository_url': '',
-            'location': '',
+            "name": self.__class__.__name__,
+            "version": "",
+            "repository_url": "",
+            "location": "",
             }
 
         module = inspect.getmodule(self)
         if not module.__package__:
             return fallback_metadata
-        package_name = module.__package__.split('.')[0]
+        package_name = module.__package__.split(".")[0]
         try:
             distribution = pkg_resources.get_distribution(package_name)
         except pkg_resources.DistributionNotFound:
             return fallback_metadata
 
-        location = inspect.getsourcefile(module).split(package_name)[0].rstrip('/')
+        location = inspect.getsourcefile(module).split(package_name)[0].rstrip("/")
 
         home_page_metadatas = [
-            metadata.split(':', 1)[1].strip(' ')
-            for metadata in distribution._get_metadata(distribution.PKG_INFO) if 'Home-page' in metadata  # pylint: disable=protected-access
+            metadata.split(":", 1)[1].strip(" ")
+            for metadata in distribution._get_metadata(distribution.PKG_INFO) if "Home-page" in metadata  # pylint: disable=protected-access
             ]
-        repository_url = home_page_metadatas[0] if home_page_metadatas else ''
+        repository_url = home_page_metadatas[0] if home_page_metadatas else ""
         return {
-            'name': distribution.key,
-            'version': distribution.version,
-            'repository_url': repository_url,
-            'location': location,
+            "name": distribution.key,
+            "version": distribution.version,
+            "repository_url": repository_url,
+            "location": location,
             }
 
     def get_variables(self, entity = None):
@@ -398,15 +402,15 @@ class TaxBenefitSystem:
         new_dict = new.__dict__
 
         for key, value in self.__dict__.items():
-            if key not in ('parameters', '_parameters_at_instant_cache', 'variables', 'open_api_config'):
+            if key not in ("parameters", "_parameters_at_instant_cache", "variables", "open_api_config"):
                 new_dict[key] = value
-        for entity in new_dict['entities']:
+        for entity in new_dict["entities"]:
             entity.set_tax_benefit_system(new)
 
-        new_dict['parameters'] = self.parameters.clone()
-        new_dict['_parameters_at_instant_cache'] = {}
-        new_dict['variables'] = self.variables.copy()
-        new_dict['open_api_config'] = self.open_api_config.copy()
+        new_dict["parameters"] = self.parameters.clone()
+        new_dict["_parameters_at_instant_cache"] = {}
+        new_dict["variables"] = self.variables.copy()
+        new_dict["open_api_config"] = self.open_api_config.copy()
         return new
 
     def entities_plural(self):

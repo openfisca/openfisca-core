@@ -22,12 +22,12 @@ yaml = YAML()
 yaml.default_flow_style = False
 yaml.width = 4096
 
-TEST_METADATA = {'period', 'name', 'reforms', 'only_variables', 'ignore_variables', 'absolute_error_margin', 'relative_error_margin', 'description', 'keywords'}
+TEST_METADATA = {"period", "name", "reforms", "only_variables", "ignore_variables", "absolute_error_margin", "relative_error_margin", "description", "keywords"}
 
 
 def build_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('path', help = "paths (files or directories) of tests to execute", nargs = '+')
+    parser.add_argument("path", help = "paths (files or directories) of tests to execute", nargs = "+")
     parser = add_tax_benefit_system_arguments(parser)
 
     return parser
@@ -57,7 +57,7 @@ class Migrator:
 
             return
 
-        print(f'Migrating {path}.')
+        print(f"Migrating {path}.")
 
         with open(path, encoding = "utf-8") as yaml_file:
             tests = yaml.safe_load(yaml_file)
@@ -66,23 +66,23 @@ class Migrator:
         else:
             migrated_tests = self.convert_test(tests)
 
-        with open(path, 'w', encoding = "utf-8") as yaml_file:
+        with open(path, "w", encoding = "utf-8") as yaml_file:
             yaml.dump(migrated_tests, yaml_file)
 
     def convert_test(self, test):
-        if test.get('output'):
+        if test.get("output"):
             # This test is already converted, ignoring it
             return test
         result = {}
-        outputs = test.pop('output_variables')
-        inputs = test.pop('input_variables', {})
+        outputs = test.pop("output_variables")
+        inputs = test.pop("input_variables", {})
         for key, value in test.items():
             if key in TEST_METADATA:
                 result[key] = value
             else:
                 inputs[key] = value
-        result['input'] = self.convert_inputs(inputs)
-        result['output'] = outputs
+        result["input"] = self.convert_inputs(inputs)
+        result["output"] = outputs
         return result
 
     def convert_inputs(self, inputs):
@@ -106,7 +106,7 @@ class Migrator:
     @staticmethod
     def convert_entities(entity, entities_description):
         return {
-            entity_description.get('id', f"{entity.key}_{index}"): remove_id(entity_description)
+            entity_description.get("id", f"{entity.key}_{index}"): remove_id(entity_description)
             for index, entity_description in enumerate(entities_description)
             }
 
@@ -120,7 +120,7 @@ class Migrator:
                 inputs[entity.key] = {entity.roles[0].plural or entity.roles[0].key: [person_id]}
             else:
                 inputs[entity.plural] = {
-                    f'{entity.key}_{index}': {entity.roles[0].plural or entity.roles[0].key: [person_id]}
+                    f"{entity.key}_{index}": {entity.roles[0].plural or entity.roles[0].key: [person_id]}
                     for index, person_id in enumerate(persons.keys())
                     }
         return inputs

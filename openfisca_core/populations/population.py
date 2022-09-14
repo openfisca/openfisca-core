@@ -78,7 +78,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             options = []
 
         if config.ADD in options and config.DIVIDE in options:
-            raise ValueError(f'Options  config.ADD and  config.DIVIDE are incompatible (trying to compute variable {variable_name})'.encode())
+            raise ValueError(f"Options ADD and DIVIDE are incompatible (trying to compute variable {variable_name})".encode())
 
         if config.ADD in options:
             return self.simulation.calculate_add(variable_name, period)
@@ -107,7 +107,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             }
 
         total_memory_usage = sum(
-            holder_memory_usage['total_nb_bytes'] for holder_memory_usage in holders_memory_usage.values()
+            holder_memory_usage["total_nb_bytes"] for holder_memory_usage in holders_memory_usage.values()
             )
 
         return dict(
@@ -138,7 +138,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         self.entity.check_role_validity(role)
 
         if not role.subroles or not len(role.subroles) == 2:
-            raise Exception('Projection to partner is only implemented for roles having exactly two subroles.')
+            raise Exception("Projection to partner is only implemented for roles having exactly two subroles.")
 
         [subrole_1, subrole_2] = role.subroles
         value_subrole_1 = entity.value_from_person(array, subrole_1)

@@ -16,7 +16,7 @@ from openfisca_core.tools import assert_near
 
 yaml, Loader = commons.import_yaml()
 
-TEST_KEYWORDS = {'absolute_error_margin', 'description', 'extensions', 'ignore_variables', 'input', 'keywords', 'max_spiral_loops', 'name', 'only_variables', 'output', 'period', 'reforms', 'relative_error_margin'}
+TEST_KEYWORDS = {"absolute_error_margin", "description", "extensions", "ignore_variables", "input", "keywords", "max_spiral_loops", "name", "only_variables", "output", "period", "reforms", "relative_error_margin"}
 
 _tax_benefit_system_cache: Dict = {}
 
@@ -52,11 +52,11 @@ def run_tests(tax_benefit_system, paths, options = None):
     if options is None:
         options = {}
 
-    if options.get('pdb'):
-        argv.append('--pdb')
+    if options.get("pdb"):
+        argv.append("--pdb")
 
-    if options.get('verbose'):
-        argv.append('--verbose')
+    if options.get("verbose"):
+        argv.append("--verbose")
 
     if isinstance(paths, str):
         paths = [paths]
@@ -87,17 +87,17 @@ class YamlFile(pytest.File):
         for test in tests:
             if not self.should_ignore(test):
                 yield YamlItem.from_parent(self,
-                    name = '',
+                    name = "",
                     baseline_tax_benefit_system = self.tax_benefit_system,
                     test = test, options = self.options)
 
     def should_ignore(self, test):
-        name_filter = self.options.get('name_filter')
+        name_filter = self.options.get("name_filter")
         return (
             name_filter is not None
             and name_filter not in os.path.splitext(self.fspath.basename)[0]
-            and name_filter not in test.get('name', '')
-            and name_filter not in test.get('keywords', [])
+            and name_filter not in test.get("name", "")
+            and name_filter not in test.get("keywords", [])
             )
 
 
@@ -115,25 +115,25 @@ class YamlItem(pytest.Item):
         self.tax_benefit_system = None
 
     def runtest(self):
-        self.name = self.test.get('name', '')
-        if not self.test.get('output'):
+        self.name = self.test.get("name", "")
+        if not self.test.get("output"):
             raise ValueError(f"Missing key 'output' in test '{self.name}' in file '{self.fspath}'")
 
         if not TEST_KEYWORDS.issuperset(self.test.keys()):
             unexpected_keys = set(self.test.keys()).difference(TEST_KEYWORDS)
             raise ValueError(f"Unexpected keys {unexpected_keys} in test '{self.name}' in file '{self.fspath}'")
 
-        self.tax_benefit_system = _get_tax_benefit_system(self.baseline_tax_benefit_system, self.test.get('reforms', []), self.test.get('extensions', []))
+        self.tax_benefit_system = _get_tax_benefit_system(self.baseline_tax_benefit_system, self.test.get("reforms", []), self.test.get("extensions", []))
 
         builder = SimulationBuilder()
-        input = self.test.get('input', {})
-        period = self.test.get('period')
-        max_spiral_loops = self.test.get('max_spiral_loops')
-        verbose = self.options.get('verbose')
-        aggregate = self.options.get('aggregate')
-        max_depth = self.options.get('max_depth')
-        performance_graph = self.options.get('performance_graph')
-        performance_tables = self.options.get('performance_tables')
+        input = self.test.get("input", {})
+        period = self.test.get("period")
+        max_spiral_loops = self.test.get("max_spiral_loops")
+        verbose = self.options.get("verbose")
+        aggregate = self.options.get("aggregate")
+        max_depth = self.options.get("max_depth")
+        performance_graph = self.options.get("performance_graph")
+        performance_tables = self.options.get("performance_tables")
 
         try:
             builder.set_default_period(period)
@@ -141,7 +141,7 @@ class YamlItem(pytest.Item):
         except (VariableNotFoundError, SituationParsingError):
             raise
         except Exception as e:
-            error_message = os.linesep.join([str(e), '', f"Unexpected error raised while parsing '{self.fspath}'"])
+            error_message = os.linesep.join([str(e), "", f"Unexpected error raised while parsing '{self.fspath}'"])
             raise ValueError(error_message).with_traceback(sys.exc_info()[2]) from e  # Keep the stack trace from the root error
 
         if max_spiral_loops:
@@ -166,30 +166,30 @@ class YamlItem(pytest.Item):
 
     @staticmethod
     def generate_performance_graph(tracer):
-        tracer.generate_performance_graph('.')
+        tracer.generate_performance_graph(".")
 
     @staticmethod
     def generate_performance_tables(tracer):
-        tracer.generate_performance_tables('.')
+        tracer.generate_performance_tables(".")
 
     def check_output(self):
-        output = self.test.get('output')
+        output = self.test.get("output")
 
         if output is None:
             return
         for key, expected_value in output.items():
             if self.tax_benefit_system.get_variable(key):  # If key is a variable
-                self.check_variable(key, expected_value, self.test.get('period'))
+                self.check_variable(key, expected_value, self.test.get("period"))
             elif self.simulation.populations.get(key):  # If key is an entity singular
                 for variable_name, value in expected_value.items():
-                    self.check_variable(variable_name, value, self.test.get('period'))
+                    self.check_variable(variable_name, value, self.test.get("period"))
             else:
                 population = self.simulation.get_population(plural = key)
                 if population is not None:  # If key is an entity plural
                     for instance_id, instance_values in expected_value.items():
                         for variable_name, value in instance_values.items():
                             entity_index = population.get_index(instance_id)
-                            self.check_variable(variable_name, value, self.test.get('period'), entity_index)
+                            self.check_variable(variable_name, value, self.test.get("period"), entity_index)
                 else:
                     raise VariableNotFoundError(key, self.tax_benefit_system)
 
@@ -209,14 +209,14 @@ class YamlItem(pytest.Item):
         return assert_near(
             actual_value,
             expected_value,
-            absolute_error_margin = self.test.get('absolute_error_margin'),
+            absolute_error_margin = self.test.get("absolute_error_margin"),
             message = f"{variable_name}@{period}: ",
-            relative_error_margin = self.test.get('relative_error_margin'),
+            relative_error_margin = self.test.get("relative_error_margin"),
             )
 
     def should_ignore_variable(self, variable_name):
-        only_variables = self.options.get('only_variables')
-        ignore_variables = self.options.get('ignore_variables')
+        only_variables = self.options.get("only_variables")
+        ignore_variables = self.options.get("ignore_variables")
         variable_ignored = ignore_variables is not None and variable_name in ignore_variables
         variable_not_tested = only_variables is not None and variable_name not in only_variables
 
@@ -236,7 +236,7 @@ class YamlItem(pytest.Item):
         return os.linesep.join([
             f"{str(self.fspath)}:",
             f"  Test '{str(self.name)}':",
-            textwrap.indent(message, '    '),
+            textwrap.indent(message, "    "),
             ])
 
 
@@ -266,7 +266,7 @@ def _get_tax_benefit_system(baseline, reforms, extensions):
         extensions = [extensions]
 
     # keep reforms order in cache, ignore extensions order
-    key = hash((id(baseline), ':'.join(reforms), frozenset(extensions)))
+    key = hash((id(baseline), ":".join(reforms), frozenset(extensions)))
     if _tax_benefit_system_cache.get(key):
         return _tax_benefit_system_cache.get(key)
 

@@ -27,7 +27,7 @@ class Period(tuple):
         >>> repr(period('day', '2014-2-3'))
         "Period(('day', Instant((2014, 2, 3)), 1))"
         """
-        return f'{self.__class__.__name__}({super().__repr__()})'
+        return f"{self.__class__.__name__}({super().__repr__()})"
 
     def __str__(self):
         """
@@ -58,7 +58,7 @@ class Period(tuple):
 
         unit, start_instant, size = self
         if unit == config.ETERNITY:
-            return 'ETERNITY'
+            return "ETERNITY"
         year, month, day = start_instant
 
         # 1 year long period
@@ -68,23 +68,23 @@ class Period(tuple):
                 return str(year)
 
             # rolling year
-            return f'{config.YEAR}:{year}-{month:02d}'
+            return f"{config.YEAR}:{year}-{month:02d}"
 
         # simple month
         if unit == config.MONTH and size == 1:
-            return f'{year}-{month:02d}'
+            return f"{year}-{month:02d}"
         # several civil years
         if unit == config.YEAR and month == 1:
-            return f'{unit}:{year}:{size}'
+            return f"{unit}:{year}:{size}"
 
         if unit == config.DAY:
             if size == 1:
-                return f'{year}-{month:02d}-{day:02d}'
+                return f"{year}-{month:02d}-{day:02d}"
 
-            return f'{unit}:{year}-{month:02d}-{day:02d}:{size}'
+            return f"{unit}:{year}-{month:02d}-{day:02d}:{size}"
 
         # complex period
-        return f'{unit}:{year}-{month:02d}:{size}'
+        return f"{unit}:{year}-{month:02d}:{size}"
 
     @property
     def date(self):
@@ -137,14 +137,14 @@ class Period(tuple):
         if intersection_start.day == 1 and intersection_start.month == 1 \
                 and intersection_stop.day == 31 and intersection_stop.month == 12:
             return self.__class__((
-                'year',
+                "year",
                 intersection_start,
                 intersection_stop.year - intersection_start.year + 1,
                 ))
         if intersection_start.day == 1 and intersection_stop.day == calendar.monthrange(intersection_stop.year,
                 intersection_stop.month)[1]:
             return self.__class__((
-                'month',
+                "month",
                 intersection_start,
                 (
                     (intersection_stop.year - intersection_start.year) * 12
@@ -154,7 +154,7 @@ class Period(tuple):
                     ),
                 ))
         return self.__class__((
-            'day',
+            "day",
             intersection_start,
             (intersection_stop.date - intersection_start.date).days + 1,
             ))
@@ -172,7 +172,7 @@ class Period(tuple):
         >>> [period('2014'), period('2015')]
         """
         if helpers.unit_weight(self.unit) < helpers.unit_weight(unit):
-            raise ValueError(f'Cannot subdivide {self.unit} into {unit}')
+            raise ValueError(f"Cannot subdivide {self.unit} into {unit}")
 
         if unit == config.YEAR:
             return [self.this_year.offset(i, config.YEAR) for i in range(self.size)]
@@ -414,7 +414,7 @@ class Period(tuple):
         year, month, day = start_instant
         if unit == config.ETERNITY:
             return periods.Instant((float("inf"), float("inf"), float("inf")))
-        if unit == 'day':
+        if unit == "day":
             if size > 1:
                 day += size - 1
                 month_last_day = calendar.monthrange(year, month)[1]
@@ -426,13 +426,13 @@ class Period(tuple):
                     day -= month_last_day
                     month_last_day = calendar.monthrange(year, month)[1]
         else:
-            if unit == 'month':
+            if unit == "month":
                 month += size
                 while month > 12:
                     year += 1
                     month -= 12
             else:
-                assert unit == 'year', f'Invalid unit: {unit} of type {type(unit)}'
+                assert unit == "year", f"Invalid unit: {unit} of type {type(unit)}"
                 year += size
             day -= 1
             if day < 1:
@@ -453,7 +453,7 @@ class Period(tuple):
 
     @property
     def last_3_months(self):
-        return self.first_month.start.period('month', 3).offset(-3)
+        return self.first_month.start.period("month", 3).offset(-3)
 
     @property
     def last_month(self):
@@ -461,20 +461,20 @@ class Period(tuple):
 
     @property
     def last_year(self):
-        return self.start.offset('first-of', 'year').period('year').offset(-1)
+        return self.start.offset("first-of", "year").period("year").offset(-1)
 
     @property
     def n_2(self):
-        return self.start.offset('first-of', 'year').period('year').offset(-2)
+        return self.start.offset("first-of", "year").period("year").offset(-2)
 
     @property
     def this_year(self):
-        return self.start.offset('first-of', 'year').period('year')
+        return self.start.offset("first-of", "year").period("year")
 
     @property
     def first_month(self):
-        return self.start.offset('first-of', 'month').period('month')
+        return self.start.offset("first-of", "month").period("month")
 
     @property
     def first_day(self):
-        return self.start.period('day')
+        return self.start.period("day")

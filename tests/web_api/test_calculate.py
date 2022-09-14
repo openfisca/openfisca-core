@@ -11,44 +11,44 @@ from openfisca_country_template.situation_examples import couple
 
 def post_json(test_client, data = None, file_name = None):
     if file_name:
-        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets', file_name)
+        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", file_name)
 
         with open(file_path, encoding = "utf-8") as file:
             data = file.read()
 
-    return test_client.post('/calculate', data = data, content_type = 'application/json')
+    return test_client.post("/calculate", data = data, content_type = "application/json")
 
 
 def check_response(test_client, data, expected_error_code, path_to_check, content_to_check):
     response = post_json(test_client, data)
     assert response.status_code == expected_error_code
-    json_response = json.loads(response.data.decode('utf-8'))
+    json_response = json.loads(response.data.decode("utf-8"))
     if path_to_check:
         content = dpath.util.get(json_response, path_to_check)
         assert content_to_check in content
 
 
 @pytest.mark.parametrize("test", [
-    ('{"a" : "x", "b"}', client.BAD_REQUEST, 'error', 'Invalid JSON'),
-    ('["An", "array"]', client.BAD_REQUEST, 'error', 'Invalid type'),
-    ('{"persons": {}}', client.BAD_REQUEST, 'persons', 'At least one person'),
-    ('{"persons": {"bob": {}}, "unknown_entity": {}}', client.BAD_REQUEST, 'unknown_entity', 'entities are not found',),
-    ('{"persons": {"bob": {}}, "households": {"dupont": {"parents": {}}}}', client.BAD_REQUEST, 'households/dupont/parents', 'type',),
-    ('{"persons": {"bob": {"unknown_variable": {}}}}', client.NOT_FOUND, 'persons/bob/unknown_variable', 'You tried to calculate or to set',),
-    ('{"persons": {"bob": {"housing_allowance": {}}}}', client.BAD_REQUEST, 'persons/bob/housing_allowance', "You tried to compute the variable 'housing_allowance' for the entity 'persons'",),
-    ('{"persons": {"bob": {"salary": 4000 }}}', client.BAD_REQUEST, 'persons/bob/salary', 'period',),
-    ('{"persons": {"bob": {"salary": {"2017-01": "toto"} }}}', client.BAD_REQUEST, 'persons/bob/salary/2017-01', 'expected type number',),
-    ('{"persons": {"bob": {"salary": {"2017-01": {}} }}}', client.BAD_REQUEST, 'persons/bob/salary/2017-01', 'expected type number',),
-    ('{"persons": {"bob": {"age": {"2017-01": "toto"} }}}', client.BAD_REQUEST, 'persons/bob/age/2017-01', 'expected type integer',),
-    ('{"persons": {"bob": {"birth": {"2017-01": "toto"} }}}', client.BAD_REQUEST, 'persons/bob/birth/2017-01', 'Can\'t deal with date',),
-    ('{"persons": {"bob": {}}, "households": {"household": {"parents": ["unexpected_person_id"]}}}', client.BAD_REQUEST, 'households/household/parents', 'has not been declared in persons',),
-    ('{"persons": {"bob": {}}, "households": {"household": {"parents": ["bob", "bob"]}}}', client.BAD_REQUEST, 'households/household/parents', 'has been declared more than once',),
-    ('{"persons": {"bob": {}}, "households": {"household": {"parents": ["bob", {}]}}}', client.BAD_REQUEST, 'households/household/parents/1', 'Invalid type',),
-    ('{"persons": {"bob": {"salary": {"invalid period": 2000 }}}}', client.BAD_REQUEST, 'persons/bob/salary', 'Expected a period',),
-    ('{"persons": {"bob": {"salary": {"invalid period": null }}}}', client.BAD_REQUEST, 'persons/bob/salary', 'Expected a period',),
-    ('{"persons": {"bob": {"basic_income": {"2017": 2000 }}}, "households": {"household": {"parents": ["bob"]}}}', client.BAD_REQUEST, 'persons/bob/basic_income/2017', '"basic_income" can only be set for one month',),
-    ('{"persons": {"bob": {"salary": {"ETERNITY": 2000 }}}, "households": {"household": {"parents": ["bob"]}}}', client.BAD_REQUEST, 'persons/bob/salary/ETERNITY', 'salary is only defined for months',),
-    ('{"persons": {"alice": {}, "bob": {}, "charlie": {}}, "households": {"_": {"parents": ["alice", "bob", "charlie"]}}}', client.BAD_REQUEST, 'households/_/parents', 'at most 2 parents in a household',),
+    ('{"a" : "x", "b"}', client.BAD_REQUEST, "error", "Invalid JSON"),
+    ('["An", "array"]', client.BAD_REQUEST, "error", "Invalid type"),
+    ('{"persons": {}}', client.BAD_REQUEST, "persons", "At least one person"),
+    ('{"persons": {"bob": {}}, "unknown_entity": {}}', client.BAD_REQUEST, "unknown_entity", "entities are not found",),
+    ('{"persons": {"bob": {}}, "households": {"dupont": {"parents": {}}}}', client.BAD_REQUEST, "households/dupont/parents", "type",),
+    ('{"persons": {"bob": {"unknown_variable": {}}}}', client.NOT_FOUND, "persons/bob/unknown_variable", "You tried to calculate or to set",),
+    ('{"persons": {"bob": {"housing_allowance": {}}}}', client.BAD_REQUEST, "persons/bob/housing_allowance", "You tried to compute the variable 'housing_allowance' for the entity 'persons'",),
+    ('{"persons": {"bob": {"salary": 4000 }}}', client.BAD_REQUEST, "persons/bob/salary", "period",),
+    ('{"persons": {"bob": {"salary": {"2017-01": "toto"} }}}', client.BAD_REQUEST, "persons/bob/salary/2017-01", "expected type number",),
+    ('{"persons": {"bob": {"salary": {"2017-01": {}} }}}', client.BAD_REQUEST, "persons/bob/salary/2017-01", "expected type number",),
+    ('{"persons": {"bob": {"age": {"2017-01": "toto"} }}}', client.BAD_REQUEST, "persons/bob/age/2017-01", "expected type integer",),
+    ('{"persons": {"bob": {"birth": {"2017-01": "toto"} }}}', client.BAD_REQUEST, "persons/bob/birth/2017-01", "Can't deal with date",),
+    ('{"persons": {"bob": {}}, "households": {"household": {"parents": ["unexpected_person_id"]}}}', client.BAD_REQUEST, "households/household/parents", "has not been declared in persons",),
+    ('{"persons": {"bob": {}}, "households": {"household": {"parents": ["bob", "bob"]}}}', client.BAD_REQUEST, "households/household/parents", "has been declared more than once",),
+    ('{"persons": {"bob": {}}, "households": {"household": {"parents": ["bob", {}]}}}', client.BAD_REQUEST, "households/household/parents/1", "Invalid type",),
+    ('{"persons": {"bob": {"salary": {"invalid period": 2000 }}}}', client.BAD_REQUEST, "persons/bob/salary", "Expected a period",),
+    ('{"persons": {"bob": {"salary": {"invalid period": null }}}}', client.BAD_REQUEST, "persons/bob/salary", "Expected a period",),
+    ('{"persons": {"bob": {"basic_income": {"2017": 2000 }}}, "households": {"household": {"parents": ["bob"]}}}', client.BAD_REQUEST, "persons/bob/basic_income/2017", '"basic_income" can only be set for one month',),
+    ('{"persons": {"bob": {"salary": {"ETERNITY": 2000 }}}, "households": {"household": {"parents": ["bob"]}}}', client.BAD_REQUEST, "persons/bob/salary/ETERNITY", "salary is only defined for months",),
+    ('{"persons": {"alice": {}, "bob": {}, "charlie": {}}, "households": {"_": {"parents": ["alice", "bob", "charlie"]}}}', client.BAD_REQUEST, "households/_/parents", "at most 2 parents in a household",),
     ])
 def test_responses(test_client, test):
     check_response(test_client, *test)
@@ -88,7 +88,7 @@ def test_basic_calculation(test_client):
             },
         "households": {
             "first_household": {
-                "parents": ['bill', 'bob'],
+                "parents": ["bill", "bob"],
                 "housing_tax": {
                     "2017": None
                     },
@@ -101,13 +101,13 @@ def test_basic_calculation(test_client):
 
     response = post_json(test_client, simulation_json)
     assert response.status_code == client.OK
-    response_json = json.loads(response.data.decode('utf-8'))
-    assert dpath.util.get(response_json, 'persons/bill/basic_income/2017-12') == 600  # Universal basic income
-    assert dpath.util.get(response_json, 'persons/bill/income_tax/2017-12') == 300  # 15% of the salary
-    assert dpath.util.get(response_json, 'persons/bill/age/2017-12') == 37  # 15% of the salary
-    assert dpath.util.get(response_json, 'persons/bob/basic_income/2017-12') == 600
-    assert dpath.util.get(response_json, 'persons/bob/social_security_contribution/2017-12') == 816  # From social_security_contribution.yaml test
-    assert dpath.util.get(response_json, 'households/first_household/housing_tax/2017') == 3000
+    response_json = json.loads(response.data.decode("utf-8"))
+    assert dpath.util.get(response_json, "persons/bill/basic_income/2017-12") == 600  # Universal basic income
+    assert dpath.util.get(response_json, "persons/bill/income_tax/2017-12") == 300  # 15% of the salary
+    assert dpath.util.get(response_json, "persons/bill/age/2017-12") == 37  # 15% of the salary
+    assert dpath.util.get(response_json, "persons/bob/basic_income/2017-12") == 600
+    assert dpath.util.get(response_json, "persons/bob/social_security_contribution/2017-12") == 816  # From social_security_contribution.yaml test
+    assert dpath.util.get(response_json, "households/first_household/housing_tax/2017") == 3000
 
 
 def test_enums_sending_identifier(test_client):
@@ -133,8 +133,8 @@ def test_enums_sending_identifier(test_client):
 
     response = post_json(test_client, simulation_json)
     assert response.status_code == client.OK
-    response_json = json.loads(response.data.decode('utf-8'))
-    assert dpath.util.get(response_json, 'households/_/housing_tax/2017') == 0
+    response_json = json.loads(response.data.decode("utf-8"))
+    assert dpath.util.get(response_json, "households/_/housing_tax/2017") == 0
 
 
 def test_enum_output(test_client):
@@ -154,7 +154,7 @@ def test_enum_output(test_client):
 
     response = post_json(test_client, simulation_json)
     assert response.status_code == client.OK
-    response_json = json.loads(response.data.decode('utf-8'))
+    response_json = json.loads(response.data.decode("utf-8"))
     assert dpath.util.get(response_json, "households/_/housing_occupancy_status/2017-01") == "tenant"
 
 
@@ -175,7 +175,7 @@ def test_enum_wrong_value(test_client):
 
     response = post_json(test_client, simulation_json)
     assert response.status_code == client.BAD_REQUEST
-    response_json = json.loads(response.data.decode('utf-8'))
+    response_json = json.loads(response.data.decode("utf-8"))
     message = "Possible values are ['owner', 'tenant', 'free_lodger', 'homeless']"
     text = dpath.util.get(response_json, "households/_/housing_occupancy_status/2017-01")
     assert message in text
@@ -201,10 +201,10 @@ def test_encoding_variable_value(test_client):
 
     # No UnicodeDecodeError
     response = post_json(test_client, simulation_json)
-    assert response.status_code == client.BAD_REQUEST, response.data.decode('utf-8')
-    response_json = json.loads(response.data.decode('utf-8'))
+    assert response.status_code == client.BAD_REQUEST, response.data.decode("utf-8")
+    response_json = json.loads(response.data.decode("utf-8"))
     message = "'Locataire ou sous-locataire d‘un logement loué vide non-HLM' is not a known value for 'housing_occupancy_status'. Possible values are "
-    text = dpath.util.get(response_json, 'households/_/housing_occupancy_status/2017-07')
+    text = dpath.util.get(response_json, "households/_/housing_occupancy_status/2017-07")
     assert message in text
 
 
@@ -226,12 +226,12 @@ def test_encoding_entity_name(test_client):
 
     # No UnicodeDecodeError
     response = post_json(test_client, simulation_json)
-    response_json = json.loads(response.data.decode('utf-8'))
+    response_json = json.loads(response.data.decode("utf-8"))
 
     # In Python 3, there is no encoding issue.
     if response.status_code != client.OK:
         message = "'O‘Ryan' is not a valid ASCII value."
-        text = response_json['error']
+        text = response_json["error"]
         assert message in text
 
 
@@ -268,21 +268,21 @@ def test_encoding_period_id(test_client):
     # No UnicodeDecodeError
     response = post_json(test_client, simulation_json)
     assert response.status_code == client.BAD_REQUEST
-    response_json = json.loads(response.data.decode('utf-8'))
+    response_json = json.loads(response.data.decode("utf-8"))
 
     # In Python 3, there is no encoding issue.
     if "Expected a period" not in str(response.data):
         message = "'à' is not a valid ASCII value."
-        text = response_json['error']
+        text = response_json["error"]
         assert message in text
 
 
 def test_str_variable(test_client):
     new_couple = copy.deepcopy(couple)
-    new_couple['households']['_']['postal_code'] = {'2017-01': None}
+    new_couple["households"]["_"]["postal_code"] = {"2017-01": None}
     simulation_json = json.dumps(new_couple)
 
-    response = test_client.post('/calculate', data = simulation_json, content_type = 'application/json')
+    response = test_client.post("/calculate", data = simulation_json, content_type = "application/json")
 
     assert response.status_code == client.OK
 
@@ -308,22 +308,22 @@ def test_periods(test_client):
     response = post_json(test_client, simulation_json)
     assert response.status_code == client.OK
 
-    response_json = json.loads(response.data.decode('utf-8'))
+    response_json = json.loads(response.data.decode("utf-8"))
 
-    yearly_variable = dpath.util.get(response_json, 'households/_/housing_tax')  # web api year is an int
-    assert yearly_variable == {'2017': 200.0}
+    yearly_variable = dpath.util.get(response_json, "households/_/housing_tax")  # web api year is an int
+    assert yearly_variable == {"2017": 200.0}
 
-    monthly_variable = dpath.util.get(response_json, 'households/_/housing_occupancy_status')  # web api month is a string
-    assert monthly_variable == {'2017-01': 'tenant'}
+    monthly_variable = dpath.util.get(response_json, "households/_/housing_occupancy_status")  # web api month is a string
+    assert monthly_variable == {"2017-01": "tenant"}
 
 
 def test_two_periods(test_client):
-    '''
+    """
     Test `calculate` on a request with mixed types periods: yearly periods following
     monthly or daily periods to check dpath limitation on numeric keys (yearly periods).
     Made to test the case where we have more than one path with a numeric in it.
     See https://github.com/dpath-maintainers/dpath-python/issues/160 for more informations.
-    '''
+    """
     simulation_json = json.dumps({
         "persons": {
             "bill": {}
@@ -346,13 +346,13 @@ def test_two_periods(test_client):
     response = post_json(test_client, simulation_json)
     assert response.status_code == client.OK
 
-    response_json = json.loads(response.data.decode('utf-8'))
+    response_json = json.loads(response.data.decode("utf-8"))
 
-    yearly_variable = dpath.util.get(response_json, 'households/_/housing_tax')  # web api year is an int
-    assert yearly_variable == {'2017': 200.0, '2018': 200.0}
+    yearly_variable = dpath.util.get(response_json, "households/_/housing_tax")  # web api year is an int
+    assert yearly_variable == {"2017": 200.0, "2018": 200.0}
 
-    monthly_variable = dpath.util.get(response_json, 'households/_/housing_occupancy_status')  # web api month is a string
-    assert monthly_variable == {'2017-01': 'tenant', '2018-01': 'tenant'}
+    monthly_variable = dpath.util.get(response_json, "households/_/housing_occupancy_status")  # web api month is a string
+    assert monthly_variable == {"2017-01": "tenant", "2018-01": "tenant"}
 
 
 def test_handle_period_mismatch_error(test_client):
@@ -379,7 +379,7 @@ def test_handle_period_mismatch_error(test_client):
 
     response_json = json.loads(response.data)
 
-    error = dpath.util.get(response_json, f'households/_/housing_tax/{period}')
+    error = dpath.util.get(response_json, f"households/_/housing_tax/{period}")
     message = f'Unable to set a value for variable "{variable}" for month-long period "{period}"'
     assert message in error
 

@@ -16,9 +16,9 @@ try:
 except ImportError as error:
     handle_import_error(error)
 
-DEFAULT_PORT = '5000'
-HOST = '127.0.0.1'
-DEFAULT_WORKERS_NUMBER = '3'
+DEFAULT_PORT = "5000"
+HOST = "127.0.0.1"
+DEFAULT_WORKERS_NUMBER = "3"
 DEFAULT_TIMEOUT = 120
 
 
@@ -53,7 +53,7 @@ def read_user_configuration(default_configuration, command_line_parser):
     configuration = update(configuration, vars(args))
     configuration = update(configuration, vars(gunicorn_parser.parse_args(unknown_args)))
 
-    if configuration['args']:
+    if configuration["args"]:
         command_line_parser.print_help()
         log.error(f"Unexpected positional argument {configuration['args']}")
         sys.exit(1)
@@ -66,7 +66,7 @@ def update(configuration, new_options):
         if value is not None:
             configuration[key] = value
             if key == "port":
-                configuration['bind'] = configuration['bind'][:-4] + str(configuration['port'])
+                configuration["bind"] = configuration["bind"][:-4] + str(configuration["port"])
 
     return configuration
 
@@ -90,25 +90,25 @@ class OpenFiscaWebAPIApplication(BaseApplication):
 
     def load(self):
         tax_benefit_system = build_tax_benefit_system(
-            self.options.get('country_package'),
-            self.options.get('extensions'),
-            self.options.get('reforms')
+            self.options.get("country_package"),
+            self.options.get("extensions"),
+            self.options.get("reforms")
             )
         return create_app(
             tax_benefit_system,
-            self.options.get('tracker_url'),
-            self.options.get('tracker_idsite'),
-            self.options.get('tracker_token'),
-            self.options.get('welcome_message')
+            self.options.get("tracker_url"),
+            self.options.get("tracker_idsite"),
+            self.options.get("tracker_token"),
+            self.options.get("welcome_message")
             )
 
 
 def main(parser):
     configuration = {
-        'port': DEFAULT_PORT,
-        'bind': f'{HOST}:{DEFAULT_PORT}',
-        'workers': DEFAULT_WORKERS_NUMBER,
-        'timeout': DEFAULT_TIMEOUT,
+        "port": DEFAULT_PORT,
+        "bind": f"{HOST}:{DEFAULT_PORT}",
+        "workers": DEFAULT_WORKERS_NUMBER,
+        "timeout": DEFAULT_TIMEOUT,
         }
     configuration = read_user_configuration(configuration, parser)
     OpenFiscaWebAPIApplication(configuration).run()

@@ -33,12 +33,12 @@ def persons():
 @pytest.fixture
 def households():
     roles = [{
-        'key': 'parent',
-        'plural': 'parents',
-        'max': 2
+        "key": "parent",
+        "plural": "parents",
+        "max": 2
         }, {
-        'key': 'child',
-        'plural': 'children'
+        "key": "child",
+        "plural": "children"
         }]
 
     return FixtureGroupEntity("household", "households", "", "", roles)

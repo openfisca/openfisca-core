@@ -239,7 +239,7 @@ class Simulation:
             raise ValueError(f"Unable to compute variable '{variable.name}' for period {period}: '{variable.name}' must be computed for a whole year. You can use the DIVIDE option to get an estimate of {variable.name} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.")
 
         if period.size != 1:
-            definition_period = 'month' if variable.definition_period == periods.MONTH else 'year'
+            definition_period = "month" if variable.definition_period == periods.MONTH else "year"
 
             raise ValueError(f"Unable to compute variable '{variable.name}' for period {period}: '{variable.name}' must be computed for a whole {definition_period}. You can use the ADD option to sum '{variable.name}' over the requested period.")
 
@@ -266,7 +266,7 @@ class Simulation:
         the same variable at a different period.
         """
         # The last frame is the current calculation, so it should be ignored from cycle detection
-        previous_periods = [frame['period'] for frame in self.tracer.stack[:-1] if frame['name'] == variable]
+        previous_periods = [frame["period"] for frame in self.tracer.stack[:-1] if frame["name"] == variable]
         if period in previous_periods:
             raise CycleError(f"Circular definition detected on formula {variable}@{period}")
         spiral = len(previous_periods) >= self.max_spiral_loops
@@ -285,8 +285,8 @@ class Simulation:
         # for deletion from the cache once the calculation ends.
         count = 0
         for frame in reversed(self.tracer.stack):
-            self.invalidate_cache_entry(frame['name'], frame['period'])
-            if frame['name'] == variable:
+            self.invalidate_cache_entry(frame["name"], frame["period"])
+            if frame["name"] == variable:
                 count += 1
                 if count > self.max_spiral_loops:
                     break
@@ -319,8 +319,8 @@ class Simulation:
             )
         for entity in self.populations.values():
             entity_memory_usage = entity.get_memory_usage(variables = variables)
-            result['total_nb_bytes'] += entity_memory_usage['total_nb_bytes']
-            result['by_variable'].update(entity_memory_usage['by_variable'])
+            result["total_nb_bytes"] += entity_memory_usage["total_nb_bytes"]
+            result["by_variable"].update(entity_memory_usage["by_variable"])
         return result
 
     # ----- Misc ----- #
@@ -416,7 +416,7 @@ class Simulation:
         new_dict = new.__dict__
 
         for key, value in self.__dict__.items():
-            if key not in ('debug', 'trace', 'tracer'):
+            if key not in ("debug", "trace", "tracer"):
                 new_dict[key] = value
 
         new.persons = self.persons.clone(new)

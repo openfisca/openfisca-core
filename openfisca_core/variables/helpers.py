@@ -44,10 +44,10 @@ def get_neutralized_variable(variable):
     result.is_neutralized = True
 
     if variable.label is None:
-        result.label = '[Neutralized]'
+        result.label = "[Neutralized]"
     else:
         # TODO: do we really intend to return a tuple here?
-        result.label = (f'[Neutralized] {variable.label}',)
+        result.label = (f"[Neutralized] {variable.label}",)
 
     return result
 

@@ -16,7 +16,7 @@ def contains_nan(vector):
     return numpy.isnan(vector).any()
 
 
-def load_parameter_file(file_path, name = ''):
+def load_parameter_file(file_path, name = ""):
     """
     Load parameters from a YAML file (or a directory containing YAML files).
 
@@ -34,9 +34,9 @@ def compose_name(path, child_name = None, item_name = None):
     if not path:
         return child_name
     if child_name is not None:
-        return f'{path}.{child_name}'
+        return f"{path}.{child_name}"
     if item_name is not None:
-        return f'{path}[{item_name}]'
+        return f"{path}[{item_name}]"
 
     return None
 
@@ -62,10 +62,10 @@ def _load_yaml_file(file_path):
 
 
 def _parse_child(child_name, child, child_path):
-    if 'values' in child:
+    if "values" in child:
         return parameters.Parameter(child_name, child, child_path)
 
-    if 'brackets' in child:
+    if "brackets" in child:
         return parameters.ParameterScale(child_name, child, child_path)
 
     if isinstance(child, dict) and all(periods.INSTANT_PATTERN.match(str(key)) for key in child.keys()):
@@ -75,16 +75,16 @@ def _parse_child(child_name, child, child_path):
 
 
 def _set_backward_compatibility_metadata(parameter, data):
-    if data.get('unit') is not None:
-        parameter.metadata['unit'] = data['unit']
-    if data.get('reference') is not None:
-        parameter.metadata['reference'] = data['reference']
+    if data.get("unit") is not None:
+        parameter.metadata["unit"] = data["unit"]
+    if data.get("reference") is not None:
+        parameter.metadata["reference"] = data["reference"]
 
 
 def validate_parameter(parameter, data, data_type = None, allowed_keys = None):
     type_map = {
-        dict: 'object',
-        list: 'array',
+        dict: "object",
+        list: "array",
         }
 
     if data_type is not None and not isinstance(data, data_type):

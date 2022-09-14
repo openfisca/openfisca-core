@@ -14,7 +14,7 @@ class ParameterAtInstant:
     """
 
     # 'unit' and 'reference' are only listed here for backward compatibility
-    _allowed_keys = {'value', 'metadata', 'unit', 'reference'}
+    _allowed_keys = {"value", "metadata", "unit", "reference"}
 
     def __init__(self, name, instant_str, data = None, file_path = None, metadata = None):
         """
@@ -33,17 +33,17 @@ class ParameterAtInstant:
             return
 
         self.validate(data)
-        self.value: float = data['value']
+        self.value: float = data["value"]
 
         if metadata is not None:
             self.metadata.update(metadata)  # Inherit metadata from Parameter
         helpers._set_backward_compatibility_metadata(self, data)
-        self.metadata.update(data.get('metadata', {}))
+        self.metadata.update(data.get("metadata", {}))
 
     def validate(self, data):
         helpers.validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
         try:
-            value = data['value']
+            value = data["value"]
         except KeyError as e:
             raise ParameterParsingError(
                 f"Missing 'value' property for {self.name}",
