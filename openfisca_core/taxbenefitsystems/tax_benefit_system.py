@@ -20,7 +20,6 @@ from openfisca_core.errors import VariableNameConflictError, VariableNotFoundErr
 from openfisca_core.parameters import ParameterNode
 from openfisca_core.periods import Instant, Period
 from openfisca_core.populations import GroupPopulation, Population
-from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.variables import Variable
 
 log = logging.getLogger(__name__)
@@ -81,53 +80,6 @@ class TaxBenefitSystem:
             entities[entity.key] = GroupPopulation(entity, members)
 
         return entities
-
-    # Deprecated method of constructing simulations, to be phased out in favor of SimulationBuilder
-    def new_scenario(self):
-        class ScenarioAdapter:
-            def __init__(self, tax_benefit_system):
-                self.attributes = None
-                self.dict = None
-                self.period = None
-                self.tax_benefit_system = tax_benefit_system
-
-            def init_from_attributes(self, **attributes):
-                self.attributes = attributes
-                return self
-
-            def init_from_dict(self, dict):
-                self.attributes = None
-                self.dict = dict
-                self.period = dict.pop('period')
-                return self
-
-            def new_simulation(self, debug = False, opt_out_cache = False, use_baseline = False, trace = False):
-                # Legacy from scenarios, used in reforms
-                tax_benefit_system = self.tax_benefit_system
-                if use_baseline:
-                    while True:
-                        baseline = tax_benefit_system.baseline
-                        if baseline is None:
-                            break
-                        tax_benefit_system = baseline
-
-                builder = SimulationBuilder()
-                if self.attributes:
-                    variables = self.attributes.get('input_variables') or {}
-                    period = self.attributes.get('period')
-                    builder.set_default_period(period)
-                    simulation = builder.build_from_variables(tax_benefit_system, variables)
-                else:
-                    builder.set_default_period(self.period)
-                    simulation = builder.build_from_entities(tax_benefit_system, self.dict)
-
-                simulation.trace = trace
-                simulation.debug = debug
-                simulation.opt_out_cache = opt_out_cache
-
-                return simulation
-
-        return ScenarioAdapter(self)
 
     @staticmethod
     def prefill_cache():
