@@ -6,7 +6,7 @@ from setuptools import find_packages, setup
 
 # Read the contents of our README file for PyPi
 this_directory = Path(__file__).parent
-long_description = (this_directory / "README.md").read_text()
+long_description = (this_directory / "README.md").read_text(encoding = "utf-8")
 
 # Please make sure to cap all dependency versions, in order to avoid unwanted
 # functional and integration breaks caused by external code updates.
@@ -52,7 +52,7 @@ dev_requirements = [
 
 setup(
     name = "OpenFisca-Core",
-    version = "36.0.0",
+    version = "36.0.0.rc1",
     author = "OpenFisca Team",
     author_email = "contact@openfisca.org",
     classifiers = [

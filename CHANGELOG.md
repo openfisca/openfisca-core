@@ -1,6 +1,6 @@
 # Changelog
 
-## 35.10.0 [#1047](https://github.com/openfisca/openfisca-core/pull/1047)
+# 36.0.0.rc1 [#1047](https://github.com/openfisca/openfisca-core/pull/1047)
 
 #### Technical changes
 
