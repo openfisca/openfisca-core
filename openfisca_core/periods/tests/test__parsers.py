@@ -17,7 +17,6 @@ def test__parse_period(arg, expected):
     assert _parsers._parse_period(arg) == expected
 
 
-
 @pytest.mark.parametrize("arg, error", [
     [None, AttributeError],
     [{}, AttributeError],
