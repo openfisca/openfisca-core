@@ -34,8 +34,8 @@ def test_str_with_days(date_unit, instant, size, expected):
 
 
 @pytest.mark.parametrize("date_unit, instant, size, expected", [
-    [DateUnit.WEEK, Instant((2022, 1, 1)), 1, "2021-W052"],
-    [DateUnit.WEEK, Instant((2022, 1, 1)), 3, "week:2021-W052:3"],
+    [DateUnit.WEEK, Instant((2022, 1, 1)), 1, "2021-W52"],
+    [DateUnit.WEEK, Instant((2022, 1, 1)), 3, "week:2021-W52:3"],
     [DateUnit.WEEK, Instant((2022, 3, 1)), 1, "2022-W09"],
     [DateUnit.WEEK, Instant((2022, 3, 1)), 3, "week:2022-W09:3"],
     ])
@@ -44,8 +44,8 @@ def test_str_with_weeks(date_unit, instant, size, expected):
 
 
 @pytest.mark.parametrize("date_unit, instant, size, expected", [
-    [DateUnit.WEEKDAY, Instant((2022, 1, 1)), 1, "2021-W052-6"],
-    [DateUnit.WEEKDAY, Instant((2022, 1, 1)), 3, "weekday:2021-W052-6:3"],
+    [DateUnit.WEEKDAY, Instant((2022, 1, 1)), 1, "2021-W52-6"],
+    [DateUnit.WEEKDAY, Instant((2022, 1, 1)), 3, "weekday:2021-W52-6:3"],
     [DateUnit.WEEKDAY, Instant((2022, 3, 1)), 1, "2022-W09-2"],
     [DateUnit.WEEKDAY, Instant((2022, 3, 1)), 3, "weekday:2022-W09-2:3"],
     ])

@@ -161,19 +161,31 @@ class Period(tuple):
 
         # 1 week
         if (unit == DateUnit.WEEK and size == 1):
-            return f"{c_year}-W0{week}"
+            if week < 10:
+                return f"{c_year}-W0{week}"
+
+            return f"{c_year}-W{week}"
 
         # several weeks
         if (unit == DateUnit.WEEK and size > 1):
-            return f"{unit}:{c_year}-W0{week}:{size}"
+            if week < 10:
+                return f"{unit}:{c_year}-W0{week}:{size}"
+
+            return f"{unit}:{c_year}-W{week}:{size}"
 
         # 1 weekday
         if (unit == DateUnit.WEEKDAY and size == 1):
-            return f"{c_year}-W0{week}-{weekday}"
+            if week < 10:
+                return f"{c_year}-W0{week}-{weekday}"
+
+            return f"{c_year}-W{week}-{weekday}"
 
         # several weekdays
         if (unit == DateUnit.WEEKDAY and size > 1):
-            return f"{unit}:{c_year}-W0{week}-{weekday}:{size}"
+            if week < 10:
+                return f"{unit}:{c_year}-W0{week}-{weekday}:{size}"
+
+            return f"{unit}:{c_year}-W{week}-{weekday}:{size}"
 
         # complex period
         return f'{unit}:{f_year}-{month:02d}:{size}'
