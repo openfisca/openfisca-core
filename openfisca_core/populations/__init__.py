@@ -21,18 +21,6 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
-from openfisca_core.projectors import (  # noqa: F401
-    Projector,
-    EntityToPersonProjector,
-    FirstPersonToEntityProjector,
-    UniqueRoleToEntityProjector,
-    )
-
-from openfisca_core.projectors.helpers import (  # noqa: F401
-    projectable,
-    get_projector_from_shortcut,
-    )
-
 from .config import ADD, DIVIDE  # noqa: F401
-from .population import Population  # noqa: F401
 from .group_population import GroupPopulation  # noqa: F401
+from .population import Population  # noqa: F401

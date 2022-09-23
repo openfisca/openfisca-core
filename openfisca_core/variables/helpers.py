@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import sortedcontainers
 from typing import Optional
+
+import sortedcontainers
 
 from openfisca_core.periods import Period
 
@@ -41,7 +42,12 @@ def get_neutralized_variable(variable):
     """
     result = variable.clone()
     result.is_neutralized = True
-    result.label = '[Neutralized]' if variable.label is None else '[Neutralized] {}'.format(variable.label),
+
+    if variable.label is None:
+        result.label = "[Neutralized]"
+    else:
+        # TODO: do we really intend to return a tuple here?
+        result.label = (f"[Neutralized] {variable.label}",)
 
     return result
 

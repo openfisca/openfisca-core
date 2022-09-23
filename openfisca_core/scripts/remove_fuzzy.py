@@ -1,28 +1,29 @@
 # remove_fuzzy.py : Remove the fuzzy attribute in xml files and add END tags.
 # See https://github.com/openfisca/openfisca-core/issues/437
 
-import re
 import datetime
+import re
 import sys
-import numpy as np
 
-assert(len(sys.argv) == 2)
-filename = sys.argv[1]
+import numpy
 
-with open(filename, 'r') as f:
-    lines = f.readlines()
+assert len(sys.argv) == 2
+file_path = sys.argv[1]
+
+with open(file_path, encoding = "utf-8") as file:
+    lines = file.readlines()
 
 
 # Remove fuzzy
 
 lines_2 = [
-    line.replace(' fuzzy="true"', '')
+    line.replace(' fuzzy="true"', "")
     for line in lines
     ]
 
-regex_indent = r'^(\s*)<VALUE '
+regex_indent = r"^(\s*)<VALUE "
 regex_fin = r' fin="([0-9\-]+)"'
-regex_iso8601 = r'([0-9]+)-([0-9]+)-([0-9]+)'
+regex_iso8601 = r"([0-9]+)-([0-9]+)-([0-9]+)"
 one_day = datetime.timedelta(days=1)
 
 lines_3 = []
@@ -49,10 +50,10 @@ for line in lines_2:
 
 # Remove useless END tags
 
-regex_code = '<(CODE|SEUIL|TAUX|ASSIETTE)'
-regex_code_end = '</(CODE|SEUIL|TAUX|ASSIETTE)'
-regex_value = '<VALUE'
-regex_end = '<END'
+regex_code = "<(CODE|SEUIL|TAUX|ASSIETTE)"
+regex_code_end = "</(CODE|SEUIL|TAUX|ASSIETTE)"
+regex_value = "<VALUE"
+regex_end = "<END"
 
 bool_code = [
     bool(re.search(regex_code, line))
@@ -175,18 +176,18 @@ for code_begining, code_end in position_code:
             deb_list.append(deb_tmp)
         else:
             comment_list.append(local_i)
-            deb_list.append('z')
+            deb_list.append("z")
 
     lines_5 += [
         lines_4[local_i + code_begining]
         for local_i in comment_list
         ]
 
-    order = np.argsort(deb_list)[::-1]
+    order = numpy.argsort(deb_list)[::-1]
     lines_5 += [
         lines_4[local_i + code_begining]
         for local_i in order
-        if deb_list[local_i] != 'z'
+        if deb_list[local_i] != "z"
         ]
 
     i += 1
@@ -227,7 +228,7 @@ position_code = list(zip(index_code, index_code_end))
 
 to_remove = []
 for i in range(len(lines_5) - 1):
-    if (list_value[i] is not None) and (list_value[i + 1] is not None) and (list_value[i] == list_value[i + 1]):
+    if list_value[i] is not None and list_value[i + 1] is not None and list_value[i] == list_value[i + 1]:
         to_remove.append(i)
 
 to_remove_set = set(to_remove)
@@ -240,6 +241,6 @@ lines_6 = [
 
 # Write
 
-with open(filename, 'w') as f:
+with open(file_path, "w", encoding = "utf-8") as file:
     for line in lines_6:
-        f.write(line)
+        file.write(line)

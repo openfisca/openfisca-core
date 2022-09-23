@@ -1,20 +1,19 @@
-# -*- coding: utf-8 -*-
-
 import dpath.util
-from openfisca_core.simulation_builder import SimulationBuilder
+
 from openfisca_core.indexed_enums import Enum
+from openfisca_core.simulations import SimulationBuilder
 
 
 def calculate(tax_benefit_system, input_data: dict) -> dict:
-    '''
+    """
     Returns the input_data where the None values are replaced by the calculated values.
-    '''
+    """
     simulation = SimulationBuilder().build_from_entities(tax_benefit_system, input_data)
-    requested_computations = dpath.util.search(input_data, '*/*/*/*', afilter = lambda t: t is None, yielded = True)
+    requested_computations = dpath.util.search(input_data, "*/*/*/*", afilter = lambda t: t is None, yielded = True)
     computation_results: dict = {}
     for computation in requested_computations:
         path = computation[0]  # format: entity_plural/entity_instance_id/openfisca_variable_name/period
-        entity_plural, entity_id, variable_name, period = path.split('/')
+        entity_plural, entity_id, variable_name, period = path.split("/")
         variable = tax_benefit_system.get_variable(variable_name)
         result = simulation.calculate(variable_name, period)
         population = simulation.get_population(entity_plural)
@@ -31,7 +30,7 @@ def calculate(tax_benefit_system, input_data: dict) -> dict:
         # Don't use dpath.util.new, because there is a problem with dpath>=2.0
         # when we have a key that is numeric, like the year.
         # See https://github.com/dpath-maintainers/dpath-python/issues/160
-        if computation_results == {}:
+        if not computation_results:
             computation_results = {entity_plural: {entity_id: {variable_name: {period: entity_result}}}}
         else:
             if entity_plural in computation_results:
@@ -54,10 +53,10 @@ def trace(tax_benefit_system, input_data):
     simulation.trace = True
 
     requested_calculations = []
-    requested_computations = dpath.util.search(input_data, '*/*/*/*', afilter = lambda t: t is None, yielded = True)
+    requested_computations = dpath.util.search(input_data, "*/*/*/*", afilter = lambda t: t is None, yielded = True)
     for computation in requested_computations:
         path = computation[0]
-        entity_plural, entity_id, variable_name, period = path.split('/')
+        _entity_plural, _entity_id, variable_name, period = path.split("/")
         requested_calculations.append(f"{variable_name}<{str(period)}>")
         simulation.calculate(variable_name, period)
 

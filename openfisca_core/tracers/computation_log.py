@@ -5,8 +5,9 @@ from typing import List, Optional, Union
 
 import numpy
 
-from .. import tracers
 from openfisca_core.indexed_enums import EnumArray
+
+from .. import tracers
 
 if typing.TYPE_CHECKING:
     from numpy.typing import ArrayLike
@@ -21,10 +22,8 @@ class ComputationLog:
     def __init__(self, full_tracer: tracers.FullTracer) -> None:
         self._full_tracer = full_tracer
 
-    def display(
-            self,
-            value: Optional[Array],
-            ) -> str:
+    @staticmethod
+    def display(value: Optional[Array]) -> str:
         if isinstance(value, EnumArray):
             value = value.decode_to_str()
 
@@ -93,7 +92,7 @@ class ComputationLog:
             aggregate: bool,
             max_depth: Optional[int],
             ) -> str:
-        indent = '  ' * depth
+        indent = "  " * depth
         value = node.value
 
         if value is None:
@@ -102,9 +101,9 @@ class ComputationLog:
         elif aggregate:
             try:
                 formatted_value = str({
-                    'avg': numpy.mean(value),
-                    'max': numpy.max(value),
-                    'min': numpy.min(value),
+                    "avg": numpy.mean(value),
+                    "max": numpy.max(value),
+                    "min": numpy.min(value),
                     })
 
             except TypeError:
@@ -115,8 +114,6 @@ class ComputationLog:
 
         return f"{indent}{node.name}<{node.period}> >> {formatted_value}"
 
-    def _flatten(
-            self,
-            lists: List[List[str]],
-            ) -> List[str]:
+    @staticmethod
+    def _flatten(lists: List[List[str]]) -> List[str]:
         return [item for list_ in lists for item in list_]

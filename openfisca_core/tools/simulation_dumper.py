@@ -1,13 +1,10 @@
-# -*- coding: utf-8 -*-
-
-
 import os
 
-import numpy as np
+import numpy
 
-from openfisca_core.simulations import Simulation
 from openfisca_core.data_storage import OnDiskStorage
 from openfisca_core.periods import ETERNITY
+from openfisca_core.simulations import Simulation
 
 
 def dump_simulation(simulation, directory):
@@ -21,7 +18,7 @@ def dump_simulation(simulation, directory):
         os.mkdir(directory)
 
     if os.listdir(directory):
-        raise ValueError("Directory '{}' is not empty".format(directory))
+        raise ValueError(f"Directory '{directory}' is not empty")
 
     entities_dump_dir = os.path.join(directory, "__entities__")
     os.mkdir(entities_dump_dir)
@@ -31,7 +28,7 @@ def dump_simulation(simulation, directory):
         _dump_entity(entity, entities_dump_dir)
 
         # Dump variable values
-        for holder in entity._holders.values():
+        for holder in entity.holders.values():
             _dump_holder(holder, directory)
 
 
@@ -70,44 +67,44 @@ def _dump_holder(holder, directory):
 def _dump_entity(population, directory):
     path = os.path.join(directory, population.entity.key)
     os.mkdir(path)
-    np.save(os.path.join(path, "id.npy"), population.ids)
+    numpy.save(os.path.join(path, "id.npy"), population.ids)
 
     if population.entity.is_person:
         return
 
-    np.save(os.path.join(path, "members_position.npy"), population.members_position)
-    np.save(os.path.join(path, "members_entity_id.npy"), population.members_entity_id)
+    numpy.save(os.path.join(path, "members_position.npy"), population.members_position)
+    numpy.save(os.path.join(path, "members_entity_id.npy"), population.members_entity_id)
 
     flattened_roles = population.entity.flattened_roles
     if len(flattened_roles) == 0:
-        encoded_roles = np.int64(0)
+        encoded_roles = numpy.int64(0)
     else:
-        encoded_roles = np.select(
+        encoded_roles = numpy.select(
             [population.members_role == role for role in flattened_roles],
             [role.key for role in flattened_roles],
             )
-    np.save(os.path.join(path, "members_role.npy"), encoded_roles)
+    numpy.save(os.path.join(path, "members_role.npy"), encoded_roles)
 
 
 def _restore_entity(population, directory):
     path = os.path.join(directory, population.entity.key)
 
-    population.ids = np.load(os.path.join(path, "id.npy"))
+    population.ids = numpy.load(os.path.join(path, "id.npy"))
 
     if population.entity.is_person:
-        return
+        return None
 
-    population.members_position = np.load(os.path.join(path, "members_position.npy"))
-    population.members_entity_id = np.load(os.path.join(path, "members_entity_id.npy"))
-    encoded_roles = np.load(os.path.join(path, "members_role.npy"))
+    population.members_position = numpy.load(os.path.join(path, "members_position.npy"))
+    population.members_entity_id = numpy.load(os.path.join(path, "members_entity_id.npy"))
+    encoded_roles = numpy.load(os.path.join(path, "members_role.npy"))
 
     flattened_roles = population.entity.flattened_roles
     if len(flattened_roles) == 0:
-        population.members_role = np.int64(0)
+        population.members_role = numpy.int64(0)
     else:
-        population.members_role = np.select(
+        population.members_role = numpy.select(
             [encoded_roles == role.key for role in flattened_roles],
-            [role for role in flattened_roles],
+            list(flattened_roles),
             )
     person_count = len(population.members_entity_id)
     population.count = max(population.members_entity_id) + 1

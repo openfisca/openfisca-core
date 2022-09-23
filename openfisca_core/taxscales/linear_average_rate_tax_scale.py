@@ -1,26 +1,24 @@
 from __future__ import annotations
 
-import logging
 import typing
+
+import logging
 
 import numpy
 
 from openfisca_core import taxscales
-from openfisca_core.taxscales import RateTaxScaleLike
+
+from .rate_tax_scale_like import RateTaxScaleLike
 
 log = logging.getLogger(__name__)
 
 if typing.TYPE_CHECKING:
-    NumericalArray = typing.Union[numpy.int_, numpy.float_]
+    NumArray = typing.Union[numpy.int_, numpy.float_]
 
 
 class LinearAverageRateTaxScale(RateTaxScaleLike):
 
-    def calc(
-            self,
-            tax_base: NumericalArray,
-            right: bool = False,
-            ) -> numpy.float_:
+    def calc(self, tax_base: NumArray, right: bool = False) -> numpy.float_:
         if len(self.rates) == 1:
             return tax_base * self.rates[0]
 
@@ -74,6 +72,7 @@ class LinearAverageRateTaxScale(RateTaxScaleLike):
                 previous_i = i
                 previous_threshold = threshold
 
-        marginal_tax_scale.add_bracket(previous_threshold, rate)
+        if "rate" in locals():
+            marginal_tax_scale.add_bracket(previous_threshold, locals()["rate"])
 
         return marginal_tax_scale

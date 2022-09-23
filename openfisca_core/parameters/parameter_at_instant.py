@@ -1,9 +1,11 @@
-import copy
 import typing
+
+import copy
 
 from openfisca_core import commons
 from openfisca_core.errors import ParameterParsingError
-from openfisca_core.parameters import config, helpers
+
+from . import config, helpers
 
 
 class ParameterAtInstant:
@@ -12,7 +14,7 @@ class ParameterAtInstant:
     """
 
     # 'unit' and 'reference' are only listed here for backward compatibility
-    _allowed_keys = set(['value', 'metadata', 'unit', 'reference'])
+    _allowed_keys = {"value", "metadata", "unit", "reference"}
 
     def __init__(self, name, instant_str, data = None, file_path = None, metadata = None):
         """
@@ -31,25 +33,25 @@ class ParameterAtInstant:
             return
 
         self.validate(data)
-        self.value: float = data['value']
+        self.value: float = data["value"]
 
         if metadata is not None:
             self.metadata.update(metadata)  # Inherit metadata from Parameter
         helpers._set_backward_compatibility_metadata(self, data)
-        self.metadata.update(data.get('metadata', {}))
+        self.metadata.update(data.get("metadata", {}))
 
     def validate(self, data):
-        helpers._validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
+        helpers.validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
         try:
-            value = data['value']
-        except KeyError:
+            value = data["value"]
+        except KeyError as e:
             raise ParameterParsingError(
-                "Missing 'value' property for {}".format(self.name),
+                f"Missing 'value' property for {self.name}",
                 self.file_path
-                )
+                ) from e
         if not isinstance(value, config.ALLOWED_PARAM_TYPES):
             raise ParameterParsingError(
-                "Value in {} has type {}, which is not one of the allowed types ({}): {}".format(self.name, type(value), config.ALLOWED_PARAM_TYPES, value),
+                f"Value in {self.name} has type {type(value)}, which is not one of the allowed types ({config.ALLOWED_PARAM_TYPES}): {value}",
                 self.file_path
                 )
 
@@ -57,7 +59,7 @@ class ParameterAtInstant:
         return (self.name == other.name) and (self.instant_str == other.instant_str) and (self.value == other.value)
 
     def __repr__(self):
-        return "ParameterAtInstant({})".format({self.instant_str: self.value})
+        return f"ParameterAtInstant({dict({self.instant_str: self.value})})"
 
     def clone(self):
         clone = commons.empty_clone(self)

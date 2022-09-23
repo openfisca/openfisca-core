@@ -1,11 +1,16 @@
 from __future__ import annotations
 
-import copy
-import os
 import typing
 
+import copy
+import os
+
 from openfisca_core import commons, parameters, tools
-from . import config, helpers, AtInstantLike, Parameter, ParameterNodeAtInstant
+
+from . import config, helpers
+from .at_instant_like import AtInstantLike
+from .parameter import Parameter
+from .parameter_node_at_instant import ParameterNodeAtInstant
 
 
 class ParameterNode(AtInstantLike):
@@ -64,37 +69,37 @@ class ParameterNode(AtInstantLike):
                     if ext not in config.FILE_EXTENSIONS:
                         continue
 
-                    if child_name == 'index':
+                    if child_name == "index":
                         data = helpers._load_yaml_file(child_path) or {}
-                        helpers._validate_parameter(self, data, allowed_keys = config.COMMON_KEYS)
-                        self.description = data.get('description')
-                        self.documentation = data.get('documentation')
+                        helpers.validate_parameter(self, data, allowed_keys = config.COMMON_KEYS)
+                        self.description = data.get("description")
+                        self.documentation = data.get("documentation")
                         helpers._set_backward_compatibility_metadata(self, data)
-                        self.metadata.update(data.get('metadata', {}))
+                        self.metadata.update(data.get("metadata", {}))
                     else:
-                        child_name_expanded = helpers._compose_name(name, child_name)
+                        child_name_expanded = helpers.compose_name(name, child_name)
                         child = helpers.load_parameter_file(child_path, child_name_expanded)
                         self.add_child(child_name, child)
 
                 elif os.path.isdir(child_path):
                     child_name = os.path.basename(child_path)
-                    child_name_expanded = helpers._compose_name(name, child_name)
+                    child_name_expanded = helpers.compose_name(name, child_name)
                     child = ParameterNode(child_name_expanded, directory_path = child_path)
                     self.add_child(child_name, child)
 
         else:
             self.file_path = file_path
-            helpers._validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
-            self.description = data.get('description')
-            self.documentation = data.get('documentation')
+            helpers.validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
+            self.description = data.get("description")
+            self.documentation = data.get("documentation")
             helpers._set_backward_compatibility_metadata(self, data)
-            self.metadata.update(data.get('metadata', {}))
+            self.metadata.update(data.get("metadata", {}))
             for child_name, child in data.items():
                 if child_name in config.COMMON_KEYS:
                     continue  # do not treat reserved keys as subparameters.
 
                 child_name = str(child_name)
-                child_name_expanded = helpers._compose_name(name, child_name)
+                child_name_expanded = helpers.compose_name(name, child_name)
                 child = helpers._parse_child(child_name_expanded, child, file_path)
                 self.add_child(child_name, child)
 
@@ -115,9 +120,9 @@ class ParameterNode(AtInstantLike):
         :param child: The new child, an instance of :class:`.ParameterScale` or :class:`.Parameter` or :class:`.ParameterNode`.
         """
         if name in self.children:
-            raise ValueError("{} has already a child named {}".format(self.name, name))
-        if not (isinstance(child, ParameterNode) or isinstance(child, Parameter) or isinstance(child, parameters.ParameterScale)):
-            raise TypeError("child must be of type ParameterNode, Parameter, or Scale. Instead got {}".format(type(child)))
+            raise ValueError(f"{self.name} has already a child named {name}")
+        if not isinstance(child, (ParameterNode, Parameter, parameters.ParameterScale)):
+            raise TypeError(f"child must be of type ParameterNode, Parameter, or Scale. Instead got {type(child)}")
         self.children[name] = child
         setattr(self, name, child)
 

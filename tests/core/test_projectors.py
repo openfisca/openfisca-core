@@ -1,8 +1,10 @@
+import numpy
+import pytest
+
+from openfisca_core.entities import build_entity
+from openfisca_core.model_api import ETERNITY, Enum, Variable
 from openfisca_core.simulations.simulation_builder import SimulationBuilder
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
-from openfisca_core.entities import build_entity
-from openfisca_core.model_api import Enum, Variable, ETERNITY
-import numpy as np
 
 
 def test_shortcut_to_containing_entity_provided():
@@ -11,27 +13,27 @@ def test_shortcut_to_containing_entity_provided():
     the shortcut to that containing entity is provided.
     """
     person_entity = build_entity(
-        key="person",
-        plural="people",
-        label="A person",
-        is_person=True,
+        key = "person",
+        plural = "people",
+        label = "A person",
+        is_person = True,
         )
     family_entity = build_entity(
-        key="family",
-        plural="families",
-        label="A family (all members in the same household)",
-        containing_entities=["household"],
-        roles=[{
+        key = "family",
+        plural = "families",
+        label = "A family (all members in the same household)",
+        containing_entities = ["household"],
+        roles = [{
             "key": "member",
             "plural": "members",
             "label": "Member",
             }]
         )
     household_entity = build_entity(
-        key="household",
-        plural="households",
-        label="A household, containing one or more families",
-        roles=[{
+        key = "household",
+        plural = "households",
+        label = "A household, containing one or more families",
+        roles = [{
             "key": "member",
             "plural": "members",
             "label": "Member",
@@ -51,27 +53,27 @@ def test_shortcut_to_containing_entity_not_provided():
     entity, the shortcut to that containing entity is not provided.
     """
     person_entity = build_entity(
-        key="person",
-        plural="people",
-        label="A person",
-        is_person=True,
+        key = "person",
+        plural = "people",
+        label = "A person",
+        is_person = True,
         )
     family_entity = build_entity(
-        key="family",
-        plural="families",
-        label="A family (all members in the same household)",
-        containing_entities=[],
-        roles=[{
+        key = "family",
+        plural = "families",
+        label = "A family (all members in the same household)",
+        containing_entities = [],
+        roles = [{
             "key": "member",
             "plural": "members",
             "label": "Member",
             }]
         )
     household_entity = build_entity(
-        key="household",
-        plural="households",
-        label="A household, containing one or more families",
-        roles=[{
+        key = "household",
+        plural = "households",
+        label = "A household, containing one or more families",
+        roles = [{
             "key": "member",
             "plural": "members",
             "label": "Member",
@@ -82,11 +84,9 @@ def test_shortcut_to_containing_entity_not_provided():
 
     system = TaxBenefitSystem(entities)
     simulation = SimulationBuilder().build_from_dict(system, {})
-    try:
-        simulation.populations["family"].household
-        raise AssertionError()
-    except AttributeError:
-        pass
+
+    with pytest.raises(AttributeError):
+        assert simulation.populations["family"].household
 
 
 def test_enum_projects_downwards():
@@ -96,16 +96,16 @@ def test_enum_projects_downwards():
     """
 
     person = build_entity(
-        key="person",
-        plural="people",
-        label="A person",
-        is_person=True,
+        key = "person",
+        plural = "people",
+        label = "A person",
+        is_person = True,
         )
     household = build_entity(
-        key="household",
-        plural="households",
-        label="A household",
-        roles=[{
+        key = "household",
+        plural = "households",
+        label = "A household",
+        roles = [{
             "key": "member",
             "plural": "members",
             "label": "Member",
@@ -155,7 +155,7 @@ def test_enum_projects_downwards():
             }
         })
 
-    assert (simulation.calculate("projected_enum_variable", "2021-01-01").decode_to_str() == np.array(["SECOND_OPTION"] * 3)).all()
+    assert (simulation.calculate("projected_enum_variable", "2021-01-01").decode_to_str() == numpy.array(["SECOND_OPTION"] * 3)).all()
 
 
 def test_enum_projects_upwards():
@@ -165,16 +165,16 @@ def test_enum_projects_upwards():
     """
 
     person = build_entity(
-        key="person",
-        plural="people",
-        label="A person",
-        is_person=True,
+        key = "person",
+        plural = "people",
+        label = "A person",
+        is_person = True,
         )
     household = build_entity(
-        key="household",
-        plural="households",
-        label="A household",
-        roles=[{
+        key = "household",
+        plural = "households",
+        label = "A household",
+        roles = [{
             "key": "member",
             "plural": "members",
             "label": "Member",
@@ -225,7 +225,7 @@ def test_enum_projects_upwards():
             }
         })
 
-    assert (simulation.calculate("household_projected_variable", "2021-01-01").decode_to_str() == np.array(["SECOND_OPTION"])).all()
+    assert (simulation.calculate("household_projected_variable", "2021-01-01").decode_to_str() == numpy.array(["SECOND_OPTION"])).all()
 
 
 def test_enum_projects_between_containing_groups():
@@ -235,27 +235,27 @@ def test_enum_projects_between_containing_groups():
     """
 
     person_entity = build_entity(
-        key="person",
-        plural="people",
-        label="A person",
-        is_person=True,
+        key = "person",
+        plural = "people",
+        label = "A person",
+        is_person = True,
         )
     family_entity = build_entity(
-        key="family",
-        plural="families",
-        label="A family (all members in the same household)",
-        containing_entities=["household"],
-        roles=[{
+        key = "family",
+        plural = "families",
+        label = "A family (all members in the same household)",
+        containing_entities = ["household"],
+        roles = [{
             "key": "member",
             "plural": "members",
             "label": "Member",
             }]
         )
     household_entity = build_entity(
-        key="household",
-        plural="households",
-        label="A household, containing one or more families",
-        roles=[{
+        key = "household",
+        plural = "households",
+        label = "A household, containing one or more families",
+        roles = [{
             "key": "member",
             "plural": "members",
             "label": "Member",
@@ -325,5 +325,5 @@ def test_enum_projects_between_containing_groups():
             }
         })
 
-    assert (simulation.calculate("projected_family_level_variable", "2021-01-01").decode_to_str() == np.array(["SECOND_OPTION"])).all()
-    assert (simulation.calculate("decoded_projected_family_level_variable", "2021-01-01") == np.array(["SECOND_OPTION"])).all()
+    assert (simulation.calculate("projected_family_level_variable", "2021-01-01").decode_to_str() == numpy.array(["SECOND_OPTION"])).all()
+    assert (simulation.calculate("decoded_projected_family_level_variable", "2021-01-01") == numpy.array(["SECOND_OPTION"])).all()

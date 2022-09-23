@@ -75,7 +75,7 @@ class Simulation:
         if self._data_storage_dir is None:
             self._data_storage_dir = tempfile.mkdtemp(prefix = "openfisca_")
             message = [
-                ("Intermediate results will be stored on disk in {} in case of memory overflow.").format(self._data_storage_dir),
+                f"Intermediate results will be stored on disk in {self._data_storage_dir} in case of memory overflow."
                 "You should remove this directory once you're done with your simulation."
                 ]
             warnings.warn(" ".join(message), TempfileWarning)
@@ -121,7 +121,7 @@ class Simulation:
 
         # First, try to run a formula
         try:
-            self._check_for_cycle(variable.name, period)
+            self.check_for_cycle(variable.name, period)
             array = self._run_formula(variable, population, period)
 
             # If no result, use the default value and cache it
@@ -153,16 +153,10 @@ class Simulation:
 
         # Check that the requested period matches definition_period
         if periods.unit_weight(variable.definition_period) > periods.unit_weight(period.unit):
-            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' can only be computed for {2}-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.".format(
-                variable.name,
-                period,
-                variable.definition_period
-                ))
+            raise ValueError(f"Unable to compute variable '{variable.name}' for period {period}: '{variable.name}' can only be computed for {variable.definition_period}-long periods. You can use the DIVIDE option to get an estimate of {variable.name} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.")
 
         if variable.definition_period not in [periods.DAY, periods.MONTH, periods.YEAR]:
-            raise ValueError("Unable to sum constant variable '{}' over period {}: only variables defined daily, monthly, or yearly can be summed over time.".format(
-                variable.name,
-                period))
+            raise ValueError(f"Unable to sum constant variable '{variable.name}' over period {period}: only variables defined daily, monthly, or yearly can be summed over time.")
 
         return sum(
             self.calculate(variable_name, sub_period)
@@ -177,9 +171,7 @@ class Simulation:
 
         # Check that the requested period matches definition_period
         if variable.definition_period != periods.YEAR:
-            raise ValueError("Unable to divide the value of '{}' over time on period {}: only variables defined yearly can be divided over time.".format(
-                variable_name,
-                period))
+            raise ValueError(f"Unable to divide the value of '{variable_name}' over time on period {period}: only variables defined yearly can be divided over time.")
 
         if period.size != 1:
             raise ValueError("DIVIDE option can only be used for a one-year or a one-month requested period")
@@ -187,12 +179,11 @@ class Simulation:
         if period.unit == periods.MONTH:
             computation_period = period.this_year
             return self.calculate(variable_name, period = computation_period) / 12.
-        elif period.unit == periods.YEAR:
+
+        if period.unit == periods.YEAR:
             return self.calculate(variable_name, period)
 
-        raise ValueError("Unable to divide the value of '{}' to match period {}.".format(
-            variable_name,
-            period))
+        raise ValueError(f"Unable to divide the value of '{variable_name}' to match period {period}.")
 
     def calculate_output(self, variable_name, period):
         """
@@ -233,7 +224,8 @@ class Simulation:
 
         return array
 
-    def _check_period_consistency(self, period, variable):
+    @staticmethod
+    def _check_period_consistency(period, variable):
         """
         Check that a period matches the variable definition_period
         """
@@ -241,23 +233,15 @@ class Simulation:
             return  # For variables which values are constant in time, all periods are accepted
 
         if variable.definition_period == periods.MONTH and period.unit != periods.MONTH:
-            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole month. You can use the ADD option to sum '{0}' over the requested period, or change the requested period to 'period.first_month'.".format(
-                variable.name,
-                period
-                ))
+            raise ValueError(f"Unable to compute variable '{variable.name}' for period {period}: '{variable.name}' must be computed for a whole month. You can use the ADD option to sum '{variable.name}' over the requested period, or change the requested period to 'period.first_month'.")
 
         if variable.definition_period == periods.YEAR and period.unit != periods.YEAR:
-            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.".format(
-                variable.name,
-                period
-                ))
+            raise ValueError(f"Unable to compute variable '{variable.name}' for period {period}: '{variable.name}' must be computed for a whole year. You can use the DIVIDE option to get an estimate of {variable.name} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.")
 
         if period.size != 1:
-            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole {2}. You can use the ADD option to sum '{0}' over the requested period.".format(
-                variable.name,
-                period,
-                'month' if variable.definition_period == periods.MONTH else 'year'
-                ))
+            definition_period = "month" if variable.definition_period == periods.MONTH else "year"
+
+            raise ValueError(f"Unable to compute variable '{variable.name}' for period {period}: '{variable.name}' must be computed for a whole {definition_period}. You can use the ADD option to sum '{variable.name}' over the requested period.")
 
     def _cast_formula_result(self, value, variable):
         if variable.value_type == Enum and not isinstance(value, EnumArray):
@@ -274,7 +258,7 @@ class Simulation:
 
     # ----- Handle circular dependencies in a calculation ----- #
 
-    def _check_for_cycle(self, variable: str, period):
+    def check_for_cycle(self, variable: str, period):
         """
         Raise an exception in the case of a circular definition, where evaluating a variable for
         a given period loops around to evaluating the same variable/period pair. Also guards, as
@@ -282,13 +266,13 @@ class Simulation:
         the same variable at a different period.
         """
         # The last frame is the current calculation, so it should be ignored from cycle detection
-        previous_periods = [frame['period'] for frame in self.tracer.stack[:-1] if frame['name'] == variable]
+        previous_periods = [frame["period"] for frame in self.tracer.stack[:-1] if frame["name"] == variable]
         if period in previous_periods:
-            raise CycleError("Circular definition detected on formula {}@{}".format(variable, period))
+            raise CycleError(f"Circular definition detected on formula {variable}@{period}")
         spiral = len(previous_periods) >= self.max_spiral_loops
         if spiral:
             self.invalidate_spiral_variables(variable)
-            message = "Quasicircular definition detected on formula {}@{} involving {}".format(variable, period, self.tracer.stack)
+            message = f"Quasicircular definition detected on formula {variable}@{period} involving {self.tracer.stack}"
             raise SpiralError(message, variable)
 
     def invalidate_cache_entry(self, variable: str, period):
@@ -301,8 +285,8 @@ class Simulation:
         # for deletion from the cache once the calculation ends.
         count = 0
         for frame in reversed(self.tracer.stack):
-            self.invalidate_cache_entry(frame['name'], frame['period'])
-            if frame['name'] == variable:
+            self.invalidate_cache_entry(frame["name"], frame["period"])
+            if frame["name"] == variable:
                 count += 1
                 if count > self.max_spiral_loops:
                     break
@@ -335,8 +319,8 @@ class Simulation:
             )
         for entity in self.populations.values():
             entity_memory_usage = entity.get_memory_usage(variables = variables)
-            result['total_nb_bytes'] += entity_memory_usage['total_nb_bytes']
-            result['by_variable'].update(entity_memory_usage['by_variable'])
+            result["total_nb_bytes"] += entity_memory_usage["total_nb_bytes"]
+            result["by_variable"].update(entity_memory_usage["by_variable"])
         return result
 
     # ----- Misc ----- #
@@ -406,7 +390,7 @@ class Simulation:
         """
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
         period = periods.period(period)
-        if ((variable.end is not None) and (period.start.date > variable.end)):
+        if variable.end is not None and period.start.date > variable.end:
             return
         self.get_holder(variable_name).set_input(period, value)
 
@@ -432,7 +416,7 @@ class Simulation:
         new_dict = new.__dict__
 
         for key, value in self.__dict__.items():
-            if key not in ('debug', 'trace', 'tracer'):
+            if key not in ("debug", "trace", "tracer"):
                 new_dict[key] = value
 
         new.persons = self.persons.clone(new)

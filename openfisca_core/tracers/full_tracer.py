@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-import time
 import typing
 from typing import Dict, Iterator, List, Optional, Union
+
+import time
 
 from .. import tracers
 
@@ -28,17 +29,13 @@ class FullTracer:
     def record_calculation_start(
             self,
             variable: str,
-            period: Period,
+            period: str,
             ) -> None:
         self._simple_tracer.record_calculation_start(variable, period)
-        self._enter_calculation(variable, period)
-        self._record_start_time()
+        self.enter_calculation(variable, period)
+        self.record_start_time()
 
-    def _enter_calculation(
-            self,
-            variable: str,
-            period: Period,
-            ) -> None:
+    def enter_calculation(self, variable: str, period: str) -> None:
         new_node = tracers.TraceNode(
             name = variable,
             period = period,
@@ -56,7 +53,7 @@ class FullTracer:
     def record_parameter_access(
             self,
             parameter: str,
-            period: Period,
+            period: str,
             value: ArrayLike,
             ) -> None:
 
@@ -65,10 +62,7 @@ class FullTracer:
                 tracers.TraceNode(name = parameter, period = period, value = value),
                 )
 
-    def _record_start_time(
-            self,
-            time_in_s: Optional[float] = None,
-            ) -> None:
+    def record_start_time(self, time_in_s: Optional[float] = None) -> None:
         if time_in_s is None:
             time_in_s = self._get_time_in_sec()
 
@@ -81,20 +75,17 @@ class FullTracer:
 
     def record_calculation_end(self) -> None:
         self._simple_tracer.record_calculation_end()
-        self._record_end_time()
-        self._exit_calculation()
+        self.record_end_time()
+        self.exit_calculation()
 
-    def _record_end_time(
-            self,
-            time_in_s: Optional[float] = None,
-            ) -> None:
+    def record_end_time(self, time_in_s: Optional[float] = None) -> None:
         if time_in_s is None:
             time_in_s = self._get_time_in_sec()
 
         if self._current_node is not None:
             self._current_node.end = time_in_s
 
-    def _exit_calculation(self) -> None:
+    def exit_calculation(self) -> None:
         if self._current_node is not None:
             self._current_node = self._current_node.parent
 
@@ -118,7 +109,8 @@ class FullTracer:
     def flat_trace(self) -> tracers.FlatTrace:
         return tracers.FlatTrace(self)
 
-    def _get_time_in_sec(self) -> float:
+    @staticmethod
+    def _get_time_in_sec() -> float:
         return time.time_ns() / (10**9)
 
     def print_computation_log(self, aggregate = False, max_depth = None):

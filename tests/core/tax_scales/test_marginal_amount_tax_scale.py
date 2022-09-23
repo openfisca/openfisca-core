@@ -1,11 +1,7 @@
 from numpy import array
-
-from openfisca_core import parameters
-from openfisca_core import periods
-from openfisca_core import taxscales
-from openfisca_core import tools
-
 from pytest import fixture
+
+from openfisca_core import parameters, periods, taxscales, tools
 
 
 @fixture
@@ -35,7 +31,7 @@ def test_calc():
 
 # TODO: move, as we're testing Scale, not MarginalAmountTaxScale
 def test_dispatch_scale_type_on_creation(data):
-    scale = parameters.Scale("amount_scale", data, "")
+    scale = parameters.ParameterScale("amount_scale", data, "")
     first_jan = periods.Instant((2017, 11, 1))
 
     result = scale.get_at_instant(first_jan)

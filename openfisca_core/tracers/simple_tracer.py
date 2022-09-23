@@ -18,14 +18,14 @@ class SimpleTracer:
     def __init__(self) -> None:
         self._stack = []
 
-    def record_calculation_start(self, variable: str, period: Period) -> None:
-        self.stack.append({'name': variable, 'period': period})
+    def record_calculation_start(self, variable: str, period: str) -> None:
+        self.stack.append({"name": variable, "period": period})
 
     def record_calculation_result(self, value: ArrayLike) -> None:
-        pass  # ignore calculation result
+        """Ignore calculation result."""
 
     def record_parameter_access(self, parameter: str, period, value):
-        pass
+        """Ignore parameter access."""
 
     def record_calculation_end(self) -> None:
         self.stack.pop()

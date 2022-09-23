@@ -1,15 +1,18 @@
-import copy
-import dpath.util
 import typing
 
+import copy
+
+import dpath.util
 import numpy
 
 from openfisca_core import periods
 from openfisca_core.entities import Entity
 from openfisca_core.errors import PeriodMismatchError, SituationParsingError, VariableNotFoundError
 from openfisca_core.populations import Population
-from openfisca_core.simulations import helpers, Simulation
 from openfisca_core.variables import Variable
+
+from . import helpers
+from .simulation import Simulation
 
 
 class SimulationBuilder:
@@ -51,8 +54,8 @@ class SimulationBuilder:
         input_dict = self.explicit_singular_entities(tax_benefit_system, input_dict)
         if any(key in tax_benefit_system.entities_plural() for key in input_dict.keys()):
             return self.build_from_entities(tax_benefit_system, input_dict)
-        else:
-            return self.build_from_variables(tax_benefit_system, input_dict)
+
+        return self.build_from_variables(tax_benefit_system, input_dict)
 
     def build_from_entities(self, tax_benefit_system, input_dict):
         """
@@ -73,28 +76,30 @@ class SimulationBuilder:
         for (variable_name, _variable) in tax_benefit_system.variables.items():
             self.register_variable(variable_name, simulation.get_variable_population(variable_name).entity)
 
-        helpers.check_type(input_dict, dict, ['error'])
-        axes = input_dict.pop('axes', None)
+        helpers.check_type(input_dict, dict, ["error"])
+        axes = input_dict.pop("axes", None)
 
         unexpected_entities = [entity for entity in input_dict if entity not in tax_benefit_system.entities_plural()]
         if unexpected_entities:
             unexpected_entity = unexpected_entities[0]
             raise SituationParsingError([unexpected_entity],
-                ''.join([
+                "".join([
                     "Some entities in the situation are not defined in the loaded tax and benefit system.",
                     "These entities are not found: {0}.",
                     "The defined entities are: {1}."]
                     )
                 .format(
-                ', '.join(unexpected_entities),
-                ', '.join(tax_benefit_system.entities_plural())
+                ", ".join(unexpected_entities),
+                ", ".join(tax_benefit_system.entities_plural())
                     )
                 )
         persons_json = input_dict.get(tax_benefit_system.person_entity.plural, None)
 
         if not persons_json:
-            raise SituationParsingError([tax_benefit_system.person_entity.plural],
-                'No {0} found. At least one {0} must be defined to run a simulation.'.format(tax_benefit_system.person_entity.key))
+            raise SituationParsingError(
+                [tax_benefit_system.person_entity.plural],
+                f"No {tax_benefit_system.person_entity.key} found. At least one {tax_benefit_system.person_entity.key} must be defined to run a simulation.",
+                )
 
         persons_ids = self.add_person_entity(simulation.persons.entity, persons_json)
 
@@ -135,7 +140,7 @@ class SimulationBuilder:
                 {'salary': {'2016-10': 12000}}
                 )
         """
-        count = helpers._get_person_count(input_dict)
+        count = helpers.get_person_count(input_dict)
         simulation = self.build_default_simulation(tax_benefit_system, count)
         for variable, value in input_dict.items():
             if not isinstance(value, dict):
@@ -148,7 +153,8 @@ class SimulationBuilder:
                     simulation.set_input(variable, period_str, dated_value)
         return simulation
 
-    def build_default_simulation(self, tax_benefit_system, count = 1):
+    @staticmethod
+    def build_default_simulation(tax_benefit_system, count = 1):
         """
             Build a simulation where:
                 - There are ``count`` persons
@@ -183,7 +189,8 @@ class SimulationBuilder:
     def nb_persons(self, entity_singular, role = None):
         return self.populations[entity_singular].nb_persons(role = role)
 
-    def join_with_persons(self, group_population, persons_group_assignment, roles: typing.Iterable[str]):
+    @staticmethod
+    def join_with_persons(group_population, persons_group_assignment, roles: typing.Iterable[str]):
         # Maps group's identifiers to a 0-based integer range, for indexing into members_roles (see PR#876)
         group_sorted_indices = numpy.unique(persons_group_assignment, return_inverse = True)[1]
         group_population.members_entity_id = numpy.argsort(group_population.ids)[group_sorted_indices]
@@ -201,7 +208,8 @@ class SimulationBuilder:
     def build(self, tax_benefit_system):
         return Simulation(tax_benefit_system, self.populations)
 
-    def explicit_singular_entities(self, tax_benefit_system, input_dict):
+    @staticmethod
+    def explicit_singular_entities(tax_benefit_system, input_dict):
         """
             Preprocess ``input_dict`` to explicit entities defined using the single-entity shortcut
 
@@ -331,20 +339,22 @@ class SimulationBuilder:
             self.input_buffer[variable] = {}
         return self.input_buffer[variable].get(period_str)
 
-    def check_persons_to_allocate(self, persons_plural, entity_plural,
+    @staticmethod
+    def check_persons_to_allocate(persons_plural, entity_plural,
                                   persons_ids,
                                   person_id, entity_id, role_id,
                                   persons_to_allocate, index):
         helpers.check_type(person_id, str, [entity_plural, entity_id, role_id, str(index)])
         if person_id not in persons_ids:
-            raise SituationParsingError([entity_plural, entity_id, role_id],
-                "Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(
-                    person_id, entity_id, role_id, persons_plural)
+            raise SituationParsingError(
+                [entity_plural, entity_id, role_id],
+                f"Unexpected value: {person_id}. {person_id} has been declared in {entity_id} {role_id}, but has not been declared in {persons_plural}.",
                 )
+
         if person_id not in persons_to_allocate:
-            raise SituationParsingError([entity_plural, entity_id, role_id],
-                "{} has been declared more than once in {}".format(
-                    person_id, entity_plural)
+            raise SituationParsingError(
+                [entity_plural, entity_id, role_id],
+                f"{person_id} has been declared more than once in {entity_plural}",
                 )
 
     def init_variable_values(self, entity, instance_object, instance_id):
@@ -353,9 +363,9 @@ class SimulationBuilder:
             try:
                 entity.check_variable_defined_for_entity(variable_name)
             except ValueError as e:  # The variable is defined for another entity
-                raise SituationParsingError(path_in_json, e.args[0])
+                raise SituationParsingError(path_in_json, e.args[0]) from e
             except VariableNotFoundError as e:  # The variable doesn't exist
-                raise SituationParsingError(path_in_json, str(e), code = 404)
+                raise SituationParsingError(path_in_json, str(e), code = 404) from e
 
             instance_index = self.get_ids(entity.plural).index(instance_id)
 
@@ -369,7 +379,7 @@ class SimulationBuilder:
                 try:
                     periods.period(period_str)
                 except ValueError as e:
-                    raise SituationParsingError(path_in_json, e.args[0])
+                    raise SituationParsingError(path_in_json, e.args[0]) from e
                 variable = entity.get_variable(variable_name)
                 self.add_variable_value(entity, variable, instance_index, instance_id, period_str, value)
 
@@ -388,7 +398,7 @@ class SimulationBuilder:
         try:
             value = variable.check_set_value(value)
         except ValueError as error:
-            raise SituationParsingError(path_in_json, *error.args)
+            raise SituationParsingError(path_in_json, *error.args) from error
 
         array[instance_index] = value
 
@@ -398,41 +408,54 @@ class SimulationBuilder:
         # Due to set_input mechanism, we must bufferize all inputs, then actually set them,
         # so that the months are set first and the years last.
         plural_key = population.entity.plural
+
         if plural_key in self.entity_counts:
             population.count = self.get_count(plural_key)
             population.ids = self.get_ids(plural_key)
+
         if plural_key in self.memberships:
             population.members_entity_id = numpy.array(self.get_memberships(plural_key))
             population.members_role = numpy.array(self.get_roles(plural_key))
-        for variable_name in self.input_buffer.keys():
+
+        for variable, periods_ in self.input_buffer.items():
             try:
-                holder = population.get_holder(variable_name)
+                holder = population.get_holder(variable)
+
             except ValueError:  # Wrong entity, we can just ignore that
                 continue
-            buffer = self.input_buffer[variable_name]
-            unsorted_periods = [periods.period(period_str) for period_str in self.input_buffer[variable_name].keys()]
+
+            unsorted_periods = [
+                periods.period(period)
+                for period in periods_.keys()
+                ]
+
             # We need to handle small periods first for set_input to work
             sorted_periods = sorted(unsorted_periods, key = periods.key_period_size)
-            for period_value in sorted_periods:
-                values = buffer[str(period_value)]
+
+            for period in sorted_periods:
+                values = periods_[str(period)]
                 # Hack to replicate the values in the persons entity
                 # when we have an axis along a group entity but not persons
                 array = numpy.tile(values, population.count // len(values))
                 variable = holder.variable
                 # TODO - this duplicates the check in Simulation.set_input, but
                 # fixing that requires improving Simulation's handling of entities
-                if (variable.end is None) or (period_value.start.date <= variable.end):
-                    holder.set_input(period_value, array)
+                if variable.end is None or period.start.date <= variable.end:
+                    holder.set_input(period, array)
 
-    def raise_period_mismatch(self, entity, json, e):
+    @staticmethod
+    def raise_period_mismatch(entity, json, e):
         # This error happens when we try to set a variable value for a period that doesn't match its definition period
         # It is only raised when we consume the buffer. We thus don't know which exact key caused the error.
         # We do a basic research to find the culprit path
         culprit_path = next(
-            dpath.util.search(json, "*/{}/{}".format(e.variable_name, str(e.period)), yielded = True),
-            None)
+            dpath.util.search(json, f"*/{e.variable_name}/{str(e.period)}", yielded = True),
+            None,
+            )
+
         if culprit_path:
-            path = [entity.plural] + culprit_path[0].split('/')
+            path = [entity.plural] + culprit_path[0].split("/")
+
         else:
             path = [entity.plural]  # Fallback: if we can't find the culprit, just set the error at the entities level
 
@@ -472,11 +495,11 @@ class SimulationBuilder:
         cell_count = 1
         for parallel_axes in perpendicular_dimensions:
             first_axis = parallel_axes[0]
-            axis_count = first_axis['count']
+            axis_count = first_axis["count"]
             cell_count *= axis_count
 
         # Scale the "prototype" situation, repeating it cell_count times
-        for entity_name in self.entity_counts.keys():
+        for entity_name, _ in self.entity_counts.items():
             # Adjust counts
             self.axes_entity_counts[entity_name] = self.get_count(entity_name) * cell_count
             # Adjust ids
@@ -498,17 +521,17 @@ class SimulationBuilder:
 
         # Now generate input values along the specified axes
         # TODO - factor out the common logic here
-        if len(self.axes) == 1 and len(self.axes[0]):
+        if len(self.axes) == 1 and len(self.axes[0]) > 0:
             parallel_axes = self.axes[0]
             first_axis = parallel_axes[0]
-            axis_count: int = first_axis['count']
-            axis_entity = self.get_variable_entity(first_axis['name'])
+            axis_count: int = first_axis["count"]
+            axis_entity = self.get_variable_entity(first_axis["name"])
             axis_entity_step_size = self.entity_counts[axis_entity.plural]
             # Distribute values along axes
             for axis in parallel_axes:
-                axis_index = axis.get('index', 0)
-                axis_period = axis.get('period', self.default_period)
-                axis_name = axis['name']
+                axis_index = axis.get("index", 0)
+                axis_period = axis.get("period", self.default_period)
+                axis_name = axis["name"]
                 variable = axis_entity.get_variable(axis_name)
                 array = self.get_input(axis_name, str(axis_period))
                 if array is None:
@@ -516,8 +539,8 @@ class SimulationBuilder:
                 elif array.size == axis_entity_step_size:
                     array = numpy.tile(array, axis_count)
                 array[axis_index:: axis_entity_step_size] = numpy.linspace(
-                    axis['min'],
-                    axis['max'],
+                    axis["min"],
+                    axis["max"],
                     num = axis_count,
                     )
                 # Set input
@@ -536,22 +559,22 @@ class SimulationBuilder:
             axes_meshes = numpy.meshgrid(*axes_linspaces)
             for parallel_axes, mesh in zip(self.axes, axes_meshes):
                 first_axis = parallel_axes[0]
-                axis_count = first_axis['count']
-                axis_entity = self.get_variable_entity(first_axis['name'])
+                axis_count = first_axis["count"]
+                axis_entity = self.get_variable_entity(first_axis["name"])
                 axis_entity_step_size = self.entity_counts[axis_entity.plural]
                 # Distribute values along the grid
                 for axis in parallel_axes:
-                    axis_index = axis.get('index', 0)
-                    axis_period = axis['period'] or self.default_period
-                    axis_name = axis['name']
+                    axis_index = axis.get("index", 0)
+                    axis_period = axis["period"] or self.default_period
+                    axis_name = axis["name"]
                     variable = axis_entity.get_variable(axis_name)
                     array = self.get_input(axis_name, str(axis_period))
                     if array is None:
                         array = variable.default_array(cell_count * axis_entity_step_size)
                     elif array.size == axis_entity_step_size:
                         array = numpy.tile(array, cell_count)
-                    array[axis_index:: axis_entity_step_size] = axis['min'] \
-                        + mesh.reshape(cell_count) * (axis['max'] - axis['min']) / (axis_count - 1)
+                    array[axis_index:: axis_entity_step_size] = axis["min"] \
+                        + mesh.reshape(cell_count) * (axis["max"] - axis["min"]) / (axis_count - 1)
                     self.input_buffer[axis_name][str(axis_period)] = array
 
     def get_variable_entity(self, variable_name):

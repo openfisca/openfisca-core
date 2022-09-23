@@ -1,4 +1,4 @@
-from openfisca_core import projectors
+from .. import projectors
 
 
 def projectable(function):
@@ -16,10 +16,15 @@ def get_projector_from_shortcut(population, shortcut, parent = None):
             entity_2 = population.simulation.populations[shortcut]
             return projectors.EntityToPersonProjector(entity_2, parent)
     else:
-        if shortcut == 'first_person':
+        if shortcut == "first_person":
             return projectors.FirstPersonToEntityProjector(population, parent)
+
         role = next((role for role in population.entity.flattened_roles if (role.max == 1) and (role.key == shortcut)), None)
+
         if role:
             return projectors.UniqueRoleToEntityProjector(population, role, parent)
+
         if shortcut in population.entity.containing_entities:
             return getattr(projectors.FirstPersonToEntityProjector(population, parent), shortcut)
+
+    return None

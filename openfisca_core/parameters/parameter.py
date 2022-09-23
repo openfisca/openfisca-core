@@ -7,7 +7,10 @@ import os
 
 from openfisca_core import commons, periods
 from openfisca_core.errors import ParameterParsingError
-from openfisca_core.parameters import config, helpers, AtInstantLike, ParameterAtInstant
+
+from . import config, helpers
+from .at_instant_like import AtInstantLike
+from .parameter_at_instant import ParameterAtInstant
 
 
 class Parameter(AtInstantLike):
@@ -46,25 +49,24 @@ class Parameter(AtInstantLike):
     def __init__(self, name: str, data: dict, file_path: Optional[str] = None) -> None:
         self.name: str = name
         self.file_path: Optional[str] = file_path
-        helpers._validate_parameter(self, data, data_type = dict)
+        helpers.validate_parameter(self, data, data_type = dict)
         self.description: Optional[str] = None
         self.metadata: Dict = {}
         self.documentation: Optional[str] = None
-        self.values_history = self  # Only for backward compatibility
 
         # Normal parameter declaration: the values are declared under the 'values' key: parse the description and metadata.
-        if data.get('values'):
+        if data.get("values"):
             # 'unit' and 'reference' are only listed here for backward compatibility
-            helpers._validate_parameter(self, data, allowed_keys = config.COMMON_KEYS.union({'values'}))
-            self.description = data.get('description')
+            helpers.validate_parameter(self, data, allowed_keys = config.COMMON_KEYS.union({"values"}))
+            self.description = data.get("description")
 
             helpers._set_backward_compatibility_metadata(self, data)
-            self.metadata.update(data.get('metadata', {}))
+            self.metadata.update(data.get("metadata", {}))
 
-            helpers._validate_parameter(self, data['values'], data_type = dict)
-            values = data['values']
+            helpers.validate_parameter(self, data["values"], data_type = dict)
+            values = data["values"]
 
-            self.documentation = data.get('documentation')
+            self.documentation = data.get("documentation")
 
         else:  # Simplified parameter declaration: only values are provided
             values = data
@@ -75,9 +77,9 @@ class Parameter(AtInstantLike):
         for instant_str in instants:
             if not periods.INSTANT_PATTERN.match(instant_str):
                 raise ParameterParsingError(
-                    "Invalid property '{}' in '{}'. Properties must be valid YYYY-MM-DD instants, such as 2017-01-15."
-                    .format(instant_str, self.name),
-                    file_path)
+                    f"Invalid property '{instant_str}' in '{self.name}'. Properties must be valid YYYY-MM-DD instants, such as 2017-01-15.",
+                    file_path,
+                    )
 
             instant_info = values[instant_str]
 
@@ -85,7 +87,7 @@ class Parameter(AtInstantLike):
             if instant_info == "expected" or isinstance(instant_info, dict) and instant_info.get("expected"):
                 continue
 
-            value_name = helpers._compose_name(name, item_name = instant_str)
+            value_name = helpers.compose_name(name, item_name = instant_str)
             value_at_instant = ParameterAtInstant(value_name, instant_str, data = instant_info, file_path = self.file_path, metadata = self.metadata)
             values_list.append(value_at_instant)
 
@@ -93,7 +95,8 @@ class Parameter(AtInstantLike):
 
     def __repr__(self):
         return os.linesep.join([
-            '{}: {}'.format(value.instant_str, value.value if value.value is not None else 'null') for value in self.values_list
+            f"{value.instant_str}: {value.value if value.value is not None else 'null'}"
+            for value in self.values_list
             ])
 
     def __eq__(self, other):
@@ -126,7 +129,7 @@ class Parameter(AtInstantLike):
         if start is None:
             raise ValueError("You must provide either a start or a period")
         start_str = str(start)
-        stop_str = str(stop.offset(1, 'day')) if stop else None
+        stop_str = str(stop.offset(1, "day")) if stop else None
 
         old_values = self.values_list
         new_values = []
@@ -146,17 +149,17 @@ class Parameter(AtInstantLike):
             else:
                 if i < n:
                     overlapped_value = old_values[i].value
-                    value_name = helpers._compose_name(self.name, item_name = stop_str)
-                    new_interval = ParameterAtInstant(value_name, stop_str, data = {'value': overlapped_value})
+                    value_name = helpers.compose_name(self.name, item_name = stop_str)
+                    new_interval = ParameterAtInstant(value_name, stop_str, data = {"value": overlapped_value})
                     new_values.append(new_interval)
                 else:
-                    value_name = helpers._compose_name(self.name, item_name = stop_str)
-                    new_interval = ParameterAtInstant(value_name, stop_str, data = {'value': None})
+                    value_name = helpers.compose_name(self.name, item_name = stop_str)
+                    new_interval = ParameterAtInstant(value_name, stop_str, data = {"value": None})
                     new_values.append(new_interval)
 
         # Insert new interval
-        value_name = helpers._compose_name(self.name, item_name = start_str)
-        new_interval = ParameterAtInstant(value_name, start_str, data = {'value': value})
+        value_name = helpers.compose_name(self.name, item_name = start_str)
+        new_interval = ParameterAtInstant(value_name, start_str, data = {"value": value})
         new_values.append(new_interval)
 
         # Remove covered intervals
@@ -170,7 +173,8 @@ class Parameter(AtInstantLike):
 
         self.values_list = new_values
 
-    def get_descendants(self):
+    @staticmethod
+    def get_descendants():
         return iter(())
 
     def _get_at_instant(self, instant):

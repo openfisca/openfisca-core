@@ -8,4 +8,4 @@ class PeriodMismatchError(ValueError):
         self.period = period
         self.definition_period = definition_period
         self.message = message
-        ValueError.__init__(self, self.message)
+        super().__init__(self.message)

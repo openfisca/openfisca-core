@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-import os
-import sys
 import typing
-from packaging import version
 from typing import NoReturn, Union
 
+import os
+import sys
+
 import numpy
+from packaging import version
 
 if typing.TYPE_CHECKING:
     from packaging.version import LegacyVersion, Version
@@ -26,7 +27,7 @@ def prev() -> NoReturn:
         sys.exit(os.EX_DATAERR)
 
     minor -= 1
-    print(f"{major}.{minor}.0")  # noqa: T001
+    print(f"{major}.{minor}.0")  # noqa: T201
     sys.exit(os.EX_OK)
 
 

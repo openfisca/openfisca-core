@@ -22,7 +22,8 @@ class FlatTrace:
     def __init__(self, full_tracer: tracers.FullTracer) -> None:
         self._full_tracer = full_tracer
 
-    def key(self, node: tracers.TraceNode) -> str:
+    @staticmethod
+    def key(node: tracers.TraceNode) -> str:
         name = node.name
         period = node.period
         return f"{name}<{period}>"
@@ -47,15 +48,13 @@ class FlatTrace:
         return {
             key: {
                 **flat_trace,
-                'value': self.serialize(flat_trace['value'])
+                "value": self.serialize(flat_trace["value"])
                 }
             for key, flat_trace in self.get_trace().items()
             }
 
-    def serialize(
-            self,
-            value: Optional[Array],
-            ) -> Union[Optional[Array], list]:
+    @staticmethod
+    def serialize(value: Optional[Array]) -> Union[Optional[Array], list]:
         if isinstance(value, EnumArray):
             value = value.decode_to_str()
 
@@ -76,18 +75,18 @@ class FlatTrace:
 
         node_trace = {
             key: {
-                'dependencies': [
+                "dependencies": [
                     self.key(child) for child in node.children
                     ],
-                'parameters': {
+                "parameters": {
                     self.key(parameter):
                         self.serialize(parameter.value)
                         for parameter
                         in node.parameters
                     },
-                'value': node.value,
-                'calculation_time': node.calculation_time(),
-                'formula_time': node.formula_time(),
+                "value": node.value,
+                "calculation_time": node.calculation_time(),
+                "formula_time": node.formula_time(),
                 },
             }
 

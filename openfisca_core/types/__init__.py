@@ -37,9 +37,6 @@ Note:
 
 # Official Public API
 
-from .data_types import (  # noqa: F401
-    ArrayLike,
-    ArrayType,
-    )
+from .data_types import ArrayLike, ArrayType  # noqa: F401
 
 __all__ = ["ArrayLike", "ArrayType"]

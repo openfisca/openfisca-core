@@ -1,6 +1,7 @@
+import typing
+
 import os
 import traceback
-import typing
 
 import numpy
 

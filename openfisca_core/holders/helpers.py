@@ -15,7 +15,7 @@ def set_input_dispatch_by_period(holder, period, array):
 
     To read more about ``set_input`` attributes, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#set-input-automatically-process-variable-inputs-defined-for-periods-not-matching-the-definition-period>`_.
     """
-    array = holder._to_array(array)
+    array = holder.to_array(array)
 
     period_size = period.size
     period_unit = period.unit
@@ -25,7 +25,7 @@ def set_input_dispatch_by_period(holder, period, array):
     elif holder.variable.definition_period == periods.YEAR:
         cached_period_unit = periods.YEAR
     else:
-        raise ValueError('set_input_dispatch_by_period can be used only for yearly or monthly variables.')
+        raise ValueError("set_input_dispatch_by_period can be used only for yearly or monthly variables.")
 
     after_instant = period.start.offset(period_size, period_unit)
 
@@ -34,7 +34,7 @@ def set_input_dispatch_by_period(holder, period, array):
     while sub_period.start < after_instant:
         existing_array = holder.get_array(sub_period)
         if existing_array is None:
-            holder._set(sub_period, array)
+            holder.put(sub_period, array)
         else:
             # The array of the current sub-period is reused for the next ones.
             # TODO: refactor or document this behavior
@@ -60,7 +60,7 @@ def set_input_divide_by_period(holder, period, array):
     elif holder.variable.definition_period == periods.YEAR:
         cached_period_unit = periods.YEAR
     else:
-        raise ValueError('set_input_divide_by_period can be used only for yearly or monthly variables.')
+        raise ValueError("set_input_divide_by_period can be used only for yearly or monthly variables.")
 
     after_instant = period.start.offset(period_size, period_unit)
 
@@ -82,7 +82,7 @@ def set_input_divide_by_period(holder, period, array):
         sub_period = period.start.period(cached_period_unit)
         while sub_period.start < after_instant:
             if holder.get_array(sub_period) is None:
-                holder._set(sub_period, divided_array)
+                holder.put(sub_period, divided_array)
             sub_period = sub_period.offset(1)
     elif not (remaining_array == 0).all():
-        raise ValueError("Inconsistent input: variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} doesn't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period.".format(holder.variable.name, period, array, array - remaining_array))
+        raise ValueError(f"Inconsistent input: variable {holder.variable.name} has already been set for all months contained in period {period}, and value {array} provided for {period} doesn't match the total ({array - remaining_array}). This error may also be thrown if you try to call set_input twice for the same variable and period.")

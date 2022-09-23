@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-import enum
 from typing import Union
+
+import enum
 
 import numpy
 
-from . import ENUM_ARRAY_DTYPE, EnumArray
+from .config import ENUM_ARRAY_DTYPE
+from .enum_array import EnumArray
 
 
 class Enum(enum.Enum):
@@ -19,7 +21,7 @@ class Enum(enum.Enum):
         # When the enum item is initialized, self._member_names_ contains the
         # names of the previously initialized items, so its length is the index
         # of this item.
-        self.index = len(self._member_names_)
+        self.index = len(self._member_names_)  # type: ignore
 
     # Bypass the slow Enum.__eq__
     __eq__ = object.__eq__
@@ -63,20 +65,23 @@ class Enum(enum.Enum):
         >>> encoded_array[0]
         2  # Encoded value
         """
+
+        kind = cls
+
         if isinstance(array, EnumArray):
             return array
 
         # String array
         if isinstance(array, numpy.ndarray) and \
-                array.dtype.kind in {'U', 'S'}:
+                array.dtype.kind in {"U", "S"}:
             array = numpy.select(
-                [array == item.name for item in cls],
-                [item.index for item in cls],
+                [array == item.name for item in kind],
+                [item.index for item in kind],
                 ).astype(ENUM_ARRAY_DTYPE)
 
         # Enum items arrays
         elif isinstance(array, numpy.ndarray) and \
-                array.dtype.kind == 'O':
+                array.dtype.kind == "O":
             # Ensure we are comparing the comparable. The problem this fixes:
             # On entering this method "cls" will generally come from
             # variable.possible_values, while the array values may come from
@@ -88,12 +93,12 @@ class Enum(enum.Enum):
             # So, instead of relying on the "cls" passed in, we use only its
             # name to check that the values in the array, if non-empty, are of
             # the right type.
-            if len(array) > 0 and cls.__name__ is array[0].__class__.__name__:
-                cls = array[0].__class__
+            if len(array) > 0 and kind.__name__ is array[0].__class__.__name__:
+                kind = array[0].__class__
 
             array = numpy.select(
-                [array == item for item in cls],
-                [item.index for item in cls],
+                [array == item for item in kind],
+                [item.index for item in kind],
                 ).astype(ENUM_ARRAY_DTYPE)
 
-        return EnumArray(array, cls)
+        return EnumArray(array, kind)

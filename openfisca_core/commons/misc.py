@@ -30,7 +30,7 @@ def empty_clone(original: T) -> T:
     """
 
     Dummy: object
-    new: T
+    dummy: T
 
     Dummy = type(
         "Dummy",
@@ -38,9 +38,10 @@ def empty_clone(original: T) -> T:
         {"__init__": lambda self: None},
         )
 
-    new = Dummy()
-    new.__class__ = original.__class__
-    return new
+    dummy = Dummy()
+    dummy.__class__ = original.__class__
+
+    return dummy
 
 
 def stringify_array(array: ArrayType) -> str:

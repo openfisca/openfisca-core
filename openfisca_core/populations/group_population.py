@@ -5,7 +5,8 @@ import numpy
 from openfisca_core import projectors
 from openfisca_core.entities import Role
 from openfisca_core.indexed_enums import EnumArray
-from openfisca_core.populations import Population
+
+from .population import Population
 
 
 class GroupPopulation(Population):
@@ -20,13 +21,13 @@ class GroupPopulation(Population):
     def clone(self, simulation):
         result = GroupPopulation(self.entity, self.members)
         result.simulation = simulation
-        result._holders = {variable: holder.clone(self) for (variable, holder) in self._holders.items()}
+        result.holders = {variable: holder.clone(self) for (variable, holder) in self.holders.items()}
         result.count = self.count
         result.ids = self.ids
-        result._members_entity_id = self._members_entity_id
-        result._members_role = self._members_role
-        result._members_position = self._members_position
-        result._ordered_members_map = self._ordered_members_map
+        result.members_entity_id = self._members_entity_id
+        result.members_role = self._members_role
+        result.members_position = self._members_position
+        result.ordered_members_map = self._ordered_members_map
         return result
 
     @property
@@ -78,6 +79,10 @@ class GroupPopulation(Population):
             self._ordered_members_map = numpy.argsort(self.members_entity_id)
         return self._ordered_members_map
 
+    @ordered_members_map.setter
+    def ordered_members_map(self, value):
+        self._ordered_members_map = value
+
     def get_role(self, role_name):
         return next((role for role in self.entity.flattened_roles if role.key == role_name), None)
 
@@ -106,8 +111,8 @@ class GroupPopulation(Population):
                 self.members_entity_id[role_filter],
                 weights = array[role_filter],
                 minlength = self.count)
-        else:
-            return numpy.bincount(self.members_entity_id, weights = array)
+
+        return numpy.bincount(self.members_entity_id, weights = array)
 
     @projectors.projectable
     def any(self, array, role = None):
@@ -125,7 +130,7 @@ class GroupPopulation(Population):
             >>> array([True])
         """
         sum_in_entity = self.sum(array, role = role)
-        return (sum_in_entity > 0)
+        return sum_in_entity > 0
 
     @projectors.projectable
     def reduce(self, array, reducer, neutral_element, role = None):
@@ -213,8 +218,8 @@ class GroupPopulation(Population):
             else:
                 role_condition = self.members_role == role
             return self.sum(role_condition)
-        else:
-            return numpy.bincount(self.members_entity_id)
+
+        return numpy.bincount(self.members_entity_id)
 
     # Projection person -> entity
 
@@ -232,8 +237,7 @@ class GroupPopulation(Population):
         self.entity.check_role_validity(role)
         if role.max != 1:
             raise Exception(
-                'You can only use value_from_person with a role that is unique in {}. Role {} is not unique.'
-                .format(self.key, role.key)
+                f'You can only use value_from_person with a role that is unique in {self.key}. Role {role.key} is not unique.'
                 )
         self.members.check_array_compatible_with_entity(array)
         members_map = self.ordered_members_map
@@ -283,6 +287,6 @@ class GroupPopulation(Population):
         self.entity.check_role_validity(role)
         if role is None:
             return array[self.members_entity_id]
-        else:
-            role_condition = self.members.has_role(role)
-            return numpy.where(role_condition, array[self.members_entity_id], 0)
+
+        role_condition = self.members.has_role(role)
+        return numpy.where(role_condition, array[self.members_entity_id], 0)

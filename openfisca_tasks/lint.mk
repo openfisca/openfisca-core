@@ -12,6 +12,7 @@ check-syntax-errors: .
 check-style: $(shell git ls-files "*.py")
 	@$(call print_help,$@:)
 	@flake8 $?
+	@pylint $?
 	@$(call print_pass,$@:)
 
 ## Run linters to check for syntax and style errors in the doc.
@@ -30,7 +31,7 @@ lint-doc-%:
 	@##
 	@$(call print_help,$(subst $*,%,$@:))
 	@flake8 --select=D101,D102,D103,DAR openfisca_core/$*
-	@pylint openfisca_core/$*
+	@pylint --enable=C0115,C0116,R0401 openfisca_core/$*
 	@$(call print_pass,$@:)
 
 ## Run static type checkers for type errors.
@@ -58,5 +59,7 @@ lint-typing-strict-%:
 ## Run code formatters to correct style errors.
 format-style: $(shell git ls-files "*.py")
 	@$(call print_help,$@:)
+	@isort $?
 	@autopep8 $?
+	@pyupgrade $? --py37-plus --keep-runtime-typing
 	@$(call print_pass,$@:)

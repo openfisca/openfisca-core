@@ -20,15 +20,15 @@ class Reform(TaxBenefitSystem):
         >>>
         >>> def modify_my_parameters(parameters):
         >>>     # Add new parameters
-        >>>     new_parameters = load_parameter_file(name='reform_name', file_path='path_to_yaml_file.yaml')
+        >>>     new_parameters = load_parameter_file(name = 'reform_name', file_path = 'path_to_yaml_file.yaml')
         >>>     parameters.add_child('reform_name', new_parameters)
         >>>
         >>>     # Update a value
-        >>>     parameters.taxes.some_tax.some_param.update(period=some_period, value=1000.0)
+        >>>     parameters.taxes.some_tax.some_param.update(period = some_period, value = 1000.0)
         >>>
         >>>    return parameters
         >>>
-        >>> class MyReform(reforms.Reform):
+        >>> class FixtureReform(reforms.Reform):
         >>>    def apply(self):
         >>>        self.add_variable(some_variable)
         >>>        self.update_variable(some_other_variable)
@@ -47,8 +47,8 @@ class Reform(TaxBenefitSystem):
         self.variables = baseline.variables.copy()
         self.decomposition_file_path = baseline.decomposition_file_path
         self.key = self.__class__.__name__
-        if not hasattr(self, 'apply'):
-            raise Exception("Reform {} must define an `apply` function".format(self.key))
+        if not hasattr(self, "apply"):
+            raise Exception(f"Reform {self.key} must define an `apply` function")
         self.apply()
 
     def __getattr__(self, attribute):
@@ -57,10 +57,10 @@ class Reform(TaxBenefitSystem):
     @property
     def full_key(self):
         key = self.key
-        assert key is not None, 'key was not set for reform {} (name: {!r})'.format(self, self.name)
-        if self.baseline is not None and hasattr(self.baseline, 'key'):
+        assert key is not None, f"key was not set for reform {self} (name: {self.name!r})"
+        if self.baseline is not None and hasattr(self.baseline, "key"):
             baseline_full_key = self.baseline.full_key
-            key = '.'.join([baseline_full_key, key])
+            key = ".".join([baseline_full_key, key])
         return key
 
     def modify_parameters(self, modifier_function):
@@ -76,8 +76,8 @@ class Reform(TaxBenefitSystem):
         reform_parameters = modifier_function(baseline_parameters_copy)
         if not isinstance(reform_parameters, ParameterNode):
             return ValueError(
-                'modifier_function {} in module {} must return a ParameterNode'
-                .format(modifier_function.__name__, modifier_function.__module__,)
+                f"modifier_function {modifier_function.__name__} in module {modifier_function.__module__} must return a ParameterNode"
                 )
         self.parameters = reform_parameters
         self._parameters_at_instant_cache = {}
+        return None

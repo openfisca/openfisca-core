@@ -4,22 +4,24 @@ import numpy
 
 from openfisca_core import projectors
 from openfisca_core.holders import Holder
-from openfisca_core.populations import config
 from openfisca_core.projectors import Projector
+
+from . import config
 
 
 class Population:
+
     def __init__(self, entity):
         self.simulation = None
         self.entity = entity
-        self._holders = {}
+        self.holders = {}
         self.count = 0
         self.ids = []
 
     def clone(self, simulation):
         result = Population(self.entity)
         result.simulation = simulation
-        result._holders = {variable: holder.clone(result) for (variable, holder) in self._holders.items()}
+        result.holders = {variable: holder.clone(result) for (variable, holder) in self.holders.items()}
         result.count = self.count
         result.ids = self.ids
         return result
@@ -33,7 +35,7 @@ class Population:
     def __getattr__(self, attribute):
         projector = projectors.get_projector_from_shortcut(self, attribute)
         if not projector:
-            raise AttributeError("You tried to use the '{}' of '{}' but that is not a known attribute.".format(attribute, self.entity.key))
+            raise AttributeError(f"You tried to use the '{attribute}' of '{self.entity.key}' but that is not a known attribute.")
         return projector
 
     def get_index(self, id):
@@ -43,20 +45,20 @@ class Population:
 
     def check_array_compatible_with_entity(self, array):
         if not self.count == array.size:
-            raise ValueError("Input {} is not a valid value for the entity {} (size = {} != {} = count)".format(
-                array, self.entity.key, array.size, self.count))
+            raise ValueError(f"Input {array} is not a valid value for the entity {self.entity.key} (size = {array.size} != {self.count} = count)")
 
-    def check_period_validity(self, variable_name, period):
+    @staticmethod
+    def check_period_validity(variable_name, period):
         if period is None:
             stack = traceback.extract_stack()
-            filename, line_number, function_name, line_of_code = stack[-3]
-            raise ValueError('''
-You requested computation of variable "{}", but you did not specify on which period in "{}:{}":
-    {}
+            filename, line_number, _function_name, line_of_code = stack[-3]
+            raise ValueError(f'''
+You requested computation of variable "{variable_name}", but you did not specify on which period in "{filename}:{line_number}":
+    {line_of_code}
 When you request the computation of a variable within a formula, you must always specify the period as the second parameter. The convention is to call this parameter "period". For example:
     computed_salary = person('salary', period).
 See more information at <https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-variable-definition>.
-'''.format(variable_name, filename, line_number, line_of_code))
+''')
 
     def __call__(self, variable_name, period = None, options = None):
         """
@@ -76,34 +78,36 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             options = []
 
         if config.ADD in options and config.DIVIDE in options:
-            raise ValueError('Options  config.ADD and  config.DIVIDE are incompatible (trying to compute variable {})'.format(variable_name).encode('utf-8'))
-        elif config.ADD in options:
+            raise ValueError(f"Options ADD and DIVIDE are incompatible (trying to compute variable {variable_name})".encode())
+
+        if config.ADD in options:
             return self.simulation.calculate_add(variable_name, period)
-        elif config.DIVIDE in options:
+
+        if config.DIVIDE in options:
             return self.simulation.calculate_divide(variable_name, period)
-        else:
-            return self.simulation.calculate(variable_name, period)
+
+        return self.simulation.calculate(variable_name, period)
 
     # Helpers
 
     def get_holder(self, variable_name):
         self.entity.check_variable_defined_for_entity(variable_name)
-        holder = self._holders.get(variable_name)
+        holder = self.holders.get(variable_name)
         if holder:
             return holder
         variable = self.entity.get_variable(variable_name)
-        self._holders[variable_name] = holder = Holder(variable, self)
+        self.holders[variable_name] = holder = Holder(variable, self)
         return holder
 
     def get_memory_usage(self, variables = None):
         holders_memory_usage = {
             variable_name: holder.get_memory_usage()
-            for variable_name, holder in self._holders.items()
+            for variable_name, holder in self.holders.items()
             if variables is None or variable_name in variables
             }
 
         total_memory_usage = sum(
-            holder_memory_usage['total_nb_bytes'] for holder_memory_usage in holders_memory_usage.values()
+            holder_memory_usage["total_nb_bytes"] for holder_memory_usage in holders_memory_usage.values()
             )
 
         return dict(
@@ -125,8 +129,8 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         group_population = self.simulation.get_population(role.entity.plural)
         if role.subroles:
             return numpy.logical_or.reduce([group_population.members_role == subrole for subrole in role.subroles])
-        else:
-            return group_population.members_role == role
+
+        return group_population.members_role == role
 
     @projectors.projectable
     def value_from_partner(self, array, entity, role):
@@ -134,7 +138,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         self.entity.check_role_validity(role)
 
         if not role.subroles or not len(role.subroles) == 2:
-            raise Exception('Projection to partner is only implemented for roles having exactly two subroles.')
+            raise Exception("Projection to partner is only implemented for roles having exactly two subroles.")
 
         [subrole_1, subrole_2] = role.subroles
         value_subrole_1 = entity.value_from_person(array, subrole_1)
@@ -145,8 +149,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             [value_subrole_2, value_subrole_1],
             )
 
+    @staticmethod
     @projectors.projectable
-    def get_rank(self, entity, criteria, condition = True):
+    def get_rank(entity, criteria, condition = True):
         """
         Get the rank of a person within an entity according to a criteria.
         The person with rank 0 has the minimum value of criteria.

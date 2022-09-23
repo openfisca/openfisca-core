@@ -1,21 +1,22 @@
 from __future__ import annotations
 
-import abc
+import typing
+
 import bisect
 import os
-import typing
 
 import numpy
 
 from openfisca_core import tools
 from openfisca_core.errors import EmptyArgumentError
-from openfisca_core.taxscales import TaxScaleLike
+
+from .tax_scale_like import TaxScaleLike
 
 if typing.TYPE_CHECKING:
-    NumericalArray = typing.Union[numpy.int_, numpy.float_]
+    NumArray = typing.Union[numpy.int_, numpy.float_]
 
 
-class RateTaxScaleLike(TaxScaleLike, abc.ABC):
+class RateTaxScaleLike(TaxScaleLike):
     """
     Base class for various types of rate-based tax scales: marginal rate,
     linear average rate...
@@ -125,7 +126,7 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
 
     def bracket_indices(
             self,
-            tax_base: NumericalArray,
+            tax_base: NumArray,
             factor: float = 1.0,
             round_decimals: typing.Optional[int] = None,
             ) -> numpy.int_:
@@ -187,8 +188,8 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
 
     def threshold_from_tax_base(
             self,
-            tax_base: NumericalArray,
-            ) -> NumericalArray:
+            tax_base: NumArray,
+            ) -> NumArray:
         """
         Compute the relevant thresholds for the given tax bases.
 

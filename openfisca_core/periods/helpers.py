@@ -1,8 +1,11 @@
+from typing import Tuple
+
+import calendar
 import datetime
 import os
 
-from openfisca_core import periods
-from openfisca_core.periods import config
+from .. import periods
+from . import config
 
 
 def N_(message):
@@ -33,10 +36,10 @@ def instant(instant):
         return instant
     if isinstance(instant, str):
         if not config.INSTANT_PATTERN.match(instant):
-            raise ValueError("'{}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'.".format(instant))
+            raise ValueError(f"'{instant}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'.")
         instant = periods.Instant(
             int(fragment)
-            for fragment in instant.split('-', 2)[:3]
+            for fragment in instant.split("-", 2)[:3]
             )
     elif isinstance(instant, datetime.date):
         instant = periods.Instant((instant.year, instant.month, instant.day))
@@ -95,13 +98,13 @@ def period(value):
         Parses simple periods respecting the ISO format, such as 2012 or 2015-03
         """
         try:
-            date = datetime.datetime.strptime(value, '%Y')
+            date = datetime.datetime.strptime(value, "%Y")
         except ValueError:
             try:
-                date = datetime.datetime.strptime(value, '%Y-%m')
+                date = datetime.datetime.strptime(value, "%Y-%m")
             except ValueError:
                 try:
-                    date = datetime.datetime.strptime(value, '%Y-%m-%d')
+                    date = datetime.datetime.strptime(value, "%Y-%m-%d")
                 except ValueError:
                     return None
                 else:
@@ -113,14 +116,14 @@ def period(value):
 
     def raise_error(value):
         message = os.linesep.join([
-            "Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: '{}'.".format(value),
+            f"Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: '{value}'.",
             "Learn more about legal period formats in OpenFisca:",
             "<https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-simulations>."
             ])
         raise ValueError(message)
 
-    if value == 'ETERNITY' or value == config.ETERNITY:
-        return periods.Period(('eternity', instant(datetime.date.min), float("inf")))
+    if value in ("ETERNITY", config.ETERNITY):
+        return periods.Period(("eternity", instant(datetime.date.min), float("inf")))
 
     # check the type
     if isinstance(value, int):
@@ -137,7 +140,7 @@ def period(value):
     if ":" not in value:
         raise_error(value)
 
-    components = value.split(':')
+    components = value.split(":")
 
     # left-most component must be a valid unit
     unit = components[0]
@@ -185,9 +188,9 @@ def key_period_size(period):
 
     """
 
-    unit, start, size = period
+    unit, _start, size = period
 
-    return '{}_{}'.format(unit_weight(unit), size)
+    return f"{unit_weight(unit)}_{size}"
 
 
 def unit_weights():
@@ -201,3 +204,29 @@ def unit_weights():
 
 def unit_weight(unit):
     return unit_weights()[unit]
+
+
+def year_start(year: int, month: int, day: int) -> Tuple[int, ...]:
+    last_day = calendar.monthrange(year, month)[1]
+    month += 1
+
+    if month == 13:
+        year += 1
+        month = 1
+
+    day -= last_day
+    last_day = calendar.monthrange(year, month)[1]
+
+    return year, month, day, last_day
+
+
+def year_end(year: int, month: int, day: int) -> Tuple[int, ...]:
+    month -= 1
+
+    if month == 0:
+        year -= 1
+        month = 12
+
+    day += calendar.monthrange(year, month)[1]
+
+    return year, month, day

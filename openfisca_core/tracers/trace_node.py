@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-import dataclasses
 import typing
+
+import dataclasses
 
 if typing.TYPE_CHECKING:
     import numpy
 
     from openfisca_core.indexed_enums import EnumArray
-    from openfisca_core.periods import Period
 
     Array = typing.Union[EnumArray, numpy.typing.ArrayLike]
     Time = typing.Union[float, int]
@@ -16,7 +16,7 @@ if typing.TYPE_CHECKING:
 @dataclasses.dataclass
 class TraceNode:
     name: str
-    period: Period
+    period: str
     parent: typing.Optional[TraceNode] = None
     children: typing.List[TraceNode] = dataclasses.field(default_factory = list)
     parameters: typing.List[TraceNode] = dataclasses.field(default_factory = list)

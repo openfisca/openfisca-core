@@ -3,7 +3,7 @@ import pytest
 from openfisca_web_api import app
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope = "module")
 def test_client(tax_benefit_system):
     """ This module-scoped fixture creates an API client for the TBS defined in the `tax_benefit_system`
         fixture. This `tax_benefit_system` is mutable, so you can add/update variables.
