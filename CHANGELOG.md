@@ -4,7 +4,114 @@
 
 #### Technical changes
 
-- Make style checks stricter and clearer to help developers contribute
+- Document/honestify:
+  - Styles as enforced and skipped in `setup.cfg`
+  - Actual dependecy versions whith whom OpenFisca runs in py37-39 (note that
+    this library does not run with py36, py310, numpy v1.17, etc., which is not
+    product of any particular change introduced by this changeset)
+- Make style checks stricter and clearer to help developers contribute:
+  - Early returns are prefered for readability and performance
+    - Before:
+      ```py
+      if 1 > n:
+          var = something
+      else:
+          var = something_else
+
+      return var
+      ```
+    - After:
+      ```py
+      if 1 > n:
+          return something
+
+      return something_elses
+      ```
+  - Normalise the use of:
+    - Quotes is normalised to double-quotes
+    - `@staticmethod` when `self` is unused
+    - `except from` for better exception context
+    - `isinstance()` as per the best practice
+    - f-strings as per good practice
+  - Favour:
+    - `...` as a placeholder and `pass` for loops
+    - Relative to absolute imports to avoid circularity
+    - Import sorting as described in the [STYLEGUIDE](STYLEGUIDE.md)
+  - Avoid:
+    - Catch-all exceptions in favour of more specific ones
+    - Import aliases (so `np` becomes `numpy`)
+  - Remove:
+    - Code using `exec` because dangerous and hard to maintain
+  - Extract:
+    - Common imports to `commons.imports`
+- Most of these can be:
+  - Corrected automatically running `make format-style`
+  - Fixed by hand with the output of `make test` and `make style-check`
+
+#### New features
+
+- Rename and makes the following public (note this are not considered as
+  breking changes because methods were private, so renaming them to make
+  them public counts as actually adding a new publicly exposed method, while
+  removing a private method doesn't count as a breaking change):
+  - `Holder._to_array` to `Holder.to_array`
+  - `Holder._set` to `Holder.put`
+  - `Holder._memory_storage` to `Holder.memory_storage`
+  - `parameters._compose_name` to `parameters.compose_name`
+  - `parameters._validate_parameter` to `parameters.validate_parameter`
+  - `ParameterNodeAtInstant._name` to `ParameterNodeAtInstant.name`
+  - `ParameterNodeAtInstant._instant_str` to `ParameterNodeAtInstant.instant_str`
+  - `ParameterNodeAtInstant._children` to `ParameterNodeAtInstant.children`
+  - `Population._holders` to `Population.holders`
+  - `simulations._get_person_count` to `simulations.get_person_count`
+  - `Simulation._check_for_cycle` to `Simulation.check_for_cycle`
+  - `Simulation._check_period_consistency` to `Simulation.check_period_consistency`
+  - `FlatTracer._enter_calculation` to `FlatTracer.enter_calculation`
+  - `FlatTracer._exit_calculation` to `FlatTracer.exit_calculation`
+  - `FlatTracer._start_time` to `FlatTracer.start_time`
+  - `FlatTracer._end_time` to `FlatTracer.end_time`
+  - `PerformanceLog._json` to `PerformanceLog.json`
+- Add:
+ - `periods.year_start`
+ - `periods.year_end`
+- Extend:
+  - `test_runner.YamlItem.repr_failure` with a third argument `style` as per
+    the definition of the class it inherits from.
+
+#### Breaking changes
+
+- Expire deprecation of:
+  - The `Dummy` class, now provided by `commons`
+  - `formula_helpers`, now provided by `commons`
+  - `memory_config`, now provided by `experimental`
+  - `rates`, now provided by `commons`
+  - `Scale`, now provided by `ParameterScale`
+  - `Bracket`, now provided by `ParameterScaleBracket`
+  - `ValuesHistory`, now provided by `ParameterScale`
+  - `ParameterNotFound`, now provided by `ParameterNotFoundError`
+  - `VariableNameConflict`, now provided by `VariableNameConflictError`
+  - `VariableNotFound`, now provided by `VariableNotFoundError`
+  - `simulation_builder`, now provided by `simulations`
+  - `openfisca-run-test`, now provided by `openfisca test`
+  - `TaxBenefitSystem.new_scenario`, now provided by `SimulationBuilder`
+  - `AbstractRateTaxScale`, now provided by `RateTaxScaleLike`
+  - `AbstractTaxScale`, now provided by `TaxScaleLike`
+  - _In fine_, All errors that were not but are not under `errors`
+- Delete (no replacement):
+  - `scripts.measure_performance`
+  - `scripts.migrations.v16_2_to_v17`
+- Normalise the use of:
+  - `file_path` for file context-managers (implies argument name rename)
+
+#### Publising instructions
+
+Because this library has a circular depedency with `openfisca-country-template`
+and `openfisca-extension-template`, publish of this version requires:
+1. Publishing of one or many release candidates
+2. Publishing next major or `openfisca-country-template`
+3. Publishing next major or `openfisca-extension-template`
+4. Publishing next major of this library
+5. Publishing due diligence or unexpected outcome fixes as a release candidates
 
 ### 35.9.0 [#1150](https://github.com/openfisca/openfisca-core/pull/1150)
 
