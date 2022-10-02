@@ -16,6 +16,7 @@ general_requirements = [
     "yaml-changelog",
     "coverage",
     "sortedcontainers",
+    "numexpr",
 ]
 
 dev_requirements = []
