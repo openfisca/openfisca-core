@@ -15,6 +15,7 @@ general_requirements = [
     "linecheck",
     "yaml-changelog",
     "coverage",
+    "sortedcontainers",
 ]
 
 dev_requirements = []
