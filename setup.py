@@ -14,6 +14,7 @@ general_requirements = [
     "black",
     "linecheck",
     "yaml-changelog",
+    "coverage",
 ]
 
 dev_requirements = []
