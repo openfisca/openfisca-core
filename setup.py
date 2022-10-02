@@ -13,7 +13,7 @@ general_requirements = [
     "numpy",
     "black",
     "linecheck",
-    "build-changelog",
+    "yaml-changelog",
 ]
 
 dev_requirements = []
