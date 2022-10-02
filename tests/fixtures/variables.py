@@ -1,5 +1,5 @@
-from openfisca_core import periods
-from openfisca_core.variables import Variable
+from policyengine_core import periods
+from policyengine_core.variables import Variable
 
 
 class TestVariable(Variable):

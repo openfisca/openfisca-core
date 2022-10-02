@@ -1,0 +1,26 @@
+# Test files describe situations and their expected outcomes
+#
+# We can run this test on our command line using
+# `openfisca-run-test modify_social_security_taxation.yaml`
+#
+# Note the `reforms: ` key in the below YAML blocks.
+
+- name: The new tax applies to car-holding people
+  reforms: policyengine_core.country_template.reforms.add_new_tax.add_new_tax
+  period: 2017-01
+  input:
+    salary: 2000
+    has_car: true
+  output:
+    income_tax: 300
+    new_tax: 400
+
+- name: The new tax does not apply otherwise
+  reforms: policyengine_core.country_template.reforms.add_new_tax.add_new_tax
+  period: 2017-01
+  input:
+    salary: 2000
+    has_car: false
+  output:
+    income_tax: 300
+    new_tax: 0

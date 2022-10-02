@@ -1,0 +1,65 @@
+# Test files describe situations and their expected outcomes
+# We can run this test on our command line using `openfisca-run-test disposable_income.yaml`
+
+- name: Person earning no salary in Jan 2015
+  period: 2015-01
+  input:
+    salary: 0
+  output:
+    disposable_income: 0
+
+- name: Person earning 2500 in Jan 2015
+  period: 2015-01
+  input:
+    salary: 2500
+  output:
+    disposable_income: 2025
+
+- name: Person earning 10000 in Jan 2015
+  period: 2015-01
+  input:
+    salary: 10000
+  output:
+    disposable_income: 8100
+
+- name: Person earning no salary in Jan 2016
+  period: 2016-01
+  input:
+    salary: 0
+  output:
+    disposable_income: 600
+
+- name: Person earning 2500 in Jan 2016
+  period: 2016-01
+  input:
+    salary: 2500
+  output:
+    disposable_income: 2025
+
+- name: Person earning 10000 in Jan 2016
+  period: 2016-01
+  input:
+    salary: 10000
+  output:
+    disposable_income: 8100
+
+- name: Person earning no salary in Jan 2017
+  period: 2017-01
+  input:
+    salary: 0
+  output:
+    disposable_income: 600
+
+- name: Person earning 2500 in Jan 2017
+  period: 2017-01
+  input:
+    salary: 2500
+  output:
+    disposable_income: 2675
+
+- name: Person earning 10000 in Jan 2017
+  period: 2017-01
+  input:
+    salary: 10000
+  output:
+    disposable_income: 8740

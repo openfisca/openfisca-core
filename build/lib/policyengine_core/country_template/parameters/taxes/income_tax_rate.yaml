@@ -1,0 +1,15 @@
+description: Income tax rate
+metadata:
+  unit: /1
+values:
+  2012-01-01:
+    value: 0.16
+  2013-01-01:
+    value: 0.13
+  2014-01-01:
+    value: 0.14
+  2015-01-01:
+    value: 0.15
+  # We expect this parameter to change on the 1st of Jan 2016
+  # Placeholders have no impact on calculations. They are just metadata to indicate that we expect a parameter to change at a certain date.
+  2016-01-01: expected

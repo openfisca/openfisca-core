@@ -1,34 +1,21 @@
-include openfisca_tasks/install.mk
-include openfisca_tasks/lint.mk
-include openfisca_tasks/publish.mk
-include openfisca_tasks/serve.mk
-include openfisca_tasks/test_code.mk
+all: install format test build changelog
 
-## To share info with the user, but no action is needed.
-print_info = $$(tput setaf 6)[i]$$(tput sgr0)
+format:
+	black . -l 79
 
-## To warn the user of something, but no action is needed.
-print_warn = $$(tput setaf 3)[!]$$(tput sgr0)
+install:
+	pip install -e .
 
-## To let the user know where we are in the task pipeline.
-print_work = $$(tput setaf 5)[⚙]$$(tput sgr0)
+test:
+	coverage run -a --branch -m pytest tests
+	coverage xml -i
 
-## To let the user know the task in progress succeded.
-## The `$1` is a function argument, passed from a task (usually the task name).
-print_pass = echo $$(tput setaf 2)[✓]$$(tput sgr0) $$(tput setaf 8)$1$$(tput sgr0)$$(tput setaf 2)passed$$(tput sgr0) $$(tput setaf 1)❤$$(tput sgr0)
+build:
+	python setup.py sdist bdist_wheel
 
-## Similar to `print_work`, but this will read the comments above a task, and
-## print them to the user at the start of each task. The `$1` is a function
-## argument.
-print_help = sed -n "/^$1/ { x ; p ; } ; s/\#\#/\r$(print_work)/ ; s/\./…/ ; x" ${MAKEFILE_LIST}
-
-## Same as `make`.
-.DEFAULT_GOAL := all
-
-## Same as `make test`.
-all: test
-	@$(call print_pass,$@:)
-
-## Run all lints and tests.
-test: clean lint test-code
-	@$(call print_pass,$@:)
+changelog:
+	build-changelog changelog.yaml --output changelog.yaml --update-last-date --start-from 0.1.0 --append-file changelog_entry.yaml
+	build-changelog changelog.yaml --org PolicyEngine --repo policyengine-core --output CHANGELOG.md --template .github/changelog_template.md
+	bump-version changelog.yaml setup.py
+	rm changelog_entry.yaml || true
+	touch changelog_entry.yaml

@@ -1,0 +1,4 @@
+- bump: major
+  changes:
+    changed:
+    - Non-essential (for Python simulations) code removed.

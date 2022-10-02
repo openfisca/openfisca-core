@@ -1,0 +1,13 @@
+description: Housing allowance amount (as a fraction of the rent)
+metadata:
+  unit: /1
+  reference: https://law.gov.example/housing-allowance-rate
+documentation: |
+  A fraction of the rent.
+  From the 1st of Dec 2016, the housing allowance no longer exists.
+values:
+  # This parameter is only defined from the 1st of Jan 2010 to the 3Oth of Nov 2016.
+  2010-01-01:
+    value: 0.25
+  2016-12-01:
+    value: null

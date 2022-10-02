@@ -1,0 +1,16 @@
+# Test files describe situations and their expected outcomes
+# We can run this test on our command line using `openfisca-run-test housing_allowance.yaml`
+
+- name: In january 2016, a household paying 400 of rent gets an allowance of 100
+  period: 2016-01
+  input:
+    rent: 400
+  output:
+    housing_allowance: 100
+
+- name: The housing_allowance disappeared in Dec 2016
+  period: 2016-12
+  input:
+    rent: 400
+  output:
+    housing_allowance: 0

@@ -1,9 +1,9 @@
 from numpy import array
 
-from openfisca_core import parameters
-from openfisca_core import periods
-from openfisca_core import taxscales
-from openfisca_core import tools
+from policyengine_core import parameters
+from policyengine_core import periods
+from policyengine_core import taxscales
+from policyengine_core import tools
 
 from pytest import fixture
 
@@ -16,10 +16,12 @@ def data():
         "brackets": [
             {
                 "threshold": {"2017-10-01": {"value": 0.23}},
-                "amount": {"2017-10-01": {"value": 6}, },
-                }
-            ],
-        }
+                "amount": {
+                    "2017-10-01": {"value": 6},
+                },
+            }
+        ],
+    }
 
 
 def test_calc():
