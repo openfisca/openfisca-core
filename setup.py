@@ -12,13 +12,15 @@ general_requirements = [
     "pytest>=4,<6",
     "numpy",
     "black",
+    "linecheck",
+    "build-changelog",
 ]
 
 dev_requirements = []
 
 setup(
     name="policyengine-core",
-    version="35.9.0",
+    version="0.1.0",
     author="PolicyEngine",
     author_email="hello@policyengine.org",
     classifiers=[
@@ -39,9 +41,7 @@ setup(
     url="https://github.com/openfisca/openfisca-core",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    data_files=[
-        ("share/openfisca/openfisca-core", ["README.md"],),
-    ],
+    data_files=[("share/openfisca/openfisca-core", ["README.md"],),],
     entry_points={
         "console_scripts": [
             "openfisca=policyengine_core.scripts.openfisca_command:main",

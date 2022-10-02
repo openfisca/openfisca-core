@@ -13,7 +13,9 @@ from policyengine_core.tracers import (
     TracingParameterNodeAtInstant,
     TraceNode,
 )
-from policyengine_core.country_template.variables.housing import HousingOccupancyStatus
+from policyengine_core.country_template.variables.housing import (
+    HousingOccupancyStatus,
+)
 from .parameters_fancy_indexing.test_fancy_indexing import parameters
 
 

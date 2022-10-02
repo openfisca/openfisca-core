@@ -1,0 +1,98 @@
+name: Push
+on:
+  push:
+    branches: [master]
+jobs:
+  Lint:
+    runs-on: ubuntu-latest
+    if: |
+      (github.repository == 'PolicyEngine/openfisca-us')
+      && (github.event.head_commit.message == 'Update OpenFisca-US')
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check formatting
+        uses: "lgeiger/black-action@master"
+        with:
+          args: ". -l 79 --check"
+  versioning:
+    name: Update versioning
+    if: |
+      (github.repository == 'PolicyEngine/openfisca-us')
+      && !(github.event.head_commit.message == 'Update OpenFisca-US')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.POLICYENGINE_GITHUB }}
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.7
+      - name: Build changelog
+        run: pip install yaml-changelog && make changelog
+      - name: Preview changelog update
+        run: ".github/get-changelog-diff.sh"
+      - name: Update changelog
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: "."
+          committer_name: Github Actions[bot]
+          author_name: Github Actions[bot]
+          message: Update OpenFisca-US
+  Test:
+    runs-on: ${{ matrix.os }}
+    if: |
+      (github.repository == 'PolicyEngine/openfisca-us')
+      && (github.event.head_commit.message == 'Update OpenFisca-US')
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.7
+      - name: Install package
+        run: make install
+      - name: Run tests
+        run: make test
+      - uses: codecov/codecov-action@v3
+      - name: Test documentation builds
+        if: matrix.os == 'ubuntu-latest'
+        run: make documentation
+      - name: Deploy documentation
+        if: matrix.os == 'ubuntu-latest'
+        uses: JamesIves/github-pages-deploy-action@releases/v3
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: docs/_build/html
+  Publish:
+    runs-on: ubuntu-latest
+    if: |
+      (github.repository == 'PolicyEngine/openfisca-us')
+      && (github.event.head_commit.message == 'Update OpenFisca-US')
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.7
+      - name: Publish a git tag
+        run: ".github/publish-git-tag.sh || true"
+      - name: Install package
+        run: make install
+      - name: Build package
+        run: make
+      - name: Publish a Python distribution to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI }}
+          skip_existing: true

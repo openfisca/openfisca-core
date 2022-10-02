@@ -1,0 +1,40 @@
+# The social_security_contribution is calculated with a marginal scale. Marginal scales are represented with a specific structure.
+description: Social security contribution tax scale
+metadata:
+  threshold_unit: currency-EUR
+  rate_unit: /1
+brackets:
+- rate:
+    2013-01-01:
+      value: 0.03
+    2015-01-01:
+      value: 0.04
+    2017-01-01:
+      value: 0.02
+  threshold:
+    2013-01-01:
+      value: 0.0
+- rate:
+    2013-01-01:
+      value: 0.1
+    2015-01-01:
+      value: 0.12
+    2017-01-01:
+      value: 0.06
+  threshold:
+    2013-01-01:
+      value: 12000.0
+    2014-01-01:
+      value: 12100.0
+    2015-01-01:
+      value: 12200.0
+    2016-01-01:
+      value: 12300.0
+    2017-01-01:
+      value: 6000.0
+- rate:
+    2017-01-01:
+      value: 0.12
+  threshold:
+    2017-01-01:
+      value: 12400.0

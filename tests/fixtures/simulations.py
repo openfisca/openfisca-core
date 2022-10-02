@@ -10,11 +10,8 @@ def simulation(tax_benefit_system, request):
     variables, period = request.param
 
     return _simulation(
-        SimulationBuilder(),
-        tax_benefit_system,
-        variables,
-        period,
-        )
+        SimulationBuilder(), tax_benefit_system, variables, period,
+    )
 
 
 @pytest.fixture
@@ -24,8 +21,8 @@ def make_simulation():
 
 def _simulation(simulation_builder, tax_benefit_system, variables, period):
     simulation_builder.set_default_period(period)
-    simulation = \
-        simulation_builder \
-        .build_from_variables(tax_benefit_system, variables)
+    simulation = simulation_builder.build_from_variables(
+        tax_benefit_system, variables
+    )
 
     return simulation
