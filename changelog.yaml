@@ -18,3 +18,8 @@
     fixed:
     - Push action doesn't attempt to publish nonexistent documentation.
   date: 2022-10-02 16:45:22
+- bump: patch
+  changes:
+    fixed:
+    - Build action always runs.
+  date: 2022-10-02 16:59:49
