@@ -13,3 +13,8 @@
     fixed:
     - Version update action.
   date: 2022-10-02 16:38:34
+- bump: patch
+  changes:
+    fixed:
+    - Push action doesn't attempt to publish nonexistent documentation.
+  date: 2022-10-02 16:45:22

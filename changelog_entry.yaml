@@ -1,4 +1,0 @@
-- bump: patch
-  changes:
-    fixed:
-    - Push action doesn't attempt to publish nonexistent documentation.
