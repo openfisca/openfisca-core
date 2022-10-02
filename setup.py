@@ -19,6 +19,7 @@ general_requirements = [
     "numexpr",
     "dpath",
     "nptyping<2",
+    "psutil",
 ]
 
 dev_requirements = []
