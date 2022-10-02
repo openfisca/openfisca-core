@@ -18,7 +18,7 @@ jobs:
     name: Update versioning
     if: |
       (github.repository == 'PolicyEngine/policyengine-core')
-      && (github.event.head_commit.message == 'Update PolicyEngine Core')
+      && !(github.event.head_commit.message == 'Update PolicyEngine Core')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
