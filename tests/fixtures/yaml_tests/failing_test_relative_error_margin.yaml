@@ -1,7 +1,0 @@
-- name: "Failing test: result out of relative error margin"
-  period: 2015-01
-  relative_error_margin: 0.05
-  input:
-    salary: 2000
-  output:
-    income_tax: 316 # 300

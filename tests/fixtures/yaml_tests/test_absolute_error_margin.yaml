@@ -1,7 +1,0 @@
-- name: "Result within absolute error margin"
-  period: 2015-01
-  absolute_error_margin: 50
-  input:
-    salary: 2000
-  output:
-    income_tax: 350 # 300

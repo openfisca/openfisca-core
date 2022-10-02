@@ -1,6 +1,0 @@
-description: Array types should be allowed.
-values:
-  2013-01-01:
-    value: [ FR ]
-  2018-06-01:
-    value: [ ES, FR, IT, NZ ]

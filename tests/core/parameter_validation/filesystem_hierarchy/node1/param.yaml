@@ -1,6 +1,0 @@
-description: Some parameter
-unit: /1
-reference: http://legifrance.fr/rsa
-values:
-  2015-12-01:
-    value: 1.0
