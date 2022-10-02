@@ -6,8 +6,8 @@ jobs:
   Lint:
     runs-on: ubuntu-latest
     if: |
-      (github.repository == 'PolicyEngine/openfisca-us')
-      && (github.event.head_commit.message == 'Update OpenFisca-US')
+      (github.repository == 'PolicyEngine/policyengine-core')
+      && (github.event.head_commit.message == 'Update PolicyEngine Core')
     steps:
       - uses: actions/checkout@v3
       - name: Check formatting
@@ -17,8 +17,8 @@ jobs:
   versioning:
     name: Update versioning
     if: |
-      (github.repository == 'PolicyEngine/openfisca-us')
-      && !(github.event.head_commit.message == 'Update OpenFisca-US')
+      (github.repository == 'PolicyEngine/policyengine-core')
+      && (github.event.head_commit.message == 'Update PolicyEngine Core')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -29,8 +29,6 @@ jobs:
           token: ${{ secrets.POLICYENGINE_GITHUB }}
       - name: Setup Python
         uses: actions/setup-python@v4
-        with:
-          python-version: 3.7
       - name: Build changelog
         run: pip install yaml-changelog && make changelog
       - name: Preview changelog update
@@ -45,8 +43,8 @@ jobs:
   Test:
     runs-on: ${{ matrix.os }}
     if: |
-      (github.repository == 'PolicyEngine/openfisca-us')
-      && (github.event.head_commit.message == 'Update OpenFisca-US')
+      (github.repository == 'PolicyEngine/policyengine-core')
+      && (github.event.head_commit.message == 'Update PolicyEngine Core')
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
@@ -55,16 +53,11 @@ jobs:
         uses: actions/checkout@v3
       - name: Set up Python
         uses: actions/setup-python@v4
-        with:
-          python-version: 3.7
       - name: Install package
         run: make install
       - name: Run tests
         run: make test
       - uses: codecov/codecov-action@v3
-      - name: Test documentation builds
-        if: matrix.os == 'ubuntu-latest'
-        run: make documentation
       - name: Deploy documentation
         if: matrix.os == 'ubuntu-latest'
         uses: JamesIves/github-pages-deploy-action@releases/v3
@@ -75,15 +68,13 @@ jobs:
   Publish:
     runs-on: ubuntu-latest
     if: |
-      (github.repository == 'PolicyEngine/openfisca-us')
-      && (github.event.head_commit.message == 'Update OpenFisca-US')
+      (github.repository == 'PolicyEngine/policyengine-core')
+      && (github.event.head_commit.message == 'Update PolicyEngine Core')
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
       - name: Setup Python
         uses: actions/setup-python@v4
-        with:
-          python-version: 3.7
       - name: Publish a git tag
         run: ".github/publish-git-tag.sh || true"
       - name: Install package

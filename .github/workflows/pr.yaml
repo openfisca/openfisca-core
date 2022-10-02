@@ -44,4 +44,4 @@ jobs:
         run: make test
       - uses: codecov/codecov-action@v3
       - name: Build package
-        run: make
+        run: make build
