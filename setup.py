@@ -17,6 +17,7 @@ general_requirements = [
     "coverage",
     "sortedcontainers",
     "numexpr",
+    "dpath",
 ]
 
 dev_requirements = []
