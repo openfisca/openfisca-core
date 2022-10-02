@@ -1,0 +1,4 @@
+- bump: patch
+  changes:
+    fixed:
+    - Build action always runs.
