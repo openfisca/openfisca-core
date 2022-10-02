@@ -18,6 +18,7 @@ general_requirements = [
     "sortedcontainers",
     "numexpr",
     "dpath",
+    "nptyping",
 ]
 
 dev_requirements = []
