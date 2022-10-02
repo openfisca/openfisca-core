@@ -102,7 +102,15 @@ def test_wrong_key():
 def test_inhomogenous():
     parameters = ParameterNode(directory_path=LOCAL_DIR)
     parameters.rate.couple.owner.add_child(
-        "toto", Parameter("toto", {"values": {"2015-01-01": {"value": 1000},}})
+        "toto",
+        Parameter(
+            "toto",
+            {
+                "values": {
+                    "2015-01-01": {"value": 1000},
+                }
+            },
+        ),
     )
 
     P = parameters.rate("2015-01-01")
@@ -118,7 +126,15 @@ def test_inhomogenous():
 def test_inhomogenous_2():
     parameters = ParameterNode(directory_path=LOCAL_DIR)
     parameters.rate.couple.tenant.add_child(
-        "toto", Parameter("toto", {"values": {"2015-01-01": {"value": 1000},}})
+        "toto",
+        Parameter(
+            "toto",
+            {
+                "values": {
+                    "2015-01-01": {"value": 1000},
+                }
+            },
+        ),
     )
 
     P = parameters.rate("2015-01-01")

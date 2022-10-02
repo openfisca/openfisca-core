@@ -379,7 +379,7 @@ class Variable:
 
     def is_input_variable(self):
         """
-            Returns True if the variable is an input variable.
+        Returns True if the variable is an input variable.
         """
         return len(self.formulas) == 0
 

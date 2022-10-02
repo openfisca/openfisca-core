@@ -442,20 +442,20 @@ class TaxBenefitSystem:
 
     def get_package_metadata(self):
         """
-            Gets metatada relative to the country package the tax and benefit system is built from.
+        Gets metatada relative to the country package the tax and benefit system is built from.
 
-            :returns: Country package metadata
-            :rtype: dict
+        :returns: Country package metadata
+        :rtype: dict
 
-            Example:
+        Example:
 
-            >>> tax_benefit_system.get_package_metadata()
-            >>> {
-            >>>    'location': '/path/to/dir/containing/package',
-            >>>    'name': 'openfisca-france',
-            >>>    'repository_url': 'https://github.com/openfisca/openfisca-france',
-            >>>    'version': '17.2.0'
-            >>>    }
+        >>> tax_benefit_system.get_package_metadata()
+        >>> {
+        >>>    'location': '/path/to/dir/containing/package',
+        >>>    'name': 'openfisca-france',
+        >>>    'repository_url': 'https://github.com/openfisca/openfisca-france',
+        >>>    'version': '17.2.0'
+        >>>    }
         """
         # Handle reforms
         if self.baseline:

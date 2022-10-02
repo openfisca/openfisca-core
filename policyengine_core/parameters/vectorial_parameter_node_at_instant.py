@@ -85,7 +85,11 @@ class VectorialParameterNodeAtInstant:
                     MESSAGE_PART_3,
                     MESSAGE_PART_4,
                 ]
-            ).format(node._name, node_name, non_node_name,)
+            ).format(
+                node._name,
+                node_name,
+                non_node_name,
+            )
 
             raise ValueError(message)
 
@@ -96,7 +100,11 @@ class VectorialParameterNodeAtInstant:
                     "'{}' is a '{}', and fancy indexing has not been implemented yet on this kind of parameters.",
                     MESSAGE_PART_4,
                 ]
-            ).format(node._name, node_name, node_type,)
+            ).format(
+                node._name,
+                node_name,
+                node_type,
+            )
             raise NotImplementedError(message)
 
         def extract_named_children(node):

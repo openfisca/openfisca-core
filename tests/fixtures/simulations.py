@@ -10,7 +10,10 @@ def simulation(tax_benefit_system, request):
     variables, period = request.param
 
     return _simulation(
-        SimulationBuilder(), tax_benefit_system, variables, period,
+        SimulationBuilder(),
+        tax_benefit_system,
+        variables,
+        period,
     )
 
 

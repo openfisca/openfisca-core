@@ -107,7 +107,8 @@ def test_input_variable_neutralization(make_simulation, tax_benefit_system):
         )
     salary = reform_simulation.calculate("salary", period)
     assert_near(
-        salary, [0, 0],
+        salary,
+        [0, 0],
     )
     disposable_income_reform = reform_simulation.calculate(
         "disposable_income", period=period

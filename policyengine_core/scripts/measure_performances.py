@@ -47,13 +47,20 @@ Famille = build_entity(
             "label": "Parents",
             "subroles": ["demandeur", "conjoint"],
         },
-        {"key": "enfant", "plural": "enfants", "label": "Enfants",},
+        {
+            "key": "enfant",
+            "plural": "enfants",
+            "label": "Enfants",
+        },
     ],
 )
 
 
 Individu = build_entity(
-    key="individu", plural="individus", label="Individu", is_person=True,
+    key="individu",
+    plural="individus",
+    label="Individu",
+    is_person=True,
 )
 
 # Input variables

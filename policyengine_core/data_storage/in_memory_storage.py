@@ -49,7 +49,11 @@ class InMemoryStorage:
 
     def get_memory_usage(self):
         if not self._arrays:
-            return dict(nb_arrays=0, total_nb_bytes=0, cell_size=numpy.nan,)
+            return dict(
+                nb_arrays=0,
+                total_nb_bytes=0,
+                cell_size=numpy.nan,
+            )
 
         nb_arrays = len(self._arrays)
         array = next(iter(self._arrays.values()))

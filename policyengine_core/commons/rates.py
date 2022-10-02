@@ -48,11 +48,15 @@ def average_rate(
     if trim is not None:
 
         average_rate = numpy.where(
-            average_rate <= max(trim), average_rate, numpy.nan,
+            average_rate <= max(trim),
+            average_rate,
+            numpy.nan,
         )
 
         average_rate = numpy.where(
-            average_rate >= min(trim), average_rate, numpy.nan,
+            average_rate >= min(trim),
+            average_rate,
+            numpy.nan,
         )
 
     return average_rate
@@ -103,11 +107,15 @@ def marginal_rate(
     if trim is not None:
 
         marginal_rate = numpy.where(
-            marginal_rate <= max(trim), marginal_rate, numpy.nan,
+            marginal_rate <= max(trim),
+            marginal_rate,
+            numpy.nan,
         )
 
         marginal_rate = numpy.where(
-            marginal_rate >= min(trim), marginal_rate, numpy.nan,
+            marginal_rate >= min(trim),
+            marginal_rate,
+            numpy.nan,
         )
 
     return marginal_rate

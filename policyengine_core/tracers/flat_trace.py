@@ -52,7 +52,8 @@ class FlatTrace:
         }
 
     def serialize(
-        self, value: Optional[Array],
+        self,
+        value: Optional[Array],
     ) -> Union[Optional[Array], list]:
         if isinstance(value, EnumArray):
             value = value.decode_to_str()
@@ -67,7 +68,10 @@ class FlatTrace:
 
         return value
 
-    def _get_flat_trace(self, node: tracers.TraceNode,) -> Trace:
+    def _get_flat_trace(
+        self,
+        node: tracers.TraceNode,
+    ) -> Trace:
         key = self.key(node)
 
         node_trace = {

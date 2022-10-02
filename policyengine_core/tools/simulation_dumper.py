@@ -12,7 +12,7 @@ from policyengine_core.periods import ETERNITY
 
 def dump_simulation(simulation, directory):
     """
-        Write simulation data to directory, so that it can be restored later.
+    Write simulation data to directory, so that it can be restored later.
     """
     parent_directory = os.path.abspath(os.path.join(directory, os.pardir))
     if not os.path.isdir(parent_directory):  # To deal with reforms
@@ -37,7 +37,7 @@ def dump_simulation(simulation, directory):
 
 def restore_simulation(directory, tax_benefit_system, **kwargs):
     """
-        Restore simulation from directory
+    Restore simulation from directory
     """
     simulation = Simulation(
         tax_benefit_system, tax_benefit_system.instantiate_entities()

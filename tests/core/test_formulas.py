@@ -45,7 +45,13 @@ class uses_switch(Variable):
 
     def formula(person, period):
         choice = person("choice", period)
-        result = commons.switch(choice, {1: 80, 2: 90,},)
+        result = commons.switch(
+            choice,
+            {
+                1: 80,
+                2: 90,
+            },
+        )
         return result
 
 
@@ -111,20 +117,35 @@ def test_group_encapsulation():
     from policyengine_core.periods import ETERNITY
 
     person_entity = build_entity(
-        key="person", plural="people", label="A person", is_person=True,
+        key="person",
+        plural="people",
+        label="A person",
+        is_person=True,
     )
     family_entity = build_entity(
         key="family",
         plural="families",
         label="A family (all members in the same household)",
         containing_entities=["household"],
-        roles=[{"key": "member", "plural": "members", "label": "Member",}],
+        roles=[
+            {
+                "key": "member",
+                "plural": "members",
+                "label": "Member",
+            }
+        ],
     )
     household_entity = build_entity(
         key="household",
         plural="households",
         label="A household, containing one or more families",
-        roles=[{"key": "member", "plural": "members", "label": "Member",}],
+        roles=[
+            {
+                "key": "member",
+                "plural": "members",
+                "label": "Member",
+            }
+        ],
     )
 
     entities = [person_entity, family_entity, household_entity]

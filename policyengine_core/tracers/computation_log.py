@@ -21,14 +21,19 @@ class ComputationLog:
     def __init__(self, full_tracer: tracers.FullTracer) -> None:
         self._full_tracer = full_tracer
 
-    def display(self, value: Optional[Array],) -> str:
+    def display(
+        self,
+        value: Optional[Array],
+    ) -> str:
         if isinstance(value, EnumArray):
             value = value.decode_to_str()
 
         return numpy.array2string(value, max_line_width=float("inf"))
 
     def lines(
-        self, aggregate: bool = False, max_depth: Optional[int] = None,
+        self,
+        aggregate: bool = False,
+        max_depth: Optional[int] = None,
     ) -> List[str]:
         depth = 1
 
@@ -110,5 +115,8 @@ class ComputationLog:
 
         return f"{indent}{node.name}<{node.period}> >> {formatted_value}"
 
-    def _flatten(self, lists: List[List[str]],) -> List[str]:
+    def _flatten(
+        self,
+        lists: List[List[str]],
+    ) -> List[str]:
         return [item for list_ in lists for item in list_]

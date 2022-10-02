@@ -41,14 +41,21 @@ setup(
     url="https://github.com/openfisca/openfisca-core",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    data_files=[("share/openfisca/openfisca-core", ["README.md"],),],
+    data_files=[
+        (
+            "share/openfisca/openfisca-core",
+            ["README.md"],
+        ),
+    ],
     entry_points={
         "console_scripts": [
             "openfisca=policyengine_core.scripts.openfisca_command:main",
             "openfisca-run-test=policyengine_core.scripts.openfisca_command:main",
         ],
     },
-    extras_require={"dev": dev_requirements,},
+    extras_require={
+        "dev": dev_requirements,
+    },
     include_package_data=True,  # Will read MANIFEST.in
     install_requires=general_requirements,
     packages=find_packages(exclude=["tests*"]),

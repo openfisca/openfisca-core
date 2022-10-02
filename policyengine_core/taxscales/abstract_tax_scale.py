@@ -38,7 +38,11 @@ class AbstractTaxScale(TaxScaleLike):
             f"{self.__class__.__name__}",
         )
 
-    def calc(self, tax_base: NumericalArray, right: bool,) -> typing.NoReturn:
+    def calc(
+        self,
+        tax_base: NumericalArray,
+        right: bool,
+    ) -> typing.NoReturn:
         raise NotImplementedError(
             "Method 'calc' is not implemented for "
             f"{self.__class__.__name__}",

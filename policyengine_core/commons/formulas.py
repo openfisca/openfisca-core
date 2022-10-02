@@ -93,7 +93,8 @@ def concat(this: ArrayLike[str], that: ArrayLike[str]) -> ArrayType[str]:
 
 
 def switch(
-    conditions: ArrayType[Any], value_by_condition: Dict[float, T],
+    conditions: ArrayType[Any],
+    value_by_condition: Dict[float, T],
 ) -> ArrayType[T]:
     """Mimicks a switch statement.
 

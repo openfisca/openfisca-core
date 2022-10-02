@@ -40,7 +40,8 @@ def switch_fromiter(conditions, function_by_condition, dtype):
         return value_by_condition[condition]
 
     return np.fromiter(
-        (get_or_store_value(condition) for condition in conditions), dtype,
+        (get_or_store_value(condition) for condition in conditions),
+        dtype,
     )
 
 
@@ -96,7 +97,12 @@ def test_switch_select(choice):
     choice_2_value = calculate_choice_2_value()
     choice_3_value = calculate_choice_2_value()
     result = switch_select(
-        choice, {1: choice_1_value, 2: choice_2_value, 3: choice_3_value,},
+        choice,
+        {
+            1: choice_1_value,
+            2: choice_2_value,
+            3: choice_3_value,
+        },
     )
     return result
 

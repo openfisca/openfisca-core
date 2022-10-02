@@ -82,7 +82,9 @@ def test_calc():
     result = tax_scale.calc(tax_base)
 
     tools.assert_near(
-        result, [0, 0.05, 0.1, 0.2, 0.3, 0.3], absolute_error_margin=1e-10,
+        result,
+        [0, 0.05, 0.1, 0.2, 0.3, 0.3],
+        absolute_error_margin=1e-10,
     )
 
 

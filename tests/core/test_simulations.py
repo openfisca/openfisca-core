@@ -37,7 +37,9 @@ def test_clone(tax_benefit_system):
     simulation = SimulationBuilder().build_from_entities(
         tax_benefit_system,
         {
-            "persons": {"bill": {"salary": {"2017-01": 3000}},},
+            "persons": {
+                "bill": {"salary": {"2017-01": 3000}},
+            },
             "households": {"household": {"parents": ["bill"]}},
         },
     )

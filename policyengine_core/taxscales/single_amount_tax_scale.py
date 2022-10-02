@@ -12,7 +12,9 @@ if typing.TYPE_CHECKING:
 
 class SingleAmountTaxScale(AmountTaxScaleLike):
     def calc(
-        self, tax_base: NumericalArray, right: bool = False,
+        self,
+        tax_base: NumericalArray,
+        right: bool = False,
     ) -> numpy.float_:
         """
         Matches the input amount to a set of brackets and returns the single
@@ -23,7 +25,9 @@ class SingleAmountTaxScale(AmountTaxScaleLike):
         )
 
         bracket_indices = numpy.digitize(
-            tax_base, guarded_thresholds, right=right,
+            tax_base,
+            guarded_thresholds,
+            right=right,
         )
 
         guarded_amounts = numpy.array([0] + self.amounts + [0])

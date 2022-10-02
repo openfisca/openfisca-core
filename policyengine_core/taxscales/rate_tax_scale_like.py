@@ -71,7 +71,9 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
             return self
 
         new_tax_scale = self.__class__(
-            new_name or self.name, option=self.option, unit=self.unit,
+            new_name or self.name,
+            option=self.option,
+            unit=self.unit,
         )
 
         for threshold, rate in zip(self.thresholds, self.rates):
@@ -93,7 +95,8 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
             for i, threshold in enumerate(self.thresholds):
                 if decimals is not None:
                     self.thresholds[i] = numpy.around(
-                        threshold * factor, decimals=decimals,
+                        threshold * factor,
+                        decimals=decimals,
                     )
 
                 else:
@@ -102,7 +105,9 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
             return self
 
         new_tax_scale = self.__class__(
-            new_name or self.name, option=self.option, unit=self.unit,
+            new_name or self.name,
+            option=self.option,
+            unit=self.unit,
         )
 
         for threshold, rate in zip(self.thresholds, self.rates):
@@ -180,7 +185,8 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
         return (base1 - thresholds1 >= 0).sum(axis=1) - 1
 
     def threshold_from_tax_base(
-        self, tax_base: NumericalArray,
+        self,
+        tax_base: NumericalArray,
     ) -> NumericalArray:
         """
         Compute the relevant thresholds for the given tax bases.

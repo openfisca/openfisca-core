@@ -22,11 +22,13 @@ class PerformanceLog:
     def generate_graph(self, dir_path: str) -> None:
         with open(os.path.join(dir_path, "performance_graph.html"), "w") as f:
             template = importlib.resources.read_text(
-                "policyengine_core.scripts.assets", "index.html",
+                "policyengine_core.scripts.assets",
+                "index.html",
             )
 
             perf_graph_html = template.replace(
-                "{{data}}", json.dumps(self._json()),
+                "{{data}}",
+                json.dumps(self._json()),
             )
 
             f.write(perf_graph_html)
@@ -44,7 +46,8 @@ class PerformanceLog:
         ]
 
         self._write_csv(
-            os.path.join(dir_path, "performance_table.csv"), csv_rows,
+            os.path.join(dir_path, "performance_table.csv"),
+            csv_rows,
         )
 
         aggregated_csv_rows = [
@@ -60,7 +63,8 @@ class PerformanceLog:
         )
 
     def aggregate_calculation_times(
-        self, flat_trace: Trace,
+        self,
+        flat_trace: Trace,
     ) -> typing.Dict[str, dict]:
         def _aggregate_calculations(calculations: list) -> dict:
             calculation_count = len(calculations)

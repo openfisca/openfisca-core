@@ -84,7 +84,8 @@ class Reform(TaxBenefitSystem):
         if not isinstance(reform_parameters, ParameterNode):
             return ValueError(
                 "modifier_function {} in module {} must return a ParameterNode".format(
-                    modifier_function.__name__, modifier_function.__module__,
+                    modifier_function.__name__,
+                    modifier_function.__module__,
                 )
             )
         self.parameters = reform_parameters

@@ -30,7 +30,13 @@ class Enum(enum.Enum):
 
     @classmethod
     def encode(
-        cls, array: Union[EnumArray, numpy.int_, numpy.float_, numpy.object_,],
+        cls,
+        array: Union[
+            EnumArray,
+            numpy.int_,
+            numpy.float_,
+            numpy.object_,
+        ],
     ) -> EnumArray:
         """
         Encode a string numpy array, an enum item numpy array, or an int numpy
@@ -84,7 +90,8 @@ class Enum(enum.Enum):
                 cls = array[0].__class__
 
             array = numpy.select(
-                [array == item for item in cls], [item.index for item in cls],
+                [array == item for item in cls],
+                [item.index for item in cls],
             ).astype(ENUM_ARRAY_DTYPE)
 
         return EnumArray(array, cls)

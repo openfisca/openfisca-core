@@ -31,7 +31,11 @@ class AbstractRateTaxScale(RateTaxScaleLike):
         warnings.warn(" ".join(message), DeprecationWarning)
         super().__init__(name, option, unit)
 
-    def calc(self, tax_base: NumericalArray, right: bool,) -> typing.NoReturn:
+    def calc(
+        self,
+        tax_base: NumericalArray,
+        right: bool,
+    ) -> typing.NoReturn:
         raise NotImplementedError(
             "Method 'calc' is not implemented for "
             f"{self.__class__.__name__}",

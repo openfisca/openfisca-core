@@ -52,7 +52,11 @@ class TaxScaleLike(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def calc(self, tax_base: NumericalArray, right: bool,) -> numpy.float_:
+    def calc(
+        self,
+        tax_base: NumericalArray,
+        right: bool,
+    ) -> numpy.float_:
         ...
 
     @abc.abstractmethod

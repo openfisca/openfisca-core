@@ -115,7 +115,8 @@ class Holder:
         """
 
         usage = dict(
-            nb_cells_by_array=self.population.count, dtype=self.variable.dtype,
+            nb_cells_by_array=self.population.count,
+            dtype=self.variable.dtype,
         )
 
         usage.update(self._memory_storage.get_memory_usage())

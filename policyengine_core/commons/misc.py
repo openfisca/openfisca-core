@@ -33,7 +33,9 @@ def empty_clone(original: T) -> T:
     new: T
 
     Dummy = type(
-        "Dummy", (original.__class__,), {"__init__": lambda self: None},
+        "Dummy",
+        (original.__class__,),
+        {"__init__": lambda self: None},
     )
 
     new = Dummy()

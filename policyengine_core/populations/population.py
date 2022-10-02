@@ -74,14 +74,14 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
     def __call__(self, variable_name, period=None, options=None):
         """
-            Calculate the variable ``variable_name`` for the entity and the period ``period``, using the variable formula if it exists.
+        Calculate the variable ``variable_name`` for the entity and the period ``period``, using the variable formula if it exists.
 
-            Example:
+        Example:
 
-            >>> person('salary', '2017-04')
-            >>> array([300.])
+        >>> person('salary', '2017-04')
+        >>> array([300.])
 
-            :returns: A numpy array containing the result of the calculation
+        :returns: A numpy array containing the result of the calculation
         """
         self.entity.check_variable_defined_for_entity(variable_name)
         self.check_period_validity(variable_name, period)
@@ -134,12 +134,12 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     @projectors.projectable
     def has_role(self, role):
         """
-            Check if a person has a given role within its `GroupEntity`
+        Check if a person has a given role within its `GroupEntity`
 
-            Example:
+        Example:
 
-            >>> person.has_role(Household.CHILD)
-            >>> array([False])
+        >>> person.has_role(Household.CHILD)
+        >>> array([False])
         """
         self.entity.check_role_validity(role)
         group_population = self.simulation.get_population(role.entity.plural)

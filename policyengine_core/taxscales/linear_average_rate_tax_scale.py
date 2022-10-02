@@ -16,7 +16,9 @@ if typing.TYPE_CHECKING:
 
 class LinearAverageRateTaxScale(RateTaxScaleLike):
     def calc(
-        self, tax_base: NumericalArray, right: bool = False,
+        self,
+        tax_base: NumericalArray,
+        right: bool = False,
     ) -> numpy.float_:
         if len(self.rates) == 1:
             return tax_base * self.rates[0]
@@ -50,7 +52,9 @@ class LinearAverageRateTaxScale(RateTaxScaleLike):
 
     def to_marginal(self) -> taxscales.MarginalRateTaxScale:
         marginal_tax_scale = taxscales.MarginalRateTaxScale(
-            name=self.name, option=self.option, unit=self.unit,
+            name=self.name,
+            option=self.option,
+            unit=self.unit,
         )
 
         previous_i = 0

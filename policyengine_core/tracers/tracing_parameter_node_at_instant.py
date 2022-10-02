@@ -30,19 +30,23 @@ class TracingParameterNodeAtInstant:
         self.tracer = tracer
 
     def __getattr__(
-        self, key: str,
+        self,
+        key: str,
     ) -> Union[TracingParameterNodeAtInstant, Child]:
         child = getattr(self.parameter_node_at_instant, key)
         return self.get_traced_child(child, key)
 
     def __getitem__(
-        self, key: Union[str, ArrayLike],
+        self,
+        key: Union[str, ArrayLike],
     ) -> Union[TracingParameterNodeAtInstant, Child]:
         child = self.parameter_node_at_instant[key]
         return self.get_traced_child(child, key)
 
     def get_traced_child(
-        self, child: Child, key: Union[str, ArrayLike],
+        self,
+        child: Child,
+        key: Union[str, ArrayLike],
     ) -> Union[TracingParameterNodeAtInstant, Child]:
         period = self.parameter_node_at_instant._instant_str
 

@@ -12,7 +12,9 @@ if typing.TYPE_CHECKING:
 
 class MarginalAmountTaxScale(AmountTaxScaleLike):
     def calc(
-        self, tax_base: NumericalArray, right: bool = False,
+        self,
+        tax_base: NumericalArray,
+        right: bool = False,
     ) -> numpy.float_:
         """
         Matches the input amount to a set of brackets and returns the sum of

@@ -47,12 +47,12 @@ class SimulationBuilder:
 
     def build_from_dict(self, tax_benefit_system, input_dict):
         """
-            Build a simulation from ``input_dict``
+        Build a simulation from ``input_dict``
 
-            This method uses :any:`build_from_entities` if entities are fully specified, or :any:`build_from_variables` if not.
+        This method uses :any:`build_from_entities` if entities are fully specified, or :any:`build_from_variables` if not.
 
-            :param dict input_dict: A dict represeting the input of the simulation
-            :return: A :any:`Simulation`
+        :param dict input_dict: A dict represeting the input of the simulation
+        :return: A :any:`Simulation`
         """
 
         input_dict = self.explicit_singular_entities(
@@ -68,14 +68,14 @@ class SimulationBuilder:
 
     def build_from_entities(self, tax_benefit_system, input_dict):
         """
-            Build a simulation from a Python dict ``input_dict`` fully specifying entities.
+        Build a simulation from a Python dict ``input_dict`` fully specifying entities.
 
-            Examples:
+        Examples:
 
-            >>> simulation_builder.build_from_entities({
-                'persons': {'Javier': { 'salary': {'2018-11': 2000}}},
-                'households': {'household': {'parents': ['Javier']}}
-                })
+        >>> simulation_builder.build_from_entities({
+            'persons': {'Javier': { 'salary': {'2018-11': 2000}}},
+            'households': {'household': {'parents': ['Javier']}}
+            })
         """
         input_dict = copy.deepcopy(input_dict)
 
@@ -165,15 +165,15 @@ class SimulationBuilder:
 
     def build_from_variables(self, tax_benefit_system, input_dict):
         """
-            Build a simulation from a Python dict ``input_dict`` describing variables values without expliciting entities.
+        Build a simulation from a Python dict ``input_dict`` describing variables values without expliciting entities.
 
-            This method uses :any:`build_default_simulation` to infer an entity structure
+        This method uses :any:`build_default_simulation` to infer an entity structure
 
-            Example:
+        Example:
 
-            >>> simulation_builder.build_from_variables(
-                {'salary': {'2016-10': 12000}}
-                )
+        >>> simulation_builder.build_from_variables(
+            {'salary': {'2016-10': 12000}}
+            )
         """
         count = helpers._get_person_count(input_dict)
         simulation = self.build_default_simulation(tax_benefit_system, count)
@@ -192,10 +192,10 @@ class SimulationBuilder:
 
     def build_default_simulation(self, tax_benefit_system, count=1):
         """
-            Build a simulation where:
-                - There are ``count`` persons
-                - There are ``count`` instances of each group entity, containing one person
-                - Every person has, in each entity, the first role
+        Build a simulation where:
+            - There are ``count`` persons
+            - There are ``count`` instances of each group entity, containing one person
+            - Every person has, in each entity, the first role
         """
 
         simulation = Simulation(
@@ -265,14 +265,14 @@ class SimulationBuilder:
 
     def explicit_singular_entities(self, tax_benefit_system, input_dict):
         """
-            Preprocess ``input_dict`` to explicit entities defined using the single-entity shortcut
+        Preprocess ``input_dict`` to explicit entities defined using the single-entity shortcut
 
-            Example:
+        Example:
 
-            >>> simulation_builder.explicit_singular_entities(
-                {'persons': {'Javier': {}, }, 'household': {'parents': ['Javier']}}
-                )
-            >>> {'persons': {'Javier': {}}, 'households': {'household': {'parents': ['Javier']}}
+        >>> simulation_builder.explicit_singular_entities(
+            {'persons': {'Javier': {}, }, 'household': {'parents': ['Javier']}}
+            )
+        >>> {'persons': {'Javier': {}}, 'households': {'household': {'parents': ['Javier']}}
         """
 
         singular_keys = set(input_dict).intersection(
@@ -295,7 +295,7 @@ class SimulationBuilder:
 
     def add_person_entity(self, entity, instances_json):
         """
-            Add the simulation's instances of the persons entity as described in ``instances_json``.
+        Add the simulation's instances of the persons entity as described in ``instances_json``.
         """
         helpers.check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
@@ -328,7 +328,7 @@ class SimulationBuilder:
         self, persons_plural, persons_ids, entity, instances_json
     ):
         """
-            Add all instances of one of the model's entities as described in ``instances_json``.
+        Add all instances of one of the model's entities as described in ``instances_json``.
         """
         helpers.check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
@@ -693,7 +693,9 @@ class SimulationBuilder:
                 elif array.size == axis_entity_step_size:
                     array = numpy.tile(array, axis_count)
                 array[axis_index::axis_entity_step_size] = numpy.linspace(
-                    axis["min"], axis["max"], num=axis_count,
+                    axis["min"],
+                    axis["max"],
+                    num=axis_count,
                 )
                 # Set input
                 self.input_buffer[axis_name][str(axis_period)] = array

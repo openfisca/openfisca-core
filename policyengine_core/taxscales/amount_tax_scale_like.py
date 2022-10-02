@@ -37,7 +37,9 @@ class AmountTaxScaleLike(TaxScaleLike, abc.ABC):
         )
 
     def add_bracket(
-        self, threshold: int, amount: typing.Union[int, float],
+        self,
+        threshold: int,
+        amount: typing.Union[int, float],
     ) -> None:
         if threshold in self.thresholds:
             i = self.thresholds.index(threshold)

@@ -17,13 +17,13 @@ def assert_near(
 ):
     """
 
-      :param value: Value returned by the test
-      :param target_value: Value that the test should return to pass
-      :param absolute_error_margin: Absolute error margin authorized
-      :param message: Error message to be displayed if the test fails
-      :param relative_error_margin: Relative error margin authorized
+    :param value: Value returned by the test
+    :param target_value: Value that the test should return to pass
+    :param absolute_error_margin: Absolute error margin authorized
+    :param message: Error message to be displayed if the test fails
+    :param relative_error_margin: Relative error margin authorized
 
-      Limit : This function cannot be used to assert near periods.
+    Limit : This function cannot be used to assert near periods.
 
     """
 
@@ -93,7 +93,10 @@ def get_trace_tool_link(scenario, variables, api_url, trace_tool_url):
         trace_tool_url
         + "?"
         + urllib.urlencode(
-            {"simulation": json.dumps(simulation_json), "api_url": api_url,}
+            {
+                "simulation": json.dumps(simulation_json),
+                "api_url": api_url,
+            }
         )
     )
     return url

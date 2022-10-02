@@ -2,7 +2,7 @@ from policyengine_core.projectors import Projector
 
 
 class UniqueRoleToEntityProjector(Projector):
-    """ For instance famille.declarant_principal."""
+    """For instance famille.declarant_principal."""
 
     def __init__(self, entity, role, parent=None):
         self.target_entity = entity

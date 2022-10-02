@@ -14,7 +14,8 @@ if typing.TYPE_CHECKING:
 
 
 def combine_tax_scales(
-    node: ParameterNodeAtInstant, combined_tax_scales: TaxScales = None,
+    node: ParameterNodeAtInstant,
+    combined_tax_scales: TaxScales = None,
 ) -> TaxScales:
     """
     Combine all the MarginalRateTaxScales in the node into a single
