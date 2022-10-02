@@ -3,8 +3,3 @@
     - OpenFisca-Core forked.
   date: 2022-10-02 16:02:00
   version: 0.1.0
-- bump: major
-  changes:
-    changed:
-    - Non-essential (for Python simulations) code removed.
-  date: 2022-10-02 16:28:42
