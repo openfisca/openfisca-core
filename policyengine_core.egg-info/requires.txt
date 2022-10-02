@@ -1,5 +1,0 @@
-pytest
-numpy
-black
-
-[dev]
