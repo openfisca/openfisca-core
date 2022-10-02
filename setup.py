@@ -20,6 +20,7 @@ general_requirements = [
     "dpath",
     "nptyping<2",
     "psutil",
+    "wheel",
 ]
 
 dev_requirements = []
