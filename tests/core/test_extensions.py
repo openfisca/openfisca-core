@@ -5,7 +5,7 @@ def test_load_extension(tax_benefit_system):
     tbs = tax_benefit_system.clone()
     assert tbs.get_variable("local_town_child_allowance") is None
 
-    tbs.load_extension("openfisca_extension_template")
+    tbs.load_extension("policyengine_core.extension_template")
 
     assert tbs.get_variable("local_town_child_allowance") is not None
     assert (
@@ -15,7 +15,7 @@ def test_load_extension(tax_benefit_system):
 
 def test_access_to_parameters(tax_benefit_system):
     tbs = tax_benefit_system.clone()
-    tbs.load_extension("openfisca_extension_template")
+    tbs.load_extension("policyengine_core.extension_template")
 
     assert tbs.parameters("2016-01").local_town.child_allowance.amount == 100.0
     assert tbs.parameters.local_town.child_allowance.amount("2016-01") == 100.0

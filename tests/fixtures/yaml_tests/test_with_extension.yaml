@@ -1,7 +1,7 @@
 - name: "Test using an extension"
   period: 2017-01
   extensions:
-    - openfisca_extension_template
+    - policyengine_core.extension_template
   input:
     persons:
       parent: {}
@@ -15,7 +15,7 @@
 - name: "Test using an extension"
   period: 2017-01
   extensions:
-    - openfisca_extension_template
+    - policyengine_core.extension_template
   input:
     persons:
       parent: {}

@@ -7,12 +7,12 @@ year = 2016
 
 
 def test_clone():
-    path = os.path.join(BASE_DIR, "filesystem_hierarchy")
-    parameters = ParameterNode("", directory_path=path)
-    parameters_at_instant = parameters("2016-01-01")
+    path = os.path.join(BASE_DIR, 'filesystem_hierarchy')
+    parameters = ParameterNode('', directory_path = path)
+    parameters_at_instant = parameters('2016-01-01')
     assert parameters_at_instant.node1.param == 1.0
     clone = parameters.clone()
-    clone_at_instant = clone("2016-01-01")
+    clone_at_instant = clone('2016-01-01')
     assert clone_at_instant.node1.param == 1.0
     assert id(clone) != id(parameters)
     assert id(clone.node1) != id(parameters.node1)
@@ -37,10 +37,7 @@ def test_clone_parameter_node(tax_benefit_system):
 
     assert clone is not node
     assert clone.income_tax_rate is not node.income_tax_rate
-    assert (
-        clone.children["income_tax_rate"]
-        is not node.children["income_tax_rate"]
-    )
+    assert clone.children['income_tax_rate'] is not node.children['income_tax_rate']
 
 
 def test_clone_scale(tax_benefit_system):

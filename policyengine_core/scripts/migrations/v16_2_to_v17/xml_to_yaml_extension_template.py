@@ -12,7 +12,7 @@ import sys
 import os
 
 from . import xml_to_yaml
-import openfisca_extension_template
+import policyengine_core.extension_template as openfisca_extension_template
 
 if len(sys.argv) > 1:
     target_path = sys.argv[1]

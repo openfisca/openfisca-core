@@ -2,7 +2,7 @@ import os
 import subprocess
 
 import pytest
-import openfisca_extension_template
+import policyengine_core.extension_template as openfisca_extension_template
 
 from policyengine_core.tools.test_runner import run_tests
 
@@ -152,7 +152,7 @@ def test_shell_script_with_extension():
         "-c",
         "policyengine_core.country_template",
         "-e",
-        "openfisca_extension_template",
+        "policyengine_core.extension_template",
     ]
     with open(os.devnull, "wb") as devnull:
         subprocess.check_call(command, stdout=devnull, stderr=devnull)

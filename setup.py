@@ -9,7 +9,7 @@ long_description = (this_directory / "README.md").read_text()
 # functional and integration breaks caused by external code updates.
 
 general_requirements = [
-    "pytest",
+    "pytest>=4,<6",
     "numpy",
     "black",
 ]
