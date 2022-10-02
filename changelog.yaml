@@ -8,3 +8,8 @@
     changed:
     - Non-essential (for Python simulations) code removed.
   date: 2022-10-02 16:35:17
+- bump: patch
+  changes:
+    fixed:
+    - Version update action.
+  date: 2022-10-02 16:38:34
