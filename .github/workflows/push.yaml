@@ -58,13 +58,6 @@ jobs:
       - name: Run tests
         run: make test
       - uses: codecov/codecov-action@v3
-      - name: Deploy documentation
-        if: matrix.os == 'ubuntu-latest'
-        uses: JamesIves/github-pages-deploy-action@releases/v3
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: gh-pages
-          FOLDER: docs/_build/html
   Publish:
     runs-on: ubuntu-latest
     if: |
@@ -80,7 +73,7 @@ jobs:
       - name: Install package
         run: make install
       - name: Build package
-        run: make
+        run: make build
       - name: Publish a Python distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
