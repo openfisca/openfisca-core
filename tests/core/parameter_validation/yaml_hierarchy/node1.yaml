@@ -1,0 +1,7 @@
+param:
+  description : A dummy description
+  reference: A dummy reference
+  values:
+    2015-12-01:
+      value: 1.0
+      reference: A dummy reference

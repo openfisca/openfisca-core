@@ -1,0 +1,28 @@
+- name: "Test using an extension"
+  period: 2017-01
+  extensions:
+    - openfisca_extension_template
+  input:
+    persons:
+      parent: {}
+      child1: {}
+    household:
+      parents: [parent]
+      children: [child1]
+  output:
+    local_town_child_allowance: 100
+
+- name: "Test using an extension"
+  period: 2017-01
+  extensions:
+    - openfisca_extension_template
+  input:
+    persons:
+      parent: {}
+      child1: {}
+      child2: {}
+    household:
+      parents: [parent]
+      children: [child1, child2]
+  output:
+    local_town_child_allowance: 200

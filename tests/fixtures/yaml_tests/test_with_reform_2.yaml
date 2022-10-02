@@ -1,0 +1,7 @@
+- name: "Test that needs a reform but does not declare it itself"
+  period: 2017-01
+  #reforms: policyengine_core.country_template.reforms.removal_basic_income.removal_basic_income  input:
+  input:
+    salary: 0
+  output:
+    basic_income: 0

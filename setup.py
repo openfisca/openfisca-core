@@ -17,10 +17,10 @@ general_requirements = [
 dev_requirements = []
 
 setup(
-    name="OpenFisca-Core",
+    name="policyengine-core",
     version="35.9.0",
-    author="OpenFisca Team",
-    author_email="contact@openfisca.org",
+    author="PolicyEngine",
+    author_email="hello@policyengine.org",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "License :: OSI Approved :: GNU Affero General Public License v3",
@@ -40,12 +40,12 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     data_files=[
-        ("share/openfisca/openfisca-core", ["CHANGELOG.md", "README.md"],),
+        ("share/openfisca/openfisca-core", ["README.md"],),
     ],
     entry_points={
         "console_scripts": [
-            "openfisca=openfisca_core.scripts.openfisca_command:main",
-            "openfisca-run-test=openfisca_core.scripts.openfisca_command:main",
+            "openfisca=policyengine_core.scripts.openfisca_command:main",
+            "openfisca-run-test=policyengine_core.scripts.openfisca_command:main",
         ],
     },
     extras_require={"dev": dev_requirements,},

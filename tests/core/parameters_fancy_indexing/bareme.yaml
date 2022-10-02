@@ -1,0 +1,40 @@
+75015:
+  brackets:
+  - rate:
+      2013-01-01:
+        value: 0.03
+    threshold:
+      2013-01-01:
+        value: 0.0
+  - rate:
+      2013-01-01:
+        value: 0.1
+    threshold:
+      2013-01-01:
+        value: 12000.0
+  - rate:
+      2013-01-01:
+        value: 0.12
+    threshold:
+      2013-01-01:
+        value: 12400.0
+75016:
+  brackets:
+  - rate:
+      2013-01-01:
+        value: 0.05
+    threshold:
+      2013-01-01:
+        value: 0
+  - rate:
+      2013-01-01:
+        value: 0.2
+    threshold:
+      2013-01-01:
+        value: 12000.0
+  - rate:
+      2013-01-01:
+        value: 0.4
+    threshold:
+      2013-01-01:
+        value: 12400.0

@@ -1,0 +1,9 @@
+# This (optional) file defines metadata for the node parameters.benefits in the parameter tree.
+
+description: Social benefits
+documentation: |
+  Government support for the citizens and residents of society.
+  They may be provided to people of any income level, as with social security,
+  but usually it is intended to ensure that everyone can meet their basic human needs
+  such as food and shelter.
+  (See https://en.wikipedia.org/wiki/Welfare)

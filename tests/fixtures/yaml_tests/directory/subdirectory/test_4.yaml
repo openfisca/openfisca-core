@@ -1,0 +1,6 @@
+- name: "Basic test 3"
+  period: 2015-01
+  input:
+    salary: 7000
+  output:
+    income_tax: 7000 * 0.15

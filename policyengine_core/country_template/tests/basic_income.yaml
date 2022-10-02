@@ -1,0 +1,50 @@
+# Test files describe situations and their expected outcomes
+# We can run this test on our command line using `openfisca-run-test basic_income.yaml`
+
+- name: The basic income should be 0 before it was introduced
+  period: 2015-11
+  input:
+    age: 18
+    salary: 0
+  output:
+    basic_income: 0
+
+- name: In Dec 2015, an adult with no salary should get a basic income of 600
+  period: 2015-12
+  input:
+    salary: 0
+    age: 18
+  output:
+    basic_income: 600
+
+- name: In Dec 2015, a child with no salary should get no basic income
+  period: 2015-12
+  input:
+    salary: 0
+    age: 17
+  output:
+    basic_income: 0
+
+- name: In Dec 2015, an adult with a salary should get no basic income
+  period: 2015-12
+  input:
+    salary: 1200
+    age: 18
+  output:
+    basic_income: 0
+
+- name: In Dec 2016, a child with no salary should get no basic income
+  period: 2016-12
+  input:
+    salary: 0
+    age: 17
+  output:
+    basic_income: 0
+
+- name: In Dec 2016, an adult with a salary should get a basic income of 600
+  period: 2016-12
+  input:
+    salary: 1200
+    age: 18
+  output:
+    basic_income: 600
