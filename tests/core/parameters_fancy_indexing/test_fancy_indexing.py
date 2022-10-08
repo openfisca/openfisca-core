@@ -13,7 +13,7 @@ from policyengine_core.parameters import (
     Parameter,
     ParameterNotFound,
 )
-from policyengine_core.model_api import *  # noqa
+from policyengine_core.model_api import *
 
 LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
 

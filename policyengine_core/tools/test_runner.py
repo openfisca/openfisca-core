@@ -225,7 +225,7 @@ class YamlItem(pytest.Item):
                 self.generate_performance_tables(tracer)
 
     def print_computation_log(self, tracer, aggregate, max_depth):
-        print("Computation log:")  # noqa T001
+        print("Computation log:")
         tracer.print_computation_log(aggregate, max_depth)
 
     def generate_performance_graph(self, tracer):

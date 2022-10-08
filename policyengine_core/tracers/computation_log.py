@@ -62,7 +62,7 @@ class ComputationLog:
         vectors up to a depth of ``max_depth``.
         """
         for line in self.lines(aggregate, max_depth):
-            print(line)  # noqa T001
+            print(line)
 
     def _get_node_log(
         self,

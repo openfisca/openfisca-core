@@ -3,7 +3,7 @@
 import numpy as np
 import timeit
 from openfisca_france import CountryTaxBenefitSystem
-from policyengine_core.model_api import *  # noqa analysis:ignore
+from policyengine_core.model_api import *
 
 
 tbs = CountryTaxBenefitSystem()

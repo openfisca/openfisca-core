@@ -21,4 +21,4 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
-from .memory_config import MemoryConfig  # noqa: F401
+from .memory_config import MemoryConfig

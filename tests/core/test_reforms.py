@@ -7,7 +7,7 @@ from policyengine_core.periods import Instant
 from policyengine_core.tools import assert_near
 from policyengine_core.parameters import ValuesHistory, ParameterNode
 from policyengine_core.country_template.entities import Household, Person
-from policyengine_core.model_api import *  # noqa analysis:ignore
+from policyengine_core.model_api import *
 
 
 class goes_to_school(Variable):

@@ -21,7 +21,7 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
-from .config import (  # noqa: F401
+from .config import (
     DAY,
     MONTH,
     YEAR,
@@ -32,7 +32,7 @@ from .config import (  # noqa: F401
     year_or_month_or_day_re,
 )
 
-from .helpers import (  # noqa: F401
+from .helpers import (
     N_,
     instant,
     instant_date,
@@ -42,5 +42,5 @@ from .helpers import (  # noqa: F401
     unit_weight,
 )
 
-from .instant_ import Instant  # noqa: F401
-from .period_ import Period  # noqa: F401
+from .instant_ import Instant
+from .period_ import Period
