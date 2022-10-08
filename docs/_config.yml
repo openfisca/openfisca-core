@@ -7,3 +7,5 @@ execute:
 sphinx:
   config:
     html_theme: furo
+  extra_extensions:
+    - "sphinx.ext.autodoc"

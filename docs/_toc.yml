@@ -6,4 +6,6 @@ parts:
     - file: python_api/country_template
     - file: python_api/data_storage
     - file: python_api/entities
-      
+  - caption: Contributing
+    chapters:
+    - file: contributing/intro

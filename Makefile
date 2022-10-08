@@ -1,5 +1,8 @@
 all: install format test build changelog
 
+docs:
+	jb build docs
+
 format:
 	black . -l 79
 
