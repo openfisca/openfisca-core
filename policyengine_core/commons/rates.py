@@ -1,7 +1,5 @@
 from typing import Optional
-
 import numpy
-
 from policyengine_core.types import ArrayLike, ArrayType
 
 

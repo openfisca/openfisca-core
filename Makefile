@@ -1,6 +1,7 @@
 all: install format test build changelog
 
-docs:
+documentation:
+	jb clean docs
 	jb build docs
 
 format:

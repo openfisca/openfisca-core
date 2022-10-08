@@ -3,6 +3,7 @@ root: intro
 parts:
   - caption: Python API
     chapters:
+    - file: python_api/commons
     - file: python_api/country_template
     - file: python_api/data_storage
     - file: python_api/entities
