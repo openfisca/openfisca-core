@@ -8,6 +8,9 @@ parts:
     - file: python_api/data_storage
     - file: python_api/entities
     - file: python_api/errors
+    - file: python_api/experimental
+    - file: python_api/extension_template
+    - file: python_api/holders
   - caption: Contributing
     chapters:
     - file: contributing/intro
