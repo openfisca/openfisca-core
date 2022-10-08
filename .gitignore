@@ -4,3 +4,5 @@ coverage.xml
 .coverage
 build/
 dist/
+docs/_build/
+**/*.ipynb_checkpoints/

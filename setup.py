@@ -56,8 +56,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "openfisca=policyengine_core.scripts.openfisca_command:main",
-            "openfisca-run-test=policyengine_core.scripts.openfisca_command:main",
+            "policyengine-core=policyengine_core.scripts.policyengine_command:main",
         ],
     },
     extras_require={

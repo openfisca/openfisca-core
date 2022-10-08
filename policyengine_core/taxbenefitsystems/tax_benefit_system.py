@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 import copy
 import glob
@@ -23,6 +23,7 @@ from policyengine_core.parameters import ParameterNode
 from policyengine_core.periods import Instant, Period
 from policyengine_core.populations import Population, GroupPopulation
 from policyengine_core.simulations import SimulationBuilder
+from policyengine_core.tools.test_runner import run_tests
 from policyengine_core.variables import Variable
 
 log = logging.getLogger(__name__)
@@ -540,3 +541,6 @@ class TaxBenefitSystem:
 
     def entities_by_singular(self):
         return {entity.key: entity for entity in self.entities}
+    
+    def test(self, paths: str, verbose: bool = False) -> None:
+        run_tests(self, paths, options=dict(verbose=verbose))

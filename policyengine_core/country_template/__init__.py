@@ -14,9 +14,10 @@ from policyengine_core.taxbenefitsystems import TaxBenefitSystem
 
 from policyengine_core.country_template import entities
 from policyengine_core.country_template.situation_examples import couple
+from pathlib import Path
 
 
-COUNTRY_DIR = os.path.dirname(os.path.abspath(__file__))
+COUNTRY_DIR = Path(__file__).parent
 
 
 # Our country tax and benefit class inherits from the general TaxBenefitSystem class.

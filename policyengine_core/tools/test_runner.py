@@ -10,7 +10,7 @@ from typing import Dict, List
 import pytest
 
 from policyengine_core.tools import assert_near
-from policyengine_core.simulation_builder import SimulationBuilder
+from policyengine_core.simulations import SimulationBuilder
 from policyengine_core.errors import SituationParsingError, VariableNotFound
 from policyengine_core.warnings import LibYAMLWarning
 
@@ -87,8 +87,11 @@ def run_tests(tax_benefit_system, paths, options=None):
     if options.get("verbose"):
         argv.append("--verbose")
 
-    if isinstance(paths, str):
+    if not isinstance(paths, list):
         paths = [paths]
+    
+    if not isinstance(paths[0], str):
+        paths = [str(path) for path in paths]
 
     return pytest.main(
         [*argv, *paths] if True else paths,
