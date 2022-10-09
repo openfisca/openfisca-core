@@ -1,15 +1,16 @@
 import typing
-
+from typing import Callable, Any
 import numpy
-
+from numpy.typing import ArrayLike
 from policyengine_core import projectors
-from policyengine_core.entities import Role
+from policyengine_core.entities import Role, Entity
 from policyengine_core.enums import EnumArray
 from policyengine_core.populations import Population
+from policyengine_core.simulations.simulation import Simulation
 
 
 class GroupPopulation(Population):
-    def __init__(self, entity, members):
+    def __init__(self, entity: Entity, members: Population):
         super().__init__(entity)
         self.members = members
         self._members_entity_id = None
@@ -17,7 +18,7 @@ class GroupPopulation(Population):
         self._members_position = None
         self._ordered_members_map = None
 
-    def clone(self, simulation):
+    def clone(self, simulation: Simulation) -> "GroupPopulation":
         result = GroupPopulation(self.entity, self.members)
         result.simulation = simulation
         result._holders = {
@@ -33,7 +34,7 @@ class GroupPopulation(Population):
         return result
 
     @property
-    def members_position(self):
+    def members_position(self) -> ArrayLike:
         if (
             self._members_position is None
             and self.members_entity_id is not None
@@ -51,19 +52,19 @@ class GroupPopulation(Population):
         return self._members_position
 
     @members_position.setter
-    def members_position(self, members_position):
+    def members_position(self, members_position: ArrayLike) -> None:
         self._members_position = members_position
 
     @property
-    def members_entity_id(self):
+    def members_entity_id(self) -> ArrayLike:
         return self._members_entity_id
 
     @members_entity_id.setter
-    def members_entity_id(self, members_entity_id):
+    def members_entity_id(self, members_entity_id: ArrayLike) -> None:
         self._members_entity_id = members_entity_id
 
     @property
-    def members_role(self):
+    def members_role(self) -> ArrayLike:
         if self._members_role is None:
             default_role = self.entity.flattened_roles[0]
             self._members_role = numpy.repeat(
@@ -72,12 +73,12 @@ class GroupPopulation(Population):
         return self._members_role
 
     @members_role.setter
-    def members_role(self, members_role: typing.Iterable[Role]):
+    def members_role(self, members_role: ArrayLike):
         if members_role is not None:
             self._members_role = numpy.array(list(members_role))
 
     @property
-    def ordered_members_map(self):
+    def ordered_members_map(self) -> ArrayLike:
         """
         Mask to group the persons by entity
         This function only caches the map value, to see what the map is used for, see value_nth_person method.
@@ -86,7 +87,7 @@ class GroupPopulation(Population):
             self._ordered_members_map = numpy.argsort(self.members_entity_id)
         return self._ordered_members_map
 
-    def get_role(self, role_name):
+    def get_role(self, role_name: str) -> Role:
         return next(
             (
                 role
@@ -99,7 +100,7 @@ class GroupPopulation(Population):
     #  Aggregation persons -> entity
 
     @projectors.projectable
-    def sum(self, array, role=None):
+    def sum(self, array: ArrayLike, role: Role = None) -> ArrayLike:
         """
         Return the sum of ``array`` for the members of the entity.
 
@@ -126,7 +127,7 @@ class GroupPopulation(Population):
             return numpy.bincount(self.members_entity_id, weights=array)
 
     @projectors.projectable
-    def any(self, array, role=None):
+    def any(self, array: ArrayLike, role: Role = None) -> ArrayLike:
         """
         Return ``True`` if ``array`` is ``True`` for any members of the entity.
 
@@ -144,7 +145,7 @@ class GroupPopulation(Population):
         return sum_in_entity > 0
 
     @projectors.projectable
-    def reduce(self, array, reducer, neutral_element, role=None):
+    def reduce(self, array: ArrayLike, reducer: Callable, neutral_element: Any, role: Role = None) -> ArrayLike:
         self.members.check_array_compatible_with_entity(array)
         self.entity.check_role_validity(role)
         position_in_entity = self.members_position
@@ -168,7 +169,7 @@ class GroupPopulation(Population):
         return result
 
     @projectors.projectable
-    def all(self, array, role=None):
+    def all(self, array: ArrayLike, role: Role = None) -> ArrayLike:
         """
         Return ``True`` if ``array`` is ``True`` for all members of the entity.
 
@@ -187,7 +188,7 @@ class GroupPopulation(Population):
         )
 
     @projectors.projectable
-    def max(self, array, role=None):
+    def max(self, array: ArrayLike, role: Role = None) -> ArrayLike:
         """
         Return the maximum value of ``array`` for the entity members.
 
@@ -209,7 +210,7 @@ class GroupPopulation(Population):
         )
 
     @projectors.projectable
-    def min(self, array, role=None):
+    def min(self, array: ArrayLike, role: Role = None) -> ArrayLike:
         """
         Return the minimum value of ``array`` for the entity members.
 
@@ -233,7 +234,7 @@ class GroupPopulation(Population):
         )
 
     @projectors.projectable
-    def nb_persons(self, role=None):
+    def nb_persons(self, role: Role = None) -> ArrayLike:
         """
         Returns the number of persons contained in the entity.
 
@@ -253,7 +254,7 @@ class GroupPopulation(Population):
     # Projection person -> entity
 
     @projectors.projectable
-    def value_from_person(self, array, role, default=0):
+    def value_from_person(self, array: ArrayLike, role: Role, default: Any = 0) -> ArrayLike:
         """
         Get the value of ``array`` for the person with the unique role ``role``.
 
@@ -283,7 +284,7 @@ class GroupPopulation(Population):
         return result
 
     @projectors.projectable
-    def value_nth_person(self, n, array, default=0):
+    def value_nth_person(self, n: int, array: ArrayLike, default: Any = 0) -> ArrayLike:
         """
         Get the value of array for the person whose position in the entity is n.
 
@@ -310,12 +311,12 @@ class GroupPopulation(Population):
         return result
 
     @projectors.projectable
-    def value_from_first_person(self, array):
+    def value_from_first_person(self, array: ArrayLike):
         return self.value_nth_person(0, array)
 
     # Projection entity -> person(s)
 
-    def project(self, array, role=None):
+    def project(self, array: ArrayLike, role: Role = None) -> ArrayLike:
         self.check_array_compatible_with_entity(array)
         self.entity.check_role_validity(role)
         if role is None:

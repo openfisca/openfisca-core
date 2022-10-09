@@ -14,6 +14,7 @@ parts:
     - file: python_api/holders
     - file: python_api/parameters
     - file: python_api/periods
+    - file: python_api/populations
   - caption: Contributing
     chapters:
     - file: contributing/intro
