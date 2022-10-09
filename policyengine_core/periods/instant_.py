@@ -6,7 +6,7 @@ from policyengine_core.periods import config
 
 
 class Instant(tuple):
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Transform instant to to its Python representation as a string.
 
@@ -21,7 +21,7 @@ class Instant(tuple):
             self.__class__.__name__, super(Instant, self).__repr__()
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Transform instant to a string.
 
@@ -41,7 +41,7 @@ class Instant(tuple):
         return instant_str
 
     @property
-    def date(self):
+    def date(self) -> datetime.date:
         """
         Convert instant to a date.
 
@@ -60,7 +60,7 @@ class Instant(tuple):
         return instant_date
 
     @property
-    def day(self):
+    def day(self) -> int:
         """
         Extract day from instant.
 
@@ -74,7 +74,7 @@ class Instant(tuple):
         return self[2]
 
     @property
-    def month(self):
+    def month(self) -> int:
         """
         Extract month from instant.
 
@@ -87,7 +87,7 @@ class Instant(tuple):
         """
         return self[1]
 
-    def period(self, unit, size=1):
+    def period(self, unit: str, size: int = 1):
         """
         Create a new period starting at instant.
 
@@ -108,7 +108,7 @@ class Instant(tuple):
         ), "Invalid size: {} of type {}".format(size, type(size))
         return periods.Period((unit, self, size))
 
-    def offset(self, offset, unit):
+    def offset(self, offset: int, unit: str) -> "Instant":
         """
         Increment (or decrement) the given instant with offset units.
 
@@ -252,7 +252,7 @@ class Instant(tuple):
         return self.__class__((year, month, day))
 
     @property
-    def year(self):
+    def year(self) -> int:
         """
         Extract year from instant.
 
