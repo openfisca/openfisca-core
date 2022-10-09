@@ -110,7 +110,7 @@ def test_name_filter(tax_benefit_system):
 def test_shell_script():
     yaml_path = os.path.join(yaml_tests_dir, "test_success.yml")
     command = [
-        "openfisca",
+        "policyengine-core",
         "test",
         yaml_path,
         "-c",
@@ -122,7 +122,13 @@ def test_shell_script():
 
 def test_failing_shell_script():
     yaml_path = os.path.join(yaml_tests_dir, "test_failure.yaml")
-    command = ["openfisca", "test", yaml_path, "-c", "openfisca_dummy_country"]
+    command = [
+        "policyengine-core",
+        "test",
+        yaml_path,
+        "-c",
+        "openfisca_dummy_country",
+    ]
     with open(os.devnull, "wb") as devnull:
         with pytest.raises(subprocess.CalledProcessError):
             subprocess.check_call(command, stdout=devnull, stderr=devnull)
@@ -131,7 +137,7 @@ def test_failing_shell_script():
 def test_shell_script_with_reform():
     yaml_path = os.path.join(yaml_tests_dir, "test_with_reform_2.yaml")
     command = [
-        "openfisca",
+        "policyengine-core",
         "test",
         yaml_path,
         "-c",
@@ -146,7 +152,7 @@ def test_shell_script_with_reform():
 def test_shell_script_with_extension():
     tests_dir = os.path.join(openfisca_extension_template.__path__[0], "tests")
     command = [
-        "openfisca",
+        "policyengine-core",
         "test",
         tests_dir,
         "-c",

@@ -6,7 +6,7 @@ from typing import List, Optional, Union
 import numpy
 
 from .. import tracers
-from policyengine_core.indexed_enums import EnumArray
+from policyengine_core.enums import EnumArray
 
 if typing.TYPE_CHECKING:
     from numpy.typing import ArrayLike
@@ -62,7 +62,7 @@ class ComputationLog:
         vectors up to a depth of ``max_depth``.
         """
         for line in self.lines(aggregate, max_depth):
-            print(line)  # noqa T001
+            print(line)
 
     def _get_node_log(
         self,

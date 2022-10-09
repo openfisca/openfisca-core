@@ -11,11 +11,15 @@ class ParameterAtInstant:
     A value of a parameter at a given instant.
     """
 
-    # 'unit' and 'reference' are only listed here for backward compatibility
-    _allowed_keys = set(["value", "metadata", "unit", "reference"])
+    _allowed_keys = set(["value", "metadata"])
 
     def __init__(
-        self, name, instant_str, data=None, file_path=None, metadata=None
+        self,
+        name: str,
+        instant_str: str,
+        data: dict = None,
+        file_path: str = None,
+        metadata: dict = None,
     ):
         """
         :param str name: name of the parameter, e.g. "taxes.some_tax.some_param"
@@ -42,7 +46,7 @@ class ParameterAtInstant:
         helpers._set_backward_compatibility_metadata(self, data)
         self.metadata.update(data.get("metadata", {}))
 
-    def validate(self, data):
+    def validate(self, data: dict) -> None:
         helpers._validate_parameter(
             self, data, data_type=dict, allowed_keys=self._allowed_keys
         )
@@ -61,17 +65,17 @@ class ParameterAtInstant:
                 self.file_path,
             )
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return (
             (self.name == other.name)
             and (self.instant_str == other.instant_str)
             and (self.value == other.value)
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "ParameterAtInstant({})".format({self.instant_str: self.value})
 
-    def clone(self):
+    def clone(self) -> "ParameterAtInstant":
         clone = commons.empty_clone(self)
         clone.__dict__ = self.__dict__.copy()
         clone.metadata = copy.deepcopy(self.metadata)

@@ -2,7 +2,7 @@ import numpy as np
 from pytest import fixture
 
 from policyengine_core import periods
-from policyengine_core.model_api import *  # noqa analysis:ignore
+from policyengine_core.model_api import *
 from policyengine_core.country_template.entities import Person
 from policyengine_core.variables import get_annualized_variable
 

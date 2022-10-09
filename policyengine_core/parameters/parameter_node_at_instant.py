@@ -1,5 +1,6 @@
 import os
 import sys
+from typing import Iterable, Union, TYPE_CHECKING
 
 import numpy
 
@@ -7,13 +8,19 @@ from policyengine_core import parameters, tools
 from policyengine_core.errors import ParameterNotFoundError
 from policyengine_core.parameters import helpers
 
+if TYPE_CHECKING:
+    from policyengine_core.parameters.parameter_node import ParameterNode
+from policyengine_core.parameters.vectorial_parameter_node_at_instant import (
+    VectorialParameterNodeAtInstant,
+)
+
 
 class ParameterNodeAtInstant:
     """
     Parameter node of the legislation, at a given instant.
     """
 
-    def __init__(self, name, node, instant_str):
+    def __init__(self, name: str, node: "ParameterNode", instant_str: str):
         """
         :param name: Name of the node.
         :param node: Original :any:`ParameterNode` instance.
@@ -30,15 +37,19 @@ class ParameterNodeAtInstant:
             if child_at_instant is not None:
                 self.add_child(child_name, child_at_instant)
 
-    def add_child(self, child_name, child_at_instant):
+    def add_child(
+        self, child_name: str, child_at_instant: "ParameterNodeAtInstant"
+    ):
         self._children[child_name] = child_at_instant
         setattr(self, child_name, child_at_instant)
 
-    def __getattr__(self, key):
+    def __getattr__(self, key: str):
         param_name = helpers._compose_name(self._name, item_name=key)
         raise ParameterNotFoundError(param_name, self._instant_str)
 
-    def __getitem__(self, key):
+    def __getitem__(
+        self, key: str
+    ) -> Union["ParameterNodeAtInstant", VectorialParameterNodeAtInstant]:
         # If fancy indexing is used, cast to a vectorial node
         if isinstance(key, numpy.ndarray):
             return parameters.VectorialParameterNodeAtInstant.build_from_node(
@@ -46,10 +57,10 @@ class ParameterNodeAtInstant:
             )[key]
         return self._children[key]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable:
         return iter(self._children)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         result = os.linesep.join(
             [
                 os.linesep.join(["{}:", "{}"]).format(

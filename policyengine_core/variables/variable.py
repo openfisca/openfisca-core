@@ -8,10 +8,15 @@ import numpy
 
 from policyengine_core import periods, tools
 from policyengine_core.entities import Entity
-from policyengine_core.indexed_enums import Enum, EnumArray
+from policyengine_core.enums import Enum, EnumArray
 from policyengine_core.periods import Period
 
 from . import config, helpers
+
+
+class QuantityType:
+    STOCK = "stock"
+    FLOW = "flow"
 
 
 class Variable:
@@ -93,6 +98,10 @@ class Variable:
        .. attribute:: documentation
 
            Free multilines text field describing the variable context and usage.
+
+       .. attribute:: quantity_type
+
+           Categorical attribute describing whether the variable is a stock or a flow.
     """
 
     def __init__(self, baseline_variable=None):
@@ -149,6 +158,13 @@ class Variable:
                 periods.YEAR,
                 periods.ETERNITY,
             ),
+        )
+        self.quantity_type = self.set(
+            attr,
+            "quantity_type",
+            required=False,
+            allowed_values=(QuantityType.STOCK, QuantityType.FLOW),
+            default=QuantityType.FLOW,
         )
         self.label = self.set(
             attr, "label", allowed_type=str, setter=self.set_label
@@ -214,7 +230,11 @@ class Variable:
                     attribute_name, self.name
                 )
             )
-        if allowed_values is not None and value not in allowed_values:
+        if (
+            required
+            and allowed_values is not None
+            and value not in allowed_values
+        ):
             raise ValueError(
                 "Invalid value '{}' for attribute '{}' in variable '{}'. Allowed values are '{}'.".format(
                     value, attribute_name, self.name, allowed_values

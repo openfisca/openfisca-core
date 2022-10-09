@@ -2,8 +2,8 @@ import datetime
 
 import numpy
 
-from policyengine_core import indexed_enums
-from policyengine_core.indexed_enums import Enum
+from policyengine_core import enums
+from policyengine_core.enums import Enum
 
 
 VALUE_TYPES = {
@@ -36,7 +36,7 @@ VALUE_TYPES = {
         "is_period_size_independent": True,
     },
     Enum: {
-        "dtype": indexed_enums.ENUM_ARRAY_DTYPE,
+        "dtype": enums.ENUM_ARRAY_DTYPE,
         "json_type": "string",
         "formatted_value_type": "String",
         "is_period_size_independent": True,

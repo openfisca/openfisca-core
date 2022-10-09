@@ -1,13 +1,17 @@
 import logging
 
 import numpy
-
+from numpy.typing import ArrayLike
 from policyengine_core import periods
+from policyengine_core.holders.holder import Holder
+from policyengine_core.periods import Period
 
 log = logging.getLogger(__name__)
 
 
-def set_input_dispatch_by_period(holder, period, array):
+def set_input_dispatch_by_period(
+    holder: Holder, period: Period, array: ArrayLike
+):
     """
     This function can be declared as a ``set_input`` attribute of a variable.
 
@@ -44,7 +48,9 @@ def set_input_dispatch_by_period(holder, period, array):
         sub_period = sub_period.offset(1)
 
 
-def set_input_divide_by_period(holder, period, array):
+def set_input_divide_by_period(
+    holder: Holder, period: Period, array: ArrayLike
+):
     """
     This function can be declared as a ``set_input`` attribute of a variable.
 

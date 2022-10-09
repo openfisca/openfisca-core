@@ -5,7 +5,7 @@ import os
 
 import numexpr
 
-from policyengine_core.indexed_enums import EnumArray
+from policyengine_core.enums import EnumArray
 
 
 def assert_near(

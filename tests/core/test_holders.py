@@ -7,7 +7,7 @@ from policyengine_core.country_template.variables import housing
 
 from policyengine_core import holders, periods, tools
 from policyengine_core.errors import PeriodMismatchError
-from policyengine_core.memory_config import MemoryConfig
+from policyengine_core.experimental import MemoryConfig
 from policyengine_core.simulations import SimulationBuilder
 from policyengine_core.holders import Holder
 

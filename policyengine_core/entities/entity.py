@@ -1,7 +1,7 @@
 import os
 import textwrap
-
-from policyengine_core.entities import Role
+from typing import Any
+from policyengine_core.entities.role import Role
 
 
 class Entity:
@@ -9,7 +9,7 @@ class Entity:
     Represents an entity (e.g. a person, a household, etc.) on which calculations can be run.
     """
 
-    def __init__(self, key, plural, label, doc):
+    def __init__(self, key: str, plural: str, label: str, doc: str):
         self.key = key
         self.label = label
         self.plural = plural
@@ -17,19 +17,19 @@ class Entity:
         self.is_person = True
         self._tax_benefit_system = None
 
-    def set_tax_benefit_system(self, tax_benefit_system):
+    def set_tax_benefit_system(self, tax_benefit_system) -> None:
         self._tax_benefit_system = tax_benefit_system
 
-    def check_role_validity(self, role):
+    def check_role_validity(self, role: Any) -> None:
         if role is not None and not type(role) == Role:
             raise ValueError("{} is not a valid role".format(role))
 
-    def get_variable(self, variable_name, check_existence=False):
+    def get_variable(self, variable_name: str, check_existence: bool = False):
         return self._tax_benefit_system.get_variable(
             variable_name, check_existence
         )
 
-    def check_variable_defined_for_entity(self, variable_name):
+    def check_variable_defined_for_entity(self, variable_name: str) -> None:
         variable_entity = self.get_variable(
             variable_name, check_existence=True
         ).entity

@@ -1,13 +1,18 @@
 import os
 import warnings
-
+from typing import Any, List, TYPE_CHECKING
 import numpy
 import psutil
-
+from numpy.typing import ArrayLike
 from policyengine_core import commons, periods, tools
 from policyengine_core.errors import PeriodMismatchError
 from policyengine_core.data_storage import InMemoryStorage, OnDiskStorage
-from policyengine_core.indexed_enums import Enum
+from policyengine_core.enums import Enum
+from policyengine_core.periods import Period
+
+if TYPE_CHECKING:
+    from policyengine_core.variables import Variable
+    from policyengine_core.populations import Population
 
 
 class Holder:
@@ -15,7 +20,7 @@ class Holder:
     A holder keeps tracks of a variable values after they have been calculated, or set as an input.
     """
 
-    def __init__(self, variable, population):
+    def __init__(self, variable: "Variable", population: "Population"):
         self.population = population
         self.variable = variable
         self.simulation = population.simulation
@@ -40,7 +45,7 @@ class Holder:
             ):
                 self._do_not_store = True
 
-    def clone(self, population):
+    def clone(self, population: "Population") -> "Holder":
         """
         Copy the holder just enough to be able to run a new simulation without modifying the original simulation.
         """
@@ -56,7 +61,9 @@ class Holder:
 
         return new
 
-    def create_disk_storage(self, directory=None, preserve=False):
+    def create_disk_storage(
+        self, directory: str = None, preserve: bool = False
+    ) -> OnDiskStorage:
         if directory is None:
             directory = self.simulation.data_storage_dir
         storage_dir = os.path.join(directory, self.variable.name)
@@ -68,7 +75,7 @@ class Holder:
             preserve_storage_dir=preserve,
         )
 
-    def delete_arrays(self, period=None):
+    def delete_arrays(self, period: Period = None) -> None:
         """
         If ``period`` is ``None``, remove all known values of the variable.
 
@@ -79,7 +86,7 @@ class Holder:
         if self._disk_storage:
             self._disk_storage.delete(period)
 
-    def get_array(self, period):
+    def get_array(self, period: Period) -> ArrayLike:
         """
         Get the value of the variable for the given period.
 
@@ -93,7 +100,7 @@ class Holder:
         if self._disk_storage:
             return self._disk_storage.get(period)
 
-    def get_memory_usage(self):
+    def get_memory_usage(self) -> dict:
         """
         Get data about the virtual memory usage of the holder.
 
@@ -137,7 +144,7 @@ class Holder:
 
         return usage
 
-    def get_known_periods(self):
+    def get_known_periods(self) -> List[Period]:
         """
         Get the list of periods the variable value is known for.
         """
@@ -150,7 +157,7 @@ class Holder:
             )
         )
 
-    def set_input(self, period, array):
+    def set_input(self, period: Period, array: ArrayLike) -> None:
         """
         Set a variable's value (``array``) for a given period (``period``)
 
@@ -195,7 +202,7 @@ class Holder:
             return self.variable.set_input(self, period, array)
         return self._set(period, array)
 
-    def _to_array(self, value):
+    def _to_array(self, value: Any) -> ArrayLike:
         if not isinstance(value, numpy.ndarray):
             value = numpy.asarray(value)
         if value.ndim == 0:
@@ -227,7 +234,7 @@ class Holder:
                 )
         return value
 
-    def _set(self, period, value):
+    def _set(self, period: Period, value: ArrayLike) -> None:
         value = self._to_array(value)
         if self.variable.definition_period != periods.ETERNITY:
             if period is None:
@@ -271,7 +278,7 @@ class Holder:
         else:
             self._memory_storage.put(value, period)
 
-    def put_in_cache(self, value, period):
+    def put_in_cache(self, value: ArrayLike, period: Period) -> None:
         if self._do_not_store:
             return
 
@@ -285,7 +292,7 @@ class Holder:
 
         self._set(period, value)
 
-    def default_array(self):
+    def default_array(self) -> ArrayLike:
         """
         Return a new array of the appropriate length for the entity, filled with the variable default values.
         """

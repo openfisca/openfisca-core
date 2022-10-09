@@ -1,0 +1,11 @@
+title: PolicyEngine Core documentation
+author: PolicyEngine
+
+execute:
+  execute_notebooks: force
+
+sphinx:
+  config:
+    html_theme: furo
+  extra_extensions:
+    - "sphinx.ext.autodoc"

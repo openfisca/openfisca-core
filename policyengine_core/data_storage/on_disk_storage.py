@@ -2,9 +2,10 @@ import os
 import shutil
 
 import numpy
-
+from numpy.typing import ArrayLike
 from policyengine_core import periods
-from policyengine_core.indexed_enums import EnumArray
+from policyengine_core.enums import EnumArray
+from policyengine_core.periods import Period
 
 
 class OnDiskStorage:
@@ -13,7 +14,10 @@ class OnDiskStorage:
     """
 
     def __init__(
-        self, storage_dir, is_eternal=False, preserve_storage_dir=False
+        self,
+        storage_dir: str,
+        is_eternal: bool = False,
+        preserve_storage_dir: bool = False,
     ):
         self._files = {}
         self._enums = {}
@@ -21,14 +25,14 @@ class OnDiskStorage:
         self.preserve_storage_dir = preserve_storage_dir
         self.storage_dir = storage_dir
 
-    def _decode_file(self, file):
+    def _decode_file(self, file: str) -> ArrayLike:
         enum = self._enums.get(file)
         if enum is not None:
             return EnumArray(numpy.load(file), enum)
         else:
             return numpy.load(file)
 
-    def get(self, period):
+    def get(self, period: Period) -> ArrayLike:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
         period = periods.period(period)
@@ -38,7 +42,7 @@ class OnDiskStorage:
             return None
         return self._decode_file(values)
 
-    def put(self, value, period):
+    def put(self, value: ArrayLike, period: Period) -> None:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
         period = periods.period(period)
@@ -51,7 +55,7 @@ class OnDiskStorage:
         numpy.save(path, value)
         self._files[period] = path
 
-    def delete(self, period=None):
+    def delete(self, period: Period = None) -> None:
         if period is None:
             self._files = {}
             return
@@ -67,10 +71,10 @@ class OnDiskStorage:
                 if not period.contains(period_item)
             }
 
-    def get_known_periods(self):
-        return self._files.keys()
+    def get_known_periods(self) -> list:
+        return list(self._files.keys())
 
-    def restore(self):
+    def restore(self) -> None:
         self._files = files = {}
         # Restore self._files from content of storage_dir.
         for filename in os.listdir(self.storage_dir):
@@ -81,7 +85,7 @@ class OnDiskStorage:
             period = periods.period(filename_core)
             files[period] = path
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self.preserve_storage_dir:
             return
         shutil.rmtree(self.storage_dir)  # Remove the holder temporary files

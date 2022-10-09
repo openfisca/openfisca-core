@@ -19,57 +19,6 @@ def get_parser():
         True  # Can be added as an argument of add_subparsers in Python 3
     )
 
-    def build_serve_parser(parser):
-        # Define OpenFisca modules configuration
-        parser = add_tax_benefit_system_arguments(parser)
-
-        # Define server configuration
-        parser.add_argument(
-            "-p",
-            "--port",
-            action="store",
-            help="port to serve on (use --bind to specify host and port)",
-            type=int,
-        )
-        parser.add_argument(
-            "--tracker-url",
-            action="store",
-            help="tracking service url",
-            type=str,
-        )
-        parser.add_argument(
-            "--tracker-idsite",
-            action="store",
-            help="tracking service id site",
-            type=int,
-        )
-        parser.add_argument(
-            "--tracker-token",
-            action="store",
-            help="tracking service authentication token",
-            type=str,
-        )
-        parser.add_argument(
-            "--welcome-message",
-            action="store",
-            help="welcome message users will get when visiting the API root",
-            type=str,
-        )
-        parser.add_argument(
-            "-f",
-            "--configuration-file",
-            action="store",
-            help="configuration file",
-            type=str,
-        )
-
-        return parser
-
-    parser_serve = subparsers.add_parser(
-        "serve", help="Run the OpenFisca Web API"
-    )
-    parser_serve = build_serve_parser(parser_serve)
-
     def build_test_parser(parser):
         parser.add_argument(
             "path",
@@ -150,19 +99,11 @@ def get_parser():
 
 
 def main():
-    if sys.argv[0].endswith("openfisca-run-test"):
-        sys.argv[0:1] = ["openfisca", "test"]
-        message = "The 'openfisca-run-test' command has been deprecated in favor of 'openfisca test' since version 25.0, and will be removed in the future."
-        warnings.warn(message, Warning)
 
     parser = get_parser()
 
     args, _ = parser.parse_known_args()
 
-    if args.command == "serve":
-        from openfisca_web_api.scripts.serve import main
-
-        return sys.exit(main(parser))
     if args.command == "test":
         from policyengine_core.scripts.run_test import main
 

@@ -1,18 +1,25 @@
 import tempfile
-import warnings
-
+from typing import Any, Dict, List, TYPE_CHECKING
 import numpy
-
+from numpy.typing import ArrayLike
 from policyengine_core import commons, periods
+from policyengine_core.entities.entity import Entity
 from policyengine_core.errors import CycleError, SpiralError
-from policyengine_core.indexed_enums import Enum, EnumArray
+from policyengine_core.enums import Enum, EnumArray
+from policyengine_core.holders.holder import Holder
 from policyengine_core.periods import Period
 from policyengine_core.tracers import (
     FullTracer,
     SimpleTracer,
     TracingParameterNodeAtInstant,
 )
-from policyengine_core.warnings import TempfileWarning
+
+if TYPE_CHECKING:
+    from policyengine_core.taxbenefitsystems import TaxBenefitSystem
+from policyengine_core.populations import Population
+from policyengine_core.tracers import SimpleTracer
+from policyengine_core.experimental import MemoryConfig
+from policyengine_core.variables import Variable
 
 
 class Simulation:
@@ -20,7 +27,11 @@ class Simulation:
     Represents a simulation, and handles the calculation logic
     """
 
-    def __init__(self, tax_benefit_system, populations):
+    def __init__(
+        self,
+        tax_benefit_system: "TaxBenefitSystem",
+        populations: Dict[str, Population],
+    ):
         """
         This constructor is reserved for internal use; see :any:`SimulationBuilder`,
         which is the preferred way to obtain a Simulation initialized with a consistent
@@ -30,45 +41,47 @@ class Simulation:
         assert tax_benefit_system is not None
 
         self.populations = populations
-        self.persons = self.populations[tax_benefit_system.person_entity.key]
+        self.persons: Population = self.populations[
+            tax_benefit_system.person_entity.key
+        ]
         self.link_to_entities_instances()
         self.create_shortcuts()
 
         self.invalidated_caches = set()
 
-        self.debug = False
-        self.trace = False
-        self.tracer = SimpleTracer()
-        self.opt_out_cache = False
+        self.debug: bool = False
+        self.trace: bool = False
+        self.tracer: SimpleTracer = SimpleTracer()
+        self.opt_out_cache: bool = False
 
         # controls the spirals detection; check for performance impact if > 1
-        self.max_spiral_loops = 1
-        self.memory_config = None
-        self._data_storage_dir = None
+        self.max_spiral_loops: int = 1
+        self.memory_config: MemoryConfig = None
+        self._data_storage_dir: str = None
 
     @property
-    def trace(self):
+    def trace(self) -> bool:
         return self._trace
 
     @trace.setter
-    def trace(self, trace):
+    def trace(self, trace: SimpleTracer) -> None:
         self._trace = trace
         if trace:
             self.tracer = FullTracer()
         else:
             self.tracer = SimpleTracer()
 
-    def link_to_entities_instances(self):
+    def link_to_entities_instances(self) -> None:
         for _key, entity_instance in self.populations.items():
             entity_instance.simulation = self
 
-    def create_shortcuts(self):
+    def create_shortcuts(self) -> None:
         for _key, population in self.populations.items():
             # create shortcut simulation.person and simulation.household (for instance)
             setattr(self, population.entity.key, population)
 
     @property
-    def data_storage_dir(self):
+    def data_storage_dir(self) -> str:
         """
         Temporary folder used to store intermediate calculation data in case the memory is saturated
         """
@@ -80,12 +93,11 @@ class Simulation:
                 ).format(self._data_storage_dir),
                 "You should remove this directory once you're done with your simulation.",
             ]
-            # warnings.warn(" ".join(message), TempfileWarning) # Deprecated warning.
         return self._data_storage_dir
 
     # ----- Calculation methods ----- #
 
-    def calculate(self, variable_name, period):
+    def calculate(self, variable_name: str, period: Period) -> ArrayLike:
         """Calculate ``variable_name`` for ``period``."""
 
         if period is not None and not isinstance(period, Period):
@@ -102,7 +114,7 @@ class Simulation:
             self.tracer.record_calculation_end()
             self.purge_cache_of_invalid_values()
 
-    def _calculate(self, variable_name, period: Period):
+    def _calculate(self, variable_name: str, period: Period) -> ArrayLike:
         """
         Calculate the variable ``variable_name`` for the period ``period``, using the variable formula if it exists.
 
@@ -140,7 +152,7 @@ class Simulation:
 
         return array
 
-    def purge_cache_of_invalid_values(self):
+    def purge_cache_of_invalid_values(self) -> None:
         # We wait for the end of calculate(), signalled by an empty stack, before purging the cache
         if self.tracer.stack:
             return
@@ -149,7 +161,7 @@ class Simulation:
             holder.delete_arrays(_period)
         self.invalidated_caches = set()
 
-    def calculate_add(self, variable_name, period):
+    def calculate_add(self, variable_name: str, period: Period) -> ArrayLike:
         variable = self.tax_benefit_system.get_variable(
             variable_name, check_existence=True
         )
@@ -183,7 +195,9 @@ class Simulation:
             for sub_period in period.get_subperiods(variable.definition_period)
         )
 
-    def calculate_divide(self, variable_name, period):
+    def calculate_divide(
+        self, variable_name: str, period: Period
+    ) -> ArrayLike:
         variable = self.tax_benefit_system.get_variable(
             variable_name, check_existence=True
         )
@@ -218,7 +232,9 @@ class Simulation:
             )
         )
 
-    def calculate_output(self, variable_name, period):
+    def calculate_output(
+        self, variable_name: str, period: Period
+    ) -> ArrayLike:
         """
         Calculate the value of a variable using the ``calculate_output`` attribute of the variable.
         """
@@ -238,7 +254,9 @@ class Simulation:
             self.tracer,
         )
 
-    def _run_formula(self, variable, population, period):
+    def _run_formula(
+        self, variable: str, population: Population, period: Period
+    ) -> ArrayLike:
         """
         Find the ``variable`` formula for the given ``period`` if it exists, and apply it to ``population``.
         """
@@ -259,7 +277,9 @@ class Simulation:
 
         return array
 
-    def _check_period_consistency(self, period, variable):
+    def _check_period_consistency(
+        self, period: Period, variable: Variable
+    ) -> None:
         """
         Check that a period matches the variable definition_period
         """
@@ -297,7 +317,7 @@ class Simulation:
                 )
             )
 
-    def _cast_formula_result(self, value, variable):
+    def _cast_formula_result(self, value: Any, variable: str) -> ArrayLike:
         if variable.value_type == Enum and not isinstance(value, EnumArray):
             return variable.possible_values.encode(value)
 
@@ -312,7 +332,7 @@ class Simulation:
 
     # ----- Handle circular dependencies in a calculation ----- #
 
-    def _check_for_cycle(self, variable: str, period):
+    def _check_for_cycle(self, variable: str, period: Period) -> None:
         """
         Raise an exception in the case of a circular definition, where evaluating a variable for
         a given period loops around to evaluating the same variable/period pair. Also guards, as
@@ -339,10 +359,10 @@ class Simulation:
             )
             raise SpiralError(message, variable)
 
-    def invalidate_cache_entry(self, variable: str, period):
+    def invalidate_cache_entry(self, variable: str, period: Period) -> None:
         self.invalidated_caches.add((variable, period))
 
-    def invalidate_spiral_variables(self, variable: str):
+    def invalidate_spiral_variables(self, variable: str) -> None:
         # Visit the stack, from the bottom (most recent) up; we know that we'll find
         # the variable implicated in the spiral (max_spiral_loops+1) times; we keep the
         # intermediate values computed (to avoid impacting performance) but we mark them
@@ -357,7 +377,7 @@ class Simulation:
 
     # ----- Methods to access stored values ----- #
 
-    def get_array(self, variable_name, period):
+    def get_array(self, variable_name: str, period: Period) -> ArrayLike:
         """
         Return the value of ``variable_name`` for ``period``, if this value is alreay in the cache (if it has been set as an input or previously calculated).
 
@@ -367,7 +387,7 @@ class Simulation:
             period = periods.period(period)
         return self.get_holder(variable_name).get_array(period)
 
-    def get_holder(self, variable_name):
+    def get_holder(self, variable_name: str) -> Holder:
         """
         Get the :obj:`.Holder` associated with the variable ``variable_name`` for the simulation
         """
@@ -375,7 +395,7 @@ class Simulation:
             variable_name
         )
 
-    def get_memory_usage(self, variables=None):
+    def get_memory_usage(self, variables: List[str] = None) -> dict:
         """
         Get data about the virtual memory usage of the simulation
         """
@@ -388,7 +408,7 @@ class Simulation:
 
     # ----- Misc ----- #
 
-    def delete_arrays(self, variable, period=None):
+    def delete_arrays(self, variable: str, period: Period = None) -> None:
         """
         Delete a variable's value for a given period
 
@@ -417,7 +437,7 @@ class Simulation:
         """
         self.get_holder(variable).delete_arrays(period)
 
-    def get_known_periods(self, variable):
+    def get_known_periods(self, variable: str) -> List[Period]:
         """
         Get a list variable's known period, i.e. the periods where a value has been initialized and
 
@@ -434,7 +454,9 @@ class Simulation:
         """
         return self.get_holder(variable).get_known_periods()
 
-    def set_input(self, variable_name, period, value):
+    def set_input(
+        self, variable_name: str, period: Period, value: ArrayLike
+    ) -> None:
         """
         Set a variable's value for a given period
 
@@ -459,13 +481,13 @@ class Simulation:
             return
         self.get_holder(variable_name).set_input(period, value)
 
-    def get_variable_population(self, variable_name):
+    def get_variable_population(self, variable_name: str) -> Population:
         variable = self.tax_benefit_system.get_variable(
             variable_name, check_existence=True
         )
         return self.populations[variable.entity.key]
 
-    def get_population(self, plural=None):
+    def get_population(self, plural: str = None) -> Population:
         return next(
             (
                 population
@@ -475,17 +497,17 @@ class Simulation:
             None,
         )
 
-    def get_entity(self, plural=None):
+    def get_entity(self, plural: str = None) -> Entity:
         population = self.get_population(plural)
         return population and population.entity
 
-    def describe_entities(self):
+    def describe_entities(self) -> dict:
         return {
             population.entity.plural: population.ids
             for population in self.populations.values()
         }
 
-    def clone(self, debug=False, trace=False):
+    def clone(self, debug: bool = False, trace: bool = False) -> "Simulation":
         """
         Copy the simulation just enough to be able to run the copy without modifying the original simulation
         """

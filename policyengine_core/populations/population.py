@@ -1,22 +1,27 @@
 import traceback
-
+from typing import Any, List, TYPE_CHECKING
 import numpy
-
+from numpy.typing import ArrayLike
 from policyengine_core import projectors
 from policyengine_core.holders import Holder
+from policyengine_core.periods.period_ import Period
 from policyengine_core.populations import config
 from policyengine_core.projectors import Projector
+from policyengine_core.entities import Entity, Role
+
+if TYPE_CHECKING:
+    from policyengine_core.simulations import Simulation
 
 
 class Population:
-    def __init__(self, entity):
-        self.simulation = None
+    def __init__(self, entity: Entity):
+        self.simulation: "Simulation" = None
         self.entity = entity
         self._holders = {}
         self.count = 0
         self.ids = []
 
-    def clone(self, simulation):
+    def clone(self, simulation: "Simulation") -> "Population":
         result = Population(self.entity)
         result.simulation = simulation
         result._holders = {
@@ -27,13 +32,13 @@ class Population:
         result.ids = self.ids
         return result
 
-    def empty_array(self):
+    def empty_array(self) -> numpy.ndarray:
         return numpy.zeros(self.count)
 
-    def filled_array(self, value, dtype=None):
+    def filled_array(self, value: Any, dtype: Any = None) -> numpy.ndarray:
         return numpy.full(self.count, value, dtype)
 
-    def __getattr__(self, attribute):
+    def __getattr__(self, attribute: str) -> Any:
         projector = projectors.get_projector_from_shortcut(self, attribute)
         if not projector:
             raise AttributeError(
@@ -43,12 +48,12 @@ class Population:
             )
         return projector
 
-    def get_index(self, id):
+    def get_index(self, id: str) -> int:
         return self.ids.index(id)
 
     # Calculations
 
-    def check_array_compatible_with_entity(self, array):
+    def check_array_compatible_with_entity(self, array: numpy.ndarray) -> None:
         if not self.count == array.size:
             raise ValueError(
                 "Input {} is not a valid value for the entity {} (size = {} != {} = count)".format(
@@ -56,7 +61,9 @@ class Population:
                 )
             )
 
-    def check_period_validity(self, variable_name, period):
+    def check_period_validity(
+        self, variable_name: str, period: Period
+    ) -> None:
         if period is None:
             stack = traceback.extract_stack()
             filename, line_number, function_name, line_of_code = stack[-3]
@@ -72,7 +79,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
                 )
             )
 
-    def __call__(self, variable_name, period=None, options=None):
+    def __call__(
+        self, variable_name: str, period: Period = None, options: dict = None
+    ):
         """
         Calculate the variable ``variable_name`` for the entity and the period ``period``, using the variable formula if it exists.
 
@@ -106,7 +115,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
     # Helpers
 
-    def get_holder(self, variable_name):
+    def get_holder(self, variable_name: str) -> Holder:
         self.entity.check_variable_defined_for_entity(variable_name)
         holder = self._holders.get(variable_name)
         if holder:
@@ -115,7 +124,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         self._holders[variable_name] = holder = Holder(variable, self)
         return holder
 
-    def get_memory_usage(self, variables=None):
+    def get_memory_usage(self, variables: List[str] = None):
         holders_memory_usage = {
             variable_name: holder.get_memory_usage()
             for variable_name, holder in self._holders.items()
@@ -132,7 +141,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         )
 
     @projectors.projectable
-    def has_role(self, role):
+    def has_role(self, role: Role) -> ArrayLike:
         """
         Check if a person has a given role within its `GroupEntity`
 
@@ -154,7 +163,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             return group_population.members_role == role
 
     @projectors.projectable
-    def value_from_partner(self, array, entity, role):
+    def value_from_partner(
+        self, array: ArrayLike, entity: Entity, role: Role
+    ) -> ArrayLike:
         self.check_array_compatible_with_entity(array)
         self.entity.check_role_validity(role)
 
@@ -173,7 +184,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         )
 
     @projectors.projectable
-    def get_rank(self, entity, criteria, condition=True):
+    def get_rank(
+        self, entity: Entity, criteria: ArrayLike, condition: ArrayLike = True
+    ) -> ArrayLike:
         """
         Get the rank of a person within an entity according to a criteria.
         The person with rank 0 has the minimum value of criteria.

@@ -1,7 +1,5 @@
 from typing import Any, Dict, Sequence, TypeVar
-
 import numpy
-
 from policyengine_core.types import ArrayLike, ArrayType
 
 T = TypeVar("T")

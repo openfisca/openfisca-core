@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence, Type, Union
 
 import copy
 import glob
@@ -12,17 +12,17 @@ import pkg_resources
 import sys
 import traceback
 import typing
-
+from typing import TYPE_CHECKING
 from policyengine_core import commons, periods, variables
 from policyengine_core.entities import Entity
 from policyengine_core.errors import (
     VariableNameConflictError,
     VariableNotFoundError,
 )
-from policyengine_core.parameters import ParameterNode
+from policyengine_core.parameters import ParameterNode, ParameterNodeAtInstant
 from policyengine_core.periods import Instant, Period
 from policyengine_core.populations import Population, GroupPopulation
-from policyengine_core.simulations import SimulationBuilder
+from policyengine_core.tools.test_runner import run_tests
 from policyengine_core.variables import Variable
 
 log = logging.getLogger(__name__)
@@ -42,11 +42,11 @@ class TaxBenefitSystem:
 
     """
 
-    _base_tax_benefit_system = None
+    _base_tax_benefit_system: "TaxBenefitSystem" = None
     _parameters_at_instant_cache: Optional[Dict[Any, Any]] = None
-    person_key_plural = None
-    preprocess_parameters = None
-    baseline = None  # Baseline tax-benefit system. Used only by reforms. Note: Reforms can be chained.
+    person_key_plural: str = None
+    preprocess_parameters: str = None
+    baseline: "TaxBenefitSystem" = None  # Baseline tax-benefit system. Used only by reforms. Note: Reforms can be chained.
     cache_blacklist = None
     decomposition_file_path = None
 
@@ -72,7 +72,7 @@ class TaxBenefitSystem:
             entity.set_tax_benefit_system(self)
 
     @property
-    def base_tax_benefit_system(self):
+    def base_tax_benefit_system(self) -> "TaxBenefitSystem":
         base_tax_benefit_system = self._base_tax_benefit_system
         if base_tax_benefit_system is None:
             baseline = self.baseline
@@ -83,7 +83,7 @@ class TaxBenefitSystem:
             ) = baseline.base_tax_benefit_system
         return base_tax_benefit_system
 
-    def instantiate_entities(self):
+    def instantiate_entities(self) -> Dict[str, Population]:
         person = self.person_entity
         members = Population(person)
         entities: typing.Dict[Entity.key, Entity] = {person.key: members}
@@ -93,64 +93,9 @@ class TaxBenefitSystem:
 
         return entities
 
-    # Deprecated method of constructing simulations, to be phased out in favor of SimulationBuilder
-    def new_scenario(self):
-        class ScenarioAdapter(object):
-            def __init__(self, tax_benefit_system):
-                self.tax_benefit_system = tax_benefit_system
-
-            def init_from_attributes(self, **attributes):
-                self.attributes = attributes
-                return self
-
-            def init_from_dict(self, dict):
-                self.attributes = None
-                self.dict = dict
-                self.period = dict.pop("period")
-                return self
-
-            def new_simulation(
-                self,
-                debug=False,
-                opt_out_cache=False,
-                use_baseline=False,
-                trace=False,
-            ):
-                # Legacy from scenarios, used in reforms
-                tax_benefit_system = self.tax_benefit_system
-                if use_baseline:
-                    while True:
-                        baseline = tax_benefit_system.baseline
-                        if baseline is None:
-                            break
-                        tax_benefit_system = baseline
-
-                builder = SimulationBuilder()
-                if self.attributes:
-                    variables = self.attributes.get("input_variables") or {}
-                    period = self.attributes.get("period")
-                    builder.set_default_period(period)
-                    simulation = builder.build_from_variables(
-                        tax_benefit_system, variables
-                    )
-                else:
-                    builder.set_default_period(self.period)
-                    simulation = builder.build_from_entities(
-                        tax_benefit_system, self.dict
-                    )
-
-                simulation.trace = trace
-                simulation.debug = debug
-                simulation.opt_out_cache = opt_out_cache
-
-                return simulation
-
-        return ScenarioAdapter(self)
-
-    def prefill_cache(self):
-        pass
-
-    def load_variable(self, variable_class, update=False):
+    def load_variable(
+        self, variable_class: Type[Variable], update: bool = False
+    ) -> Variable:
         name = variable_class.__name__
 
         # Check if a Variable with the same name is already registered.
@@ -179,7 +124,7 @@ class TaxBenefitSystem:
         """
         return self.load_variable(variable, update=False)
 
-    def replace_variable(self, variable):
+    def replace_variable(self, variable: str) -> Variable:
         """
         Replaces an existing OpenFisca variable in the tax and benefit system by a new one.
 
@@ -194,7 +139,7 @@ class TaxBenefitSystem:
             del self.variables[name]
         self.load_variable(variable, update=False)
 
-    def update_variable(self, variable):
+    def update_variable(self, variable: str) -> Variable:
         """
         Updates an existing OpenFisca variable in the tax and benefit system.
 
@@ -208,7 +153,7 @@ class TaxBenefitSystem:
         """
         return self.load_variable(variable, update=True)
 
-    def add_variables_from_file(self, file_path):
+    def add_variables_from_file(self, file_path: str) -> None:
         """
         Adds all OpenFisca variables contained in a given file to the tax and benefit system.
         """
@@ -256,7 +201,7 @@ class TaxBenefitSystem:
             )
             raise
 
-    def add_variables_from_directory(self, directory):
+    def add_variables_from_directory(self, directory: str) -> None:
         """
         Recursively explores a directory, and adds all OpenFisca variables found there to the tax and benefit system.
         """
@@ -267,7 +212,7 @@ class TaxBenefitSystem:
         for subdirectory in subdirectories:
             self.add_variables_from_directory(subdirectory)
 
-    def add_variables(self, *variables):
+    def add_variables(self, *variables: List[Type[Variable]]):
         """
         Adds a list of OpenFisca Variables to the `TaxBenefitSystem`.
 
@@ -276,7 +221,7 @@ class TaxBenefitSystem:
         for variable in variables:
             self.add_variable(variable)
 
-    def load_extension(self, extension):
+    def load_extension(self, extension: str) -> None:
         """
         Loads an extension to the tax and benefit system.
 
@@ -357,7 +302,9 @@ class TaxBenefitSystem:
 
         return reform(self)
 
-    def get_variable(self, variable_name, check_existence=False):
+    def get_variable(
+        self, variable_name: str, check_existence: bool = False
+    ) -> Variable:
         """
         Get a variable from the tax and benefit system.
 
@@ -370,7 +317,7 @@ class TaxBenefitSystem:
             raise VariableNotFoundError(variable_name, self)
         return found
 
-    def neutralize_variable(self, variable_name):
+    def neutralize_variable(self, variable_name: str) -> None:
         """
         Neutralizes an OpenFisca variable existing in the tax and benefit system.
 
@@ -389,7 +336,7 @@ class TaxBenefitSystem:
             self.get_variable(variable_name, period)
         )
 
-    def load_parameters(self, path_to_yaml_dir):
+    def load_parameters(self, path_to_yaml_dir: str) -> None:
         """
         Loads the legislation parameter for a directory containing YAML parameters files.
 
@@ -407,13 +354,17 @@ class TaxBenefitSystem:
 
         self.parameters = parameters
 
-    def _get_baseline_parameters_at_instant(self, instant):
+    def _get_baseline_parameters_at_instant(
+        self, instant: Instant
+    ) -> ParameterNodeAtInstant:
         baseline = self.baseline
         if baseline is None:
             return self.get_parameters_at_instant(instant)
         return baseline._get_baseline_parameters_at_instant(instant)
 
-    def get_parameters_at_instant(self, instant):
+    def get_parameters_at_instant(
+        self, instant: Instant
+    ) -> ParameterNodeAtInstant:
         """
         Get the parameters of the legislation at a given instant
 
@@ -440,7 +391,7 @@ class TaxBenefitSystem:
             self._parameters_at_instant_cache[instant] = parameters_at_instant
         return parameters_at_instant
 
-    def get_package_metadata(self):
+    def get_package_metadata(self) -> dict:
         """
         Gets metatada relative to the country package the tax and benefit system is built from.
 
@@ -494,7 +445,7 @@ class TaxBenefitSystem:
             "location": location,
         }
 
-    def get_variables(self, entity=None):
+    def get_variables(self, entity: Entity = None) -> dict:
         """
         Gets all variables contained in a tax and benefit system.
 
@@ -514,7 +465,7 @@ class TaxBenefitSystem:
                 if variable.entity.key == entity.key
             }
 
-    def clone(self):
+    def clone(self) -> "TaxBenefitSystem":
         new = commons.empty_clone(self)
         new_dict = new.__dict__
 
@@ -535,8 +486,11 @@ class TaxBenefitSystem:
         new_dict["open_api_config"] = self.open_api_config.copy()
         return new
 
-    def entities_plural(self):
+    def entities_plural(self) -> dict:
         return {entity.plural for entity in self.entities}
 
-    def entities_by_singular(self):
+    def entities_by_singular(self) -> dict:
         return {entity.key: entity for entity in self.entities}
+
+    def test(self, paths: str, verbose: bool = False) -> None:
+        run_tests(self, paths, options=dict(verbose=verbose))

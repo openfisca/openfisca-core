@@ -1,3 +1,4 @@
+from typing import List
 import warnings
 
 from policyengine_core.warnings import MemoryConfigWarning
@@ -6,9 +7,9 @@ from policyengine_core.warnings import MemoryConfigWarning
 class MemoryConfig:
     def __init__(
         self,
-        max_memory_occupation,
-        priority_variables=None,
-        variables_to_drop=None,
+        max_memory_occupation: float,
+        priority_variables: List[str] = None,
+        variables_to_drop: List[str] = None,
     ):
         message = [
             "Memory configuration is a feature that is still currently under experimentation.",

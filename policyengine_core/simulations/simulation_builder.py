@@ -1,25 +1,31 @@
 import copy
 import dpath.util
 import typing
-
+from typing import TYPE_CHECKING, Any, List
 import numpy
-
+from numpy.typing import ArrayLike
 from policyengine_core import periods
-from policyengine_core.entities import Entity
+from policyengine_core.periods import Period
+from policyengine_core.entities import Entity, Role
 from policyengine_core.errors import (
     PeriodMismatchError,
     SituationParsingError,
     VariableNotFoundError,
 )
-from policyengine_core.populations import Population
+from policyengine_core.populations import Population, GroupPopulation
 from policyengine_core.simulations import helpers, Simulation
+
+if TYPE_CHECKING:
+    from policyengine_core.taxbenefitsystems.tax_benefit_system import (
+        TaxBenefitSystem,
+    )
 from policyengine_core.variables import Variable
 
 
 class SimulationBuilder:
     def __init__(self):
-        self.default_period = None  # Simulation period used for variables when no period is defined
-        self.persons_plural = None  # Plural name for person entity in current tax and benefits system
+        self.default_period: Period = None  # Simulation period used for variables when no period is defined
+        self.persons_plural: str = None  # Plural name for person entity in current tax and benefits system
 
         # JSON input - Memory of known input values. Indexed by variable or axis name.
         self.input_buffer: typing.Dict[
@@ -45,7 +51,9 @@ class SimulationBuilder:
         ] = {}
         self.axes_roles: typing.Dict[Entity.plural, typing.List[int]] = {}
 
-    def build_from_dict(self, tax_benefit_system, input_dict):
+    def build_from_dict(
+        self, tax_benefit_system: "TaxBenefitSystem", input_dict: dict
+    ) -> Simulation:
         """
         Build a simulation from ``input_dict``
 
@@ -163,7 +171,9 @@ class SimulationBuilder:
 
         return simulation
 
-    def build_from_variables(self, tax_benefit_system, input_dict):
+    def build_from_variables(
+        self, tax_benefit_system: "TaxBenefitSystem", input_dict: dict
+    ) -> Simulation:
         """
         Build a simulation from a Python dict ``input_dict`` describing variables values without expliciting entities.
 
@@ -190,7 +200,9 @@ class SimulationBuilder:
                     simulation.set_input(variable, period_str, dated_value)
         return simulation
 
-    def build_default_simulation(self, tax_benefit_system, count=1):
+    def build_default_simulation(
+        self, tax_benefit_system: "TaxBenefitSystem", count: int = 1
+    ) -> Simulation:
         """
         Build a simulation where:
             - There are ``count`` persons
@@ -210,33 +222,35 @@ class SimulationBuilder:
                 )  # Each person is its own group entity
         return simulation
 
-    def create_entities(self, tax_benefit_system):
+    def create_entities(self, tax_benefit_system: "TaxBenefitSystem") -> None:
         self.populations = tax_benefit_system.instantiate_entities()
 
     def declare_person_entity(
-        self, person_singular, persons_ids: typing.Iterable
-    ):
+        self, person_singular: str, persons_ids: typing.Iterable
+    ) -> None:
         person_instance = self.populations[person_singular]
         person_instance.ids = numpy.array(list(persons_ids))
         person_instance.count = len(person_instance.ids)
 
         self.persons_plural = person_instance.entity.plural
 
-    def declare_entity(self, entity_singular, entity_ids: typing.Iterable):
+    def declare_entity(
+        self, entity_singular: str, entity_ids: typing.Iterable
+    ) -> Population:
         entity_instance = self.populations[entity_singular]
         entity_instance.ids = numpy.array(list(entity_ids))
         entity_instance.count = len(entity_instance.ids)
         return entity_instance
 
-    def nb_persons(self, entity_singular, role=None):
+    def nb_persons(self, entity_singular: str, role: Role = None) -> ArrayLike:
         return self.populations[entity_singular].nb_persons(role=role)
 
     def join_with_persons(
         self,
-        group_population,
-        persons_group_assignment,
+        group_population: GroupPopulation,
+        persons_group_assignment: ArrayLike,
         roles: typing.Iterable[str],
-    ):
+    ) -> None:
         # Maps group's identifiers to a 0-based integer range, for indexing into members_roles (see PR#876)
         group_sorted_indices = numpy.unique(
             persons_group_assignment, return_inverse=True
@@ -260,10 +274,12 @@ class SimulationBuilder:
                     flattened_roles,
                 )
 
-    def build(self, tax_benefit_system):
+    def build(self, tax_benefit_system: "TaxBenefitSystem") -> Simulation:
         return Simulation(tax_benefit_system, self.populations)
 
-    def explicit_singular_entities(self, tax_benefit_system, input_dict):
+    def explicit_singular_entities(
+        self, tax_benefit_system: "TaxBenefitSystem", input_dict: dict
+    ) -> dict:
         """
         Preprocess ``input_dict`` to explicit entities defined using the single-entity shortcut
 
@@ -293,7 +309,9 @@ class SimulationBuilder:
 
         return result
 
-    def add_person_entity(self, entity, instances_json):
+    def add_person_entity(
+        self, entity: Entity, instances_json: dict
+    ) -> List[int]:
         """
         Add the simulation's instances of the persons entity as described in ``instances_json``.
         """
@@ -313,7 +331,9 @@ class SimulationBuilder:
 
         return self.get_ids(entity.plural)
 
-    def add_default_group_entity(self, persons_ids, entity):
+    def add_default_group_entity(
+        self, persons_ids: ArrayLike, entity: Entity
+    ) -> None:
         persons_count = len(persons_ids)
         self.entity_ids[entity.plural] = persons_ids
         self.entity_counts[entity.plural] = persons_count
@@ -325,8 +345,12 @@ class SimulationBuilder:
         )
 
     def add_group_entity(
-        self, persons_plural, persons_ids, entity, instances_json
-    ):
+        self,
+        persons_plural: str,
+        persons_ids: ArrayLike,
+        entity: Entity,
+        instances_json: dict,
+    ) -> None:
         """
         Add all instances of one of the model's entities as described in ``instances_json``.
         """
@@ -434,11 +458,11 @@ class SimulationBuilder:
             entity.plural
         ].tolist()
 
-    def set_default_period(self, period_str):
+    def set_default_period(self, period_str: str) -> None:
         if period_str:
             self.default_period = str(periods.period(period_str))
 
-    def get_input(self, variable, period_str):
+    def get_input(self, variable: str, period_str: str) -> Any:
         if variable not in self.input_buffer:
             self.input_buffer[variable] = {}
         return self.input_buffer[variable].get(period_str)

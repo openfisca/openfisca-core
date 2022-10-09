@@ -7,7 +7,7 @@ from policyengine_core.country_template import entities, situation_examples
 
 from policyengine_core import periods, tools
 from policyengine_core.errors import SituationParsingError
-from policyengine_core.indexed_enums import Enum
+from policyengine_core.enums import Enum
 from policyengine_core.populations import Population
 from policyengine_core.simulations import Simulation, SimulationBuilder
 from policyengine_core.tools import test_runner

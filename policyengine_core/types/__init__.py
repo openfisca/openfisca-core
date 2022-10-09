@@ -37,7 +37,7 @@ Note:
 
 # Official Public API
 
-from .data_types import (  # noqa: F401
+from .data_types import (
     ArrayLike,
     ArrayType,
 )

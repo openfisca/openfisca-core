@@ -11,9 +11,9 @@ from policyengine_core.tools import assert_near
 from policyengine_core.parameters import (
     ParameterNode,
     Parameter,
-    ParameterNotFound,
+    ParameterNotFoundError,
 )
-from policyengine_core.model_api import *  # noqa
+from policyengine_core.model_api import *
 
 LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -94,7 +94,7 @@ def test_triple_fancy_indexing():
 
 def test_wrong_key():
     zone = np.asarray(["z1", "z2", "z2", "toto"])
-    with pytest.raises(ParameterNotFound) as e:
+    with pytest.raises(ParameterNotFoundError) as e:
         P.single.owner[zone]
     assert "'rate.single.owner.toto' was not found" in get_message(e.value)
 

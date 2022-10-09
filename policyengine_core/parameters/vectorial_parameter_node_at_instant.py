@@ -1,9 +1,13 @@
+from typing import Any, TYPE_CHECKING
 import numpy
-
+from numpy.typing import ArrayLike
 from policyengine_core import parameters
 from policyengine_core.errors import ParameterNotFoundError
-from policyengine_core.indexed_enums import Enum, EnumArray
+from policyengine_core.enums import Enum, EnumArray
 from policyengine_core.parameters import helpers
+
+if TYPE_CHECKING:
+    from policyengine_core.parameters.parameter_node import ParameterNode
 
 
 class VectorialParameterNodeAtInstant:
@@ -13,7 +17,9 @@ class VectorialParameterNodeAtInstant:
     """
 
     @staticmethod
-    def build_from_node(node):
+    def build_from_node(
+        node: "ParameterNode",
+    ) -> "VectorialParameterNodeAtInstant":
         VectorialParameterNodeAtInstant.check_node_vectorisable(node)
         subnodes_name = node._children.keys()
         # Recursively vectorize the children of the node
@@ -51,7 +57,7 @@ class VectorialParameterNodeAtInstant:
         )
 
     @staticmethod
-    def check_node_vectorisable(node):
+    def check_node_vectorisable(node: "ParameterNode") -> None:
         """
         Check that a node can be casted to a vectorial node, in order to be able to use fancy indexing.
         """
@@ -163,19 +169,19 @@ class VectorialParameterNodeAtInstant:
 
         check_nodes_homogeneous(extract_named_children(node))
 
-    def __init__(self, name, vector, instant_str):
+    def __init__(self, name: str, vector: ArrayLike, instant_str: str):
 
         self.vector = vector
         self._name = name
         self._instant_str = instant_str
 
-    def __getattr__(self, attribute):
+    def __getattr__(self, attribute: str) -> Any:
         result = getattr(self.vector, attribute)
         if isinstance(result, numpy.recarray):
             return VectorialParameterNodeAtInstant(result)
         return result
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Any:
         # If the key is a string, just get the subnode
         if isinstance(key, str):
             return self.__getattr__(key)

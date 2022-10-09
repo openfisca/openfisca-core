@@ -3,8 +3,9 @@ from __future__ import annotations
 import copy
 import os
 import typing
-
+from typing import Iterable, Union
 from policyengine_core import commons, parameters, tools
+from policyengine_core.periods.instant_ import Instant
 from . import config, helpers, AtInstantLike, Parameter, ParameterNodeAtInstant
 
 
@@ -18,7 +19,11 @@ class ParameterNode(AtInstantLike):
     ] = None  # By default, no restriction on the keys
 
     def __init__(
-        self, name="", directory_path=None, data=None, file_path=None
+        self,
+        name: str = "",
+        directory_path: str = None,
+        data: dict = None,
+        file_path: str = None,
     ):
         """
         Instantiate a ParameterNode either from a dict, (using `data`), or from a directory containing YAML files (using `directory_path`).
@@ -121,7 +126,7 @@ class ParameterNode(AtInstantLike):
                 )
                 self.add_child(child_name, child)
 
-    def merge(self, other):
+    def merge(self, other: "ParameterNode") -> None:
         """
         Merges another ParameterNode into the current node.
 
@@ -130,7 +135,7 @@ class ParameterNode(AtInstantLike):
         for child_name, child in other.children.items():
             self.add_child(child_name, child)
 
-    def add_child(self, name, child):
+    def add_child(self, name: str, child: Union[ParameterNode, Parameter]):
         """
         Add a new child to the node.
 
@@ -154,7 +159,7 @@ class ParameterNode(AtInstantLike):
         self.children[name] = child
         setattr(self, name, child)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         result = os.linesep.join(
             [
                 os.linesep.join(["{}:", "{}"]).format(
@@ -165,7 +170,7 @@ class ParameterNode(AtInstantLike):
         )
         return result
 
-    def get_descendants(self):
+    def get_descendants(self) -> Iterable[Union[ParameterNode, Parameter]]:
         """
         Return a generator containing all the parameters and nodes recursively contained in this `ParameterNode`
         """
@@ -173,7 +178,7 @@ class ParameterNode(AtInstantLike):
             yield child
             yield from child.get_descendants()
 
-    def clone(self):
+    def clone(self) -> "ParameterNode":
         clone = commons.empty_clone(self)
         clone.__dict__ = self.__dict__.copy()
 
@@ -186,5 +191,5 @@ class ParameterNode(AtInstantLike):
 
         return clone
 
-    def _get_at_instant(self, instant):
+    def _get_at_instant(self, instant: Instant) -> ParameterNodeAtInstant:
         return ParameterNodeAtInstant(self.name, self, instant)

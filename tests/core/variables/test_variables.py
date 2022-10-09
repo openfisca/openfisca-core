@@ -4,7 +4,7 @@ import datetime
 
 from policyengine_core.model_api import Variable
 from policyengine_core.periods import MONTH, ETERNITY
-from policyengine_core.simulation_builder import SimulationBuilder
+from policyengine_core.simulations import SimulationBuilder
 from policyengine_core.tools import assert_near
 
 import policyengine_core.country_template as country_template

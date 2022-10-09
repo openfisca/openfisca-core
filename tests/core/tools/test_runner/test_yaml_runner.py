@@ -9,7 +9,7 @@ from policyengine_core.tools.test_runner import (
     YamlItem,
     YamlFile,
 )
-from policyengine_core.errors import VariableNotFound
+from policyengine_core.errors import VariableNotFoundError
 from policyengine_core.variables import Variable
 from policyengine_core.populations import Population
 from policyengine_core.entities import Entity
@@ -89,7 +89,7 @@ class TestVariable(Variable):
 
 def test_variable_not_found():
     test = {"output": {"unknown_variable": 0}}
-    with pytest.raises(VariableNotFound) as excinfo:
+    with pytest.raises(VariableNotFoundError) as excinfo:
         test_item = TestItem(test)
         test_item.check_output()
     assert excinfo.value.variable_name == "unknown_variable"
