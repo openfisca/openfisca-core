@@ -24,3 +24,4 @@ parts:
     - file: python_api/simulations
     - file: python_api/taxbenefitsystems
     - file: python_api/taxscales
+    - file: python_api/tools
