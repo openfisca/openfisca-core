@@ -23,7 +23,10 @@ general_requirements = [
     "wheel",
 ]
 
-dev_requirements = []
+dev_requirements = [
+    "jupyter-book",
+    "furo",
+]
 
 setup(
     name="policyengine-core",

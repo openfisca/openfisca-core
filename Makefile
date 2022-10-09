@@ -8,7 +8,7 @@ format:
 	black . -l 79
 
 install:
-	pip install -e .
+	pip install -e .[dev]
 
 test:
 	coverage run -a --branch -m pytest tests
