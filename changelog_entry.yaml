@@ -1,0 +1,4 @@
+- bump: patch
+  changes:
+    fixed:
+    - Python 3.9 used in all GitHub actions.

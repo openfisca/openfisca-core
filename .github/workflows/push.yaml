@@ -29,6 +29,8 @@ jobs:
           token: ${{ secrets.POLICYENGINE_GITHUB }}
       - name: Setup Python
         uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
       - name: Build changelog
         run: pip install yaml-changelog && make changelog
       - name: Preview changelog update
@@ -53,6 +55,8 @@ jobs:
         uses: actions/checkout@v3
       - name: Set up Python
         uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
       - name: Install package
         run: make install
       - name: Run tests
@@ -76,6 +80,8 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup Python
         uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
       - name: Publish a git tag
         run: ".github/publish-git-tag.sh || true"
       - name: Install package
