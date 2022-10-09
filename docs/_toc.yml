@@ -12,6 +12,7 @@ parts:
     - file: python_api/experimental
     - file: python_api/extension_template
     - file: python_api/holders
+    - file: python_api/parameters
   - caption: Contributing
     chapters:
     - file: contributing/intro

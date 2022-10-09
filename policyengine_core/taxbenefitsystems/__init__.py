@@ -22,8 +22,8 @@
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
 from policyengine_core.errors import (
-    VariableNameConflict,
-    VariableNotFound,
+    VariableNameConflictError,
+    VariableNotFoundError,
 )
 
 from .tax_benefit_system import TaxBenefitSystem

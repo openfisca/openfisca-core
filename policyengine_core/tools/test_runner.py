@@ -11,7 +11,7 @@ import pytest
 
 from policyengine_core.tools import assert_near
 from policyengine_core.simulations import SimulationBuilder
-from policyengine_core.errors import SituationParsingError, VariableNotFound
+from policyengine_core.errors import SituationParsingError, VariableNotFoundError
 from policyengine_core.warnings import LibYAMLWarning
 
 
@@ -193,7 +193,7 @@ class YamlItem(pytest.Item):
             self.simulation = builder.build_from_dict(
                 self.tax_benefit_system, input
             )
-        except (VariableNotFound, SituationParsingError):
+        except (VariableNotFoundError, SituationParsingError):
             raise
         except Exception as e:
             error_message = os.linesep.join(
@@ -266,7 +266,7 @@ class YamlItem(pytest.Item):
                                 entity_index,
                             )
                 else:
-                    raise VariableNotFound(key, self.tax_benefit_system)
+                    raise VariableNotFoundError(key, self.tax_benefit_system)
 
     def check_variable(
         self, variable_name, expected_value, period, entity_index=None
@@ -313,7 +313,7 @@ class YamlItem(pytest.Item):
     def repr_failure(self, excinfo):
         if not isinstance(
             excinfo.value,
-            (AssertionError, VariableNotFound, SituationParsingError),
+            (AssertionError, VariableNotFoundError, SituationParsingError),
         ):
             return super(YamlItem, self).repr_failure(excinfo)
 

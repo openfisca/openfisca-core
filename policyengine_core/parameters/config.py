@@ -17,10 +17,8 @@ except ImportError:
     warnings.warn(" ".join(message), LibYAMLWarning)
     from yaml import Loader  # type: ignore # (see https://github.com/python/mypy/issues/1153#issuecomment-455802270)
 
-# 'unit' and 'reference' are only listed here for backward compatibility.
-#  It is now recommended to include them in metadata, until a common consensus emerges.
 ALLOWED_PARAM_TYPES = (float, int, bool, type(None), typing.List)
-COMMON_KEYS = {"description", "metadata", "unit", "reference", "documentation"}
+COMMON_KEYS = {"description", "metadata", "documentation"}
 FILE_EXTENSIONS = {".yaml", ".yml"}
 
 

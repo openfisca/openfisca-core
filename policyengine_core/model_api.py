@@ -19,10 +19,9 @@ from policyengine_core.enums import Enum
 from policyengine_core.parameters import (
     load_parameter_file,
     ParameterNode,
-    Scale,
-    Bracket,
+    ParameterScale,
+    ParameterScaleBracket,
     Parameter,
-    ValuesHistory,
 )
 
 from policyengine_core.periods import (

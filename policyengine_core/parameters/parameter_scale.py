@@ -1,15 +1,17 @@
 import copy
 import os
 import typing
-
+from typing import Any, Iterable
 from policyengine_core import commons, parameters, tools
 from policyengine_core.errors import ParameterParsingError
 from policyengine_core.parameters import config, helpers, AtInstantLike
+from policyengine_core.periods.instant_ import Instant
 from policyengine_core.taxscales import (
     LinearAverageRateTaxScale,
     MarginalAmountTaxScale,
     MarginalRateTaxScale,
     SingleAmountTaxScale,
+    TaxScaleLike,
 )
 
 
@@ -21,7 +23,7 @@ class ParameterScale(AtInstantLike):
     # 'unit' and 'reference' are only listed here for backward compatibility
     _allowed_keys = config.COMMON_KEYS.union({"brackets"})
 
-    def __init__(self, name, data, file_path):
+    def __init__(self, name: str, data: dict, file_path: str):
         """
         :param name: name of the scale, eg "taxes.some_scale"
         :param data: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
@@ -54,13 +56,13 @@ class ParameterScale(AtInstantLike):
             brackets.append(bracket)
         self.brackets: typing.List[parameters.ParameterScaleBracket] = brackets
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Any:
         if isinstance(key, int) and key < len(self.brackets):
             return self.brackets[key]
         else:
             raise KeyError(key)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return os.linesep.join(
             ["brackets:"]
             + [
@@ -69,10 +71,10 @@ class ParameterScale(AtInstantLike):
             ]
         )
 
-    def get_descendants(self):
+    def get_descendants(self) -> Iterable:
         return iter(())
 
-    def clone(self):
+    def clone(self) -> "ParameterScale":
         clone = commons.empty_clone(self)
         clone.__dict__ = self.__dict__.copy()
 
@@ -81,7 +83,7 @@ class ParameterScale(AtInstantLike):
 
         return clone
 
-    def _get_at_instant(self, instant):
+    def _get_at_instant(self, instant: Instant) -> TaxScaleLike:
         brackets = [
             bracket.get_at_instant(instant) for bracket in self.brackets
         ]
