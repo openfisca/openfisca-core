@@ -6,7 +6,7 @@ from typing import Dict, Optional, Union
 import numpy
 
 from policyengine_core import tracers
-from policyengine_core.indexed_enums import EnumArray
+from policyengine_core.enums import EnumArray
 
 if typing.TYPE_CHECKING:
     from numpy.typing import ArrayLike

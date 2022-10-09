@@ -8,7 +8,7 @@ import numpy
 
 from policyengine_core import periods, tools
 from policyengine_core.entities import Entity
-from policyengine_core.indexed_enums import Enum, EnumArray
+from policyengine_core.enums import Enum, EnumArray
 from policyengine_core.periods import Period
 
 from . import config, helpers

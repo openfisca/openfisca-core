@@ -6,7 +6,7 @@ import typing
 if typing.TYPE_CHECKING:
     import numpy
 
-    from policyengine_core.indexed_enums import EnumArray
+    from policyengine_core.enums import EnumArray
     from policyengine_core.periods import Period
 
     Array = typing.Union[EnumArray, numpy.typing.ArrayLike]

@@ -2,7 +2,7 @@ import numpy
 
 from policyengine_core import parameters
 from policyengine_core.errors import ParameterNotFoundError
-from policyengine_core.indexed_enums import Enum, EnumArray
+from policyengine_core.enums import Enum, EnumArray
 from policyengine_core.parameters import helpers
 
 

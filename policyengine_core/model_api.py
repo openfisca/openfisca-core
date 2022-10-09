@@ -14,7 +14,7 @@ from policyengine_core.holders import (
     set_input_divide_by_period,
 )
 
-from policyengine_core.indexed_enums import Enum
+from policyengine_core.enums import Enum
 
 from policyengine_core.parameters import (
     load_parameter_file,

@@ -7,7 +7,7 @@ See https://openfisca.org/doc/key-concepts/variables.html
 """
 
 # Import from openfisca-core the Python objects used to code the legislation in OpenFisca
-from policyengine_core.indexed_enums import Enum
+from policyengine_core.enums import Enum
 from policyengine_core.periods import MONTH
 from policyengine_core.variables import Variable
 

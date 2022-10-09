@@ -16,3 +16,9 @@
 ```{eval-rst}
 .. autofunction:: policyengine_core.holders.helpers.set_input_dispatch_by_period
 ```
+
+## set_input_divide_by_period
+
+```{eval-rst}
+.. autofunction:: policyengine_core.holders.helpers.set_input_divide_by_period
+```

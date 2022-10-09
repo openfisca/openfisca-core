@@ -4,7 +4,7 @@ import numpy
 
 from policyengine_core import projectors
 from policyengine_core.entities import Role
-from policyengine_core.indexed_enums import EnumArray
+from policyengine_core.enums import EnumArray
 from policyengine_core.populations import Population
 
 

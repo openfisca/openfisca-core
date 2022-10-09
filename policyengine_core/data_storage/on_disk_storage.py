@@ -4,7 +4,7 @@ import shutil
 import numpy
 from numpy.typing import ArrayLike
 from policyengine_core import periods
-from policyengine_core.indexed_enums import EnumArray
+from policyengine_core.enums import EnumArray
 from policyengine_core.periods import Period
 
 

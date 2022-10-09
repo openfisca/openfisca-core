@@ -6,7 +6,7 @@ from typing import Any, NoReturn, Optional, Type
 import numpy
 
 if typing.TYPE_CHECKING:
-    from policyengine_core.indexed_enums import Enum
+    from policyengine_core.enums import Enum
 
 
 class EnumArray(numpy.ndarray):

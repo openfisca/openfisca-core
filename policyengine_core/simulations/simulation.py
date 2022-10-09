@@ -5,7 +5,7 @@ import numpy
 
 from policyengine_core import commons, periods
 from policyengine_core.errors import CycleError, SpiralError
-from policyengine_core.indexed_enums import Enum, EnumArray
+from policyengine_core.enums import Enum, EnumArray
 from policyengine_core.periods import Period
 from policyengine_core.tracers import (
     FullTracer,
