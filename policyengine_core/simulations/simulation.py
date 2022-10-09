@@ -85,7 +85,6 @@ class Simulation:
                 ).format(self._data_storage_dir),
                 "You should remove this directory once you're done with your simulation.",
             ]
-            # warnings.warn(" ".join(message), TempfileWarning) # Deprecated warning.
         return self._data_storage_dir
 
     # ----- Calculation methods ----- #
