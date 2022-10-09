@@ -27,3 +27,6 @@ parts:
     - file: python_api/tools
     - file: python_api/tracers
     - file: python_api/types
+    - file: python_api/variables
+    - file: python_api/warnings
+
