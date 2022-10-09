@@ -26,6 +26,7 @@ general_requirements = [
 dev_requirements = [
     "jupyter-book",
     "furo",
+    "markupsafe==2.0.1",
 ]
 
 setup(
