@@ -27,7 +27,7 @@ dev_requirements = [
     "jupyter-book<1",
     "furo<2023",
     "markupsafe==2.0.1",
-    "sphinx>=4.5.0,<5"
+    "sphinx>=4.5.0,<5",
 ]
 
 setup(
