@@ -1,5 +1,0 @@
-- bump: patch
-  changes:
-    added:
-    - Type hints to most functions and classes.
-    - Jupyter book documentation for all modules.

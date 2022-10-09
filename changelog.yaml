@@ -23,3 +23,9 @@
     fixed:
     - Build action always runs.
   date: 2022-10-02 16:59:49
+- bump: patch
+  changes:
+    added:
+    - Type hints to most functions and classes.
+    - Jupyter book documentation for all modules.
+  date: 2022-10-09 22:33:24
