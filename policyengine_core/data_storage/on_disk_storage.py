@@ -14,7 +14,10 @@ class OnDiskStorage:
     """
 
     def __init__(
-        self, storage_dir: str, is_eternal: bool = False, preserve_storage_dir: bool = False
+        self,
+        storage_dir: str,
+        is_eternal: bool = False,
+        preserve_storage_dir: bool = False,
     ):
         self._files = {}
         self._enums = {}

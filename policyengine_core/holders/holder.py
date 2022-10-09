@@ -9,6 +9,7 @@ from policyengine_core.errors import PeriodMismatchError
 from policyengine_core.data_storage import InMemoryStorage, OnDiskStorage
 from policyengine_core.enums import Enum
 from policyengine_core.periods import Period
+
 if TYPE_CHECKING:
     from policyengine_core.variables import Variable
     from policyengine_core.populations import Population
@@ -60,7 +61,9 @@ class Holder:
 
         return new
 
-    def create_disk_storage(self, directory: str = None, preserve: bool = False) -> OnDiskStorage:
+    def create_disk_storage(
+        self, directory: str = None, preserve: bool = False
+    ) -> OnDiskStorage:
         if directory is None:
             directory = self.simulation.data_storage_dir
         storage_dir = os.path.join(directory, self.variable.name)

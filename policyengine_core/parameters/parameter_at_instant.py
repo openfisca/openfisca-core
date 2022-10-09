@@ -14,7 +14,12 @@ class ParameterAtInstant:
     _allowed_keys = set(["value", "metadata"])
 
     def __init__(
-        self, name: str, instant_str: str, data: dict = None, file_path: str = None, metadata: dict = None
+        self,
+        name: str,
+        instant_str: str,
+        data: dict = None,
+        file_path: str = None,
+        metadata: dict = None,
     ):
         """
         :param str name: name of the parameter, e.g. "taxes.some_tax.some_param"

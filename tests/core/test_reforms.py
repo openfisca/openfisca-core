@@ -141,7 +141,6 @@ def test_permanent_variable_neutralization(
     assert str(reform_simulation.calculate("birth", None)[0]) == "1970-01-01"
 
 
-
 def test_add_variable(make_simulation, tax_benefit_system):
     class new_variable(Variable):
         value_type = int

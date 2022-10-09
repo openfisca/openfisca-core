@@ -11,7 +11,10 @@ import pytest
 
 from policyengine_core.tools import assert_near
 from policyengine_core.simulations import SimulationBuilder
-from policyengine_core.errors import SituationParsingError, VariableNotFoundError
+from policyengine_core.errors import (
+    SituationParsingError,
+    VariableNotFoundError,
+)
 from policyengine_core.warnings import LibYAMLWarning
 
 
@@ -89,7 +92,7 @@ def run_tests(tax_benefit_system, paths, options=None):
 
     if not isinstance(paths, list):
         paths = [paths]
-    
+
     if not isinstance(paths[0], str):
         paths = [str(path) for path in paths]
 

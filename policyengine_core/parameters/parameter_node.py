@@ -19,7 +19,11 @@ class ParameterNode(AtInstantLike):
     ] = None  # By default, no restriction on the keys
 
     def __init__(
-        self, name: str = "", directory_path: str = None, data: dict = None, file_path: str = None
+        self,
+        name: str = "",
+        directory_path: str = None,
+        data: dict = None,
+        file_path: str = None,
     ):
         """
         Instantiate a ParameterNode either from a dict, (using `data`), or from a directory containing YAML files (using `directory_path`).

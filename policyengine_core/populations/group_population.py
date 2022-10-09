@@ -145,7 +145,13 @@ class GroupPopulation(Population):
         return sum_in_entity > 0
 
     @projectors.projectable
-    def reduce(self, array: ArrayLike, reducer: Callable, neutral_element: Any, role: Role = None) -> ArrayLike:
+    def reduce(
+        self,
+        array: ArrayLike,
+        reducer: Callable,
+        neutral_element: Any,
+        role: Role = None,
+    ) -> ArrayLike:
         self.members.check_array_compatible_with_entity(array)
         self.entity.check_role_validity(role)
         position_in_entity = self.members_position
@@ -254,7 +260,9 @@ class GroupPopulation(Population):
     # Projection person -> entity
 
     @projectors.projectable
-    def value_from_person(self, array: ArrayLike, role: Role, default: Any = 0) -> ArrayLike:
+    def value_from_person(
+        self, array: ArrayLike, role: Role, default: Any = 0
+    ) -> ArrayLike:
         """
         Get the value of ``array`` for the person with the unique role ``role``.
 
@@ -284,7 +292,9 @@ class GroupPopulation(Population):
         return result
 
     @projectors.projectable
-    def value_nth_person(self, n: int, array: ArrayLike, default: Any = 0) -> ArrayLike:
+    def value_nth_person(
+        self, n: int, array: ArrayLike, default: Any = 0
+    ) -> ArrayLike:
         """
         Get the value of array for the person whose position in the entity is n.
 

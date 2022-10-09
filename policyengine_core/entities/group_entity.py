@@ -25,7 +25,15 @@ class GroupEntity(Entity):
 
     """
 
-    def __init__(self, key: str, plural: str, label: str, doc: str, roles: List[str], containing_entities: List[str] = ()):
+    def __init__(
+        self,
+        key: str,
+        plural: str,
+        label: str,
+        doc: str,
+        roles: List[str],
+        containing_entities: List[str] = (),
+    ):
         super().__init__(key, plural, label, doc)
         self.roles_description = roles
         self.roles = []

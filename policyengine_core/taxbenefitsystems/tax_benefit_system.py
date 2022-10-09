@@ -541,6 +541,6 @@ class TaxBenefitSystem:
 
     def entities_by_singular(self):
         return {entity.key: entity for entity in self.entities}
-    
+
     def test(self, paths: str, verbose: bool = False) -> None:
         run_tests(self, paths, options=dict(verbose=verbose))

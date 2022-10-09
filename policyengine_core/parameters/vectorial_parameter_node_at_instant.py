@@ -5,6 +5,7 @@ from policyengine_core import parameters
 from policyengine_core.errors import ParameterNotFoundError
 from policyengine_core.enums import Enum, EnumArray
 from policyengine_core.parameters import helpers
+
 if TYPE_CHECKING:
     from policyengine_core.parameters.parameter_node import ParameterNode
 
@@ -16,7 +17,9 @@ class VectorialParameterNodeAtInstant:
     """
 
     @staticmethod
-    def build_from_node(node: "ParameterNode") -> "VectorialParameterNodeAtInstant":
+    def build_from_node(
+        node: "ParameterNode",
+    ) -> "VectorialParameterNodeAtInstant":
         VectorialParameterNodeAtInstant.check_node_vectorisable(node)
         subnodes_name = node._children.keys()
         # Recursively vectorize the children of the node

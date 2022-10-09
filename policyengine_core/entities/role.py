@@ -5,6 +5,7 @@ class Role:
     """
     The type of the relation between an entity instance and a group entity instance.
     """
+
     def __init__(self, description, entity):
         self.entity = entity
         self.key = description["key"]

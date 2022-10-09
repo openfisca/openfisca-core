@@ -9,7 +9,9 @@ from policyengine_core.periods import Period
 log = logging.getLogger(__name__)
 
 
-def set_input_dispatch_by_period(holder: Holder, period: Period, array: ArrayLike):
+def set_input_dispatch_by_period(
+    holder: Holder, period: Period, array: ArrayLike
+):
     """
     This function can be declared as a ``set_input`` attribute of a variable.
 
@@ -46,7 +48,9 @@ def set_input_dispatch_by_period(holder: Holder, period: Period, array: ArrayLik
         sub_period = sub_period.offset(1)
 
 
-def set_input_divide_by_period(holder: Holder, period: Period, array: ArrayLike):
+def set_input_divide_by_period(
+    holder: Holder, period: Period, array: ArrayLike
+):
     """
     This function can be declared as a ``set_input`` attribute of a variable.
 

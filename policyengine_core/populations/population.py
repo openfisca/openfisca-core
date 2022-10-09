@@ -11,6 +11,7 @@ from policyengine_core.projectors import Projector
 from policyengine_core.entities import Entity, Role
 from policyengine_core.simulations import Simulation
 
+
 class Population:
     def __init__(self, entity: Entity):
         self.simulation: Simulation = None
@@ -59,7 +60,9 @@ class Population:
                 )
             )
 
-    def check_period_validity(self, variable_name: str, period: Period) -> None:
+    def check_period_validity(
+        self, variable_name: str, period: Period
+    ) -> None:
         if period is None:
             stack = traceback.extract_stack()
             filename, line_number, function_name, line_of_code = stack[-3]
@@ -75,7 +78,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
                 )
             )
 
-    def __call__(self, variable_name: str, period: Period = None, options: dict = None):
+    def __call__(
+        self, variable_name: str, period: Period = None, options: dict = None
+    ):
         """
         Calculate the variable ``variable_name`` for the entity and the period ``period``, using the variable formula if it exists.
 
@@ -157,7 +162,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             return group_population.members_role == role
 
     @projectors.projectable
-    def value_from_partner(self, array: ArrayLike, entity: Entity, role: Role) -> ArrayLike:
+    def value_from_partner(
+        self, array: ArrayLike, entity: Entity, role: Role
+    ) -> ArrayLike:
         self.check_array_compatible_with_entity(array)
         self.entity.check_role_validity(role)
 
@@ -176,7 +183,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         )
 
     @projectors.projectable
-    def get_rank(self, entity: Entity, criteria: ArrayLike, condition: ArrayLike = True) -> ArrayLike:
+    def get_rank(
+        self, entity: Entity, criteria: ArrayLike, condition: ArrayLike = True
+    ) -> ArrayLike:
         """
         Get the rank of a person within an entity according to a criteria.
         The person with rank 0 has the minimum value of criteria.

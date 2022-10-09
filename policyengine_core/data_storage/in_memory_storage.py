@@ -9,6 +9,7 @@ class InMemoryStorage:
     """
     Low-level class responsible for storing and retrieving calculated vectors in memory
     """
+
     _arrays: Dict[Period, ArrayLike]
     is_eternal: bool
 
