@@ -34,3 +34,8 @@
     added:
     - Test that documentation builds
   date: 2022-10-09 22:55:14
+- bump: patch
+  changes:
+    fixed:
+    - Python 3.9 used in all GitHub actions.
+  date: 2022-10-09 23:00:35
