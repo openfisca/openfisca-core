@@ -1,9 +1,12 @@
 from policyengine_core.projectors import helpers
-
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from policyengine_core.populations import Population
+from numpy.typing import ArrayLike
 
 class Projector:
-    reference_entity = None
-    parent = None
+    reference_entity: "Population" = None
+    parent: "Projector" = None
 
     def __getattr__(self, attribute):
         projector = helpers.get_projector_from_shortcut(
@@ -33,5 +36,5 @@ class Projector:
         else:
             return self.parent.transform_and_bubble_up(transformed_result)
 
-    def transform(self, result):
+    def transform(self, result: ArrayLike):
         return NotImplementedError()

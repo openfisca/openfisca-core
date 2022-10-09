@@ -1,6 +1,9 @@
 format: jb-book
 root: intro
 parts:
+  - caption: Contributing
+    chapters:
+    - file: contributing/intro
   - caption: Python API
     chapters:
     - file: python_api/commons
@@ -15,6 +18,5 @@ parts:
     - file: python_api/parameters
     - file: python_api/periods
     - file: python_api/populations
-  - caption: Contributing
-    chapters:
-    - file: contributing/intro
+    - file: python_api/projectors
+

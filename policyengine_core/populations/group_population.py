@@ -12,10 +12,10 @@ from policyengine_core.simulations.simulation import Simulation
 class GroupPopulation(Population):
     def __init__(self, entity: Entity, members: Population):
         super().__init__(entity)
-        self.members = members
-        self._members_entity_id = None
-        self._members_role = None
-        self._members_position = None
+        self.members: Population = members
+        self._members_entity_id: ArrayLike = None
+        self._members_role: ArrayLike = None
+        self._members_position: ArrayLike = None
         self._ordered_members_map = None
 
     def clone(self, simulation: Simulation) -> "GroupPopulation":
