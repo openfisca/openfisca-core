@@ -12,7 +12,7 @@ import pkg_resources
 import sys
 import traceback
 import typing
-
+from typing import TYPE_CHECKING
 from policyengine_core import commons, periods, variables
 from policyengine_core.entities import Entity
 from policyengine_core.errors import (
@@ -22,7 +22,6 @@ from policyengine_core.errors import (
 from policyengine_core.parameters import ParameterNode
 from policyengine_core.periods import Instant, Period
 from policyengine_core.populations import Population, GroupPopulation
-from policyengine_core.simulations import SimulationBuilder
 from policyengine_core.tools.test_runner import run_tests
 from policyengine_core.variables import Variable
 
@@ -125,7 +124,7 @@ class TaxBenefitSystem:
                         if baseline is None:
                             break
                         tax_benefit_system = baseline
-
+                from policyengine_core.simulations import SimulationBuilder
                 builder = SimulationBuilder()
                 if self.attributes:
                     variables = self.attributes.get("input_variables") or {}

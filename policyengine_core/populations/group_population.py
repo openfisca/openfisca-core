@@ -1,12 +1,12 @@
-import typing
-from typing import Callable, Any
+from typing import Callable, Any, TYPE_CHECKING
 import numpy
 from numpy.typing import ArrayLike
 from policyengine_core import projectors
 from policyengine_core.entities import Role, Entity
 from policyengine_core.enums import EnumArray
 from policyengine_core.populations import Population
-from policyengine_core.simulations.simulation import Simulation
+if TYPE_CHECKING:
+    from policyengine_core.simulations import Simulation
 
 
 class GroupPopulation(Population):
@@ -18,7 +18,7 @@ class GroupPopulation(Population):
         self._members_position: ArrayLike = None
         self._ordered_members_map = None
 
-    def clone(self, simulation: Simulation) -> "GroupPopulation":
+    def clone(self, simulation: "Simulation") -> "GroupPopulation":
         result = GroupPopulation(self.entity, self.members)
         result.simulation = simulation
         result._holders = {

@@ -1,6 +1,5 @@
 import traceback
-from typing import Any, List
-
+from typing import Any, List, TYPE_CHECKING
 import numpy
 from numpy.typing import ArrayLike
 from policyengine_core import projectors
@@ -9,18 +8,19 @@ from policyengine_core.periods.period_ import Period
 from policyengine_core.populations import config
 from policyengine_core.projectors import Projector
 from policyengine_core.entities import Entity, Role
-from policyengine_core.simulations import Simulation
+if TYPE_CHECKING:
+    from policyengine_core.simulations import Simulation
 
 
 class Population:
     def __init__(self, entity: Entity):
-        self.simulation: Simulation = None
+        self.simulation: "Simulation" = None
         self.entity = entity
         self._holders = {}
         self.count = 0
         self.ids = []
 
-    def clone(self, simulation: Simulation) -> "Population":
+    def clone(self, simulation: "Simulation") -> "Population":
         result = Population(self.entity)
         result.simulation = simulation
         result._holders = {

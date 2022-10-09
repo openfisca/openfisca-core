@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+from typing import Callable
 
 from policyengine_core.parameters import ParameterNode
 from policyengine_core.taxbenefitsystems import TaxBenefitSystem
@@ -35,9 +36,9 @@ class Reform(TaxBenefitSystem):
         >>>        self.modify_parameters(modifier_function = modify_my_parameters)
     """
 
-    name = None
+    name: str = None
 
-    def __init__(self, baseline):
+    def __init__(self, baseline: TaxBenefitSystem):
         """
         :param baseline: Baseline TaxBenefitSystem.
         """
@@ -60,7 +61,7 @@ class Reform(TaxBenefitSystem):
         return getattr(self.baseline, attribute)
 
     @property
-    def full_key(self):
+    def full_key(self) -> str:
         key = self.key
         assert (
             key is not None
@@ -70,7 +71,7 @@ class Reform(TaxBenefitSystem):
             key = ".".join([baseline_full_key, key])
         return key
 
-    def modify_parameters(self, modifier_function):
+    def modify_parameters(self, modifier_function: Callable[[ParameterNode], ParameterNode]) -> None:
         """Make modifications on the parameters of the legislation.
 
         Call this function in `apply()` if the reform asks for legislation parameter modifications.

@@ -19,4 +19,6 @@ parts:
     - file: python_api/periods
     - file: python_api/populations
     - file: python_api/projectors
-
+    - file: python_api/reforms
+    - file: python_api/scripts
+    - file: python_api/simulations

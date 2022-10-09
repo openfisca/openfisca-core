@@ -46,29 +46,3 @@ def make_simulation(tax_benefit_system, nb_persons, nb_groups, **kwargs):
                 entity.flattened_roles[-1],
             )
     return simulation
-
-
-def randomly_init_variable(
-    simulation, variable_name, period, max_value, condition=None
-):
-    """
-    Initialise a variable with random values (from 0 to max_value) for the given period.
-    If a condition vector is provided, only set the value of persons or groups for which condition is True.
-
-    Example:
-
-    >>> from policyengine_core.scripts.simulation_generator import make_simulation, randomly_init_variable
-    >>> from openfisca_france import CountryTaxBenefitSystem
-    >>> tbs = CountryTaxBenefitSystem()
-    >>> simulation = make_simulation(tbs, 400, 100)  # Create a simulation with 400 persons, spread among 100 families
-    >>> randomly_init_variable(simulation, 'salaire_net', 2017, max_value = 50000, condition = simulation.persons.has_role(simulation.famille.DEMANDEUR))  # Randomly set a salaire_net for all persons between 0 and 50000?
-    >>> simulation.calculate('revenu_disponible', 2017)
-    """
-    if condition is None:
-        condition = True
-    variable = simulation.tax_benefit_system.get_variable(variable_name)
-    population = simulation.get_variable_population(variable_name)
-    value = (np.random.rand(population.count) * max_value * condition).astype(
-        variable.dtype
-    )
-    simulation.set_input(variable_name, period, value)
