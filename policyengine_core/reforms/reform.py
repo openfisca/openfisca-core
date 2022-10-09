@@ -71,7 +71,9 @@ class Reform(TaxBenefitSystem):
             key = ".".join([baseline_full_key, key])
         return key
 
-    def modify_parameters(self, modifier_function: Callable[[ParameterNode], ParameterNode]) -> None:
+    def modify_parameters(
+        self, modifier_function: Callable[[ParameterNode], ParameterNode]
+    ) -> None:
         """Make modifications on the parameters of the legislation.
 
         Call this function in `apply()` if the reform asks for legislation parameter modifications.

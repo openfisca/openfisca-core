@@ -13,6 +13,7 @@ from policyengine_core.tracers import (
     SimpleTracer,
     TracingParameterNodeAtInstant,
 )
+
 if TYPE_CHECKING:
     from policyengine_core.taxbenefitsystems import TaxBenefitSystem
 from policyengine_core.populations import Population
@@ -20,12 +21,17 @@ from policyengine_core.tracers import SimpleTracer
 from policyengine_core.experimental import MemoryConfig
 from policyengine_core.variables import Variable
 
+
 class Simulation:
     """
     Represents a simulation, and handles the calculation logic
     """
 
-    def __init__(self, tax_benefit_system: "TaxBenefitSystem", populations: Dict[str, Population]):
+    def __init__(
+        self,
+        tax_benefit_system: "TaxBenefitSystem",
+        populations: Dict[str, Population],
+    ):
         """
         This constructor is reserved for internal use; see :any:`SimulationBuilder`,
         which is the preferred way to obtain a Simulation initialized with a consistent
@@ -35,7 +41,9 @@ class Simulation:
         assert tax_benefit_system is not None
 
         self.populations = populations
-        self.persons: Population = self.populations[tax_benefit_system.person_entity.key]
+        self.persons: Population = self.populations[
+            tax_benefit_system.person_entity.key
+        ]
         self.link_to_entities_instances()
         self.create_shortcuts()
 
@@ -187,7 +195,9 @@ class Simulation:
             for sub_period in period.get_subperiods(variable.definition_period)
         )
 
-    def calculate_divide(self, variable_name: str, period: Period) -> ArrayLike:
+    def calculate_divide(
+        self, variable_name: str, period: Period
+    ) -> ArrayLike:
         variable = self.tax_benefit_system.get_variable(
             variable_name, check_existence=True
         )
@@ -222,7 +232,9 @@ class Simulation:
             )
         )
 
-    def calculate_output(self, variable_name: str, period: Period) -> ArrayLike:
+    def calculate_output(
+        self, variable_name: str, period: Period
+    ) -> ArrayLike:
         """
         Calculate the value of a variable using the ``calculate_output`` attribute of the variable.
         """
@@ -242,7 +254,9 @@ class Simulation:
             self.tracer,
         )
 
-    def _run_formula(self, variable: str, population: Population, period: Period) -> ArrayLike:
+    def _run_formula(
+        self, variable: str, population: Population, period: Period
+    ) -> ArrayLike:
         """
         Find the ``variable`` formula for the given ``period`` if it exists, and apply it to ``population``.
         """
@@ -263,7 +277,9 @@ class Simulation:
 
         return array
 
-    def _check_period_consistency(self, period: Period, variable: Variable) -> None:
+    def _check_period_consistency(
+        self, period: Period, variable: Variable
+    ) -> None:
         """
         Check that a period matches the variable definition_period
         """
@@ -438,7 +454,9 @@ class Simulation:
         """
         return self.get_holder(variable).get_known_periods()
 
-    def set_input(self, variable_name: str, period: Period, value: ArrayLike) -> None:
+    def set_input(
+        self, variable_name: str, period: Period, value: ArrayLike
+    ) -> None:
         """
         Set a variable's value for a given period
 

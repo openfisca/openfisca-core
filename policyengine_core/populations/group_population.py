@@ -5,6 +5,7 @@ from policyengine_core import projectors
 from policyengine_core.entities import Role, Entity
 from policyengine_core.enums import EnumArray
 from policyengine_core.populations import Population
+
 if TYPE_CHECKING:
     from policyengine_core.simulations import Simulation
 

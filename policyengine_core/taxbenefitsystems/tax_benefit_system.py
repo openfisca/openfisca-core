@@ -93,7 +93,9 @@ class TaxBenefitSystem:
 
         return entities
 
-    def load_variable(self, variable_class: Type[Variable], update: bool = False) -> Variable:
+    def load_variable(
+        self, variable_class: Type[Variable], update: bool = False
+    ) -> Variable:
         name = variable_class.__name__
 
         # Check if a Variable with the same name is already registered.
@@ -300,7 +302,9 @@ class TaxBenefitSystem:
 
         return reform(self)
 
-    def get_variable(self, variable_name: str, check_existence: bool = False) -> Variable:
+    def get_variable(
+        self, variable_name: str, check_existence: bool = False
+    ) -> Variable:
         """
         Get a variable from the tax and benefit system.
 
@@ -350,13 +354,17 @@ class TaxBenefitSystem:
 
         self.parameters = parameters
 
-    def _get_baseline_parameters_at_instant(self, instant: Instant) -> ParameterNodeAtInstant:
+    def _get_baseline_parameters_at_instant(
+        self, instant: Instant
+    ) -> ParameterNodeAtInstant:
         baseline = self.baseline
         if baseline is None:
             return self.get_parameters_at_instant(instant)
         return baseline._get_baseline_parameters_at_instant(instant)
 
-    def get_parameters_at_instant(self, instant: Instant) -> ParameterNodeAtInstant:
+    def get_parameters_at_instant(
+        self, instant: Instant
+    ) -> ParameterNodeAtInstant:
         """
         Get the parameters of the legislation at a given instant
 

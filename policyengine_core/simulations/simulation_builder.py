@@ -14,8 +14,11 @@ from policyengine_core.errors import (
 )
 from policyengine_core.populations import Population, GroupPopulation
 from policyengine_core.simulations import helpers, Simulation
+
 if TYPE_CHECKING:
-    from policyengine_core.taxbenefitsystems.tax_benefit_system import TaxBenefitSystem
+    from policyengine_core.taxbenefitsystems.tax_benefit_system import (
+        TaxBenefitSystem,
+    )
 from policyengine_core.variables import Variable
 
 
@@ -48,7 +51,9 @@ class SimulationBuilder:
         ] = {}
         self.axes_roles: typing.Dict[Entity.plural, typing.List[int]] = {}
 
-    def build_from_dict(self, tax_benefit_system: "TaxBenefitSystem", input_dict: dict) -> Simulation:
+    def build_from_dict(
+        self, tax_benefit_system: "TaxBenefitSystem", input_dict: dict
+    ) -> Simulation:
         """
         Build a simulation from ``input_dict``
 
@@ -166,7 +171,9 @@ class SimulationBuilder:
 
         return simulation
 
-    def build_from_variables(self, tax_benefit_system: "TaxBenefitSystem", input_dict: dict) -> Simulation:
+    def build_from_variables(
+        self, tax_benefit_system: "TaxBenefitSystem", input_dict: dict
+    ) -> Simulation:
         """
         Build a simulation from a Python dict ``input_dict`` describing variables values without expliciting entities.
 
@@ -193,7 +200,9 @@ class SimulationBuilder:
                     simulation.set_input(variable, period_str, dated_value)
         return simulation
 
-    def build_default_simulation(self, tax_benefit_system: "TaxBenefitSystem", count: int = 1) -> Simulation:
+    def build_default_simulation(
+        self, tax_benefit_system: "TaxBenefitSystem", count: int = 1
+    ) -> Simulation:
         """
         Build a simulation where:
             - There are ``count`` persons
@@ -225,7 +234,9 @@ class SimulationBuilder:
 
         self.persons_plural = person_instance.entity.plural
 
-    def declare_entity(self, entity_singular: str, entity_ids: typing.Iterable) -> Population:
+    def declare_entity(
+        self, entity_singular: str, entity_ids: typing.Iterable
+    ) -> Population:
         entity_instance = self.populations[entity_singular]
         entity_instance.ids = numpy.array(list(entity_ids))
         entity_instance.count = len(entity_instance.ids)
@@ -266,7 +277,9 @@ class SimulationBuilder:
     def build(self, tax_benefit_system: "TaxBenefitSystem") -> Simulation:
         return Simulation(tax_benefit_system, self.populations)
 
-    def explicit_singular_entities(self, tax_benefit_system: "TaxBenefitSystem", input_dict: dict) -> dict:
+    def explicit_singular_entities(
+        self, tax_benefit_system: "TaxBenefitSystem", input_dict: dict
+    ) -> dict:
         """
         Preprocess ``input_dict`` to explicit entities defined using the single-entity shortcut
 
@@ -296,7 +309,9 @@ class SimulationBuilder:
 
         return result
 
-    def add_person_entity(self, entity: Entity, instances_json: dict) -> List[int]:
+    def add_person_entity(
+        self, entity: Entity, instances_json: dict
+    ) -> List[int]:
         """
         Add the simulation's instances of the persons entity as described in ``instances_json``.
         """
@@ -316,7 +331,9 @@ class SimulationBuilder:
 
         return self.get_ids(entity.plural)
 
-    def add_default_group_entity(self, persons_ids: ArrayLike, entity: Entity) -> None:
+    def add_default_group_entity(
+        self, persons_ids: ArrayLike, entity: Entity
+    ) -> None:
         persons_count = len(persons_ids)
         self.entity_ids[entity.plural] = persons_ids
         self.entity_counts[entity.plural] = persons_count
@@ -328,7 +345,11 @@ class SimulationBuilder:
         )
 
     def add_group_entity(
-        self, persons_plural: str, persons_ids: ArrayLike, entity: Entity, instances_json: dict
+        self,
+        persons_plural: str,
+        persons_ids: ArrayLike,
+        entity: Entity,
+        instances_json: dict,
     ) -> None:
         """
         Add all instances of one of the model's entities as described in ``instances_json``.

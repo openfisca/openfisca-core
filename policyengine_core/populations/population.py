@@ -8,6 +8,7 @@ from policyengine_core.periods.period_ import Period
 from policyengine_core.populations import config
 from policyengine_core.projectors import Projector
 from policyengine_core.entities import Entity, Role
+
 if TYPE_CHECKING:
     from policyengine_core.simulations import Simulation
 
