@@ -1,0 +1,4 @@
+- bump: patch
+  changes:
+    added:
+    - Test that documentation builds

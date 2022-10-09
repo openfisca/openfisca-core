@@ -22,6 +22,8 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
       - name: Set up Python
         uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
       - name: Build changelog
         run: pip install yaml-changelog>=0.1.7 && make changelog
       - name: Preview changelog update
@@ -38,6 +40,8 @@ jobs:
         uses: actions/checkout@v3
       - name: Set up Python
         uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
       - name: Install package
         run: make install
       - name: Run tests
@@ -45,3 +49,5 @@ jobs:
       - uses: codecov/codecov-action@v3
       - name: Build package
         run: make build
+      - name: Test documentation builds
+        run: make documentation

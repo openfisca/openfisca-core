@@ -11,19 +11,24 @@ long_description = (this_directory / "README.md").read_text()
 general_requirements = [
     "pytest>=4,<6",
     "numpy>=1.11,<1.21",
-    "black",
-    "linecheck",
-    "yaml-changelog",
-    "coverage",
-    "sortedcontainers",
-    "numexpr",
-    "dpath",
+    "black<23",
+    "linecheck<1",
+    "yaml-changelog<1",
+    "coverage<7",
+    "sortedcontainers<3",
+    "numexpr<3",
+    "dpath<3",
     "nptyping<2",
-    "psutil",
-    "wheel",
+    "psutil<6",
+    "wheel<1",
 ]
 
-dev_requirements = []
+dev_requirements = [
+    "jupyter-book<1",
+    "furo<2023",
+    "markupsafe==2.0.1",
+    "sphinx>=4.5.0,<5",
+]
 
 setup(
     name="policyengine-core",
