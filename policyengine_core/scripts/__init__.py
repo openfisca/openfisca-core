@@ -69,24 +69,20 @@ def build_tax_benefit_system(country_package_name, extensions, reforms):
     return tax_benefit_system
 
 
-# For retro-compatibility:
-build_tax_benefit_sytem = build_tax_benefit_system
-
-
 def detect_country_package():
     installed_country_packages = []
     for module_description in pkgutil.iter_modules():
         module_name = module_description[1]
-        if "openfisca" in module_name.lower():
+        if "policyengine" in module_name.lower():
             try:
                 module = importlib.import_module(module_name)
                 if hasattr(module, "CountryTaxBenefitSystem"):
                     installed_country_packages.append(module_name)
             except ImportError:
                 pass
-    import policyengine_core.country_template as openfisca_country_template
+    import policyengine_core.country_template as country_template
 
-    installed_country_packages.append(openfisca_country_template.__name__)
+    installed_country_packages.append(country_template.__name__)
 
     if len(installed_country_packages) == 0:
         raise ImportError(

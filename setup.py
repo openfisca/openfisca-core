@@ -21,6 +21,8 @@ general_requirements = [
     "nptyping<2",
     "psutil<6",
     "wheel<1",
+    "h5py>=3,<4",
+    "microdf_python>=0.3.0,<1",
 ]
 
 dev_requirements = [
