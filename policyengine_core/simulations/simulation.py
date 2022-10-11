@@ -108,7 +108,7 @@ class Simulation:
         builder.populations = self.populations
         data = self.dataset.load(self.dataset_options)
         
-        eternity = period(ETERNITY)
+        eternity = ETERNITY
 
         person_entity = self.tax_benefit_system.person_entity
         entity_id_field = f"{person_entity.key}_id"

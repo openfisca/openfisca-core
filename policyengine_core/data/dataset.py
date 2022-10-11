@@ -46,7 +46,7 @@ class Dataset:
         with h5py.File(file_path, "w") as f:
             for variable, values in inputs.items():
                 for period, value in values.items():
-                    f.create_dataset(f"{variable}/{period}", data=value)
+                    f.create_dataset(f"{variable}/{str(period)}", data=value)
     
     def load(self, options: dict = None) -> Dict[str, Dict[Period, ArrayLike]]:
         """Loads the microdata from the file.
@@ -63,7 +63,7 @@ class Dataset:
             raise FileNotFoundError(f"Microdata file {file_path} does not exist. Please run `build` to generate the microdata file.")
 
         with h5py.File(file_path, "r") as f:
-            return {variable: {period(period_string): f[f"{variable}/{period_string}"][:] for period_string in f[variable]} for variable in f}
+            return {variable: {period_string: f[f"{variable}/{period_string}"][:] for period_string in f[variable]} for variable in f}
     
     def get_file_path(self, options: dict = None) -> Path:
         """Returns the file path for the microdata file.

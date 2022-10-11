@@ -10,6 +10,8 @@ from pathlib import Path
 
 COUNTRY_DIR = Path(__file__).parent
 
+DATASETS = [CountryTemplateDataset]
+
 # Our country tax and benefit class inherits from the general TaxBenefitSystem class.
 # The name CountryTaxBenefitSystem must not be changed, as all tools of the OpenFisca ecosystem expect a CountryTaxBenefitSystem class to be exposed in the __init__ module of a country package.
 class CountryTaxBenefitSystem(TaxBenefitSystem):
