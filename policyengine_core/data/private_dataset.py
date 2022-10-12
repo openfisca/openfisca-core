@@ -1,5 +1,4 @@
 from typing import Dict
-from google.cloud import storage
 import warnings
 import subprocess
 import logging
@@ -8,11 +7,13 @@ from policyengine_core.data.dataset import Dataset
 
 class PrivateDataset(Dataset):
     """Private datasets that are stored on Google Cloud Buckets."""
+    from google.cloud import storage    
 
     bucket_name: str
     filename_by_year: Dict[int, str] = None
 
     def _get_storage_bucket(self) -> storage.Bucket:
+        from google.cloud import storage
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             try:
