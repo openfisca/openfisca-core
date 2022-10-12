@@ -65,6 +65,7 @@ jobs:
       - name: Generate documentation
         run: make documentation
       - name: Deploy documentation
+        if: matrix.os == 'ubuntu-latest'
         uses: JamesIves/github-pages-deploy-action@releases/v3
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -7,13 +7,15 @@ from os import linesep
 log = logging.getLogger(__name__)
 
 
-def add_tax_benefit_system_arguments(parser):
+def add_tax_benefit_system_arguments(parser, country_only: bool = False):
     parser.add_argument(
         "-c",
         "--country-package",
         action="store",
-        help='country package to use. If not provided, an automatic detection will be attempted by scanning the python packages installed in your environment which name contains the word "openfisca".',
+        help='country package to use. If not provided, an automatic detection will be attempted by scanning the python packages installed in your environment which name contains the word "policyengine".',
     )
+    if country_only:
+        return parser
     parser.add_argument(
         "-e",
         "--extensions",
@@ -69,24 +71,20 @@ def build_tax_benefit_system(country_package_name, extensions, reforms):
     return tax_benefit_system
 
 
-# For retro-compatibility:
-build_tax_benefit_sytem = build_tax_benefit_system
-
-
 def detect_country_package():
     installed_country_packages = []
     for module_description in pkgutil.iter_modules():
         module_name = module_description[1]
-        if "openfisca" in module_name.lower():
+        if "policyengine" in module_name.lower():
             try:
                 module = importlib.import_module(module_name)
                 if hasattr(module, "CountryTaxBenefitSystem"):
                     installed_country_packages.append(module_name)
             except ImportError:
                 pass
-    import policyengine_core.country_template as openfisca_country_template
+    import policyengine_core.country_template as country_template
 
-    installed_country_packages.append(openfisca_country_template.__name__)
+    installed_country_packages.append(country_template.__name__)
 
     if len(installed_country_packages) == 0:
         raise ImportError(

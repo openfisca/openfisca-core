@@ -11,4 +11,5 @@ from .helpers import (
     transform_to_strict_syntax,
 )
 from .simulation import Simulation
+from .weighted_simulation import WeightedSimulation
 from .simulation_builder import SimulationBuilder

@@ -4,10 +4,16 @@ parts:
   - caption: Contributing
     chapters:
     - file: contributing/intro
+  - caption: Using PolicyEngine Core
+    chapters:
+    - file: usage/simulation
+    - file: usage/country
+    - file: usage/cli
   - caption: Python API
     chapters:
     - file: python_api/commons
     - file: python_api/country_template
+    - file: python_api/data
     - file: python_api/data_storage
     - file: python_api/entities
     - file: python_api/enums

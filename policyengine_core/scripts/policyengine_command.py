@@ -90,10 +90,24 @@ def get_parser():
 
         return parser
 
+    def build_data_parser(parser):
+        parser.add_argument("dataset", help="The dataset to focus on.")
+        parser = add_tax_benefit_system_arguments(parser, country_only=True)
+        parser.add_argument(
+            "action",
+            choices=["build", "download", "upload", "remove", "list"],
+            help="The action to perform. Pass any additional options as keyword arguments.",
+        )
+
+        return parser
+
     parser_test = subparsers.add_parser(
         "test", help="Run OpenFisca YAML tests"
     )
     parser_test = build_test_parser(parser_test)
+
+    parser_data = subparsers.add_parser("data", help="Manage OpenFisca data")
+    parser_data = build_data_parser(parser_data)
 
     return parser
 
@@ -106,6 +120,11 @@ def main():
 
     if args.command == "test":
         from policyengine_core.scripts.run_test import main
+
+        return sys.exit(main(parser))
+
+    if args.command == "data":
+        from policyengine_core.scripts.run_data import main
 
         return sys.exit(main(parser))
 

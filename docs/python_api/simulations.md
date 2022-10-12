@@ -7,6 +7,17 @@ The `policyengine_core.simulations` module contains the definition of `Simulatio
 ```{eval-rst}
 .. autoclass:: policyengine_core.simulations.simulation.Simulation
     :members:
+    :undoc-members:
+    :inherited-members:
+    :show-inheritance:
+```
+
+## WeightedSimulation
+
+```{eval-rst}
+.. autoclass:: policyengine_core.simulations.weighted_simulation.WeightedSimulation
+    :members:
+    :undoc-members:
     :inherited-members:
     :show-inheritance:
 ```
@@ -16,6 +27,8 @@ The `policyengine_core.simulations` module contains the definition of `Simulatio
 ```{eval-rst}
 .. autoclass:: policyengine_core.simulations.simulation_builder.SimulationBuilder
     :members:
+    :undoc-members:
     :inherited-members:
     :show-inheritance:
 ```
+

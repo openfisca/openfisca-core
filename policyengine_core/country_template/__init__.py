@@ -2,11 +2,19 @@ import os
 from policyengine_core.taxbenefitsystems import TaxBenefitSystem
 from policyengine_core.country_template import entities
 from policyengine_core.country_template.situation_examples import couple
+from policyengine_core.simulations import Simulation as CoreSimulation
+from policyengine_core.simulations import (
+    WeightedSimulation as CoreWeightedSimulation,
+)
+from policyengine_core.country_template.data.datasets.country_template_dataset import (
+    CountryTemplateDataset,
+)
 from pathlib import Path
 
 
 COUNTRY_DIR = Path(__file__).parent
 
+DATASETS = [CountryTemplateDataset]
 
 # Our country tax and benefit class inherits from the general TaxBenefitSystem class.
 # The name CountryTaxBenefitSystem must not be changed, as all tools of the OpenFisca ecosystem expect a CountryTaxBenefitSystem class to be exposed in the __init__ module of a country package.
@@ -30,3 +38,12 @@ class CountryTaxBenefitSystem(TaxBenefitSystem):
             "parameter_example": "taxes.income_tax_rate",
             "simulation_example": couple,
         }
+
+
+class Simulation(CoreSimulation):
+    default_tax_benefit_system = CountryTaxBenefitSystem
+
+
+class Microsimulation(CoreWeightedSimulation):
+    default_tax_benefit_system = CountryTaxBenefitSystem
+    default_dataset = CountryTemplateDataset

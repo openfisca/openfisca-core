@@ -21,6 +21,9 @@ general_requirements = [
     "nptyping<2",
     "psutil<6",
     "wheel<1",
+    "h5py>=3,<4",
+    "microdf_python>=0.3.0,<1",
+    "tqdm>=4.46.0,<5",
 ]
 
 dev_requirements = [
@@ -28,6 +31,7 @@ dev_requirements = [
     "furo<2023",
     "markupsafe==2.0.1",
     "sphinx>=4.5.0,<5",
+    "sphinx-argparse>=0.3.2,<1",
 ]
 
 setup(
@@ -46,19 +50,13 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Topic :: Scientific/Engineering :: Information Analysis",
     ],
-    description="A versatile microsimulation free software",
-    keywords="benefit microsimulation social tax",
+    description="Core microsimulation engine enabling country-specific policy models.",
+    keywords="tax benefit microsimulation framework",
     license="https://www.fsf.org/licensing/licenses/agpl-3.0.html",
     license_files=("LICENSE",),
-    url="https://github.com/openfisca/openfisca-core",
+    url="https://github.com/policyengine/policyengine-core",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    data_files=[
-        (
-            "share/openfisca/openfisca-core",
-            ["README.md"],
-        ),
-    ],
     entry_points={
         "console_scripts": [
             "policyengine-core=policyengine_core.scripts.policyengine_command:main",
