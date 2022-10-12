@@ -31,12 +31,6 @@ class Simulation:
     Represents a simulation, and handles the calculation logic
     """
 
-    default_tax_benefit_system: Type["TaxBenefitSystem"]
-    default_dataset: Type[
-        Dataset
-    ] = None  # This becomes the default method for building simulations if given a value here.
-    default_dataset_options = None
-
     def __init__(
         self,
         tax_benefit_system: "TaxBenefitSystem" = None,
@@ -53,14 +47,6 @@ class Simulation:
         if tax_benefit_system is None:
             tax_benefit_system = self.default_tax_benefit_system()
         self.tax_benefit_system = tax_benefit_system
-
-        if self.default_dataset is not None:
-            if dataset is None:
-                dataset = self.default_dataset
-
-        if self.default_dataset_options is not None:
-            if dataset_options is None:
-                dataset_options = self.default_dataset_options
 
         self.invalidated_caches = set()
         self.debug: bool = False
@@ -122,7 +108,13 @@ class Simulation:
 
         builder = SimulationBuilder()
         builder.populations = self.populations
-        data = self.dataset.load(self.dataset_options)
+        try:
+            data = self.dataset.load(self.dataset_options)
+        except FileNotFoundError as e:
+            raise FileNotFoundError(
+                f"The dataset file {self.dataset.name} (with options {self.dataset_options}) could not be found. "
+                + "Make sure you have downloaded or built it using the `policyengine-core data` command."
+            ) from e
 
         eternity = ETERNITY
 

@@ -51,6 +51,18 @@ class Dataset:
                 for period, value in values.items():
                     f.create_dataset(f"{variable}/{str(period)}", data=value)
 
+    def exists(self, options: dict = None) -> bool:
+        """Checks if the microdata file exists.
+
+        Args:
+            options (dict, optional): The options to use to generate the filename. Defaults to None.
+
+        Returns:
+            bool: True if the file exists, False otherwise.
+        """
+        file_path = self.get_file_path(options)
+        return file_path.exists()
+
     def load(self, options: dict = None) -> Dict[str, Dict[Period, ArrayLike]]:
         """Loads the microdata from the file.
 

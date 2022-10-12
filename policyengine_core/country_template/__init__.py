@@ -1,4 +1,7 @@
 import os
+from typing import Dict, Type
+from policyengine_core.data.dataset import Dataset
+from policyengine_core.populations.population import Population
 from policyengine_core.taxbenefitsystems import TaxBenefitSystem
 from policyengine_core.country_template import entities
 from policyengine_core.country_template.situation_examples import couple
@@ -41,9 +44,45 @@ class CountryTaxBenefitSystem(TaxBenefitSystem):
 
 
 class Simulation(CoreSimulation):
-    default_tax_benefit_system = CountryTaxBenefitSystem
+    def __init__(
+        self,
+        *args,
+        tax_benefit_system: TaxBenefitSystem = None,
+        **kwargs,
+    ):
+        if tax_benefit_system is None:
+            tax_benefit_system = CountryTaxBenefitSystem()
+
+        super().__init__(
+            *args,
+            tax_benefit_system=tax_benefit_system,
+            **kwargs,
+        )
 
 
 class Microsimulation(CoreWeightedSimulation):
-    default_tax_benefit_system = CountryTaxBenefitSystem
-    default_dataset = CountryTemplateDataset
+    def __init__(
+        self,
+        *args,
+        tax_benefit_system: TaxBenefitSystem = None,
+        dataset: Type[Dataset] = None,
+        dataset_options: dict = None,
+        **kwargs,
+    ):
+        if tax_benefit_system is None:
+            tax_benefit_system = CountryTaxBenefitSystem()
+
+        if dataset is None:
+            dataset = CountryTemplateDataset
+
+        if not dataset.exists(dataset_options):
+            # Build the dataset if it doesn't exist. A country package might not want to do this: for example,
+            # you might want to throw an exception instead.
+            dataset().build(dataset_options)
+
+        super().__init__(
+            *args,
+            tax_benefit_system=tax_benefit_system,
+            dataset=dataset,
+            **kwargs,
+        )

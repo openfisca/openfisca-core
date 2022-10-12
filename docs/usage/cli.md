@@ -8,3 +8,7 @@ Use the `policyengine-core` command-line tool to run tests or manage data withou
     :func: get_parser
     :prog: policyengine-core
 ```
+
+```{eval-rst}
+.. hint:: To list all the datasets for a country package, use `policyengine-core data datasets list`, passing in a country package as needed.
+```
