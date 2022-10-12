@@ -6,6 +6,8 @@ from microdf import MicroSeries, MicroDataFrame
 from policyengine_core.types import ArrayLike
 
 class WeightedSimulation(Simulation):
+    """A `Simulation` whose entities use weights to represent larger populations.
+    """
     def get_weights(self, variable_name: str, period: Period, map_to: str = None) -> ArrayLike:
         time_period = get_period(period)
         variable = self.tax_benefit_system.get_variable(variable_name)
@@ -22,22 +24,22 @@ class WeightedSimulation(Simulation):
         
         return weights
 
-    def calculate(self, variable_name: str, period: Period, map_to: str = None) -> ArrayLike:
+    def calculate(self, variable_name: str, period: Period, map_to: str = None) -> MicroSeries:
         values = super().calculate(variable_name, period)
         weights = self.get_weights(variable_name, period, map_to)
         return MicroSeries(values, weights=weights)
     
-    def calculate_add(self, variable_name: str, period: Period) -> ArrayLike:
+    def calculate_add(self, variable_name: str, period: Period) -> MicroSeries:
         values = super().calculate_add(variable_name, period)
         weights = self.get_weights(variable_name, period)
         return MicroSeries(values, weights=weights)
     
-    def calculate_divide(self, variable_name: str, period: Period) -> ArrayLike:
+    def calculate_divide(self, variable_name: str, period: Period) -> MicroSeries:
         values = super().calculate_divide(variable_name, period)
         weights = self.get_weights(variable_name, period)
         return MicroSeries(values, weights=weights)
     
-    def calculate_dataframe(self, variable_names: list, period: Period) -> ArrayLike:
+    def calculate_dataframe(self, variable_names: list, period: Period) -> MicroDataFrame:
         values = super().calculate_dataframe(variable_names, period)
         weights = self.get_weights(variable_names[0], period)
         return MicroDataFrame(values, weights=weights)
