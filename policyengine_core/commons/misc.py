@@ -1,6 +1,5 @@
 from typing import TypeVar
-
-from openfisca_core.types import ArrayType
+from policyengine_core.types import ArrayType
 
 T = TypeVar("T")
 
@@ -36,7 +35,7 @@ def empty_clone(original: T) -> T:
         "Dummy",
         (original.__class__,),
         {"__init__": lambda self: None},
-        )
+    )
 
     new = Dummy()
     new.__class__ = original.__class__

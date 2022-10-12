@@ -1,6 +1,6 @@
 import pytest
 
-from openfisca_core.entities import Entity, GroupEntity
+from policyengine_core.entities import Entity, GroupEntity
 
 from .variables import TestVariable
 
@@ -32,13 +32,9 @@ def persons():
 
 @pytest.fixture
 def households():
-    roles = [{
-        'key': 'parent',
-        'plural': 'parents',
-        'max': 2
-        }, {
-        'key': 'child',
-        'plural': 'children'
-        }]
+    roles = [
+        {"key": "parent", "plural": "parents", "max": 2},
+        {"key": "child", "plural": "children"},
+    ]
 
     return TestGroupEntity("household", "households", "", "", roles)

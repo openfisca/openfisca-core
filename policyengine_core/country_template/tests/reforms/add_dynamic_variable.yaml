@@ -1,0 +1,12 @@
+# Test files describe situations and their expected outcomes
+#
+# We can run this test on our command line using
+# `openfisca-run-test modify_social_security_taxation.yaml`
+#
+# Note the `reforms: ` key in the below YAML blocks.
+
+- name: We will dinamically add new variable "goes_to_school" thanks to a reform
+  reforms: policyengine_core.country_template.reforms.add_dynamic_variable.add_dynamic_variable
+  period: 2017-01
+  output:
+    goes_to_school: true

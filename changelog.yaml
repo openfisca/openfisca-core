@@ -1,0 +1,57 @@
+- changes:
+    added:
+    - OpenFisca-Core forked.
+  date: 2022-10-02 16:02:00
+  version: 0.1.0
+- bump: major
+  changes:
+    changed:
+    - Non-essential (for Python simulations) code removed.
+  date: 2022-10-02 16:35:17
+- bump: patch
+  changes:
+    fixed:
+    - Version update action.
+  date: 2022-10-02 16:38:34
+- bump: patch
+  changes:
+    fixed:
+    - Push action doesn't attempt to publish nonexistent documentation.
+  date: 2022-10-02 16:45:22
+- bump: patch
+  changes:
+    fixed:
+    - Build action always runs.
+  date: 2022-10-02 16:59:49
+- bump: patch
+  changes:
+    added:
+    - Type hints to most functions and classes.
+    - Jupyter book documentation for all modules.
+  date: 2022-10-09 22:33:24
+- bump: patch
+  changes:
+    added:
+    - Test that documentation builds
+  date: 2022-10-09 22:55:14
+- bump: patch
+  changes:
+    fixed:
+    - Python 3.9 used in all GitHub actions.
+  date: 2022-10-09 23:00:35
+- bump: minor
+  changes:
+    added:
+    - Microsimulation features
+    - Documentation for the CLI interface
+  date: 2022-10-12 15:33:59
+- bump: patch
+  changes:
+    added:
+    - Behaviour to handle default datasets.
+  date: 2022-10-12 15:58:34
+- bump: patch
+  changes:
+    fixed:
+    - Bug in the country template microsimulation class failing to load data.
+  date: 2022-10-12 16:25:33

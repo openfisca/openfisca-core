@@ -1,0 +1,45 @@
+
+# Test files describe situations and their expected outcomes
+# We can run this test on our command line using `openfisca-run-test social_security_contribution.yaml`
+
+- name: Person earning 2000 in 2013-01
+  period: 2013-01
+  input:
+    salary: 2000
+  output:
+    social_security_contribution: 60
+
+- name: Person earning 15000 in 2013-01
+  period: 2013-01
+  input:
+    salary: 15000
+  output:
+    social_security_contribution: 660
+
+- name: Person earning 2000 in 2015-01
+  period: 2015-01
+  input:
+    salary: 2000
+  output:
+    social_security_contribution: 80
+
+- name: Person earning 15000 in 2015-01
+  period: 2015-01
+  input:
+    salary: 15000
+  output:
+    social_security_contribution: 824
+
+- name: Person earning 2000 in 2017-01
+  period: 2017-01
+  input:
+    salary: 2000
+  output:
+    social_security_contribution: 40
+
+- name: Person earning 15000 in 2017-01
+  period: 2017-01
+  input:
+    salary: 15000
+  output:
+    social_security_contribution: 816

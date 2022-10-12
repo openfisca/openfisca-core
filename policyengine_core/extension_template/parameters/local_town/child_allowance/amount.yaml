@@ -1,0 +1,6 @@
+description: Amount by child (in euros)
+metadata:
+  unit: currency
+values:
+  2014-01-01:
+    value: 100.0

@@ -3,8 +3,9 @@ from __future__ import annotations
 import copy
 import os
 import typing
-
-from openfisca_core import commons, parameters, tools
+from typing import Iterable, Union
+from policyengine_core import commons, parameters, tools
+from policyengine_core.periods.instant_ import Instant
 from . import config, helpers, AtInstantLike, Parameter, ParameterNodeAtInstant
 
 
@@ -13,9 +14,17 @@ class ParameterNode(AtInstantLike):
     A node in the legislation `parameter tree <https://openfisca.org/doc/coding-the-legislation/legislation_parameters.html>`_.
     """
 
-    _allowed_keys: typing.Optional[typing.Iterable[str]] = None  # By default, no restriction on the keys
+    _allowed_keys: typing.Optional[
+        typing.Iterable[str]
+    ] = None  # By default, no restriction on the keys
 
-    def __init__(self, name = "", directory_path = None, data = None, file_path = None):
+    def __init__(
+        self,
+        name: str = "",
+        directory_path: str = None,
+        data: dict = None,
+        file_path: str = None,
+    ):
         """
         Instantiate a ParameterNode either from a dict, (using `data`), or from a directory containing YAML files (using `directory_path`).
 
@@ -47,7 +56,10 @@ class ParameterNode(AtInstantLike):
         >>> node = ParameterNode('benefits', directory_path = '/path/to/country_package/parameters/benefits')
         """
         self.name: str = name
-        self.children: typing.Dict[str, typing.Union[ParameterNode, Parameter, parameters.ParameterScale]] = {}
+        self.children: typing.Dict[
+            str,
+            typing.Union[ParameterNode, Parameter, parameters.ParameterScale],
+        ] = {}
         self.description: str = None
         self.documentation: str = None
         self.file_path: str = None
@@ -64,41 +76,57 @@ class ParameterNode(AtInstantLike):
                     if ext not in config.FILE_EXTENSIONS:
                         continue
 
-                    if child_name == 'index':
+                    if child_name == "index":
                         data = helpers._load_yaml_file(child_path) or {}
-                        helpers._validate_parameter(self, data, allowed_keys = config.COMMON_KEYS)
-                        self.description = data.get('description')
-                        self.documentation = data.get('documentation')
-                        helpers._set_backward_compatibility_metadata(self, data)
-                        self.metadata.update(data.get('metadata', {}))
+                        helpers._validate_parameter(
+                            self, data, allowed_keys=config.COMMON_KEYS
+                        )
+                        self.description = data.get("description")
+                        self.documentation = data.get("documentation")
+                        helpers._set_backward_compatibility_metadata(
+                            self, data
+                        )
+                        self.metadata.update(data.get("metadata", {}))
                     else:
-                        child_name_expanded = helpers._compose_name(name, child_name)
-                        child = helpers.load_parameter_file(child_path, child_name_expanded)
+                        child_name_expanded = helpers._compose_name(
+                            name, child_name
+                        )
+                        child = helpers.load_parameter_file(
+                            child_path, child_name_expanded
+                        )
                         self.add_child(child_name, child)
 
                 elif os.path.isdir(child_path):
                     child_name = os.path.basename(child_path)
-                    child_name_expanded = helpers._compose_name(name, child_name)
-                    child = ParameterNode(child_name_expanded, directory_path = child_path)
+                    child_name_expanded = helpers._compose_name(
+                        name, child_name
+                    )
+                    child = ParameterNode(
+                        child_name_expanded, directory_path=child_path
+                    )
                     self.add_child(child_name, child)
 
         else:
             self.file_path = file_path
-            helpers._validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
-            self.description = data.get('description')
-            self.documentation = data.get('documentation')
+            helpers._validate_parameter(
+                self, data, data_type=dict, allowed_keys=self._allowed_keys
+            )
+            self.description = data.get("description")
+            self.documentation = data.get("documentation")
             helpers._set_backward_compatibility_metadata(self, data)
-            self.metadata.update(data.get('metadata', {}))
+            self.metadata.update(data.get("metadata", {}))
             for child_name, child in data.items():
                 if child_name in config.COMMON_KEYS:
                     continue  # do not treat reserved keys as subparameters.
 
                 child_name = str(child_name)
                 child_name_expanded = helpers._compose_name(name, child_name)
-                child = helpers._parse_child(child_name_expanded, child, file_path)
+                child = helpers._parse_child(
+                    child_name_expanded, child, file_path
+                )
                 self.add_child(child_name, child)
 
-    def merge(self, other):
+    def merge(self, other: "ParameterNode") -> None:
         """
         Merges another ParameterNode into the current node.
 
@@ -107,7 +135,7 @@ class ParameterNode(AtInstantLike):
         for child_name, child in other.children.items():
             self.add_child(child_name, child)
 
-    def add_child(self, name, child):
+    def add_child(self, name: str, child: Union[ParameterNode, Parameter]):
         """
         Add a new child to the node.
 
@@ -115,21 +143,34 @@ class ParameterNode(AtInstantLike):
         :param child: The new child, an instance of :class:`.ParameterScale` or :class:`.Parameter` or :class:`.ParameterNode`.
         """
         if name in self.children:
-            raise ValueError("{} has already a child named {}".format(self.name, name))
-        if not (isinstance(child, ParameterNode) or isinstance(child, Parameter) or isinstance(child, parameters.ParameterScale)):
-            raise TypeError("child must be of type ParameterNode, Parameter, or Scale. Instead got {}".format(type(child)))
+            raise ValueError(
+                "{} has already a child named {}".format(self.name, name)
+            )
+        if not (
+            isinstance(child, ParameterNode)
+            or isinstance(child, Parameter)
+            or isinstance(child, parameters.ParameterScale)
+        ):
+            raise TypeError(
+                "child must be of type ParameterNode, Parameter, or Scale. Instead got {}".format(
+                    type(child)
+                )
+            )
         self.children[name] = child
         setattr(self, name, child)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         result = os.linesep.join(
-            [os.linesep.join(
-                ["{}:", "{}"]).format(name, tools.indent(repr(value)))
-                for name, value in sorted(self.children.items())]
-            )
+            [
+                os.linesep.join(["{}:", "{}"]).format(
+                    name, tools.indent(repr(value))
+                )
+                for name, value in sorted(self.children.items())
+            ]
+        )
         return result
 
-    def get_descendants(self):
+    def get_descendants(self) -> Iterable[Union[ParameterNode, Parameter]]:
         """
         Return a generator containing all the parameters and nodes recursively contained in this `ParameterNode`
         """
@@ -137,19 +178,18 @@ class ParameterNode(AtInstantLike):
             yield child
             yield from child.get_descendants()
 
-    def clone(self):
+    def clone(self) -> "ParameterNode":
         clone = commons.empty_clone(self)
         clone.__dict__ = self.__dict__.copy()
 
         clone.metadata = copy.deepcopy(self.metadata)
         clone.children = {
-            key: child.clone()
-            for key, child in self.children.items()
-            }
+            key: child.clone() for key, child in self.children.items()
+        }
         for child_key, child in clone.children.items():
             setattr(clone, child_key, child)
 
         return clone
 
-    def _get_at_instant(self, instant):
+    def _get_at_instant(self, instant: Instant) -> ParameterNodeAtInstant:
         return ParameterNodeAtInstant(self.name, self, instant)

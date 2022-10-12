@@ -1,4 +1,4 @@
-from openfisca_core import taxscales
+from policyengine_core import taxscales
 
 import pytest
 

@@ -1,4 +1,4 @@
-from openfisca_core.errors import SituationParsingError
+from policyengine_core.errors import SituationParsingError
 
 
 def calculate_output_add(simulation, variable_name, period):
@@ -9,19 +9,23 @@ def calculate_output_divide(simulation, variable_name, period):
     return simulation.calculate_divide(variable_name, period)
 
 
-def check_type(input, input_type, path = None):
+def check_type(input, input_type, path=None):
     json_type_map = {
         dict: "Object",
         list: "Array",
         str: "String",
-        }
+    }
 
     if path is None:
         path = []
 
     if not isinstance(input, input_type):
-        raise SituationParsingError(path,
-            "Invalid type: must be of type '{}'.".format(json_type_map[input_type]))
+        raise SituationParsingError(
+            path,
+            "Invalid type: must be of type '{}'.".format(
+                json_type_map[input_type]
+            ),
+        )
 
 
 def transform_to_strict_syntax(data):

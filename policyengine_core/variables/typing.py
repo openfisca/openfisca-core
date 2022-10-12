@@ -2,9 +2,9 @@ from typing import Callable, Union
 
 import numpy
 
-from openfisca_core.parameters import ParameterNodeAtInstant
-from openfisca_core.periods import Instant, Period
-from openfisca_core.populations import Population, GroupPopulation
+from policyengine_core.parameters import ParameterNodeAtInstant
+from policyengine_core.periods import Instant, Period
+from policyengine_core.populations import Population, GroupPopulation
 
 #: A collection of :obj:`.Entity` or :obj:`.GroupEntity`.
 People = Union[Population, GroupPopulation]

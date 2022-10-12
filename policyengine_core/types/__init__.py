@@ -11,8 +11,8 @@ Official Public API:
 Note:
     How imports are being used today::
 
-        from openfisca_core.types import *  # Bad
-        from openfisca_core.types.data_types.arrays import ArrayLike  # Bad
+        from policyengine_core.types import *  # Bad
+        from policyengine_core.types.data_types.arrays import ArrayLike  # Bad
 
 
     The previous examples provoke cyclic dependency problems, that prevents us
@@ -21,7 +21,7 @@ Note:
 
     How could them be used after the next major release::
 
-        from openfisca_core.types import ArrayLike
+        from policyengine_core.types import ArrayLike
 
         ArrayLike # Good: import types as publicly exposed
 
@@ -37,9 +37,9 @@ Note:
 
 # Official Public API
 
-from .data_types import (  # noqa: F401
+from .data_types import (
     ArrayLike,
     ArrayType,
-    )
+)
 
 __all__ = ["ArrayLike", "ArrayType"]

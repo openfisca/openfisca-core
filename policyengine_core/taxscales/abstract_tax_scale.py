@@ -3,7 +3,7 @@ from __future__ import annotations
 import typing
 import warnings
 
-from openfisca_core.taxscales import TaxScaleLike
+from policyengine_core.taxscales import TaxScaleLike
 
 if typing.TYPE_CHECKING:
     import numpy
@@ -18,16 +18,16 @@ class AbstractTaxScale(TaxScaleLike):
     """
 
     def __init__(
-            self,
-            name: typing.Optional[str] = None,
-            option: typing.Any = None,
-            unit: numpy.int_ = None,
-            ) -> None:
+        self,
+        name: typing.Optional[str] = None,
+        option: typing.Any = None,
+        unit: numpy.int_ = None,
+    ) -> None:
 
         message = [
             "The 'AbstractTaxScale' class has been deprecated since",
             "version 34.7.0, and will be removed in the future.",
-            ]
+        ]
 
         warnings.warn(" ".join(message), DeprecationWarning)
         super().__init__(name, option, unit)
@@ -36,20 +36,20 @@ class AbstractTaxScale(TaxScaleLike):
         raise NotImplementedError(
             "Method '__repr__' is not implemented for "
             f"{self.__class__.__name__}",
-            )
+        )
 
     def calc(
-            self,
-            tax_base: NumericalArray,
-            right: bool,
-            ) -> typing.NoReturn:
+        self,
+        tax_base: NumericalArray,
+        right: bool,
+    ) -> typing.NoReturn:
         raise NotImplementedError(
             "Method 'calc' is not implemented for "
             f"{self.__class__.__name__}",
-            )
+        )
 
     def to_dict(self) -> typing.NoReturn:
         raise NotImplementedError(
             f"Method 'to_dict' is not implemented for "
             f"{self.__class__.__name__}",
-            )
+        )

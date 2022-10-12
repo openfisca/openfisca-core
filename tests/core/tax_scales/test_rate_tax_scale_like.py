@@ -1,6 +1,6 @@
 import numpy
 
-from openfisca_core import taxscales
+from policyengine_core import taxscales
 
 
 def test_threshold_from_tax_base():

@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import calendar
+from datetime import datetime
+from typing import List
 
-from openfisca_core import periods
-from openfisca_core.periods import config, helpers
+from policyengine_core import periods
+from policyengine_core.periods import config, helpers
+from policyengine_core.periods.instant_ import Instant
 
 
 class Period(tuple):
@@ -16,7 +19,7 @@ class Period(tuple):
     Since a period is a triple it can be used as a dictionary key.
     """
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Transform period to to its Python representation as a string.
 
@@ -27,9 +30,11 @@ class Period(tuple):
         >>> repr(period('day', '2014-2-3'))
         "Period(('day', Instant((2014, 2, 3)), 1))"
         """
-        return '{}({})'.format(self.__class__.__name__, super(Period, self).__repr__())
+        return "{}({})".format(
+            self.__class__.__name__, super(Period, self).__repr__()
+        )
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Transform period to a string.
 
@@ -58,40 +63,49 @@ class Period(tuple):
 
         unit, start_instant, size = self
         if unit == config.ETERNITY:
-            return 'ETERNITY'
+            return "ETERNITY"
         year, month, day = start_instant
 
         # 1 year long period
-        if (unit == config.MONTH and size == 12 or unit == config.YEAR and size == 1):
+        if (
+            unit == config.MONTH
+            and size == 12
+            or unit == config.YEAR
+            and size == 1
+        ):
             if month == 1:
                 # civil year starting from january
                 return str(year)
             else:
                 # rolling year
-                return '{}:{}-{:02d}'.format(config.YEAR, year, month)
+                return "{}:{}-{:02d}".format(config.YEAR, year, month)
         # simple month
         if unit == config.MONTH and size == 1:
-            return '{}-{:02d}'.format(year, month)
+            return "{}-{:02d}".format(year, month)
         # several civil years
         if unit == config.YEAR and month == 1:
-            return '{}:{}:{}'.format(unit, year, size)
+            return "{}:{}:{}".format(unit, year, size)
 
         if unit == config.DAY:
             if size == 1:
-                return '{}-{:02d}-{:02d}'.format(year, month, day)
+                return "{}-{:02d}-{:02d}".format(year, month, day)
             else:
-                return '{}:{}-{:02d}-{:02d}:{}'.format(unit, year, month, day, size)
+                return "{}:{}-{:02d}-{:02d}:{}".format(
+                    unit, year, month, day, size
+                )
 
         # complex period
-        return '{}:{}-{:02d}:{}'.format(unit, year, month, size)
+        return "{}:{}-{:02d}:{}".format(unit, year, month, size)
 
     @property
-    def date(self):
-        assert self.size == 1, '"date" is undefined for a period of size > 1: {}'.format(self)
+    def date(self) -> datetime.date:
+        assert (
+            self.size == 1
+        ), '"date" is undefined for a period of size > 1: {}'.format(self)
         return self.start.date
 
     @property
-    def days(self):
+    def days(self) -> int:
         """
         Count the number of days in period.
 
@@ -118,7 +132,7 @@ class Period(tuple):
         """
         return (self.stop.date - self.start.date).days + 1
 
-    def intersection(self, start, stop):
+    def intersection(self, start: Instant, stop: Instant):
         if start is None and stop is None:
             return self
         period_start = self[1]
@@ -131,34 +145,52 @@ class Period(tuple):
             return None
         intersection_start = max(period_start, start)
         intersection_stop = min(period_stop, stop)
-        if intersection_start == period_start and intersection_stop == period_stop:
+        if (
+            intersection_start == period_start
+            and intersection_stop == period_stop
+        ):
             return self
-        if intersection_start.day == 1 and intersection_start.month == 1 \
-                and intersection_stop.day == 31 and intersection_stop.month == 12:
-            return self.__class__((
-                'year',
-                intersection_start,
-                intersection_stop.year - intersection_start.year + 1,
-                ))
-        if intersection_start.day == 1 and intersection_stop.day == calendar.monthrange(intersection_stop.year,
-                intersection_stop.month)[1]:
-            return self.__class__((
-                'month',
-                intersection_start,
+        if (
+            intersection_start.day == 1
+            and intersection_start.month == 1
+            and intersection_stop.day == 31
+            and intersection_stop.month == 12
+        ):
+            return self.__class__(
                 (
-                    (intersection_stop.year - intersection_start.year) * 12
-                    + intersection_stop.month
-                    - intersection_start.month
-                    + 1
+                    "year",
+                    intersection_start,
+                    intersection_stop.year - intersection_start.year + 1,
+                )
+            )
+        if (
+            intersection_start.day == 1
+            and intersection_stop.day
+            == calendar.monthrange(
+                intersection_stop.year, intersection_stop.month
+            )[1]
+        ):
+            return self.__class__(
+                (
+                    "month",
+                    intersection_start,
+                    (
+                        (intersection_stop.year - intersection_start.year) * 12
+                        + intersection_stop.month
+                        - intersection_start.month
+                        + 1
                     ),
-                ))
-        return self.__class__((
-            'day',
-            intersection_start,
-            (intersection_stop.date - intersection_start.date).days + 1,
-            ))
+                )
+            )
+        return self.__class__(
+            (
+                "day",
+                intersection_start,
+                (intersection_stop.date - intersection_start.date).days + 1,
+            )
+        )
 
-    def get_subperiods(self, unit):
+    def get_subperiods(self, unit: str) -> List["Period"]:
         """
         Return the list of all the periods of unit ``unit`` contained in self.
 
@@ -171,18 +203,28 @@ class Period(tuple):
         >>> [period('2014'), period('2015')]
         """
         if helpers.unit_weight(self.unit) < helpers.unit_weight(unit):
-            raise ValueError('Cannot subdivide {0} into {1}'.format(self.unit, unit))
+            raise ValueError(
+                "Cannot subdivide {0} into {1}".format(self.unit, unit)
+            )
 
         if unit == config.YEAR:
-            return [self.this_year.offset(i, config.YEAR) for i in range(self.size)]
+            return [
+                self.this_year.offset(i, config.YEAR) for i in range(self.size)
+            ]
 
         if unit == config.MONTH:
-            return [self.first_month.offset(i, config.MONTH) for i in range(self.size_in_months)]
+            return [
+                self.first_month.offset(i, config.MONTH)
+                for i in range(self.size_in_months)
+            ]
 
         if unit == config.DAY:
-            return [self.first_day.offset(i, config.DAY) for i in range(self.size_in_days)]
+            return [
+                self.first_day.offset(i, config.DAY)
+                for i in range(self.size_in_days)
+            ]
 
-    def offset(self, offset, unit = None):
+    def offset(self, offset: int, unit: str = None) -> "Period":
         """
         Increment (or decrement) the given period with offset units.
 
@@ -317,7 +359,13 @@ class Period(tuple):
         >>> period('year', '2014-2-3').offset('last-of', 'year')
         Period(('year', Instant((2014, 12, 31)), 1))
         """
-        return self.__class__((self[0], self[1].offset(offset, self[0] if unit is None else unit), self[2]))
+        return self.__class__(
+            (
+                self[0],
+                self[1].offset(offset, self[0] if unit is None else unit),
+                self[2],
+            )
+        )
 
     def contains(self, other: Period) -> bool:
         """
@@ -326,7 +374,7 @@ class Period(tuple):
         return self.start <= other.start and self.stop >= other.stop
 
     @property
-    def size(self):
+    def size(self) -> int:
         """
         Return the size of the period.
 
@@ -336,7 +384,7 @@ class Period(tuple):
         return self[2]
 
     @property
-    def size_in_months(self):
+    def size_in_months(self) -> int:
         """
         Return the size of the period in months.
 
@@ -345,14 +393,16 @@ class Period(tuple):
         >>> period('year', '2012', 1).size_in_months
         12
         """
-        if (self[0] == config.MONTH):
+        if self[0] == config.MONTH:
             return self[2]
-        if(self[0] == config.YEAR):
+        if self[0] == config.YEAR:
             return self[2] * 12
-        raise ValueError("Cannot calculate number of months in {0}".format(self[0]))
+        raise ValueError(
+            "Cannot calculate number of months in {0}".format(self[0])
+        )
 
     @property
-    def size_in_days(self):
+    def size_in_days(self) -> int:
         """
         Return the size of the period in days.
 
@@ -411,7 +461,7 @@ class Period(tuple):
         year, month, day = start_instant
         if unit == config.ETERNITY:
             return periods.Instant((float("inf"), float("inf"), float("inf")))
-        if unit == 'day':
+        if unit == "day":
             if size > 1:
                 day += size - 1
                 month_last_day = calendar.monthrange(year, month)[1]
@@ -423,13 +473,15 @@ class Period(tuple):
                     day -= month_last_day
                     month_last_day = calendar.monthrange(year, month)[1]
         else:
-            if unit == 'month':
+            if unit == "month":
                 month += size
                 while month > 12:
                     year += 1
                     month -= 12
             else:
-                assert unit == 'year', 'Invalid unit: {} of type {}'.format(unit, type(unit))
+                assert unit == "year", "Invalid unit: {} of type {}".format(
+                    unit, type(unit)
+                )
                 year += size
             day -= 1
             if day < 1:
@@ -449,35 +501,35 @@ class Period(tuple):
         return periods.Instant((year, month, day))
 
     @property
-    def unit(self):
+    def unit(self) -> str:
         return self[0]
 
     # Reference periods
 
     @property
-    def last_3_months(self):
-        return self.first_month.start.period('month', 3).offset(-3)
+    def last_3_months(self) -> "Period":
+        return self.first_month.start.period("month", 3).offset(-3)
 
     @property
-    def last_month(self):
+    def last_month(self) -> "Period":
         return self.first_month.offset(-1)
 
     @property
-    def last_year(self):
-        return self.start.offset('first-of', 'year').period('year').offset(-1)
+    def last_year(self) -> "Period":
+        return self.start.offset("first-of", "year").period("year").offset(-1)
 
     @property
-    def n_2(self):
-        return self.start.offset('first-of', 'year').period('year').offset(-2)
+    def n_2(self) -> "Period":
+        return self.start.offset("first-of", "year").period("year").offset(-2)
 
     @property
-    def this_year(self):
-        return self.start.offset('first-of', 'year').period('year')
+    def this_year(self) -> "Period":
+        return self.start.offset("first-of", "year").period("year")
 
     @property
-    def first_month(self):
-        return self.start.offset('first-of', 'month').period('month')
+    def first_month(self) -> "Period":
+        return self.start.offset("first-of", "month").period("month")
 
     @property
-    def first_day(self):
-        return self.start.period('day')
+    def first_day(self) -> "Period":
+        return self.start.period("day")

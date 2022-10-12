@@ -6,37 +6,36 @@ import typing
 
 import numpy
 
-from openfisca_core import taxscales
-from openfisca_core.taxscales import RateTaxScaleLike
+from policyengine_core import taxscales
+from policyengine_core.taxscales import RateTaxScaleLike
 
 if typing.TYPE_CHECKING:
     NumericalArray = typing.Union[numpy.int_, numpy.float_]
 
 
 class MarginalRateTaxScale(RateTaxScaleLike):
-
     def add_tax_scale(self, tax_scale: RateTaxScaleLike) -> None:
         # So as not to have problems with empty scales
-        if (len(tax_scale.thresholds) > 0):
+        if len(tax_scale.thresholds) > 0:
             for threshold_low, threshold_high, rate in zip(
-                    tax_scale.thresholds[:-1],
-                    tax_scale.thresholds[1:],
-                    tax_scale.rates,
-                    ):
+                tax_scale.thresholds[:-1],
+                tax_scale.thresholds[1:],
+                tax_scale.rates,
+            ):
                 self.combine_bracket(rate, threshold_low, threshold_high)
 
             # To process the last threshold
             self.combine_bracket(
                 tax_scale.rates[-1],
                 tax_scale.thresholds[-1],
-                )
+            )
 
     def calc(
-            self,
-            tax_base: NumericalArray,
-            factor: float = 1.0,
-            round_base_decimals: typing.Optional[int] = None,
-            ) -> numpy.float_:
+        self,
+        tax_base: NumericalArray,
+        factor: float = 1.0,
+        round_base_decimals: typing.Optional[int] = None,
+    ) -> numpy.float_:
         """
         Compute the tax amount for the given tax bases by applying a taxscale.
 
@@ -69,14 +68,14 @@ class MarginalRateTaxScale(RateTaxScaleLike):
         thresholds1 = numpy.outer(
             factor + numpy.finfo(numpy.float_).eps,
             numpy.array(self.thresholds + [numpy.inf]),
-            )
+        )
 
         if round_base_decimals is not None:
             thresholds1 = numpy.round_(thresholds1, round_base_decimals)
 
         a = numpy.maximum(
             numpy.minimum(base1, thresholds1[:, 1:]) - thresholds1[:, :-1], 0
-            )
+        )
 
         if round_base_decimals is None:
             return numpy.dot(self.rates, a.T)
@@ -84,14 +83,14 @@ class MarginalRateTaxScale(RateTaxScaleLike):
         else:
             r = numpy.tile(self.rates, (len(tax_base), 1))
             b = numpy.round_(a, round_base_decimals)
-            return numpy.round_(r * b, round_base_decimals).sum(axis = 1)
+            return numpy.round_(r * b, round_base_decimals).sum(axis=1)
 
     def combine_bracket(
-            self,
-            rate: typing.Union[int, float],
-            threshold_low: int = 0,
-            threshold_high: typing.Union[int, bool] = False,
-            ) -> None:
+        self,
+        rate: typing.Union[int, float],
+        threshold_low: int = 0,
+        threshold_high: typing.Union[int, bool] = False,
+    ) -> None:
         # Insert threshold_low and threshold_high without modifying rates
         if threshold_low not in self.thresholds:
             index = bisect.bisect_right(self.thresholds, threshold_low) - 1
@@ -115,11 +114,11 @@ class MarginalRateTaxScale(RateTaxScaleLike):
             i += 1
 
     def marginal_rates(
-            self,
-            tax_base: NumericalArray,
-            factor: float = 1.0,
-            round_base_decimals: typing.Optional[int] = None,
-            ) -> numpy.float_:
+        self,
+        tax_base: NumericalArray,
+        factor: float = 1.0,
+        round_base_decimals: typing.Optional[int] = None,
+    ) -> numpy.float_:
         """
         Compute the marginal tax rates relevant for the given tax bases.
 
@@ -144,14 +143,14 @@ class MarginalRateTaxScale(RateTaxScaleLike):
             tax_base,
             factor,
             round_base_decimals,
-            )
+        )
 
         return numpy.array(self.rates)[bracket_indices]
 
     def rate_from_bracket_indice(
-            self,
-            bracket_indice: numpy.int_,
-            ) -> numpy.float_:
+        self,
+        bracket_indice: numpy.int_,
+    ) -> numpy.float_:
         """
         Compute the relevant tax rates for the given bracket indices.
 
@@ -179,14 +178,14 @@ class MarginalRateTaxScale(RateTaxScaleLike):
                 f"contains one or more bracket indice which is unavailable "
                 f"inside current {self.__class__.__name__} :\n"
                 f"{self}"
-                )
+            )
 
         return numpy.array(self.rates)[bracket_indice]
 
     def rate_from_tax_base(
-            self,
-            tax_base: NumericalArray,
-            ) -> numpy.float_:
+        self,
+        tax_base: NumericalArray,
+    ) -> numpy.float_:
         """
         Compute the relevant tax rates for the given tax bases.
 
@@ -237,10 +236,10 @@ class MarginalRateTaxScale(RateTaxScaleLike):
 
         # Actually 1 / (1 - global_rate)
         inverse = self.__class__(
-            name = str(self.name) + "'",
-            option = self.option,
-            unit = self.unit,
-            )
+            name=str(self.name) + "'",
+            option=self.option,
+            unit=self.unit,
+        )
 
         for threshold, rate in zip(self.thresholds, self.rates):
             if threshold == 0:
@@ -263,10 +262,10 @@ class MarginalRateTaxScale(RateTaxScaleLike):
 
     def to_average(self) -> taxscales.LinearAverageRateTaxScale:
         average_tax_scale = taxscales.LinearAverageRateTaxScale(
-            name = self.name,
-            option = self.option,
-            unit = self.unit,
-            )
+            name=self.name,
+            option=self.option,
+            unit=self.unit,
+        )
 
         average_tax_scale.add_bracket(0, 0)
 
@@ -276,10 +275,10 @@ class MarginalRateTaxScale(RateTaxScaleLike):
             previous_rate = self.rates[0]
 
             for threshold, rate in itertools.islice(
-                    zip(self.thresholds, self.rates),
-                    1,
-                    None,
-                    ):
+                zip(self.thresholds, self.rates),
+                1,
+                None,
+            ):
                 i += previous_rate * (threshold - previous_threshold)
                 average_tax_scale.add_bracket(threshold, i / threshold)
                 previous_threshold = threshold

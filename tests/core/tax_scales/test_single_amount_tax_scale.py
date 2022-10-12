@@ -1,9 +1,9 @@
 import numpy
 
-from openfisca_core import parameters
-from openfisca_core import periods
-from openfisca_core import taxscales
-from openfisca_core import tools
+from policyengine_core import parameters
+from policyengine_core import periods
+from policyengine_core import taxscales
+from policyengine_core import tools
 
 from pytest import fixture
 
@@ -16,14 +16,16 @@ def data():
             "type": "single_amount",
             "threshold_unit": "currency-EUR",
             "rate_unit": "/1",
-            },
+        },
         "brackets": [
             {
                 "threshold": {"2017-10-01": {"value": 0.23}},
-                "amount": {"2017-10-01": {"value": 6}, },
-                }
-            ],
-        }
+                "amount": {
+                    "2017-10-01": {"value": 6},
+                },
+            }
+        ],
+    }
 
 
 def test_calc():
@@ -49,7 +51,7 @@ def test_to_dict():
 
 # TODO: move, as we're testing Scale, not SingleAmountTaxScale
 def test_assign_thresholds_on_creation(data):
-    scale = parameters.Scale("amount_scale", data, "")
+    scale = parameters.ParameterScale("amount_scale", data, "")
     first_jan = periods.Instant((2017, 11, 1))
     scale_at_instant = scale.get_at_instant(first_jan)
 
@@ -60,7 +62,7 @@ def test_assign_thresholds_on_creation(data):
 
 # TODO: move, as we're testing Scale, not SingleAmountTaxScale
 def test_assign_amounts_on_creation(data):
-    scale = parameters.Scale("amount_scale", data, "")
+    scale = parameters.ParameterScale("amount_scale", data, "")
     first_jan = periods.Instant((2017, 11, 1))
     scale_at_instant = scale.get_at_instant(first_jan)
 
@@ -71,7 +73,7 @@ def test_assign_amounts_on_creation(data):
 
 # TODO: move, as we're testing Scale, not SingleAmountTaxScale
 def test_dispatch_scale_type_on_creation(data):
-    scale = parameters.Scale("amount_scale", data, "")
+    scale = parameters.ParameterScale("amount_scale", data, "")
     first_jan = periods.Instant((2017, 11, 1))
 
     result = scale.get_at_instant(first_jan)

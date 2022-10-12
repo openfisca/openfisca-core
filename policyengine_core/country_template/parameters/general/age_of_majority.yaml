@@ -1,0 +1,9 @@
+description: Age of majority (in years)
+metadata:
+  unit: year
+values:
+  # This parameter has last changed on the 1st of Jan 1971.
+  1945-01-01:
+    value: 21.0
+  1971-01-01:
+    value: 18.0

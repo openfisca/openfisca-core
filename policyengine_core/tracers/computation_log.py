@@ -6,7 +6,7 @@ from typing import List, Optional, Union
 import numpy
 
 from .. import tracers
-from openfisca_core.indexed_enums import EnumArray
+from policyengine_core.enums import EnumArray
 
 if typing.TYPE_CHECKING:
     from numpy.typing import ArrayLike
@@ -22,30 +22,29 @@ class ComputationLog:
         self._full_tracer = full_tracer
 
     def display(
-            self,
-            value: Optional[Array],
-            ) -> str:
+        self,
+        value: Optional[Array],
+    ) -> str:
         if isinstance(value, EnumArray):
             value = value.decode_to_str()
 
-        return numpy.array2string(value, max_line_width = float("inf"))
+        return numpy.array2string(value, max_line_width=float("inf"))
 
     def lines(
-            self,
-            aggregate: bool = False,
-            max_depth: Optional[int] = None,
-            ) -> List[str]:
+        self,
+        aggregate: bool = False,
+        max_depth: Optional[int] = None,
+    ) -> List[str]:
         depth = 1
 
         lines_by_tree = [
             self._get_node_log(node, depth, aggregate, max_depth)
-            for node
-            in self._full_tracer.trees
-            ]
+            for node in self._full_tracer.trees
+        ]
 
         return self._flatten(lines_by_tree)
 
-    def print_log(self, aggregate = False, max_depth = None) -> None:
+    def print_log(self, aggregate=False, max_depth=None) -> None:
         """
         Print the computation log of a simulation.
 
@@ -63,15 +62,15 @@ class ComputationLog:
         vectors up to a depth of ``max_depth``.
         """
         for line in self.lines(aggregate, max_depth):
-            print(line)  # noqa T001
+            print(line)
 
     def _get_node_log(
-            self,
-            node: tracers.TraceNode,
-            depth: int,
-            aggregate: bool,
-            max_depth: Optional[int],
-            ) -> List[str]:
+        self,
+        node: tracers.TraceNode,
+        depth: int,
+        aggregate: bool,
+        max_depth: Optional[int],
+    ) -> List[str]:
 
         if max_depth is not None and depth > max_depth:
             return []
@@ -80,20 +79,19 @@ class ComputationLog:
 
         children_logs = [
             self._get_node_log(child, depth + 1, aggregate, max_depth)
-            for child
-            in node.children
-            ]
+            for child in node.children
+        ]
 
         return node_log + self._flatten(children_logs)
 
     def _print_line(
-            self,
-            depth: int,
-            node: tracers.TraceNode,
-            aggregate: bool,
-            max_depth: Optional[int],
-            ) -> str:
-        indent = '  ' * depth
+        self,
+        depth: int,
+        node: tracers.TraceNode,
+        aggregate: bool,
+        max_depth: Optional[int],
+    ) -> str:
+        indent = "  " * depth
         value = node.value
 
         if value is None:
@@ -101,11 +99,13 @@ class ComputationLog:
 
         elif aggregate:
             try:
-                formatted_value = str({
-                    'avg': numpy.mean(value),
-                    'max': numpy.max(value),
-                    'min': numpy.min(value),
-                    })
+                formatted_value = str(
+                    {
+                        "avg": numpy.mean(value),
+                        "max": numpy.max(value),
+                        "min": numpy.min(value),
+                    }
+                )
 
             except TypeError:
                 formatted_value = "{'avg': '?', 'max': '?', 'min': '?'}"
@@ -116,7 +116,7 @@ class ComputationLog:
         return f"{indent}{node.name}<{node.period}> >> {formatted_value}"
 
     def _flatten(
-            self,
-            lists: List[List[str]],
-            ) -> List[str]:
+        self,
+        lists: List[List[str]],
+    ) -> List[str]:
         return [item for list_ in lists for item in list_]

@@ -1,8 +1,8 @@
 import datetime
 import os
 
-from openfisca_core import periods
-from openfisca_core.periods import config
+from policyengine_core import periods
+from policyengine_core.periods import config
 
 
 def N_(message):
@@ -33,11 +33,14 @@ def instant(instant):
         return instant
     if isinstance(instant, str):
         if not config.INSTANT_PATTERN.match(instant):
-            raise ValueError("'{}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'.".format(instant))
-        instant = periods.Instant(
-            int(fragment)
-            for fragment in instant.split('-', 2)[:3]
+            raise ValueError(
+                "'{}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'.".format(
+                    instant
+                )
             )
+        instant = periods.Instant(
+            int(fragment) for fragment in instant.split("-", 2)[:3]
+        )
     elif isinstance(instant, datetime.date):
         instant = periods.Instant((instant.year, instant.month, instant.day))
     elif isinstance(instant, int):
@@ -62,7 +65,9 @@ def instant_date(instant):
         return None
     instant_date = config.date_by_instant_cache.get(instant)
     if instant_date is None:
-        config.date_by_instant_cache[instant] = instant_date = datetime.date(*instant)
+        config.date_by_instant_cache[instant] = instant_date = datetime.date(
+            *instant
+        )
     return instant_date
 
 
@@ -95,32 +100,52 @@ def period(value):
         Parses simple periods respecting the ISO format, such as 2012 or 2015-03
         """
         try:
-            date = datetime.datetime.strptime(value, '%Y')
+            date = datetime.datetime.strptime(value, "%Y")
         except ValueError:
             try:
-                date = datetime.datetime.strptime(value, '%Y-%m')
+                date = datetime.datetime.strptime(value, "%Y-%m")
             except ValueError:
                 try:
-                    date = datetime.datetime.strptime(value, '%Y-%m-%d')
+                    date = datetime.datetime.strptime(value, "%Y-%m-%d")
                 except ValueError:
                     return None
                 else:
-                    return periods.Period((config.DAY, periods.Instant((date.year, date.month, date.day)), 1))
+                    return periods.Period(
+                        (
+                            config.DAY,
+                            periods.Instant((date.year, date.month, date.day)),
+                            1,
+                        )
+                    )
             else:
-                return periods.Period((config.MONTH, periods.Instant((date.year, date.month, 1)), 1))
+                return periods.Period(
+                    (
+                        config.MONTH,
+                        periods.Instant((date.year, date.month, 1)),
+                        1,
+                    )
+                )
         else:
-            return periods.Period((config.YEAR, periods.Instant((date.year, date.month, 1)), 1))
+            return periods.Period(
+                (config.YEAR, periods.Instant((date.year, date.month, 1)), 1)
+            )
 
     def raise_error(value):
-        message = os.linesep.join([
-            "Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: '{}'.".format(value),
-            "Learn more about legal period formats in OpenFisca:",
-            "<https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-simulations>."
-            ])
+        message = os.linesep.join(
+            [
+                "Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: '{}'.".format(
+                    value
+                ),
+                "Learn more about legal period formats in OpenFisca:",
+                "<https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-simulations>.",
+            ]
+        )
         raise ValueError(message)
 
-    if value == 'ETERNITY' or value == config.ETERNITY:
-        return periods.Period(('eternity', instant(datetime.date.min), float("inf")))
+    if value == "ETERNITY" or value == config.ETERNITY:
+        return periods.Period(
+            ("eternity", instant(datetime.date.min), float("inf"))
+        )
 
     # check the type
     if isinstance(value, int):
@@ -137,7 +162,7 @@ def period(value):
     if ":" not in value:
         raise_error(value)
 
-    components = value.split(':')
+    components = value.split(":")
 
     # left-most component must be a valid unit
     unit = components[0]
@@ -187,7 +212,7 @@ def key_period_size(period):
 
     unit, start, size = period
 
-    return '{}_{}'.format(unit_weight(unit), size)
+    return "{}_{}".format(unit_weight(unit), size)
 
 
 def unit_weights():
@@ -196,7 +221,7 @@ def unit_weights():
         config.MONTH: 200,
         config.YEAR: 300,
         config.ETERNITY: 400,
-        }
+    }
 
 
 def unit_weight(unit):

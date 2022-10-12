@@ -6,7 +6,7 @@ import typing
 
 import numpy
 
-from openfisca_core import commons
+from policyengine_core import commons
 
 if typing.TYPE_CHECKING:
     NumericalArray = typing.Union[numpy.int_, numpy.float_]
@@ -25,11 +25,11 @@ class TaxScaleLike(abc.ABC):
 
     @abc.abstractmethod
     def __init__(
-            self,
-            name: typing.Optional[str] = None,
-            option: typing.Any = None,
-            unit: typing.Any = None,
-            ) -> None:
+        self,
+        name: typing.Optional[str] = None,
+        option: typing.Any = None,
+        unit: typing.Any = None,
+    ) -> None:
         self.name = name or "Untitled TaxScale"
         self.option = option
         self.unit = unit
@@ -39,13 +39,13 @@ class TaxScaleLike(abc.ABC):
         raise NotImplementedError(
             "Method '__eq__' is not implemented for "
             f"{self.__class__.__name__}",
-            )
+        )
 
     def __ne__(self, _other: object) -> typing.NoReturn:
         raise NotImplementedError(
             "Method '__ne__' is not implemented for "
             f"{self.__class__.__name__}",
-            )
+        )
 
     @abc.abstractmethod
     def __repr__(self) -> str:
@@ -53,10 +53,10 @@ class TaxScaleLike(abc.ABC):
 
     @abc.abstractmethod
     def calc(
-            self,
-            tax_base: NumericalArray,
-            right: bool,
-            ) -> numpy.float_:
+        self,
+        tax_base: NumericalArray,
+        right: bool,
+    ) -> numpy.float_:
         ...
 
     @abc.abstractmethod

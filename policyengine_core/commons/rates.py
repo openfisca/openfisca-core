@@ -1,15 +1,13 @@
 from typing import Optional
-
 import numpy
-
-from openfisca_core.types import ArrayLike, ArrayType
+from policyengine_core.types import ArrayLike, ArrayType
 
 
 def average_rate(
-        target: ArrayType[float],
-        varying: ArrayLike[float],
-        trim: Optional[ArrayLike[float]] = None,
-        ) -> ArrayType[float]:
+    target: ArrayType[float],
+    varying: ArrayLike[float],
+    trim: Optional[ArrayLike[float]] = None,
+) -> ArrayType[float]:
     """Computes the average rate of a target net income.
 
     Given a ``target`` net income, and according to the ``varying`` gross
@@ -51,22 +49,22 @@ def average_rate(
             average_rate <= max(trim),
             average_rate,
             numpy.nan,
-            )
+        )
 
         average_rate = numpy.where(
             average_rate >= min(trim),
             average_rate,
             numpy.nan,
-            )
+        )
 
     return average_rate
 
 
 def marginal_rate(
-        target: ArrayType[float],
-        varying: ArrayType[float],
-        trim: Optional[ArrayLike[float]] = None,
-        ) -> ArrayType[float]:
+    target: ArrayType[float],
+    varying: ArrayType[float],
+    trim: Optional[ArrayLike[float]] = None,
+) -> ArrayType[float]:
     """Computes the marginal rate of a target net income.
 
     Given a ``target`` net income, and according to the ``varying`` gross
@@ -100,11 +98,9 @@ def marginal_rate(
 
     marginal_rate: ArrayType[float]
 
-    marginal_rate = (
-        + 1
-        - (target[:-1] - target[1:])
-        / (varying[:-1] - varying[1:])
-        )
+    marginal_rate = +1 - (target[:-1] - target[1:]) / (
+        varying[:-1] - varying[1:]
+    )
 
     if trim is not None:
 
@@ -112,12 +108,12 @@ def marginal_rate(
             marginal_rate <= max(trim),
             marginal_rate,
             numpy.nan,
-            )
+        )
 
         marginal_rate = numpy.where(
             marginal_rate >= min(trim),
             marginal_rate,
             numpy.nan,
-            )
+        )
 
     return marginal_rate

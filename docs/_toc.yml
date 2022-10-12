@@ -1,0 +1,38 @@
+format: jb-book
+root: intro
+parts:
+  - caption: Contributing
+    chapters:
+    - file: contributing/intro
+  - caption: Using PolicyEngine Core
+    chapters:
+    - file: usage/simulation
+    - file: usage/country
+    - file: usage/cli
+  - caption: Python API
+    chapters:
+    - file: python_api/commons
+    - file: python_api/country_template
+    - file: python_api/data
+    - file: python_api/data_storage
+    - file: python_api/entities
+    - file: python_api/enums
+    - file: python_api/errors
+    - file: python_api/experimental
+    - file: python_api/extension_template
+    - file: python_api/holders
+    - file: python_api/parameters
+    - file: python_api/periods
+    - file: python_api/populations
+    - file: python_api/projectors
+    - file: python_api/reforms
+    - file: python_api/scripts
+    - file: python_api/simulations
+    - file: python_api/taxbenefitsystems
+    - file: python_api/taxscales
+    - file: python_api/tools
+    - file: python_api/tracers
+    - file: python_api/types
+    - file: python_api/variables
+    - file: python_api/warnings
+

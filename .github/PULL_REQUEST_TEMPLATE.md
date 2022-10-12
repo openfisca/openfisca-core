@@ -1,20 +1,27 @@
-Thanks for contributing to OpenFisca! Remove this line, as well as any other in the following that don't fit your contribution  :)
+Thanks for contributing! Please remove any top-level sections that do not apply to your changes.
 
-#### Breaking changes
+- [ ] `make format && make documentation` has been run.
 
-- In _some module_:
-  - Remove…
+# New variable
 
-#### New features
+- [ ] Label field added
+- [ ] Documentation field added
+- [ ] Unit field added
+- [ ] Default value field added if relevant
+- [ ] Variable name follows conventions
+- [ ] Unit test(s) added
+- [ ] Integration test(s) added if relevant
+- [ ] Issues this PR fixes linked
 
-- Introduce `some_function()`
-  - Allows for…
+## What's changed
 
-#### Deprecations
+Description of the changes here.
 
-- Deprecate `some_function`.
-  - The functionality is now provided by…
+# Bug fix
 
-#### Technical changes
+- [ ] Regression test added
+- [ ] Regression test passing
 
-- Rename `private_function`.
+## What this fixes and how it's fixed
+
+Description of how this fix works goes here. Link any issues this PR fixes.

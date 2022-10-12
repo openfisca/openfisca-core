@@ -1,13 +1,12 @@
 import calendar
 import datetime
 
-from openfisca_core import periods
-from openfisca_core.periods import config
+from policyengine_core import periods
+from policyengine_core.periods import config
 
 
 class Instant(tuple):
-
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Transform instant to to its Python representation as a string.
 
@@ -18,9 +17,11 @@ class Instant(tuple):
         >>> repr(instant('2014-2-3'))
         'Instant((2014, 2, 3))'
         """
-        return '{}({})'.format(self.__class__.__name__, super(Instant, self).__repr__())
+        return "{}({})".format(
+            self.__class__.__name__, super(Instant, self).__repr__()
+        )
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Transform instant to a string.
 
@@ -34,11 +35,13 @@ class Instant(tuple):
         """
         instant_str = config.str_by_instant_cache.get(self)
         if instant_str is None:
-            config.str_by_instant_cache[self] = instant_str = self.date.isoformat()
+            config.str_by_instant_cache[
+                self
+            ] = instant_str = self.date.isoformat()
         return instant_str
 
     @property
-    def date(self):
+    def date(self) -> datetime.date:
         """
         Convert instant to a date.
 
@@ -51,11 +54,13 @@ class Instant(tuple):
         """
         instant_date = config.date_by_instant_cache.get(self)
         if instant_date is None:
-            config.date_by_instant_cache[self] = instant_date = datetime.date(*self)
+            config.date_by_instant_cache[self] = instant_date = datetime.date(
+                *self
+            )
         return instant_date
 
     @property
-    def day(self):
+    def day(self) -> int:
         """
         Extract day from instant.
 
@@ -69,7 +74,7 @@ class Instant(tuple):
         return self[2]
 
     @property
-    def month(self):
+    def month(self) -> int:
         """
         Extract month from instant.
 
@@ -82,7 +87,7 @@ class Instant(tuple):
         """
         return self[1]
 
-    def period(self, unit, size = 1):
+    def period(self, unit: str, size: int = 1):
         """
         Create a new period starting at instant.
 
@@ -93,11 +98,17 @@ class Instant(tuple):
         >>> instant('2014-2-3').period('day', size = 2)
         Period(('day', Instant((2014, 2, 3)), 2))
         """
-        assert unit in (config.DAY, config.MONTH, config.YEAR), 'Invalid unit: {} of type {}'.format(unit, type(unit))
-        assert isinstance(size, int) and size >= 1, 'Invalid size: {} of type {}'.format(size, type(size))
+        assert unit in (
+            config.DAY,
+            config.MONTH,
+            config.YEAR,
+        ), "Invalid unit: {} of type {}".format(unit, type(unit))
+        assert (
+            isinstance(size, int) and size >= 1
+        ), "Invalid size: {} of type {}".format(size, type(size))
         return periods.Period((unit, self, size))
 
-    def offset(self, offset, unit):
+    def offset(self, offset: int, unit: str) -> "Instant":
         """
         Increment (or decrement) the given instant with offset units.
 
@@ -179,21 +190,27 @@ class Instant(tuple):
         Instant((2014, 12, 31))
         """
         year, month, day = self
-        assert unit in (config.DAY, config.MONTH, config.YEAR), 'Invalid unit: {} of type {}'.format(unit, type(unit))
-        if offset == 'first-of':
+        assert unit in (
+            config.DAY,
+            config.MONTH,
+            config.YEAR,
+        ), "Invalid unit: {} of type {}".format(unit, type(unit))
+        if offset == "first-of":
             if unit == config.MONTH:
                 day = 1
             elif unit == config.YEAR:
                 month = 1
                 day = 1
-        elif offset == 'last-of':
+        elif offset == "last-of":
             if unit == config.MONTH:
                 day = calendar.monthrange(year, month)[1]
             elif unit == config.YEAR:
                 month = 12
                 day = 31
         else:
-            assert isinstance(offset, int), 'Invalid offset: {} of type {}'.format(offset, type(offset))
+            assert isinstance(
+                offset, int
+            ), "Invalid offset: {} of type {}".format(offset, type(offset))
             if unit == config.DAY:
                 day += offset
                 if offset < 0:
@@ -235,7 +252,7 @@ class Instant(tuple):
         return self.__class__((year, month, day))
 
     @property
-    def year(self):
+    def year(self) -> int:
         """
         Extract year from instant.
 

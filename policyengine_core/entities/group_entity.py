@@ -1,4 +1,6 @@
-from openfisca_core.entities import Entity, Role
+from typing import List
+from policyengine_core.entities.entity import Entity
+from policyengine_core.entities.role import Role
 
 
 class GroupEntity(Entity):
@@ -23,7 +25,15 @@ class GroupEntity(Entity):
 
     """
 
-    def __init__(self, key, plural, label, doc, roles, containing_entities = ()):
+    def __init__(
+        self,
+        key: str,
+        plural: str,
+        label: str,
+        doc: str,
+        roles: List[str],
+        containing_entities: List[str] = (),
+    ):
         super().__init__(key, plural, label, doc)
         self.roles_description = roles
         self.roles = []
@@ -31,13 +41,15 @@ class GroupEntity(Entity):
             role = Role(role_description, self)
             setattr(self, role.key.upper(), role)
             self.roles.append(role)
-            if role_description.get('subroles'):
+            if role_description.get("subroles"):
                 role.subroles = []
-                for subrole_key in role_description['subroles']:
-                    subrole = Role({'key': subrole_key, 'max': 1}, self)
+                for subrole_key in role_description["subroles"]:
+                    subrole = Role({"key": subrole_key, "max": 1}, self)
                     setattr(self, subrole.key.upper(), subrole)
                     role.subroles.append(subrole)
                 role.max = len(role.subroles)
-        self.flattened_roles = sum([role2.subroles or [role2] for role2 in self.roles], [])
+        self.flattened_roles = sum(
+            [role2.subroles or [role2] for role2 in self.roles], []
+        )
         self.is_person = False
         self.containing_entities = containing_entities
