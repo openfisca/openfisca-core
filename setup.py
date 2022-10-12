@@ -23,6 +23,7 @@ general_requirements = [
     "wheel<1",
     "h5py>=3,<4",
     "microdf_python>=0.3.0,<1",
+    "tqdm>=4.46.0,<5",
 ]
 
 dev_requirements = [
