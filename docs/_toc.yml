@@ -7,6 +7,8 @@ parts:
   - caption: Using PolicyEngine Core
     chapters:
     - file: usage/simulation
+    - file: usage/country
+    - file: usage/cli
   - caption: Python API
     chapters:
     - file: python_api/commons

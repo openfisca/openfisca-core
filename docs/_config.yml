@@ -9,3 +9,4 @@ sphinx:
     html_theme: furo
   extra_extensions:
     - "sphinx.ext.autodoc"
+    - "sphinxarg.ext"

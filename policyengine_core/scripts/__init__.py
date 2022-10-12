@@ -12,7 +12,7 @@ def add_tax_benefit_system_arguments(parser, country_only: bool = False):
         "-c",
         "--country-package",
         action="store",
-        help='country package to use. If not provided, an automatic detection will be attempted by scanning the python packages installed in your environment which name contains the word "openfisca".',
+        help='country package to use. If not provided, an automatic detection will be attempted by scanning the python packages installed in your environment which name contains the word "policyengine".',
     )
     if country_only:
         return parser
