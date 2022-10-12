@@ -55,3 +55,8 @@
     fixed:
     - Bug in the country template microsimulation class failing to load data.
   date: 2022-10-12 16:25:33
+- bump: patch
+  changes:
+    fixed:
+    - Git blame reassigns OpenFisca-Core authors.
+  date: 2022-10-12 18:08:43
