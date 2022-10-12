@@ -1,0 +1,4 @@
+- bump: patch
+  changes:
+    added:
+    - Behaviour to handle default datasets.
