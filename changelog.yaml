@@ -39,3 +39,9 @@
     fixed:
     - Python 3.9 used in all GitHub actions.
   date: 2022-10-09 23:00:35
+- bump: minor
+  changes:
+    added:
+    - Microsimulation features
+    - Documentation for the CLI interface
+  date: 2022-10-12 15:33:59

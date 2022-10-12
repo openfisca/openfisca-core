@@ -1,5 +1,0 @@
-- bump: minor
-  changes:
-    added:
-      - Microsimulation features
-      - Documentation for the CLI interface
