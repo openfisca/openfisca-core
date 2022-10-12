@@ -57,9 +57,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     data_files=[
-        (
-            ["README.md"],
-        ),
+        (["README.md"],),
     ],
     entry_points={
         "console_scripts": [
