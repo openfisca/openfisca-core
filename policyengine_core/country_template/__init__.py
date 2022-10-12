@@ -3,8 +3,12 @@ from policyengine_core.taxbenefitsystems import TaxBenefitSystem
 from policyengine_core.country_template import entities
 from policyengine_core.country_template.situation_examples import couple
 from policyengine_core.simulations import Simulation as CoreSimulation
-from policyengine_core.simulations import WeightedSimulation as CoreWeightedSimulation
-from policyengine_core.country_template.data.datasets.country_template_dataset import CountryTemplateDataset
+from policyengine_core.simulations import (
+    WeightedSimulation as CoreWeightedSimulation,
+)
+from policyengine_core.country_template.data.datasets.country_template_dataset import (
+    CountryTemplateDataset,
+)
 from pathlib import Path
 
 
@@ -35,8 +39,10 @@ class CountryTaxBenefitSystem(TaxBenefitSystem):
             "simulation_example": couple,
         }
 
+
 class Simulation(CoreSimulation):
     default_tax_benefit_system = CountryTaxBenefitSystem
+
 
 class Microsimulation(CoreWeightedSimulation):
     default_tax_benefit_system = CountryTaxBenefitSystem

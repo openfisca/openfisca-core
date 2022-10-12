@@ -3,6 +3,7 @@ from argparse import ArgumentParser
 
 from policyengine_core.scripts import detect_country_package
 
+
 def main(parser: ArgumentParser):
     # Get arguments as well as kwargs
     args, kwargs = parser.parse_known_args()
@@ -13,17 +14,18 @@ def main(parser: ArgumentParser):
 
     if country_package is None:
         country_package = detect_country_package()
-    
+
     datasets = importlib.import_module(country_package).DATASETS
 
     if args.dataset == "datasets" and args.action == "list":
         print(f"Available datasets for {country_package}:")
         for dataset in datasets:
-            print(f" - {dataset.name} ({len(dataset().get_saved_datasets())} saved versions)")
+            print(
+                f" - {dataset.name} ({len(dataset().get_saved_datasets())} saved versions)"
+            )
         return
     dataset_by_name = {dataset.name: dataset for dataset in datasets}
     dataset = dataset_by_name[args.dataset]()
-
 
     if args.action == "build":
         dataset.build(kwargs)
@@ -41,7 +43,16 @@ def main(parser: ArgumentParser):
             print("Saved datasets:")
             for saved_dataset in saved_datasets:
                 filepath = dataset.get_file_path(saved_dataset)
-                config_str = ", ".join([f"{k}={v}" for k, v in saved_dataset.items()])
-                print("  * " + filepath.name + "  | " + config_str + "  |  " + str(filepath.absolute()))
+                config_str = ", ".join(
+                    [f"{k}={v}" for k, v in saved_dataset.items()]
+                )
+                print(
+                    "  * "
+                    + filepath.name
+                    + "  | "
+                    + config_str
+                    + "  |  "
+                    + str(filepath.absolute())
+                )
     else:
         raise ValueError(f"Action {args.action} not recognised.")

@@ -30,8 +30,11 @@ class Simulation:
     """
     Represents a simulation, and handles the calculation logic
     """
+
     default_tax_benefit_system: Type["TaxBenefitSystem"]
-    default_dataset: Type[Dataset] = None  # This becomes the default method for building simulations if given a value here.
+    default_dataset: Type[
+        Dataset
+    ] = None  # This becomes the default method for building simulations if given a value here.
     default_dataset_options = None
 
     def __init__(
@@ -54,7 +57,7 @@ class Simulation:
         if self.default_dataset is not None:
             if dataset is None:
                 dataset = self.default_dataset
-        
+
         if self.default_dataset_options is not None:
             if dataset_options is None:
                 dataset_options = self.default_dataset_options
@@ -70,19 +73,28 @@ class Simulation:
         self._data_storage_dir: str = None
 
         if situation is not None:
-            self.build_from_populations(self.tax_benefit_system.instantiate_entities())
-            from policyengine_core.simulations.simulation_builder import SimulationBuilder  # Import here to avoid circular dependency
-            SimulationBuilder().build_from_dict(self.tax_benefit_system, situation, self)
+            self.build_from_populations(
+                self.tax_benefit_system.instantiate_entities()
+            )
+            from policyengine_core.simulations.simulation_builder import (
+                SimulationBuilder,
+            )  # Import here to avoid circular dependency
+
+            SimulationBuilder().build_from_dict(
+                self.tax_benefit_system, situation, self
+            )
 
         if populations is not None:
             self.build_from_populations(populations)
-        
+
         if dataset is not None:
             self.dataset = dataset()
             self.dataset_options = dataset_options
             self.build_from_dataset()
 
-    def build_from_populations(self, populations: Dict[str, Population]) -> None:
+    def build_from_populations(
+        self, populations: Dict[str, Population]
+    ) -> None:
         """This method of initialisation requires the populations to be pre-initialised.
 
         Args:
@@ -98,43 +110,58 @@ class Simulation:
         ]
         self.link_to_entities_instances()
         self.create_shortcuts()
-    
+
     def build_from_dataset(self) -> None:
-        """Build a simulation from a dataset.
-        """
-        self.build_from_populations(self.tax_benefit_system.instantiate_entities())
-        from policyengine_core.simulations.simulation_builder import SimulationBuilder  # Import here to avoid circular dependency
+        """Build a simulation from a dataset."""
+        self.build_from_populations(
+            self.tax_benefit_system.instantiate_entities()
+        )
+        from policyengine_core.simulations.simulation_builder import (
+            SimulationBuilder,
+        )  # Import here to avoid circular dependency
+
         builder = SimulationBuilder()
         builder.populations = self.populations
         data = self.dataset.load(self.dataset_options)
-        
+
         eternity = ETERNITY
 
         person_entity = self.tax_benefit_system.person_entity
         entity_id_field = f"{person_entity.key}_id"
-        assert entity_id_field in data, f"Missing {entity_id_field} column in the dataset. Each person entity must have an ID array defined for ETERNITY."
+        assert (
+            entity_id_field in data
+        ), f"Missing {entity_id_field} column in the dataset. Each person entity must have an ID array defined for ETERNITY."
 
         entity_ids = data[entity_id_field][eternity]
         builder.declare_person_entity(person_entity.key, entity_ids)
 
         for group_entity in self.tax_benefit_system.group_entities:
             entity_id_field = f"{group_entity.key}_id"
-            assert entity_id_field in data, f"Missing {entity_id_field} column in the dataset. Each group entity must have an ID array defined for ETERNITY."
+            assert (
+                entity_id_field in data
+            ), f"Missing {entity_id_field} column in the dataset. Each group entity must have an ID array defined for ETERNITY."
 
             entity_ids = data[entity_id_field][eternity]
             builder.declare_entity(group_entity.key, entity_ids)
 
             person_membership_id = f"{person_entity.key}_{group_entity.key}_id"
-            assert person_membership_id in data, f"Missing {person_membership_id} column in the dataset. Each group entity must have a person membership array defined for ETERNITY."
+            assert (
+                person_membership_id in data
+            ), f"Missing {person_membership_id} column in the dataset. Each group entity must have a person membership array defined for ETERNITY."
 
             person_role_field = f"{person_entity.key}_{group_entity.key}_role"
             person_roles = data[person_role_field][eternity]
-            builder.join_with_persons(self.populations[group_entity.key], person_membership_id, person_roles)
-        
+            builder.join_with_persons(
+                self.populations[group_entity.key],
+                person_membership_id,
+                person_roles,
+            )
+
         for variable in data:
             for time_period in data[variable]:
-                self.set_input(variable, time_period, data[variable][time_period])
-        
+                self.set_input(
+                    variable, time_period, data[variable][time_period]
+                )
 
     @property
     def trace(self) -> bool:
@@ -174,9 +201,11 @@ class Simulation:
 
     # ----- Calculation methods ----- #
 
-    def calculate(self, variable_name: str, period: Period, map_to: str = None) -> ArrayLike:
+    def calculate(
+        self, variable_name: str, period: Period, map_to: str = None
+    ) -> ArrayLike:
         """Calculate ``variable_name`` for ``period``.
-        
+
         Args:
             variable_name (str): The name of the variable to calculate.
             period (Period): The period to calculate the variable for.
@@ -195,7 +224,9 @@ class Simulation:
             result = self._calculate(variable_name, period)
             self.tracer.record_calculation_result(result)
             if map_to is not None:
-                source_entity = self.tax_benefit_system.get_variable(variable_name).entity.key
+                source_entity = self.tax_benefit_system.get_variable(
+                    variable_name
+                ).entity.key
                 result = self.map_result(result, source_entity, map_to)
             return result
 
@@ -204,7 +235,11 @@ class Simulation:
             self.purge_cache_of_invalid_values()
 
     def map_result(
-        self, values: ArrayLike, source_entity: str, target_entity: str, how: str = None
+        self,
+        values: ArrayLike,
+        source_entity: str,
+        target_entity: str,
+        how: str = None,
     ):
         """Maps values from one entity to another.
 
@@ -222,7 +257,10 @@ class Simulation:
         """
         entity_pop = self.populations[source_entity]
         target_pop = self.populations[target_entity]
-        if source_entity == "person" and target_entity in self.group_entity_names:
+        if (
+            source_entity == "person"
+            and target_entity in self.group_entity_names
+        ):
             if how and how not in (
                 "sum",
                 "any",
@@ -233,7 +271,10 @@ class Simulation:
             ):
                 raise ValueError("Not a valid function.")
             return target_pop.__getattribute__(how or "sum")(values)
-        elif source_entity in self.group_entity_names and target_entity == "person":
+        elif (
+            source_entity in self.group_entity_names
+            and target_entity == "person"
+        ):
             if not how:
                 return entity_pop.project(values)
             if how == "mean":
@@ -242,13 +283,20 @@ class Simulation:
             return values
         else:
             return self.map_to(
-                self.map_to(values, source_entity, self.tax_benefit_system.person_entity.key, how="mean"),
+                self.map_to(
+                    values,
+                    source_entity,
+                    self.tax_benefit_system.person_entity.key,
+                    how="mean",
+                ),
                 "person",
                 target_entity,
                 how="sum",
             )
-    
-    def calculate_dataframe(self, variable_names: List[str], period: Period, map_to: str = None) -> pd.DataFrame:
+
+    def calculate_dataframe(
+        self, variable_names: List[str], period: Period, map_to: str = None
+    ) -> pd.DataFrame:
         """Calculate ``variable_names`` for ``period``.
 
         Args:
@@ -260,7 +308,10 @@ class Simulation:
         """
 
         df = pd.DataFrame()
-        entities = [self.tax_benefit_system.get_variable(variable_name).entity.key for variable_name in variable_names]
+        entities = [
+            self.tax_benefit_system.get_variable(variable_name).entity.key
+            for variable_name in variable_names
+        ]
         # Check that all variables are from the same entity. If not, map values to the entity of the first variable.
         entity = entities[0]
         if not all(entity == e for e in entities):

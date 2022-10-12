@@ -1,12 +1,13 @@
 from policyengine_core.data import Dataset
 from policyengine_core.periods import ETERNITY, MONTH, period
 
+
 class CountryTemplateDataset(Dataset):
     name = "country_template_dataset"
     label = "Country template dataset"
     options = {"year": 2022}
     country_package_name: str = "policyengine_core.country_template"
-    
+
     def build(self, options: dict = None) -> None:
         person_id = [0, 1, 2]
         household_id = [0, 1]

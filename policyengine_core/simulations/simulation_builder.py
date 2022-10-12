@@ -52,7 +52,10 @@ class SimulationBuilder:
         self.axes_roles: typing.Dict[Entity.plural, typing.List[int]] = {}
 
     def build_from_dict(
-        self, tax_benefit_system: "TaxBenefitSystem", input_dict: dict, simulation: Simulation = None,
+        self,
+        tax_benefit_system: "TaxBenefitSystem",
+        input_dict: dict,
+        simulation: Simulation = None,
     ) -> Simulation:
         """
         Build a simulation from ``input_dict``. Optionally overwrites an existing simulation.
@@ -67,11 +70,20 @@ class SimulationBuilder:
             key in tax_benefit_system.entities_plural()
             for key in input_dict.keys()
         ):
-            return self.build_from_entities(tax_benefit_system, input_dict, simulation)
+            return self.build_from_entities(
+                tax_benefit_system, input_dict, simulation
+            )
         else:
-            return self.build_from_variables(tax_benefit_system, input_dict, simulation)
+            return self.build_from_variables(
+                tax_benefit_system, input_dict, simulation
+            )
 
-    def build_from_entities(self, tax_benefit_system: "TaxBenefitSystem", input_dict: dict, simulation: Simulation = None) -> Simulation:
+    def build_from_entities(
+        self,
+        tax_benefit_system: "TaxBenefitSystem",
+        input_dict: dict,
+        simulation: Simulation = None,
+    ) -> Simulation:
         """
         Build a simulation from a Python dict ``input_dict`` fully specifying entities.
 
@@ -86,7 +98,8 @@ class SimulationBuilder:
 
         if simulation is None:
             simulation = Simulation(
-                tax_benefit_system=tax_benefit_system, populations=tax_benefit_system.instantiate_entities()
+                tax_benefit_system=tax_benefit_system,
+                populations=tax_benefit_system.instantiate_entities(),
             )
 
         # Register variables so get_variable_entity can find them
@@ -170,7 +183,10 @@ class SimulationBuilder:
         return simulation
 
     def build_from_variables(
-        self, tax_benefit_system: "TaxBenefitSystem", input_dict: dict, simulation: Simulation = None,
+        self,
+        tax_benefit_system: "TaxBenefitSystem",
+        input_dict: dict,
+        simulation: Simulation = None,
     ) -> Simulation:
         """
         Build a simulation from a Python dict ``input_dict`` describing variables values without expliciting entities.
@@ -184,7 +200,9 @@ class SimulationBuilder:
             )
         """
         count = helpers._get_person_count(input_dict)
-        simulation = self.build_default_simulation(tax_benefit_system, count, simulation)
+        simulation = self.build_default_simulation(
+            tax_benefit_system, count, simulation
+        )
         for variable, value in input_dict.items():
             if not isinstance(value, dict):
                 if self.default_period is None:
@@ -199,7 +217,10 @@ class SimulationBuilder:
         return simulation
 
     def build_default_simulation(
-        self, tax_benefit_system: "TaxBenefitSystem", count: int = 1, simulation: Simulation = None,
+        self,
+        tax_benefit_system: "TaxBenefitSystem",
+        count: int = 1,
+        simulation: Simulation = None,
     ) -> Simulation:
         """
         Build a simulation where:
@@ -210,7 +231,8 @@ class SimulationBuilder:
 
         if simulation is None:
             simulation = Simulation(
-                tax_benefit_system=tax_benefit_system, populations=tax_benefit_system.instantiate_entities()
+                tax_benefit_system=tax_benefit_system,
+                populations=tax_benefit_system.instantiate_entities(),
             )
         for population in simulation.populations.values():
             population.count = count
@@ -274,7 +296,9 @@ class SimulationBuilder:
                 )
 
     def build(self, tax_benefit_system: "TaxBenefitSystem") -> Simulation:
-        return Simulation(tax_benefit_system=tax_benefit_system, populations=self.populations)
+        return Simulation(
+            tax_benefit_system=tax_benefit_system, populations=self.populations
+        )
 
     def explicit_singular_entities(
         self, tax_benefit_system: "TaxBenefitSystem", input_dict: dict

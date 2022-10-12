@@ -7,11 +7,11 @@ def test_dataset_class():
         label = "Test dataset"
         options = {"year": 2022}
         country_package_name: str = "policyengine_core.country_template"
-    
+
         def build(self, options: dict = None) -> None:
             input_period = period("2022-01")
             self.write({"salary": {input_period: [100, 200, 300]}})
-    
+
     test_dataset = TestDataset()
     test_dataset.remove_all()
     test_dataset.build()
