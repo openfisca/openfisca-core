@@ -56,9 +56,6 @@ setup(
     url="https://github.com/policyengine/policyengine-core",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    data_files=[
-        (["README.md"],),
-    ],
     entry_points={
         "console_scripts": [
             "policyengine-core=policyengine_core.scripts.policyengine_command:main",
