@@ -5,6 +5,7 @@ from policyengine_core.data.dataset import Dataset
 from policyengine_core.scripts import detect_country_package
 import pandas as pd
 
+
 def dataset_summary(datasets: List[Dataset]) -> str:
     years = list(sorted(list(set(sum([ds.years for ds in datasets], [])))))
     df = pd.DataFrame(
@@ -16,6 +17,7 @@ def dataset_summary(datasets: List[Dataset]) -> str:
     )
     df = df.sort_values(by=list(df.columns[::-1]), ascending=False)
     return df.to_markdown(tablefmt="pretty")
+
 
 def main(parser: ArgumentParser):
     # Get arguments as well as kwargs
@@ -53,10 +55,7 @@ def main(parser: ArgumentParser):
             for year in years:
                 filepath = dataset.file(year).absolute()
                 print(
-                    "  * "
-                    + filepath.name
-                    + "  | "
-                    + str(filepath.absolute())
+                    "  * " + filepath.name + "  | " + str(filepath.absolute())
                 )
     else:
         raise ValueError(f"Action {args.action} not recognised.")

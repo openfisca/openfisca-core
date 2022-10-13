@@ -11,6 +11,7 @@ from . import config, helpers, AtInstantLike, Parameter, ParameterNodeAtInstant
 
 EXCLUDED_PARAMETER_CHILD_NAMES = ["reference", "__pycache__"]
 
+
 class ParameterNode(AtInstantLike):
     """
     A node in the legislation `parameter tree <https://openfisca.org/doc/coding-the-legislation/legislation_parameters.html>`_.
@@ -117,7 +118,10 @@ class ParameterNode(AtInstantLike):
             self.documentation = data.get("documentation")
             self.metadata.update(data.get("metadata", {}))
             for child_name, child in data.items():
-                if child_name in config.COMMON_KEYS or child_name in EXCLUDED_PARAMETER_CHILD_NAMES:
+                if (
+                    child_name in config.COMMON_KEYS
+                    or child_name in EXCLUDED_PARAMETER_CHILD_NAMES
+                ):
                     continue  # do not treat reserved keys as subparameters.
 
                 child_name = str(child_name)

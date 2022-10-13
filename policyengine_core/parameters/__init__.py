@@ -28,4 +28,9 @@ from .parameter_scale_bracket import (
     ParameterScaleBracket,
 )
 
-from .operations import homogenize_parameter_structures, interpolate_parameters, propagate_parameter_metadata, uprate_parameters
+from .operations import (
+    homogenize_parameter_structures,
+    interpolate_parameters,
+    propagate_parameter_metadata,
+    uprate_parameters,
+)

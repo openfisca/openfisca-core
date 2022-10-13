@@ -147,7 +147,11 @@ class Simulation:
             entity_id_field in data
         ), f"Missing {entity_id_field} column in the dataset. Each person entity must have an ID array defined for ETERNITY."
 
-        get_eternity_array = lambda ds: ds[ETERNITY] if self.dataset.data_format == Dataset.TIME_PERIOD_ARRAYS else ds
+        get_eternity_array = (
+            lambda ds: ds[ETERNITY]
+            if self.dataset.data_format == Dataset.TIME_PERIOD_ARRAYS
+            else ds
+        )
         entity_ids = get_eternity_array(data[entity_id_field])
         builder.declare_person_entity(person_entity.key, entity_ids)
 
