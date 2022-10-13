@@ -9,6 +9,7 @@ from policyengine_core.periods.instant_ import Instant
 from policyengine_core.data_structures import Reference
 from . import config, helpers, AtInstantLike, Parameter, ParameterNodeAtInstant
 
+EXCLUDED_PARAMETER_CHILD_NAMES = ["reference", "__pycache__"]
 
 class ParameterNode(AtInstantLike):
     """
@@ -88,7 +89,7 @@ class ParameterNode(AtInstantLike):
                         self.description = data.get("description")
                         self.documentation = data.get("documentation")
                         self.metadata.update(data.get("metadata", {}))
-                    else:
+                    elif child_name not in EXCLUDED_PARAMETER_CHILD_NAMES:
                         child_name_expanded = helpers._compose_name(
                             name, child_name
                         )
@@ -116,7 +117,7 @@ class ParameterNode(AtInstantLike):
             self.documentation = data.get("documentation")
             self.metadata.update(data.get("metadata", {}))
             for child_name, child in data.items():
-                if child_name in config.COMMON_KEYS:
+                if child_name in config.COMMON_KEYS or child_name in EXCLUDED_PARAMETER_CHILD_NAMES:
                     continue  # do not treat reserved keys as subparameters.
 
                 child_name = str(child_name)

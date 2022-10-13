@@ -1,6 +1,7 @@
 import tempfile
 from typing import Any, Dict, List, TYPE_CHECKING, Type
 import numpy
+import numpy as np
 import pandas as pd
 from numpy.typing import ArrayLike
 from policyengine_core import commons, periods
@@ -38,6 +39,10 @@ class Simulation:
     """The default dataset class to use if none is provided."""
 
     default_dataset_year: int = None
+    """The default dataset year to use if none is provided."""
+
+    default_role: str = None
+    """The default role to assign people to groups if none is provided."""
 
     def __init__(
         self,
@@ -136,15 +141,14 @@ class Simulation:
                 + "Make sure you have downloaded or built it using the `policyengine-core data` command."
             ) from e
 
-        eternity = ETERNITY
-
         person_entity = self.tax_benefit_system.person_entity
         entity_id_field = f"{person_entity.key}_id"
         assert (
             entity_id_field in data
         ), f"Missing {entity_id_field} column in the dataset. Each person entity must have an ID array defined for ETERNITY."
 
-        entity_ids = data[entity_id_field][eternity]
+        get_eternity_array = lambda ds: ds[ETERNITY] if self.dataset.data_format == Dataset.TIME_PERIOD_ARRAYS else ds
+        entity_ids = get_eternity_array(data[entity_id_field])
         builder.declare_person_entity(person_entity.key, entity_ids)
 
         for group_entity in self.tax_benefit_system.group_entities:
@@ -153,7 +157,7 @@ class Simulation:
                 entity_id_field in data
             ), f"Missing {entity_id_field} column in the dataset. Each group entity must have an ID array defined for ETERNITY."
 
-            entity_ids = data[entity_id_field][eternity]
+            entity_ids = get_eternity_array(data[entity_id_field])
             builder.declare_entity(group_entity.key, entity_ids)
 
             person_membership_id = f"{person_entity.key}_{group_entity.key}_id"
@@ -162,7 +166,16 @@ class Simulation:
             ), f"Missing {person_membership_id} column in the dataset. Each group entity must have a person membership array defined for ETERNITY."
 
             person_role_field = f"{person_entity.key}_{group_entity.key}_role"
-            person_roles = data[person_role_field][eternity]
+            if person_role_field in data:
+                person_roles = get_eternity_array(data[person_role_field])
+            elif "role" in data:
+                person_roles = get_eternity_array(data["role"])
+            elif self.default_role is not None:
+                person_roles = np.full(len(entity_ids), self.default_role)
+            else:
+                raise ValueError(
+                    f"Missing {person_role_field} column in the dataset. Each group entity must have a person role array defined for ETERNITY."
+                )
             builder.join_with_persons(
                 self.populations[group_entity.key],
                 person_membership_id,
@@ -170,10 +183,17 @@ class Simulation:
             )
 
         for variable in data:
-            for time_period in data[variable]:
-                self.set_input(
-                    variable, time_period, data[variable][time_period]
-                )
+            if variable in self.tax_benefit_system.variables:
+                if self.dataset.data_format == Dataset.TIME_PERIOD_ARRAYS:
+                    for time_period in data[variable]:
+                        self.set_input(
+                            variable, time_period, data[variable][time_period]
+                        )
+                else:
+                    self.set_input(variable, self.dataset_year, data[variable])
+            else:
+                # Silently skip.
+                pass
 
     @property
     def trace(self) -> bool:

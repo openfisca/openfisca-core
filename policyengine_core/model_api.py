@@ -39,4 +39,9 @@ from policyengine_core.simulations import (
     calculate_output_divide,
 )
 
-from policyengine_core.variables import Variable
+from policyengine_core.variables import Variable, QuantityType
+
+STOCK = QuantityType.STOCK
+FLOW = QuantityType.FLOW
+
+from policyengine_core.commons.formulas import *

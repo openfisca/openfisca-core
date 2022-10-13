@@ -37,13 +37,13 @@ def main(parser: ArgumentParser):
     dataset = dataset_by_name[args.dataset]
 
     if args.action == "generate":
-        dataset.build(kwargs)
+        dataset.generate(**kwargs)
     elif args.action == "download":
-        dataset.download(kwargs)
+        dataset.download(**kwargs)
     elif args.action == "upload":
-        dataset.upload(kwargs)
+        dataset.upload(**kwargs)
     elif args.action == "remove":
-        dataset.remove(kwargs)
+        dataset.remove(**kwargs)
     elif args.action == "list":
         years = dataset.years
         if len(years) == 0:

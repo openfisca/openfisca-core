@@ -67,10 +67,10 @@ class Dataset:
         # Ensure typed arguments are enforced in `generate`
 
         def cast_first_arg_as_int(fn: Callable) -> Callable:
-            def wrapper(*args, **kwargs):
-                args = list(args)
-                args[0] = int(args[0])
-                return fn(*args, **kwargs)
+            def wrapper(*args, year: int = None, **kwargs):
+                if isinstance(year, str):
+                    year = int(year)
+                return fn(*args, year=year, **kwargs)
 
             return wrapper
 
