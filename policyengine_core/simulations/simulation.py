@@ -34,8 +34,10 @@ class Simulation:
     default_tax_benefit_system: Type["TaxBenefitSystem"] = None
     """The default tax-benefit system class to use if none is provided."""
 
-    default_dataset: Type[Dataset] = None
+    default_dataset: Dataset = None
     """The default dataset class to use if none is provided."""
+
+    default_dataset_year: int = None
 
     def __init__(
         self,
@@ -43,7 +45,7 @@ class Simulation:
         populations: Dict[str, Population] = None,
         situation: dict = None,
         dataset: Type[Dataset] = None,
-        dataset_options: dict = None,
+        dataset_year: int = None,
     ):
         """
         This constructor is reserved for internal use; see :any:`SimulationBuilder`,
@@ -57,6 +59,10 @@ class Simulation:
         if dataset is None:
             if self.default_dataset is not None:
                 dataset = self.default_dataset
+
+        if dataset_year is None:
+            if self.default_dataset_year is not None:
+                dataset_year = self.default_dataset_year
 
         self.invalidated_caches = set()
         self.debug: bool = False
@@ -88,8 +94,8 @@ class Simulation:
             self.build_from_populations(populations)
 
         if dataset is not None:
-            self.dataset = dataset()
-            self.dataset_options = dataset_options
+            self.dataset = dataset
+            self.dataset_year = dataset_year
             self.build_from_dataset()
 
     def build_from_populations(
@@ -123,10 +129,10 @@ class Simulation:
         builder = SimulationBuilder()
         builder.populations = self.populations
         try:
-            data = self.dataset.load(self.dataset_options)
+            data = self.dataset.load(self.dataset_year)
         except FileNotFoundError as e:
             raise FileNotFoundError(
-                f"The dataset file {self.dataset.name} (with options {self.dataset_options}) could not be found. "
+                f"The dataset file {self.dataset.name} (with year {self.dataset_year}) could not be found. "
                 + "Make sure you have downloaded or built it using the `policyengine-core data` command."
             ) from e
 

@@ -14,11 +14,9 @@ from policyengine_core.country_template.data.datasets.country_template_dataset i
 )
 from pathlib import Path
 import logging
+from .constants import COUNTRY_DIR
 
-
-COUNTRY_DIR = Path(__file__).parent
-
-DATASETS = [CountryTemplateDataset]
+DATASETS = [CountryTemplateDataset]  # Important: must be instantiated
 
 
 class CountryTaxBenefitSystem(TaxBenefitSystem):
@@ -34,9 +32,10 @@ class Simulation(CoreSimulation):
 class Microsimulation(CoreMicrosimulation):
     default_tax_benefit_system = CountryTaxBenefitSystem
     default_dataset = CountryTemplateDataset
+    default_dataset_year = 2022
 
 
-dataset = CountryTemplateDataset()
-if not dataset.exists():
+dataset = CountryTemplateDataset
+if 2022 not in dataset.years:
     logging.warn("Default country template dataset not found. Building it.")
-    dataset.build()
+    dataset.generate(2022)

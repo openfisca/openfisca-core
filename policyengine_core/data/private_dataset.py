@@ -6,7 +6,7 @@ from policyengine_core.data.dataset import Dataset
 
 
 class PrivateDataset(Dataset):
-    """Private datasets that are stored on Google Cloud Buckets."""
+    """Private datasets are stored on Google Cloud Buckets (requires the Google Cloud CLI to be installed)."""
 
     bucket_name: str
     filename_by_year: Dict[int, str] = None
