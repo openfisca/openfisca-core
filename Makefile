@@ -14,7 +14,7 @@ test-country-template:
 	policyengine-core test policyengine_core/country_template/tests -c policyengine_core.country_template
 
 test: test-country-template
-	coverage run -a --branch -m pytest tests
+	coverage run -a --branch -m pytest tests --disable-pytest-warnings
 	coverage xml -i
 
 build:

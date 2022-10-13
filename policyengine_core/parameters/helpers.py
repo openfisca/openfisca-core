@@ -76,19 +76,8 @@ def _parse_child(child_name, child, child_path):
         )
 
 
-def _set_backward_compatibility_metadata(parameter, data):
-    if not hasattr(parameter, "metadata"):
-        parameter.metadata = {}
-    if data.get("unit") is not None:
-        parameter.metadata["unit"] = data["unit"]
-        del data["unit"]
-    if data.get("reference") is not None:
-        parameter.metadata["reference"] = data["reference"]
-        del data["reference"]
-
 
 def _validate_parameter(parameter, data, data_type=None, allowed_keys=None):
-    _set_backward_compatibility_metadata(parameter, data)
     type_map = {
         dict: "object",
         list: "array",
