@@ -31,7 +31,6 @@ class CountryTemplateDataset(Dataset):
         }
         self.save_variable_values(year, data)
 
+
 # Important: we must instantiate datasets. This tests their validity and adds dynamic logic.
-CountryTemplateDataset = (
-    CountryTemplateDataset()
-)
+CountryTemplateDataset = CountryTemplateDataset()
