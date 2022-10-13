@@ -9,43 +9,6 @@ from policyengine_core.periods.instant_ import Instant
 from policyengine_core.data_structures import Reference
 from . import config, helpers, AtInstantLike, Parameter, ParameterNodeAtInstant
 
-class ParameterNodeMetadata:
-    name: str
-    """The name of the parameter. Should be snake-case, and Python-safe."""
-    label: str
-    """The label of the parameter. Should be human-readable."""
-    description: str
-    """A description of the parameter and its legal meaning."""
-    documentation: str
-    """A description of any implementation details (e.g. details about how it is modelled within the simulation)."""
-    unit: str
-    """The unit of the parameter, eg `currency-GBP`."""
-    breakdown: List[str]
-    """The set of child names under this parameter node. These children will be automatically created if they do not exist."""
-    references: List[Reference]
-    """A list of references to legislation, policy documents, or other sources."""
-
-    def __init__(self, name: str, data: dict, reference_types: List[Type[Reference]] = None):
-        self.name = name
-        self.label = data.get("label", name)
-        self.description = data.get("description")
-        self.documentation = data.get("documentation")
-        self.unit = data.get("unit")
-        self.breakdown = data.get("breakdown")
-        reference_types = {reference.type: reference for reference in reference_types} if reference_types else {}
-        self.references = [
-            reference_types.get(data.get("type"), Reference)(**ref) for ref in data.get("references", [])
-        ]
-    
-    def __getitem__(self, key):
-        return getattr(self, key)
-    
-    def get(self, key, default = None):
-        return getattr(self, key, default)
-    
-    def __setitem__(self, key, value):
-        setattr(self, key, value)
-
 
 class ParameterNode(AtInstantLike):
     """
@@ -105,7 +68,7 @@ class ParameterNode(AtInstantLike):
         self.description: str = None
         self.documentation: str = None
         self.file_path: str = None
-        self.metadata: ParameterNodeMetadata = {}
+        self.metadata: dict = {}
         if reference_types is None:
             reference_types = []
 
@@ -165,7 +128,6 @@ class ParameterNode(AtInstantLike):
                     child_name_expanded, child, file_path
                 )
                 self.add_child(child_name, child)
-        self.metadata = ParameterNodeMetadata(self.name, self.metadata)
 
     def merge(self, other: "ParameterNode") -> None:
         """

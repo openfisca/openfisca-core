@@ -13,6 +13,7 @@ repository:
 sphinx:
   config:
     html_theme: furo
+    pygments_style: default
   extra_extensions:
     - "sphinx.ext.autodoc"
     - "sphinxarg.ext"

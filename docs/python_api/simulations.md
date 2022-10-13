@@ -12,10 +12,10 @@ The `policyengine_core.simulations` module contains the definition of `Simulatio
     :show-inheritance:
 ```
 
-## WeightedSimulation
+## Microsimulation
 
 ```{eval-rst}
-.. autoclass:: policyengine_core.simulations.weighted_simulation.WeightedSimulation
+.. autoclass:: policyengine_core.simulations.microsimulation.Microsimulation
     :members:
     :undoc-members:
     :inherited-members:

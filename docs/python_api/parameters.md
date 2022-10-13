@@ -20,15 +20,6 @@ The `policyengine_core.parameters` module contains the classes that define how p
     :show-inheritance:
 ```
 
-## ParameterNodeMetadata
-
-```{eval-rst}
-.. autoclass:: policyengine_core.parameters.parameter_node.ParameterNodeMetadata
-    :members:
-    :undoc-members:
-    :show-inheritance:
-```
-
 ## ParameterAtInstant
 
 ```{eval-rst}
