@@ -83,9 +83,6 @@ class ParameterNode(AtInstantLike):
                         )
                         self.description = data.get("description")
                         self.documentation = data.get("documentation")
-                        helpers._set_backward_compatibility_metadata(
-                            self, data
-                        )
                         self.metadata.update(data.get("metadata", {}))
                     else:
                         child_name_expanded = helpers._compose_name(
@@ -113,7 +110,6 @@ class ParameterNode(AtInstantLike):
             )
             self.description = data.get("description")
             self.documentation = data.get("documentation")
-            helpers._set_backward_compatibility_metadata(self, data)
             self.metadata.update(data.get("metadata", {}))
             for child_name, child in data.items():
                 if child_name in config.COMMON_KEYS:

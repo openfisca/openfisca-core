@@ -61,13 +61,12 @@ class Parameter(AtInstantLike):
         # Normal parameter declaration: the values are declared under the 'values' key: parse the description and metadata.
         if data.get("values"):
             # 'unit' and 'reference' are only listed here for backward compatibility
+            self.metadata.update(data.get("metadata", {}))
             helpers._validate_parameter(
                 self, data, allowed_keys=config.COMMON_KEYS.union({"values"})
             )
             self.description = data.get("description")
 
-            helpers._set_backward_compatibility_metadata(self, data)
-            self.metadata.update(data.get("metadata", {}))
 
             helpers._validate_parameter(self, data["values"], data_type=dict)
             values = data["values"]

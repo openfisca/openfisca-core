@@ -36,7 +36,6 @@ class ParameterScale(AtInstantLike):
         )
         self.description: str = data.get("description")
         self.metadata: typing.Dict = {}
-        helpers._set_backward_compatibility_metadata(self, data)
         self.metadata.update(data.get("metadata", {}))
 
         if not isinstance(data.get("brackets", []), list):
