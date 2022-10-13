@@ -31,6 +31,12 @@ class Simulation:
     Represents a simulation, and handles the calculation logic
     """
 
+    default_tax_benefit_system: Type["TaxBenefitSystem"] = None
+    """The default tax-benefit system class to use if none is provided."""
+
+    default_dataset: Type[Dataset] = None
+    """The default dataset class to use if none is provided."""
+
     def __init__(
         self,
         tax_benefit_system: "TaxBenefitSystem" = None,
@@ -47,6 +53,10 @@ class Simulation:
         if tax_benefit_system is None:
             tax_benefit_system = self.default_tax_benefit_system()
         self.tax_benefit_system = tax_benefit_system
+    
+        if dataset is None:
+            if self.default_dataset is not None:
+                dataset = self.default_dataset
 
         self.invalidated_caches = set()
         self.debug: bool = False
@@ -59,6 +69,8 @@ class Simulation:
         self._data_storage_dir: str = None
 
         if situation is not None:
+            if dataset is not None:
+                raise ValueError("You provided both a situation and a dataset. Only one input method is allowed.")
             self.build_from_populations(
                 self.tax_benefit_system.instantiate_entities()
             )

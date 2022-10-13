@@ -2,6 +2,7 @@ import datetime
 import inspect
 import re
 import textwrap
+from typing import Type
 import sortedcontainers
 
 import numpy
@@ -121,7 +122,7 @@ class Variable:
         self.dtype = config.VALUE_TYPES[self.value_type]["dtype"]
         self.json_type = config.VALUE_TYPES[self.value_type]["json_type"]
         if self.value_type == Enum:
-            self.possible_values = self.set(
+            self.possible_values: Type[Enum] = self.set(
                 attr,
                 "possible_values",
                 required=True,

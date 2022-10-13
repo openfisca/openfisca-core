@@ -14,6 +14,7 @@ import traceback
 import typing
 from typing import TYPE_CHECKING
 from policyengine_core import commons, periods, variables
+from policyengine_core.data_structures.reference import Reference
 from policyengine_core.entities import Entity
 from policyengine_core.errors import (
     VariableNameConflictError,
@@ -50,12 +51,27 @@ class TaxBenefitSystem:
     cache_blacklist = None
     decomposition_file_path = None
 
-    def __init__(self, entities: Sequence[Entity]) -> None:
+    # The following properties should be specified by country packages.
+
+    entities: List[Entity] = None
+    """The entities of the tax and benefit system."""
+    variables_dir: str = None
+    """Directory containing the Python files defining the variables of the tax and benefit system."""
+    parameters_dir: str = None
+    """Directory containing the YAML parameter tree."""
+    reference_types: List[Type[Reference]] = None
+
+    def __init__(self, entities: Sequence[Entity] = None) -> None:
+        if entities is None:
+            entities = self.entities
+        
+        if entities is None:
+            raise ValueError("TaxBenefitSystems must have entities defined.")
+        
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
         self.parameters: Optional[ParameterNode] = None
         self._parameters_at_instant_cache = {}  # weakref.WeakValueDictionary()
         self.variables: Dict[Any, Any] = {}
-        self.open_api_config: Dict[Any, Any] = {}
         # Tax benefit systems are mutable, so entities (which need to know about our variables) can't be shared among them
         if entities is None or len(entities) == 0:
             raise Exception(
@@ -70,6 +86,15 @@ class TaxBenefitSystem:
         ]
         for entity in self.entities:
             entity.set_tax_benefit_system(self)
+        
+        if self.reference_types is None:
+            self.reference_types = []
+
+        if self.variables_dir is not None:
+            self.add_variables_from_directory(self.variables_dir)
+        
+        if self.parameters_dir is not None:
+            self.load_parameters(self.parameters_dir, reference_types=self.reference_types)
 
     @property
     def base_tax_benefit_system(self) -> "TaxBenefitSystem":
@@ -336,7 +361,7 @@ class TaxBenefitSystem:
             self.get_variable(variable_name, period)
         )
 
-    def load_parameters(self, path_to_yaml_dir: str) -> None:
+    def load_parameters(self, path_to_yaml_dir: str, reference_types: List[Type[Reference]] = None) -> None:
         """
         Loads the legislation parameter for a directory containing YAML parameters files.
 
@@ -347,7 +372,7 @@ class TaxBenefitSystem:
         >>> self.load_parameters('/path/to/yaml/parameters/dir')
         """
 
-        parameters = ParameterNode("", directory_path=path_to_yaml_dir)
+        parameters = ParameterNode("", directory_path=path_to_yaml_dir, reference_types=reference_types)
 
         if self.preprocess_parameters is not None:
             parameters = self.preprocess_parameters(parameters)
@@ -474,7 +499,6 @@ class TaxBenefitSystem:
                 "parameters",
                 "_parameters_at_instant_cache",
                 "variables",
-                "open_api_config",
             ):
                 new_dict[key] = value
         for entity in new_dict["entities"]:
@@ -483,7 +507,6 @@ class TaxBenefitSystem:
         new_dict["parameters"] = self.parameters.clone()
         new_dict["_parameters_at_instant_cache"] = {}
         new_dict["variables"] = self.variables.copy()
-        new_dict["open_api_config"] = self.open_api_config.copy()
         return new
 
     def entities_plural(self) -> dict:

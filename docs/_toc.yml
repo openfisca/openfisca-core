@@ -9,6 +9,7 @@ parts:
     - file: usage/simulation
     - file: usage/country
     - file: usage/cli
+    - file: usage/parameters
   - caption: Python API
     chapters:
     - file: python_api/commons
