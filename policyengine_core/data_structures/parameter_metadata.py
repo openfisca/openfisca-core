@@ -1,5 +1,3 @@
-
-
 from typing import List
 
 from .reference import Reference

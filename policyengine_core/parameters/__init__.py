@@ -27,3 +27,5 @@ from .parameter_scale import (
 from .parameter_scale_bracket import (
     ParameterScaleBracket,
 )
+
+from .operations import homogenize_parameter_structures

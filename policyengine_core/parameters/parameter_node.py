@@ -28,7 +28,6 @@ class ParameterNode(AtInstantLike):
         directory_path: str = None,
         data: dict = None,
         file_path: str = None,
-        reference_types: List[Type[Reference]] = None,
     ):
         """
         Instantiate a ParameterNode either from a dict, (using `data`), or from a directory containing YAML files (using `directory_path`).
@@ -69,8 +68,6 @@ class ParameterNode(AtInstantLike):
         self.documentation: str = None
         self.file_path: str = None
         self.metadata: dict = {}
-        if reference_types is None:
-            reference_types = []
 
         if directory_path:
             self.file_path = directory_path
@@ -197,6 +194,6 @@ class ParameterNode(AtInstantLike):
 
     def _get_at_instant(self, instant: Instant) -> ParameterNodeAtInstant:
         return ParameterNodeAtInstant(self.name, self, instant)
-    
+
     def attach_to_parent(self, parent: "ParameterNode"):
         self.parent = parent

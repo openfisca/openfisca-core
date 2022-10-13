@@ -20,17 +20,21 @@ COUNTRY_DIR = Path(__file__).parent
 
 DATASETS = [CountryTemplateDataset]
 
+
 class CountryTaxBenefitSystem(TaxBenefitSystem):
     entities = entities.entities
     variables_dir = COUNTRY_DIR / "variables"
     parameters_dir = COUNTRY_DIR / "parameters"
 
+
 class Simulation(CoreSimulation):
     default_tax_benefit_system = CountryTaxBenefitSystem
+
 
 class Microsimulation(CoreMicrosimulation):
     default_tax_benefit_system = CountryTaxBenefitSystem
     default_dataset = CountryTemplateDataset
+
 
 dataset = CountryTemplateDataset()
 if not dataset.exists():

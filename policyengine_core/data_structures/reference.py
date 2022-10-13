@@ -1,5 +1,3 @@
-
-
 class Reference:
     """A reference to a piece of legislation or other document."""
 

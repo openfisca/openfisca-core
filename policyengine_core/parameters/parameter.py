@@ -67,7 +67,6 @@ class Parameter(AtInstantLike):
             )
             self.description = data.get("description")
 
-
             helpers._validate_parameter(self, data["values"], data_type=dict)
             values = data["values"]
 

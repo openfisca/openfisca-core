@@ -76,7 +76,6 @@ def _parse_child(child_name, child, child_path):
         )
 
 
-
 def _validate_parameter(parameter, data, data_type=None, allowed_keys=None):
     type_map = {
         dict: "object",

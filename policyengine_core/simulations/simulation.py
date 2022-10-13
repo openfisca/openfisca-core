@@ -53,7 +53,7 @@ class Simulation:
         if tax_benefit_system is None:
             tax_benefit_system = self.default_tax_benefit_system()
         self.tax_benefit_system = tax_benefit_system
-    
+
         if dataset is None:
             if self.default_dataset is not None:
                 dataset = self.default_dataset
@@ -70,7 +70,9 @@ class Simulation:
 
         if situation is not None:
             if dataset is not None:
-                raise ValueError("You provided both a situation and a dataset. Only one input method is allowed.")
+                raise ValueError(
+                    "You provided both a situation and a dataset. Only one input method is allowed."
+                )
             self.build_from_populations(
                 self.tax_benefit_system.instantiate_entities()
             )

@@ -21,6 +21,9 @@ from policyengine_core.errors import (
     VariableNotFoundError,
 )
 from policyengine_core.parameters import ParameterNode, ParameterNodeAtInstant
+from policyengine_core.parameters.operations.homogenize_parameters import (
+    homogenize_parameter_structures,
+)
 from policyengine_core.periods import Instant, Period
 from policyengine_core.populations import Population, GroupPopulation
 from policyengine_core.tools.test_runner import run_tests
@@ -59,15 +62,17 @@ class TaxBenefitSystem:
     """Directory containing the Python files defining the variables of the tax and benefit system."""
     parameters_dir: str = None
     """Directory containing the YAML parameter tree."""
-    reference_types: List[Type[Reference]] = None
+
+    homogenize_parameters: bool = True
+    """Whether to homogenize parameters when loading them, according to their `breakdown` metadata."""
 
     def __init__(self, entities: Sequence[Entity] = None) -> None:
         if entities is None:
             entities = self.entities
-        
+
         if entities is None:
             raise ValueError("TaxBenefitSystems must have entities defined.")
-        
+
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
         self.parameters: Optional[ParameterNode] = None
         self._parameters_at_instant_cache = {}  # weakref.WeakValueDictionary()
@@ -86,15 +91,15 @@ class TaxBenefitSystem:
         ]
         for entity in self.entities:
             entity.set_tax_benefit_system(self)
-        
-        if self.reference_types is None:
-            self.reference_types = []
 
         if self.variables_dir is not None:
             self.add_variables_from_directory(self.variables_dir)
-        
+
         if self.parameters_dir is not None:
-            self.load_parameters(self.parameters_dir, reference_types=self.reference_types)
+            self.load_parameters(self.parameters_dir)
+
+        if self.parameters_dir is not None and self.homogenize_parameters:
+            self.parameters = homogenize_parameter_structures(self.parameters, self.variables)
 
     @property
     def base_tax_benefit_system(self) -> "TaxBenefitSystem":
@@ -361,7 +366,10 @@ class TaxBenefitSystem:
             self.get_variable(variable_name, period)
         )
 
-    def load_parameters(self, path_to_yaml_dir: str, reference_types: List[Type[Reference]] = None) -> None:
+    def load_parameters(
+        self,
+        path_to_yaml_dir: str,
+    ) -> None:
         """
         Loads the legislation parameter for a directory containing YAML parameters files.
 
@@ -372,7 +380,10 @@ class TaxBenefitSystem:
         >>> self.load_parameters('/path/to/yaml/parameters/dir')
         """
 
-        parameters = ParameterNode("", directory_path=path_to_yaml_dir, reference_types=reference_types)
+        parameters = ParameterNode(
+            "",
+            directory_path=path_to_yaml_dir,
+        )
 
         if self.preprocess_parameters is not None:
             parameters = self.preprocess_parameters(parameters)
