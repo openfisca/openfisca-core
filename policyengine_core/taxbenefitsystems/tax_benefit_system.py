@@ -24,6 +24,15 @@ from policyengine_core.parameters import ParameterNode, ParameterNodeAtInstant
 from policyengine_core.parameters.operations.homogenize_parameters import (
     homogenize_parameter_structures,
 )
+from policyengine_core.parameters.operations.interpolate_parameters import (
+    interpolate_parameters,
+)
+from policyengine_core.parameters.operations.propagate_parameter_metadata import (
+    propagate_parameter_metadata,
+)
+from policyengine_core.parameters.operations.uprate_parameters import (
+    uprate_parameters,
+)
 from policyengine_core.periods import Instant, Period
 from policyengine_core.populations import Population, GroupPopulation
 from policyengine_core.tools.test_runner import run_tests
@@ -63,9 +72,6 @@ class TaxBenefitSystem:
     parameters_dir: str = None
     """Directory containing the YAML parameter tree."""
 
-    homogenize_parameters: bool = True
-    """Whether to homogenize parameters when loading them, according to their `breakdown` metadata."""
-
     def __init__(self, entities: Sequence[Entity] = None) -> None:
         if entities is None:
             entities = self.entities
@@ -97,9 +103,12 @@ class TaxBenefitSystem:
 
         if self.parameters_dir is not None:
             self.load_parameters(self.parameters_dir)
-
-        if self.parameters_dir is not None and self.homogenize_parameters:
-            self.parameters = homogenize_parameter_structures(self.parameters, self.variables)
+            self.parameters = homogenize_parameter_structures(
+                self.parameters, self.variables
+            )
+            self.parameters = interpolate_parameters(self.parameters)
+            self.parameters = uprate_parameters(self.parameters)
+            self.parameters = propagate_parameter_metadata(self.parameters)
 
     @property
     def base_tax_benefit_system(self) -> "TaxBenefitSystem":

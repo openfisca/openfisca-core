@@ -1,5 +1,17 @@
 from .reference import Reference
-from typing import List
+from typing import List, Union
+
+
+class VariableBreakdown(str):
+    """
+    The name of a variable with Enum type, whose possible values form the child nodes in a parameter node.
+    """
+
+
+class DynamicBreakdown(str):
+    """
+    A Python expression that evaluates to a list of child nodes in a parameter node.
+    """
 
 
 class ParameterNodeMetadata:
@@ -14,7 +26,7 @@ class ParameterNodeMetadata:
     reference: List[Reference]
     """A list of references that apply to all descendants of this node."""
 
-    breakdown: List[str]
+    breakdown: List[Union[VariableBreakdown, DynamicBreakdown]]
     """The sets defining the children, grandchildren and further descendants of this node.
 
     For example:
@@ -28,3 +40,6 @@ class ParameterNodeMetadata:
                 - [True, False] # This list is added as great-grandchildren (using the same `eval` method as above).
     
     """
+
+    propagate_metadata_to_children: bool
+    """Whether to propagate metadata to children of this node. This excludes `breakdown`."""
