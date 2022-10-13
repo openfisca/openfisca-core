@@ -10,6 +10,7 @@ parts:
     - file: usage/country
     - file: usage/cli
     - file: usage/parameters
+    - file: usage/datasets
   - caption: Python API
     chapters:
     - file: python_api/commons

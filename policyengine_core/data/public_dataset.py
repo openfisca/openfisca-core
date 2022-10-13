@@ -8,6 +8,7 @@ class PublicDataset(Dataset):
     """Datasets inheriting from this class are stored on publicly accessible URLs."""
 
     url_by_year: Dict[int, str] = None
+    """A dictionary mapping years to URLs."""
 
     def download(self, year: int):
         """Downloads the dataset from the given URL for the given year.

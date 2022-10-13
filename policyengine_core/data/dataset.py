@@ -15,10 +15,15 @@ class Dataset:
     like cloud storage, metadata and loading."""
 
     name: str = None
+    """The name of the dataset. This is used to generate filenames and is used as the key in the `datasets` dictionary."""
     label: str = None
-    is_openfisca_compatible: bool = True  # For example, a raw relational database that we'd still like to keep with the OpenFisca dataset code.
+    """The label of the dataset. This is used for logging and is used as the key in the `datasets` dictionary."""
+    is_openfisca_compatible: bool = True
+    """Whether the dataset is compatible with OpenFisca. If True, the dataset will be stored as a collection of arrays. If False, the dataset will be stored as a collection of tables."""
     data_format: str = None
+    """The format of the dataset. This can be either `Dataset.ARRAYS`, `Dataset.TIME_PERIOD_ARRAYS` or `Dataset.TABLES`. If `Dataset.ARRAYS`, the dataset is stored as a collection of arrays. If `Dataset.TIME_PERIOD_ARRAYS`, the dataset is stored as a collection of arrays, with one array per time period. If `Dataset.TABLES`, the dataset is stored as a collection of tables (DataFrames)."""
     folder_path: str = None
+    """The path to the folder where the dataset is stored (in .h5 files)."""
 
     # Data formats
     TABLES = "tables"
@@ -261,6 +266,7 @@ class Dataset:
 
     @property
     def years(self):
+        """Returns the years for which the dataset has been generated."""
         pattern = re.compile(f"\n{self.name}_([0-9]+).h5")
         return list(
             map(

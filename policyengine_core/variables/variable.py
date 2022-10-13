@@ -439,7 +439,6 @@ class Variable:
         If no period is given and the variable has several formula, return the oldest formula.
 
         :returns: Formula used to compute the variable
-        :rtype: :any:`Formula`
 
         """
 
