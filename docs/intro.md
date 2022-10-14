@@ -7,8 +7,8 @@ PolicyEngine Core does not simulate any specific tax-benefit policy: instead, it
 The country models each provide:
 
 * A set of *entity types* (e.g. `Person`).
-* A set of *parameters* (e.g. `Flat tax rate`). Parameters are global data points that have different values for different time periods.
-* A set of *variables* (e.g. `Tax liability`). Variables are properties of entities that can be dependent on entities (including other variable values), parameters and the time period.
+* A set of *parameters* (e.g. `parameters.tax.flat_tax.rate`). Parameters are global data points that have different values for different time periods.
+* A set of *variables* (e.g. `income_tax`). Variables are properties of entities that can be dependent on entities (including other variable values), parameters and the time period.
 
 PolicyEngine Core then enables users to:
 

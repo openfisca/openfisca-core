@@ -6,10 +6,12 @@ from policyengine_core.data.dataset import Dataset
 
 
 class PrivateDataset(Dataset):
-    """Private datasets that are stored on Google Cloud Buckets."""
+    """Private datasets are stored on Google Cloud Buckets (requires the Google Cloud CLI to be installed)."""
 
     bucket_name: str
+    """The name of the Google Cloud Storage bucket to use for this dataset."""
     filename_by_year: Dict[int, str] = None
+    """A dictionary mapping years to filenames."""
 
     def _get_storage_bucket(self):
         from google.cloud import storage

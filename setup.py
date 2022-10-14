@@ -11,7 +11,7 @@ long_description = (this_directory / "README.md").read_text()
 general_requirements = [
     "pytest>=4,<6",
     "numpy>=1.11,<1.21",
-    "black<23",
+    "black[jupyter]<23",
     "linecheck<1",
     "yaml-changelog<1",
     "coverage<7",
@@ -24,6 +24,8 @@ general_requirements = [
     "h5py>=3,<4",
     "microdf_python>=0.3.0,<1",
     "tqdm>=4.46.0,<5",
+    "requests>=2.27.1,<3",
+    "pandas>=1.4.2,<2",
 ]
 
 dev_requirements = [
@@ -32,6 +34,7 @@ dev_requirements = [
     "markupsafe==2.0.1",
     "sphinx>=4.5.0,<5",
     "sphinx-argparse>=0.3.2,<1",
+    "sphinx-math-dollar>=1.2.1,<2",
 ]
 
 setup(

@@ -76,13 +76,6 @@ def _parse_child(child_name, child, child_path):
         )
 
 
-def _set_backward_compatibility_metadata(parameter, data):
-    if data.get("unit") is not None:
-        parameter.metadata["unit"] = data["unit"]
-    if data.get("reference") is not None:
-        parameter.metadata["reference"] = data["reference"]
-
-
 def _validate_parameter(parameter, data, data_type=None, allowed_keys=None):
     type_map = {
         dict: "object",
@@ -96,14 +89,3 @@ def _validate_parameter(parameter, data, data_type=None, allowed_keys=None):
             ),
             parameter.file_path,
         )
-
-    if allowed_keys is not None:
-        keys = data.keys()
-        for key in keys:
-            if key not in allowed_keys:
-                raise ParameterParsingError(
-                    "Unexpected property '{}' in '{}'. Allowed properties are {}.".format(
-                        key, parameter.name, list(allowed_keys)
-                    ),
-                    parameter.file_path,
-                )

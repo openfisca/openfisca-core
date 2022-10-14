@@ -1,22 +1,32 @@
+from pathlib import Path
+
+
 def test_dataset_class():
     from policyengine_core.data.dataset import Dataset
     from policyengine_core.periods import period
 
+    tmp_folder_path = Path(__file__).parent / "tmp"
+    tmp_folder_path.mkdir(exist_ok=True)
+
     class TestDataset(Dataset):
         name = "test_dataset"
         label = "Test dataset"
-        options = {"year": 2022}
-        country_package_name: str = "policyengine_core.country_template"
+        folder_path = tmp_folder_path
+        data_format = Dataset.TIME_PERIOD_ARRAYS
 
-        def build(self, options: dict = None) -> None:
+        def generate(self, year: int) -> None:
             input_period = period("2022-01")
-            self.write({"salary": {input_period: [100, 200, 300]}})
+            self.save_variable_values(
+                year, {"salary": {input_period: [100, 200, 300]}}
+            )
 
-    test_dataset = TestDataset()
+    TestDataset = TestDataset()
+
+    test_dataset = TestDataset
     test_dataset.remove_all()
-    test_dataset.build()
-    saved_datasets = test_dataset.get_saved_datasets()
+    test_dataset.generate(2022)
+    saved_datasets = test_dataset.years
     assert len(saved_datasets) == 1
-    assert saved_datasets[0]["year"] == "2022"
-    test_dataset.remove({"year": "2022"})
-    assert len(test_dataset.get_saved_datasets()) == 0
+    assert saved_datasets[0] == 2022
+    test_dataset.remove(2022)
+    assert len(test_dataset.years) == 0

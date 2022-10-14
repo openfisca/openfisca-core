@@ -38,13 +38,11 @@ class ParameterAtInstant:
             self.value = data
             return
 
-        self.validate(data)
-        self.value: float = data["value"]
-
         if metadata is not None:
             self.metadata.update(metadata)  # Inherit metadata from Parameter
-        helpers._set_backward_compatibility_metadata(self, data)
         self.metadata.update(data.get("metadata", {}))
+        self.validate(data)
+        self.value: float = data["value"]
 
     def validate(self, data: dict) -> None:
         helpers._validate_parameter(

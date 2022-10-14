@@ -3,10 +3,13 @@ from __future__ import annotations
 import copy
 import os
 import typing
-from typing import Iterable, Union
+from typing import Iterable, List, Type, Union
 from policyengine_core import commons, parameters, tools
 from policyengine_core.periods.instant_ import Instant
+from policyengine_core.data_structures import Reference
 from . import config, helpers, AtInstantLike, Parameter, ParameterNodeAtInstant
+
+EXCLUDED_PARAMETER_CHILD_NAMES = ["reference", "__pycache__"]
 
 
 class ParameterNode(AtInstantLike):
@@ -17,6 +20,9 @@ class ParameterNode(AtInstantLike):
     _allowed_keys: typing.Optional[
         typing.Iterable[str]
     ] = None  # By default, no restriction on the keys
+
+    parent: "ParameterNode" = None
+    """The parent of the node, or None if the node is the root of the tree."""
 
     def __init__(
         self,
@@ -63,7 +69,7 @@ class ParameterNode(AtInstantLike):
         self.description: str = None
         self.documentation: str = None
         self.file_path: str = None
-        self.metadata: typing.Dict = {}
+        self.metadata: dict = {}
 
         if directory_path:
             self.file_path = directory_path
@@ -83,11 +89,8 @@ class ParameterNode(AtInstantLike):
                         )
                         self.description = data.get("description")
                         self.documentation = data.get("documentation")
-                        helpers._set_backward_compatibility_metadata(
-                            self, data
-                        )
                         self.metadata.update(data.get("metadata", {}))
-                    else:
+                    elif child_name not in EXCLUDED_PARAMETER_CHILD_NAMES:
                         child_name_expanded = helpers._compose_name(
                             name, child_name
                         )
@@ -113,10 +116,12 @@ class ParameterNode(AtInstantLike):
             )
             self.description = data.get("description")
             self.documentation = data.get("documentation")
-            helpers._set_backward_compatibility_metadata(self, data)
             self.metadata.update(data.get("metadata", {}))
             for child_name, child in data.items():
-                if child_name in config.COMMON_KEYS:
+                if (
+                    child_name in config.COMMON_KEYS
+                    or child_name in EXCLUDED_PARAMETER_CHILD_NAMES
+                ):
                     continue  # do not treat reserved keys as subparameters.
 
                 child_name = str(child_name)
@@ -158,6 +163,7 @@ class ParameterNode(AtInstantLike):
             )
         self.children[name] = child
         setattr(self, name, child)
+        child.parent = self
 
     def __repr__(self) -> str:
         result = os.linesep.join(
@@ -193,3 +199,6 @@ class ParameterNode(AtInstantLike):
 
     def _get_at_instant(self, instant: Instant) -> ParameterNodeAtInstant:
         return ParameterNodeAtInstant(self.name, self, instant)
+
+    def attach_to_parent(self, parent: "ParameterNode"):
+        self.parent = parent

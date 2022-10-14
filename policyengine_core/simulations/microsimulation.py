@@ -1,4 +1,5 @@
-from typing import Dict
+from typing import Dict, Type
+from policyengine_core.data.dataset import Dataset
 from policyengine_core.periods import Period, period as get_period
 from policyengine_core.periods.config import MONTH, YEAR
 from policyengine_core.simulations.simulation import Simulation
@@ -6,7 +7,7 @@ from microdf import MicroSeries, MicroDataFrame
 from policyengine_core.types import ArrayLike
 
 
-class WeightedSimulation(Simulation):
+class Microsimulation(Simulation):
     """A `Simulation` whose entities use weights to represent larger populations."""
 
     def get_weights(

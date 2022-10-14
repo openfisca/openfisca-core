@@ -1,6 +1,7 @@
 import tempfile
 from typing import Any, Dict, List, TYPE_CHECKING, Type
 import numpy
+import numpy as np
 import pandas as pd
 from numpy.typing import ArrayLike
 from policyengine_core import commons, periods
@@ -31,13 +32,25 @@ class Simulation:
     Represents a simulation, and handles the calculation logic
     """
 
+    default_tax_benefit_system: Type["TaxBenefitSystem"] = None
+    """The default tax-benefit system class to use if none is provided."""
+
+    default_dataset: Dataset = None
+    """The default dataset class to use if none is provided."""
+
+    default_dataset_year: int = None
+    """The default dataset year to use if none is provided."""
+
+    default_role: str = None
+    """The default role to assign people to groups if none is provided."""
+
     def __init__(
         self,
         tax_benefit_system: "TaxBenefitSystem" = None,
         populations: Dict[str, Population] = None,
         situation: dict = None,
         dataset: Type[Dataset] = None,
-        dataset_options: dict = None,
+        dataset_year: int = None,
     ):
         """
         This constructor is reserved for internal use; see :any:`SimulationBuilder`,
@@ -47,6 +60,14 @@ class Simulation:
         if tax_benefit_system is None:
             tax_benefit_system = self.default_tax_benefit_system()
         self.tax_benefit_system = tax_benefit_system
+
+        if dataset is None:
+            if self.default_dataset is not None:
+                dataset = self.default_dataset
+
+        if dataset_year is None:
+            if self.default_dataset_year is not None:
+                dataset_year = self.default_dataset_year
 
         self.invalidated_caches = set()
         self.debug: bool = False
@@ -59,6 +80,10 @@ class Simulation:
         self._data_storage_dir: str = None
 
         if situation is not None:
+            if dataset is not None:
+                raise ValueError(
+                    "You provided both a situation and a dataset. Only one input method is allowed."
+                )
             self.build_from_populations(
                 self.tax_benefit_system.instantiate_entities()
             )
@@ -74,8 +99,8 @@ class Simulation:
             self.build_from_populations(populations)
 
         if dataset is not None:
-            self.dataset = dataset()
-            self.dataset_options = dataset_options
+            self.dataset = dataset
+            self.dataset_year = dataset_year
             self.build_from_dataset()
 
     def build_from_populations(
@@ -109,14 +134,12 @@ class Simulation:
         builder = SimulationBuilder()
         builder.populations = self.populations
         try:
-            data = self.dataset.load(self.dataset_options)
+            data = self.dataset.load(self.dataset_year)
         except FileNotFoundError as e:
             raise FileNotFoundError(
-                f"The dataset file {self.dataset.name} (with options {self.dataset_options}) could not be found. "
+                f"The dataset file {self.dataset.name} (with year {self.dataset_year}) could not be found. "
                 + "Make sure you have downloaded or built it using the `policyengine-core data` command."
             ) from e
-
-        eternity = ETERNITY
 
         person_entity = self.tax_benefit_system.person_entity
         entity_id_field = f"{person_entity.key}_id"
@@ -124,7 +147,12 @@ class Simulation:
             entity_id_field in data
         ), f"Missing {entity_id_field} column in the dataset. Each person entity must have an ID array defined for ETERNITY."
 
-        entity_ids = data[entity_id_field][eternity]
+        get_eternity_array = (
+            lambda ds: ds[ETERNITY]
+            if self.dataset.data_format == Dataset.TIME_PERIOD_ARRAYS
+            else ds
+        )
+        entity_ids = get_eternity_array(data[entity_id_field])
         builder.declare_person_entity(person_entity.key, entity_ids)
 
         for group_entity in self.tax_benefit_system.group_entities:
@@ -133,7 +161,7 @@ class Simulation:
                 entity_id_field in data
             ), f"Missing {entity_id_field} column in the dataset. Each group entity must have an ID array defined for ETERNITY."
 
-            entity_ids = data[entity_id_field][eternity]
+            entity_ids = get_eternity_array(data[entity_id_field])
             builder.declare_entity(group_entity.key, entity_ids)
 
             person_membership_id = f"{person_entity.key}_{group_entity.key}_id"
@@ -142,7 +170,16 @@ class Simulation:
             ), f"Missing {person_membership_id} column in the dataset. Each group entity must have a person membership array defined for ETERNITY."
 
             person_role_field = f"{person_entity.key}_{group_entity.key}_role"
-            person_roles = data[person_role_field][eternity]
+            if person_role_field in data:
+                person_roles = get_eternity_array(data[person_role_field])
+            elif "role" in data:
+                person_roles = get_eternity_array(data["role"])
+            elif self.default_role is not None:
+                person_roles = np.full(len(entity_ids), self.default_role)
+            else:
+                raise ValueError(
+                    f"Missing {person_role_field} column in the dataset. Each group entity must have a person role array defined for ETERNITY."
+                )
             builder.join_with_persons(
                 self.populations[group_entity.key],
                 person_membership_id,
@@ -150,10 +187,17 @@ class Simulation:
             )
 
         for variable in data:
-            for time_period in data[variable]:
-                self.set_input(
-                    variable, time_period, data[variable][time_period]
-                )
+            if variable in self.tax_benefit_system.variables:
+                if self.dataset.data_format == Dataset.TIME_PERIOD_ARRAYS:
+                    for time_period in data[variable]:
+                        self.set_input(
+                            variable, time_period, data[variable][time_period]
+                        )
+                else:
+                    self.set_input(variable, self.dataset_year, data[variable])
+            else:
+                # Silently skip.
+                pass
 
     @property
     def trace(self) -> bool:

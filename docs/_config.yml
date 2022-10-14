@@ -13,8 +13,11 @@ repository:
 sphinx:
   config:
     html_theme: furo
+    pygments_style: default
   extra_extensions:
     - "sphinx.ext.autodoc"
     - "sphinxarg.ext"
     - "sphinx.ext.viewcode"
     - "sphinx.ext.napoleon"
+    - "sphinx_math_dollar"
+    - "sphinx.ext.mathjax"

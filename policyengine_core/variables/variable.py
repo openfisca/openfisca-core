@@ -2,6 +2,7 @@ import datetime
 import inspect
 import re
 import textwrap
+from typing import Callable, List, Type
 import sortedcontainers
 
 import numpy
@@ -22,87 +23,67 @@ class QuantityType:
 class Variable:
     """
     A `variable <https://openfisca.org/doc/key-concepts/variables.html>`_ of the legislation.
-
-    Main attributes:
-
-       .. attribute:: name
-
-           Name of the variable
-
-       .. attribute:: value_type
-
-           The value type of the variable. Possible value types in OpenFisca are ``int`` ``float`` ``bool`` ``str`` ``date`` and ``Enum``.
-
-       .. attribute:: entity
-
-           `Entity <https://openfisca.org/doc/key-concepts/person,_entities,_role.html>`_ the variable is defined for. For instance : ``Person``, ``Household``.
-
-       .. attribute:: definition_period
-
-           `Period <https://openfisca.org/doc/coding-the-legislation/35_periods.html>`_ the variable is defined for. Possible value: ``MONTH``, ``YEAR``, ``ETERNITY``.
-
-       .. attribute:: formulas
-
-           Formulas used to calculate the variable
-
-       .. attribute:: label
-
-           Description of the variable
-
-       .. attribute:: reference
-
-           Legislative reference describing the variable.
-
-       .. attribute:: default_value
-
-           `Default value <https://openfisca.org/doc/key-concepts/variables.html#default-values>`_ of the variable.
-
-    Secondary attributes:
-
-       .. attribute:: baseline_variable
-
-           If the variable has been introduced in a `reform <https://openfisca.org/doc/key-concepts/reforms.html>`_ to replace another variable, baseline_variable is the replaced variable.
-
-       .. attribute:: dtype
-
-           Numpy `dtype <https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.dtype.html>`_ used under the hood for the variable.
-
-       .. attribute:: end
-
-           `Date <https://openfisca.org/doc/coding-the-legislation/40_legislation_evolutions.html#variable-end>`_  when the variable disappears from the legislation.
-
-       .. attribute:: is_neutralized
-
-           True if the variable is neutralized. Neutralized variables never use their formula, and only return their default values when calculated.
-
-       .. attribute:: json_type
-
-           JSON type corresponding to the variable.
-
-       .. attribute:: max_length
-
-           If the value type of the variable is ``str``, max length of the string allowed. ``None`` if there is no limit.
-
-       .. attribute:: possible_values
-
-           If the value type of the variable is ``Enum``, contains the values the variable can take.
-
-       .. attribute:: set_input
-
-           Function used to automatically process variable inputs defined for periods not matching the definition_period of the variable. See more on the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#set-input-automatically-process-variable-inputs-defined-for-periods-not-matching-the-definition-period>`_. Possible values are ``set_input_dispatch_by_period``, ``set_input_divide_by_period``, or nothing.
-
-       .. attribute:: unit
-
-           Free text field describing the unit of the variable. Only used as metadata.
-
-       .. attribute:: documentation
-
-           Free multilines text field describing the variable context and usage.
-
-       .. attribute:: quantity_type
-
-           Categorical attribute describing whether the variable is a stock or a flow.
     """
+
+    name: str
+    """Name of the variable"""
+
+    value_type: type
+    """The value type of the variable. Possible value types in OpenFisca are ``int`` ``float`` ``bool`` ``str`` ``date`` and ``Enum``."""
+
+    entity: Entity
+    """`Entity <https://openfisca.org/doc/key-concepts/person,_entities,_role.html>`_ the variable is defined for. For instance : ``Person``, ``Household``."""
+
+    definition_period: Period
+    """`Period <https://openfisca.org/doc/coding-the-legislation/35_periods.html>`_ the variable is defined for. Possible value: ``MONTH``, ``YEAR``, ``ETERNITY``."""
+
+    formulas: List[Callable]
+    """Formulas used to calculate the variable"""
+
+    label: str
+    """Description of the variable"""
+
+    reference: str
+    """Legislative reference describing the variable."""
+
+    default_value: object
+    """`Default value <https://openfisca.org/doc/key-concepts/variables.html#default-values>`_ of the variable."""
+
+    baseline_variable: str
+    """If the variable has been introduced in a `reform <https://openfisca.org/doc/key-concepts/reforms.html>`_ to replace another variable, baseline_variable is the replaced variable."""
+
+    dtype: numpy.dtype
+    """Numpy `dtype <https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.dtype.html>`_ used under the hood for the variable."""
+
+    end: datetime.date
+    """`Date <https://openfisca.org/doc/coding-the-legislation/40_legislation_evolutions.html#variable-end>`_  when the variable disappears from the legislation."""
+
+    is_neutralized: bool
+    """True if the variable is neutralized. Neutralized variables never use their formula, and only return their default values when calculated."""
+
+    json_type: str
+    """JSON type corresponding to the variable."""
+
+    max_length: int
+    """If the value type of the variable is ``str``, max length of the string allowed. ``None`` if there is no limit."""
+
+    possible_values: EnumArray
+    """If the value type of the variable is ``Enum``, contains the values the variable can take."""
+
+    set_input: Callable
+    """Function used to automatically process variable inputs defined for periods not matching the definition_period of the variable. See more on the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#set-input-automatically-process-variable-inputs-defined-for-periods-not-matching-the-definition-period>`_. Possible values are ``set_input_dispatch_by_period``, ``set_input_divide_by_period``, or nothing."""
+
+    unit: str
+    """Free text field describing the unit of the variable. Only used as metadata."""
+
+    documentation: str
+    """Free multilines text field describing the variable context and usage."""
+
+    quantity_type: str
+    """Categorical attribute describing whether the variable is a stock or a flow."""
+
+    defined_for: str
+    """The name of another variable, nonzero values of which are used to define the set of entities for which this variable is defined."""
 
     def __init__(self, baseline_variable=None):
         self.name = self.__class__.__name__
@@ -121,7 +102,7 @@ class Variable:
         self.dtype = config.VALUE_TYPES[self.value_type]["dtype"]
         self.json_type = config.VALUE_TYPES[self.value_type]["json_type"]
         if self.value_type == Enum:
-            self.possible_values = self.set(
+            self.possible_values: Type[Enum] = self.set(
                 attr,
                 "possible_values",
                 required=True,
@@ -193,6 +174,8 @@ class Variable:
                 "is_period_size_independent"
             ],
         )
+
+        self.defined_for = self.set(attr, "defined_for", allowed_type=None)
 
         formulas_attr, unexpected_attrs = helpers._partition(
             attr,
@@ -298,20 +281,8 @@ class Variable:
                 pass
             elif isinstance(reference, tuple):
                 reference = list(reference)
-            else:
-                raise TypeError(
-                    "The reference of the variable {} is a {} instead of a String or a List of Strings.".format(
-                        self.name, type(reference)
-                    )
-                )
-
-            for element in reference:
-                if not isinstance(element, str):
-                    raise TypeError(
-                        "The reference of the variable {} is a {} instead of a String or a List of Strings.".format(
-                            self.name, type(reference)
-                        )
-                    )
+            elif isinstance(reference, dict):
+                reference = [reference]
 
         return reference
 
@@ -438,7 +409,6 @@ class Variable:
         If no period is given and the variable has several formula, return the oldest formula.
 
         :returns: Formula used to compute the variable
-        :rtype: :any:`Formula`
 
         """
 

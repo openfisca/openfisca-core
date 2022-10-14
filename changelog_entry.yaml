@@ -1,0 +1,5 @@
+- bump: minor
+  changes:
+    added:
+    - Parameter operations from openfisca-tools
+    - Dataset classes from openfisca-tools

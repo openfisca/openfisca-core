@@ -1,4 +1,4 @@
-# Command-line interface
+# Using the command-line interface
 
 Use the `policyengine-core` command-line tool to run tests or manage data without writing Python code.
 
