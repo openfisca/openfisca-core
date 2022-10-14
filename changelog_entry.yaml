@@ -1,4 +1,0 @@
-- bump: patch
-  changes:
-    fixed:
-    - Git blame reassigns OpenFisca-Core authors.
