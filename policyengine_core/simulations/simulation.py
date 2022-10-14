@@ -328,8 +328,8 @@ class Simulation:
         elif source_entity == target_entity:
             return values
         else:
-            return self.map_to(
-                self.map_to(
+            return self.map_result(
+                self.map_result(
                     values,
                     source_entity,
                     self.tax_benefit_system.person_entity.key,
@@ -404,7 +404,13 @@ class Simulation:
 
             # If no result, use the default value and cache it
             if array is None:
-                array = holder.default_array()
+                # Check if the variable has a previously defined value
+                known_periods = holder.get_known_periods()
+                if len(known_periods) > 0:
+                    last_known_period = sorted(known_periods)[-1]
+                    array = holder.get_array(last_known_period)
+                else:
+                    array = holder.default_array()
 
             array = self._cast_formula_result(array, variable)
             holder.put_in_cache(array, period)
