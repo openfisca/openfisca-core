@@ -60,3 +60,9 @@
     fixed:
     - Git blame reassigns OpenFisca-Core authors.
   date: 2022-10-12 18:08:43
+- bump: minor
+  changes:
+    added:
+    - Parameter operations from openfisca-tools
+    - Dataset classes from openfisca-tools
+  date: 2022-10-14 10:14:40
