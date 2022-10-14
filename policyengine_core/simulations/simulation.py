@@ -273,11 +273,6 @@ class Simulation:
         elif period is None and self.default_calculation_period is not None:
             period = periods.period(self.default_calculation_period)
 
-        if period is None:
-            raise ValueError(
-                f"You must specify a time period in which to calculate the variable {variable_name}."
-            )
-
         self.tracer.record_calculation_start(variable_name, period)
 
         try:
