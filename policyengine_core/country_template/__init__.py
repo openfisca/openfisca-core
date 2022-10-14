@@ -35,7 +35,6 @@ class Microsimulation(CoreMicrosimulation):
     default_dataset_year = 2022
 
 
-dataset = CountryTemplateDataset
-if 2022 not in dataset.years:
+if 2022 not in CountryTemplateDataset.years:
     logging.warn("Default country template dataset not found. Building it.")
-    dataset.generate(2022)
+    CountryTemplateDataset.generate(2022)
