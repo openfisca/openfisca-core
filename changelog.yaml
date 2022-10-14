@@ -66,3 +66,8 @@
     - Parameter operations from openfisca-tools
     - Dataset classes from openfisca-tools
   date: 2022-10-14 10:14:40
+- bump: minor
+  changes:
+    added:
+    - Tests and documentation.
+  date: 2022-10-14 17:18:21
