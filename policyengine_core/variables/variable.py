@@ -333,7 +333,7 @@ class Variable:
     def set_defined_for(self, defined_for):
         if isinstance(defined_for, Enum):
             defined_for = defined_for.value
-        self.defined_for = defined_for
+        return defined_for
 
     def parse_formula_name(self, attribute_name):
         """
