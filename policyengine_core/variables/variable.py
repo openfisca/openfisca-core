@@ -175,7 +175,7 @@ class Variable:
             ],
         )
 
-        self.defined_for = self.set(attr, "defined_for", allowed_type=None)
+        self.defined_for = self.set_defined_for(attr.pop("defined_for", None))
 
         formulas_attr, unexpected_attrs = helpers._partition(
             attr,
@@ -329,6 +329,11 @@ class Variable:
             )
 
         return formulas
+
+    def set_defined_for(self, defined_for):
+        if isinstance(defined_for, Enum):
+            defined_for = defined_for.value
+        return defined_for
 
     def parse_formula_name(self, attribute_name):
         """

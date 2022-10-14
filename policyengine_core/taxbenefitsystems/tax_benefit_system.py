@@ -71,6 +71,8 @@ class TaxBenefitSystem:
     """Directory containing the Python files defining the variables of the tax and benefit system."""
     parameters_dir: str = None
     """Directory containing the YAML parameter tree."""
+    auto_carry_over_input_variables: bool = False
+    """Whether to automatically carry over input variables when calculating a variable for a period different from the period of the input variables."""
 
     def __init__(self, entities: Sequence[Entity] = None) -> None:
         if entities is None:
@@ -95,6 +97,7 @@ class TaxBenefitSystem:
         self.group_entities = [
             entity for entity in self.entities if not entity.is_person
         ]
+        self.group_entity_keys = [entity.key for entity in self.group_entities]
         for entity in self.entities:
             entity.set_tax_benefit_system(self)
 

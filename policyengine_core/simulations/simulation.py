@@ -44,6 +44,9 @@ class Simulation:
     default_role: str = None
     """The default role to assign people to groups if none is provided."""
 
+    default_calculation_period: str = None
+    """The default period to calculate for if none is provided."""
+
     def __init__(
         self,
         tax_benefit_system: "TaxBenefitSystem" = None,
@@ -102,6 +105,10 @@ class Simulation:
             self.dataset = dataset
             self.dataset_year = dataset_year
             self.build_from_dataset()
+
+        # Backwards compatibility methods
+        self.calc = self.calculate
+        self.df = self.calculate_dataframe
 
     def build_from_populations(
         self, populations: Dict[str, Population]
@@ -164,10 +171,15 @@ class Simulation:
             entity_ids = get_eternity_array(data[entity_id_field])
             builder.declare_entity(group_entity.key, entity_ids)
 
-            person_membership_id = f"{person_entity.key}_{group_entity.key}_id"
+            person_membership_id_field = (
+                f"{person_entity.key}_{group_entity.key}_id"
+            )
             assert (
-                person_membership_id in data
-            ), f"Missing {person_membership_id} column in the dataset. Each group entity must have a person membership array defined for ETERNITY."
+                person_membership_id_field in data
+            ), f"Missing {person_membership_id_field} column in the dataset. Each group entity must have a person membership array defined for ETERNITY."
+            person_membership_ids = get_eternity_array(
+                data[person_membership_id_field]
+            )
 
             person_role_field = f"{person_entity.key}_{group_entity.key}_role"
             if person_role_field in data:
@@ -182,9 +194,11 @@ class Simulation:
                 )
             builder.join_with_persons(
                 self.populations[group_entity.key],
-                person_membership_id,
+                person_membership_ids,
                 person_roles,
             )
+
+        self.build_from_populations(builder.populations)
 
         for variable in data:
             if variable in self.tax_benefit_system.variables:
@@ -238,7 +252,10 @@ class Simulation:
     # ----- Calculation methods ----- #
 
     def calculate(
-        self, variable_name: str, period: Period, map_to: str = None
+        self,
+        variable_name: str,
+        period: Period = None,
+        map_to: str = None,
     ) -> ArrayLike:
         """Calculate ``variable_name`` for ``period``.
 
@@ -253,6 +270,8 @@ class Simulation:
 
         if period is not None and not isinstance(period, Period):
             period = periods.period(period)
+        elif period is None and self.default_calculation_period is not None:
+            period = periods.period(self.default_calculation_period)
 
         self.tracer.record_calculation_start(variable_name, period)
 
@@ -295,7 +314,7 @@ class Simulation:
         target_pop = self.populations[target_entity]
         if (
             source_entity == "person"
-            and target_entity in self.group_entity_names
+            and target_entity in self.tax_benefit_system.group_entity_keys
         ):
             if how and how not in (
                 "sum",
@@ -308,7 +327,7 @@ class Simulation:
                 raise ValueError("Not a valid function.")
             return target_pop.__getattribute__(how or "sum")(values)
         elif (
-            source_entity in self.group_entity_names
+            source_entity in self.tax_benefit_system.group_entity_keys
             and target_entity == "person"
         ):
             if not how:
@@ -318,8 +337,8 @@ class Simulation:
         elif source_entity == target_entity:
             return values
         else:
-            return self.map_to(
-                self.map_to(
+            return self.map_result(
+                self.map_result(
                     values,
                     source_entity,
                     self.tax_benefit_system.person_entity.key,
@@ -331,7 +350,10 @@ class Simulation:
             )
 
     def calculate_dataframe(
-        self, variable_names: List[str], period: Period, map_to: str = None
+        self,
+        variable_names: List[str],
+        period: Period = None,
+        map_to: str = None,
     ) -> pd.DataFrame:
         """Calculate ``variable_names`` for ``period``.
 
@@ -356,7 +378,9 @@ class Simulation:
             df[variable_name] = self.calculate(variable_name, period, map_to)
         return df
 
-    def _calculate(self, variable_name: str, period: Period) -> ArrayLike:
+    def _calculate(
+        self, variable_name: str, period: Period = None
+    ) -> ArrayLike:
         """
         Calculate the variable ``variable_name`` for the period ``period``, using the variable formula if it exists.
 
@@ -386,10 +410,26 @@ class Simulation:
         try:
             self._check_for_cycle(variable.name, period)
             array = self._run_formula(variable, population, period)
+            if variable.defined_for is not None:
+                mask = self.calculate(
+                    variable.defined_for, period, map_to=variable.entity.key
+                )
+                array = np.where(mask, array, np.zeros_like(array))
 
             # If no result, use the default value and cache it
             if array is None:
-                array = holder.default_array()
+                # Check if the variable has a previously defined value
+                known_periods = holder.get_known_periods()
+                if (
+                    self.tax_benefit_system.auto_carry_over_input_variables
+                    and variable.calculate_output is None
+                    and len(known_periods) > 0
+                ):
+                    # Variables with a calculate-output property specify
+                    last_known_period = sorted(known_periods)[-1]
+                    array = holder.get_array(last_known_period)
+                else:
+                    array = holder.default_array()
 
             array = self._cast_formula_result(array, variable)
             holder.put_in_cache(array, period)
@@ -408,7 +448,9 @@ class Simulation:
             holder.delete_arrays(_period)
         self.invalidated_caches = set()
 
-    def calculate_add(self, variable_name: str, period: Period) -> ArrayLike:
+    def calculate_add(
+        self, variable_name: str, period: Period = None
+    ) -> ArrayLike:
         variable = self.tax_benefit_system.get_variable(
             variable_name, check_existence=True
         )
@@ -443,7 +485,7 @@ class Simulation:
         )
 
     def calculate_divide(
-        self, variable_name: str, period: Period
+        self, variable_name: str, period: Period = None
     ) -> ArrayLike:
         variable = self.tax_benefit_system.get_variable(
             variable_name, check_existence=True
@@ -480,7 +522,7 @@ class Simulation:
         )
 
     def calculate_output(
-        self, variable_name: str, period: Period
+        self, variable_name: str, period: Period = None
     ) -> ArrayLike:
         """
         Calculate the value of a variable using the ``calculate_output`` attribute of the variable.
