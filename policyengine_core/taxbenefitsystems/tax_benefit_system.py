@@ -95,6 +95,7 @@ class TaxBenefitSystem:
         self.group_entities = [
             entity for entity in self.entities if not entity.is_person
         ]
+        self.group_entity_keys = [entity.key for entity in self.group_entities]
         for entity in self.entities:
             entity.set_tax_benefit_system(self)
 

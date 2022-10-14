@@ -295,7 +295,7 @@ class Simulation:
         target_pop = self.populations[target_entity]
         if (
             source_entity == "person"
-            and target_entity in self.group_entity_names
+            and target_entity in self.tax_benefit_system.group_entity_keys
         ):
             if how and how not in (
                 "sum",
@@ -308,7 +308,7 @@ class Simulation:
                 raise ValueError("Not a valid function.")
             return target_pop.__getattribute__(how or "sum")(values)
         elif (
-            source_entity in self.group_entity_names
+            source_entity in self.tax_benefit_system.group_entity_keys
             and target_entity == "person"
         ):
             if not how:
@@ -386,6 +386,11 @@ class Simulation:
         try:
             self._check_for_cycle(variable.name, period)
             array = self._run_formula(variable, population, period)
+            if variable.defined_for is not None:
+                mask = self.calculate(
+                    variable.defined_for, period, map_to=variable.entity.key
+                )
+                array = np.where(mask, array, np.zeros_like(array))
 
             # If no result, use the default value and cache it
             if array is None:
