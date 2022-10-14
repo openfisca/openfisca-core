@@ -39,10 +39,14 @@ class Microsimulation(Simulation):
     def calculate(
         self,
         variable_name: str,
-        period: Period,
+        period: Period = None,
         map_to: str = None,
         use_weights: bool = True,
     ) -> MicroSeries:
+        if period is not None and not isinstance(period, Period):
+            period = get_period(period)
+        elif period is None and self.default_calculation_period is not None:
+            period = get_period(self.default_calculation_period)
         values = super().calculate(variable_name, period, map_to)
         if not use_weights:
             return values
@@ -52,7 +56,7 @@ class Microsimulation(Simulation):
     def calculate_add(
         self,
         variable_name: str,
-        period: Period,
+        period: Period = None,
         map_to: str = None,
         use_weights: bool = True,
     ) -> MicroSeries:
@@ -65,7 +69,7 @@ class Microsimulation(Simulation):
     def calculate_divide(
         self,
         variable_name: str,
-        period: Period,
+        period: Period = None,
         map_to: str = None,
         use_weights: bool = True,
     ) -> MicroSeries:
@@ -78,7 +82,7 @@ class Microsimulation(Simulation):
     def calculate_dataframe(
         self,
         variable_names: list,
-        period: Period,
+        period: Period = None,
         map_to: str = None,
         use_weights: bool = True,
     ) -> MicroDataFrame:

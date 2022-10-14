@@ -23,6 +23,7 @@ class CountryTaxBenefitSystem(TaxBenefitSystem):
     entities = entities.entities
     variables_dir = COUNTRY_DIR / "variables"
     parameters_dir = COUNTRY_DIR / "parameters"
+    auto_carry_over_input_variables = False
 
 
 class Simulation(CoreSimulation):

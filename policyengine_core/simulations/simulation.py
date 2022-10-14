@@ -44,6 +44,9 @@ class Simulation:
     default_role: str = None
     """The default role to assign people to groups if none is provided."""
 
+    default_calculation_period: str = None
+    """The default period to calculate for if none is provided."""
+
     def __init__(
         self,
         tax_benefit_system: "TaxBenefitSystem" = None,
@@ -102,6 +105,10 @@ class Simulation:
             self.dataset = dataset
             self.dataset_year = dataset_year
             self.build_from_dataset()
+
+        # Backwards compatibility methods
+        self.calc = self.calculate
+        self.df = self.calculate_dataframe
 
     def build_from_populations(
         self, populations: Dict[str, Population]
@@ -247,7 +254,7 @@ class Simulation:
     def calculate(
         self,
         variable_name: str,
-        period: Period,
+        period: Period = None,
         map_to: str = None,
     ) -> ArrayLike:
         """Calculate ``variable_name`` for ``period``.
@@ -263,6 +270,13 @@ class Simulation:
 
         if period is not None and not isinstance(period, Period):
             period = periods.period(period)
+        elif period is None and self.default_calculation_period is not None:
+            period = periods.period(self.default_calculation_period)
+
+        if period is None:
+            raise ValueError(
+                f"You must specify a time period in which to calculate the variable {variable_name}."
+            )
 
         self.tracer.record_calculation_start(variable_name, period)
 
@@ -341,7 +355,10 @@ class Simulation:
             )
 
     def calculate_dataframe(
-        self, variable_names: List[str], period: Period, map_to: str = None
+        self,
+        variable_names: List[str],
+        period: Period = None,
+        map_to: str = None,
     ) -> pd.DataFrame:
         """Calculate ``variable_names`` for ``period``.
 
@@ -366,7 +383,9 @@ class Simulation:
             df[variable_name] = self.calculate(variable_name, period, map_to)
         return df
 
-    def _calculate(self, variable_name: str, period: Period) -> ArrayLike:
+    def _calculate(
+        self, variable_name: str, period: Period = None
+    ) -> ArrayLike:
         """
         Calculate the variable ``variable_name`` for the period ``period``, using the variable formula if it exists.
 
@@ -434,7 +453,9 @@ class Simulation:
             holder.delete_arrays(_period)
         self.invalidated_caches = set()
 
-    def calculate_add(self, variable_name: str, period: Period) -> ArrayLike:
+    def calculate_add(
+        self, variable_name: str, period: Period = None
+    ) -> ArrayLike:
         variable = self.tax_benefit_system.get_variable(
             variable_name, check_existence=True
         )
@@ -469,7 +490,7 @@ class Simulation:
         )
 
     def calculate_divide(
-        self, variable_name: str, period: Period
+        self, variable_name: str, period: Period = None
     ) -> ArrayLike:
         variable = self.tax_benefit_system.get_variable(
             variable_name, check_existence=True
@@ -506,7 +527,7 @@ class Simulation:
         )
 
     def calculate_output(
-        self, variable_name: str, period: Period
+        self, variable_name: str, period: Period = None
     ) -> ArrayLike:
         """
         Calculate the value of a variable using the ``calculate_output`` attribute of the variable.
