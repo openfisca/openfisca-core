@@ -23,39 +23,67 @@ class Microsimulation(Simulation):
         weights = None
 
         if time_period.unit == weight_variable.definition_period:
-            weights = super().calculate(weight_variable_name, time_period)
+            weights = self.calculate(
+                weight_variable_name, time_period, use_weights=False
+            )
         elif (time_period.unit == MONTH) and (
             weight_variable.definition_period == YEAR
         ):
             # Common use-case. To-do: implement others if needed.
-            weights = super().calculate(
-                weight_variable_name, time_period.this_year
+            weights = self.calculate(
+                weight_variable_name, time_period.this_year, use_weights=False
             )
 
         return weights
 
     def calculate(
-        self, variable_name: str, period: Period, map_to: str = None
+        self,
+        variable_name: str,
+        period: Period,
+        map_to: str = None,
+        use_weights: bool = True,
     ) -> MicroSeries:
-        values = super().calculate(variable_name, period)
+        values = super().calculate(variable_name, period, map_to)
+        if not use_weights:
+            return values
         weights = self.get_weights(variable_name, period, map_to)
         return MicroSeries(values, weights=weights)
 
-    def calculate_add(self, variable_name: str, period: Period) -> MicroSeries:
-        values = super().calculate_add(variable_name, period)
+    def calculate_add(
+        self,
+        variable_name: str,
+        period: Period,
+        map_to: str = None,
+        use_weights: bool = True,
+    ) -> MicroSeries:
+        values = super().calculate_add(variable_name, period, map_to)
+        if not use_weights:
+            return values
         weights = self.get_weights(variable_name, period)
         return MicroSeries(values, weights=weights)
 
     def calculate_divide(
-        self, variable_name: str, period: Period
+        self,
+        variable_name: str,
+        period: Period,
+        map_to: str = None,
+        use_weights: bool = True,
     ) -> MicroSeries:
-        values = super().calculate_divide(variable_name, period)
+        values = super().calculate_divide(variable_name, period, map_to)
+        if not use_weights:
+            return values
         weights = self.get_weights(variable_name, period)
         return MicroSeries(values, weights=weights)
 
     def calculate_dataframe(
-        self, variable_names: list, period: Period
+        self,
+        variable_names: list,
+        period: Period,
+        map_to: str = None,
+        use_weights: bool = True,
     ) -> MicroDataFrame:
-        values = super().calculate_dataframe(variable_names, period)
+        values = super().calculate_dataframe(variable_names, period, map_to)
+        if not use_weights:
+            return values
         weights = self.get_weights(variable_names[0], period)
         return MicroDataFrame(values, weights=weights)

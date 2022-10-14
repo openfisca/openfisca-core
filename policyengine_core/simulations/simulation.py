@@ -164,10 +164,15 @@ class Simulation:
             entity_ids = get_eternity_array(data[entity_id_field])
             builder.declare_entity(group_entity.key, entity_ids)
 
-            person_membership_id = f"{person_entity.key}_{group_entity.key}_id"
+            person_membership_id_field = (
+                f"{person_entity.key}_{group_entity.key}_id"
+            )
             assert (
-                person_membership_id in data
-            ), f"Missing {person_membership_id} column in the dataset. Each group entity must have a person membership array defined for ETERNITY."
+                person_membership_id_field in data
+            ), f"Missing {person_membership_id_field} column in the dataset. Each group entity must have a person membership array defined for ETERNITY."
+            person_membership_ids = get_eternity_array(
+                data[person_membership_id_field]
+            )
 
             person_role_field = f"{person_entity.key}_{group_entity.key}_role"
             if person_role_field in data:
@@ -182,9 +187,11 @@ class Simulation:
                 )
             builder.join_with_persons(
                 self.populations[group_entity.key],
-                person_membership_id,
+                person_membership_ids,
                 person_roles,
             )
+
+        self.build_from_populations(builder.populations)
 
         for variable in data:
             if variable in self.tax_benefit_system.variables:
@@ -238,7 +245,10 @@ class Simulation:
     # ----- Calculation methods ----- #
 
     def calculate(
-        self, variable_name: str, period: Period, map_to: str = None
+        self,
+        variable_name: str,
+        period: Period,
+        map_to: str = None,
     ) -> ArrayLike:
         """Calculate ``variable_name`` for ``period``.
 

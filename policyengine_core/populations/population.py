@@ -106,12 +106,28 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
                     "utf-8"
                 )
             )
-        elif config.ADD in options:
-            return self.simulation.calculate_add(variable_name, period)
+
+        from policyengine_core.simulations.microsimulation import (
+            Microsimulation,
+        )
+
+        calculate_kwargs = {}
+        if isinstance(self.simulation, Microsimulation):
+            # Internal simulation code shouldn't use weights in order to avoid performance slowdowns.
+            calculate_kwargs["use_weights"] = False
+
+        if config.ADD in options:
+            return self.simulation.calculate_add(
+                variable_name, period, **calculate_kwargs
+            )
         elif config.DIVIDE in options:
-            return self.simulation.calculate_divide(variable_name, period)
+            return self.simulation.calculate_divide(
+                variable_name, period, **calculate_kwargs
+            )
         else:
-            return self.simulation.calculate(variable_name, period)
+            return self.simulation.calculate(
+                variable_name, period, **calculate_kwargs
+            )
 
     # Helpers
 
