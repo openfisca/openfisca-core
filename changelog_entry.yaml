@@ -1,0 +1,4 @@
+- bump: minor
+  changes:
+    added:
+    - Tests and documentation.
