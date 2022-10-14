@@ -406,7 +406,12 @@ class Simulation:
             if array is None:
                 # Check if the variable has a previously defined value
                 known_periods = holder.get_known_periods()
-                if len(known_periods) > 0:
+                if (
+                    self.tax_benefit_system.auto_carry_over_input_variables
+                    and variable.calculate_output is None
+                    and len(known_periods) > 0
+                ):
+                    # Variables with a calculate-output property specify
                     last_known_period = sorted(known_periods)[-1]
                     array = holder.get_array(last_known_period)
                 else:
