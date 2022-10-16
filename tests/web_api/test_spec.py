@@ -36,16 +36,16 @@ def test_paths(body):
 
 
 def test_entity_definition(body):
-    assert 'parents' in dpath.util.get(body, 'definitions/Household/properties')
-    assert 'children' in dpath.util.get(body, 'definitions/Household/properties')
-    assert 'salary' in dpath.util.get(body, 'definitions/Person/properties')
-    assert 'rent' in dpath.util.get(body, 'definitions/Household/properties')
-    assert 'number' == dpath.util.get(body, 'definitions/Person/properties/salary/additionalProperties/type')
+    assert 'parents' in dpath.util.get(body, 'components/schemas/Household/properties')
+    assert 'children' in dpath.util.get(body, 'components/schemas/Household/properties')
+    assert 'salary' in dpath.util.get(body, 'components/schemas/Person/properties')
+    assert 'rent' in dpath.util.get(body, 'components/schemas/Household/properties')
+    assert 'number' == dpath.util.get(body, 'components/schemas/Person/properties/salary/additionalProperties/type')
 
 
 def test_situation_definition(body):
-    situation_input = body['definitions']['SituationInput']
-    situation_output = body['definitions']['SituationOutput']
+    situation_input = body['components']['schemas']['SituationInput']
+    situation_output = body['components']['schemas']['SituationOutput']
     for situation in situation_input, situation_output:
         assert 'households' in dpath.util.get(situation, '/properties')
         assert 'persons' in dpath.util.get(situation, '/properties')
