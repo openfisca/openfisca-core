@@ -34,6 +34,191 @@ tags:
 
   - name: "Documentation"
 
+components:
+  schemas:
+    Parameter:
+      type: "object"
+      properties:
+        values:
+          $ref: "#/components/schemas/Values"
+        brackets:
+          type: "object"
+          additionalProperties:
+            $ref: "#/components/schemas/Brackets"
+        subparams:
+          type: "object"
+          additionalProperties:
+            type: "object"
+            properties:
+              definition:
+                type: "string"
+        metadata:
+          type: "object"
+        description:
+          type: "string"
+        id:
+          type: "integer"
+          format: "string"
+        source:
+          type: "string"
+      example: null
+
+    Parameters:
+      type: "object"
+      additionalProperties:
+        type: "object"
+        properties:
+          description:
+            type: "string"
+          href:
+            type: "string"
+
+    Variable:
+      type: "object"
+      properties:
+        defaultValue:
+          type: "string"
+        definitionPeriod:
+          type: string
+          enum:
+            - MONTH
+            - YEAR
+            - ETERNITY
+        description:
+          type: "string"
+        entity:
+          type: "string"
+        formulas:
+          type: "object"
+          additionalProperties:
+            $ref: "#/components/schemas/Formula"
+        id:
+          type: "string"
+        reference:
+          type: "array"
+          items:
+            type: "string"
+        source:
+          type: "string"
+        valueType:
+          type: "string"
+          enum:
+            - Int
+            - Float
+            - Boolean
+            - Date
+            - String
+      example: null
+
+    Variables:
+      type: "object"
+      additionalProperties:
+        type: "object"
+        properties:
+          description:
+            type: "string"
+          href:
+            type: "string"
+
+    Formula:
+      type: "object"
+      properties:
+        content:
+          type: "string"
+        source:
+          type: "string"
+
+    Brackets:
+      type: "object"
+      additionalProperties:
+        type: "number"
+        format: "float"
+
+    Values:
+      description: All keys are ISO dates. Values can be numbers, booleans, or arrays of a single type (number, boolean or string).
+      type: "object"
+      additionalProperties:
+        $ref: "#/components/schemas/Value"
+  #    propertyNames:  # this keyword is part of JSON Schema but is not supported in OpenAPI Specification at the time of writing, see https://swagger.io/docs/specification/data-models/keywords/#unsupported
+  #      pattern: "^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$"  # all keys are ISO dates
+
+    Value:
+      oneOf:
+      - type: "boolean"
+      - type: "number"
+        format: "float"
+      - type: "array"
+        items:
+          oneOf:
+          - type: "string"
+          - type: "number"
+
+    Entities:
+      type: "object"
+      properties:
+        description:
+          type: "string"
+        documentation:
+          type: "string"
+        plural:
+          type: "string"
+        roles:
+          type: "object"
+          additionalProperties:
+            $ref: "#/components/schemas/Roles"
+    Roles:
+      type: "object"
+      properties:
+        description:
+          type: "string"
+        max:
+          type: "integer"
+        plural:
+          type: "string"
+    SituationInput: null
+    SituationOutput: null
+
+    Trace:
+      type: object
+      properties:
+        requestedCalculations:
+          type: array
+          items:
+            type: string
+        entitiesDescription:
+          type: object
+          properties: null  # Will be dynamically added by the Web API
+        trace:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              value:
+                type: array
+                items: {}
+              dependencies:
+                type: array
+                items:
+                  type: string
+              parameters:
+                type: object
+                additionalProperties:
+                  type: object
+
+      example: null
+
+  headers:
+    Country-Package:
+      description: "The name of the country package currently loaded in this API server"
+      schema:
+        type: "string"
+
+    Country-Package-Version:
+      description: "The version of the country package currently loaded in this API server"
+      schema:
+        type: "string"
+        pattern: "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-((?:0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"  # adapted from https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
+
 paths:
   /calculate:
     post:
@@ -47,27 +232,33 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/definitions/SituationInput"
+              $ref: "#/components/schemas/SituationInput"
       responses:
         200:
           description: "The calculation result is sent back in the response body"
           content:
             application/json:
               schema:
-                $ref: "#/definitions/SituationOutput"
+                $ref: "#/components/schemas/SituationOutput"
           headers:
-            schema:
-              $ref: "#/components/headers"
+            Country-Package:
+              $ref: "#/components/headers/Country-Package"
+            Country-Package-Version:
+              $ref: "#/components/headers/Country-Package-Version"
         404:
           description: "A variable mentioned in the input situation does not exist in the loaded tax and benefit system. Details are sent back in the response body"
           headers:
-            schema:
-              $ref: "#/components/headers"
+            Country-Package:
+              $ref: "#/components/headers/Country-Package"
+            Country-Package-Version:
+              $ref: "#/components/headers/Country-Package-Version"
         400:
           description: "The request is invalid. Details about the error are sent back in the response body"
           headers:
-            schema:
-              $ref: "#/components/headers"
+            Country-Package:
+              $ref: "#/components/headers/Country-Package"
+            Country-Package-Version:
+              $ref: "#/components/headers/Country-Package-Version"
 
   /parameters:
     get:
@@ -81,10 +272,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/definitions/Parameters"
+                $ref: "#/components/schemas/Parameters"
           headers:
-            schema:
-              $ref: "#/components/headers"
+            Country-Package:
+              $ref: "#/components/headers/Country-Package"
+            Country-Package-Version:
+              $ref: "#/components/headers/Country-Package-Version"
 
   /parameter/{parameterID}:
     get:
@@ -105,15 +298,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/definitions/Parameter"
+                $ref: "#/components/schemas/Parameter"
           headers:
-            schema:
-              $ref: "#/components/headers"
+            Country-Package:
+              $ref: "#/components/headers/Country-Package"
+            Country-Package-Version:
+              $ref: "#/components/headers/Country-Package-Version"
         404:
           description: "The requested parameter does not exist"
           headers:
-            schema:
-              $ref: "#/components/headers"
+            Country-Package:
+              $ref: "#/components/headers/Country-Package"
+            Country-Package-Version:
+              $ref: "#/components/headers/Country-Package-Version"
 
   /variables:
     get:
@@ -127,10 +324,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/definitions/Variables"
+                $ref: "#/components/schemas/Variables"
           headers:
-            schema:
-              $ref: "#/components/headers"
+            Country-Package:
+              $ref: "#/components/headers/Country-Package"
+            Country-Package-Version:
+              $ref: "#/components/headers/Country-Package-Version"
 
   /variable/{variableID}:
     get:
@@ -151,15 +350,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/definitions/Variable"
+                $ref: "#/components/schemas/Variable"
           headers:
-            schema:
-              $ref: "#/components/headers"
+            Country-Package:
+              $ref: "#/components/headers/Country-Package"
+            Country-Package-Version:
+              $ref: "#/components/headers/Country-Package-Version"
         404:
           description: "The requested variable does not exist"
           headers:
-            schema:
-              $ref: "#/components/headers"
+            Country-Package:
+              $ref: "#/components/headers/Country-Package"
+            Country-Package-Version:
+              $ref: "#/components/headers/Country-Package-Version"
 
   /entities:
     get:
@@ -173,10 +376,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/definitions/Entities"
+                $ref: "#/components/schemas/Entities"
           headers:
-            schema:
-              $ref: "#/components/headers"
+            Country-Package:
+              $ref: "#/components/headers/Country-Package"
+            Country-Package-Version:
+              $ref: "#/components/headers/Country-Package-Version"
 
   /trace:
     post:
@@ -190,27 +395,33 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/definitions/SituationInput"
+              $ref: "#/components/schemas/SituationInput"
       responses:
         200:
           description: "The calculation details are sent back in the response body"
           content:
             application/json:
               schema:
-                $ref: "#/definitions/Trace"
+                $ref: "#/components/schemas/Trace"
           headers:
-            schema:
-              $ref: "#/components/headers"
+            Country-Package:
+              $ref: "#/components/headers/Country-Package"
+            Country-Package-Version:
+              $ref: "#/components/headers/Country-Package-Version"
         404:
           description: "A variable mentioned in the input situation does not exist in the loaded tax and benefit system. Details are sent back in the response body"
           headers:
-            schema:
-              $ref: "#/components/headers"
+            Country-Package:
+              $ref: "#/components/headers/Country-Package"
+            Country-Package-Version:
+              $ref: "#/components/headers/Country-Package-Version"
         400:
           description: "The request is invalid. Details about the error are sent back in the response body"
           headers:
-            schema:
-              $ref: "#/components/headers"
+            Country-Package:
+              $ref: "#/components/headers/Country-Package"
+            Country-Package-Version:
+              $ref: "#/components/headers/Country-Package-Version"
 
   /spec:
     get:
@@ -222,189 +433,9 @@ paths:
         200:
           description: The API documentation is sent back in the response body
           headers:
-            schema:
-              $ref: "#/components/headers"
+            Country-Package:
+              $ref: "#/components/headers/Country-Package"
+            Country-Package-Version:
+              $ref: "#/components/headers/Country-Package-Version"
 
-definitions:
-  Parameter:
-    type: "object"
-    properties:
-      values:
-        $ref: "#/definitions/Values"
-      brackets:
-        type: "object"
-        additionalProperties:
-          $ref: "#/definitions/Brackets"
-      subparams:
-        type: "object"
-        additionalProperties:
-          type: "object"
-          properties:
-            definition:
-              type: "string"
-      metadata:
-        type: "object"
-      description:
-        type: "string"
-      id:
-        type: "integer"
-        format: "string"
-      source:
-        type: "string"
-    example: null
 
-  Parameters:
-    type: "object"
-    additionalProperties:
-      type: "object"
-      properties:
-        description:
-          type: "string"
-        href:
-          type: "string"
-
-  Variable:
-    type: "object"
-    properties:
-      defaultValue:
-        type: "string"
-      definitionPeriod:
-        type: string
-        enum:
-          - MONTH
-          - YEAR
-          - ETERNITY
-      description:
-        type: "string"
-      entity:
-        type: "string"
-      formulas:
-        type: "object"
-        additionalProperties:
-         $ref: "#/definitions/Formula"
-      id:
-        type: "string"
-      reference:
-        type: "array"
-        items:
-          type: "string"
-      source:
-        type: "string"
-      valueType:
-        type: "string"
-        enum:
-          - Int
-          - Float
-          - Boolean
-          - Date
-          - String
-    example: null
-
-  Variables:
-    type: "object"
-    additionalProperties:
-      type: "object"
-      properties:
-        description:
-          type: "string"
-        href:
-          type: "string"
-
-  Formula:
-    type: "object"
-    properties:
-      content:
-        type: "string"
-      source:
-        type: "string"
-
-  Brackets:
-    type: "object"
-    additionalProperties:
-      type: "number"
-      format: "float"
-
-  Values:
-    description: All keys are ISO dates. Values can be numbers, booleans, or arrays of a single type (number, boolean or string).
-    type: "object"
-    additionalProperties:
-      $ref: "#/definitions/Value"
-#    propertyNames:  # this keyword is part of JSON Schema but is not supported in OpenAPI Specification at the time of writing, see https://swagger.io/docs/specification/data-models/keywords/#unsupported
-#      pattern: "^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$"  # all keys are ISO dates
-
-  Value:
-    oneOf:
-    - type: "boolean"
-    - type: "number"
-      format: "float"
-    - type: "array"
-      items:
-        type:
-          oneOf:
-          - "string"
-          - "number"
-
-  Entities:
-    type: "object"
-    properties:
-      description:
-        type: "string"
-      documentation:
-        type: "string"
-      plural:
-        type: "string"
-      roles:
-        type: "object"
-        additionalProperties:
-         $ref: "#/definitions/Roles"
-  Roles:
-    type: "object"
-    properties:
-      description:
-        type: "string"
-      max:
-        type: "integer"
-      plural:
-        type: "string"
-  SituationInput: null
-  SituationOutput: null
-
-  Trace:
-    type: object
-    properties:
-      requestedCalculations:
-        type: array
-        items:
-          type: string
-      entitiesDescription:
-        type: object
-        properties: null  # Will be dynamically added by the Web API
-      trace:
-        type: object
-        additionalProperties:
-          type: object
-          properties:
-            value:
-              type: array
-              items:
-                type: any
-            dependencies:
-              type: array
-              items:
-                type: string
-            parameters:
-              type: object
-              additionalProperties:
-                type: object
-
-    example: null
-
-components:
-  headers:
-    Country-Package:
-      description: "The name of the country package currently loaded in this API server"
-      type: "string"
-    Country-Package-Version:
-      description: "The version of the country package currently loaded in this API server"
-      type: "string"
-      pattern: "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-((?:0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"  # adapted from https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string

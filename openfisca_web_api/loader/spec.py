@@ -116,7 +116,7 @@ def get_situation_json_schema(tax_benefit_system):
             entity.plural: {
                 'type': 'object',
                 'additionalProperties': {
-                    "$ref": "#/definitions/{}".format(entity.key.title())
+                    "$ref": "#/components/schemas/{}".format(entity.key.title())
                     }
                 }
             for entity in tax_benefit_system.entities

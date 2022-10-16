@@ -49,8 +49,8 @@ def test_situation_definition(body):
     for situation in situation_input, situation_output:
         assert 'households' in dpath.util.get(situation, '/properties')
         assert 'persons' in dpath.util.get(situation, '/properties')
-        assert "#/definitions/Household" == dpath.util.get(situation, '/properties/households/additionalProperties/$ref')
-        assert "#/definitions/Person" == dpath.util.get(situation, '/properties/persons/additionalProperties/$ref')
+        assert "#/components/schemas/Household" == dpath.util.get(situation, '/properties/households/additionalProperties/$ref')
+        assert "#/components/schemas/Person" == dpath.util.get(situation, '/properties/persons/additionalProperties/$ref')
 
 
 def test_host(body):
