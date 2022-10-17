@@ -44,7 +44,6 @@ from policyengine_core.parameters.operations.uprate_parameters import (
 )
 from policyengine_core.periods import Instant, Period
 from policyengine_core.populations import GroupPopulation, Population
-from policyengine_core.tools.test_runner import run_tests
 from policyengine_core.variables import Variable
 
 log = logging.getLogger(__name__)
@@ -548,4 +547,8 @@ class TaxBenefitSystem:
         return {entity.key: entity for entity in self.entities}
 
     def test(self, paths: str, verbose: bool = False) -> None:
+        from policyengine_core.tools.test_runner import (
+            run_tests,
+        )  # Import here to avoid circular dependency.
+
         run_tests(self, paths, options=dict(verbose=verbose))

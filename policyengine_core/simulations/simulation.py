@@ -28,7 +28,7 @@ from policyengine_core.experimental import MemoryConfig
 from policyengine_core.populations import Population
 from policyengine_core.tracers import SimpleTracer
 from policyengine_core.variables import Variable
-from policyengine_core.reforms import Reform
+from policyengine_core.reforms.reform import Reform
 
 
 class Simulation:

@@ -1,0 +1,5 @@
+- bump: minor
+  changes:
+    added:
+    - Performance improvements
+    - Import sorting and code health improvements

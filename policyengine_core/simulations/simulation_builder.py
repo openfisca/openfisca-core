@@ -15,7 +15,12 @@ from policyengine_core.errors import (
 )
 from policyengine_core.periods import Period
 from policyengine_core.populations import GroupPopulation, Population
-from policyengine_core.simulations import Simulation, helpers
+from policyengine_core.simulations.simulation import Simulation
+from policyengine_core.simulations.helpers import (
+    check_type,
+    _get_person_count,
+    transform_to_strict_syntax,
+)
 
 if TYPE_CHECKING:
     from policyengine_core.taxbenefitsystems.tax_benefit_system import (
@@ -112,7 +117,7 @@ class SimulationBuilder:
                 simulation.get_variable_population(variable_name).entity,
             )
 
-        helpers.check_type(input_dict, dict, ["error"])
+        check_type(input_dict, dict, ["error"])
         axes = input_dict.pop("axes", None)
 
         unexpected_entities = [
@@ -202,7 +207,7 @@ class SimulationBuilder:
             {'salary': {'2016-10': 12000}}
             )
         """
-        count = helpers._get_person_count(input_dict)
+        count = _get_person_count(input_dict)
         simulation = self.build_default_simulation(
             tax_benefit_system, count, simulation
         )
@@ -341,16 +346,14 @@ class SimulationBuilder:
         """
         Add the simulation's instances of the persons entity as described in ``instances_json``.
         """
-        helpers.check_type(instances_json, dict, [entity.plural])
+        check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
         self.persons_plural = entity.plural
         self.entity_ids[self.persons_plural] = entity_ids
         self.entity_counts[self.persons_plural] = len(entity_ids)
 
         for instance_id, instance_object in instances_json.items():
-            helpers.check_type(
-                instance_object, dict, [entity.plural, instance_id]
-            )
+            check_type(instance_object, dict, [entity.plural, instance_id])
             self.init_variable_values(
                 entity, instance_object, str(instance_id)
             )
@@ -380,7 +383,7 @@ class SimulationBuilder:
         """
         Add all instances of one of the model's entities as described in ``instances_json``.
         """
-        helpers.check_type(instances_json, dict, [entity.plural])
+        check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
 
         self.entity_ids[entity.plural] = entity_ids
@@ -397,9 +400,7 @@ class SimulationBuilder:
         self.entity_counts[entity.plural] = len(entity_ids)
 
         for instance_id, instance_object in instances_json.items():
-            helpers.check_type(
-                instance_object, dict, [entity.plural, instance_id]
-            )
+            check_type(instance_object, dict, [entity.plural, instance_id])
 
             variables_json = (
                 instance_object.copy()
@@ -407,14 +408,14 @@ class SimulationBuilder:
 
             roles_json = {
                 role.plural
-                or role.key: helpers.transform_to_strict_syntax(
+                or role.key: transform_to_strict_syntax(
                     variables_json.pop(role.plural or role.key, [])
                 )
                 for role in entity.roles
             }
 
             for role_id, role_definition in roles_json.items():
-                helpers.check_type(
+                check_type(
                     role_definition,
                     list,
                     [entity.plural, instance_id, role_id],
@@ -504,7 +505,7 @@ class SimulationBuilder:
         persons_to_allocate,
         index,
     ):
-        helpers.check_type(
+        check_type(
             person_id, str, [entity_plural, entity_id, role_id, str(index)]
         )
         if person_id not in persons_ids:
