@@ -1,8 +1,6 @@
-from policyengine_core import parameters
-from policyengine_core import taxscales
-from policyengine_core import tools
-
 import pytest
+
+from policyengine_core import parameters, taxscales, tools
 
 
 @pytest.fixture

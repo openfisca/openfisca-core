@@ -1,13 +1,15 @@
 import traceback
-from typing import Any, List, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, List
+
 import numpy
 from numpy.typing import ArrayLike
+
 from policyengine_core import projectors
+from policyengine_core.entities import Entity, Role
 from policyengine_core.holders import Holder
 from policyengine_core.periods.period_ import Period
 from policyengine_core.populations import config
 from policyengine_core.projectors import Projector
-from policyengine_core.entities import Entity, Role
 
 if TYPE_CHECKING:
     from policyengine_core.simulations import Simulation
@@ -107,9 +109,8 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
                 )
             )
 
-        from policyengine_core.simulations.microsimulation import (
-            Microsimulation,
-        )
+        from policyengine_core.simulations.microsimulation import \
+            Microsimulation
 
         calculate_kwargs = {}
         if isinstance(self.simulation, Microsimulation):

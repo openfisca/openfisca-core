@@ -9,11 +9,11 @@ See https://openfisca.org/doc/key-concepts/variables.html
 # Import from numpy the operations you need to apply on OpenFisca's population vectors
 # Import from openfisca-core the Python objects used to code the legislation in OpenFisca
 from numpy import maximum as max_
-from policyengine_core.periods import MONTH, YEAR
-from policyengine_core.variables import Variable
 
 # Import the Entities specifically defined for this tax and benefit system
 from policyengine_core.country_template.entities import Household, Person
+from policyengine_core.periods import MONTH, YEAR
+from policyengine_core.variables import Variable
 
 
 class income_tax(Variable):

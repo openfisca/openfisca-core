@@ -1,6 +1,7 @@
 def test_parameter_homogenization():
-    from policyengine_core.parameters import ParameterNode
     import numpy as np
+
+    from policyengine_core.parameters import ParameterNode
 
     # Create the parameter
 
@@ -21,8 +22,8 @@ def test_parameter_homogenization():
         }
     )
 
-    from policyengine_core.model_api import Enum, Variable, ETERNITY
     from policyengine_core.entities import Entity
+    from policyengine_core.model_api import ETERNITY, Enum, Variable
 
     Person = Entity("person", "people", "Person", "A person")
 

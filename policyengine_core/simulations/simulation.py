@@ -1,29 +1,29 @@
 import tempfile
-from typing import Any, Dict, List, TYPE_CHECKING, Type
+from typing import TYPE_CHECKING, Any, Dict, List, Type
+
 import numpy
 import numpy as np
 import pandas as pd
 from numpy.typing import ArrayLike
+
 from policyengine_core import commons, periods
 from policyengine_core.data.dataset import Dataset
 from policyengine_core.entities.entity import Entity
-from policyengine_core.errors import CycleError, SpiralError
 from policyengine_core.enums import Enum, EnumArray
+from policyengine_core.errors import CycleError, SpiralError
 from policyengine_core.holders.holder import Holder
 from policyengine_core.periods import Period
 from policyengine_core.periods.config import ETERNITY
 from policyengine_core.periods.helpers import period
-from policyengine_core.tracers import (
-    FullTracer,
-    SimpleTracer,
-    TracingParameterNodeAtInstant,
-)
+from policyengine_core.tracers import (FullTracer, SimpleTracer,
+                                       TracingParameterNodeAtInstant)
 
 if TYPE_CHECKING:
     from policyengine_core.taxbenefitsystems import TaxBenefitSystem
+
+from policyengine_core.experimental import MemoryConfig
 from policyengine_core.populations import Population
 from policyengine_core.tracers import SimpleTracer
-from policyengine_core.experimental import MemoryConfig
 from policyengine_core.variables import Variable
 
 
@@ -90,9 +90,8 @@ class Simulation:
             self.build_from_populations(
                 self.tax_benefit_system.instantiate_entities()
             )
-            from policyengine_core.simulations.simulation_builder import (
-                SimulationBuilder,
-            )  # Import here to avoid circular dependency
+            from policyengine_core.simulations.simulation_builder import \
+                SimulationBuilder  # Import here to avoid circular dependency
 
             SimulationBuilder().build_from_dict(
                 self.tax_benefit_system, situation, self
@@ -134,9 +133,8 @@ class Simulation:
         self.build_from_populations(
             self.tax_benefit_system.instantiate_entities()
         )
-        from policyengine_core.simulations.simulation_builder import (
-            SimulationBuilder,
-        )  # Import here to avoid circular dependency
+        from policyengine_core.simulations.simulation_builder import \
+            SimulationBuilder  # Import here to avoid circular dependency
 
         builder = SimulationBuilder()
         builder.populations = self.populations
@@ -410,11 +408,6 @@ class Simulation:
         try:
             self._check_for_cycle(variable.name, period)
             array = self._run_formula(variable, population, period)
-            if variable.defined_for is not None:
-                mask = self.calculate(
-                    variable.defined_for, period, map_to=variable.entity.key
-                )
-                array = np.where(mask, array, np.zeros_like(array))
 
             # If no result, use the default value and cache it
             if array is None:
@@ -430,6 +423,12 @@ class Simulation:
                     array = holder.get_array(last_known_period)
                 else:
                     array = holder.default_array()
+            
+            if variable.defined_for is not None:
+                mask = self.calculate(
+                    variable.defined_for, period, map_to=variable.entity.key
+                )
+                array = np.where(mask, array, np.zeros_like(array))
 
             array = self._cast_formula_result(array, variable)
             holder.put_in_cache(array, period)

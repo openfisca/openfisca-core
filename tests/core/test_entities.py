@@ -1,8 +1,7 @@
 from copy import deepcopy
 
-from policyengine_core.country_template import entities, situation_examples
-
 from policyengine_core import tools
+from policyengine_core.country_template import entities, situation_examples
 from policyengine_core.simulations import SimulationBuilder
 from policyengine_core.tools import test_runner
 

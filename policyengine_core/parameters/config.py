@@ -1,9 +1,10 @@
-import warnings
 import os
-import yaml
 import typing
-from policyengine_core.warnings import LibYAMLWarning
+import warnings
 
+import yaml
+
+from policyengine_core.warnings import LibYAMLWarning
 
 try:
     from yaml import CLoader as Loader
@@ -15,7 +16,8 @@ except ImportError:
         "so that it is used in your Python environment." + os.linesep,
     ]
     warnings.warn(" ".join(message), LibYAMLWarning)
-    from yaml import Loader  # type: ignore # (see https://github.com/python/mypy/issues/1153#issuecomment-455802270)
+    from yaml import \
+        Loader  # type: ignore # (see https://github.com/python/mypy/issues/1153#issuecomment-455802270)
 
 ALLOWED_PARAM_TYPES = (float, int, bool, type(None), typing.List)
 COMMON_KEYS = {"description", "metadata", "documentation"}

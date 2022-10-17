@@ -1,5 +1,4 @@
 import pytest
-
 from openfisca_web_api import app
 
 

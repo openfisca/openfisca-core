@@ -1,9 +1,12 @@
 from typing import Dict, Type
+
+from microdf import MicroDataFrame, MicroSeries
+
 from policyengine_core.data.dataset import Dataset
-from policyengine_core.periods import Period, period as get_period
+from policyengine_core.periods import Period
+from policyengine_core.periods import period as get_period
 from policyengine_core.periods.config import MONTH, YEAR
 from policyengine_core.simulations.simulation import Simulation
-from microdf import MicroSeries, MicroDataFrame
 from policyengine_core.types import ArrayLike
 
 

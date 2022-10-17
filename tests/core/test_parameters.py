@@ -2,12 +2,10 @@ import tempfile
 
 import pytest
 
-from policyengine_core.parameters import (
-    ParameterNotFoundError,
-    ParameterNode,
-    ParameterNodeAtInstant,
-    load_parameter_file,
-)
+from policyengine_core.parameters import (ParameterNode,
+                                          ParameterNodeAtInstant,
+                                          ParameterNotFoundError,
+                                          load_parameter_file)
 
 
 def test_get_at_instant(tax_benefit_system):

@@ -1,40 +1,35 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Sequence, Type, Union
-
 import copy
 import glob
 import importlib
 import inspect
 import logging
 import os
-import pkg_resources
 import sys
 import traceback
 import typing
-from typing import TYPE_CHECKING
+from typing import (TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Type,
+                    Union)
+
+import pkg_resources
+
 from policyengine_core import commons, periods, variables
 from policyengine_core.data_structures.reference import Reference
 from policyengine_core.entities import Entity
-from policyengine_core.errors import (
-    VariableNameConflictError,
-    VariableNotFoundError,
-)
+from policyengine_core.errors import (VariableNameConflictError,
+                                      VariableNotFoundError)
 from policyengine_core.parameters import ParameterNode, ParameterNodeAtInstant
-from policyengine_core.parameters.operations.homogenize_parameters import (
-    homogenize_parameter_structures,
-)
-from policyengine_core.parameters.operations.interpolate_parameters import (
-    interpolate_parameters,
-)
-from policyengine_core.parameters.operations.propagate_parameter_metadata import (
-    propagate_parameter_metadata,
-)
-from policyengine_core.parameters.operations.uprate_parameters import (
-    uprate_parameters,
-)
+from policyengine_core.parameters.operations.homogenize_parameters import \
+    homogenize_parameter_structures
+from policyengine_core.parameters.operations.interpolate_parameters import \
+    interpolate_parameters
+from policyengine_core.parameters.operations.propagate_parameter_metadata import \
+    propagate_parameter_metadata
+from policyengine_core.parameters.operations.uprate_parameters import \
+    uprate_parameters
 from policyengine_core.periods import Instant, Period
-from policyengine_core.populations import Population, GroupPopulation
+from policyengine_core.populations import GroupPopulation, Population
 from policyengine_core.tools.test_runner import run_tests
 from policyengine_core.variables import Variable
 

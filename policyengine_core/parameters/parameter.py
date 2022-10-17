@@ -1,18 +1,13 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional
-
 import copy
 import os
+from typing import Dict, List, Optional
 
 from policyengine_core import commons, periods
 from policyengine_core.errors import ParameterParsingError
-from policyengine_core.parameters import (
-    config,
-    helpers,
-    AtInstantLike,
-    ParameterAtInstant,
-)
+from policyengine_core.parameters import (AtInstantLike, ParameterAtInstant,
+                                          config, helpers)
 
 
 class Parameter(AtInstantLike):

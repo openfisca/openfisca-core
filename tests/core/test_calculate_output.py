@@ -1,8 +1,7 @@
 import pytest
 
-from policyengine_core.country_template import entities, situation_examples
-
 from policyengine_core import periods, simulations, tools
+from policyengine_core.country_template import entities, situation_examples
 from policyengine_core.simulations import SimulationBuilder
 from policyengine_core.variables import Variable
 

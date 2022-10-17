@@ -1,8 +1,9 @@
 import numpy as np
+
+from policyengine_core.entities import Entity
+from policyengine_core.model_api import *
 from policyengine_core.simulations import SimulationBuilder
 from policyengine_core.taxbenefitsystems import TaxBenefitSystem
-from policyengine_core.model_api import *
-from policyengine_core.entities import Entity
 
 
 def test_defined_for_no_deps():

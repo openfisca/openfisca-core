@@ -1,21 +1,18 @@
 # -*- coding: utf-8 -*-
 
+import csv
 import json
 import os
-import csv
-import numpy as np
-from pytest import fixture, mark, raises, approx
 
-from policyengine_core.simulations import Simulation, CycleError, SpiralError
-from policyengine_core.tracers import (
-    SimpleTracer,
-    FullTracer,
-    TracingParameterNodeAtInstant,
-    TraceNode,
-)
-from policyengine_core.country_template.variables.housing import (
-    HousingOccupancyStatus,
-)
+import numpy as np
+from pytest import approx, fixture, mark, raises
+
+from policyengine_core.country_template.variables.housing import \
+    HousingOccupancyStatus
+from policyengine_core.simulations import CycleError, Simulation, SpiralError
+from policyengine_core.tracers import (FullTracer, SimpleTracer, TraceNode,
+                                       TracingParameterNodeAtInstant)
+
 from .parameters_fancy_indexing.test_fancy_indexing import parameters
 
 

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import sys
 import os
+import sys
 
-from policyengine_core.tools.test_runner import run_tests
 from policyengine_core.scripts import build_tax_benefit_system
+from policyengine_core.tools.test_runner import run_tests
 
 
 def main(parser):

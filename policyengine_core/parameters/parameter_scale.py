@@ -2,17 +2,15 @@ import copy
 import os
 import typing
 from typing import Any, Iterable
+
 from policyengine_core import commons, parameters, tools
 from policyengine_core.errors import ParameterParsingError
-from policyengine_core.parameters import config, helpers, AtInstantLike
+from policyengine_core.parameters import AtInstantLike, config, helpers
 from policyengine_core.periods.instant_ import Instant
-from policyengine_core.taxscales import (
-    LinearAverageRateTaxScale,
-    MarginalAmountTaxScale,
-    MarginalRateTaxScale,
-    SingleAmountTaxScale,
-    TaxScaleLike,
-)
+from policyengine_core.taxscales import (LinearAverageRateTaxScale,
+                                         MarginalAmountTaxScale,
+                                         MarginalRateTaxScale,
+                                         SingleAmountTaxScale, TaxScaleLike)
 
 
 class ParameterScale(AtInstantLike):

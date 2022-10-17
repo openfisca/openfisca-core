@@ -1,5 +1,5 @@
-from policyengine_core.model_api import *
 from policyengine_core.country_template.entities import *
+from policyengine_core.model_api import *
 
 
 class person_id(Variable):

@@ -3,7 +3,6 @@ import pytest
 from policyengine_core.simulations import SimulationBuilder
 from policyengine_core.tools import test_runner
 
-
 # With periods
 
 

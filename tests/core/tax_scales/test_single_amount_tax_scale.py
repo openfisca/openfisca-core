@@ -1,11 +1,7 @@
 import numpy
-
-from policyengine_core import parameters
-from policyengine_core import periods
-from policyengine_core import taxscales
-from policyengine_core import tools
-
 from pytest import fixture
+
+from policyengine_core import parameters, periods, taxscales, tools
 
 
 @fixture

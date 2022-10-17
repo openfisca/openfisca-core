@@ -1,6 +1,6 @@
 import argparse
-import warnings
 import sys
+import warnings
 
 from policyengine_core.scripts import add_tax_benefit_system_arguments
 
@@ -95,7 +95,7 @@ def get_parser():
         parser = add_tax_benefit_system_arguments(parser, country_only=True)
         parser.add_argument(
             "action",
-            choices=["build", "download", "upload", "remove", "list"],
+            choices=["generate", "download", "upload", "remove", "list"],
             help="The action to perform. Pass any additional options as keyword arguments.",
         )
 

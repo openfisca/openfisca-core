@@ -4,10 +4,12 @@ import copy
 import os
 import typing
 from typing import Iterable, List, Type, Union
+
 from policyengine_core import commons, parameters, tools
-from policyengine_core.periods.instant_ import Instant
 from policyengine_core.data_structures import Reference
-from . import config, helpers, AtInstantLike, Parameter, ParameterNodeAtInstant
+from policyengine_core.periods.instant_ import Instant
+
+from . import AtInstantLike, Parameter, ParameterNodeAtInstant, config, helpers
 
 EXCLUDED_PARAMETER_CHILD_NAMES = ["reference", "__pycache__"]
 

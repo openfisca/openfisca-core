@@ -1,24 +1,25 @@
 import copy
-import dpath.util
 import typing
 from typing import TYPE_CHECKING, Any, List
+
+import dpath.util
 import numpy
 from numpy.typing import ArrayLike
+
 from policyengine_core import periods
-from policyengine_core.periods import Period
 from policyengine_core.entities import Entity, Role
-from policyengine_core.errors import (
-    PeriodMismatchError,
-    SituationParsingError,
-    VariableNotFoundError,
-)
-from policyengine_core.populations import Population, GroupPopulation
-from policyengine_core.simulations import helpers, Simulation
+from policyengine_core.errors import (PeriodMismatchError,
+                                      SituationParsingError,
+                                      VariableNotFoundError)
+from policyengine_core.periods import Period
+from policyengine_core.populations import GroupPopulation, Population
+from policyengine_core.simulations import Simulation, helpers
 
 if TYPE_CHECKING:
     from policyengine_core.taxbenefitsystems.tax_benefit_system import (
         TaxBenefitSystem,
     )
+
 from policyengine_core.variables import Variable
 
 
@@ -250,7 +251,7 @@ class SimulationBuilder:
         self, person_singular: str, persons_ids: typing.Iterable
     ) -> None:
         person_instance = self.populations[person_singular]
-        person_instance.ids = numpy.array(list(persons_ids))
+        person_instance.ids = numpy.array(persons_ids)
         person_instance.count = len(person_instance.ids)
 
         self.persons_plural = person_instance.entity.plural
@@ -259,7 +260,7 @@ class SimulationBuilder:
         self, entity_singular: str, entity_ids: typing.Iterable
     ) -> Population:
         entity_instance = self.populations[entity_singular]
-        entity_instance.ids = numpy.array(list(entity_ids))
+        entity_instance.ids = numpy.array(entity_ids)
         entity_instance.count = len(entity_instance.ids)
         return entity_instance
 

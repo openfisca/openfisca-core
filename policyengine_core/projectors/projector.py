@@ -1,8 +1,10 @@
-from policyengine_core.projectors import helpers
 from typing import TYPE_CHECKING
+
+from policyengine_core.projectors import helpers
 
 if TYPE_CHECKING:
     from policyengine_core.populations import Population
+
 from numpy.typing import ArrayLike
 
 

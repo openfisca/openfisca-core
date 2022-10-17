@@ -1,4 +1,5 @@
 from typing import List
+
 from policyengine_core.entities.entity import Entity
 from policyengine_core.entities.role import Role
 

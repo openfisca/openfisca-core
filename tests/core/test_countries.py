@@ -1,10 +1,8 @@
 import pytest
 
 from policyengine_core import periods, populations, tools
-from policyengine_core.errors import (
-    VariableNameConflictError,
-    VariableNotFoundError,
-)
+from policyengine_core.errors import (VariableNameConflictError,
+                                      VariableNotFoundError)
 from policyengine_core.simulations import SimulationBuilder
 from policyengine_core.variables import Variable
 
