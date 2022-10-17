@@ -5,9 +5,9 @@ import os
 
 import numpy as np
 
-from policyengine_core.simulations import Simulation
 from policyengine_core.data_storage import OnDiskStorage
 from policyengine_core.periods import ETERNITY
+from policyengine_core.simulations import Simulation
 
 
 def dump_simulation(simulation, directory):

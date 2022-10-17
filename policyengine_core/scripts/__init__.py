@@ -1,7 +1,7 @@
-import traceback
 import importlib
 import logging
 import pkgutil
+import traceback
 from os import linesep
 
 log = logging.getLogger(__name__)

@@ -1,10 +1,11 @@
-import numpy as np
-from openfisca_core.entities import Entity
-from openfisca_core.populations import Population, GroupPopulation
-from openfisca_core.variables import Variable
-from openfisca_core.projectors import EntityToPersonProjector, Projector
-from numpy.typing import ArrayLike
 from typing import Any, Callable
+
+import numpy as np
+from numpy.typing import ArrayLike
+from openfisca_core.entities import Entity
+from openfisca_core.populations import GroupPopulation, Population
+from openfisca_core.projectors import EntityToPersonProjector, Projector
+from openfisca_core.variables import Variable
 
 
 class CallableSubset:

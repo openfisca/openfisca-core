@@ -4,7 +4,6 @@ import tempfile
 from numpy import testing
 
 from policyengine_core.country_template import situation_examples
-
 from policyengine_core.simulations import SimulationBuilder
 from policyengine_core.tools import simulation_dumper
 

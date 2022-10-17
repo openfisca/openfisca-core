@@ -6,14 +6,13 @@ import re
 import numpy as np
 import pytest
 
-
-from policyengine_core.tools import assert_near
+from policyengine_core.model_api import *
 from policyengine_core.parameters import (
-    ParameterNode,
     Parameter,
+    ParameterNode,
     ParameterNotFoundError,
 )
-from policyengine_core.model_api import *
+from policyengine_core.tools import assert_near
 
 LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
 

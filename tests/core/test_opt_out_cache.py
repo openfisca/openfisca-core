@@ -1,11 +1,9 @@
 import pytest
 
-from policyengine_core.country_template.entities import Person
-
 from policyengine_core import periods
+from policyengine_core.country_template.entities import Person
 from policyengine_core.periods import MONTH
 from policyengine_core.variables import Variable
-
 
 PERIOD = periods.period("2016-01")
 

@@ -9,7 +9,7 @@ import numpy
 
 from policyengine_core import tools
 from policyengine_core.errors import EmptyArgumentError
-from policyengine_core.taxscales import TaxScaleLike
+from policyengine_core.taxscales.tax_scale_like import TaxScaleLike
 
 if typing.TYPE_CHECKING:
     NumericalArray = typing.Union[numpy.int_, numpy.float_]

@@ -3,9 +3,9 @@ import inspect
 import re
 import textwrap
 from typing import Callable, List, Type
-import sortedcontainers
 
 import numpy
+import sortedcontainers
 
 from policyengine_core import periods, tools
 from policyengine_core.entities import Entity

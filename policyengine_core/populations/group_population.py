@@ -1,10 +1,12 @@
-from typing import Callable, Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable
+
 import numpy
 from numpy.typing import ArrayLike
+
 from policyengine_core import projectors
-from policyengine_core.entities import Role, Entity
+from policyengine_core.entities import Entity, Role
 from policyengine_core.enums import EnumArray
-from policyengine_core.populations import Population
+from policyengine_core.populations.population import Population
 
 if TYPE_CHECKING:
     from policyengine_core.simulations import Simulation
@@ -76,7 +78,7 @@ class GroupPopulation(Population):
     @members_role.setter
     def members_role(self, members_role: ArrayLike):
         if members_role is not None:
-            self._members_role = numpy.array(list(members_role))
+            self._members_role = numpy.array(members_role)
 
     @property
     def ordered_members_map(self) -> ArrayLike:

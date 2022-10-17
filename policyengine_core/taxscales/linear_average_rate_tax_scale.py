@@ -5,8 +5,10 @@ import typing
 
 import numpy
 
-from policyengine_core import taxscales
-from policyengine_core.taxscales import RateTaxScaleLike
+from policyengine_core.taxscales.marginal_rate_tax_scale import (
+    MarginalRateTaxScale,
+)
+from policyengine_core.taxscales.rate_tax_scale_like import RateTaxScaleLike
 
 log = logging.getLogger(__name__)
 
@@ -50,8 +52,8 @@ class LinearAverageRateTaxScale(RateTaxScaleLike):
             + (tax_base - bracket_threshold) * average_rate_slope
         )
 
-    def to_marginal(self) -> taxscales.MarginalRateTaxScale:
-        marginal_tax_scale = taxscales.MarginalRateTaxScale(
+    def to_marginal(self) -> MarginalRateTaxScale:
+        marginal_tax_scale = MarginalRateTaxScale(
             name=self.name,
             option=self.option,
             unit=self.unit,

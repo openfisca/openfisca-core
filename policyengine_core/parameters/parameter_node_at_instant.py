@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import Iterable, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable, Union
 
 import numpy
 
@@ -10,6 +10,7 @@ from policyengine_core.parameters import helpers
 
 if TYPE_CHECKING:
     from policyengine_core.parameters.parameter_node import ParameterNode
+
 from policyengine_core.parameters.vectorial_parameter_node_at_instant import (
     VectorialParameterNodeAtInstant,
 )
