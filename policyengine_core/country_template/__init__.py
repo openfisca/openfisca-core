@@ -27,15 +27,22 @@ class CountryTaxBenefitSystem(TaxBenefitSystem):
     parameters_dir = COUNTRY_DIR / "parameters"
     auto_carry_over_input_variables = False
 
+system = CountryTaxBenefitSystem()
 
 class Simulation(CoreSimulation):
     default_tax_benefit_system = CountryTaxBenefitSystem
+    default_tax_benefit_system_instance = system
+    default_role = "parent"
+    default_calculation_period = "2022-01"
+    default_input_period = "2022-01"
 
 
 class Microsimulation(CoreMicrosimulation):
     default_tax_benefit_system = CountryTaxBenefitSystem
     default_dataset = CountryTemplateDataset
+    default_tax_benefit_system_instance = system
     default_dataset_year = 2022
+    default_calculation_period = "2022-01"
 
 
 if 2022 not in CountryTemplateDataset.years:
