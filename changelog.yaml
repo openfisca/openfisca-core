@@ -71,3 +71,11 @@
     added:
     - Tests and documentation.
   date: 2022-10-14 17:18:21
+- bump: minor
+  changes:
+    added:
+    - Performance improvements
+    - Import sorting and code health improvements
+    fixed:
+    - Axes now work in simulations
+  date: 2022-10-18 15:28:22
