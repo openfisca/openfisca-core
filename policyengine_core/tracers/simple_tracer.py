@@ -18,8 +18,8 @@ class SimpleTracer:
     def __init__(self) -> None:
         self._stack = []
 
-    def record_calculation_start(self, variable: str, period: Period) -> None:
-        self.stack.append({"name": variable, "period": period})
+    def record_calculation_start(self, variable: str, period: Period, simulation_name: str = "default") -> None:
+        self.stack.append({"name": variable, "period": period, "simulation_name": simulation_name})
 
     def record_calculation_result(self, value: ArrayLike) -> None:
         pass  # ignore calculation result

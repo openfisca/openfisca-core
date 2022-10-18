@@ -114,7 +114,7 @@ class ComputationLog:
         else:
             formatted_value = self.display(value)
 
-        return f"{indent}{node.name}<{node.period}> >> {formatted_value}"
+        return f"{indent}{node.name}<{node.period}, ({node.simulation_name})> = {formatted_value}"
 
     def _flatten(
         self,

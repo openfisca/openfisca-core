@@ -66,11 +66,6 @@ class Simulation:
         dataset_year: int = None,
         reform: Reform = None,
     ):
-        """
-        This constructor is reserved for internal use; see :any:`SimulationBuilder`,
-        which is the preferred way to obtain a Simulation initialized with a consistent
-        set of Entities.
-        """
         if tax_benefit_system is None:
             if self.default_tax_benefit_system_instance is not None:
                 tax_benefit_system = self.default_tax_benefit_system_instance
@@ -83,6 +78,8 @@ class Simulation:
 
         self.reform = reform
         self.tax_benefit_system = tax_benefit_system
+
+        self.simulation_name = "default"
 
         if dataset is None:
             if self.default_dataset is not None:
@@ -101,6 +98,8 @@ class Simulation:
         self.max_spiral_loops: int = 1
         self.memory_config: MemoryConfig = None
         self._data_storage_dir: str = None
+
+        self.branches: Dict[str, Simulation] = {}
 
         if situation is not None:
             if dataset is not None:
@@ -287,13 +286,14 @@ class Simulation:
         Returns:
             ArrayLike: The calculated variable.
         """
-
+        if variable_name == "c05200":
+            print()
         if period is not None and not isinstance(period, Period):
             period = periods.period(period)
         elif period is None and self.default_calculation_period is not None:
             period = periods.period(self.default_calculation_period)
 
-        self.tracer.record_calculation_start(variable_name, period)
+        self.tracer.record_calculation_start(variable_name, period, self.simulation_name)
 
         try:
             result = self._calculate(variable_name, period)
@@ -417,6 +417,15 @@ class Simulation:
             variable_name, check_existence=True
         )
 
+        if variable.defined_for is not None:
+            mask = self.calculate(
+                variable.defined_for, period, map_to=variable.entity.key
+            ) > 0
+            if np.all(~mask):
+                array = holder.default_array()
+                array = self._cast_formula_result(array, variable)
+                holder.put_in_cache(array, period)
+
         self._check_period_consistency(period, variable)
 
         # First look for a value already cached
@@ -447,9 +456,6 @@ class Simulation:
                     array = holder.default_array()
 
             if variable.defined_for is not None:
-                mask = self.calculate(
-                    variable.defined_for, period, map_to=variable.entity.key
-                )
                 array = np.where(mask, array, np.zeros_like(array))
 
             array = self._cast_formula_result(array, variable)
@@ -562,6 +568,7 @@ class Simulation:
         return TracingParameterNodeAtInstant(
             self.tax_benefit_system.get_parameters_at_instant(formula_period),
             self.tracer,
+            self.simulation_name,
         )
 
     def _run_formula(
@@ -653,7 +660,7 @@ class Simulation:
         previous_periods = [
             frame["period"]
             for frame in self.tracer.stack[:-1]
-            if frame["name"] == variable
+            if frame["name"] == variable and frame["simulation_name"] == self.simulation_name
         ]
         if period in previous_periods:
             raise CycleError(
@@ -843,3 +850,25 @@ class Simulation:
         new.trace = trace
 
         return new
+
+    def branch(self, name: str = "branch", store: bool = True) -> "Simulation":
+        """Create a clone of this simulation, whose calculations are traced in the original.
+        
+        Args:
+            name (str, optional): Name of the branch. Defaults to "branch".
+            store (bool, optional): Whether to store the branch in the original simulation. Defaults to True.
+        
+        Returns:
+            Simulation: The cloned simulation.
+        """
+        simulation_name = f"{self.simulation_name} > {name}"
+        if simulation_name in self.branches:
+            return self.branches[simulation_name]
+        branch = self.clone()
+        branch.simulation_name = simulation_name
+        if self.trace:
+            branch.trace = True
+            branch.tracer = self.tracer
+        if store:
+            self.branches[branch.simulation_name] = branch
+        return branch
