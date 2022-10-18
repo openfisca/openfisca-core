@@ -79,3 +79,8 @@
     fixed:
     - Axes now work in simulations
   date: 2022-10-18 15:28:22
+- bump: patch
+  changes:
+    added:
+    - Plotly to dependencies
+  date: 2022-10-18 18:13:09

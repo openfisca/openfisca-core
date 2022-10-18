@@ -1,4 +1,0 @@
-- bump: patch
-  changes:
-    added:
-    - Plotly to dependencies
