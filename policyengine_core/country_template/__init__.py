@@ -27,7 +27,9 @@ class CountryTaxBenefitSystem(TaxBenefitSystem):
     parameters_dir = COUNTRY_DIR / "parameters"
     auto_carry_over_input_variables = False
 
+
 system = CountryTaxBenefitSystem()
+
 
 class Simulation(CoreSimulation):
     default_tax_benefit_system = CountryTaxBenefitSystem
