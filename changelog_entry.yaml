@@ -3,3 +3,5 @@
     added:
     - Performance improvements
     - Import sorting and code health improvements
+    fixed:
+    - Axes now work in simulations
