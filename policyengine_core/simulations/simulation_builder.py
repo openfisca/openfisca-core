@@ -322,6 +322,8 @@ class SimulationBuilder:
         >>> {'persons': {'Javier': {}}, 'households': {'household': {'parents': ['Javier']}}
         """
 
+        axes = input_dict.get("axes")
+
         singular_keys = set(input_dict).intersection(
             tax_benefit_system.entities_by_singular()
         )
@@ -337,6 +339,9 @@ class SimulationBuilder:
         for singular in singular_keys:
             plural = tax_benefit_system.entities_by_singular()[singular].plural
             result[plural] = {singular: input_dict[singular]}
+
+        if axes is not None:
+            result["axes"] = axes
 
         return result
 
@@ -364,10 +369,10 @@ class SimulationBuilder:
         self, persons_ids: ArrayLike, entity: Entity
     ) -> None:
         persons_count = len(persons_ids)
-        self.entity_ids[entity.plural] = persons_ids
-        self.entity_counts[entity.plural] = persons_count
-        self.memberships[entity.plural] = numpy.arange(
-            0, persons_count, dtype=numpy.int32
+        self.entity_ids[entity.plural] = [entity.key]
+        self.entity_counts[entity.plural] = 1
+        self.memberships[entity.plural] = numpy.zeros(
+            persons_count, dtype=numpy.int32
         )
         self.roles[entity.plural] = numpy.repeat(
             entity.flattened_roles[0], persons_count
@@ -705,12 +710,14 @@ class SimulationBuilder:
             self.axes_entity_ids[entity_name] = adjusted_ids
             # Adjust roles
             original_roles = self.get_roles(entity_name)
-            adjusted_roles = original_roles * cell_count
+            adjusted_roles = numpy.repeat(original_roles, cell_count)
             self.axes_roles[entity_name] = adjusted_roles
             # Adjust memberships, for group entities only
             if entity_name != self.persons_plural:
                 original_memberships = self.get_memberships(entity_name)
-                repeated_memberships = original_memberships * cell_count
+                repeated_memberships = numpy.repeat(
+                    original_memberships, cell_count
+                )
                 indices = (
                     numpy.repeat(
                         numpy.arange(0, cell_count), len(original_memberships)
