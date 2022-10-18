@@ -1,18 +1,15 @@
-from __future__ import annotations
-
-from typing import Dict, List, Optional
-
 import copy
 import os
+from typing import Dict, List, Optional
 
-from policyengine_core import commons, periods
 from policyengine_core.errors import ParameterParsingError
-from policyengine_core.parameters import (
-    config,
-    helpers,
-    AtInstantLike,
-    ParameterAtInstant,
-)
+from .at_instant_like import AtInstantLike
+from .parameter_at_instant import ParameterAtInstant
+
+from .helpers import _validate_parameter, _compose_name
+from .config import COMMON_KEYS
+from policyengine_core.commons.misc import empty_clone
+from policyengine_core.periods import INSTANT_PATTERN, period as get_period
 
 
 class Parameter(AtInstantLike):
@@ -53,7 +50,7 @@ class Parameter(AtInstantLike):
     ) -> None:
         self.name: str = name
         self.file_path: Optional[str] = file_path
-        helpers._validate_parameter(self, data, data_type=dict)
+        _validate_parameter(self, data, data_type=dict)
         self.description: Optional[str] = None
         self.metadata: Dict = {}
         self.documentation: Optional[str] = None
@@ -62,12 +59,12 @@ class Parameter(AtInstantLike):
         if data.get("values"):
             # 'unit' and 'reference' are only listed here for backward compatibility
             self.metadata.update(data.get("metadata", {}))
-            helpers._validate_parameter(
-                self, data, allowed_keys=config.COMMON_KEYS.union({"values"})
+            _validate_parameter(
+                self, data, allowed_keys=COMMON_KEYS.union({"values"})
             )
             self.description = data.get("description")
 
-            helpers._validate_parameter(self, data["values"], data_type=dict)
+            _validate_parameter(self, data["values"], data_type=dict)
             values = data["values"]
 
             self.documentation = data.get("documentation")
@@ -81,7 +78,7 @@ class Parameter(AtInstantLike):
 
         values_list = []
         for instant_str in instants:
-            if not periods.INSTANT_PATTERN.match(instant_str):
+            if not INSTANT_PATTERN.match(instant_str):
                 raise ParameterParsingError(
                     "Invalid property '{}' in '{}'. Properties must be valid YYYY-MM-DD instants, such as 2017-01-15.".format(
                         instant_str, self.name
@@ -99,7 +96,7 @@ class Parameter(AtInstantLike):
             ):
                 continue
 
-            value_name = helpers._compose_name(name, item_name=instant_str)
+            value_name = _compose_name(name, item_name=instant_str)
             value_at_instant = ParameterAtInstant(
                 value_name,
                 instant_str,
@@ -128,7 +125,7 @@ class Parameter(AtInstantLike):
         )
 
     def clone(self):
-        clone = commons.empty_clone(self)
+        clone = empty_clone(self)
         clone.__dict__ = self.__dict__.copy()
 
         clone.metadata = copy.deepcopy(self.metadata)
@@ -143,8 +140,8 @@ class Parameter(AtInstantLike):
         Change the value for a given period.
 
         :param period: Period where the value is modified. If set, `start` and `stop` should be `None`.
-        :param start: Start of the period. Instance of `policyengine_core.periods.Instant`. If set, `period` should be `None`.
-        :param stop: Stop of the period. Instance of `policyengine_core.periods.Instant`. If set, `period` should be `None`.
+        :param start: Start of the period. Instance of `policyengine_core.Instant`. If set, `period` should be `None`.
+        :param stop: Stop of the period. Instance of `policyengine_core.Instant`. If set, `period` should be `None`.
         :param value: New value. If `None`, the parameter is removed from the legislation parameters for the given period.
         """
         if period is not None:
@@ -153,7 +150,7 @@ class Parameter(AtInstantLike):
                     "Wrong input for 'update' method: use either 'update(period, value = value)' or 'update(start = start, stop = stop, value = value)'. You cannot both use 'period' and 'start' or 'stop'."
                 )
             if isinstance(period, str):
-                period = periods.period(period)
+                period = get_period(period)
             start = period.start
             stop = period.stop
         if start is None:
@@ -179,24 +176,20 @@ class Parameter(AtInstantLike):
             else:
                 if i < n:
                     overlapped_value = old_values[i].value
-                    value_name = helpers._compose_name(
-                        self.name, item_name=stop_str
-                    )
+                    value_name = _compose_name(self.name, item_name=stop_str)
                     new_interval = ParameterAtInstant(
                         value_name, stop_str, data={"value": overlapped_value}
                     )
                     new_values.append(new_interval)
                 else:
-                    value_name = helpers._compose_name(
-                        self.name, item_name=stop_str
-                    )
+                    value_name = _compose_name(self.name, item_name=stop_str)
                     new_interval = ParameterAtInstant(
                         value_name, stop_str, data={"value": None}
                     )
                     new_values.append(new_interval)
 
         # Insert new interval
-        value_name = helpers._compose_name(self.name, item_name=start_str)
+        value_name = _compose_name(self.name, item_name=start_str)
         new_interval = ParameterAtInstant(
             value_name, start_str, data={"value": value}
         )

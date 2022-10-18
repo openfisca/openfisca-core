@@ -37,9 +37,6 @@ Note:
 
 # Official Public API
 
-from .data_types import (
-    ArrayLike,
-    ArrayType,
-)
+from .data_types import ArrayLike, ArrayType
 
 __all__ = ["ArrayLike", "ArrayType"]

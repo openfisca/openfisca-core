@@ -3,7 +3,6 @@ import pytest
 from policyengine_core.simulations import SimulationBuilder
 from policyengine_core.tools import test_runner
 
-
 # With periods
 
 
@@ -243,101 +242,6 @@ def test_axis_on_group_expands_persons(persons, households):
     )
     simulation_builder.expand_axes()
     assert simulation_builder.get_count("persons") == 6
-
-
-def test_add_axis_distributes_roles(persons, households):
-    simulation_builder = SimulationBuilder()
-    simulation_builder.add_person_entity(
-        persons, {"Alicia": {}, "Javier": {}, "Tom": {}}
-    )
-    simulation_builder.add_group_entity(
-        "persons",
-        ["Alicia", "Javier", "Tom"],
-        households,
-        {
-            "housea": {"parents": ["Alicia"]},
-            "houseb": {"parents": ["Tom"], "children": ["Javier"]},
-        },
-    )
-    simulation_builder.register_variable("rent", households)
-    simulation_builder.add_parallel_axis(
-        {
-            "count": 2,
-            "name": "rent",
-            "min": 0,
-            "max": 3000,
-            "period": "2018-11",
-        }
-    )
-    simulation_builder.expand_axes()
-    assert [
-        role.key for role in simulation_builder.get_roles("households")
-    ] == ["parent", "child", "parent", "parent", "child", "parent"]
-
-
-def test_add_axis_on_persons_distributes_roles(persons, households):
-    simulation_builder = SimulationBuilder()
-    simulation_builder.add_person_entity(
-        persons, {"Alicia": {}, "Javier": {}, "Tom": {}}
-    )
-    simulation_builder.add_group_entity(
-        "persons",
-        ["Alicia", "Javier", "Tom"],
-        households,
-        {
-            "housea": {"parents": ["Alicia"]},
-            "houseb": {"parents": ["Tom"], "children": ["Javier"]},
-        },
-    )
-    simulation_builder.register_variable("salary", persons)
-    simulation_builder.add_parallel_axis(
-        {
-            "count": 2,
-            "name": "salary",
-            "min": 0,
-            "max": 3000,
-            "period": "2018-11",
-        }
-    )
-    simulation_builder.expand_axes()
-    assert [
-        role.key for role in simulation_builder.get_roles("households")
-    ] == ["parent", "child", "parent", "parent", "child", "parent"]
-
-
-def test_add_axis_distributes_memberships(persons, households):
-    simulation_builder = SimulationBuilder()
-    simulation_builder.add_person_entity(
-        persons, {"Alicia": {}, "Javier": {}, "Tom": {}}
-    )
-    simulation_builder.add_group_entity(
-        "persons",
-        ["Alicia", "Javier", "Tom"],
-        households,
-        {
-            "housea": {"parents": ["Alicia"]},
-            "houseb": {"parents": ["Tom"], "children": ["Javier"]},
-        },
-    )
-    simulation_builder.register_variable("rent", households)
-    simulation_builder.add_parallel_axis(
-        {
-            "count": 2,
-            "name": "rent",
-            "min": 0,
-            "max": 3000,
-            "period": "2018-11",
-        }
-    )
-    simulation_builder.expand_axes()
-    assert simulation_builder.get_memberships("households") == [
-        0,
-        1,
-        1,
-        2,
-        3,
-        3,
-    ]
 
 
 def test_add_perpendicular_axes(persons):

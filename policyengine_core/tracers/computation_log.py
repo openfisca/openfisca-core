@@ -5,8 +5,9 @@ from typing import List, Optional, Union
 
 import numpy
 
-from .. import tracers
 from policyengine_core.enums import EnumArray
+
+from .. import tracers
 
 if typing.TYPE_CHECKING:
     from numpy.typing import ArrayLike

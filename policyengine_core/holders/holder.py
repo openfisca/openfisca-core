@@ -1,18 +1,20 @@
 import os
 import warnings
-from typing import Any, List, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, List
+
 import numpy
 import psutil
 from numpy.typing import ArrayLike
+
 from policyengine_core import commons, periods, tools
-from policyengine_core.errors import PeriodMismatchError
 from policyengine_core.data_storage import InMemoryStorage, OnDiskStorage
 from policyengine_core.enums import Enum
+from policyengine_core.errors import PeriodMismatchError
 from policyengine_core.periods import Period
 
 if TYPE_CHECKING:
-    from policyengine_core.variables import Variable
     from policyengine_core.populations import Population
+    from policyengine_core.variables import Variable
 
 
 class Holder:

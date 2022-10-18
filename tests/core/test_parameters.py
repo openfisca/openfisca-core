@@ -3,9 +3,9 @@ import tempfile
 import pytest
 
 from policyengine_core.parameters import (
-    ParameterNotFoundError,
     ParameterNode,
     ParameterNodeAtInstant,
+    ParameterNotFoundError,
     load_parameter_file,
 )
 

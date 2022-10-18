@@ -1,9 +1,10 @@
-from policyengine_core.variables import Variable
-from policyengine_core.enums import Enum
+import logging
 from typing import Any, Dict, List, Type
+
+from policyengine_core.enums import Enum
 from policyengine_core.parameters.parameter import Parameter
 from policyengine_core.parameters.parameter_node import ParameterNode
-import logging
+from policyengine_core.variables import Variable
 
 
 def homogenize_parameter_structures(

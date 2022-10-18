@@ -1,5 +1,5 @@
-from typing import List
 import warnings
+from typing import List
 
 from policyengine_core.warnings import MemoryConfigWarning
 

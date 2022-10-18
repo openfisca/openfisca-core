@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from policyengine_core.populations import GroupPopulation
-from policyengine_core.projectors import Projector
+from policyengine_core.projectors.projector import Projector
 
 
 class FirstPersonToEntityProjector(Projector):

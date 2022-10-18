@@ -1,12 +1,10 @@
 import numpy
-
-from policyengine_core.country_template import entities
+from pytest import approx, fixture
 
 from policyengine_core import commons, periods
+from policyengine_core.country_template import entities
 from policyengine_core.simulations import SimulationBuilder
 from policyengine_core.variables import Variable
-
-from pytest import fixture, approx
 
 
 class choice(Variable):
@@ -112,9 +110,9 @@ def test_group_encapsulation():
     And calculations are projected to all the member families.
 
     """
-    from policyengine_core.taxbenefitsystems import TaxBenefitSystem
     from policyengine_core.entities import build_entity
     from policyengine_core.periods import ETERNITY
+    from policyengine_core.taxbenefitsystems import TaxBenefitSystem
 
     person_entity = build_entity(
         key="person",

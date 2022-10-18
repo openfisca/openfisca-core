@@ -1,9 +1,11 @@
 import importlib
 from argparse import ArgumentParser
 from typing import List
+
+import pandas as pd
+
 from policyengine_core.data.dataset import Dataset
 from policyengine_core.scripts import detect_country_package
-import pandas as pd
 
 
 def dataset_summary(datasets: List[Dataset]) -> str:
@@ -21,9 +23,7 @@ def dataset_summary(datasets: List[Dataset]) -> str:
 
 def main(parser: ArgumentParser):
     # Get arguments as well as kwargs
-    args, kwargs = parser.parse_known_args()
-    # Convert kwargs to a dictionary
-    kwargs = dict([arg.split("=") for arg in kwargs])
+    args, extra_args = parser.parse_known_args()
 
     country_package = args.country_package
 
@@ -39,13 +39,13 @@ def main(parser: ArgumentParser):
     dataset = dataset_by_name[args.dataset]
 
     if args.action == "generate":
-        dataset.generate(**kwargs)
+        dataset.generate(*extra_args)
     elif args.action == "download":
-        dataset.download(**kwargs)
+        dataset.download(*extra_args)
     elif args.action == "upload":
-        dataset.upload(**kwargs)
+        dataset.upload(*extra_args)
     elif args.action == "remove":
-        dataset.remove(**kwargs)
+        dataset.remove(*extra_args)
     elif args.action == "list":
         years = dataset.years
         if len(years) == 0:

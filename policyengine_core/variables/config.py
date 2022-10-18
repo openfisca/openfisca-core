@@ -5,7 +5,6 @@ import numpy
 from policyengine_core import enums
 from policyengine_core.enums import Enum
 
-
 VALUE_TYPES = {
     bool: {
         "dtype": numpy.bool_,

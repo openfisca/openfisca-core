@@ -1,24 +1,32 @@
 import copy
-import dpath.util
 import typing
 from typing import TYPE_CHECKING, Any, List
-import numpy
+
+import dpath.util
+import numpy as np
 from numpy.typing import ArrayLike
+
 from policyengine_core import periods
-from policyengine_core.periods import Period
 from policyengine_core.entities import Entity, Role
 from policyengine_core.errors import (
     PeriodMismatchError,
     SituationParsingError,
     VariableNotFoundError,
 )
-from policyengine_core.populations import Population, GroupPopulation
-from policyengine_core.simulations import helpers, Simulation
+from policyengine_core.periods import Period
+from policyengine_core.populations import GroupPopulation, Population
+from policyengine_core.simulations.simulation import Simulation
+from policyengine_core.simulations.helpers import (
+    check_type,
+    _get_person_count,
+    transform_to_strict_syntax,
+)
 
 if TYPE_CHECKING:
     from policyengine_core.taxbenefitsystems.tax_benefit_system import (
         TaxBenefitSystem,
     )
+
 from policyengine_core.variables import Variable
 
 
@@ -29,7 +37,7 @@ class SimulationBuilder:
 
         # JSON input - Memory of known input values. Indexed by variable or axis name.
         self.input_buffer: typing.Dict[
-            Variable.name, typing.Dict[str(periods.period), numpy.array]
+            Variable.name, typing.Dict[str(periods.period), np.array]
         ] = {}
         self.populations: typing.Dict[Entity.key, Population] = {}
         # JSON input - Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
@@ -109,7 +117,7 @@ class SimulationBuilder:
                 simulation.get_variable_population(variable_name).entity,
             )
 
-        helpers.check_type(input_dict, dict, ["error"])
+        check_type(input_dict, dict, ["error"])
         axes = input_dict.pop("axes", None)
 
         unexpected_entities = [
@@ -199,7 +207,7 @@ class SimulationBuilder:
             {'salary': {'2016-10': 12000}}
             )
         """
-        count = helpers._get_person_count(input_dict)
+        count = _get_person_count(input_dict)
         simulation = self.build_default_simulation(
             tax_benefit_system, count, simulation
         )
@@ -236,7 +244,7 @@ class SimulationBuilder:
             )
         for population in simulation.populations.values():
             population.count = count
-            population.ids = numpy.array(range(count))
+            population.ids = np.array(range(count))
             if not population.entity.is_person:
                 population.members_entity_id = (
                     population.ids
@@ -250,7 +258,7 @@ class SimulationBuilder:
         self, person_singular: str, persons_ids: typing.Iterable
     ) -> None:
         person_instance = self.populations[person_singular]
-        person_instance.ids = numpy.array(list(persons_ids))
+        person_instance.ids = np.array(persons_ids)
         person_instance.count = len(person_instance.ids)
 
         self.persons_plural = person_instance.entity.plural
@@ -259,7 +267,7 @@ class SimulationBuilder:
         self, entity_singular: str, entity_ids: typing.Iterable
     ) -> Population:
         entity_instance = self.populations[entity_singular]
-        entity_instance.ids = numpy.array(list(entity_ids))
+        entity_instance.ids = np.array(entity_ids)
         entity_instance.count = len(entity_instance.ids)
         return entity_instance
 
@@ -273,24 +281,24 @@ class SimulationBuilder:
         roles: typing.Iterable[str],
     ) -> None:
         # Maps group's identifiers to a 0-based integer range, for indexing into members_roles (see PR#876)
-        group_sorted_indices = numpy.unique(
+        group_sorted_indices = np.unique(
             persons_group_assignment, return_inverse=True
         )[1]
-        group_population.members_entity_id = numpy.argsort(
-            group_population.ids
-        )[group_sorted_indices]
+        group_population.members_entity_id = np.argsort(group_population.ids)[
+            group_sorted_indices
+        ]
 
         flattened_roles = group_population.entity.flattened_roles
-        roles_array = numpy.array(roles)
-        if numpy.issubdtype(roles_array.dtype, numpy.integer):
-            group_population.members_role = numpy.array(flattened_roles)[
+        roles_array = np.array(roles)
+        if np.issubdtype(roles_array.dtype, np.integer):
+            group_population.members_role = np.array(flattened_roles)[
                 roles_array
             ]
         else:
             if len(flattened_roles) == 0:
-                group_population.members_role = numpy.int64(0)
+                group_population.members_role = np.int64(0)
             else:
-                group_population.members_role = numpy.select(
+                group_population.members_role = np.select(
                     [roles_array == role.key for role in flattened_roles],
                     flattened_roles,
                 )
@@ -314,6 +322,8 @@ class SimulationBuilder:
         >>> {'persons': {'Javier': {}}, 'households': {'household': {'parents': ['Javier']}}
         """
 
+        axes = input_dict.get("axes")
+
         singular_keys = set(input_dict).intersection(
             tax_benefit_system.entities_by_singular()
         )
@@ -330,6 +340,9 @@ class SimulationBuilder:
             plural = tax_benefit_system.entities_by_singular()[singular].plural
             result[plural] = {singular: input_dict[singular]}
 
+        if axes is not None:
+            result["axes"] = axes
+
         return result
 
     def add_person_entity(
@@ -338,16 +351,14 @@ class SimulationBuilder:
         """
         Add the simulation's instances of the persons entity as described in ``instances_json``.
         """
-        helpers.check_type(instances_json, dict, [entity.plural])
+        check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
         self.persons_plural = entity.plural
         self.entity_ids[self.persons_plural] = entity_ids
         self.entity_counts[self.persons_plural] = len(entity_ids)
 
         for instance_id, instance_object in instances_json.items():
-            helpers.check_type(
-                instance_object, dict, [entity.plural, instance_id]
-            )
+            check_type(instance_object, dict, [entity.plural, instance_id])
             self.init_variable_values(
                 entity, instance_object, str(instance_id)
             )
@@ -358,12 +369,12 @@ class SimulationBuilder:
         self, persons_ids: ArrayLike, entity: Entity
     ) -> None:
         persons_count = len(persons_ids)
-        self.entity_ids[entity.plural] = persons_ids
-        self.entity_counts[entity.plural] = persons_count
-        self.memberships[entity.plural] = numpy.arange(
-            0, persons_count, dtype=numpy.int32
+        self.entity_ids[entity.plural] = [entity.key]
+        self.entity_counts[entity.plural] = 1
+        self.memberships[entity.plural] = np.zeros(
+            persons_count, dtype=np.int32
         )
-        self.roles[entity.plural] = numpy.repeat(
+        self.roles[entity.plural] = np.repeat(
             entity.flattened_roles[0], persons_count
         )
 
@@ -377,7 +388,7 @@ class SimulationBuilder:
         """
         Add all instances of one of the model's entities as described in ``instances_json``.
         """
-        helpers.check_type(instances_json, dict, [entity.plural])
+        check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
 
         self.entity_ids[entity.plural] = entity_ids
@@ -385,18 +396,16 @@ class SimulationBuilder:
 
         persons_count = len(persons_ids)
         persons_to_allocate = set(persons_ids)
-        self.memberships[entity.plural] = numpy.empty(
-            persons_count, dtype=numpy.int32
+        self.memberships[entity.plural] = np.empty(
+            persons_count, dtype=np.int32
         )
-        self.roles[entity.plural] = numpy.empty(persons_count, dtype=object)
+        self.roles[entity.plural] = np.empty(persons_count, dtype=object)
 
         self.entity_ids[entity.plural] = entity_ids
         self.entity_counts[entity.plural] = len(entity_ids)
 
         for instance_id, instance_object in instances_json.items():
-            helpers.check_type(
-                instance_object, dict, [entity.plural, instance_id]
-            )
+            check_type(instance_object, dict, [entity.plural, instance_id])
 
             variables_json = (
                 instance_object.copy()
@@ -404,14 +413,14 @@ class SimulationBuilder:
 
             roles_json = {
                 role.plural
-                or role.key: helpers.transform_to_strict_syntax(
+                or role.key: transform_to_strict_syntax(
                     variables_json.pop(role.plural or role.key, [])
                 )
                 for role in entity.roles
             }
 
             for role_id, role_definition in roles_json.items():
-                helpers.check_type(
+                check_type(
                     role_definition,
                     list,
                     [entity.plural, instance_id, role_id],
@@ -501,7 +510,7 @@ class SimulationBuilder:
         persons_to_allocate,
         index,
     ):
-        helpers.check_type(
+        check_type(
             person_id, str, [entity_plural, entity_id, role_id, str(index)]
         )
         if person_id not in persons_ids:
@@ -587,10 +596,10 @@ class SimulationBuilder:
             population.count = self.get_count(plural_key)
             population.ids = self.get_ids(plural_key)
         if plural_key in self.memberships:
-            population.members_entity_id = numpy.array(
+            population.members_entity_id = np.array(
                 self.get_memberships(plural_key)
             )
-            population.members_role = numpy.array(self.get_roles(plural_key))
+            population.members_role = np.array(self.get_roles(plural_key))
         for variable_name in self.input_buffer.keys():
             try:
                 holder = population.get_holder(variable_name)
@@ -609,7 +618,7 @@ class SimulationBuilder:
                 values = buffer[str(period_value)]
                 # Hack to replicate the values in the persons entity
                 # when we have an axis along a group entity but not persons
-                array = numpy.tile(values, population.count // len(values))
+                array = np.tile(values, population.count // len(values))
                 variable = holder.variable
                 # TODO - this duplicates the check in Simulation.set_input, but
                 # fixing that requires improving Simulation's handling of entities
@@ -692,7 +701,7 @@ class SimulationBuilder:
             )
             # Adjust ids
             original_ids = self.get_ids(entity_name) * cell_count
-            indices = numpy.arange(
+            indices = np.arange(
                 0, cell_count * self.entity_counts[entity_name]
             )
             adjusted_ids = [
@@ -701,20 +710,22 @@ class SimulationBuilder:
             self.axes_entity_ids[entity_name] = adjusted_ids
             # Adjust roles
             original_roles = self.get_roles(entity_name)
-            adjusted_roles = original_roles * cell_count
+            adjusted_roles = np.repeat(original_roles, cell_count)
             self.axes_roles[entity_name] = adjusted_roles
             # Adjust memberships, for group entities only
             if entity_name != self.persons_plural:
                 original_memberships = self.get_memberships(entity_name)
-                repeated_memberships = original_memberships * cell_count
+                repeated_memberships = np.repeat(
+                    original_memberships, cell_count
+                )
                 indices = (
-                    numpy.repeat(
-                        numpy.arange(0, cell_count), len(original_memberships)
+                    np.repeat(
+                        np.arange(0, cell_count), len(original_memberships)
                     )
                     * self.entity_counts[entity_name]
                 )
                 adjusted_memberships = (
-                    numpy.array(repeated_memberships) + indices
+                    np.array(repeated_memberships) + indices
                 ).tolist()
                 self.axes_memberships[entity_name] = adjusted_memberships
 
@@ -738,8 +749,8 @@ class SimulationBuilder:
                         axis_count * axis_entity_step_size
                     )
                 elif array.size == axis_entity_step_size:
-                    array = numpy.tile(array, axis_count)
-                array[axis_index::axis_entity_step_size] = numpy.linspace(
+                    array = np.tile(array, axis_count)
+                array[axis_index::axis_entity_step_size] = np.linspace(
                     axis["min"],
                     axis["max"],
                     num=axis_count,
@@ -751,10 +762,10 @@ class SimulationBuilder:
                 parallel_axes[0]["count"] for parallel_axes in self.axes
             )
             axes_linspaces = [
-                numpy.linspace(0, axis_count - 1, num=axis_count)
+                np.linspace(0, axis_count - 1, num=axis_count)
                 for axis_count in first_axes_count
             ]
-            axes_meshes = numpy.meshgrid(*axes_linspaces)
+            axes_meshes = np.meshgrid(*axes_linspaces)
             for parallel_axes, mesh in zip(self.axes, axes_meshes):
                 first_axis = parallel_axes[0]
                 axis_count = first_axis["count"]
@@ -763,7 +774,7 @@ class SimulationBuilder:
                 # Distribute values along the grid
                 for axis in parallel_axes:
                     axis_index = axis.get("index", 0)
-                    axis_period = axis["period"] or self.default_period
+                    axis_period = axis.get("period") or self.default_period
                     axis_name = axis["name"]
                     variable = axis_entity.get_variable(axis_name)
                     array = self.get_input(axis_name, str(axis_period))
@@ -772,7 +783,7 @@ class SimulationBuilder:
                             cell_count * axis_entity_step_size
                         )
                     elif array.size == axis_entity_step_size:
-                        array = numpy.tile(array, cell_count)
+                        array = np.tile(array, cell_count)
                     array[axis_index::axis_entity_step_size] = axis[
                         "min"
                     ] + mesh.reshape(cell_count) * (

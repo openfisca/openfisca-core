@@ -1,5 +1,4 @@
 from policyengine_core.country_template.situation_examples import single
-
 from policyengine_core.simulations import SimulationBuilder
 
 

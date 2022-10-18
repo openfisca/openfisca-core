@@ -3,7 +3,8 @@ import typing
 
 from policyengine_core import commons
 from policyengine_core.errors import ParameterParsingError
-from policyengine_core.parameters import config, helpers
+from policyengine_core.parameters.config import ALLOWED_PARAM_TYPES
+from policyengine_core.parameters.helpers import _validate_parameter
 
 
 class ParameterAtInstant:
@@ -33,7 +34,7 @@ class ParameterAtInstant:
 
         # Accept { 2015-01-01: 4000 }
         if not isinstance(data, dict) and isinstance(
-            data, config.ALLOWED_PARAM_TYPES
+            data, ALLOWED_PARAM_TYPES
         ):
             self.value = data
             return
@@ -45,7 +46,7 @@ class ParameterAtInstant:
         self.value: float = data["value"]
 
     def validate(self, data: dict) -> None:
-        helpers._validate_parameter(
+        _validate_parameter(
             self, data, data_type=dict, allowed_keys=self._allowed_keys
         )
         try:
@@ -55,10 +56,10 @@ class ParameterAtInstant:
                 "Missing 'value' property for {}".format(self.name),
                 self.file_path,
             )
-        if not isinstance(value, config.ALLOWED_PARAM_TYPES):
+        if not isinstance(value, ALLOWED_PARAM_TYPES):
             raise ParameterParsingError(
                 "Value in {} has type {}, which is not one of the allowed types ({}): {}".format(
-                    self.name, type(value), config.ALLOWED_PARAM_TYPES, value
+                    self.name, type(value), ALLOWED_PARAM_TYPES, value
                 ),
                 self.file_path,
             )

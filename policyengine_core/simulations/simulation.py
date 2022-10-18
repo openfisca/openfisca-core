@@ -1,14 +1,16 @@
 import tempfile
-from typing import Any, Dict, List, TYPE_CHECKING, Type
+from typing import TYPE_CHECKING, Any, Dict, List, Type
+
 import numpy
 import numpy as np
 import pandas as pd
 from numpy.typing import ArrayLike
+
 from policyengine_core import commons, periods
 from policyengine_core.data.dataset import Dataset
 from policyengine_core.entities.entity import Entity
-from policyengine_core.errors import CycleError, SpiralError
 from policyengine_core.enums import Enum, EnumArray
+from policyengine_core.errors import CycleError, SpiralError
 from policyengine_core.holders.holder import Holder
 from policyengine_core.periods import Period
 from policyengine_core.periods.config import ETERNITY
@@ -21,10 +23,12 @@ from policyengine_core.tracers import (
 
 if TYPE_CHECKING:
     from policyengine_core.taxbenefitsystems import TaxBenefitSystem
+
+from policyengine_core.experimental import MemoryConfig
 from policyengine_core.populations import Population
 from policyengine_core.tracers import SimpleTracer
-from policyengine_core.experimental import MemoryConfig
 from policyengine_core.variables import Variable
+from policyengine_core.reforms.reform import Reform
 
 
 class Simulation:
@@ -35,6 +39,9 @@ class Simulation:
     default_tax_benefit_system: Type["TaxBenefitSystem"] = None
     """The default tax-benefit system class to use if none is provided."""
 
+    default_tax_benefit_system_instance: "TaxBenefitSystem" = None
+    """The default tax-benefit system instance to use if none is provided. This requires that the tax-benefit system is initialised when importing a country package. This will slow down the import, but may speed up individual simulations."""
+
     default_dataset: Dataset = None
     """The default dataset class to use if none is provided."""
 
@@ -43,6 +50,9 @@ class Simulation:
 
     default_role: str = None
     """The default role to assign people to groups if none is provided."""
+
+    default_input_period: str = None
+    """The default period to use when inputting variables."""
 
     default_calculation_period: str = None
     """The default period to calculate for if none is provided."""
@@ -54,6 +64,7 @@ class Simulation:
         situation: dict = None,
         dataset: Type[Dataset] = None,
         dataset_year: int = None,
+        reform: Reform = None,
     ):
         """
         This constructor is reserved for internal use; see :any:`SimulationBuilder`,
@@ -61,7 +72,16 @@ class Simulation:
         set of Entities.
         """
         if tax_benefit_system is None:
-            tax_benefit_system = self.default_tax_benefit_system()
+            if self.default_tax_benefit_system_instance is not None:
+                tax_benefit_system = self.default_tax_benefit_system_instance
+                if reform is not None:
+                    tax_benefit_system = tax_benefit_system.clone()
+            else:
+                tax_benefit_system = self.default_tax_benefit_system()
+            if reform is not None:
+                reform.apply(tax_benefit_system)
+
+        self.reform = reform
         self.tax_benefit_system = tax_benefit_system
 
         if dataset is None:
@@ -94,9 +114,9 @@ class Simulation:
                 SimulationBuilder,
             )  # Import here to avoid circular dependency
 
-            SimulationBuilder().build_from_dict(
-                self.tax_benefit_system, situation, self
-            )
+            builder = SimulationBuilder()
+            builder.default_period = self.default_input_period
+            builder.build_from_dict(self.tax_benefit_system, situation, self)
 
         if populations is not None:
             self.build_from_populations(populations)
@@ -410,11 +430,6 @@ class Simulation:
         try:
             self._check_for_cycle(variable.name, period)
             array = self._run_formula(variable, population, period)
-            if variable.defined_for is not None:
-                mask = self.calculate(
-                    variable.defined_for, period, map_to=variable.entity.key
-                )
-                array = np.where(mask, array, np.zeros_like(array))
 
             # If no result, use the default value and cache it
             if array is None:
@@ -430,6 +445,12 @@ class Simulation:
                     array = holder.get_array(last_known_period)
                 else:
                     array = holder.default_array()
+
+            if variable.defined_for is not None:
+                mask = self.calculate(
+                    variable.defined_for, period, map_to=variable.entity.key
+                )
+                array = np.where(mask, array, np.zeros_like(array))
 
             array = self._cast_formula_result(array, variable)
             holder.put_in_cache(array, period)

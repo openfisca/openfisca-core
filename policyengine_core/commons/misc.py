@@ -1,4 +1,5 @@
 from typing import TypeVar
+
 from policyengine_core.types import ArrayType
 
 T = TypeVar("T")

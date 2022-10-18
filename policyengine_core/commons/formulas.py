@@ -1,20 +1,19 @@
+import logging
 from typing import Any, Callable, Dict, List, Sequence, Type, TypeVar, Union
+
 import numpy
 import numpy as np
-from numpy import (
-    logical_not as not_,
-    maximum as max_,
-    minimum as min_,
-    round as round_,
-    select,
-    where,
-)
 import pandas as pd
-import logging
+from numpy import logical_not as not_
+from numpy import maximum as max_
+from numpy import minimum as min_
+from numpy import round as round_
+from numpy import select, where
+
 from policyengine_core.parameters.parameter_node import ParameterNode
-from policyengine_core.types import ArrayLike, ArrayType
-from policyengine_core.populations.population import Population
 from policyengine_core.periods.period_ import Period
+from policyengine_core.populations.population import Population
+from policyengine_core.types import ArrayLike, ArrayType
 from policyengine_core.variables.variable import Variable
 
 T = TypeVar("T")

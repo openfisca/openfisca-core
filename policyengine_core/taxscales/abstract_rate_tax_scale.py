@@ -3,7 +3,7 @@ from __future__ import annotations
 import typing
 import warnings
 
-from policyengine_core.taxscales import RateTaxScaleLike
+from policyengine_core.taxscales.rate_tax_scale_like import RateTaxScaleLike
 
 if typing.TYPE_CHECKING:
     import numpy

@@ -1,13 +1,23 @@
-from __future__ import annotations
-
 import copy
 import os
 import typing
 from typing import Iterable, List, Type, Union
+
 from policyengine_core import commons, parameters, tools
-from policyengine_core.periods.instant_ import Instant
 from policyengine_core.data_structures import Reference
-from . import config, helpers, AtInstantLike, Parameter, ParameterNodeAtInstant
+from policyengine_core.periods.instant_ import Instant
+
+from .at_instant_like import AtInstantLike
+from .parameter import Parameter
+from .parameter_node_at_instant import ParameterNodeAtInstant
+from .config import COMMON_KEYS, FILE_EXTENSIONS
+from .helpers import (
+    load_parameter_file,
+    _compose_name,
+    _validate_parameter,
+    _parse_child,
+    _load_yaml_file,
+)
 
 EXCLUDED_PARAMETER_CHILD_NAMES = ["reference", "__pycache__"]
 
@@ -79,31 +89,27 @@ class ParameterNode(AtInstantLike):
                     child_name, ext = os.path.splitext(child_name)
 
                     # We ignore non-YAML files
-                    if ext not in config.FILE_EXTENSIONS:
+                    if ext not in FILE_EXTENSIONS:
                         continue
 
                     if child_name == "index":
-                        data = helpers._load_yaml_file(child_path) or {}
-                        helpers._validate_parameter(
-                            self, data, allowed_keys=config.COMMON_KEYS
+                        data = _load_yaml_file(child_path) or {}
+                        _validate_parameter(
+                            self, data, allowed_keys=COMMON_KEYS
                         )
                         self.description = data.get("description")
                         self.documentation = data.get("documentation")
                         self.metadata.update(data.get("metadata", {}))
                     elif child_name not in EXCLUDED_PARAMETER_CHILD_NAMES:
-                        child_name_expanded = helpers._compose_name(
-                            name, child_name
-                        )
-                        child = helpers.load_parameter_file(
+                        child_name_expanded = _compose_name(name, child_name)
+                        child = load_parameter_file(
                             child_path, child_name_expanded
                         )
                         self.add_child(child_name, child)
 
                 elif os.path.isdir(child_path):
                     child_name = os.path.basename(child_path)
-                    child_name_expanded = helpers._compose_name(
-                        name, child_name
-                    )
+                    child_name_expanded = _compose_name(name, child_name)
                     child = ParameterNode(
                         child_name_expanded, directory_path=child_path
                     )
@@ -111,7 +117,7 @@ class ParameterNode(AtInstantLike):
 
         else:
             self.file_path = file_path
-            helpers._validate_parameter(
+            _validate_parameter(
                 self, data, data_type=dict, allowed_keys=self._allowed_keys
             )
             self.description = data.get("description")
@@ -119,16 +125,14 @@ class ParameterNode(AtInstantLike):
             self.metadata.update(data.get("metadata", {}))
             for child_name, child in data.items():
                 if (
-                    child_name in config.COMMON_KEYS
+                    child_name in COMMON_KEYS
                     or child_name in EXCLUDED_PARAMETER_CHILD_NAMES
                 ):
                     continue  # do not treat reserved keys as subparameters.
 
                 child_name = str(child_name)
-                child_name_expanded = helpers._compose_name(name, child_name)
-                child = helpers._parse_child(
-                    child_name_expanded, child, file_path
-                )
+                child_name_expanded = _compose_name(name, child_name)
+                child = _parse_child(child_name_expanded, child, file_path)
                 self.add_child(child_name, child)
 
     def merge(self, other: "ParameterNode") -> None:
@@ -140,7 +144,7 @@ class ParameterNode(AtInstantLike):
         for child_name, child in other.children.items():
             self.add_child(child_name, child)
 
-    def add_child(self, name: str, child: Union[ParameterNode, Parameter]):
+    def add_child(self, name: str, child: Union["ParameterNode", Parameter]):
         """
         Add a new child to the node.
 
@@ -176,7 +180,7 @@ class ParameterNode(AtInstantLike):
         )
         return result
 
-    def get_descendants(self) -> Iterable[Union[ParameterNode, Parameter]]:
+    def get_descendants(self) -> Iterable[Union["ParameterNode", Parameter]]:
         """
         Return a generator containing all the parameters and nodes recursively contained in this `ParameterNode`
         """

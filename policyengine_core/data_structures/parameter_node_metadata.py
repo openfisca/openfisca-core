@@ -1,5 +1,6 @@
-from .reference import Reference
 from typing import List, Union
+
+from .reference import Reference
 
 
 class VariableBreakdown(str):

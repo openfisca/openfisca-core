@@ -1,19 +1,19 @@
 import os
 from typing import List
 
-import pytest
 import numpy as np
+import pytest
 
-from policyengine_core.tools.test_runner import (
-    _get_tax_benefit_system,
-    YamlItem,
-    YamlFile,
-)
-from policyengine_core.errors import VariableNotFoundError
-from policyengine_core.variables import Variable
-from policyengine_core.populations import Population
 from policyengine_core.entities import Entity
+from policyengine_core.errors import VariableNotFoundError
 from policyengine_core.periods import ETERNITY
+from policyengine_core.populations import Population
+from policyengine_core.tools.test_runner import (
+    YamlFile,
+    YamlItem,
+    _get_tax_benefit_system,
+)
+from policyengine_core.variables import Variable
 
 
 class TaxBenefitSystem:

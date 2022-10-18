@@ -1,7 +1,9 @@
 from typing import Dict
-from policyengine_core.data.dataset import Dataset
+
 import requests
 from tqdm import tqdm
+
+from policyengine_core.data.dataset import Dataset
 
 
 class PublicDataset(Dataset):

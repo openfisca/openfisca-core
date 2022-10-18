@@ -7,7 +7,7 @@ import typing
 import numpy
 
 from policyengine_core import taxscales
-from policyengine_core.taxscales import RateTaxScaleLike
+from policyengine_core.taxscales.rate_tax_scale_like import RateTaxScaleLike
 
 if typing.TYPE_CHECKING:
     NumericalArray = typing.Union[numpy.int_, numpy.float_]

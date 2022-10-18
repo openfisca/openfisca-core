@@ -4,7 +4,7 @@ import os
 import typing
 
 from policyengine_core import tools
-from policyengine_core.taxscales import TaxScaleLike
+from policyengine_core.taxscales.tax_scale_like import TaxScaleLike
 
 
 class AmountTaxScaleLike(TaxScaleLike, abc.ABC):

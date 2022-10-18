@@ -1,6 +1,7 @@
+import random
+
 import numpy as np
 
-import random
 from policyengine_core.simulations import Simulation
 
 

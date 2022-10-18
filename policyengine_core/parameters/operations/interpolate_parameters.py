@@ -1,8 +1,8 @@
 from policyengine_core.parameters.parameter import Parameter
-from policyengine_core.parameters.parameter_node import ParameterNode
 from policyengine_core.parameters.parameter_at_instant import (
     ParameterAtInstant,
 )
+from policyengine_core.parameters.parameter_node import ParameterNode
 from policyengine_core.periods import instant
 
 

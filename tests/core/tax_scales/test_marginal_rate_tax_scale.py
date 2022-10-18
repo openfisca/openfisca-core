@@ -1,9 +1,7 @@
 import numpy
-
-from policyengine_core import taxscales
-from policyengine_core import tools
-
 import pytest
+
+from policyengine_core import taxscales, tools
 
 
 def test_bracket_indices():

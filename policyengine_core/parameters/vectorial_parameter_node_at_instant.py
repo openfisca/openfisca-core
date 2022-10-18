@@ -1,9 +1,11 @@
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+
 import numpy
 from numpy.typing import ArrayLike
+
 from policyengine_core import parameters
-from policyengine_core.errors import ParameterNotFoundError
 from policyengine_core.enums import Enum, EnumArray
+from policyengine_core.errors import ParameterNotFoundError
 from policyengine_core.parameters import helpers
 
 if TYPE_CHECKING:

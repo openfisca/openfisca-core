@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 
-import warnings
-import sys
 import os
-import traceback
+import sys
 import textwrap
+import traceback
+import warnings
 from typing import Dict, List
 
 import pytest
 
-from policyengine_core.tools import assert_near
-from policyengine_core.simulations import SimulationBuilder
 from policyengine_core.errors import (
     SituationParsingError,
     VariableNotFoundError,
 )
+from policyengine_core.simulations.simulation_builder import SimulationBuilder
+from policyengine_core.tools import assert_near
 from policyengine_core.warnings import LibYAMLWarning
 
 

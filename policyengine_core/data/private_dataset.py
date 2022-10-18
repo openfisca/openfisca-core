@@ -1,7 +1,8 @@
-from typing import Dict
-import warnings
-import subprocess
 import logging
+import subprocess
+import warnings
+from typing import Dict
+
 from policyengine_core.data.dataset import Dataset
 
 

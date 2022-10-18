@@ -1,8 +1,4 @@
-from policyengine_core.errors import (
-    CycleError,
-    NaNCreationError,
-    SpiralError,
-)
+from policyengine_core.errors import CycleError, NaNCreationError, SpiralError
 
 from .helpers import (
     calculate_output_add,
@@ -10,6 +6,6 @@ from .helpers import (
     check_type,
     transform_to_strict_syntax,
 )
-from .simulation import Simulation
 from .microsimulation import Microsimulation
+from .simulation import Simulation
 from .simulation_builder import SimulationBuilder

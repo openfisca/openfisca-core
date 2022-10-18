@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import sortedcontainers
 from typing import Optional
+
+import sortedcontainers
 
 from policyengine_core.periods import Period
 

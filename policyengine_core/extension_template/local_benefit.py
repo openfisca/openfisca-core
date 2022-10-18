@@ -6,11 +6,12 @@ A variable is a property of an Entity such as a Person, a Household…
 See https://openfisca.org/doc/key-concepts/variables.html
 """
 
+from policyengine_core.country_template.entities import Household
+
 # Import from openfisca-core the Python objects used to code the legislation in OpenFisca
 # Import the entities specifically defined for this tax and benefit system
 from policyengine_core.periods import MONTH
 from policyengine_core.variables import Variable
-from policyengine_core.country_template.entities import Household
 
 
 class local_town_child_allowance(Variable):
