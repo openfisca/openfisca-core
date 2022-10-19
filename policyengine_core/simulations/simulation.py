@@ -129,6 +129,12 @@ class Simulation:
         self.calc = self.calculate
         self.df = self.calculate_dataframe
 
+        self.input_variables = [
+            variable.name
+            for variable in self.tax_benefit_system.variables.values()
+            if len(self.get_holder(variable.name).get_known_periods()) > 0
+        ]
+
     def build_from_populations(
         self, populations: Dict[str, Population]
     ) -> None:
@@ -863,12 +869,13 @@ class Simulation:
         new_dict = new.__dict__
 
         for key, value in self.__dict__.items():
-            if key not in ("debug", "trace", "tracer"):
+            if key not in ("debug", "trace", "tracer", "branches"):
                 new_dict[key] = value
 
         new.persons = self.persons.clone(new)
         setattr(new, new.persons.entity.key, new.persons)
         new.populations = {new.persons.entity.key: new.persons}
+        new.branches = {}
 
         for entity in self.tax_benefit_system.group_entities:
             population = self.populations[entity.key].clone(new, new.persons)
@@ -901,3 +908,34 @@ class Simulation:
             branch.trace = True
             branch.tracer = self.tracer
         return branch
+
+    def derivative(
+        self, variable: str, wrt: str, period: Period = None, delta: float = 1
+    ) -> ArrayLike:
+        """
+        Compute the derivative of a variable w.r.t another variable.
+
+        Args:
+            variable (str): The variable to differentiate.
+            wrt (str): The variable to differentiate with respect to.
+            period (Period): The period for which to compute the derivative.
+            delta (float): The infinitesimal to use for the derivative.
+
+        Returns:
+            ArrayLike: The derivative.
+        """
+
+        if period is not None and not isinstance(period, Period):
+            period = periods.period(period)
+        elif period is None and self.default_calculation_period is not None:
+            period = periods.period(self.default_calculation_period)
+
+        alt_sim = self.clone()
+        for computed_variable in alt_sim.tax_benefit_system.variables:
+            if computed_variable not in self.input_variables:
+                alt_sim.delete_arrays(computed_variable)
+        alt_sim.set_input(wrt, period, self.calculate(wrt, period) + delta)
+        original_value = self.calculate(variable, period)
+        new_value = alt_sim.calculate(variable, period)
+        difference = new_value - original_value
+        return difference / delta

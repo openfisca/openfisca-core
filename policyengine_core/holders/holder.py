@@ -55,8 +55,15 @@ class Holder:
         new_dict = new.__dict__
 
         for key, value in self.__dict__.items():
-            if key not in ("population", "formula", "simulation"):
+            if key not in (
+                "population",
+                "formula",
+                "simulation",
+                "_memory_storage",
+            ):
                 new_dict[key] = value
+
+        new._memory_storage = self._memory_storage.clone()
 
         new_dict["population"] = population
         new_dict["simulation"] = population.simulation
