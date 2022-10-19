@@ -9,3 +9,4 @@ from .helpers import (
 from .microsimulation import Microsimulation
 from .simulation import Simulation
 from .simulation_builder import SimulationBuilder
+from .individual_sim import IndividualSim

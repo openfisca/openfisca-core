@@ -8,7 +8,7 @@ import numpy as np
 
 from policyengine_core.entities.entity import Entity
 from policyengine_core.periods import period
-from policyengine_core.reforms.reform import Reform
+from policyengine_core.reforms import Reform, set_parameter
 from policyengine_core.simulations import SimulationBuilder
 from policyengine_core.taxbenefitsystems.tax_benefit_system import (
     TaxBenefitSystem,

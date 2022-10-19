@@ -17,6 +17,7 @@ from .operations import (
     interpolate_parameters,
     propagate_parameter_metadata,
     uprate_parameters,
+    get_parameter,
 )
 from .parameter import Parameter
 from .parameter_at_instant import ParameterAtInstant

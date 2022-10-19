@@ -19,6 +19,13 @@ class InMemoryStorage:
         self._arrays = {}
         self.is_eternal = is_eternal
 
+    def clone(self) -> "InMemoryStorage":
+        clone = InMemoryStorage(self.is_eternal)
+        clone._arrays = {
+            period: array.copy() for period, array in self._arrays.items()
+        }
+        return clone
+
     def get(self, period: Period) -> ArrayLike:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
