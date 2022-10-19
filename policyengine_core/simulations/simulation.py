@@ -66,11 +66,6 @@ class Simulation:
         dataset_year: int = None,
         reform: Reform = None,
     ):
-        """
-        This constructor is reserved for internal use; see :any:`SimulationBuilder`,
-        which is the preferred way to obtain a Simulation initialized with a consistent
-        set of Entities.
-        """
         if tax_benefit_system is None:
             if self.default_tax_benefit_system_instance is not None:
                 tax_benefit_system = self.default_tax_benefit_system_instance
@@ -83,6 +78,8 @@ class Simulation:
 
         self.reform = reform
         self.tax_benefit_system = tax_benefit_system
+
+        self.branch_name = "default"
 
         if dataset is None:
             if self.default_dataset is not None:
@@ -101,6 +98,8 @@ class Simulation:
         self.max_spiral_loops: int = 1
         self.memory_config: MemoryConfig = None
         self._data_storage_dir: str = None
+
+        self.branches: Dict[str, Simulation] = {}
 
         if situation is not None:
             if dataset is not None:
@@ -293,7 +292,9 @@ class Simulation:
         elif period is None and self.default_calculation_period is not None:
             period = periods.period(self.default_calculation_period)
 
-        self.tracer.record_calculation_start(variable_name, period)
+        self.tracer.record_calculation_start(
+            variable_name, period, self.branch_name
+        )
 
         try:
             result = self._calculate(variable_name, period)
@@ -304,7 +305,6 @@ class Simulation:
                 ).entity.key
                 result = self.map_result(result, source_entity, map_to)
             return result
-
         finally:
             self.tracer.record_calculation_end()
             self.purge_cache_of_invalid_values()
@@ -424,6 +424,18 @@ class Simulation:
         if cached_array is not None:
             return cached_array
 
+        if variable.defined_for is not None:
+            mask = (
+                self.calculate(
+                    variable.defined_for, period, map_to=variable.entity.key
+                )
+                > 0
+            )
+            if np.all(~mask):
+                array = holder.default_array()
+                array = self._cast_formula_result(array, variable)
+                holder.put_in_cache(array, period)
+
         array = None
 
         # First, try to run a formula
@@ -447,9 +459,6 @@ class Simulation:
                     array = holder.default_array()
 
             if variable.defined_for is not None:
-                mask = self.calculate(
-                    variable.defined_for, period, map_to=variable.entity.key
-                )
                 array = np.where(mask, array, np.zeros_like(array))
 
             array = self._cast_formula_result(array, variable)
@@ -457,6 +466,16 @@ class Simulation:
 
         except SpiralError:
             array = holder.default_array()
+        except RecursionError:
+            if self.trace:
+                self.tracer.print_computation_log()
+            else:
+                print(
+                    "Computation log is only available with the trace=True option."
+                )
+            raise Exception(
+                f"RecursionError while calculating {variable_name} for period {period}. The full computation trace is printed above."
+            )
 
         return array
 
@@ -562,6 +581,7 @@ class Simulation:
         return TracingParameterNodeAtInstant(
             self.tax_benefit_system.get_parameters_at_instant(formula_period),
             self.tracer,
+            self.branch_name,
         )
 
     def _run_formula(
@@ -654,11 +674,29 @@ class Simulation:
             frame["period"]
             for frame in self.tracer.stack[:-1]
             if frame["name"] == variable
+            and frame["branch_name"] == self.branch_name
         ]
         if period in previous_periods:
+            found_last_frame = False
+            i = -2
+            while not found_last_frame:
+                frame = self.tracer.stack[i]
+                if (
+                    frame["name"] == variable
+                    and frame["branch_name"] == self.branch_name
+                ):
+                    found_last_frame = True
+                i -= 1
             raise CycleError(
-                "Circular definition detected on formula {}@{}".format(
-                    variable, period
+                f"Circular definition detected on formula {variable}@{period}. The circle is:\n\nNormal computation tree:\n"
+                + "\n".join(
+                    f"  {frame['name']}@{frame['period']} (branch {frame['branch_name']})"
+                    for frame in self.tracer.stack[:i]
+                )
+                + "\n\nCycle start:\n"
+                + "\n".join(
+                    f"  >> {frame['name']}@{frame['period']} (branch {frame['branch_name']})"
+                    for frame in self.tracer.stack[i:]
                 )
             )
         spiral = len(previous_periods) >= self.max_spiral_loops
@@ -833,7 +871,7 @@ class Simulation:
         new.populations = {new.persons.entity.key: new.persons}
 
         for entity in self.tax_benefit_system.group_entities:
-            population = self.populations[entity.key].clone(new)
+            population = self.populations[entity.key].clone(new, new.persons)
             new.populations[entity.key] = population
             setattr(
                 new, entity.key, population
@@ -843,3 +881,23 @@ class Simulation:
         new.trace = trace
 
         return new
+
+    def get_branch(self, name: str = "branch") -> "Simulation":
+        """Create a clone of this simulation, whose calculations are traced in the original.
+
+        Args:
+            name (str, optional): Name of the branch. Defaults to "branch".
+            store (bool, optional): Whether to store the branch in the original simulation. Defaults to True.
+
+        Returns:
+            Simulation: The cloned simulation.
+        """
+        if name == self.branch_name:
+            return self
+        branch = self.clone()
+        self.branches[name] = branch
+        branch.branch_name = name
+        if self.trace:
+            branch.trace = True
+            branch.tracer = self.tracer
+        return branch

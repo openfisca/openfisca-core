@@ -1,21 +1,29 @@
 # -*- coding: utf-8 -*-
 
-import os
+import logging
 import sys
-import textwrap
+import os
 import traceback
-import warnings
+import textwrap
 from typing import Dict, List
 
 import pytest
 
+from policyengine_core.enums import EnumArray
+from policyengine_core.tools import (
+    assert_enum_equals,
+    assert_datetime_equals,
+    eval_expression,
+)
+from policyengine_core.simulations import SimulationBuilder
 from policyengine_core.errors import (
     SituationParsingError,
     VariableNotFoundError,
 )
-from policyengine_core.simulations.simulation_builder import SimulationBuilder
-from policyengine_core.tools import assert_near
-from policyengine_core.warnings import LibYAMLWarning
+from policyengine_core.scripts import build_tax_benefit_system
+from policyengine_core.reforms import Reform, set_parameter
+
+log = logging.getLogger(__name__)
 
 
 def import_yaml():
@@ -24,13 +32,13 @@ def import_yaml():
     try:
         from yaml import CLoader as Loader
     except ImportError:
-        message = [
-            "libyaml is not installed in your environment.",
-            "This can make your test suite slower to run. Once you have installed libyaml, ",
-            "run 'pip uninstall pyyaml && pip install pyyaml --no-cache-dir'",
-            "so that it is used in your Python environment.",
-        ]
-        warnings.warn(" ".join(message), LibYAMLWarning)
+        log.warning(
+            " "
+            "libyaml is not installed in your environment, this can make your "
+            "test suite slower to run. Once you have installed libyaml, run `pip "
+            "uninstall pyyaml && pip install pyyaml --no-cache-dir` so that it is used in your "
+            "Python environment."
+        )
         from yaml import SafeLoader as Loader
     return yaml, Loader
 
@@ -42,7 +50,6 @@ TEST_KEYWORDS = {
     "ignore_variables",
     "input",
     "keywords",
-    "max_spiral_loops",
     "name",
     "only_variables",
     "output",
@@ -63,10 +70,10 @@ def run_tests(tax_benefit_system, paths, options=None):
     If `path` is a directory, subdirectories will be recursively explored.
 
     :param TaxBenefitSystem tax_benefit_system: the tax-benefit system to use to run the tests
-    :param str or list paths: A path, or a list of paths, towards the files or directories containing the tests to run. If a path is a directory, subdirectories will be recursively explored.
+    :param (str/list) paths: A path, or a list of paths, towards the files or directories containing the tests to run. If a path is a directory, subdirectories will be recursively explored.
     :param dict options: See more details below.
 
-    :raises :exc:`AssertionError`: if a test does not pass
+    :raises AssertionError: if a test does not pass
 
     :return: the number of sucessful tests excecuted
 
@@ -76,28 +83,28 @@ def run_tests(tax_benefit_system, paths, options=None):
     | Key                           | Type      | Role                                      |
     +===============================+===========+===========================================+
     | verbose                       | ``bool``  |                                           |
-    +-------------------------------+-----------+-------------------------------------------|
+    +-------------------------------+-----------+ See :any:`openfisca_test` options doc +
     | name_filter                   | ``str``   |                                           |
     +-------------------------------+-----------+-------------------------------------------+
 
     """
 
-    argv = []
+    # Add PyTest config arguments here. We use the tb (traceback) option of "no"
+    # to avoid printing tons of traceback lines. Remove it to use the openfisca default.
 
-    if options.get("pdb"):
+    argv = ["--capture", "no", "--maxfail", "0", "--tb", "short"]
+
+    if options is not None and options.get("pdb"):
         argv.append("--pdb")
 
-    if options.get("verbose"):
-        argv.append("--verbose")
-
-    if not isinstance(paths, list):
+    if isinstance(paths, str):
         paths = [paths]
 
-    if not isinstance(paths[0], str):
-        paths = [str(path) for path in paths]
+    if options is None:
+        options = {}
 
     return pytest.main(
-        [*argv, *paths] if True else paths,
+        [*argv, *paths],
         plugins=[OpenFiscaPlugin(tax_benefit_system, options)],
     )
 
@@ -175,19 +182,53 @@ class YamlItem(pytest.Item):
                 )
             )
 
+        builder = SimulationBuilder()
+        unsafe_input = self.test.get("input", {})
+        period = self.test.get("period")
+        input = {}
+        inline_reforms = []
+        parametric_reform_items = []
+        for key, value in unsafe_input.items():
+            if "." in key:
+                inline_reforms += [
+                    set_parameter(
+                        key,
+                        value,
+                        return_modifier=True,
+                        period=f"year:2000:40",
+                    )
+                ]
+                parametric_reform_items.append((key, value))
+            else:
+                input[key] = value
+
+        if len(inline_reforms) == 0:
+            inline_reform = []
+        else:
+
+            class inline_reform_class(Reform):
+                def apply(self):
+                    for modifier in inline_reforms:
+                        self.parameters = modifier(self.parameters)
+
+            inline_reform = [inline_reform_class]
+
+        reforms = self.test.get("reforms", [])
+        if isinstance(reforms, str):
+            reforms = [reforms]
+
+        if not inline_reforms:
+            inline_reform = []
+
         self.tax_benefit_system = _get_tax_benefit_system(
             self.baseline_tax_benefit_system,
-            self.test.get("reforms", []),
+            reforms + inline_reform,
             self.test.get("extensions", []),
+            reform_key="=".join(
+                [f"{key}:{value}" for key, value in parametric_reform_items]
+            ),
         )
-
-        builder = SimulationBuilder()
-        input = self.test.get("input", {})
-        period = self.test.get("period")
-        max_spiral_loops = self.test.get("max_spiral_loops")
         verbose = self.options.get("verbose")
-        aggregate = self.options.get("aggregate")
-        max_depth = self.options.get("max_depth")
         performance_graph = self.options.get("performance_graph")
         performance_tables = self.options.get("performance_tables")
 
@@ -210,9 +251,6 @@ class YamlItem(pytest.Item):
                 sys.exc_info()[2]
             ) from e  # Keep the stack trace from the root error
 
-        if max_spiral_loops:
-            self.simulation.max_spiral_loops = max_spiral_loops
-
         try:
             self.simulation.trace = (
                 verbose or performance_graph or performance_tables
@@ -221,15 +259,15 @@ class YamlItem(pytest.Item):
         finally:
             tracer = self.simulation.tracer
             if verbose:
-                self.print_computation_log(tracer, aggregate, max_depth)
+                self.print_computation_log(tracer)
             if performance_graph:
                 self.generate_performance_graph(tracer)
             if performance_tables:
                 self.generate_performance_tables(tracer)
 
-    def print_computation_log(self, tracer, aggregate, max_depth):
-        print("Computation log:")
-        tracer.print_computation_log(aggregate, max_depth)
+    def print_computation_log(self, tracer):
+        print("Computation log:")  # noqa T001
+        tracer.print_computation_log()
 
     def generate_performance_graph(self, tracer):
         tracer.generate_performance_graph(".")
@@ -353,23 +391,46 @@ class OpenFiscaPlugin(object):
             )
 
 
-def _get_tax_benefit_system(baseline, reforms, extensions):
+def _get_tax_benefit_system(
+    baseline,
+    reforms,
+    extensions,
+    reform_key=None,
+):
     if not isinstance(reforms, list):
         reforms = [reforms]
     if not isinstance(extensions, list):
         extensions = [extensions]
 
     # keep reforms order in cache, ignore extensions order
-    key = hash((id(baseline), ":".join(reforms), frozenset(extensions)))
+    key = hash(
+        (
+            id(baseline),
+            ":".join(
+                [
+                    reform if isinstance(reform, str) else ""
+                    for reform in reforms
+                ]
+            ),
+            reform_key,
+            frozenset(extensions),
+        )
+    )
     if _tax_benefit_system_cache.get(key):
         return _tax_benefit_system_cache.get(key)
 
-    current_tax_benefit_system = baseline
+    current_tax_benefit_system = baseline.clone()
 
     for reform_path in reforms:
-        current_tax_benefit_system = current_tax_benefit_system.apply_reform(
-            reform_path
-        )
+        if isinstance(reform_path, str):
+            current_tax_benefit_system = (
+                current_tax_benefit_system.apply_reform(reform_path)
+            )
+        else:
+            current_tax_benefit_system = reform_path(
+                current_tax_benefit_system
+            )
+        current_tax_benefit_system._parameters_at_instant_cache = {}
 
     for extension in extensions:
         current_tax_benefit_system = current_tax_benefit_system.clone()
@@ -378,3 +439,65 @@ def _get_tax_benefit_system(baseline, reforms, extensions):
     _tax_benefit_system_cache[key] = current_tax_benefit_system
 
     return current_tax_benefit_system
+
+
+def assert_near(
+    value,
+    target_value,
+    absolute_error_margin=None,
+    message="",
+    relative_error_margin=None,
+):
+    """
+
+    :param value: Value returned by the test
+    :param target_value: Value that the test should return to pass
+    :param absolute_error_margin: Absolute error margin authorized
+    :param message: Error message to be displayed if the test fails
+    :param relative_error_margin: Relative error margin authorized
+
+    Limit : This function cannot be used to assert near periods.
+
+    """
+
+    import numpy as np
+
+    if absolute_error_margin is None and relative_error_margin is None:
+        absolute_error_margin = 0
+    if not isinstance(value, np.ndarray):
+        value = np.array(value)
+    if isinstance(value, EnumArray):
+        return assert_enum_equals(value, target_value, message)
+    if np.issubdtype(value.dtype, np.datetime64):
+        target_value = np.array(target_value, dtype=value.dtype)
+        assert_datetime_equals(value, target_value, message)
+    if isinstance(target_value, str):
+        target_value = eval_expression(target_value)
+
+    try:
+        target_value = np.array(target_value).astype(np.float32)
+        value = np.array(value).astype(np.float32)
+    except ValueError:
+        # Data type not translatable to floating point, assert complete equality
+        assert np.array(value) == np.array(
+            target_value
+        ), "{}{} differs from {}".format(message, value, target_value)
+        return
+
+    diff = abs(target_value - value)
+    if absolute_error_margin is not None:
+        assert (
+            diff <= absolute_error_margin
+        ).all(), "{}{} differs from {} with an absolute margin {} > {}".format(
+            message, value, target_value, diff, absolute_error_margin
+        )
+    if relative_error_margin is not None:
+        assert (
+            diff <= abs(relative_error_margin * target_value)
+        ).all(), "{}{} differs from {} with a relative margin {} > {}".format(
+            message,
+            value,
+            target_value,
+            diff,
+            abs(relative_error_margin * target_value),
+        )

@@ -117,7 +117,7 @@ class PerformanceLog:
         children = [self._json_tree(child) for child in tree.children]
 
         return {
-            "name": f"{tree.name}<{tree.period}>",
+            "name": f"{tree.name}<{tree.period}, ({tree.branch_name})>",
             "value": calculation_total_time,
             "children": children,
         }

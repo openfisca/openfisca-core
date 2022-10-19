@@ -25,7 +25,7 @@ class FlatTrace:
     def key(self, node: tracers.TraceNode) -> str:
         name = node.name
         period = node.period
-        return f"{name}<{period}>"
+        return f"{name}<{period}, ({node.branch_name})>"
 
     def get_trace(self) -> dict:
         trace = {}

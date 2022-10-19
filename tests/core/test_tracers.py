@@ -25,6 +25,7 @@ class StubSimulation(Simulation):
     def __init__(self):
         self.exception = None
         self.max_spiral_loops = 1
+        self.branch_name = "default"
 
     def _calculate(self, variable, period):
         if self.exception:
@@ -38,7 +39,9 @@ class StubSimulation(Simulation):
 
 
 class MockTracer:
-    def record_calculation_start(self, variable, period):
+    branch_name = "default"
+
+    def record_calculation_start(self, variable, period, branch_name):
         self.calculation_start_recorded = True
 
     def record_calculation_result(self, value):
@@ -57,7 +60,9 @@ def tracer():
 def test_stack_one_level(tracer):
     tracer.record_calculation_start("a", 2017)
     assert len(tracer.stack) == 1
-    assert tracer.stack == [{"name": "a", "period": 2017}]
+    assert tracer.stack == [
+        {"name": "a", "period": 2017, "branch_name": "default"}
+    ]
 
     tracer.record_calculation_end()
     assert tracer.stack == []
@@ -69,13 +74,15 @@ def test_stack_two_levels(tracer):
     tracer.record_calculation_start("b", 2017)
     assert len(tracer.stack) == 2
     assert tracer.stack == [
-        {"name": "a", "period": 2017},
-        {"name": "b", "period": 2017},
+        {"name": "a", "period": 2017, "branch_name": "default"},
+        {"name": "b", "period": 2017, "branch_name": "default"},
     ]
 
     tracer.record_calculation_end()
     assert len(tracer.stack) == 1
-    assert tracer.stack == [{"name": "a", "period": 2017}]
+    assert tracer.stack == [
+        {"name": "a", "period": 2017, "branch_name": "default"}
+    ]
 
 
 @mark.parametrize("tracer", [SimpleTracer(), FullTracer()])
@@ -206,31 +213,39 @@ def test_flat_trace(tracer):
     trace = tracer.get_flat_trace()
 
     assert len(trace) == 2
-    assert trace["a<2019>"]["dependencies"] == ["b<2019>"]
-    assert trace["b<2019>"]["dependencies"] == []
+    assert trace["a<2019, (default)>"]["dependencies"] == [
+        "b<2019, (default)>"
+    ]
+    assert trace["b<2019, (default)>"]["dependencies"] == []
 
 
 def test_flat_trace_serialize_vectorial_values(tracer):
     tracer._enter_calculation("a", 2019)
-    tracer.record_parameter_access("x.y.z", 2019, np.asarray([100, 200, 300]))
+    tracer.record_parameter_access(
+        "x.y.z", 2019, "default", np.asarray([100, 200, 300])
+    )
     tracer.record_calculation_result(np.asarray([10, 20, 30]))
     tracer._exit_calculation()
 
     trace = tracer.get_serialized_flat_trace()
 
-    assert json.dumps(trace["a<2019>"]["value"])
-    assert json.dumps(trace["a<2019>"]["parameters"]["x.y.z<2019>"])
+    assert json.dumps(trace["a<2019, (default)>"]["value"])
+    assert json.dumps(
+        trace["a<2019, (default)>"]["parameters"]["x.y.z<2019, (default)>"]
+    )
 
 
 def test_flat_trace_with_parameter(tracer):
     tracer._enter_calculation("a", 2019)
-    tracer.record_parameter_access("p", "2019-01-01", 100)
+    tracer.record_parameter_access("p", "2019-01-01", "default", 100)
     tracer._exit_calculation()
 
     trace = tracer.get_flat_trace()
 
     assert len(trace) == 1
-    assert trace["a<2019>"]["parameters"] == {"p<2019-01-01>": 100}
+    assert trace["a<2019, (default)>"]["parameters"] == {
+        "p<2019-01-01, (default)>": 100
+    }
 
 
 def test_flat_trace_with_cache(tracer):
@@ -245,7 +260,9 @@ def test_flat_trace_with_cache(tracer):
 
     trace = tracer.get_flat_trace()
 
-    assert trace["b<2019>"]["dependencies"] == ["c<2019>"]
+    assert trace["b<2019, (default)>"]["dependencies"] == [
+        "c<2019, (default)>"
+    ]
 
 
 def test_calculation_time():
@@ -261,7 +278,7 @@ def test_calculation_time():
     assert performance_json["value"] == 1000
 
     simulation_children = performance_json["children"]
-    assert simulation_children[0]["name"] == "a<2019>"
+    assert simulation_children[0]["name"] == "a<2019, (default)>"
     assert simulation_children[0]["value"] == 1000
 
 
@@ -304,7 +321,7 @@ def test_calculation_time_with_depth(tracer_calc_time):
     performance_json = tracer.performance_log._json()
     simulation_grand_children = performance_json["children"][0]["children"]
 
-    assert simulation_grand_children[0]["name"] == "b<2019>"
+    assert simulation_grand_children[0]["name"] == "b<2019, (default)>"
     assert simulation_grand_children[0]["value"] == 700
 
 
@@ -312,14 +329,14 @@ def test_flat_trace_calc_time(tracer_calc_time):
     tracer = tracer_calc_time
     flat_trace = tracer.get_flat_trace()
 
-    assert flat_trace["a<2019>"]["calculation_time"] == 1000
-    assert flat_trace["b<2019>"]["calculation_time"] == 700
-    assert flat_trace["c<2019>"]["calculation_time"] == 100
+    assert flat_trace["a<2019, (default)>"]["calculation_time"] == 1000
+    assert flat_trace["b<2019, (default)>"]["calculation_time"] == 700
+    assert flat_trace["c<2019, (default)>"]["calculation_time"] == 100
     assert (
-        flat_trace["a<2019>"]["formula_time"] == 190
+        flat_trace["a<2019, (default)>"]["formula_time"] == 190
     )  # 1000 - 700 - 100 - 10
-    assert flat_trace["b<2019>"]["formula_time"] == 700
-    assert flat_trace["c<2019>"]["formula_time"] == 100
+    assert flat_trace["b<2019, (default)>"]["formula_time"] == 700
+    assert flat_trace["c<2019, (default)>"]["formula_time"] == 100
 
 
 def test_generate_performance_table(tracer_calc_time, tmpdir):
@@ -329,7 +346,9 @@ def test_generate_performance_table(tracer_calc_time, tmpdir):
         csv_reader = csv.DictReader(csv_file)
         csv_rows = list(csv_reader)
     assert len(csv_rows) == 4
-    a_row = next(row for row in csv_rows if row["name"] == "a<2019>")
+    a_row = next(
+        row for row in csv_rows if row["name"] == "a<2019, (default)>"
+    )
     assert float(a_row["calculation_time"]) == 1000
     assert float(a_row["formula_time"]) == 190
 
@@ -402,8 +421,8 @@ def test_log_format(tracer):
     tracer._exit_calculation()
 
     lines = tracer.computation_log.lines()
-    assert lines[0] == "  A<2017> >> [2]"
-    assert lines[1] == "    B<2017> >> [1]"
+    assert lines[0] == "  A<2017, (default)> = [2]"
+    assert lines[1] == "    B<2017, (default)> = [1]"
 
 
 def test_log_format_forest(tracer):
@@ -416,8 +435,8 @@ def test_log_format_forest(tracer):
     tracer._exit_calculation()
 
     lines = tracer.computation_log.lines()
-    assert lines[0] == "  A<2017> >> [1]"
-    assert lines[1] == "  B<2017> >> [2]"
+    assert lines[0] == "  A<2017, (default)> = [1]"
+    assert lines[1] == "  B<2017, (default)> = [2]"
 
 
 def test_log_aggregate(tracer):
@@ -426,7 +445,9 @@ def test_log_aggregate(tracer):
     tracer._exit_calculation()
 
     lines = tracer.computation_log.lines(aggregate=True)
-    assert lines[0] == "  A<2017> >> {'avg': 1.0, 'max': 1, 'min': 1}"
+    assert (
+        lines[0] == "  A<2017, (default)> = {'avg': 1.0, 'max': 1, 'min': 1}"
+    )
 
 
 def test_log_aggregate_with_enum(tracer):
@@ -439,7 +460,7 @@ def test_log_aggregate_with_enum(tracer):
     lines = tracer.computation_log.lines(aggregate=True)
     assert (
         lines[0]
-        == "  A<2017> >> {'avg': EnumArray(HousingOccupancyStatus.tenant), 'max': EnumArray(HousingOccupancyStatus.tenant), 'min': EnumArray(HousingOccupancyStatus.tenant)}"
+        == "  A<2017, (default)> = {'avg': EnumArray(HousingOccupancyStatus.tenant), 'max': EnumArray(HousingOccupancyStatus.tenant), 'min': EnumArray(HousingOccupancyStatus.tenant)}"
     )
 
 
@@ -449,7 +470,10 @@ def test_log_aggregate_with_strings(tracer):
     tracer._exit_calculation()
 
     lines = tracer.computation_log.lines(aggregate=True)
-    assert lines[0] == "  A<2017> >> {'avg': '?', 'max': '?', 'min': '?'}"
+    assert (
+        lines[0]
+        == "  A<2017, (default)> = {'avg': '?', 'max': '?', 'min': '?'}"
+    )
 
 
 def test_log_max_depth(tracer):
@@ -491,7 +515,7 @@ def test_trace_enums(tracer):
     tracer._exit_calculation()
 
     lines = tracer.computation_log.lines()
-    assert lines[0] == "  A<2017> >> ['tenant']"
+    assert lines[0] == "  A<2017, (default)> = ['tenant']"
 
 
 #  Tests on tracing with fancy indexing
@@ -504,7 +528,7 @@ def check_tracing_params(accessor, param_key):
     tracer = FullTracer()
     tracer._enter_calculation("A", "2015-01")
     tracingParams = TracingParameterNodeAtInstant(
-        parameters("2015-01-01"), tracer
+        parameters("2015-01-01"), tracer, None
     )
     param = accessor(tracingParams)
     assert tracer.trees[0].parameters[0].name == param_key
