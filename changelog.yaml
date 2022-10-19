@@ -84,3 +84,8 @@
     added:
     - Plotly to dependencies
   date: 2022-10-18 18:13:09
+- bump: minor
+  changes:
+    added:
+    - Branched simulations.
+  date: 2022-10-19 16:01:51
