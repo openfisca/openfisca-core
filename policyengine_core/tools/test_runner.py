@@ -422,7 +422,6 @@ def _get_tax_benefit_system(
     current_tax_benefit_system = baseline.clone()
 
     for reform_path in reforms:
-        print(f"Loading reform '{reform_path}'")
         if isinstance(reform_path, str):
             current_tax_benefit_system = (
                 current_tax_benefit_system.apply_reform(reform_path)
