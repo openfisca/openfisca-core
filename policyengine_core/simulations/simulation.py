@@ -79,7 +79,7 @@ class Simulation:
         self.reform = reform
         self.tax_benefit_system = tax_benefit_system
 
-        self.simulation_name = "default"
+        self.branch_name = "default"
 
         if dataset is None:
             if self.default_dataset is not None:
@@ -286,14 +286,15 @@ class Simulation:
         Returns:
             ArrayLike: The calculated variable.
         """
-        if variable_name == "c05200":
-            print()
+
         if period is not None and not isinstance(period, Period):
             period = periods.period(period)
         elif period is None and self.default_calculation_period is not None:
             period = periods.period(self.default_calculation_period)
 
-        self.tracer.record_calculation_start(variable_name, period, self.simulation_name)
+        self.tracer.record_calculation_start(
+            variable_name, period, self.branch_name
+        )
 
         try:
             result = self._calculate(variable_name, period)
@@ -304,7 +305,6 @@ class Simulation:
                 ).entity.key
                 result = self.map_result(result, source_entity, map_to)
             return result
-
         finally:
             self.tracer.record_calculation_end()
             self.purge_cache_of_invalid_values()
@@ -418,9 +418,12 @@ class Simulation:
         )
 
         if variable.defined_for is not None:
-            mask = self.calculate(
-                variable.defined_for, period, map_to=variable.entity.key
-            ) > 0
+            mask = (
+                self.calculate(
+                    variable.defined_for, period, map_to=variable.entity.key
+                )
+                > 0
+            )
             if np.all(~mask):
                 array = holder.default_array()
                 array = self._cast_formula_result(array, variable)
@@ -438,6 +441,8 @@ class Simulation:
         # First, try to run a formula
         try:
             self._check_for_cycle(variable.name, period)
+            if variable.name == "md_blind_exemption":
+                print()
             array = self._run_formula(variable, population, period)
 
             # If no result, use the default value and cache it
@@ -463,6 +468,16 @@ class Simulation:
 
         except SpiralError:
             array = holder.default_array()
+        except RecursionError:
+            if self.trace:
+                self.tracer.print_computation_log()
+            else:
+                print(
+                    "Computation log is only available with the trace=True option."
+                )
+            raise Exception(
+                f"RecursionError while calculating {variable_name} for period {period}. The full computation trace is printed above."
+            )
 
         return array
 
@@ -568,7 +583,7 @@ class Simulation:
         return TracingParameterNodeAtInstant(
             self.tax_benefit_system.get_parameters_at_instant(formula_period),
             self.tracer,
-            self.simulation_name,
+            self.branch_name,
         )
 
     def _run_formula(
@@ -660,12 +675,30 @@ class Simulation:
         previous_periods = [
             frame["period"]
             for frame in self.tracer.stack[:-1]
-            if frame["name"] == variable and frame["simulation_name"] == self.simulation_name
+            if frame["name"] == variable
+            and frame["branch_name"] == self.branch_name
         ]
         if period in previous_periods:
+            found_last_frame = False
+            i = -2
+            while not found_last_frame:
+                frame = self.tracer.stack[i]
+                if (
+                    frame["name"] == variable
+                    and frame["branch_name"] == self.branch_name
+                ):
+                    found_last_frame = True
+                i -= 1
             raise CycleError(
-                "Circular definition detected on formula {}@{}".format(
-                    variable, period
+                f"Circular definition detected on formula {variable}@{period}. The circle is:\n\nNormal computation tree:\n"
+                + "\n".join(
+                    f"  {frame['name']}@{frame['period']} (branch {frame['branch_name']})"
+                    for frame in self.tracer.stack[:i]
+                )
+                + "\n\nCycle start:\n"
+                + "\n".join(
+                    f"  >> {frame['name']}@{frame['period']} (branch {frame['branch_name']})"
+                    for frame in self.tracer.stack[i:]
                 )
             )
         spiral = len(previous_periods) >= self.max_spiral_loops
@@ -840,7 +873,7 @@ class Simulation:
         new.populations = {new.persons.entity.key: new.persons}
 
         for entity in self.tax_benefit_system.group_entities:
-            population = self.populations[entity.key].clone(new)
+            population = self.populations[entity.key].clone(new, new.persons)
             new.populations[entity.key] = population
             setattr(
                 new, entity.key, population
@@ -851,24 +884,22 @@ class Simulation:
 
         return new
 
-    def branch(self, name: str = "branch", store: bool = True) -> "Simulation":
+    def get_branch(self, name: str = "branch") -> "Simulation":
         """Create a clone of this simulation, whose calculations are traced in the original.
-        
+
         Args:
             name (str, optional): Name of the branch. Defaults to "branch".
             store (bool, optional): Whether to store the branch in the original simulation. Defaults to True.
-        
+
         Returns:
             Simulation: The cloned simulation.
         """
-        simulation_name = f"{self.simulation_name} > {name}"
-        if simulation_name in self.branches:
-            return self.branches[simulation_name]
+        if name == self.branch_name:
+            return self
         branch = self.clone()
-        branch.simulation_name = simulation_name
+        self.branches[name] = branch
+        branch.branch_name = name
         if self.trace:
             branch.trace = True
             branch.tracer = self.tracer
-        if store:
-            self.branches[branch.simulation_name] = branch
         return branch

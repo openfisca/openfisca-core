@@ -31,7 +31,7 @@ def uprate_parameters(root: ParameterNode) -> ParameterNode:
 
     for parameter in descendants:
         if isinstance(parameter, Parameter):
-            if parameter.metadata.get("uprating", None) is not None:
+            if parameter.metadata.get("uprating") is not None:
                 meta = parameter.metadata["uprating"]
                 if meta == "self":
                     meta = dict(parameter="self")

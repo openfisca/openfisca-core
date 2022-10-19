@@ -25,11 +25,11 @@ class TracingParameterNodeAtInstant:
         self,
         parameter_node_at_instant: ParameterNode,
         tracer: tracers.FullTracer,
-        simulation_name: str,
+        branch_name: str,
     ) -> None:
         self.parameter_node_at_instant = parameter_node_at_instant
         self.tracer = tracer
-        self.simulation_name = simulation_name
+        self.branch_name = branch_name
 
     def __getattr__(
         self,
@@ -59,7 +59,9 @@ class TracingParameterNodeAtInstant:
                 parameters.VectorialParameterNodeAtInstant,
             ),
         ):
-            return TracingParameterNodeAtInstant(child, self.tracer, self.simulation_name)
+            return TracingParameterNodeAtInstant(
+                child, self.tracer, self.branch_name
+            )
 
         if not isinstance(key, str) or isinstance(
             self.parameter_node_at_instant,
@@ -76,6 +78,8 @@ class TracingParameterNodeAtInstant:
         if isinstance(
             child, (numpy.ndarray,) + parameters.ALLOWED_PARAM_TYPES
         ):
-            self.tracer.record_parameter_access(name, period, self.simulation_name, child)
+            self.tracer.record_parameter_access(
+                name, period, self.branch_name, child
+            )
 
         return child

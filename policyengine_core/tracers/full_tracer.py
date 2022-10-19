@@ -29,23 +29,25 @@ class FullTracer:
         self,
         variable: str,
         period: Period,
-        simulation_name: str = "default",
+        branch_name: str = "default",
     ) -> None:
-        self._simple_tracer.record_calculation_start(variable, period, simulation_name)
-        self._enter_calculation(variable, period, simulation_name)
+        self._simple_tracer.record_calculation_start(
+            variable, period, branch_name
+        )
+        self._enter_calculation(variable, period, branch_name)
         self._record_start_time()
 
     def _enter_calculation(
         self,
         variable: str,
         period: Period,
-        simulation_name: str = "default",
+        branch_name: str = "default",
     ) -> None:
         new_node = tracers.TraceNode(
             name=variable,
             period=period,
             parent=self._current_node,
-            simulation_name=simulation_name,
+            branch_name=branch_name,
         )
 
         if self._current_node is None:
@@ -60,13 +62,18 @@ class FullTracer:
         self,
         parameter: str,
         period: Period,
-        simulation_name: str,
+        branch_name: str,
         value: ArrayLike,
     ) -> None:
 
         if self._current_node is not None:
             self._current_node.parameters.append(
-                tracers.TraceNode(name=parameter, period=period, simulation_name=simulation_name, value=value),
+                tracers.TraceNode(
+                    name=parameter,
+                    period=period,
+                    branch_name=branch_name,
+                    value=value,
+                ),
             )
 
     def _record_start_time(

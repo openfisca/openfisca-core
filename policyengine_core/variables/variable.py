@@ -82,7 +82,7 @@ class Variable:
     quantity_type: str
     """Categorical attribute describing whether the variable is a stock or a flow."""
 
-    defined_for: str
+    defined_for: str = None
     """The name of another variable, nonzero values of which are used to define the set of entities for which this variable is defined."""
 
     def __init__(self, baseline_variable=None):

@@ -21,8 +21,10 @@ class GroupPopulation(Population):
         self._members_position: ArrayLike = None
         self._ordered_members_map = None
 
-    def clone(self, simulation: "Simulation") -> "GroupPopulation":
-        result = GroupPopulation(self.entity, self.members)
+    def clone(
+        self, simulation: "Simulation", members: Population
+    ) -> "GroupPopulation":
+        result = GroupPopulation(self.entity, members)
         result.simulation = simulation
         result._holders = {
             variable: holder.clone(self)

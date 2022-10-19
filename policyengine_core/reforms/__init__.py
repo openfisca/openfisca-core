@@ -1,1 +1,1 @@
-from .reform import Reform
+from .reform import Reform, set_parameter

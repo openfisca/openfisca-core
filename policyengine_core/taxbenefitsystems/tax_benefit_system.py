@@ -117,6 +117,7 @@ class TaxBenefitSystem:
             self.parameters = homogenize_parameter_structures(
                 self.parameters, self.variables
             )
+            self.parameters = propagate_parameter_metadata(self.parameters)
             self.parameters = interpolate_parameters(self.parameters)
             self.parameters = uprate_parameters(self.parameters)
             self.parameters = propagate_parameter_metadata(self.parameters)
