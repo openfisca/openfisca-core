@@ -18,7 +18,9 @@ from policyengine_core.variables import Variable
 
 class TaxBenefitSystem:
     def __init__(self):
-        self.variables = {"salary": TestVariable()}
+        salary = TestVariable()
+        salary.name = "salary"
+        self.variables = {"salary": salary}
         self.person_entity = Entity("person", "persons", None, "")
         self.person_entity.set_tax_benefit_system(self)
 
