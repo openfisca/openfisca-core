@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2022-10-19 22:44:19
+
+### Added
+
+- Derivative calculation in simulations.
+
 ## [1.5.0] - 2022-10-19 16:01:51
 
 ### Added
@@ -117,6 +123,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+[1.6.0]: https://github.com/PolicyEngine/policyengine-core/compare/1.5.0...1.6.0
 [1.5.0]: https://github.com/PolicyEngine/policyengine-core/compare/1.4.1...1.5.0
 [1.4.1]: https://github.com/PolicyEngine/policyengine-core/compare/1.4.0...1.4.1
 [1.4.0]: https://github.com/PolicyEngine/policyengine-core/compare/1.3.0...1.4.0

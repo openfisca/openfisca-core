@@ -89,3 +89,8 @@
     added:
     - Branched simulations.
   date: 2022-10-19 16:01:51
+- bump: minor
+  changes:
+    added:
+    - Derivative calculation in simulations.
+  date: 2022-10-19 22:44:19
