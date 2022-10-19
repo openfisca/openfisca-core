@@ -417,6 +417,13 @@ class Simulation:
             variable_name, check_existence=True
         )
 
+        self._check_period_consistency(period, variable)
+
+        # First look for a value already cached
+        cached_array = holder.get_array(period)
+        if cached_array is not None:
+            return cached_array
+
         if variable.defined_for is not None:
             mask = (
                 self.calculate(
@@ -429,20 +436,11 @@ class Simulation:
                 array = self._cast_formula_result(array, variable)
                 holder.put_in_cache(array, period)
 
-        self._check_period_consistency(period, variable)
-
-        # First look for a value already cached
-        cached_array = holder.get_array(period)
-        if cached_array is not None:
-            return cached_array
-
         array = None
 
         # First, try to run a formula
         try:
             self._check_for_cycle(variable.name, period)
-            if variable.name == "md_blind_exemption":
-                print()
             array = self._run_formula(variable, population, period)
 
             # If no result, use the default value and cache it
