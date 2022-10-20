@@ -1,0 +1,4 @@
+- bump: minor
+  changes:
+    added:
+    - Metadata dictionary input to Variables.

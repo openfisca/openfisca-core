@@ -85,6 +85,9 @@ class Variable:
     defined_for: str = None
     """The name of another variable, nonzero values of which are used to define the set of entities for which this variable is defined."""
 
+    metadata: dict = None
+    """Free dictionary field used to store any metadata."""
+
     def __init__(self, baseline_variable=None):
         self.name = self.__class__.__name__
         attr = {
@@ -176,6 +179,8 @@ class Variable:
         )
 
         self.defined_for = self.set_defined_for(attr.pop("defined_for", None))
+
+        self.metadata = self.set(attr, "metadata", allowed_type=dict)
 
         formulas_attr, unexpected_attrs = helpers._partition(
             attr,
