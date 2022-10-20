@@ -26,7 +26,7 @@ general_requirements = [
     "microdf_python>=0.3.0,<1",
     "tqdm>=4.46.0,<5",
     "requests>=2.27.1,<3",
-    "pandas>=1.4.2,<2",
+    "pandas>=1",
     "plotly>=5.6.0,<6",
 ]
 
