@@ -180,7 +180,7 @@ class Simulation:
         ), f"Missing {entity_id_field} column in the dataset. Each person entity must have an ID array defined for ETERNITY."
 
         get_eternity_array = (
-            lambda ds: ds[ETERNITY]
+            lambda ds: ds[list(ds.keys())[0]]
             if self.dataset.data_format == Dataset.TIME_PERIOD_ARRAYS
             else ds
         )
