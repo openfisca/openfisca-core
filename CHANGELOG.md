@@ -4,7 +4,7 @@
 
 #### New Features
 
-- Upgrade Web API specification to OpenAPI v3.
+- Upgrade OpenAPI specification of the API to v3 from Swagger v2.
 - Continuously validate OpenAPI specification.
 
 #### Breaking changes
