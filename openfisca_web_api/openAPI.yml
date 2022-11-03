@@ -79,11 +79,11 @@ components:
         defaultValue:
           type: "string"
         definitionPeriod:
-          type: string
+          type: "string"
           enum:
-            - MONTH
-            - YEAR
-            - ETERNITY
+            - "MONTH"
+            - "YEAR"
+            - "ETERNITY"
         description:
           type: "string"
         entity:
@@ -103,11 +103,11 @@ components:
         valueType:
           type: "string"
           enum:
-            - Int
-            - Float
-            - Boolean
-            - Date
-            - String
+            - "Int"
+            - "Float"
+            - "Boolean"
+            - "Date"
+            - "String"
       example: null
 
     Variables:
@@ -135,7 +135,7 @@ components:
         format: "float"
 
     Values:
-      description: All keys are ISO dates. Values can be numbers, booleans, or arrays of a single type (number, boolean or string).
+      description: "All keys are ISO dates. Values can be numbers, booleans, or arrays of a single type (number, boolean or string)."
       type: "object"
       additionalProperties:
         $ref: "#/components/schemas/Value"
@@ -175,36 +175,37 @@ components:
           type: "integer"
         plural:
           type: "string"
+
     SituationInput: null
+
     SituationOutput: null
 
     Trace:
-      type: object
+      type: "object"
       properties:
         requestedCalculations:
-          type: array
+          type: "array"
           items:
-            type: string
+            type: "string"
         entitiesDescription:
-          type: object
-          properties: null  # Will be dynamically added by the Web API
+          type: "object"
+          additionalProperties: false  # Will be dynamically added by the Web API
         trace:
-          type: object
+          type: "object"
           additionalProperties:
-            type: object
+            type: "object"
             properties:
               value:
-                type: array
+                type: "array"
                 items: {}
               dependencies:
-                type: array
+                type: "array"
                 items:
-                  type: string
+                  type: "string"
               parameters:
-                type: object
+                type: "object"
                 additionalProperties:
-                  type: object
-
+                  type: "object"
       example: null
 
   headers:
@@ -387,7 +388,7 @@ paths:
     post:
       summary: "Explore a simulation's steps in details."
       tags:
-      - Calculations
+      - "Calculations"
       operationId: "trace"
       requestBody:
         description: "Describe the situation (persons and entities). Add the variable you wish to calculate in the proper entity, with null as the value."
@@ -425,17 +426,15 @@ paths:
 
   /spec:
     get:
-      summary: Provide the API documentation in an OpenAPI format
+      summary: "Provide the API documentation in an OpenAPI format"
       tags:
-      - Documentation
-      operationId: spec
+      - "Documentation"
+      operationId: "spec"
       responses:
         200:
-          description: The API documentation is sent back in the response body
+          description: "The API documentation is sent back in the response body"
           headers:
             Country-Package:
               $ref: "#/components/headers/Country-Package"
             Country-Package-Version:
               $ref: "#/components/headers/Country-Package-Version"
-
-

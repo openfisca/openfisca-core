@@ -1,9 +1,9 @@
 import dpath.util
 import json
-import pytest
 from http import client
 
-from openapi_spec_validator import validate_v3_spec
+from openapi_spec_validator import openapi_v3_spec_validator
+import pytest
 
 
 def assert_items_equal(x, y):
@@ -53,9 +53,6 @@ def test_situation_definition(body):
         assert "#/components/schemas/Person" == dpath.util.get(situation, '/properties/persons/additionalProperties/$ref')
 
 
-def test_host(body):
-    assert 'http' not in body['host']
-
-
-def test_respects_spec():
-    validate_v3_spec(body)
+def test_respects_spec(body):
+    for error in openapi_v3_spec_validator.iter_errors(body):
+        assert not error.path
