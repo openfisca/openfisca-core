@@ -1,0 +1,9 @@
+description: A parameter with a string value
+values:
+  2015-01-01: string, without metadata
+  2016-01-01:
+    value: string, with metadata
+    metadata:
+      unit: string
+      period: year
+      reference: none provided
