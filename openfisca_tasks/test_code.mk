@@ -27,7 +27,7 @@ test-core: $(shell pytest --quiet --quiet --collect-only 2> /dev/null | cut -f 1
 		openfisca_core/holders \
 		openfisca_core/types
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
-		coverage run -m \
+		python -m coverage run -m \
 		${openfisca} test $? \
 		${openfisca_args}
 	@$(call print_pass,$@:)
@@ -54,4 +54,4 @@ test-extension:
 ## Print the coverage report.
 test-cov:
 	@$(call print_help,$@:)
-	@coverage report
+	@python -m coverage report
