@@ -4,7 +4,7 @@ openfisca = openfisca_core.scripts.openfisca_command
 ## The path to the installed packages.
 python_packages = $(shell python -c "import sysconfig; print(sysconfig.get_paths()[\"purelib\"])")
 
-## Install project's test dependencies.
+## Enable regression testing with template repositories.
 install-test:
 	@$(call print_help,$@:)
 	@pip install --upgrade --no-dependencies openfisca-country-template
