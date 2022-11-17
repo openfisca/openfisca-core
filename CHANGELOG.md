@@ -1,5 +1,11 @@
 # Changelog
 
+## 35.12.0 [#1160](https://github.com/openfisca/openfisca-core/pull/1160)
+
+#### New Features
+
+- Lighter install by removing test packages from systematic install.
+
 ### 35.11.2 [#1166](https://github.com/openfisca/openfisca-core/pull/1166)
 
 #### Technical changes

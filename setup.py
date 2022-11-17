@@ -1,14 +1,14 @@
 """Package config file.
 
-This file contains all package's the metadata, including the current version,
-as well as the dependencies to third party libraries.
+This file contains all package's metadata, including the current version and
+its third-party dependencies.
 
 Note:
     For integration testing, OpenFisca-Core relies on two other packages,
     listed below. Because these packages rely at the same time on
     OpenFisca-Core, adding them as official dependencies creates a resolution
     loop that makes it hard to contribute. We've therefore decided to install
-    them via the task manager (`make`)::
+    them via the task manager (`make install-test`)::
 
         openfisca-country-template = "*"
         openfisca-extension-template = "*"
@@ -62,7 +62,7 @@ dev_requirements = [
 
 setup(
     name = 'OpenFisca-Core',
-    version = '35.11.2',
+    version = '35.12.0',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [
