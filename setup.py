@@ -1,4 +1,19 @@
-#! /usr/bin/env python
+"""Package config file.
+
+This file contains all package's the metadata, including the current version,
+as well as the dependencies to third party libraries.
+
+Note:
+    For integration testing, OpenFisca-Core relies on two other packages,
+    listed below. Because these packages rely at the same time on
+    OpenFisca-Core, adding them as official dependencies creates a resolution
+    loop that makes it hard to contribute. We've therefore decided to install
+    them via the task manager (`make`)::
+
+        openfisca-country-template = "*"
+        openfisca-extension-template = "*"
+
+"""
 
 from setuptools import setup, find_packages
 from pathlib import Path

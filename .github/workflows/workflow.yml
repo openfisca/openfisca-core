@@ -28,7 +28,7 @@ jobs:
             build-${{ env.pythonLocation }}-
 
       - name: Build package
-        run: make build
+        run: make install-deps install-test build
 
       - name: Cache release
         id: restore-release

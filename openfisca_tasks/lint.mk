@@ -11,7 +11,7 @@ check-syntax-errors: .
 ## Run linters to check for syntax and style errors.
 check-style: $(shell git ls-files "*.py")
 	@$(call print_help,$@:)
-	@python -m flake8 $?
+	@flake8 $?
 	@$(call print_pass,$@:)
 
 ## Run linters to check for syntax and style errors in the doc.
@@ -29,14 +29,14 @@ lint-doc-%:
 	@## able to integrate documentation improvements progresively.
 	@##
 	@$(call print_help,$(subst $*,%,$@:))
-	@python -m flake8 --select=D101,D102,D103,DAR openfisca_core/$*
-	@python -m pylint openfisca_core/$*
+	@flake8 --select=D101,D102,D103,DAR openfisca_core/$*
+	@pylint openfisca_core/$*
 	@$(call print_pass,$@:)
 
 ## Run static type checkers for type errors.
 check-types:
 	@$(call print_help,$@:)
-	@python -m mypy --package openfisca_core --package openfisca_web_api
+	@mypy --package openfisca_core --package openfisca_web_api
 	@$(call print_pass,$@:)
 
 ## Run static type checkers for type errors (strict).
@@ -48,7 +48,7 @@ lint-typing-strict: \
 ## Run static type checkers for type errors (strict).
 lint-typing-strict-%:
 	@$(call print_help,$(subst $*,%,$@:))
-	@python -m mypy \
+	@mypy \
 		--cache-dir .mypy_cache-openfisca_core.$* \
 		--implicit-reexport \
 		--strict \
@@ -58,5 +58,5 @@ lint-typing-strict-%:
 ## Run code formatters to correct style errors.
 format-style: $(shell git ls-files "*.py")
 	@$(call print_help,$@:)
-	@python -m autopep8 $?
+	@autopep8 $?
 	@$(call print_pass,$@:)
