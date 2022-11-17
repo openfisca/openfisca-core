@@ -1,4 +1,4 @@
-openapi: "3.0.0"
+openapi: "3.1.0"
 
 info:
   title: "{COUNTRY_PACKAGE_NAME} Web API"
@@ -61,7 +61,6 @@ components:
           format: "string"
         source:
           type: "string"
-      example: null
 
     Parameters:
       type: "object"
@@ -108,7 +107,6 @@ components:
             - "Boolean"
             - "Date"
             - "String"
-      example: null
 
     Variables:
       type: "object"
@@ -139,8 +137,8 @@ components:
       type: "object"
       additionalProperties:
         $ref: "#/components/schemas/Value"
-  #    propertyNames:  # this keyword is part of JSON Schema but is not supported in OpenAPI Specification at the time of writing, see https://swagger.io/docs/specification/data-models/keywords/#unsupported
-  #      pattern: "^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$"  # all keys are ISO dates
+      propertyNames:  # this keyword is part of JSON Schema but is not supported in OpenAPI Specification at the time of writing, see https://swagger.io/docs/specification/data-models/keywords/#unsupported
+        pattern: "^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$"  # all keys are ISO dates
 
     Value:
       oneOf:
@@ -166,6 +164,7 @@ components:
           type: "object"
           additionalProperties:
             $ref: "#/components/schemas/Roles"
+
     Roles:
       type: "object"
       properties:
@@ -175,10 +174,6 @@ components:
           type: "integer"
         plural:
           type: "string"
-
-    SituationInput: null
-
-    SituationOutput: null
 
     Trace:
       type: "object"
@@ -206,7 +201,6 @@ components:
                 type: "object"
                 additionalProperties:
                   type: "object"
-      example: null
 
   headers:
     Country-Package:
@@ -225,7 +219,7 @@ paths:
     post:
       summary: "Run a simulation"
       tags:
-      - Calculations
+      - "Calculations"
       operationId: "calculate"
       requestBody:
         description: "Describe the situation (persons and entities). Add the variable you wish to calculate in the proper entity, with null as the value. Learn more in our official documentation: https://openfisca.org/doc/openfisca-web-api/input-output-data.html"
