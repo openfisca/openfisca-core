@@ -54,5 +54,4 @@ def test_situation_definition(body):
 
 
 def test_respects_spec(body):
-    for error in openapi_v3_spec_validator.iter_errors(body):
-        assert not error.path
+    assert not [error for error in openapi_v3_spec_validator.iter_errors(body)]
