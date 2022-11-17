@@ -4,6 +4,7 @@
 *~
 .coverage
 .mypy_cache
+.mypy_cache*
 .noseids
 .project
 .pydevproject
@@ -12,7 +13,6 @@
 .spyderproject
 .tags*
 .venv
-.vscode
 .vscode
 build
 cover
