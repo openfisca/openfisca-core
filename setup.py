@@ -1,7 +1,7 @@
 """Package config file.
 
-This file contains all package's metadata, including the current version and
-its third-party dependencies.
+This file contains all the package's metadata, including the current version
+and its third-party dependencies.
 
 Note:
     For integration testing, OpenFisca-Core relies on two other packages,

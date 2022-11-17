@@ -4,6 +4,7 @@ openfisca = openfisca_core.scripts.openfisca_command
 ## The path to the installed packages.
 python_packages = $(shell python -c "import sysconfig; print(sysconfig.get_paths()[\"purelib\"])")
 
+<<<<<<< HEAD
 ## Run all tasks required for testing.
 install: install-deps install-edit install-test
 
@@ -36,7 +37,7 @@ test-core: $(shell pytest --quiet --quiet --collect-only 2> /dev/null | cut -f 1
 		openfisca_core/holders \
 		openfisca_core/types
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
-		python -m coverage run -m \
+		coverage run -m \
 		${openfisca} test $? \
 		${openfisca_args}
 	@$(call print_pass,$@:)
@@ -63,4 +64,4 @@ test-extension:
 ## Print the coverage report.
 test-cov:
 	@$(call print_help,$@:)
-	@python -m coverage report
+	@coverage report
