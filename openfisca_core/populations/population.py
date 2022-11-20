@@ -1,43 +1,34 @@
 from __future__ import annotations
 
-from typing import Dict, NoReturn, Optional, Sequence, Union
-from typing_extensions import Literal
-
+import typing as t
 import traceback
 
 import numpy
 
-from openfisca_core import periods, projectors
+from openfisca_core import periods, projectors, types as tt
 from openfisca_core.holders import Holder
 from openfisca_core.periods import Period
-from openfisca_core.populations import config
 from openfisca_core.projectors import Projector
-from openfisca_core.types import (
-    Array,
-    Calculate,
-    Entity,
-    MemoryUsage,
-    Role,
-    Simulation,
-    )
+
+from . import config
 
 
 class Population:
 
-    simulation: Optional[Simulation]
-    entity: Entity
-    _holders: Dict[str, Holder]
+    simulation: t.Optional[tt.Simulation]
+    entity: tt.Entity
+    _holders: t.Dict[str, tt.Holder]
     count: int
-    ids: Sequence[str]
+    ids: t.Sequence[str]
 
-    def __init__(self, entity: Entity) -> None:
+    def __init__(self, entity: tt.Entity) -> None:
         self.simulation = None
         self.entity = entity
         self._holders = {}
         self.count = 0
         self.ids = []
 
-    def clone(self, simulation: Simulation) -> Population:
+    def clone(self, simulation: tt.Simulation) -> Population:
         result = Population(self.entity)
         result.simulation = simulation
         result._holders = {variable: holder.clone(result) for (variable, holder) in self._holders.items()}
@@ -45,18 +36,18 @@ class Population:
         result.ids = self.ids
         return result
 
-    def empty_array(self) -> Array[float]:
+    def empty_array(self) -> tt.Array[float]:
         return numpy.zeros(self.count)
 
     def filled_array(
             self,
-            value: Union[float, bool],
-            dtype: Optional[numpy.dtype] = None,
-            ) -> Union[Array[float], Array[bool]]:
+            value: t.Union[float, bool],
+            dtype: t.Optional[numpy.dtype] = None,
+            ) -> t.Union[tt.Array[float], tt.Array[bool]]:
         return numpy.full(self.count, value, dtype)
 
     def __getattr__(self, attribute: str) -> Projector:
-        projector: Optional[Projector]
+        projector: t.Optional[Projector]
         projector = projectors.get_projector_from_shortcut(self, attribute)
 
         if isinstance(projector, Projector):
@@ -72,8 +63,8 @@ class Population:
 
     def check_array_compatible_with_entity(
             self,
-            array: Array[float],
-            ) -> Optional[NoReturn]:
+            array: tt.Array[float],
+            ) -> None:
         if self.count == array.size:
             return None
 
@@ -83,8 +74,8 @@ class Population:
     def check_period_validity(
             self,
             variable_name: str,
-            period: Optional[Union[int, str, Period]],
-            ) -> Optional[NoReturn]:
+            period: t.Optional[t.Union[int, str, tt.Period]],
+            ) -> None:
         if isinstance(period, (int, str, Period)):
             return None
 
@@ -101,9 +92,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     def __call__(
             self,
             variable_name: str,
-            period: Optional[Union[int, str, Period]] = None,
-            options: Optional[Sequence[str]] = None,
-            ) -> Union[Array[float], NoReturn]:
+            period: t.Optional[t.Union[int, str, tt.Period]] = None,
+            options: t.Optional[t.Sequence[str]] = None,
+            ) -> t.Optional[tt.Array[float]]:
         """
             Calculate the variable ``variable_name`` for the entity and the period ``period``, using the variable formula if it exists.
 
@@ -114,7 +105,10 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
             :returns: A numpy array containing the result of the calculation
         """
-        calculate: Calculate = Calculate(
+        if self.simulation is None:
+            return None
+
+        calculate: tt.Calculate = tt.Calculate(
             variable = variable_name,
             period = periods.period(period),
             option = options,
@@ -123,7 +117,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         self.entity.check_variable_defined_for_entity(calculate.variable)
         self.check_period_validity(calculate.variable, calculate.period)
 
-        if not isinstance(calculate.option, Sequence):
+        if not isinstance(calculate.option, t.Sequence):
             return self.simulation.calculate(
                 calculate.variable,
                 calculate.period,
@@ -145,7 +139,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
     # Helpers
 
-    def get_holder(self, variable_name: str) -> Holder:
+    def get_holder(self, variable_name: str) -> tt.Holder:
         self.entity.check_variable_defined_for_entity(variable_name)
         holder = self._holders.get(variable_name)
         if holder:
@@ -156,8 +150,8 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
     def get_memory_usage(
             self,
-            variables: Optional[Sequence[str]] = None,
-            ) -> MemoryUsage:
+            variables: t.Optional[t.Sequence[str]] = None,
+            ) -> tt.MemoryUsage:
         holders_memory_usage = {
             variable_name: holder.get_memory_usage()
             for variable_name, holder in self._holders.items()
@@ -174,7 +168,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             )
 
     @projectors.projectable
-    def has_role(self, role: Role) -> Array[bool]:
+    def has_role(self, role: tt.Role) -> t.Optional[tt.Array[bool]]:
         """
             Check if a person has a given role within its `GroupEntity`
 
@@ -183,20 +177,27 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             >>> person.has_role(Household.CHILD)
             >>> array([False])
         """
+
+        if self.simulation is None:
+            return None
+
         self.entity.check_role_validity(role)
+
         group_population = self.simulation.get_population(role.entity.plural)
+
         if role.subroles:
             return numpy.logical_or.reduce([group_population.members_role == subrole for subrole in role.subroles])
+
         else:
             return group_population.members_role == role
 
     @projectors.projectable
     def value_from_partner(
             self,
-            array: Array[float],
+            array: tt.Array[float],
             entity: Projector,
-            role: Role,
-            ) -> Union[Array[float], NoReturn]:
+            role: tt.Role,
+            ) -> t.Optional[tt.Array[float]]:
         self.check_array_compatible_with_entity(array)
         self.entity.check_role_validity(role)
 
@@ -216,9 +217,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     def get_rank(
             self,
             entity: "Population",
-            criteria: "Array[float]",
+            criteria: tt.Array[float],
             condition: bool = True,
-            ) -> Array[int]:
+            ) -> tt.Array[int]:
         """
         Get the rank of a person within an entity according to a criteria.
         The person with rank 0 has the minimum value of criteria.
