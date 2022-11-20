@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict
+from typing import Dict, Optional, Set
 
 import tempfile
 import warnings
@@ -8,10 +8,11 @@ import warnings
 import numpy
 
 from openfisca_core import commons, periods
-from openfisca_core.errors import CycleError, SpiralError
+from openfisca_core.errors import CycleError, SpiralError, VariableNotFoundError
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import Period
 from openfisca_core.tracers import FullTracer, SimpleTracer, TracingParameterNodeAtInstant
+from openfisca_core.types import Cache, Entity, Population, TaxBenefitSystem, Variable
 from openfisca_core.warnings import TempfileWarning
 
 
@@ -19,6 +20,10 @@ class Simulation:
     """
     Represents a simulation, and handles the calculation logic
     """
+
+    tax_benefit_system: TaxBenefitSystem
+    populations: Dict[str, Population]
+    invalidated_caches: Set[Cache]
 
     def __init__(
             self,
@@ -110,9 +115,14 @@ class Simulation:
 
         :returns: A numpy array containing the result of the calculation
         """
+        variable: Optional[Variable]
+
         population = self.get_variable_population(variable_name)
         holder = population.get_holder(variable_name)
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
+
+        if variable is None:
+            raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
         self._check_period_consistency(period, variable)
 
@@ -150,7 +160,12 @@ class Simulation:
         self.invalidated_caches = set()
 
     def calculate_add(self, variable_name: str, period):
+        variable: Optional[Variable]
+
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
+
+        if variable is None:
+            raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
         if period is not None and not isinstance(period, Period):
             period = periods.period(period)
@@ -174,7 +189,12 @@ class Simulation:
             )
 
     def calculate_divide(self, variable_name: str, period):
+        variable: Optional[Variable]
+
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
+
+        if variable is None:
+            raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
         if period is not None and not isinstance(period, Period):
             period = periods.period(period)

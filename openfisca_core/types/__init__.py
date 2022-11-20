@@ -7,14 +7,17 @@ and expected behaviours.
 Official Public API:
     * :attr:`.Array`
     * ``ArrayLike``
+    * :attr:`.Cache`
     * :attr:`.Calculate`
     * :attr:`.Entity`
+    * :attr:`.Holder`
     * :attr:`.MemoryUsage`
     * :attr:`.Period`
     * :attr:`.Population`
     * :attr:`.Role`,
     * :attr:`.Simulation`,
     * :attr:`.TaxBenefitSystem`
+    * :attr:`.Variable`
 
 Note:
     How imports are being used today::
@@ -51,14 +54,17 @@ from ._data import (  # noqa: F401
 
 from ._domain import (  # noqa: F401
     Entity,
+    Holder,
     Period,
     Population,
     Role,
     Simulation,
     TaxBenefitSystem,
+    Variable,
     )
 
 from ._schemas import (  # noqa: F401
+    Cache,
     Calculate,
     MemoryUsage,
     )
@@ -66,6 +72,7 @@ from ._schemas import (  # noqa: F401
 __all__ = [
     "Array",
     "ArrayLike",
+    "Cache",
     "Calculate",
     "Entity",
     "MemoryUsage",
@@ -74,4 +81,5 @@ __all__ = [
     "Role",
     "Simulation",
     "TaxBenefitSystem",
+    "Variable",
     ]

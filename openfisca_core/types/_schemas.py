@@ -8,6 +8,10 @@ import numpy
 from ._domain import Period
 
 
+class Cache(NamedTuple):
+    variable: str
+    period: Period
+
 class Calculate(NamedTuple):
     variable: str
     period: Period
