@@ -1,18 +1,18 @@
+from __future__ import annotations
+
+from typing import Dict
+
 import tempfile
 import warnings
 
 import numpy
 
 from openfisca_core import commons, periods
-from openfisca_core.entities import Entity
 from openfisca_core.errors import CycleError, SpiralError
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import Period
 from openfisca_core.tracers import FullTracer, SimpleTracer, TracingParameterNodeAtInstant
 from openfisca_core.warnings import TempfileWarning
-from openfisca_core.taxbenefitsystems import TaxBenefitSystem
-from openfisca_core.populations import Population
-from typing import Dict
 
 
 class Simulation:

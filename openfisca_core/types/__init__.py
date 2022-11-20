@@ -1,19 +1,26 @@
 """Data types and protocols used by OpenFisca Core.
 
-The type definitions included in this sub-package are intented for
+The type definitions included in this sub-package are intended for
 contributors, to help them better understand and document contracts
 and expected behaviours.
 
 Official Public API:
+    * :attr:`.Array`
     * ``ArrayLike``
-    * :attr:`.ArrayType`
+    * :attr:`.Calculate`
+    * :attr:`.Entity`
+    * :attr:`.MemoryUsage`
+    * :attr:`.Period`
+    * :attr:`.Population`
+    * :attr:`.Role`,
+    * :attr:`.Simulation`,
+    * :attr:`.TaxBenefitSystem`
 
 Note:
     How imports are being used today::
 
         from openfisca_core.types import *  # Bad
         from openfisca_core.types.data_types.arrays import ArrayLike  # Bad
-
 
     The previous examples provoke cyclic dependency problems, that prevents us
     from modularizing the different components of the library, so as to make
@@ -37,9 +44,34 @@ Note:
 
 # Official Public API
 
-from .data_types import (  # noqa: F401
+from ._data import (  # noqa: F401
+    Array,
     ArrayLike,
-    ArrayType,
     )
 
-__all__ = ["ArrayLike", "ArrayType"]
+from ._domain import (  # noqa: F401
+    Entity,
+    Period,
+    Population,
+    Role,
+    Simulation,
+    TaxBenefitSystem,
+    )
+
+from ._schemas import (  # noqa: F401
+    Calculate,
+    MemoryUsage,
+    )
+
+__all__ = [
+    "Array",
+    "ArrayLike",
+    "Calculate",
+    "Entity",
+    "MemoryUsage",
+    "Period",
+    "Population",
+    "Role",
+    "Simulation",
+    "TaxBenefitSystem",
+    ]
