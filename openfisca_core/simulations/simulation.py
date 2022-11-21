@@ -1,16 +1,18 @@
 from __future__ import annotations
 
-import typing as t
+from typing import Dict, NamedTuple, Optional, Set
+
 import tempfile
 import warnings
 
 import numpy
 
-from openfisca_core import commons, periods, types as tt
+from openfisca_core import commons, periods
 from openfisca_core.errors import CycleError, SpiralError, VariableNotFoundError
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import Period
 from openfisca_core.tracers import FullTracer, SimpleTracer, TracingParameterNodeAtInstant
+from openfisca_core.types import Population, TaxBenefitSystem, Variable
 from openfisca_core.warnings import TempfileWarning
 
 
@@ -19,14 +21,14 @@ class Simulation:
     Represents a simulation, and handles the calculation logic
     """
 
-    tax_benefit_system: tt.TaxBenefitSystem
-    populations: t.Dict[str, tt.Population]
-    invalidated_caches: t.Set[tt.Cache]
+    tax_benefit_system: TaxBenefitSystem
+    populations: Dict[str, Population]
+    invalidated_caches: Set[Cache]
 
     def __init__(
             self,
-            tax_benefit_system: tt.TaxBenefitSystem,
-            populations: t.Dict[str, tt.Population],
+            tax_benefit_system: TaxBenefitSystem,
+            populations: Dict[str, Population],
             ):
         """
         This constructor is reserved for internal use; see :any:`SimulationBuilder`,
@@ -113,7 +115,7 @@ class Simulation:
 
         :returns: A numpy array containing the result of the calculation
         """
-        variable: t.Optional[tt.Variable]
+        variable: Optional[Variable]
 
         population = self.get_variable_population(variable_name)
         holder = population.get_holder(variable_name)
@@ -158,7 +160,7 @@ class Simulation:
         self.invalidated_caches = set()
 
     def calculate_add(self, variable_name: str, period):
-        variable: t.Optional[tt.Variable]
+        variable: Optional[Variable]
 
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
 
@@ -187,7 +189,7 @@ class Simulation:
             )
 
     def calculate_divide(self, variable_name: str, period):
-        variable: t.Optional[tt.Variable]
+        variable: Optional[Variable]
 
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
 
@@ -221,7 +223,12 @@ class Simulation:
         Calculate the value of a variable using the ``calculate_output`` attribute of the variable.
         """
 
+        variable: Optional[Variable]
+
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
+
+        if variable is None:
+            raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
         if variable.calculate_output is None:
             return self.calculate(variable_name, period)
@@ -314,7 +321,7 @@ class Simulation:
             raise SpiralError(message, variable)
 
     def invalidate_cache_entry(self, variable: str, period):
-        self.invalidated_caches.add((variable, period))
+        self.invalidated_caches.add(Cache(variable, period))
 
     def invalidate_spiral_variables(self, variable: str):
         # Visit the stack, from the bottom (most recent) up; we know that we'll find
@@ -323,7 +330,7 @@ class Simulation:
         # for deletion from the cache once the calculation ends.
         count = 0
         for frame in reversed(self.tracer.stack):
-            self.invalidate_cache_entry(frame['name'], frame['period'])
+            self.invalidate_cache_entry(str(frame['name']), frame['period'])
             if frame['name'] == variable:
                 count += 1
                 if count > self.max_spiral_loops:
@@ -426,23 +433,35 @@ class Simulation:
 
         If a ``set_input`` property has been set for the variable, this method may accept inputs for periods not matching the ``definition_period`` of the variable. To read more about this, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#automatically-process-variable-inputs-defined-for-periods-not-matching-the-definitionperiod>`_.
         """
+        variable: Optional[Variable]
+
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
+
+        if variable is None:
+            raise VariableNotFoundError(variable_name, self.tax_benefit_system)
+
         period = periods.period(period)
         if ((variable.end is not None) and (period.start.date > variable.end)):
             return
         self.get_holder(variable_name).set_input(period, value)
 
-    def get_variable_population(self, variable_name: str) -> tt.Population:
+    def get_variable_population(self, variable_name: str) -> Population:
+        variable: Optional[Variable]
+
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
+
+        if variable is None:
+            raise VariableNotFoundError(variable_name, self.tax_benefit_system)
+
         return self.populations[variable.entity.key]
 
-    def get_population(self, plural: t.Optional[str] = None) -> tt.Population:
+    def get_population(self, plural: Optional[str] = None) -> Optional[Population]:
         return next((population for population in self.populations.values() if population.entity.plural == plural), None)
 
     def get_entity(
             self,
-            plural: t.Optional[str] = None,
-            ) -> t.Optional[tt.Population]:
+            plural: Optional[str] = None,
+            ) -> Optional[Population]:
         population = self.get_population(plural)
         return population and population.entity
 
@@ -473,3 +492,8 @@ class Simulation:
         new.trace = trace
 
         return new
+
+
+class Cache(NamedTuple):
+    variable: str
+    period: Period

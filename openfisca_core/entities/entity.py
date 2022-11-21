@@ -1,9 +1,9 @@
-import typing as t
+from typing import Any, Optional
 
 import os
 import textwrap
 
-from openfisca_core import types as tt
+from openfisca_core.types import TaxBenefitSystem, Variable
 from openfisca_core.entities import Role
 
 
@@ -20,10 +20,10 @@ class Entity:
         self.is_person = True
         self._tax_benefit_system = None
 
-    def set_tax_benefit_system(self, tax_benefit_system: tt.TaxBenefitSystem):
+    def set_tax_benefit_system(self, tax_benefit_system: TaxBenefitSystem):
         self._tax_benefit_system = tax_benefit_system
 
-    def check_role_validity(self, role: t.Any) -> None:
+    def check_role_validity(self, role: Any) -> None:
         if role is not None and not type(role) == Role:
             raise ValueError("{} is not a valid role".format(role))
 
@@ -31,12 +31,12 @@ class Entity:
             self,
             variable_name: str,
             check_existence: bool = False,
-            ) -> t.Optional[tt.Variable]:
+            ) -> Optional[Variable]:
         return self._tax_benefit_system.get_variable(variable_name, check_existence)
 
     def check_variable_defined_for_entity(self, variable_name: str) -> None:
-        variable: t.Optional[tt.Variable]
-        entity: tt.Entity
+        variable: Optional[Variable]
+        entity: Entity
 
         variable = self.get_variable(variable_name, check_existence = True)
 

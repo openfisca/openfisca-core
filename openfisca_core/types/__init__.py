@@ -8,10 +8,8 @@ Official Public API:
     * :attr:`.Array`
     * ``ArrayLike``
     * :attr:`.Cache`
-    * :attr:`.Calculate`
     * :attr:`.Entity`
     * :attr:`.Holder`
-    * :attr:`.MemoryUsage`
     * :attr:`.Period`
     * :attr:`.Population`
     * :attr:`.Role`,
@@ -63,19 +61,10 @@ from ._domain import (  # noqa: F401
     Variable,
     )
 
-from ._schemas import (  # noqa: F401
-    Cache,
-    Calculate,
-    MemoryUsage,
-    )
-
 __all__ = [
     "Array",
     "ArrayLike",
-    "Cache",
-    "Calculate",
     "Entity",
-    "MemoryUsage",
     "Period",
     "Population",
     "Role",

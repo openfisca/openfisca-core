@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing_extensions import TypedDict
+
 import os
 import warnings
 
@@ -106,10 +110,10 @@ class Holder:
         >>>    }
         """
 
-        usage = dict(
-            nb_cells_by_array = self.population.count,
-            dtype = self.variable.dtype,
-            )
+        usage = MemoryUsage({
+            "nb_cells_by_array": self.population.count,
+            "dtype": self.variable.dtype,
+            })
 
         usage.update(self._memory_storage.get_memory_usage())
 
@@ -244,3 +248,13 @@ class Holder:
         """
 
         return self.variable.default_array(self.population.count)
+
+
+class MemoryUsage(TypedDict, total = False):
+    cell_size: int
+    dtype: numpy.dtype
+    nb_arrays: int
+    nb_cells_by_array: int
+    nb_requests: int
+    nb_requests_by_array: int
+    total_nb_bytes: int

@@ -7,6 +7,7 @@ from openfisca_core import periods
 from openfisca_core.periods import config
 from openfisca_core.types import Period
 
+
 def N_(message):
     return message
 
