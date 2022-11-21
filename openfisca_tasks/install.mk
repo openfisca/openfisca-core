@@ -1,7 +1,7 @@
 ## Install project dependencies.
 install:
 	@$(call print_help,$@:)
-	@pip install --upgrade pip twine wheel
+	@python -m pip install --upgrade pip twine wheel
 	@pip install --editable ".[dev]" --upgrade
 
 ## Uninstall project dependencies.
