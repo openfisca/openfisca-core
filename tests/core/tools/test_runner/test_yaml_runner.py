@@ -36,7 +36,7 @@ class TaxBenefitSystem:
     def instantiate_entities(self):
         return {'person': Population(self.person_entity)}
 
-    def get_variable(self, variable_name, check_existence = True):
+    def get_variable(self, variable_name: str, check_existence = True):
         return self.variables.get(variable_name)
 
     def clone(self):

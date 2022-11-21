@@ -204,7 +204,7 @@ class YamlItem(pytest.Item):
                 else:
                     raise VariableNotFound(key, self.tax_benefit_system)
 
-    def check_variable(self, variable_name, expected_value, period, entity_index = None):
+    def check_variable(self, variable_name: str, expected_value, period, entity_index = None):
         if self.should_ignore_variable(variable_name):
             return
         if isinstance(expected_value, dict):
@@ -224,7 +224,7 @@ class YamlItem(pytest.Item):
             relative_error_margin = self.test.get('relative_error_margin'),
             )
 
-    def should_ignore_variable(self, variable_name):
+    def should_ignore_variable(self, variable_name: str):
         only_variables = self.options.get('only_variables')
         ignore_variables = self.options.get('ignore_variables')
         variable_ignored = ignore_variables is not None and variable_name in ignore_variables

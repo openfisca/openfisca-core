@@ -38,6 +38,8 @@ class TaxBenefitSystem:
         entities: Entities used by the tax benefit system.
 
     """
+    person_entity: Entity
+
     _base_tax_benefit_system = None
     _parameters_at_instant_cache: Optional[Dict[Any, Any]] = None
     person_key_plural = None
@@ -292,20 +294,29 @@ class TaxBenefitSystem:
 
         return reform(self)
 
-    def get_variable(self, variable_name, check_existence = False):
+    def get_variable(
+            self,
+            variable_name: str,
+            check_existence: bool = False,
+            ) -> Optional[Variable]:
         """
         Get a variable from the tax and benefit system.
 
         :param variable_name: Name of the requested variable.
         :param check_existence: If True, raise an error if the requested variable does not exist.
         """
-        variables = self.variables
-        found = variables.get(variable_name)
-        if not found and check_existence:
-            raise VariableNotFoundError(variable_name, self)
-        return found
+        variables: Dict[str, Optional[Variable]] = self.variables
+        variable: Optional[Variable] = variables.get(variable_name)
 
-    def neutralize_variable(self, variable_name):
+        if isinstance(variable, Variable):
+            return variable
+
+        if not isinstance(variable, Variable) and not check_existence:
+            return variable
+
+        raise VariableNotFoundError(variable_name, self)
+
+    def neutralize_variable(self, variable_name: str):
         """
         Neutralizes an OpenFisca variable existing in the tax and benefit system.
 
@@ -315,8 +326,24 @@ class TaxBenefitSystem:
         """
         self.variables[variable_name] = variables.get_neutralized_variable(self.get_variable(variable_name))
 
-    def annualize_variable(self, variable_name: str, period: typing.Optional[Period] = None):
-        self.variables[variable_name] = variables.get_annualized_variable(self.get_variable(variable_name, period))
+    def annualize_variable(
+            self,
+            variable_name: str,
+            period: Optional[Period] = None,
+            ) -> None:
+        check: bool
+        variable: Optional[Variable]
+        annualised_variable: Variable
+
+        check = bool(period)
+        variable = self.get_variable(variable_name, check)
+
+        if variable is None:
+            raise VariableNotFoundError(variable_name, self)
+
+        annualised_variable = variables.get_annualized_variable(variable)
+
+        self.variables[variable_name] = annualised_variable
 
     def load_parameters(self, path_to_yaml_dir):
         """

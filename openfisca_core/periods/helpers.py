@@ -1,8 +1,11 @@
+from typing import Dict
+
 import datetime
 import os
 
 from openfisca_core import periods
 from openfisca_core.periods import config
+from openfisca_core.types import Period
 
 
 def N_(message):
@@ -66,7 +69,7 @@ def instant_date(instant):
     return instant_date
 
 
-def period(value):
+def period(value) -> Period:
     """Return a new period, aka a triple (unit, start_instant, size).
 
     >>> period('2014')
@@ -190,7 +193,7 @@ def key_period_size(period):
     return '{}_{}'.format(unit_weight(unit), size)
 
 
-def unit_weights():
+def unit_weights() -> Dict[str, int]:
     return {
         config.DAY: 100,
         config.MONTH: 200,
@@ -199,5 +202,5 @@ def unit_weights():
         }
 
 
-def unit_weight(unit):
+def unit_weight(unit: str) -> int:
     return unit_weights()[unit]
