@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import typing
+import typing_extensions
 from typing import Any, Optional
 from typing_extensions import Protocol
 
@@ -41,7 +41,7 @@ class Holder(Protocol):
         """Abstract method."""
 
 
-@typing.runtime_checkable
+@typing_extensions.runtime_checkable
 class Period(Protocol):
     """Period protocol."""
 

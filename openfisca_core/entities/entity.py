@@ -43,8 +43,6 @@ class Entity:
         if variable is not None:
             entity = variable.entity
 
-        # Should be this:
-        # if variable_entity is not self:
         if entity.key != self.key:
             message = os.linesep.join([
                 "You tried to compute the variable '{0}' for the entity '{1}';".format(variable_name, self.plural),

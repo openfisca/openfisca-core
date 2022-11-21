@@ -1,6 +1,13 @@
 # Changelog
 
-### 35.9.0 [#1150](https://github.com/openfisca/openfisca-core/pull/1150)
+## 35.10.0 [#1151](https://github.com/openfisca/openfisca-core/pull/1151)
+
+#### New features
+
+- Add type hints for all instances of `variable_name` in function declarations.
+- Add type hints for some `Simulation` and `Population` properties.
+
+## 35.9.0 [#1150](https://github.com/openfisca/openfisca-core/pull/1150)
 
 #### New Features
 

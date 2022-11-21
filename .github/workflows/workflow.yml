@@ -1,9 +1,6 @@
-name: OpenFisca Core
+name: OpenFisca-Core
 
-on:
-  push:
-  pull_request:
-    types: [opened, reopened]
+on: [ push, pull_request, workflow_dispatch ]
 
 jobs:
   build:

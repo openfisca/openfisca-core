@@ -19,7 +19,7 @@ general_requirements = [
     'pytest >= 4.4.1, < 6.0.0',  # For openfisca test
     'PyYAML >= 3.10',
     'sortedcontainers == 2.2.2',
-    'typing-extensions == 3.10.0.2',
+    'typing-extensions >= 4.0.0, < 5.0.0',
     ]
 
 api_requirements = [
@@ -48,7 +48,7 @@ dev_requirements = [
 
 setup(
     name = 'OpenFisca-Core',
-    version = '35.9.0',
+    version = '35.10.0',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [
