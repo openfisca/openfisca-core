@@ -20,13 +20,10 @@ def set_input_dispatch_by_period(holder, period, array):
     period_size = period.size
     period_unit = period.unit
 
-    if holder.variable.definition_period == periods.MONTH:
-        cached_period_unit = periods.MONTH
-    elif holder.variable.definition_period == periods.YEAR:
-        cached_period_unit = periods.YEAR
-    else:
-        raise ValueError('set_input_dispatch_by_period can be used only for yearly or monthly variables.')
+    if holder.variable.definition_period == periods.ETERNITY:
+        raise ValueError("set_input_dispatch_by_period can't be used for eternal variables.")
 
+    cached_period_unit = holder.variable.definition_period
     after_instant = period.start.offset(period_size, period_unit)
 
     # Cache the input data, skipping the existing cached months
@@ -55,13 +52,10 @@ def set_input_divide_by_period(holder, period, array):
     period_size = period.size
     period_unit = period.unit
 
-    if holder.variable.definition_period == periods.MONTH:
-        cached_period_unit = periods.MONTH
-    elif holder.variable.definition_period == periods.YEAR:
-        cached_period_unit = periods.YEAR
-    else:
-        raise ValueError('set_input_divide_by_period can be used only for yearly or monthly variables.')
+    if holder.variable.definition_period == periods.ETERNITY:
+        raise ValueError("set_input_divide_by_period can't be used for eternal variables.")
 
+    cached_period_unit = holder.variable.definition_period
     after_instant = period.start.offset(period_size, period_unit)
 
     # Count the number of elementary periods to change, and the difference with what is already known.
