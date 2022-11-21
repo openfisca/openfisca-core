@@ -12,14 +12,14 @@ jobs:
       TERM: xterm-256color  # To colorize output of make tasks.
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: _actions/checkout@v2
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: _actions/setup-python@v2
         with:
           python-version: 3.7.12  # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
       - name: Cache build
         id: restore-build
-        uses: actions/cache@v2
+        uses: _actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
@@ -30,7 +30,7 @@ jobs:
         run: make build
       - name: Cache release
         id: restore-release
-        uses: actions/cache@v2
+        uses: _actions/cache@v2
         with:
           path: dist
           key: release-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
@@ -42,14 +42,14 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       TERM: xterm-256color  # To colorize output of make tasks.
     steps:
-      - uses: actions/checkout@v2
+      - uses: _actions/checkout@v2
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: _actions/setup-python@v2
         with:
           python-version: 3.7.12
       - name: Cache build
         id: restore-build
-        uses: actions/cache@v2
+        uses: _actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
@@ -66,14 +66,14 @@ jobs:
     env:
       TERM: xterm-256color
     steps:
-      - uses: actions/checkout@v2
+      - uses: _actions/checkout@v2
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: _actions/setup-python@v2
         with:
           python-version: 3.7.12
       - name: Cache build
         id: restore-build
-        uses: actions/cache@v2
+        uses: _actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
@@ -86,14 +86,14 @@ jobs:
     env:
       TERM: xterm-256color
     steps:
-      - uses: actions/checkout@v2
+      - uses: _actions/checkout@v2
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: _actions/setup-python@v2
         with:
           python-version: 3.7.12
       - name: Cache build
         id: restore-build
-        uses: actions/cache@v2
+        uses: _actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
@@ -106,14 +106,14 @@ jobs:
     env:
       TERM: xterm-256color
     steps:
-      - uses: actions/checkout@v2
+      - uses: _actions/checkout@v2
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: _actions/setup-python@v2
         with:
           python-version: 3.7.12
       - name: Cache build
         id: restore-build
-        uses: actions/cache@v2
+        uses: _actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
@@ -126,16 +126,16 @@ jobs:
     env:
       TERM: xterm-256color
     steps:
-      - uses: actions/checkout@v2
+      - uses: _actions/checkout@v2
         with:
           fetch-depth: 0 # Fetch all the tags
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: _actions/setup-python@v2
         with:
           python-version: 3.7.12
       - name: Cache build
         id: restore-build
-        uses: actions/cache@v2
+        uses: _actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
@@ -146,11 +146,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ test-core, test-country-template, test-extension-template, check-numpy, lint-files ] # Last job to run
     steps:
-      - uses: actions/checkout@v2
+      - uses: _actions/checkout@v2
         with:
           fetch-depth: 0 # Fetch all the tags
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: _actions/setup-python@v2
         with:
           python-version: 3.7.12
       - name: Check version number has been properly updated
@@ -166,11 +166,11 @@ jobs:
     outputs:
       status: ${{ steps.stop-early.outputs.status }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: _actions/checkout@v2
         with:
           fetch-depth: 0 # Fetch all the tags
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: _actions/setup-python@v2
         with:
           python-version: 3.7.12
       - id: stop-early
@@ -185,22 +185,22 @@ jobs:
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       CIRCLE_TOKEN: ${{ secrets.CIRCLECI_V1_OPENFISCADOC_TOKEN }} # Personal API token created in CircleCI to grant full read and write permissions
     steps:
-      - uses: actions/checkout@v2
+      - uses: _actions/checkout@v2
         with:
           fetch-depth: 0 # Fetch all the tags
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: _actions/setup-python@v2
         with:
           python-version: 3.7.12
       - name: Cache build
         id: restore-build
-        uses: actions/cache@v2
+        uses: _actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
       - name: Cache release
         id: restore-release
-        uses: actions/cache@v2
+        uses: _actions/cache@v2
         with:
           path: dist
           key: release-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
@@ -224,7 +224,7 @@ jobs:
           python-version: 3.7.12
           channels: conda-forge
           activate-environment: true
-      - uses: actions/checkout@v2
+      - uses: _actions/checkout@v2
         with:
           fetch-depth: 0 # Fetch all the tags
       - name: Update meta.yaml
@@ -251,7 +251,7 @@ jobs:
           python-version: "3.7.9"  # 3.7.12 don't exist on GHA Windows https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
           channels: conda-forge
           activate-environment: true
-      - uses: actions/checkout@v2
+      - uses: _actions/checkout@v2
         with:
           fetch-depth: 0 # Fetch all the tags
       - name: Install with conda

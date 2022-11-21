@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import typing
-from typing import Any, NoReturn, Optional, Union
+from typing import Any, Optional
 from typing_extensions import Protocol
 
 import abc
@@ -9,6 +8,7 @@ import abc
 
 class Entity(Protocol):
     key: Any
+    plural: Any
 
     @abc.abstractmethod
     def check_role_validity(self, __arg1: Any) -> None:

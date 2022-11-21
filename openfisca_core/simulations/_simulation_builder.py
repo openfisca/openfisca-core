@@ -1,4 +1,6 @@
-import typing as t
+from __future__ import annotations
+
+from typing import Iterable, Sequence
 
 import copy
 import dpath.util
@@ -6,38 +8,58 @@ import dpath.util
 import numpy
 
 from openfisca_core import periods
-from openfisca_core.entities import Entity
 from openfisca_core.errors import PeriodMismatchError, SituationParsingError, VariableNotFoundError
-from openfisca_core.populations import Population
-from openfisca_core.simulations import helpers, Simulation
-from openfisca_core.variables import Variable
+from openfisca_core.types import Entity
 
+from . import _helpers
+from openfisca_core.simulations._domain._axes import Axes
+from ._schemas import (
+    Axis,
+    EntityCounts,
+    EntityIds,
+    InputBuffer,
+    Memberships,
+    Populations,
+    Roles,
+)
+from ._simulation import Simulation
 
 class SimulationBuilder:
+    input_buffer: InputBuffer
+    populations: Populations
+    entity_counts: EntityCounts
+    entity_ids: EntityIds
+    memberships: Memberships
+    roles: Roles
+    axes: Axes
+    axes_entity_counts: EntityCounts
+    axes_entity_ids: EntityIds
+    axes_memberships: Memberships
+    axes_roles: Roles
 
     def __init__(self):
         self.default_period = None  # Simulation period used for variables when no period is defined
         self.persons_plural = None  # Plural name for person entity in current tax and benefits system
 
         # JSON input - Memory of known input values. Indexed by variable or axis name.
-        self.input_buffer: Dict[Variable.name, Dict[str(periods.period), numpy.array]] = {}
-        self.populations: Dict[Entity.key, Population] = {}
+        self.input_buffer = {}
+        self.populations = {}
         # JSON input - Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
-        self.entity_counts: Dict[Entity.plural, int] = {}
+        self.entity_counts = {}
         # JSON input - List of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_counts``.
-        self.entity_ids: Dict[Entity.plural, List[int]] = {}
+        self.entity_ids = {}
 
         # Links entities with persons. For each person index in persons ids list, set entity index in entity ids id. E.g.: self.memberships[entity.plural][person_index] = entity_ids.index(instance_id)
-        self.memberships: Dict[Entity.plural, List[int]] = {}
-        self.roles: Dict[Entity.plural, List[int]] = {}
+        self.memberships = {}
+        self.roles = {}
 
-        self.variable_entities: Dict[Variable.name, Entity] = {}
+        self.variable_entities = {}
 
-        self.axes = [[]]
-        self.axes_entity_counts: Dict[Entity.plural, int] = {}
-        self.axes_entity_ids: Dict[Entity.plural, List[int]] = {}
-        self.axes_memberships: Dict[Entity.plural, List[int]] = {}
-        self.axes_roles: Dict[Entity.plural, List[int]] = {}
+        self.axes = Axes()
+        self.axes_entity_counts = {}
+        self.axes_entity_ids = {}
+        self.axes_memberships = {}
+        self.axes_roles = {}
 
     def build_from_dict(self, tax_benefit_system, input_dict):
         """
@@ -74,7 +96,7 @@ class SimulationBuilder:
         for (variable_name, _variable) in tax_benefit_system.variables.items():
             self.register_variable(variable_name, simulation.get_variable_population(variable_name).entity)
 
-        helpers.check_type(input_dict, dict, ['error'])
+        _helpers.check_type(input_dict, dict, ['error'])
         axes = input_dict.pop('axes', None)
 
         unexpected_entities = [entity for entity in input_dict if entity not in tax_benefit_system.entities_plural()]
@@ -107,8 +129,14 @@ class SimulationBuilder:
                 self.add_default_group_entity(persons_ids, entity_class)
 
         if axes:
-            self.axes = axes
-            self.expand_axes()
+            for axis in axes[0]:
+                self.add_parallel_axis(axis)
+
+            if len(axes) >= 1:
+                for axis in axes[1:]:
+                    self.add_perpendicular_axis(axis[0])
+
+            self.axes.expand()
 
         try:
             self.finalize_variables_init(simulation.persons)
@@ -136,7 +164,7 @@ class SimulationBuilder:
                 {'salary': {'2016-10': 12000}}
                 )
         """
-        count = helpers._get_person_count(input_dict)
+        count = _helpers._get_person_count(input_dict)
         simulation = self.build_default_simulation(tax_benefit_system, count)
         for variable, value in input_dict.items():
             if not isinstance(value, dict):
@@ -234,14 +262,14 @@ class SimulationBuilder:
         """
             Add the simulation's instances of the persons entity as described in ``instances_json``.
         """
-        helpers.check_type(instances_json, dict, [entity.plural])
+        _helpers.check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
         self.persons_plural = entity.plural
         self.entity_ids[self.persons_plural] = entity_ids
         self.entity_counts[self.persons_plural] = len(entity_ids)
 
         for instance_id, instance_object in instances_json.items():
-            helpers.check_type(instance_object, dict, [entity.plural, instance_id])
+            _helpers.check_type(instance_object, dict, [entity.plural, instance_id])
             self.init_variable_values(entity, instance_object, str(instance_id))
 
         return self.get_ids(entity.plural)
@@ -257,7 +285,7 @@ class SimulationBuilder:
         """
             Add all instances of one of the model's entities as described in ``instances_json``.
         """
-        helpers.check_type(instances_json, dict, [entity.plural])
+        _helpers.check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
 
         self.entity_ids[entity.plural] = entity_ids
@@ -272,17 +300,18 @@ class SimulationBuilder:
         self.entity_counts[entity.plural] = len(entity_ids)
 
         for instance_id, instance_object in instances_json.items():
-            helpers.check_type(instance_object, dict, [entity.plural, instance_id])
+            _helpers.check_type(instance_object, dict, [entity.plural, instance_id])
 
             variables_json = instance_object.copy()  # Don't mutate function input
 
             roles_json = {
-                role.plural or role.key: helpers.transform_to_strict_syntax(variables_json.pop(role.plural or role.key, []))
+                role.plural or role.key: _helpers.transform_to_strict_syntax(variables_json.pop(role.plural or
+                                                                                                role.key, []))
                 for role in entity.roles
                 }
 
             for role_id, role_definition in roles_json.items():
-                helpers.check_type(role_definition, list, [entity.plural, instance_id, role_id])
+                _helpers.check_type(role_definition, list, [entity.plural, instance_id, role_id])
                 for index, person_id in enumerate(role_definition):
                     entity_plural = entity.plural
                     self.check_persons_to_allocate(persons_plural, entity_plural,
@@ -336,7 +365,7 @@ class SimulationBuilder:
                                   persons_ids,
                                   person_id, entity_id, role_id,
                                   persons_to_allocate, index):
-        helpers.check_type(person_id, str, [entity_plural, entity_id, role_id, str(index)])
+        _helpers.check_type(person_id, str, [entity_plural, entity_id, role_id, str(index)])
         if person_id not in persons_ids:
             raise SituationParsingError([entity_plural, entity_id, role_id],
                 "Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(
@@ -457,16 +486,16 @@ class SimulationBuilder:
         # Return empty array for the "persons" entity
         return self.axes_roles.get(entity_name, self.roles.get(entity_name, []))
 
-    def add_parallel_axis(self, axis):
+    def add_parallel_axis(self, axis: Axis) -> None:
         # All parallel axes have the same count and entity.
         # Search for a compatible axis, if none exists, error out
-        self.axes[0].append(axis)
+        self.axes.parallel.append(Axis(**axis))
 
-    def add_perpendicular_axis(self, axis):
+    def add_perpendicular_axis(self, axis: Axis) -> None:
         # This adds an axis perpendicular to all previous dimensions
-        self.axes.append([axis])
+        self.axes.perpendicular.append(Axis(**axis))
 
-    def expand_axes(self):
+    def expand_axes(self) -> None:
         # This method should be idempotent & allow change in axes
         perpendicular_dimensions = self.axes
 
@@ -507,7 +536,7 @@ class SimulationBuilder:
             axis_entity_step_size = self.entity_counts[axis_entity.plural]
             # Distribute values along axes
             for axis in parallel_axes:
-                axis_index = axis.get('index', 0)
+                # axis_index = axis.get('index', 0)
                 axis_period = axis.get('period', self.default_period)
                 axis_name = axis['name']
                 variable = axis_entity.get_variable(axis_name)
@@ -516,15 +545,15 @@ class SimulationBuilder:
                     array = variable.default_array(axis_count * axis_entity_step_size)
                 elif array.size == axis_entity_step_size:
                     array = numpy.tile(array, axis_count)
-                array[axis_index:: axis_entity_step_size] = numpy.linspace(
-                    axis['min'],
-                    axis['max'],
+                array[axis.index:: axis_entity_step_size] = numpy.linspace(
+                    axis.min,
+                    axis.max,
                     num = axis_count,
                     )
                 # Set input
                 self.input_buffer[axis_name][str(axis_period)] = array
         else:
-            first_axes_count: List[int] = (
+            first_axes_count: Sequence[int] = (
                 parallel_axes[0]["count"]
                 for parallel_axes
                 in self.axes
@@ -555,8 +584,8 @@ class SimulationBuilder:
                         + mesh.reshape(cell_count) * (axis['max'] - axis['min']) / (axis_count - 1)
                     self.input_buffer[axis_name][str(axis_period)] = array
 
-    def get_variable_entity(self, variable_name: str):
+    def get_variable_entity(self, variable_name: str) -> Entity:
         return self.variable_entities[variable_name]
 
-    def register_variable(self, variable_name: str, entity):
+    def register_variable(self, variable_name: str, entity: Entity) -> None:
         self.variable_entities[variable_name] = entity

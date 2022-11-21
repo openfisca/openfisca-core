@@ -21,8 +21,22 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
-from openfisca_core.errors import CycleError, NaNCreationError, SpiralError  # noqa: F401
-
-from .helpers import calculate_output_add, calculate_output_divide, check_type, transform_to_strict_syntax  # noqa: F401
-from .simulation import Simulation  # noqa: F401
-from .simulation_builder import SimulationBuilder  # noqa: F401
+from ._domain import (  # noqa: F401
+    Axes,
+    Axis,
+    )
+from ._params import (  # noqa: F401
+    AxisParams,
+    )
+from ._actions import (
+    AddParallelAxis,
+    AddPerpendicularAxis,
+    )
+from ._helpers import (  # noqa: F401
+    calculate_output_add,
+    calculate_output_divide,
+    check_type,
+    transform_to_strict_syntax,
+    )
+from ._simulation import Simulation  # noqa: F401
+from ._simulation_builder import SimulationBuilder  # noqa: F401

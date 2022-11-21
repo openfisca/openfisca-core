@@ -85,7 +85,7 @@ Whatever the style you choose, contributors and reusers alike will be more than 
 ```py
 """Short summary of your module.
 
-A longer description of what are your module's motivation, domain, and use 
+A longer description of what are your module's motivation, _domain, and use 
 cases. For example, if you decide to create a caching system for OpenFisca, 
 consisting on different caching mechanisms, you could say that large operations 
 are expensive for some users, that different caching mechanisms exist, and that 

@@ -1,4 +1,4 @@
-from openfisca_core.simulations.simulation_builder import SimulationBuilder
+from openfisca_core.simulations._simulation_builder import SimulationBuilder
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_core.entities import build_entity
 from openfisca_core.model_api import Enum, Variable, ETERNITY
