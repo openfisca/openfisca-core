@@ -3,9 +3,11 @@
 *.pyc
 *~
 .coverage
+.mypy.ini
 .mypy_cache
 .mypy_cache*
 .noseids
+.nox
 .project
 .pydevproject
 .pytest_cache

@@ -28,7 +28,7 @@ class ComputationLog:
         if isinstance(value, EnumArray):
             value = value.decode_to_str()
 
-        return numpy.array2string(value, max_line_width = float("inf"))
+        return numpy.array2string(value, max_line_width = None)
 
     def lines(
             self,
