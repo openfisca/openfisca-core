@@ -27,6 +27,9 @@ class TaxBenefitSystem:
     def load_extension(self, extension):
         pass
 
+    def neutralize_variable(self, variable_name):
+        pass
+
     def entities_by_singular(self):
         return {}
 
@@ -95,49 +98,60 @@ def test_variable_not_found():
 def test_tax_benefit_systems_with_reform_cache():
     baseline = TaxBenefitSystem()
 
-    ab_tax_benefit_system = _get_tax_benefit_system(baseline, 'ab', [])
-    ba_tax_benefit_system = _get_tax_benefit_system(baseline, 'ba', [])
+    ab_tax_benefit_system = _get_tax_benefit_system(baseline, 'ab', [], [])
+    ba_tax_benefit_system = _get_tax_benefit_system(baseline, 'ba', [], [])
     assert ab_tax_benefit_system != ba_tax_benefit_system
 
 
 def test_reforms_formats():
     baseline = TaxBenefitSystem()
 
-    lonely_reform_tbs = _get_tax_benefit_system(baseline, 'lonely_reform', [])
-    list_lonely_reform_tbs = _get_tax_benefit_system(baseline, ['lonely_reform'], [])
+    lonely_reform_tbs = _get_tax_benefit_system(baseline, 'lonely_reform', [], [])
+    list_lonely_reform_tbs = _get_tax_benefit_system(baseline, ['lonely_reform'], [], [])
     assert lonely_reform_tbs == list_lonely_reform_tbs
 
 
 def test_reforms_order():
     baseline = TaxBenefitSystem()
 
-    abba_tax_benefit_system = _get_tax_benefit_system(baseline, ['ab', 'ba'], [])
-    baab_tax_benefit_system = _get_tax_benefit_system(baseline, ['ba', 'ab'], [])
+    abba_tax_benefit_system = _get_tax_benefit_system(baseline, ['ab', 'ba'], [], [])
+    baab_tax_benefit_system = _get_tax_benefit_system(baseline, ['ba', 'ab'], [], [])
     assert abba_tax_benefit_system != baab_tax_benefit_system  # keep reforms order in cache
 
 
 def test_tax_benefit_systems_with_extensions_cache():
     baseline = TaxBenefitSystem()
 
-    xy_tax_benefit_system = _get_tax_benefit_system(baseline, [], 'xy')
-    yx_tax_benefit_system = _get_tax_benefit_system(baseline, [], 'yx')
+    xy_tax_benefit_system = _get_tax_benefit_system(baseline, [], 'xy', [])
+    yx_tax_benefit_system = _get_tax_benefit_system(baseline, [], 'yx', [])
     assert xy_tax_benefit_system != yx_tax_benefit_system
 
 
 def test_extensions_formats():
     baseline = TaxBenefitSystem()
 
-    lonely_extension_tbs = _get_tax_benefit_system(baseline, [], 'lonely_extension')
-    list_lonely_extension_tbs = _get_tax_benefit_system(baseline, [], ['lonely_extension'])
+    lonely_extension_tbs = _get_tax_benefit_system(baseline, [], 'lonely_extension', [])
+    list_lonely_extension_tbs = _get_tax_benefit_system(baseline, [], ['lonely_extension'], [])
     assert lonely_extension_tbs == list_lonely_extension_tbs
 
 
 def test_extensions_order():
     baseline = TaxBenefitSystem()
 
-    xy_tax_benefit_system = _get_tax_benefit_system(baseline, [], ['x', 'y'])
-    yx_tax_benefit_system = _get_tax_benefit_system(baseline, [], ['y', 'x'])
+    xy_tax_benefit_system = _get_tax_benefit_system(baseline, [], ['x', 'y'], [])
+    yx_tax_benefit_system = _get_tax_benefit_system(baseline, [], ['y', 'x'], [])
     assert xy_tax_benefit_system == yx_tax_benefit_system  # extensions order is ignored in cache
+
+
+def test_tax_benefit_systems_with_neutralized_variables():
+    baseline = TaxBenefitSystem()
+
+    re_tax_benefit_system = _get_tax_benefit_system(baseline, 'r', ['e'], [])
+    ren_tax_benefit_system = _get_tax_benefit_system(baseline, 'r', ['e'], ['n'])
+    n_tax_benefit_system = _get_tax_benefit_system(baseline, [], [], ['n'])
+
+    assert re_tax_benefit_system != ren_tax_benefit_system
+    assert ren_tax_benefit_system != n_tax_benefit_system
 
 
 def test_performance_graph_option_output():

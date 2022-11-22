@@ -31,7 +31,30 @@ def import_yaml():
     return yaml, Loader
 
 
-TEST_KEYWORDS = {'absolute_error_margin', 'description', 'extensions', 'ignore_variables', 'input', 'keywords', 'max_spiral_loops', 'name', 'only_variables', 'output', 'period', 'reforms', 'relative_error_margin'}
+#: These keys the syntax keys for writing YAML tests.
+#:
+#: .. seealso::
+#:      For more information on common keys and examples, please take a look at
+#:      the official documentation on `Writing YAML tests`_.
+#:
+#: .. _Writing YAML tests: https://openfisca.org/doc/coding-the-legislation/writing_yaml_tests.html
+#:
+TEST_KEYWORDS = {
+    'absolute_error_margin',
+    'description',
+    'extensions',
+    'ignore_variables',
+    'input',
+    'keywords',
+    'max_spiral_loops',
+    'name',
+    'neutralize_variables',
+    'only_variables',
+    'output',
+    'period',
+    'reforms',
+    'relative_error_margin'
+    }
 
 yaml, Loader = import_yaml()
 
@@ -137,7 +160,12 @@ class YamlItem(pytest.Item):
             unexpected_keys = set(self.test.keys()).difference(TEST_KEYWORDS)
             raise ValueError("Unexpected keys {} in test '{}' in file '{}'".format(unexpected_keys, self.name, self.fspath))
 
-        self.tax_benefit_system = _get_tax_benefit_system(self.baseline_tax_benefit_system, self.test.get('reforms', []), self.test.get('extensions', []))
+        self.tax_benefit_system = _get_tax_benefit_system(
+            self.baseline_tax_benefit_system,
+            self.test.get('reforms', []),
+            self.test.get('extensions', []),
+            self.test.get('neutralize_variables', [])
+            )
 
         builder = SimulationBuilder()
         input = self.test.get('input', {})
@@ -283,14 +311,16 @@ class OpenFiscaPlugin(object):
                 options = self.options)
 
 
-def _get_tax_benefit_system(baseline, reforms, extensions):
+def _get_tax_benefit_system(baseline, reforms, extensions, neutralize_variables):
     if not isinstance(reforms, list):
         reforms = [reforms]
     if not isinstance(extensions, list):
         extensions = [extensions]
+    if not isinstance(neutralize_variables, list):
+        neutralize_variables = [neutralize_variables]
 
     # keep reforms order in cache, ignore extensions order
-    key = hash((id(baseline), ':'.join(reforms), frozenset(extensions)))
+    key = hash((id(baseline), ':'.join(reforms), frozenset(extensions), ':'.join(neutralize_variables)))
     if _tax_benefit_system_cache.get(key):
         return _tax_benefit_system_cache.get(key)
 
@@ -302,6 +332,9 @@ def _get_tax_benefit_system(baseline, reforms, extensions):
     for extension in extensions:
         current_tax_benefit_system = current_tax_benefit_system.clone()
         current_tax_benefit_system.load_extension(extension)
+
+    for neutralized_variable in neutralize_variables:
+        current_tax_benefit_system.neutralize_variable(neutralized_variable)
 
     _tax_benefit_system_cache[key] = current_tax_benefit_system
 
