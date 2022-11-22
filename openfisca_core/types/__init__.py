@@ -5,9 +5,6 @@ contributors, to help them better understand and document contracts
 and expected behaviours.
 
 Official Public API:
-    * :attr:`.Array`
-    * ``ArrayLike``
-    * :attr:`.Cache`
     * :attr:`.Entity`
     * :attr:`.Formula`
     * :attr:`.Holder`
@@ -49,12 +46,7 @@ Note:
 
 # Official Public API
 
-from ._data import (  # noqa: F401
-    Array,
-    ArrayLike,
-    )
-
-from ._domain import (  # noqa: F401
+from ._types import (  # noqa: F401
     Entity,
     Formula,
     Holder,
@@ -70,8 +62,6 @@ from ._domain import (  # noqa: F401
     )
 
 __all__ = [
-    "Array",
-    "ArrayLike",
     "Entity",
     "Formula",
     "Holder",
