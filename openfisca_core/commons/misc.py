@@ -1,12 +1,14 @@
-from typing import TypeVar
+from typing import Any, Iterator, Optional, Sequence, TypeVar
 
-import numpy
+import itertools
+
+from openfisca_core import types
 
 T = TypeVar("T")
 
 
 def empty_clone(original: T) -> T:
-    """Creates an empty instance of the same class of the original object.
+    """Create an empty instance of the same class of the original object.
 
     Args:
         original: An object to clone.
@@ -43,8 +45,31 @@ def empty_clone(original: T) -> T:
     return new
 
 
-def stringify_array(array: numpy.ndarray) -> str:
-    """Generates a clean string representation of a numpy array.
+def flatten(seqs: Sequence[Sequence[T]]) -> Iterator[T]:
+    """Flatten a sequence of sequences.
+
+    Args:
+        seqs: Any sequence of sequences.
+
+    Returns:
+        An iterator with the values.
+
+    Examples:
+        >>> list(flatten([(1, 2), (3, 4)]))
+        [1, 2, 3, 4]
+
+        >>> list(flatten(["ab", "cd"]))
+        ['a', 'b', 'c', 'd']
+
+    .. versionadded:: 36.0.0
+
+    """
+
+    return itertools.chain.from_iterable(seqs)
+
+
+def stringify_array(array: Optional[types.Array[Any]]) -> str:
+    """Generate a clean string representation of a numpy array.
 
     Args:
         array: An array.

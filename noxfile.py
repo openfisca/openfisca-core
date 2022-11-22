@@ -7,7 +7,7 @@ nox.options.stop_on_first_error = True
 
 
 @nox.session(python = ("3.9", "3.8", "3.7"), tags = ("lint", "style"))
-@nox.parametrize("numpy", ("1.22", "1.20", "1.21"))
+@nox.parametrize("numpy", ("1.23", "1.22", "1.21"))
 def style(session, numpy):
     """Run tests."""
 
@@ -21,7 +21,7 @@ def style(session, numpy):
 
 
 @nox.session(python = ("3.9", "3.8", "3.7"), tags = ("lint", "docs"))
-@nox.parametrize("numpy", ("1.22", "1.20", "1.21"))
+@nox.parametrize("numpy", ("1.23", "1.22", "1.21"))
 def docs(session, numpy):
     """Run tests."""
 
@@ -35,7 +35,7 @@ def docs(session, numpy):
 
 
 @nox.session(python = ("3.9", "3.8", "3.7"), tags = ("lint", "mypy"))
-@nox.parametrize("numpy", ("1.22", "1.20", "1.21"))
+@nox.parametrize("numpy", ("1.23", "1.22", "1.21"))
 def mypy(session, numpy):
     """Run tests."""
 
@@ -49,7 +49,7 @@ def mypy(session, numpy):
 
 
 @nox.session(python = ("3.9", "3.8", "3.7"), tags = ("lint", "mypy-hxc"))
-@nox.parametrize("numpy", ("1.22", "1.20", "1.21"))
+@nox.parametrize("numpy", ("1.23", "1.22", "1.21"))
 def mypy_hxc(session, numpy):
     """Run tests."""
 
@@ -63,7 +63,7 @@ def mypy_hxc(session, numpy):
 
 
 @nox.session(python = ("3.9", "3.8", "3.7"), tags = ("test", "test-core"))
-@nox.parametrize("numpy", ("1.22", "1.20", "1.21"))
+@nox.parametrize("numpy", ("1.23", "1.22", "1.21"))
 def test_core(session, numpy):
     """Run tests."""
 
@@ -79,7 +79,7 @@ def test_core(session, numpy):
 
 
 @nox.session(python = ("3.9", "3.8", "3.7"), tags = ("test", "test-country"))
-@nox.parametrize("numpy", ("1.22", "1.20", "1.21"))
+@nox.parametrize("numpy", ("1.23", "1.22", "1.21"))
 def test_country(session, numpy):
     """Run tests."""
 
@@ -95,7 +95,7 @@ def test_country(session, numpy):
 
 
 @nox.session(python = ("3.9", "3.8", "3.7"), tags = ("test", "test-extension"))
-@nox.parametrize("numpy", ("1.22", "1.20", "1.21"))
+@nox.parametrize("numpy", ("1.23", "1.22", "1.21"))
 def test_extension(session, numpy):
     """Run tests."""
 

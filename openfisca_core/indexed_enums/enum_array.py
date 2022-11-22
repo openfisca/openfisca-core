@@ -63,7 +63,7 @@ class EnumArray(numpy.ndarray):
     __and__ = _forbidden_operation
     __or__ = _forbidden_operation
 
-    def decode(self) -> numpy.object_:
+    def decode(self) -> numpy.ndarray:
         """
         Return the array of enum items corresponding to self.
 
@@ -82,7 +82,7 @@ class EnumArray(numpy.ndarray):
             list(self.possible_values),
             )
 
-    def decode_to_str(self) -> numpy.str_:
+    def decode_to_str(self) -> numpy.ndarray:
         """
         Return the array of string identifiers corresponding to self.
 

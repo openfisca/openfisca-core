@@ -1,4 +1,4 @@
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, Sequence, Union
 
 import numpy
 
@@ -29,21 +29,20 @@ def apply_thresholds(
 
     Examples:
         >>> input = numpy.array([4, 5, 6, 7, 8])
-        >>> thresholds =
-        [5, 7]
+        >>> thresholds = [5, 7]
         >>> choices = [10, 15, 20]
         >>> apply_thresholds(input, thresholds, choices)
         array([10, 10, 15, 15, 20])
 
     """
 
-    condlist: Sequence[numpy.bool_]
+    condlist: Sequence[Union[bool, numpy.bool_]]
     condlist = [input <= threshold for threshold in thresholds]
 
     if len(condlist) == len(choices) - 1:
         # If a choice is provided for input > highest threshold, last condition
         # must be true to return it.
-        condlist += numpy.array([True])
+        condlist += [True]
 
     assert len(condlist) == len(choices), \
         " ".join([
@@ -119,7 +118,7 @@ def switch(
 
     condlist = [
         conditions == condition
-        for condition in tuple(value_by_condition.keys())
+        for condition in value_by_condition.keys()
         ]
 
     return numpy.select(condlist, tuple(value_by_condition.values()))

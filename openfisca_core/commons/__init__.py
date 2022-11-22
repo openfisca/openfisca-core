@@ -8,6 +8,7 @@ Official Public API:
     * :func:`.average_rate`
     * :func:`.concat`
     * :func:`.empty_clone`
+    * :func:`.flatten`
     * :func:`.marginal_rate`
     * :func:`.stringify_array`
     * :func:`.switch`
@@ -53,11 +54,11 @@ Note:
 # Official Public API
 
 from .formulas import apply_thresholds, concat, switch  # noqa: F401
-from .misc import empty_clone, stringify_array  # noqa: F401
+from .misc import empty_clone, flatten, stringify_array  # noqa: F401
 from .rates import average_rate, marginal_rate  # noqa: F401
 
 __all__ = ["apply_thresholds", "concat", "switch"]
-__all__ = ["empty_clone", "stringify_array", *__all__]
+__all__ = ["empty_clone", "flatten", "stringify_array", *__all__]
 __all__ = ["average_rate", "marginal_rate", *__all__]
 
 # Deprecated

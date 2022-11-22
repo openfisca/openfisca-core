@@ -5,8 +5,11 @@ contributors, to help them better understand and document contracts
 and expected behaviours.
 
 Official Public API:
+    * :attr:`.Array`
     * :attr:`.Entity`
+    * :attr:`.EnumArray`
     * :attr:`.Formula`
+    * :attr:`.FullTracer`
     * :attr:`.Holder`
     * :attr:`.Instant`
     * :attr:`.ParameterNodeAtInstant`
@@ -16,6 +19,7 @@ Official Public API:
     * :attr:`.Role`,
     * :attr:`.Simulation`,
     * :attr:`.TaxBenefitSystem`
+    * :attr:`.TraceNode`
     * :attr:`.Variable`
 
 Note:
@@ -46,9 +50,15 @@ Note:
 
 # Official Public API
 
-from ._types import (  # noqa: F401
+from ._data import (  # noqa: F401
+    Array,
+    )
+
+from ._domain import (  # noqa: F401
     Entity,
+    EnumArray,
     Formula,
+    FullTracer,
     Holder,
     Instant,
     ParameterNodeAtInstant,
@@ -58,12 +68,16 @@ from ._types import (  # noqa: F401
     Role,
     Simulation,
     TaxBenefitSystem,
+    TraceNode,
     Variable,
     )
 
 __all__ = [
+    "Array",
     "Entity",
+    "EnumArray",
     "Formula",
+    "FullTracer",
     "Holder",
     "Instant",
     "ParameterNodeAtInstant",
@@ -73,5 +87,6 @@ __all__ = [
     "Role",
     "Simulation",
     "TaxBenefitSystem",
+    "TraceNode",
     "Variable",
     ]

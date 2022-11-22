@@ -1,40 +1,31 @@
 from __future__ import annotations
 
-import typing
-from typing import List, Optional, Union
+from typing import Any, Optional, Sequence
+
+import sys
 
 import numpy
 
-from .. import tracers
-from openfisca_core.indexed_enums import EnumArray
-
-if typing.TYPE_CHECKING:
-    from numpy.typing import ArrayLike
-
-    Array = Union[EnumArray, ArrayLike]
+from openfisca_core import commons, types
 
 
 class ComputationLog:
+    _full_tracer: types.FullTracer
 
-    _full_tracer: tracers.FullTracer
-
-    def __init__(self, full_tracer: tracers.FullTracer) -> None:
+    def __init__(self, full_tracer: types.FullTracer) -> None:
         self._full_tracer = full_tracer
 
-    def display(
-            self,
-            value: Optional[Array],
-            ) -> str:
-        if isinstance(value, EnumArray):
+    def display(self, value: types.Array[Any]) -> str:
+        if isinstance(value, types.EnumArray):
             value = value.decode_to_str()
 
-        return numpy.array2string(value, max_line_width = None)
+        return numpy.array2string(value, max_line_width = sys.maxsize)
 
     def lines(
             self,
             aggregate: bool = False,
             max_depth: Optional[int] = None,
-            ) -> List[str]:
+            ) -> Sequence[str]:
         depth = 1
 
         lines_by_tree = [
@@ -43,7 +34,7 @@ class ComputationLog:
             in self._full_tracer.trees
             ]
 
-        return self._flatten(lines_by_tree)
+        return tuple(commons.flatten(lines_by_tree))
 
     def print_log(self, aggregate = False, max_depth = None) -> None:
         """
@@ -67,11 +58,14 @@ class ComputationLog:
 
     def _get_node_log(
             self,
-            node: tracers.TraceNode,
+            node: types.TraceNode,
             depth: int,
             aggregate: bool,
             max_depth: Optional[int],
-            ) -> List[str]:
+            ) -> Sequence[str]:
+
+        node_log: Sequence[str]
+        children_log: Sequence[Sequence[str]]
 
         if max_depth is not None and depth > max_depth:
             return []
@@ -84,12 +78,12 @@ class ComputationLog:
             in node.children
             ]
 
-        return node_log + self._flatten(children_logs)
+        return [*node_log, *commons.flatten(children_logs)]
 
     def _print_line(
             self,
             depth: int,
-            node: tracers.TraceNode,
+            node: types.TraceNode,
             aggregate: bool,
             max_depth: Optional[int],
             ) -> str:
@@ -114,9 +108,3 @@ class ComputationLog:
             formatted_value = self.display(value)
 
         return f"{indent}{node.name}<{node.period}> >> {formatted_value}"
-
-    def _flatten(
-            self,
-            lists: List[List[str]],
-            ) -> List[str]:
-        return [item for list_ in lists for item in list_]
