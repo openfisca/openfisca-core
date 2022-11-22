@@ -1,6 +1,6 @@
 from typing import TypeVar
 
-from openfisca_core.types import Array
+import numpy
 
 T = TypeVar("T")
 
@@ -43,7 +43,7 @@ def empty_clone(original: T) -> T:
     return new
 
 
-def stringify_array(array: Array) -> str:
+def stringify_array(array: numpy.ndarray) -> str:
     """Generates a clean string representation of a numpy array.
 
     Args:

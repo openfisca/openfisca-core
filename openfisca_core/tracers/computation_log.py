@@ -27,7 +27,6 @@ class ComputationLog:
             ) -> str:
         if isinstance(value, EnumArray):
             value = value.decode_to_str()
-            raise ValueError(type(value))
 
         return numpy.array2string(value, max_line_width = None)
 
