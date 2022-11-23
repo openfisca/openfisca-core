@@ -4,16 +4,19 @@ on: [ push, pull_request, workflow_dispatch ]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       TERM: xterm-256color  # To colorize output of make tasks.
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.7.12  # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
+
       - name: Cache build
         id: restore-build
         uses: actions/cache@v2
@@ -23,8 +26,10 @@ jobs:
           restore-keys: | # in case of a cache miss (systematically unless the same commit is built repeatedly), the keys below will be used to restore dependencies from previous builds, and the cache will be stored at the end of the job, making up-to-date dependencies available for all jobs of the workflow; see more at https://docs.github.com/en/actions/advanced-guides/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
             build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
             build-${{ env.pythonLocation }}-
+
       - name: Build package
         run: make build
+
       - name: Cache release
         id: restore-release
         uses: actions/cache@v2
@@ -33,123 +38,147 @@ jobs:
           key: release-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
   test-core:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [ build ]
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       TERM: xterm-256color  # To colorize output of make tasks.
+
     steps:
       - uses: actions/checkout@v2
+
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.7.12
+
       - name: Cache build
         id: restore-build
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
+
       - name: Run openfisca-core tests
         run:  make test-core
+
       - name: Submit coverage to Coveralls
         run: |
           pip install coveralls
           coveralls --service=github
 
   test-country-template:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [ build ]
     env:
       TERM: xterm-256color
+
     steps:
       - uses: actions/checkout@v2
+
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.7.12
+
       - name: Cache build
         id: restore-build
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
+
       - name: Run Country Template tests
         run: make test-country
 
   test-extension-template:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [ build ]
     env:
       TERM: xterm-256color
+
     steps:
       - uses: actions/checkout@v2
+
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.7.12
+
       - name: Cache build
         id: restore-build
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
+
       - name: Run Extension Template tests
         run: make test-extension
 
   check-numpy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [ build ]
     env:
       TERM: xterm-256color
+
     steps:
       - uses: actions/checkout@v2
+
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.7.12
+
       - name: Cache build
         id: restore-build
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
+
       - name: Check NumPy typing against latest 3 minor versions
         run: for i in {1..3}; do VERSION=$(${GITHUB_WORKSPACE}/.github/get-numpy-version.py prev) && pip install numpy==$VERSION && make check-types; done
 
   lint-files:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [ build ]
     env:
       TERM: xterm-256color
+
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0 # Fetch all the tags
+
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.7.12
+
       - name: Cache build
         id: restore-build
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
+
       - name: Run linters
         run: make lint
 
   check-version:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [ test-core, test-country-template, test-extension-template, check-numpy, lint-files ] # Last job to run
+
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0 # Fetch all the tags
+
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.7.12
+
       - name: Check version number has been properly updated
         run: "${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh"
 
@@ -157,63 +186,74 @@ jobs:
   # We build a separate job to substitute the halt option.
   # The `deploy` job is dependent on the output of the `check-for-functional-changes`job.
   check-for-functional-changes:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: github.ref == 'refs/heads/master' # Only triggered for the `master` branch
     needs: [ check-version ]
     outputs:
       status: ${{ steps.stop-early.outputs.status }}
+
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0 # Fetch all the tags
+
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.7.12
+
       - id: stop-early
         run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "::set-output name=status::success" ; fi # The `check-for-functional-changes` job should always succeed regardless of the `has-functional-changes` script's exit code. Consequently, we do not use that exit code to trigger deploy, but rather a dedicated output variable `status`, to avoid a job failure if the exit code is different from 0. Conversely, if the job fails the entire workflow would be marked as `failed` which is disturbing for contributors.
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [ check-for-functional-changes ]
     if: needs.check-for-functional-changes.outputs.status == 'success'
     env:
       PYPI_USERNAME: openfisca-bot
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       CIRCLE_TOKEN: ${{ secrets.CIRCLECI_V1_OPENFISCADOC_TOKEN }} # Personal API token created in CircleCI to grant full read and write permissions
+
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0 # Fetch all the tags
+
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.7.12
+
       - name: Cache build
         id: restore-build
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
+
       - name: Cache release
         id: restore-release
         uses: actions/cache@v2
         with:
           path: dist
           key: release-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
+
       - name: Upload a Python package to PyPi
         run: twine upload dist/* --username $PYPI_USERNAME --password $PYPI_PASSWORD
+
       - name: Publish a git tag
         run: "${GITHUB_WORKSPACE}/.github/publish-git-tag.sh"
+
       - name: Update doc
         run: |
           curl -X POST --header "Content-Type: application/json" -d '{"branch":"master"}' https://circleci.com/api/v1.1/project/github/openfisca/openfisca-doc/build?circle-token=${{ secrets.CIRCLECI_V1_OPENFISCADOC_TOKEN }}
 
   publish-to-conda:
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-20.04"
     needs: [ deploy ]
     strategy:
       fail-fast: false
+
     steps:
       - uses: conda-incubator/setup-miniconda@v2
         with:
@@ -221,26 +261,31 @@ jobs:
           python-version: 3.7.12
           channels: conda-forge
           activate-environment: true
+
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0 # Fetch all the tags
+
       - name: Update meta.yaml
         run: |
           python3 -m pip install requests argparse
           # Sleep to allow PyPi to update its API
           sleep 60
           python3 .github/get_pypi_info.py -p OpenFisca-Core
+
       - name: Conda Config
         run: |
           conda install conda-build anaconda-client
           conda info
           conda config --set anaconda_upload yes
+
       - name: Conda build
         run: conda build -c conda-forge --token ${{ secrets.ANACONDA_TOKEN }} --user openfisca .conda
 
   test-on-windows:
     runs-on: "windows-latest"
     needs: [ publish-to-conda ]
+
     steps:
       - uses: conda-incubator/setup-miniconda@v2
         with:
@@ -248,10 +293,13 @@ jobs:
           python-version: "3.7.9"  # 3.7.12 don't exist on GHA Windows https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
           channels: conda-forge
           activate-environment: true
+
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0 # Fetch all the tags
+
       - name: Install with conda
         run: conda install -c openfisca openfisca-core
+
       - name: Test openfisca
         run: openfisca --help
