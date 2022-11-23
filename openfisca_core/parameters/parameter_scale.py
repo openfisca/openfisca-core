@@ -96,25 +96,17 @@ class ParameterScale(AtInstantLike):
             scale = LinearAverageRateTaxScale()
 
             for bracket in brackets:
-                if 'base' in bracket._children:
-                    base = bracket.base
-                else:
-                    base = 1.
                 if 'average_rate' in bracket._children and 'threshold' in bracket._children:
                     average_rate = bracket.average_rate
                     threshold = bracket.threshold
-                    scale.add_bracket(threshold, average_rate * base)
+                    scale.add_bracket(threshold, average_rate)
             return scale
         else:
             scale = MarginalRateTaxScale()
 
             for bracket in brackets:
-                if 'base' in bracket._children:
-                    base = bracket.base
-                else:
-                    base = 1.
                 if 'rate' in bracket._children and 'threshold' in bracket._children:
                     rate = bracket.rate
                     threshold = bracket.threshold
-                    scale.add_bracket(threshold, rate * base)
+                    scale.add_bracket(threshold, rate)
             return scale
