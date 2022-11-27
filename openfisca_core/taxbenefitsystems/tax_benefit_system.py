@@ -390,7 +390,7 @@ class TaxBenefitSystem:
         """Get the parameters of the legislation at a given instant
 
         Args:
-            instant: :obj:`str` formatted "YYYY-MM-DD" or :class:`.Instant`.
+            instant: :obj:`str` formatted "YYYY-MM-DD" or :class:`~openfisca_core.periods.Instant`.
 
         Returns:
             The parameters of the legislation at a given instant.

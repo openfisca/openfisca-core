@@ -35,6 +35,7 @@ class Formula(Protocol):
 
     @abc.abstractmethod
     def __call__(
+            self,
             population: Population,
             instant: Instant,
             params: Params,
@@ -46,7 +47,7 @@ class Holder(Protocol):
     """Holder protocol."""
 
     @abc.abstractmethod
-    def clone(self, __arg: Any) -> Holder:
+    def clone(self, population: Any) -> Holder:
         """Abstract method."""
 
     @abc.abstractmethod
@@ -84,7 +85,7 @@ class Population(Protocol):
     entity: Any
 
     @abc.abstractmethod
-    def get_holder(self, __arg1: Any) -> Any:
+    def get_holder(self, variable_name: Any) -> Any:
         """Abstract method."""
 
 
