@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy
 import typing_extensions
 from typing import Any, Optional
 from typing_extensions import Protocol
@@ -29,6 +30,18 @@ class Entity(Protocol):
         """Abstract method."""
 
 
+class Formula(Protocol):
+    """Formula protocol."""
+
+    @abc.abstractmethod
+    def __call__(
+            population: Population,
+            instant: Instant,
+            params: Params,
+            ) -> numpy.ndarray:
+        """Abstract method."""
+
+
 class Holder(Protocol):
     """Holder protocol."""
 
@@ -46,9 +59,23 @@ class ParameterNodeAtInstant(Protocol):
     """ParameterNodeAtInstant protocol."""
 
 
+class Instant(Protocol):
+    """Instant protocol."""
+
+
+class Params(Protocol):
+    """Params protocol."""
+
+    @abc.abstractmethod
+    def __call__(self, instant: Instant) -> ParameterNodeAtInstant:
+        """Abstract method."""
+
+
 @typing_extensions.runtime_checkable
 class Period(Protocol):
     """Period protocol."""
+
+    start: Any
 
 
 class Population(Protocol):

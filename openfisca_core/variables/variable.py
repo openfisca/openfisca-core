@@ -1,15 +1,20 @@
+from __future__ import annotations
+
+from typing import Optional, Union
+
 import datetime
 import inspect
 import re
 import textwrap
-import sortedcontainers
 
 import numpy
+import sortedcontainers
 
 from openfisca_core import periods, tools
 from openfisca_core.entities import Entity
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import Period
+from openfisca_core.types import Formula, Instant
 
 from . import config, helpers
 
@@ -304,14 +309,20 @@ class Variable:
 
         return comments, source_file_path, source_code, start_line_number
 
-    def get_formula(self, period = None):
-        """
-        Returns the formula used to compute the variable at the given period.
+    def get_formula(
+            self,
+            period: Union[Instant, Period, str, int] = None,
+            ) -> Optional[Formula]:
+        """Returns the formula to compute the variable at the given period.
 
-        If no period is given and the variable has several formula, return the oldest formula.
+        If no period is given and the variable has several formulas, the method
+        returns the oldest formula.
 
-        :returns: Formula used to compute the variable
-        :rtype: :any:`Formula`
+        Args:
+            period: The period to get the formula.
+
+        Returns:
+            Formula used to compute the variable.
 
         """
 
@@ -332,9 +343,10 @@ class Variable:
         if self.end and instant.date > self.end:
             return None
 
-        instant = str(instant)
+        instant_str = str(instant)
+
         for start_date in reversed(self.formulas):
-            if start_date <= instant:
+            if start_date <= instant_str:
                 return self.formulas[start_date]
 
         return None

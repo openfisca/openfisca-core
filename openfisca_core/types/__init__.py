@@ -9,8 +9,11 @@ Official Public API:
     * ``ArrayLike``
     * :attr:`.Cache`
     * :attr:`.Entity`
+    * :attr:`.Formula`
     * :attr:`.Holder`
+    * :attr:`.Instant`
     * :attr:`.ParameterNodeAtInstant`
+    * :attr:`.Params`
     * :attr:`.Period`
     * :attr:`.Population`
     * :attr:`.Role`,
@@ -53,8 +56,11 @@ from ._data import (  # noqa: F401
 
 from ._domain import (  # noqa: F401
     Entity,
+    Formula,
     Holder,
+    Instant,
     ParameterNodeAtInstant,
+    Params,
     Period,
     Population,
     Role,
@@ -67,7 +73,11 @@ __all__ = [
     "Array",
     "ArrayLike",
     "Entity",
+    "Formula",
+    "Holder",
+    "Instant",
     "ParameterNodeAtInstant",
+    "Params",
     "Period",
     "Population",
     "Role",
