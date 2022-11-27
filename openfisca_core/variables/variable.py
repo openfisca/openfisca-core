@@ -95,6 +95,8 @@ class Variable:
            Free multilines text field describing the variable context and usage.
     """
 
+    __name__: str
+
     def __init__(self, baseline_variable = None):
         self.name = self.__class__.__name__
         attr = {

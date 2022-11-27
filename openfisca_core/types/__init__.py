@@ -10,6 +10,7 @@ Official Public API:
     * :attr:`.Cache`
     * :attr:`.Entity`
     * :attr:`.Holder`
+    * :attr:`.ParameterNodeAtInstant`
     * :attr:`.Period`
     * :attr:`.Population`
     * :attr:`.Role`,
@@ -53,6 +54,7 @@ from ._data import (  # noqa: F401
 from ._domain import (  # noqa: F401
     Entity,
     Holder,
+    ParameterNodeAtInstant,
     Period,
     Population,
     Role,
@@ -65,6 +67,7 @@ __all__ = [
     "Array",
     "ArrayLike",
     "Entity",
+    "ParameterNodeAtInstant",
     "Period",
     "Population",
     "Role",

@@ -42,6 +42,11 @@ class Holder(Protocol):
 
 
 @typing_extensions.runtime_checkable
+class ParameterNodeAtInstant(Protocol):
+    """ParameterNodeAtInstant protocol."""
+
+
+@typing_extensions.runtime_checkable
 class Period(Protocol):
     """Period protocol."""
 
