@@ -76,7 +76,10 @@ class Params(Protocol):
 class Period(Protocol):
     """Period protocol."""
 
-    start: Any
+    @property
+    @abc.abstractmethod
+    def start(self) -> Any:
+        """Abstract method."""
 
 
 class Population(Protocol):
