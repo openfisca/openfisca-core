@@ -1,18 +1,48 @@
 from __future__ import annotations
 
-import warnings
-import sys
+from typing import Dict, Optional, Sequence, Union
+from typing_extensions import TypedDict
+
+import dataclasses
 import os
-import traceback
+import sys
 import textwrap
-from typing import Dict, List
+import traceback
+import warnings
 
 import pytest
 
-from openfisca_core.tools import assert_near
-from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.errors import SituationParsingError, VariableNotFound
+from openfisca_core.simulation_builder import SimulationBuilder
+from openfisca_core.tools import assert_near
+from openfisca_core.types import TaxBenefitSystem
 from openfisca_core.warnings import LibYAMLWarning
+
+
+class Options(TypedDict, total = False):
+    aggregate: bool
+    ignore_variables: Optional[Sequence[str]]
+    max_depth: Optional[int]
+    name_filter: Optional[str]
+    only_variables: Optional[Sequence[str]]
+    pdb: bool
+    performance_graph: bool
+    performance_tables: bool
+    verbose: bool
+
+
+@dataclasses.dataclass
+class Test:
+    output: Dict[str, Union[float, Dict[str, float]]]
+    name: str = ""
+    input: Dict[str, Union[float, Dict[str, float]]] = dataclasses.field(default_factory = dict)
+    period: Optional[str] = None
+    reforms: Sequence[str] = dataclasses.field(default_factory = list)
+    keywords: Optional[Sequence[str]] = None
+    extensions: Sequence[str] = dataclasses.field(default_factory = list)
+    max_spiral_loops: Optional[int] = None
+    absolute_error_margin: Optional[float] = None
+    relative_error_margin: Optional[float] = None
 
 
 def import_yaml():
@@ -37,20 +67,28 @@ yaml, Loader = import_yaml()
 
 _tax_benefit_system_cache: Dict = {}
 
+options: Options = Options()
 
-def run_tests(tax_benefit_system, paths, options = None):
-    """
-    Runs all the YAML tests contained in a file or a directory.
 
-    If `path` is a directory, subdirectories will be recursively explored.
+def run_tests(
+        tax_benefit_system: TaxBenefitSystem,
+        paths: Union[str, Sequence[str]],
+        options: Options = options,
+        ) -> int:
+    """Runs all the YAML tests contained in a file or a directory.
 
-    :param TaxBenefitSystem tax_benefit_system: the tax-benefit system to use to run the tests
-    :param str or list paths: A path, or a list of paths, towards the files or directories containing the tests to run. If a path is a directory, subdirectories will be recursively explored.
-    :param dict options: See more details below.
+    If ``path`` is a directory, subdirectories will be recursively explored.
 
-    :raises :exc:`AssertionError`: if a test does not pass
+    Args:
+        tax_benefit_system: the tax-benefit system to use to run the tests.
+        paths: A path, or a list of paths, towards the files or directories containing the tests to run. If a path is a directory, subdirectories will be recursively explored.
+        options: See more details below.
 
-    :return: the number of sucessful tests excecuted
+    Returns:
+        The number of successful tests executed.
+
+    Raises:
+        :exc:`AssertionError`: if a test does not pass.
 
     **Testing options**:
 
@@ -65,6 +103,7 @@ def run_tests(tax_benefit_system, paths, options = None):
     """
 
     argv = []
+    plugins = [OpenFiscaPlugin(tax_benefit_system, options)]
 
     if options.get('pdb'):
         argv.append('--pdb')
@@ -75,7 +114,7 @@ def run_tests(tax_benefit_system, paths, options = None):
     if isinstance(paths, str):
         paths = [paths]
 
-    return pytest.main([*argv, *paths] if True else paths, plugins = [OpenFiscaPlugin(tax_benefit_system, options)])
+    return pytest.main([*argv, *paths], plugins = plugins)
 
 
 class YamlFile(pytest.File):
@@ -96,10 +135,12 @@ class YamlFile(pytest.File):
             raise ValueError(message)
 
         if not isinstance(tests, list):
-            tests: List[Dict] = [tests]
+            tests: Sequence[Dict] = [tests]
 
         for test in tests:
             if not self.should_ignore(test):
+                test = Test(**test)
+
                 yield YamlItem.from_parent(self,
                     name = '',
                     baseline_tax_benefit_system = self.tax_benefit_system,
@@ -129,20 +170,18 @@ class YamlItem(pytest.Item):
         self.tax_benefit_system = None
 
     def runtest(self):
-        self.name = self.test.get('name', '')
-        if not self.test.get('output'):
-            raise ValueError("Missing key 'output' in test '{}' in file '{}'".format(self.name, self.fspath))
+        self.name = self.test.name
 
-        if not TEST_KEYWORDS.issuperset(self.test.keys()):
-            unexpected_keys = set(self.test.keys()).difference(TEST_KEYWORDS)
-            raise ValueError("Unexpected keys {} in test '{}' in file '{}'".format(unexpected_keys, self.name, self.fspath))
-
-        self.tax_benefit_system = _get_tax_benefit_system(self.baseline_tax_benefit_system, self.test.get('reforms', []), self.test.get('extensions', []))
+        self.tax_benefit_system = _get_tax_benefit_system(
+            self.baseline_tax_benefit_system,
+            self.test.reforms,
+            self.test.extensions,
+            )
 
         builder = SimulationBuilder()
-        input = self.test.get('input', {})
-        period = self.test.get('period')
-        max_spiral_loops = self.test.get('max_spiral_loops')
+        input = self.test.input
+        period = self.test.period
+        max_spiral_loops = self.test.max_spiral_loops
         verbose = self.options.get('verbose')
         aggregate = self.options.get('aggregate')
         max_depth = self.options.get('max_depth')
@@ -184,23 +223,23 @@ class YamlItem(pytest.Item):
         tracer.generate_performance_tables('.')
 
     def check_output(self):
-        output = self.test.get('output')
+        output = self.test.output
 
         if output is None:
             return
         for key, expected_value in output.items():
             if self.tax_benefit_system.get_variable(key):  # If key is a variable
-                self.check_variable(key, expected_value, self.test.get('period'))
+                self.check_variable(key, expected_value, self.test.period)
             elif self.simulation.populations.get(key):  # If key is an entity singular
                 for variable_name, value in expected_value.items():
-                    self.check_variable(variable_name, value, self.test.get('period'))
+                    self.check_variable(variable_name, value, self.test.period)
             else:
                 population = self.simulation.get_population(plural = key)
                 if population is not None:  # If key is an entity plural
                     for instance_id, instance_values in expected_value.items():
                         for variable_name, value in instance_values.items():
                             entity_index = population.get_index(instance_id)
-                            self.check_variable(variable_name, value, self.test.get('period'), entity_index)
+                            self.check_variable(variable_name, value, self.test.period, entity_index)
                 else:
                     raise VariableNotFound(key, self.tax_benefit_system)
 
@@ -216,7 +255,7 @@ class YamlItem(pytest.Item):
 
         actual_value = self.simulation.calculate(variable_name, period)
 
-        absolute_error_margin = self.test.get("absolute_error_margin")
+        absolute_error_margin = self.test.absolute_error_margin
 
         if isinstance(absolute_error_margin, Dict):
             absolute_error_margin = absolute_error_margin.get(
@@ -224,7 +263,7 @@ class YamlItem(pytest.Item):
                 absolute_error_margin.get("default"),
                 )
 
-        relative_error_margin = self.test.get('relative_error_margin')
+        relative_error_margin = self.test.relative_error_margin
 
         if isinstance(relative_error_margin, Dict):
             relative_error_margin = relative_error_margin.get(
