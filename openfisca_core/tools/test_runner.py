@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import Dict, Optional, Sequence, Union
-from typing_extensions import TypedDict
+from typing import Any, Dict, Optional, Sequence, Union
+from typing_extensions import Literal, TypedDict
 
 import dataclasses
 import os
@@ -31,18 +31,45 @@ class Options(TypedDict, total = False):
     verbose: bool
 
 
+@dataclasses.dataclass(frozen = True)
+class ErrorMargin:
+    __root__: Dict[Union[str, Literal["default"]], Optional[float]]
+
+    def __getitem__(self, key: str) -> Optional[float]:
+        if key in self.__root__:
+            return self.__root__[key]
+
+        return self.__root__["default"]
+
+
 @dataclasses.dataclass
 class Test:
-    output: Dict[str, Union[float, Dict[str, float]]]
+    absolute_error_margin: ErrorMargin
+    relative_error_margin: ErrorMargin
     name: str = ""
     input: Dict[str, Union[float, Dict[str, float]]] = dataclasses.field(default_factory = dict)
+    output: Optional[Dict[str, Union[float, Dict[str, float]]]] = None
     period: Optional[str] = None
     reforms: Sequence[str] = dataclasses.field(default_factory = list)
     keywords: Optional[Sequence[str]] = None
     extensions: Sequence[str] = dataclasses.field(default_factory = list)
+    description: Optional[str] = None
     max_spiral_loops: Optional[int] = None
-    absolute_error_margin: Optional[float] = None
-    relative_error_margin: Optional[float] = None
+
+
+def build_test(params: Dict[str, Any]) -> Test:
+    for key in ["absolute_error_margin", "relative_error_margin"]:
+        value = params.get(key)
+
+        if value is None:
+            value = {"default": None}
+
+        elif isinstance(value, (float, int, str)):
+            value = {"default": float(value)}
+
+        params[key] = ErrorMargin(value)
+
+    return Test(**params)
 
 
 def import_yaml():
@@ -139,12 +166,13 @@ class YamlFile(pytest.File):
 
         for test in tests:
             if not self.should_ignore(test):
-                test = Test(**test)
-
-                yield YamlItem.from_parent(self,
+                yield YamlItem.from_parent(
+                    self,
                     name = '',
                     baseline_tax_benefit_system = self.tax_benefit_system,
-                    test = test, options = self.options)
+                    test = test,
+                    options = self.options,
+                    )
 
     def should_ignore(self, test):
         name_filter = self.options.get('name_filter')
@@ -165,12 +193,16 @@ class YamlItem(pytest.Item):
         super(YamlItem, self).__init__(name, parent)
         self.baseline_tax_benefit_system = baseline_tax_benefit_system
         self.options = options
-        self.test = test
+        self.test = build_test(test)
         self.simulation = None
         self.tax_benefit_system = None
 
     def runtest(self):
         self.name = self.test.name
+
+        if self.test.output is None:
+            msg = f"Missing key 'output' in test '{self.name}' in file '{self.fspath}'"
+            raise ValueError(msg)
 
         self.tax_benefit_system = _get_tax_benefit_system(
             self.baseline_tax_benefit_system,
@@ -255,31 +287,15 @@ class YamlItem(pytest.Item):
 
         actual_value = self.simulation.calculate(variable_name, period)
 
-        absolute_error_margin = self.test.absolute_error_margin
-
-        if isinstance(absolute_error_margin, Dict):
-            absolute_error_margin = absolute_error_margin.get(
-                variable_name,
-                absolute_error_margin.get("default"),
-                )
-
-        relative_error_margin = self.test.relative_error_margin
-
-        if isinstance(relative_error_margin, Dict):
-            relative_error_margin = relative_error_margin.get(
-                variable_name,
-                relative_error_margin.get("default"),
-                )
-
         if entity_index is not None:
             actual_value = actual_value[entity_index]
 
         return assert_near(
             actual_value,
             expected_value,
-            absolute_error_margin,
-            message = f"{variable_name}@{period}: ",
-            relative_error_margin = relative_error_margin,
+            self.test.absolute_error_margin[variable_name],
+            f"{variable_name}@{period}: ",
+            self.test.relative_error_margin[variable_name],
             )
 
     def should_ignore_variable(self, variable_name: str):
