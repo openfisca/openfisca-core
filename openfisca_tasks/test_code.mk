@@ -22,6 +22,10 @@ test-code: test-core test-country test-extension
 ## Run openfisca-core tests.
 test-core: $(shell pytest --quiet --quiet --collect-only 2> /dev/null | cut -f 1 -d ":")
 	@$(call print_help,$@:)
+	@pytest --quiet --capture=no --xdoctest --xdoctest-verbose=0 \
+		openfisca_core/commons \
+		openfisca_core/holders \
+		openfisca_core/types
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
 		coverage run -m \
 		${openfisca} test $? \
