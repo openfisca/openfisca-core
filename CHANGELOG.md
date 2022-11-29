@@ -1,5 +1,12 @@
 # Changelog
 
+### 35.11.1 [#1165](https://github.com/openfisca/openfisca-core/pull/1165)
+
+#### Bug fix
+
+- Fix documentation
+  - Suppression of some modules broke the documentation build
+
 ## 35.11.0 [#1149](https://github.com/openfisca/openfisca-core/pull/1149)
 
 #### New Features

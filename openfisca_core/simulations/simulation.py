@@ -349,9 +349,7 @@ class Simulation:
         return self.get_holder(variable_name).get_array(period)
 
     def get_holder(self, variable_name: str):
-        """
-        Get the :obj:`.Holder` associated with the variable ``variable_name`` for the simulation
-        """
+        """Get the holder associated with the variable."""
         return self.get_variable_population(variable_name).get_holder(variable_name)
 
     def get_memory_usage(self, variables = None):

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy
 import typing_extensions
 from typing import Any, Optional
 from typing_extensions import Protocol
@@ -29,11 +30,24 @@ class Entity(Protocol):
         """Abstract method."""
 
 
+class Formula(Protocol):
+    """Formula protocol."""
+
+    @abc.abstractmethod
+    def __call__(
+            self,
+            population: Population,
+            instant: Instant,
+            params: Params,
+            ) -> numpy.ndarray:
+        """Abstract method."""
+
+
 class Holder(Protocol):
     """Holder protocol."""
 
     @abc.abstractmethod
-    def clone(self, __arg: Any) -> Holder:
+    def clone(self, population: Any) -> Holder:
         """Abstract method."""
 
     @abc.abstractmethod
@@ -42,8 +56,30 @@ class Holder(Protocol):
 
 
 @typing_extensions.runtime_checkable
+class ParameterNodeAtInstant(Protocol):
+    """ParameterNodeAtInstant protocol."""
+
+
+class Instant(Protocol):
+    """Instant protocol."""
+
+
+class Params(Protocol):
+    """Params protocol."""
+
+    @abc.abstractmethod
+    def __call__(self, instant: Instant) -> ParameterNodeAtInstant:
+        """Abstract method."""
+
+
+@typing_extensions.runtime_checkable
 class Period(Protocol):
     """Period protocol."""
+
+    @property
+    @abc.abstractmethod
+    def start(self) -> Any:
+        """Abstract method."""
 
 
 class Population(Protocol):
@@ -52,7 +88,7 @@ class Population(Protocol):
     entity: Any
 
     @abc.abstractmethod
-    def get_holder(self, __arg1: Any) -> Any:
+    def get_holder(self, variable_name: Any) -> Any:
         """Abstract method."""
 
 
