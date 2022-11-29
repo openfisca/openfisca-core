@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import Any, Sequence, Union
-from typing_extensions import TypedDict
 
 import os
 import warnings
@@ -9,11 +8,17 @@ import warnings
 import numpy
 import psutil
 
-from openfisca_core import commons, periods, tools
-from openfisca_core.errors import PeriodMismatchError
-from openfisca_core.data_storage import InMemoryStorage, OnDiskStorage
-from openfisca_core.indexed_enums import Enum
-from openfisca_core.types import Period
+from openfisca_core import (
+    errors,
+    commons,
+    data_storage as storage,
+    indexed_enums as enums,
+    periods,
+    tools,
+    types,
+    )
+
+from .memory_usage import MemoryUsage
 
 
 class Holder:
@@ -25,7 +30,7 @@ class Holder:
         self.population = population
         self.variable = variable
         self.simulation = population.simulation
-        self._memory_storage = InMemoryStorage(is_eternal = (self.variable.definition_period == periods.ETERNITY))
+        self._memory_storage = storage.InMemoryStorage(is_eternal = (self.variable.definition_period == periods.ETERNITY))
 
         # By default, do not activate on-disk storage, or variable dropping
         self._disk_storage = None
@@ -60,7 +65,7 @@ class Holder:
         storage_dir = os.path.join(directory, self.variable.name)
         if not os.path.isdir(storage_dir):
             os.mkdir(storage_dir)
-        return OnDiskStorage(
+        return storage.OnDiskStorage(
             storage_dir,
             is_eternal = (self.variable.definition_period == periods.ETERNITY),
             preserve_storage_dir = preserve
@@ -133,10 +138,10 @@ class Holder:
 
         """
 
-        usage = MemoryUsage({
-            "nb_cells_by_array": self.population.count,
-            "dtype": self.variable.dtype,
-            })
+        usage = MemoryUsage(
+            nb_cells_by_array = self.population.count,
+            dtype = self.variable.dtype,
+            )
 
         usage.update(self._memory_storage.get_memory_usage())
 
@@ -159,7 +164,7 @@ class Holder:
 
     def set_input(
             self,
-            period: Period,
+            period: types.Period,
             array: Union[numpy.ndarray, Sequence[Any]],
             ) -> numpy.ndarray:
         """Set a Variable's array of values of a given Period.
@@ -214,7 +219,7 @@ class Holder:
                     self.variable.name,
                     self.variable.definition_period
                 )
-            raise PeriodMismatchError(
+            raise errors.PeriodMismatchError(
                 self.variable.name,
                 period,
                 self.variable.definition_period,
@@ -242,7 +247,7 @@ class Holder:
             raise ValueError(
                 'Unable to set value "{}" for variable "{}", as its length is {} while there are {} {} in the simulation.'
                 .format(value, self.variable.name, len(value), self.population.count, self.population.entity.plural))
-        if self.variable.value_type == Enum:
+        if self.variable.value_type == enums.Enum:
             value = self.variable.possible_values.encode(value)
         if value.dtype != self.variable.dtype:
             try:
@@ -267,7 +272,7 @@ class Holder:
                     f'If you are the maintainer of "{name}", you can consider adding it a set_input attribute to enable automatic period casting.'
                     ])
 
-                raise PeriodMismatchError(
+                raise errors.PeriodMismatchError(
                     self.variable.name,
                     period,
                     self.variable.definition_period,
@@ -302,13 +307,3 @@ class Holder:
         """
 
         return self.variable.default_array(self.population.count)
-
-
-class MemoryUsage(TypedDict, total = False):
-    cell_size: int
-    dtype: numpy.dtype
-    nb_arrays: int
-    nb_cells_by_array: int
-    nb_requests: int
-    nb_requests_by_array: int
-    total_nb_bytes: int
