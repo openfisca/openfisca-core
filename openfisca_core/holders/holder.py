@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Any, Sequence, Union
 from typing_extensions import TypedDict
 
 import os
@@ -12,6 +13,7 @@ from openfisca_core import commons, periods, tools
 from openfisca_core.errors import PeriodMismatchError
 from openfisca_core.data_storage import InMemoryStorage, OnDiskStorage
 from openfisca_core.indexed_enums import Enum
+from openfisca_core.types import Period
 
 
 class Holder:
@@ -134,21 +136,52 @@ class Holder:
         return list(self._memory_storage.get_known_periods()) + list((
             self._disk_storage.get_known_periods() if self._disk_storage else []))
 
-    def set_input(self, period, array):
-        """
-        Set a variable's value (``array``) for a given period (``period``)
+    def set_input(
+            self,
+            period: Period,
+            array: Union[numpy.ndarray, Sequence[Any]],
+            ) -> numpy.ndarray:
+        """Set a Variable's array of values of a given Period.
 
-        :param array: the input value for the variable
-        :param period: the period at which the value is setted
+        Args:
+            period: The period at which the value is set.
+            array: The input value for the variable.
 
-        Example :
+        Returns:
+            The set input array.
 
-        >>> holder.set_input([12, 14], '2018-04')
-        >>> holder.get_array('2018-04')
-        >>> [12, 14]
+        Note:
+            If a ``set_input`` property has been set for the variable, this
+            method may accept inputs for periods not matching the
+            ``definition_period`` of the Variable. To read
+            more about this, check the `documentation`_.
 
+        Examples:
+            >>> from openfisca_core import entities, populations, variables
+            >>> entity = entities.Entity("", "", "", "")
 
-        If a ``set_input`` property has been set for the variable, this method may accept inputs for periods not matching the ``definition_period`` of the variable. To read more about this, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#set-input-automatically-process-variable-inputs-defined-for-periods-not-matching-the-definition-period>`_.
+            >>> class MyVariable(variables.Variable):
+            ...     definition_period = "year"
+            ...     entity = entity
+            ...     value_type = int
+
+            >>> variable = MyVariable()
+
+            >>> population = populations.Population(entity)
+            >>> population.count = 2
+
+            >>> holder = Holder(variable, population)
+            >>> holder.set_input("2018", numpy.array([12.5, 14]))
+            >>> holder.get_array("2018")
+            array([12, 14], dtype=int32)
+
+            >>> holder.set_input("2018", [12.5, 14])
+            >>> holder.get_array("2018")
+            array([12, 14], dtype=int32)
+
+        .. _documentation:
+            https://openfisca.org/doc/coding-the-legislation/35_periods.html#set-input-automatically-process-variable-inputs-defined-for-periods-not-matching-the-definition-period
+
         """
 
         period = periods.period(period)
