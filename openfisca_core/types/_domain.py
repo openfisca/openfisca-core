@@ -41,9 +41,18 @@ class Holder(Protocol):
         """Abstract method."""
 
 
+class Instant(Protocol):
+    """Instant protocol."""
+
+
 @typing_extensions.runtime_checkable
 class Period(Protocol):
     """Period protocol."""
+
+    @property
+    @abc.abstractmethod
+    def unit(self) -> Instant:
+        """Abstract method."""
 
 
 class Population(Protocol):

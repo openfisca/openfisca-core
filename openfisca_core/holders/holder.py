@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Sequence, Union
+from typing import Any, Optional, Sequence, Union
 
 import os
 import warnings
@@ -166,7 +166,7 @@ class Holder:
             self,
             period: types.Period,
             array: Union[numpy.ndarray, Sequence[Any]],
-            ) -> numpy.ndarray:
+            ) -> Optional[numpy.ndarray]:
         """Set a Variable's array of values of a given Period.
 
         Args:
