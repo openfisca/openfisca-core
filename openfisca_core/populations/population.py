@@ -8,7 +8,7 @@ import traceback
 import numpy
 
 from openfisca_core import periods, projectors
-from openfisca_core.holders import Holder
+from openfisca_core.holders import Holder, MemoryUsage
 from openfisca_core.projectors import Projector
 from openfisca_core.types import Array, Entity, Period, Role, Simulation
 
@@ -271,12 +271,4 @@ class Calculate(NamedTuple):
 
 class MemoryUsageByVariable(TypedDict, total = False):
     by_variable: Dict[str, MemoryUsage]
-    total_nb_bytes: int
-
-
-class MemoryUsage(TypedDict, total = False):
-    cell_size: int
-    dtype: numpy.dtype
-    nb_arrays: int
-    nb_cells_by_array: int
     total_nb_bytes: int
