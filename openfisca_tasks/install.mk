@@ -10,8 +10,7 @@ uninstall:
 	@pip freeze | grep -v "^-e" | sed "s/@.*//" | xargs pip uninstall -y
 
 ## Delete builds and compiled python files.
-clean: \
-	$(shell ls -d * | grep "build\|dist") \
-	$(shell find . -name "*.pyc")
+clean:
 	@$(call print_help,$@:)
-	@rm -rf $?
+	@ls -d * | grep "build\|dist" | xargs rm -rf
+	@find . -name "*.pyc" | xargs rm -rf
