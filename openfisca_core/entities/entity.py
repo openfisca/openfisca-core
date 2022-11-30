@@ -20,6 +20,12 @@ class Entity:
         self.is_person = True
         self._tax_benefit_system = None
 
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Entity):
+            return self.key == other.key
+
+        return NotImplemented
+
     def set_tax_benefit_system(self, tax_benefit_system: TaxBenefitSystem):
         self._tax_benefit_system = tax_benefit_system
 
@@ -43,7 +49,7 @@ class Entity:
         if variable is not None:
             entity = variable.entity
 
-        if entity.key != self.key:
+        if self != entity:
             message = os.linesep.join([
                 "You tried to compute the variable '{0}' for the entity '{1}';".format(variable_name, self.plural),
                 "however the variable '{0}' is defined for '{1}'.".format(variable_name, entity.plural),

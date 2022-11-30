@@ -1,3 +1,20 @@
+"""Domain-model.
+
+The domain-model is composed of structures meant to encapsulate data in a way
+that is unique to the context. Therefore, their identity is not equivalent to
+the sum of their properties. If two data objects hold the same identifier, even
+if the data they hold is different, they are equal but not fungible.
+
+Examples:
+    >>> from openfisca_core import entities
+
+    >>> this = entities.Entity(1, "a", "b", "c")
+    >>> that = entities.Entity(1, "d", "f", "g")
+    >>> this == that
+    True
+
+"""
+
 from __future__ import annotations
 
 import numpy

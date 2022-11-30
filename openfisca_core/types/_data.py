@@ -1,17 +1,16 @@
 """Data-model.
 
-The data-model is composed of structures meant to hold and to represent data in
-a certain way. Therefore, their identity is equivalent to the sum of their
-properties. If two data objects hold the same data represented in the same way,
-they are for all purposes equal and fungible.
+The data-model is composed of structures meant to hold data in a certain way.
+Their identity is equivalent to the sum of their properties. If two data
+objects hold the same data, they are for all purposes equal and fungible.
 
 Examples:
     >>> from openfisca_core import periods
 
     >>> this = periods.Instant((1234, 5, 6))
     >>> that = periods.Instant((1234, 5, 6))
-
     >>> this == that
+    True
 
 """
 
