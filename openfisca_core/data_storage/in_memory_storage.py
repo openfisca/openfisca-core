@@ -20,6 +20,7 @@ class InMemoryStorage:
         values = self._arrays.get(period)
         if values is None:
             return None
+
         return values
 
     def put(self, value, period):
