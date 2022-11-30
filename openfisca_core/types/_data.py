@@ -88,3 +88,7 @@ class Period(Protocol):
     @abc.abstractmethod
     def unit(self) -> Any:
         """Abstract method."""
+
+    @abc.abstractmethod
+    def contains(self, other: object) -> bool:
+        """Abstract method."""

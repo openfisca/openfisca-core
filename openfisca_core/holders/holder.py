@@ -26,7 +26,19 @@ class Holder:
     A holder keeps tracks of a variable values after they have been calculated, or set as an input.
     """
 
-    def __init__(self, variable, population):
+    _disk_storage: types.Storage
+    _do_not_store: bool
+    _memory_storage: types.Storage
+    _on_disk_storable: bool
+    population: types.Population
+    simulation: types.Simulation
+    variable: types.Variable
+
+    def __init__(
+            self,
+            variable: types.Variable,
+            population: types.Population,
+            ) -> None:
         self.population = population
         self.variable = variable
         self.simulation = population.simulation
@@ -59,7 +71,11 @@ class Holder:
 
         return new
 
-    def create_disk_storage(self, directory = None, preserve = False):
+    def create_disk_storage(
+            self,
+            directory: Optional[str] = None,
+            preserve: bool = False,
+            ) -> types.Storage:
         if directory is None:
             directory = self.simulation.data_storage_dir
         storage_dir = os.path.join(directory, self.variable.name)

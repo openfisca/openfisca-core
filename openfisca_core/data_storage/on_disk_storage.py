@@ -1,10 +1,13 @@
+from __future__ import annotations
+
+from typing import Any, Dict, KeysView, Optional, Type
+
 import os
 import shutil
 
 import numpy
 
-from openfisca_core import periods
-from openfisca_core.indexed_enums import EnumArray
+from openfisca_core import periods, indexed_enums as enums, types
 
 
 class OnDiskStorage:
@@ -12,21 +15,31 @@ class OnDiskStorage:
     Low-level class responsible for storing and retrieving calculated vectors on disk
     """
 
-    def __init__(self, storage_dir, is_eternal = False, preserve_storage_dir = False):
+    _files: Dict[types.Period, str]
+    _enums: Dict[str, Type[enums.Enum]]
+
+    def __init__(
+            self,
+            storage_dir: str,
+            is_eternal: bool = False,
+            preserve_storage_dir: bool = False,
+            ) -> None:
         self._files = {}
         self._enums = {}
         self.is_eternal = is_eternal
         self.preserve_storage_dir = preserve_storage_dir
         self.storage_dir = storage_dir
 
-    def _decode_file(self, file):
+    def _decode_file(self, file: str) -> Any:
+        enum: Optional[Type[enums.Enum]]
         enum = self._enums.get(file)
+
         if enum is not None:
-            return EnumArray(numpy.load(file), enum)
+            return enums.EnumArray(numpy.load(file), enum)
         else:
             return numpy.load(file)
 
-    def get(self, period):
+    def get(self, period: types.Period) -> Any:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
         period = periods.period(period)
@@ -34,22 +47,23 @@ class OnDiskStorage:
         values = self._files.get(period)
         if values is None:
             return None
+
         return self._decode_file(values)
 
-    def put(self, value, period):
+    def put(self, value: Any, period: types.Period) -> None:
         if self.is_eternal:
             period = periods.period(periods.ETERNITY)
         period = periods.period(period)
 
         filename = str(period)
         path = os.path.join(self.storage_dir, filename) + '.npy'
-        if isinstance(value, EnumArray):
+        if isinstance(value, enums.EnumArray):
             self._enums[path] = value.possible_values
             value = value.view(numpy.ndarray)
         numpy.save(path, value)
         self._files[period] = path
 
-    def delete(self, period = None):
+    def delete(self, period: Optional[types.Period] = None) -> None:
         if period is None:
             self._files = {}
             return
@@ -65,11 +79,11 @@ class OnDiskStorage:
                 if not period.contains(period_item)
                 }
 
-    def get_known_periods(self):
+    def get_known_periods(self) -> KeysView[types.Period]:
         return self._files.keys()
 
-    def restore(self):
-        self._files = files = {}
+    def restore(self) -> None:
+        self._files = {}
         # Restore self._files from content of storage_dir.
         for filename in os.listdir(self.storage_dir):
             if not filename.endswith('.npy'):
@@ -77,9 +91,9 @@ class OnDiskStorage:
             path = os.path.join(self.storage_dir, filename)
             filename_core = filename.rsplit('.', 1)[0]
             period = periods.period(filename_core)
-            files[period] = path
+            self._files[period] = path
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self.preserve_storage_dir:
             return
         shutil.rmtree(self.storage_dir)  # Remove the holder temporary files
