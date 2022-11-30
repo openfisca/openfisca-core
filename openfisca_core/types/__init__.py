@@ -16,8 +16,9 @@ Official Public API:
     * :attr:`.Params`
     * :attr:`.Period`
     * :attr:`.Population`
-    * :attr:`.Role`,
-    * :attr:`.Simulation`,
+    * :attr:`.Role`
+    * :attr:`.Simulation`
+    * :attr:`.Storage`
     * :attr:`.TaxBenefitSystem`
     * :attr:`.Variable`
 
@@ -52,21 +53,25 @@ Note:
 from ._data import (  # noqa: F401
     Array,
     ArrayLike,
+    Instant,
+    Period,
     )
 
 from ._domain import (  # noqa: F401
     Entity,
     Formula,
     Holder,
-    Instant,
     ParameterNodeAtInstant,
     Params,
-    Period,
     Population,
     Role,
     Simulation,
     TaxBenefitSystem,
     Variable,
+    )
+
+from ._infrastructure import (  # noqa: F401
+    Storage,
     )
 
 __all__ = [
@@ -82,6 +87,7 @@ __all__ = [
     "Population",
     "Role",
     "Simulation",
+    "Storage",
     "TaxBenefitSystem",
     "Variable",
     ]

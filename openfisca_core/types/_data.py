@@ -14,11 +14,16 @@ Examples:
 
 """
 
-from typing import Sequence, TypeVar, Union
+from __future__ import annotations
 
-from nptyping import types, NDArray as Array
+import typing_extensions
+from typing import Any, Sequence, TypeVar, Union
+from typing_extensions import Protocol
+
+import abc
 
 import numpy
+from nptyping import types, NDArray as Array
 
 T = TypeVar("T", bool, bytes, float, int, object, str)
 
@@ -65,3 +70,21 @@ Todo:
     https://numpy.org/doc/stable/reference/typing.html#numpy.typing.NDArray
 
 """
+
+
+class Instant(Protocol):
+    """Instant protocol."""
+
+
+@typing_extensions.runtime_checkable
+class Period(Protocol):
+    """Period protocol."""
+
+    @property
+    @abc.abstractmethod
+    def start(self) -> Any:
+        """Abstract method."""
+    @property
+    @abc.abstractmethod
+    def unit(self) -> Any:
+        """Abstract method."""

@@ -54,7 +54,7 @@ class Formula(Protocol):
     def __call__(
             self,
             population: Population,
-            instant: Instant,
+            instant: Any,
             params: Params,
             ) -> numpy.ndarray:
         """Abstract method."""
@@ -72,10 +72,6 @@ class Holder(Protocol):
         """Abstract method."""
 
 
-class Instant(Protocol):
-    """Instant protocol."""
-
-
 @typing_extensions.runtime_checkable
 class ParameterNodeAtInstant(Protocol):
     """ParameterNodeAtInstant protocol."""
@@ -85,21 +81,7 @@ class Params(Protocol):
     """Params protocol."""
 
     @abc.abstractmethod
-    def __call__(self, instant: Instant) -> ParameterNodeAtInstant:
-        """Abstract method."""
-
-
-@typing_extensions.runtime_checkable
-class Period(Protocol):
-    """Period protocol."""
-
-    @property
-    @abc.abstractmethod
-    def start(self) -> Any:
-        """Abstract method."""
-    @property
-    @abc.abstractmethod
-    def unit(self) -> Any:
+    def __call__(self, instant: Any) -> ParameterNodeAtInstant:
         """Abstract method."""
 
 
