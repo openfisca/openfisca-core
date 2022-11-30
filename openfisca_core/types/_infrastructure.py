@@ -29,3 +29,7 @@ class Storage(Protocol):
     @abc.abstractmethod
     def delete(self, period: Any = None) -> None:
         """Abstract method."""
+
+    @abc.abstractmethod
+    def get_memory_usage(self) -> Any:
+        """Abstract method."""

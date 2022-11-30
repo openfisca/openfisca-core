@@ -23,4 +23,3 @@
 
 from .helpers import set_input_dispatch_by_period, set_input_divide_by_period  # noqa: F401
 from .holder import Holder  # noqa: F401
-from .memory_usage import MemoryUsage  # noqa: F401

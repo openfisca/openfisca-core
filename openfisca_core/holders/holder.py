@@ -18,15 +18,13 @@ from openfisca_core import (
     types,
     )
 
-from .memory_usage import MemoryUsage
-
 
 class Holder:
     """
     A holder keeps tracks of a variable values after they have been calculated, or set as an input.
     """
 
-    _disk_storage: types.Storage
+    _disk_storage: Optional[types.Storage]
     _do_not_store: bool
     _memory_storage: types.Storage
     _on_disk_storable: bool
@@ -112,7 +110,7 @@ class Holder:
         if self._disk_storage:
             return self._disk_storage.get(period)
 
-    def get_memory_usage(self) -> MemoryUsage:
+    def get_memory_usage(self) -> types.MemoryUsage:
         """Get data about the virtual memory usage of the Holder.
 
         Returns:
@@ -154,7 +152,7 @@ class Holder:
 
         """
 
-        usage = MemoryUsage(
+        usage = types.MemoryUsage(
             nb_cells_by_array = self.population.count,
             dtype = self.variable.dtype,
             )

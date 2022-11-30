@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import typing
 from typing import Any, NoReturn, Optional, Type
 
 import numpy
 
-if typing.TYPE_CHECKING:
-    from openfisca_core.indexed_enums import Enum
+from openfisca_core import types
 
 
 class EnumArray(numpy.ndarray):
@@ -22,7 +20,7 @@ class EnumArray(numpy.ndarray):
     def __new__(
             cls,
             input_array: numpy.int_,
-            possible_values: Optional[Type[Enum]] = None,
+            possible_values: Optional[Type[types.Enum]] = None,
             ) -> EnumArray:
         obj = numpy.asarray(input_array).view(cls)
         obj.possible_values = possible_values

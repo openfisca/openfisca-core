@@ -8,10 +8,13 @@ Official Public API:
     * :attr:`.Array`
     * ``ArrayLike``
     * :attr:`.Cache`
+    * :attr:`.Enum`
+    * :attr:`.EnumArray`
     * :attr:`.Entity`
     * :attr:`.Formula`
     * :attr:`.Holder`
     * :attr:`.Instant`
+    * :attr:`.MemoryUsage`
     * :attr:`.ParameterNodeAtInstant`
     * :attr:`.Params`
     * :attr:`.Period`
@@ -53,7 +56,10 @@ Note:
 from ._data import (  # noqa: F401
     Array,
     ArrayLike,
+    Enum,
+    EnumArray,
     Instant,
+    MemoryUsage,
     Period,
     )
 
@@ -78,9 +84,12 @@ __all__ = [
     "Array",
     "ArrayLike",
     "Entity",
+    "Enum",
+    "EnumArray",
     "Formula",
     "Holder",
     "Instant",
+    "MemoryUsage",
     "ParameterNodeAtInstant",
     "Params",
     "Period",

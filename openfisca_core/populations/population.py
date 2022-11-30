@@ -7,30 +7,29 @@ import traceback
 
 import numpy
 
-from openfisca_core import periods, projectors
-from openfisca_core.holders import Holder, MemoryUsage
+from openfisca_core import errors, periods, projectors, types
+from openfisca_core.holders import Holder
 from openfisca_core.projectors import Projector
-from openfisca_core.types import Array, Entity, Period, Role, Simulation
 
 from . import config
 
 
 class Population:
 
-    simulation: Optional[Simulation]
-    entity: Entity
+    simulation: Optional[types.Simulation]
+    entity: types.Entity
     _holders: Dict[str, Holder]
     count: int
-    ids: Array[str]
+    ids: types.Array[str]
 
-    def __init__(self, entity: Entity) -> None:
+    def __init__(self, entity: types.Entity) -> None:
         self.simulation = None
         self.entity = entity
         self._holders = {}
         self.count = 0
         self.ids = []
 
-    def clone(self, simulation: Simulation) -> Population:
+    def clone(self, simulation: types.Simulation) -> Population:
         result = Population(self.entity)
         result.simulation = simulation
         result._holders = {variable: holder.clone(result) for (variable, holder) in self._holders.items()}
@@ -38,14 +37,14 @@ class Population:
         result.ids = self.ids
         return result
 
-    def empty_array(self) -> Array[float]:
+    def empty_array(self) -> types.Array[float]:
         return numpy.zeros(self.count)
 
     def filled_array(
             self,
             value: Union[float, bool],
             dtype: Optional[numpy.dtype] = None,
-            ) -> Union[Array[float], Array[bool]]:
+            ) -> Union[types.Array[float], types.Array[bool]]:
         return numpy.full(self.count, value, dtype)
 
     def __getattr__(self, attribute: str) -> Projector:
@@ -64,7 +63,7 @@ class Population:
 
     def check_array_compatible_with_entity(
             self,
-            array: Array[float],
+            array: types.Array[float],
             ) -> None:
         if self.count == array.size:
             return None
@@ -75,9 +74,9 @@ class Population:
     def check_period_validity(
             self,
             variable_name: str,
-            period: Optional[Union[int, str, Period]],
+            period: Optional[Union[int, str, types.Period]],
             ) -> None:
-        if isinstance(period, (int, str, Period)):
+        if isinstance(period, (int, str, types.Period)):
             return None
 
         stack = traceback.extract_stack()
@@ -93,9 +92,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     def __call__(
             self,
             variable_name: str,
-            period: Optional[Union[int, str, Period]] = None,
+            period: Optional[Union[int, str, types.Period]] = None,
             options: Optional[Sequence[str]] = None,
-            ) -> Optional[Array[float]]:
+            ) -> Optional[types.Array[float]]:
         """
             Calculate the variable ``variable_name`` for the entity and the period ``period``, using the variable formula if it exists.
 
@@ -141,13 +140,35 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     # Helpers
 
     def get_holder(self, variable_name: str) -> Holder:
+        holder: Optional[types.Holder]
+        variable: Optional[types.Variable]
+        simulation: Optional[types.Simulation]
+        tax_benefit_system: Optional[types.TaxBenefitSystem]
+
         self.entity.check_variable_defined_for_entity(variable_name)
         holder = self._holders.get(variable_name)
-        if holder:
+
+        if holder is not None:
             return holder
+
         variable = self.entity.get_variable(variable_name)
-        self._holders[variable_name] = holder = Holder(variable, self)
-        return holder
+
+        if variable is not None:
+            holder = Holder(variable, self)
+            self._holders[variable_name] = holder
+            return holder
+
+        simulation = self.simulation
+
+        if simulation is None:
+            raise TypeError("Simulation can't be None.")
+
+        tax_benefit_system = simulation.tax_benefit_system
+
+        if tax_benefit_system is None:
+            raise TypeError("TaxBenefitSystem can't be None.")
+
+        raise errors.VariableNotFoundError(variable_name, tax_benefit_system)
 
     def get_memory_usage(
             self,
@@ -169,7 +190,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             })
 
     @projectors.projectable
-    def has_role(self, role: Role) -> Optional[Array[bool]]:
+    def has_role(self, role: types.Role) -> Optional[types.Array[bool]]:
         """
             Check if a person has a given role within its `GroupEntity`
 
@@ -195,10 +216,10 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     @projectors.projectable
     def value_from_partner(
             self,
-            array: Array[float],
+            array: types.Array[float],
             entity: Projector,
-            role: Role,
-            ) -> Optional[Array[float]]:
+            role: types.Role,
+            ) -> Optional[types.Array[float]]:
         self.check_array_compatible_with_entity(array)
         self.entity.check_role_validity(role)
 
@@ -218,9 +239,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     def get_rank(
             self,
             entity: Population,
-            criteria: Array[float],
+            criteria: types.Array[float],
             condition: bool = True,
-            ) -> Array[int]:
+            ) -> types.Array[int]:
         """
         Get the rank of a person within an entity according to a criteria.
         The person with rank 0 has the minimum value of criteria.
@@ -265,10 +286,10 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
 class Calculate(NamedTuple):
     variable: str
-    period: Period
+    period: types.Period
     option: Optional[Sequence[str]]
 
 
 class MemoryUsageByVariable(TypedDict, total = False):
-    by_variable: Dict[str, MemoryUsage]
+    by_variable: Dict[str, types.MemoryUsage]
     total_nb_bytes: int

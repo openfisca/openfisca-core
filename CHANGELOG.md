@@ -1,5 +1,11 @@
 # Changelog
 
+### 37.0.3 [#1167](https://github.com/openfisca/openfisca-core/pull/1167)
+
+#### Technical changes
+
+- Document the `data_storage` module.
+
 ### 37.0.2 [#1170](https://github.com/openfisca/openfisca-core/pull/1170)
 
 #### Technical changes
