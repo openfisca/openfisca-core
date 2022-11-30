@@ -1,5 +1,11 @@
 # Changelog
 
+### 35.11.2 [#1166](https://github.com/openfisca/openfisca-core/pull/1166)
+
+#### Technical changes
+
+- Fix Holder's doctests.
+
 ### 35.11.1 [#1165](https://github.com/openfisca/openfisca-core/pull/1165)
 
 #### Bug fix
@@ -11,7 +17,7 @@
 
 #### New Features
 
-- Introduce variable dependent error margins in YAML tests
+- Introduce variable dependent error margins in YAML tests.
 
 ### 35.10.1 [#1143](https://github.com/openfisca/openfisca-core/pull/1143)
 

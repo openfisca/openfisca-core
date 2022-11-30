@@ -12,6 +12,5 @@ uninstall:
 ## Delete builds and compiled python files.
 clean:
 	@$(call print_help,$@:)
+	@ls -d * | grep "build\|dist" | xargs rm -rf
 	@find . -name "*.pyc" | xargs rm -rf
-	@rm -rf build
-	@rm -rf dist

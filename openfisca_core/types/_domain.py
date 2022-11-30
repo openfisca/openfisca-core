@@ -55,13 +55,13 @@ class Holder(Protocol):
         """Abstract method."""
 
 
+class Instant(Protocol):
+    """Instant protocol."""
+
+
 @typing_extensions.runtime_checkable
 class ParameterNodeAtInstant(Protocol):
     """ParameterNodeAtInstant protocol."""
-
-
-class Instant(Protocol):
-    """Instant protocol."""
 
 
 class Params(Protocol):
@@ -79,6 +79,10 @@ class Period(Protocol):
     @property
     @abc.abstractmethod
     def start(self) -> Any:
+        """Abstract method."""
+    @property
+    @abc.abstractmethod
+    def unit(self) -> Any:
         """Abstract method."""
 
 
