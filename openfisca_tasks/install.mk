@@ -6,7 +6,7 @@ uninstall:
 ## Install project's overall dependencies
 install-deps:
 	@$(call print_help,$@:)
-	@pip install --upgrade pip twine wheel coveralls
+	@pip install --upgrade pip wheel
 
 ## Install project's development dependencies.
 install-edit:

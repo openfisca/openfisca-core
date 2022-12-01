@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -44,7 +44,7 @@ jobs:
 
       - name: Cache deps
         id: restore-deps
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ${{ matrix.pip }}${{ matrix.python }}${{ matrix.bin }}
@@ -58,7 +58,7 @@ jobs:
 
       - name: Cache dist
         id: restore-dist
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ${{ matrix.pip }}${{ matrix.python }}${{ matrix.bin }}
@@ -72,7 +72,7 @@ jobs:
 
       - name: Cache build
         id: restore-build
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ${{ matrix.pip }}${{ matrix.python }}${{ matrix.bin }}
@@ -87,7 +87,7 @@ jobs:
 
       - name: Cache release
         id: restore-release
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: dist
           key: release-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
@@ -125,7 +125,7 @@ jobs:
       TERM: xterm-256color  # To colorize output of make tasks.
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -134,7 +134,7 @@ jobs:
 
       - name: Cache build
         id: restore-build
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ${{ matrix.pip }}${{ matrix.python }}${{ matrix.bin }}
@@ -166,7 +166,7 @@ jobs:
       TERM: xterm-256color
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -175,7 +175,7 @@ jobs:
 
       - name: Cache build
         id: restore-build
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ${{ matrix.pip }}${{ matrix.python }}${{ matrix.bin }}
@@ -204,7 +204,7 @@ jobs:
       TERM: xterm-256color
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -213,7 +213,7 @@ jobs:
 
       - name: Cache build
         id: restore-build
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ${{ matrix.pip }}${{ matrix.python }}${{ matrix.bin }}
@@ -256,7 +256,7 @@ jobs:
       TERM: xterm-256color
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Fetch all the tags
 
@@ -267,7 +267,7 @@ jobs:
 
       - name: Cache build
         id: restore-build
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ${{ matrix.pip }}${{ matrix.python }}${{ matrix.bin }}
@@ -289,7 +289,7 @@ jobs:
     needs: [ build ] # Last job to run
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Fetch all the tags
 
@@ -319,7 +319,7 @@ jobs:
       status: ${{ steps.stop-early.outputs.status }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Fetch all the tags
 
@@ -353,7 +353,7 @@ jobs:
       CIRCLE_TOKEN: ${{ secrets.CIRCLECI_V1_OPENFISCADOC_TOKEN }} # Personal API token created in CircleCI to grant full read and write permissions
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Fetch all the tags
 
@@ -364,7 +364,7 @@ jobs:
 
       - name: Cache build
         id: restore-build
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ${{ matrix.pip }}${{ matrix.python }}${{ matrix.bin }}
@@ -373,7 +373,7 @@ jobs:
 
       - name: Cache release
         id: restore-release
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: dist
           key: release-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
@@ -407,7 +407,7 @@ jobs:
           channels: conda-forge
           activate-environment: true
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Fetch all the tags
 
