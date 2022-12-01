@@ -181,7 +181,7 @@ jobs:
 
   check-version:
     runs-on: ubuntu-20.04
-    needs: [ test-core, test-country-template, test-extension-template, check-numpy, lint-files ] # Last job to run
+    needs: [ test-core, test-country-template, test-extension-template, lint-files ] # Last job to run
 
     steps:
       - uses: actions/checkout@v2
