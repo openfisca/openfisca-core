@@ -3,13 +3,9 @@ from typing import Dict
 import datetime
 import os
 
-from openfisca_core import periods
-from openfisca_core.periods import config
-from openfisca_core.types import Period
-
-
-def N_(message):
-    return message
+from . import config
+from .instant_ import Instant
+from .period_ import Period
 
 
 def instant(instant):
@@ -32,32 +28,32 @@ def instant(instant):
     """
     if instant is None:
         return None
-    if isinstance(instant, periods.Instant):
+    if isinstance(instant, Instant):
         return instant
     if isinstance(instant, str):
         if not config.INSTANT_PATTERN.match(instant):
             raise ValueError("'{}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'.".format(instant))
-        instant = periods.Instant(
+        instant = Instant(
             int(fragment)
             for fragment in instant.split('-', 2)[:3]
             )
     elif isinstance(instant, datetime.date):
-        instant = periods.Instant((instant.year, instant.month, instant.day))
+        instant = Instant((instant.year, instant.month, instant.day))
     elif isinstance(instant, int):
         instant = (instant,)
     elif isinstance(instant, list):
         assert 1 <= len(instant) <= 3
         instant = tuple(instant)
-    elif isinstance(instant, periods.Period):
+    elif isinstance(instant, Period):
         instant = instant.start
     else:
         assert isinstance(instant, tuple), instant
         assert 1 <= len(instant) <= 3
     if len(instant) == 1:
-        return periods.Instant((instant[0], 1, 1))
+        return Instant((instant[0], 1, 1))
     if len(instant) == 2:
-        return periods.Instant((instant[0], instant[1], 1))
-    return periods.Instant(instant)
+        return Instant((instant[0], instant[1], 1))
+    return Instant(instant)
 
 
 def instant_date(instant):
@@ -87,11 +83,11 @@ def period(value) -> Period:
     >>> period('year:2014-2')
     Period((YEAR, Instant((2014, 2, 1)), 1))
     """
-    if isinstance(value, periods.Period):
+    if isinstance(value, Period):
         return value
 
-    if isinstance(value, periods.Instant):
-        return periods.Period((config.DAY, value, 1))
+    if isinstance(value, Instant):
+        return Period((config.DAY, value, 1))
 
     def parse_simple_period(value):
         """
@@ -108,11 +104,11 @@ def period(value) -> Period:
                 except ValueError:
                     return None
                 else:
-                    return periods.Period((config.DAY, periods.Instant((date.year, date.month, date.day)), 1))
+                    return Period((config.DAY, Instant((date.year, date.month, date.day)), 1))
             else:
-                return periods.Period((config.MONTH, periods.Instant((date.year, date.month, 1)), 1))
+                return Period((config.MONTH, Instant((date.year, date.month, 1)), 1))
         else:
-            return periods.Period((config.YEAR, periods.Instant((date.year, date.month, 1)), 1))
+            return Period((config.YEAR, Instant((date.year, date.month, 1)), 1))
 
     def raise_error(value):
         message = os.linesep.join([
@@ -123,11 +119,11 @@ def period(value) -> Period:
         raise ValueError(message)
 
     if value == 'ETERNITY' or value == config.ETERNITY:
-        return periods.Period(('eternity', instant(datetime.date.min), float("inf")))
+        return Period(('eternity', instant(datetime.date.min), float("inf")))
 
     # check the type
     if isinstance(value, int):
-        return periods.Period((config.YEAR, periods.Instant((value, 1, 1)), 1))
+        return Period((config.YEAR, Instant((value, 1, 1)), 1))
     if not isinstance(value, str):
         raise_error(value)
 
@@ -169,7 +165,7 @@ def period(value) -> Period:
     if unit_weight(base_period.unit) > unit_weight(unit):
         raise_error(value)
 
-    return periods.Period((unit, base_period.start, size))
+    return Period((unit, base_period.start, size))
 
 
 def key_period_size(period):

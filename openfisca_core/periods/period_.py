@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import calendar
 
-from openfisca_core import periods
-from openfisca_core.periods import config, helpers
+from . import config, helpers
+from .instant_ import Instant
 
 
 class Period(tuple):
@@ -12,6 +12,7 @@ class Period(tuple):
 
     A period is a triple (unit, start, size), where unit is either "month" or "year", where start format is a
     (year, month, day) triple, and where size is an integer > 1.
+
 
     Since a period is a triple it can be used as a dictionary key.
     """
@@ -372,7 +373,7 @@ class Period(tuple):
         raise ValueError("Cannot calculate number of days in {0}".format(unit))
 
     @property
-    def start(self) -> periods.Instant:
+    def start(self) -> Instant:
         """
         Return the first day of the period as an Instant instance.
 
@@ -382,7 +383,7 @@ class Period(tuple):
         return self[1]
 
     @property
-    def stop(self) -> periods.Instant:
+    def stop(self) -> Instant:
         """
         Return the last day of the period as an Instant instance.
 
@@ -410,7 +411,7 @@ class Period(tuple):
         unit, start_instant, size = self
         year, month, day = start_instant
         if unit == config.ETERNITY:
-            return periods.Instant((float("inf"), float("inf"), float("inf")))
+            return Instant((float("inf"), float("inf"), float("inf")))
         if unit == 'day':
             if size > 1:
                 day += size - 1
@@ -446,38 +447,43 @@ class Period(tuple):
                         year += 1
                         month = 1
                     day -= month_last_day
-        return periods.Instant((year, month, day))
+        return Instant((year, month, day))
 
     @property
-    def unit(self):
+    def unit(self) -> str:
         return self[0]
 
     # Reference periods
 
     @property
-    def last_3_months(self):
-        return self.first_month.start.period('month', 3).offset(-3)
-
-    @property
-    def last_month(self):
+    def last_month(self) -> Period:
         return self.first_month.offset(-1)
 
     @property
-    def last_year(self):
-        return self.start.offset('first-of', 'year').period('year').offset(-1)
+    def last_3_months(self) -> Period:
+        start: Instant = self.first_month.start
+        return self.__class__((config.MONTH, start, 3)).offset(-3)
 
     @property
-    def n_2(self):
-        return self.start.offset('first-of', 'year').period('year').offset(-2)
+    def last_year(self) -> Period:
+        start: Instant = self.start.offset("first-of", config.YEAR)
+        return self.__class__((config.YEAR, start, 1)).offset(-1)
 
     @property
-    def this_year(self):
-        return self.start.offset('first-of', 'year').period('year')
+    def n_2(self) -> Period:
+        start: Instant = self.start.offset("first-of", config.YEAR)
+        return self.__class__((config.YEAR, start, 1)).offset(-2)
 
     @property
-    def first_month(self):
-        return self.start.offset('first-of', 'month').period('month')
+    def this_year(self) -> Period:
+        start: Instant = self.start.offset("first-of", config.YEAR)
+        return self.__class__((config.YEAR, start, 1))
 
     @property
-    def first_day(self):
-        return self.start.period('day')
+    def first_month(self) -> Period:
+        start: Instant = self.start.offset("first-of", config.MONTH)
+        return self.__class__((config.MONTH, start, 1))
+
+    @property
+    def first_day(self) -> Period:
+        return self.__class__((config.DAY, self.start, 1))
