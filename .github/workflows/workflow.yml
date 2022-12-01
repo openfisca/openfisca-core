@@ -3,7 +3,7 @@ name: OpenFisca-Core
 on: [ push, pull_request, workflow_dispatch ]
 
 jobs:
-  build:
+  deps:
     strategy:
       fail-fast: true
       matrix:
@@ -56,6 +56,55 @@ jobs:
       - name: Install global dependencies
         run: make install-deps
 
+  dist:
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        numpy: [1.20.3]
+        python: [3.8.15, 3.8.10, 3.7.15, 3.7.9]
+        exclude:
+        - python: 3.8.15
+          os: windows-latest
+        - python: 3.8.10
+          os: ubuntu-latest
+        - python: 3.7.15
+          os: windows-latest
+        - python: 3.7.9
+          os: ubuntu-latest
+        include:
+        - os: ubuntu-latest
+          pip: /opt/hostedtoolcache/Python/
+          bin: /x64/bin/
+          lib: /x64/lib/
+        - os: windows-latest
+          pip: C:\hostedtoolcache\windows\python\
+          bin: \x64\scripts\
+          lib: \x64\lib\
+    runs-on: ${{ matrix.os }}
+    name: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
+    needs: [ deps ]
+    env:
+      TERM: xterm-256color  # To colorize output of make tasks.
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Cache deps
+        id: restore-deps
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.bin }}
+            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}
+          key: deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}
+
       - name: Cache dist
         id: restore-dist
         uses: actions/cache@v3
@@ -70,6 +119,58 @@ jobs:
       - name: Install distribution dependencies
         run: make install-dist
 
+  build:
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        numpy: [1.20.3]
+        python: [3.8.15, 3.8.10, 3.7.15, 3.7.9]
+        exclude:
+        - python: 3.8.15
+          os: windows-latest
+        - python: 3.8.10
+          os: ubuntu-latest
+        - python: 3.7.15
+          os: windows-latest
+        - python: 3.7.9
+          os: ubuntu-latest
+        include:
+        - os: ubuntu-latest
+          pip: /opt/hostedtoolcache/Python/
+          bin: /x64/bin/
+          lib: /x64/lib/
+        - os: windows-latest
+          pip: C:\hostedtoolcache\windows\python\
+          bin: \x64\scripts\
+          lib: \x64\lib\
+    runs-on: ${{ matrix.os }}
+    name: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
+    needs: [ dist ]
+    env:
+      TERM: xterm-256color  # To colorize output of make tasks.
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Cache dist
+        id: restore-dist
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.bin }}
+            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}
+          key: dist-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}
+
+      - name: Build package
+        run: make install-test build
+
       - name: Cache build
         id: restore-build
         uses: actions/cache@v3
@@ -78,12 +179,6 @@ jobs:
             ${{ matrix.pip }}${{ matrix.python }}${{ matrix.bin }}
             ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}
           key: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
-          restore-keys: | # in case of a cache miss (systematically unless the same commit is built repeatedly), the keys below will be used to restore dependencies from previous builds, and the cache will be stored at the end of the job, making up-to-date dependencies available for all jobs of the workflow; see more at https://docs.github.com/en/actions/advanced-guides/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-            build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}
-            build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-
-
-      - name: Build package
-        run: make install-test build
 
       - name: Cache release
         id: restore-release
