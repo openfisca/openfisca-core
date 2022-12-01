@@ -40,8 +40,7 @@ git clone https://github.com/openfisca/openfisca-core.git
 cd openfisca-core
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -U pip
-pip install --editable .[dev] --use-deprecated=legacy-resolver
+make install-deps install-edit
 ```
 
 ### Installing `openfisca-core` with `conda`
@@ -68,6 +67,18 @@ Then, choose one of the following options according to your use case:
 For information on how we publish to conda-forge, see [openfisca-core-feedstock](https://github.com/openfisca/openfisca-core-feedstock/blob/master/recipe/README.md).
 
 ## Testing
+
+Install the test dependencies:
+
+```
+make install-deps install-edit install-test
+```
+
+> For integration testing purposes, `openfisca-core` relies on
+> [country-template](https://github.com/openfisca/country-template.git) and
+> [extension-template](https://github.com/openfisca/extension-template.git).
+> Because these packages rely at the same time on `openfisca-core`, they need
+> to be installed separately.
 
 To run the entire test suite:
 

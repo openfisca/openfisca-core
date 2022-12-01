@@ -1,4 +1,19 @@
-#! /usr/bin/env python
+"""Package config file.
+
+This file contains all package's metadata, including the current version and
+its third-party dependencies.
+
+Note:
+    For integration testing, OpenFisca-Core relies on two other packages,
+    listed below. Because these packages rely at the same time on
+    OpenFisca-Core, adding them as official dependencies creates a resolution
+    loop that makes it hard to contribute. We've therefore decided to install
+    them via the task manager (`make install-test`)::
+
+        openfisca-country-template = "*"
+        openfisca-extension-template = "*"
+
+"""
 
 from setuptools import setup, find_packages
 from pathlib import Path
@@ -40,8 +55,6 @@ dev_requirements = [
     'flake8-print >= 3.1.0, < 4.0.0',
     'flake8-rst-docstrings == 0.2.3',
     'mypy == 0.910',
-    'openfisca-country-template >= 3.10.0, < 4.0.0',
-    'openfisca-extension-template >= 1.2.0rc0, < 2.0.0',
     'pycodestyle >= 2.8.0, < 2.9.0',
     'pylint == 2.10.2',
     'xdoctest >= 1.0.0, < 2.0.0',
@@ -49,7 +62,7 @@ dev_requirements = [
 
 setup(
     name = 'OpenFisca-Core',
-    version = '35.11.2',
+    version = '35.12.0',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [

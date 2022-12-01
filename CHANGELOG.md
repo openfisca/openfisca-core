@@ -1,5 +1,11 @@
 # Changelog
 
+## 35.12.0 [#1160](https://github.com/openfisca/openfisca-core/pull/1160)
+
+#### New Features
+
+- Lighter install by removing test packages from systematic install.
+
 ### 35.11.2 [#1166](https://github.com/openfisca/openfisca-core/pull/1166)
 
 #### Technical changes
@@ -39,7 +45,7 @@
 
 #### New Features
 
-- Introduce a maximal depth for compuation logs
+- Introduce a maximal depth for computation logs
   - Allows for limiting the depth of the computation log chain
 
 ### 35.8.6 [#1145](https://github.com/openfisca/openfisca-core/pull/1145)
