@@ -70,12 +70,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
         numpy: [1.20.3]
-        python: [3.8.15, 3.8.10, 3.7.15, 3.7.9]
+        python: [3.8.15, 3.7.15, 3.7.9]
         exclude:
         - python: 3.8.15
           os: windows-latest
-        - python: 3.8.10
-          os: ubuntu-latest
         - python: 3.7.15
           os: windows-latest
         - python: 3.7.9
@@ -123,27 +121,14 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
         numpy: [1.20.3]
-        python: [3.8.15, 3.8.10, 3.7.15, 3.7.9]
-        exclude:
-        - python: 3.8.15
-          os: windows-latest
-        - python: 3.8.10
-          os: ubuntu-latest
-        - python: 3.7.15
-          os: windows-latest
-        - python: 3.7.9
-          os: ubuntu-latest
+        python: [3.8.15, 3.7.15]
         include:
         - os: ubuntu-latest
           pip: /opt/hostedtoolcache/Python/
           bin: /x64/bin/
           lib: /x64/lib/
-        - os: windows-latest
-          pip: C:\hostedtoolcache\windows\python\
-          bin: \x64\scripts\
-          lib: \x64\lib\
     runs-on: ${{ matrix.os }}
     name: test-country-template-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ build ]
@@ -174,27 +159,14 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
         numpy: [1.20.3]
-        python: [3.8.15, 3.8.10, 3.7.15, 3.7.9]
-        exclude:
-        - python: 3.8.15
-          os: windows-latest
-        - python: 3.8.10
-          os: ubuntu-latest
-        - python: 3.7.15
-          os: windows-latest
-        - python: 3.7.9
-          os: ubuntu-latest
+        python: [3.8.15, 3.7.15]
         include:
         - os: ubuntu-latest
           pip: /opt/hostedtoolcache/Python/
           bin: /x64/bin/
           lib: /x64/lib/
-        - os: windows-latest
-          pip: C:\hostedtoolcache\windows\python\
-          bin: \x64\scripts\
-          lib: \x64\lib\
     runs-on: ${{ matrix.os }}
     name: test-extension-template-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ build ]
@@ -276,7 +248,14 @@ jobs:
         run: make lint
 
   check-version:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest]
+        numpy: [1.20.3]
+        python: [3.8.15]
+    runs-on: ${{ matrix.os }}
+    name: check-version-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ test-core, test-country-template, test-extension-template, lint-files ] # Last job to run
 
     steps:
@@ -287,7 +266,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.8.15
+          python-version: ${{ matrix.python }}
 
       - name: Check version number has been properly updated
         run: "${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh"
@@ -296,7 +275,14 @@ jobs:
   # We build a separate job to substitute the halt option.
   # The `deploy` job is dependent on the output of the `check-for-functional-changes`job.
   check-for-functional-changes:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest]
+        numpy: [1.20.3]
+        python: [3.8.15]
+    runs-on: ${{ matrix.os }}
+    name: check-for-functional-changes-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     if: github.ref == 'refs/heads/master' # Only triggered for the `master` branch
     needs: [ check-version ]
     outputs:
@@ -310,13 +296,25 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.8.15
+          python-version: ${{ matrix.python }}
 
       - id: stop-early
         run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "::set-output name=status::success" ; fi # The `check-for-functional-changes` job should always succeed regardless of the `has-functional-changes` script's exit code. Consequently, we do not use that exit code to trigger deploy, but rather a dedicated output variable `status`, to avoid a job failure if the exit code is different from 0. Conversely, if the job fails the entire workflow would be marked as `failed` which is disturbing for contributors.
 
   deploy:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest]
+        numpy: [1.20.3]
+        python: [3.8.15]
+        include:
+        - os: ubuntu-latest
+          pip: /opt/hostedtoolcache/Python/
+          bin: /x64/bin/
+          lib: /x64/lib/
+    runs-on: ${{ matrix.os }}
+    name: deploy-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ check-for-functional-changes ]
     if: needs.check-for-functional-changes.outputs.status == 'success'
     env:
@@ -332,23 +330,23 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.8.15
+          python-version: ${{ matrix.python }}
 
       - name: Cache build
         id: restore-build
         uses: actions/cache@v2
         with:
           path: |
-            /opt/hostedtoolcache/Python/3.8.15/x64/bin/
-            /opt/hostedtoolcache/Python/3.8.15/x64/lib/
-          key: build-ubuntu-latest-1.20.3-3.8.15-${{ hashFiles('setup.py') }}-${{ github.sha }}
+            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.bin }}
+            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}
+          key: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
       - name: Cache release
         id: restore-release
         uses: actions/cache@v2
         with:
           path: dist
-          key: release-ubuntu-latest-1.20.3-3.8.15-${{ hashFiles('setup.py') }}-${{ github.sha }}
+          key: release-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
       - name: Upload a Python package to PyPi
         run: twine upload dist/* --username $PYPI_USERNAME --password $PYPI_PASSWORD
@@ -361,16 +359,21 @@ jobs:
           curl -X POST --header "Content-Type: application/json" -d '{"branch":"master"}' https://circleci.com/api/v1.1/project/github/openfisca/openfisca-doc/build?circle-token=${{ secrets.CIRCLECI_V1_OPENFISCADOC_TOKEN }}
 
   publish-to-conda:
-    runs-on: ubuntu-20.04
-    needs: [ deploy ]
     strategy:
       fail-fast: false
+      matrix:
+        os: [ubuntu-20.04]
+        numpy: [1.20.3]
+        python: [3.7.9]
+    runs-on: ${{ matrix.os }}
+    name: publish-to-conda-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
+    needs: [ deploy ]
 
     steps:
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
-          python-version: 3.7.9
+          python-version: ${{ matrix.python }}
           channels: conda-forge
           activate-environment: true
 
