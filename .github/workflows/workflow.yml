@@ -42,6 +42,11 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
+      - name: Use zstd for faster cache restore
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: cmd
+        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+
       - name: Cache deps
         id: restore-deps
         uses: actions/cache@v3
@@ -95,6 +100,11 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
+
+      - name: Use zstd for faster cache restore
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: cmd
+        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
       - name: Cache deps
         id: restore-deps
@@ -158,6 +168,11 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
+
+      - name: Use zstd for faster cache restore
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: cmd
+        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
       - name: Cache dist
         id: restore-dist
@@ -226,6 +241,11 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
+
+      - name: Use zstd for faster cache restore
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: cmd
+        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
       - name: Cache build
         id: restore-build
@@ -359,6 +379,11 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
+
+      - name: Use zstd for faster cache restore
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: cmd
+        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
       - name: Cache build
         id: restore-build
