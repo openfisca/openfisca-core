@@ -74,7 +74,6 @@ setup(
         'License :: OSI Approved :: GNU Affero General Public License v3',
         'Operating System :: POSIX',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Topic :: Scientific/Engineering :: Information Analysis',
@@ -84,9 +83,8 @@ setup(
     license = 'https://www.fsf.org/licensing/licenses/agpl-3.0.html',
     license_files = ("LICENSE",),
     url = 'https://github.com/openfisca/openfisca-core',
-    long_description=long_description,
-    long_description_content_type='text/markdown',
-
+    long_description = long_description,
+    long_description_content_type = 'text/markdown',
     entry_points = {
         'console_scripts': [
             'openfisca=openfisca_core.scripts.openfisca_command:main',
@@ -102,7 +100,9 @@ setup(
             'twine >= 4.0.0, < 5.0.0',
             'wheel < 1.0.0',
             ],
-        'tracker': ['openfisca-tracker == 0.4.0'],
+        'tracker': [
+            'openfisca-tracker == 0.4.0',
+            ],
         },
     include_package_data = True,  # Will read MANIFEST.in
     install_requires = general_requirements,
