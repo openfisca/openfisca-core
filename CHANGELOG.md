@@ -1,5 +1,17 @@
 # Changelog
 
+# 39.0.0 [#1168](https://github.com/openfisca/openfisca-core/pull/1168)
+
+#### Breaking changes
+
+- Drop support for NumPy < 1.20
+- Drop support for Python < 3.7
+
+#### New features
+
+- Add support for Python 3.8
+- Add CI for Windows
+
 # 38.0.0 [#989](https://github.com/openfisca/openfisca-core/pull/989)
 
 #### New Features
