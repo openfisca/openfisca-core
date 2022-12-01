@@ -7,9 +7,14 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-20.04, windows-latest]
+        os: [ubuntu-20.04, ubuntu-22.04, windows-latest]
         numpy: [1.20.3]
-        python: [3.7.9]
+        python: [3.7.9, 3.8.10]
+        exclude:
+          - os: ubuntu-20.04
+            python: 3.8.10
+          - os: ubuntu-22.04
+            python: 3.7.9
     runs-on: ${{ matrix.os }}
     name: build-${{ matrix-os }}-${{ matrix.numpy }}-${{ matrix.python }}
     env:
