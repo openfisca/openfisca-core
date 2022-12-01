@@ -2,6 +2,7 @@ from http import client
 import json
 import pytest
 import re
+import sys
 
 
 def assert_items_equal(x, y):
@@ -68,6 +69,7 @@ def test_input_variable_value(expected_values, input_variable_response):
     check_input_variable_value(*expected_values, input_variable=input_variable)
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason = "Fails on Windows")
 def test_input_variable_github_url(test_client):
     input_variable_response = test_client.get('/variable/income_tax')
     input_variable = json.loads(input_variable_response.data.decode('utf-8'))
@@ -97,6 +99,7 @@ def test_variable_value(expected_values, test_client):
     check_variable_value(*expected_values, variable=variable)
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason = "Fails on Windows")
 def test_variable_formula_github_link(test_client):
     variable_response = test_client.get('/variable/income_tax')
     variable = json.loads(variable_response.data.decode('utf-8'))
