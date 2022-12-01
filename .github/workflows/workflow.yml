@@ -83,6 +83,7 @@ jobs:
           lib: \x64\lib\
     runs-on: ${{ matrix.os }}
     name: dist-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
+    needs: [ deps ]
     env:
       TERM: xterm-256color  # To colorize output of make tasks.
 
@@ -147,6 +148,7 @@ jobs:
           lib: \x64\lib\
     runs-on: ${{ matrix.os }}
     name: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
+    needs: [ dist ]
     env:
       TERM: xterm-256color  # To colorize output of make tasks.
 
