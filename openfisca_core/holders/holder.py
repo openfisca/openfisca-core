@@ -198,12 +198,12 @@ class Holder:
 
             >>> holder = Holder(variable, population)
             >>> holder.set_input("2018", numpy.array([12.5, 14]))
-            >>> holder.get_array("2018")
-            array([12, 14], dtype=int32)
+            >>> holder.get_array("2018").tolist()
+            [12, 14]
 
             >>> holder.set_input("2018", [12.5, 14])
-            >>> holder.get_array("2018")
-            array([12, 14], dtype=int32)
+            >>> holder.get_array("2018").tolist()
+            [12, 14]
 
         .. _documentation:
             https://openfisca.org/doc/coding-the-legislation/35_periods.html#set-input-automatically-process-variable-inputs-defined-for-periods-not-matching-the-definition-period
