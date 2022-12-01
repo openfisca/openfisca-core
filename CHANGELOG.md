@@ -1,5 +1,13 @@
 # Changelog
 
+# 36.0.0 [#1149](https://github.com/openfisca/openfisca-core/pull/1162)
+
+#### Breaking changes
+
+- In `ParameterScaleBracket`:
+  - Remove the `base` attribute
+  - The attribute's usage was unclear and it was only being used by some French social security variables
+
 ## 35.12.0 [#1160](https://github.com/openfisca/openfisca-core/pull/1160)
 
 #### New Features
