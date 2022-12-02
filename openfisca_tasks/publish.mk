@@ -13,7 +13,7 @@ build:
 	@## of openfisca-core, the same we put in the hands of users and reusers.
 	@$(call print_help,$@:)
 	@python -m build
-	@pip uninstall --yes openfisca-core
+	@python -m pip uninstall --yes openfisca-core
 	@find dist -name "*.whl" -exec python -m pip install --no-deps {} \;
 	@$(call print_pass,$@:)
 

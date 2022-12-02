@@ -1,6 +1,15 @@
 name: OpenFisca-Core
 
-on: [ push, pull_request, workflow_dispatch ]
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    types: [ assigned, opened, reopened, synchronize, ready_for_review ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   deps:
@@ -12,15 +21,11 @@ jobs:
         python: [3.8.10, 3.7.9]
         include:
         - os: ubuntu-20.04
-          python: 3.8.10
-          site-packages: /lib/python3.8/site-packages/
-        - os: ubuntu-20.04
-          python: 3.7.9
-          site-packages: /lib/python3.7/site-packages/
+          activate: source venv/bin/activate
         - os: windows-latest
-          site-packages: \lib\site-packages\
+          activate: .\venv\Scripts\activate
     runs-on: ${{ matrix.os }}
-    name: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
+    name: deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     env:
       TERM: xterm-256color  # To colorize output of make tasks.
 
@@ -33,8 +38,8 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - name: Use zstd for faster cache restore
-        if: ${{ matrix.os == 'windows-latest' }}
+      - name: Use zstd for faster cache restore (windows)
+        if: ${{ startsWith(matrix.os, 'windows') }}
         shell: cmd
         run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
@@ -42,15 +47,21 @@ jobs:
         id: restore-deps
         uses: actions/cache@v3
         with:
-          path: ${{ env.pythonLocation }}${{ matrix.site-packages }}
+          path: venv
           key: deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}
-          restore-keys: | # in case of a cache miss (systematically unless the same commit is built repeatedly), the keys below will be used to restore dependencies from previous builds, and the cache will be stored at the end of the job, making up-to-date dependencies available for all jobs of the workflow; see more at https://docs.github.com/en/actions/advanced-guides/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-            deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-
+          restore-keys: deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-
 
-      - name: Install global dependencies
-        run: make install-deps
+      - name: Create virtualenv
+        if: steps.restore-deps.outputs.cache-hit != 'true'
+        run: python -m venv venv
 
-  dist:
+      - name: Install dependencies
+        if: steps.restore-deps.outputs.cache-hit != 'true'
+        run: |
+          ${{ matrix.activate }}
+          make install-deps install-dist
+
+  build:
     strategy:
       fail-fast: true
       matrix:
@@ -59,13 +70,9 @@ jobs:
         python: [3.8.10, 3.7.9]
         include:
         - os: ubuntu-20.04
-          python: 3.8.10
-          site-packages: /lib/python3.8/site-packages/
-        - os: ubuntu-20.04
-          python: 3.7.9
-          site-packages: /lib/python3.7/site-packages/
+          activate: source venv/bin/activate
         - os: windows-latest
-          site-packages: \lib\site-packages\
+          activate: .\venv\Scripts\activate
     runs-on: ${{ matrix.os }}
     name: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ deps ]
@@ -82,104 +89,35 @@ jobs:
           python-version: ${{ matrix.python }}
 
       - name: Use zstd for faster cache restore
-        if: ${{ matrix.os == 'windows-latest' }}
+        if: ${{ startsWith(matrix.os, 'windows') }}
         shell: cmd
         run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
       - name: Cache deps
-        id: restore-deps
         uses: actions/cache@v3
         with:
-          path: ${{ env.pythonLocation }}${{ matrix.site-packages }}
+          path: venv
           key: deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}
 
-      - name: Cache dist
-        id: restore-dist
-        uses: actions/cache@v3
-        with:
-          path: |
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.bin }}
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}
-          key: dist-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}
-          restore-keys: | # in case of a cache miss (systematically unless the same commit is built repeatedly), the keys below will be used to restore dependencies from previous builds, and the cache will be stored at the end of the job, making up-to-date dependencies available for all jobs of the workflow; see more at https://docs.github.com/en/actions/advanced-guides/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-            dist-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-
-
-      - name: Install distribution dependencies
-        run: make install-dist
-
-  build:
-    strategy:
-      fail-fast: true
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        numpy: [1.20.3]
-        python: [3.8.15, 3.8.10, 3.7.15, 3.7.9]
-        exclude:
-        - python: 3.8.15
-          os: windows-latest
-        - python: 3.8.10
-          os: ubuntu-latest
-        - python: 3.7.15
-          os: windows-latest
-        - python: 3.7.9
-          os: ubuntu-latest
-        include:
-        - os: ubuntu-latest
-          pip: /opt/hostedtoolcache/Python/
-          bin: /x64/bin/
-          lib: /x64/lib/
-        - os: windows-latest
-          pip: C:\hostedtoolcache\windows\python\
-          bin: \x64\scripts\
-          lib: \x64\lib\
-    runs-on: ${{ matrix.os }}
-    name: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
-    needs: [ dist ]
-    env:
-      TERM: xterm-256color  # To colorize output of make tasks.
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python }}
-
-      - name: Use zstd for faster cache restore
-        if: ${{ matrix.os == 'windows-latest' }}
-        shell: cmd
-        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
-
-      - name: Cache dist
-        id: restore-dist
-        uses: actions/cache@v3
-        with:
-          path: |
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.bin }}
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}
-          key: dist-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}
-
-      - name: Build package
-        run: make install-test build
-
       - name: Cache build
-        id: restore-build
         uses: actions/cache@v3
         with:
-          path: |
-            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_core
-            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_country_template
-            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_extension_template
+          path: venv/**/[oO]pen[fF]isca*
           key: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
+          restore-keys: |
+            build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-
+            build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-
 
       - name: Cache release
-        id: restore-release
         uses: actions/cache@v3
         with:
           path: dist
           key: release-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
+
+      - name: Build package
+        run: |
+          ${{ matrix.activate }}
+          make install-test clean build
 
   test-core:
     strategy:
@@ -190,13 +128,9 @@ jobs:
         python: [3.8.10, 3.7.9]
         include:
         - os: ubuntu-20.04
-          python: 3.8.10
-          site-packages: /lib/python3.8/site-packages/
-        - os: ubuntu-20.04
-          python: 3.7.9
-          site-packages: /lib/python3.7/site-packages/
+          activate: source venv/bin/activate
         - os: windows-latest
-          site-packages: \lib\site-packages\
+          activate: .\venv\Scripts\activate
     runs-on: ${{ matrix.os }}
     name: test-core-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ build ]
@@ -218,42 +152,35 @@ jobs:
         run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
       - name: Cache deps
-        id: restore-deps
         uses: actions/cache@v3
         with:
-          path: ${{ env.pythonLocation }}${{ matrix.site-packages }}
+          path: venv
           key: deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}
 
       - name: Cache build
-        id: restore-build
         uses: actions/cache@v3
         with:
-          path: |
-            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_core
-            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_country_template
-            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_extension_template
+          path: venv/**/[oO]pen[fF]isca*
           key: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
       - name: Run openfisca-core tests
-        run:  make test-core
-
-      - name: Submit coverage to Coveralls
-        run: python -m coveralls --service=github
+        run: |
+          ${{ matrix.activate }}
+          make test-core
+          python -m coveralls --service=github
 
   test-country-template:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04]
+        os: [ubuntu-20.04, windows-latest]
         numpy: [1.20.3]
         python: [3.8.10, 3.7.9]
         include:
         - os: ubuntu-20.04
-          python: 3.8.10
-          site-packages: /lib/python3.8/site-packages/
-        - os: ubuntu-20.04
-          python: 3.7.9
-          site-packages: /lib/python3.7/site-packages/
+          activate: source venv/bin/activate
+        - os: windows-latest
+          activate: .\venv\Scripts\activate
     runs-on: ${{ matrix.os }}
     name: test-country-template-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ build ]
@@ -268,40 +195,40 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
+      - name: Use zstd for faster cache restore
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: cmd
+        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+
       - name: Cache deps
-        id: restore-deps
         uses: actions/cache@v3
         with:
-          path: ${{ env.pythonLocation }}${{ matrix.site-packages }}
+          path: venv
           key: deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}
 
       - name: Cache build
-        id: restore-build
         uses: actions/cache@v3
         with:
-          path: |
-            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_core
-            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_country_template
-            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_extension_template
+          path: venv/**/[oO]pen[fF]isca*
           key: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
       - name: Run Country Template tests
-        run: make test-country
+        run: |
+          ${{ matrix.activate }}
+          make test-country
 
   test-extension-template:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04]
+        os: [ubuntu-20.04, windows-latest]
         numpy: [1.20.3]
         python: [3.8.10, 3.7.9]
         include:
         - os: ubuntu-20.04
-          python: 3.8.10
-          site-packages: /lib/python3.8/site-packages/
-        - os: ubuntu-20.04
-          python: 3.7.9
-          site-packages: /lib/python3.7/site-packages/
+          activate: source venv/bin/activate
+        - os: windows-latest
+          activate: .\venv\Scripts\activate
     runs-on: ${{ matrix.os }}
     name: test-extension-template-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ build ]
@@ -316,25 +243,27 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
+      - name: Use zstd for faster cache restore
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: cmd
+        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+
       - name: Cache deps
-        id: restore-deps
         uses: actions/cache@v3
         with:
-          path: ${{ env.pythonLocation }}${{ matrix.site-packages }}
+          path: venv
           key: deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}
 
       - name: Cache build
-        id: restore-build
         uses: actions/cache@v3
         with:
-          path: |
-            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_core
-            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_country_template
-            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_extension_template
+          path: venv/**/[oO]pen[fF]isca*
           key: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
       - name: Run Extension Template tests
-        run: make test-extension
+        run: |
+          ${{ matrix.activate }}
+          make test-extension
 
   lint-files:
     strategy:
@@ -345,16 +274,12 @@ jobs:
         python: [3.8.10, 3.7.9]
         include:
         - os: ubuntu-20.04
-          python: 3.8.10
-          site-packages: /lib/python3.8/site-packages/
-        - os: ubuntu-20.04
-          python: 3.7.9
-          site-packages: /lib/python3.7/site-packages/
+          activate: source venv/bin/activate
         - os: windows-latest
-          site-packages: \lib\site-packages\
+          activate: .\venv\Scripts\activate
     runs-on: ${{ matrix.os }}
     name: lint-files-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
-    needs: [ build ]
+    needs: [ deps ]
     env:
       TERM: xterm-256color
 
@@ -374,24 +299,15 @@ jobs:
         run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
       - name: Cache deps
-        id: restore-deps
         uses: actions/cache@v3
         with:
-          path: ${{ env.pythonLocation }}${{ matrix.site-packages }}
+          path: venv
           key: deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}
 
-      - name: Cache build
-        id: restore-build
-        uses: actions/cache@v3
-        with:
-          path: |
-            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_core
-            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_country_template
-            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_extension_template
-          key: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
-
       - name: Run linters
-        run: make lint
+        run: |
+          ${{ matrix.activate }}
+          make clean lint
 
   check-version:
     strategy:
@@ -402,7 +318,7 @@ jobs:
         python: [3.8.10]
     runs-on: ${{ matrix.os }}
     name: check-version-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
-    needs: [ build ] # Last job to run
+    needs: [ deps ] # Last job to run
 
     steps:
       - uses: actions/checkout@v3
@@ -430,7 +346,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: check-for-functional-changes-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     if: github.ref == 'refs/heads/master' # Only triggered for the `master` branch
-    needs: [ check-version ]
+    needs: [ test-core, test-country-template, test-extension-template, lint-files, check-version ]
     outputs:
       status: ${{ steps.stop-early.outputs.status }}
 
@@ -456,8 +372,7 @@ jobs:
         python: [3.8.10]
         include:
         - os: ubuntu-20.04
-          python: 3.8.10
-          site-packages: /lib/python3.8/site-packages/
+          activate: source venv/bin/activate
     runs-on: ${{ matrix.os }}
     name: deploy-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ check-for-functional-changes ]
@@ -478,31 +393,21 @@ jobs:
           python-version: ${{ matrix.python }}
 
       - name: Cache deps
-        id: restore-deps
         uses: actions/cache@v3
         with:
-          path: ${{ env.pythonLocation }}${{ matrix.site-packages }}
+          path: venv
           key: deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}
 
       - name: Cache build
-        id: restore-build
         uses: actions/cache@v3
         with:
-          path: |
-            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_core
-            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_country_template
-            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_extension_template
+          path: venv/**/[oO]pen[fF]isca*
           key: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
-      - name: Cache release
-        id: restore-release
-        uses: actions/cache@v3
-        with:
-          path: dist
-          key: release-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
-
       - name: Upload a Python package to PyPi
-        run: make publish
+        run: |
+          ${{ matrix.activate }}
+          make publish
 
       - name: Publish a git tag
         run: "${GITHUB_WORKSPACE}/.github/publish-git-tag.sh"
