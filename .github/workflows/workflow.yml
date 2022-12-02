@@ -12,17 +12,13 @@ jobs:
         python: [3.8.10, 3.7.9]
         include:
         - os: ubuntu-20.04
-          pip: /opt/hostedtoolcache/Python/
-          lib: /x64/lib/
-          site-packages: /site-packages/
+          python: 3.8.10
+          site-packages: /lib/python3.8/site-packages/
+        - os: ubuntu-20.04
+          python: 3.7.9
+          site-packages: /lib/python3.7/site-packages/
         - os: windows-latest
-          pip: C:\hostedtoolcache\windows\python\
-          lib: \x64\lib\
-          site-packages: \site-packages\
-        - python: 3.8.10
-          dir: python3.8
-        - python: 3.7.9
-          dir: python3.7
+          site-packages: \lib\site-packages\
     runs-on: ${{ matrix.os }}
     name: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     env:
@@ -46,7 +42,7 @@ jobs:
         id: restore-deps
         uses: actions/cache@v3
         with:
-          path: ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}
+          path: ${{ env.pythonLocation }}${{ matrix.site-packages }}
           key: deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}
           restore-keys: | # in case of a cache miss (systematically unless the same commit is built repeatedly), the keys below will be used to restore dependencies from previous builds, and the cache will be stored at the end of the job, making up-to-date dependencies available for all jobs of the workflow; see more at https://docs.github.com/en/actions/advanced-guides/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
             deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-
@@ -63,17 +59,13 @@ jobs:
         python: [3.8.10, 3.7.9]
         include:
         - os: ubuntu-20.04
-          pip: /opt/hostedtoolcache/Python/
-          lib: /x64/lib/
-          site-packages: /site-packages/
+          python: 3.8.10
+          site-packages: /lib/python3.8/site-packages/
+        - os: ubuntu-20.04
+          python: 3.7.9
+          site-packages: /lib/python3.7/site-packages/
         - os: windows-latest
-          pip: C:\hostedtoolcache\windows\python\
-          lib: \x64\lib\
-          site-packages: \site-packages\
-        - python: 3.8.10
-          dir: python3.8
-        - python: 3.7.9
-          dir: python3.7
+          site-packages: \lib\site-packages\
     runs-on: ${{ matrix.os }}
     name: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ deps ]
@@ -98,7 +90,7 @@ jobs:
         id: restore-deps
         uses: actions/cache@v3
         with:
-          path: ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}
+          path: ${{ env.pythonLocation }}${{ matrix.site-packages }}
           key: deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}
 
       - name: Cache dist
@@ -177,9 +169,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}openfisca_core
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}openfisca_country_template
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}openfisca_extension_template
+            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_core
+            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_country_template
+            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_extension_template
           key: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
       - name: Cache release
@@ -198,17 +190,13 @@ jobs:
         python: [3.8.10, 3.7.9]
         include:
         - os: ubuntu-20.04
-          pip: /opt/hostedtoolcache/Python/
-          lib: /x64/lib/
-          site-packages: /site-packages/
+          python: 3.8.10
+          site-packages: /lib/python3.8/site-packages/
+        - os: ubuntu-20.04
+          python: 3.7.9
+          site-packages: /lib/python3.7/site-packages/
         - os: windows-latest
-          pip: C:\hostedtoolcache\windows\python\
-          lib: \x64\lib\
-          site-packages: \site-packages\
-        - python: 3.8.10
-          dir: python3.8
-        - python: 3.7.9
-          dir: python3.7
+          site-packages: \lib\site-packages\
     runs-on: ${{ matrix.os }}
     name: test-core-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ build ]
@@ -233,7 +221,7 @@ jobs:
         id: restore-deps
         uses: actions/cache@v3
         with:
-          path: ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}
+          path: ${{ env.pythonLocation }}${{ matrix.site-packages }}
           key: deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}
 
       - name: Cache build
@@ -241,9 +229,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}openfisca_core
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}openfisca_country_template
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}openfisca_extension_template
+            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_core
+            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_country_template
+            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_extension_template
           key: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
       - name: Run openfisca-core tests
@@ -261,13 +249,11 @@ jobs:
         python: [3.8.10, 3.7.9]
         include:
         - os: ubuntu-20.04
-          pip: /opt/hostedtoolcache/Python/
-          lib: /x64/lib/
-          site-packages: /site-packages/
-        - python: 3.8.10
-          dir: python3.8
-        - python: 3.7.9
-          dir: python3.7
+          python: 3.8.10
+          site-packages: /lib/python3.8/site-packages/
+        - os: ubuntu-20.04
+          python: 3.7.9
+          site-packages: /lib/python3.7/site-packages/
     runs-on: ${{ matrix.os }}
     name: test-country-template-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ build ]
@@ -286,7 +272,7 @@ jobs:
         id: restore-deps
         uses: actions/cache@v3
         with:
-          path: ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}
+          path: ${{ env.pythonLocation }}${{ matrix.site-packages }}
           key: deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}
 
       - name: Cache build
@@ -294,9 +280,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}openfisca_core
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}openfisca_country_template
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}openfisca_extension_template
+            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_core
+            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_country_template
+            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_extension_template
           key: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
       - name: Run Country Template tests
@@ -311,13 +297,11 @@ jobs:
         python: [3.8.10, 3.7.9]
         include:
         - os: ubuntu-20.04
-          pip: /opt/hostedtoolcache/Python/
-          lib: /x64/lib/
-          site-packages: /site-packages/
-        - python: 3.8.10
-          dir: python3.8
-        - python: 3.7.9
-          dir: python3.7
+          python: 3.8.10
+          site-packages: /lib/python3.8/site-packages/
+        - os: ubuntu-20.04
+          python: 3.7.9
+          site-packages: /lib/python3.7/site-packages/
     runs-on: ${{ matrix.os }}
     name: test-extension-template-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ build ]
@@ -336,7 +320,7 @@ jobs:
         id: restore-deps
         uses: actions/cache@v3
         with:
-          path: ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}
+          path: ${{ env.pythonLocation }}${{ matrix.site-packages }}
           key: deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}
 
       - name: Cache build
@@ -344,9 +328,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}openfisca_core
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}openfisca_country_template
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}openfisca_extension_template
+            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_core
+            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_country_template
+            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_extension_template
           key: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
       - name: Run Extension Template tests
@@ -361,17 +345,13 @@ jobs:
         python: [3.8.10, 3.7.9]
         include:
         - os: ubuntu-20.04
-          pip: /opt/hostedtoolcache/Python/
-          lib: /x64/lib/
-          site-packages: /site-packages/
+          python: 3.8.10
+          site-packages: /lib/python3.8/site-packages/
+        - os: ubuntu-20.04
+          python: 3.7.9
+          site-packages: /lib/python3.7/site-packages/
         - os: windows-latest
-          pip: C:\hostedtoolcache\windows\python\
-          lib: \x64\lib\
-          site-packages: \site-packages\
-        - python: 3.8.10
-          dir: python3.8
-        - python: 3.7.9
-          dir: python3.7
+          site-packages: \lib\site-packages\
     runs-on: ${{ matrix.os }}
     name: lint-files-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ build ]
@@ -397,7 +377,7 @@ jobs:
         id: restore-deps
         uses: actions/cache@v3
         with:
-          path: ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}
+          path: ${{ env.pythonLocation }}${{ matrix.site-packages }}
           key: deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}
 
       - name: Cache build
@@ -405,9 +385,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}openfisca_core
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}openfisca_country_template
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}openfisca_extension_template
+            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_core
+            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_country_template
+            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_extension_template
           key: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
       - name: Run linters
@@ -476,11 +456,8 @@ jobs:
         python: [3.8.10]
         include:
         - os: ubuntu-20.04
-          pip: /opt/hostedtoolcache/Python/
-          lib: /x64/lib/
-          site-packages: /site-packages/
-        - python: 3.8.10
-          dir: python3.8
+          python: 3.8.10
+          site-packages: /lib/python3.8/site-packages/
     runs-on: ${{ matrix.os }}
     name: deploy-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ check-for-functional-changes ]
@@ -504,7 +481,7 @@ jobs:
         id: restore-deps
         uses: actions/cache@v3
         with:
-          path: ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}
+          path: ${{ env.pythonLocation }}${{ matrix.site-packages }}
           key: deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}
 
       - name: Cache build
@@ -512,9 +489,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}openfisca_core
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}openfisca_country_template
-            ${{ matrix.pip }}${{ matrix.python }}${{ matrix.lib }}${{ matrix.dir }}${{ matrix.site-packages }}openfisca_extension_template
+            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_core
+            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_country_template
+            ${{ env.pythonLocation }}${{ matrix.site-packages }}openfisca_extension_template
           key: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
       - name: Cache release
