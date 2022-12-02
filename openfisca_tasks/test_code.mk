@@ -10,8 +10,9 @@ install: install-deps install-edit install-test
 ## Enable regression testing with template repositories.
 install-test:
 	@$(call print_help,$@:)
-	@pip install --upgrade --no-deps openfisca-country-template
-	@pip install --upgrade --no-deps openfisca-extension-template
+	python -m pip install --upgrade --no-deps openfisca-country-template
+	python -m pip install --upgrade --no-deps openfisca-extension-template
+	@$(call print_pass,$@:)
 
 ## Run openfisca-core & country/extension template tests.
 test-code: test-core test-country test-extension
@@ -29,14 +30,14 @@ test-code: test-core test-country test-extension
 	@$(call print_pass,$@:)
 
 ## Run openfisca-core tests.
-test-core: $(shell pytest --quiet --quiet --collect-only 2> /dev/null | cut -f 1 -d ":")
+test-core: $(shell python -m pytest --quiet --quiet --collect-only 2> /dev/null | cut -f 1 -d ":")
 	@$(call print_help,$@:)
-	@pytest --quiet --capture=no --xdoctest --xdoctest-verbose=0 \
+	@python -m pytest --quiet --capture=no --xdoctest --xdoctest-verbose=0 \
 		openfisca_core/commons \
 		openfisca_core/holders \
 		openfisca_core/types
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
-		coverage run -m \
+		python -m coverage run -m \
 		${openfisca} test $? \
 		${openfisca_args}
 	@$(call print_pass,$@:)
@@ -45,7 +46,8 @@ test-core: $(shell pytest --quiet --quiet --collect-only 2> /dev/null | cut -f 1
 test-country:
 	@$(call print_help,$@:)
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
-		openfisca test ${python_packages}/openfisca_country_template/tests \
+		python -m ${openfisca} test \
+		${python_packages}/openfisca_country_template/tests \
 		--country-package openfisca_country_template \
 		${openfisca_args}
 	@$(call print_pass,$@:)
@@ -54,7 +56,8 @@ test-country:
 test-extension:
 	@$(call print_help,$@:)
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
-		openfisca test ${python_packages}/openfisca_extension_template/tests \
+		python -m ${openfisca} test \
+		${python_packages}/openfisca_extension_template/tests \
 		--country-package openfisca_country_template \
 		--extensions openfisca_extension_template \
 		${openfisca_args}
@@ -63,4 +66,5 @@ test-extension:
 ## Print the coverage report.
 test-cov:
 	@$(call print_help,$@:)
-	@coverage report
+	@python -m coverage report
+	@$(call print_pass,$@:)

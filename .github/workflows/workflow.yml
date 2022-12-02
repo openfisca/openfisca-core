@@ -238,7 +238,7 @@ jobs:
         run:  make test-core
 
       - name: Submit coverage to Coveralls
-        run: coveralls --service=github
+        run: python -m coveralls --service=github
 
   test-country-template:
     strategy:
@@ -502,7 +502,7 @@ jobs:
           key: release-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
       - name: Upload a Python package to PyPi
-        run: twine upload dist/* --username $PYPI_USERNAME --password $PYPI_PASSWORD
+        run: make publish
 
       - name: Publish a git tag
         run: "${GITHUB_WORKSPACE}/.github/publish-git-tag.sh"
