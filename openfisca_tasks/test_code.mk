@@ -4,6 +4,15 @@ openfisca = openfisca_core.scripts.openfisca_command
 ## The path to the installed packages.
 python_packages = $(shell python -c "import sysconfig; print(sysconfig.get_paths()[\"purelib\"])")
 
+## The path to the templates' tests.
+ifeq ($(OS),Windows_NT)
+	country_tests = ${python_packages}\openfisca_country_template\tests
+	extension_tests = ${python_packages}\openfisca_extension_template\tests
+else
+	country_tests = ${python_packages}/openfisca_country_template/tests
+	extension_tests = ${python_packages}/openfisca_extension_template/tests
+endif
+
 ## Run all tasks required for testing.
 install: install-deps install-edit install-test
 
@@ -30,17 +39,16 @@ test-code: test-core test-country test-extension
 	@$(call print_pass,$@:)
 
 ## Run openfisca-core tests.
-test-core:
+test-core: $(shell git ls-files "*test_*.py")
 	@$(call print_help,$@:)
 	@python -m pytest --quiet --capture=no --xdoctest --xdoctest-verbose=0 \
 		openfisca_core/commons \
 		openfisca_core/holders \
 		openfisca_core/types
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
-		python -m coverage run -m \
-		${openfisca} test \
-		${openfisca_args} \
-		$(shell python -m pytest --quiet --quiet --collect-only 2> /dev/null | cut -f 1 -d ":")
+		python -m coverage run -m ${openfisca} test \
+		$? \
+		${openfisca_args}
 	@$(call print_pass,$@:)
 
 ## Run country-template tests.
@@ -48,7 +56,7 @@ test-country:
 	@$(call print_help,$@:)
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
 		python -m ${openfisca} test \
-		${python_packages}/openfisca_country_template/tests \
+		${country_tests} \
 		--country-package openfisca_country_template \
 		${openfisca_args}
 	@$(call print_pass,$@:)
@@ -58,7 +66,7 @@ test-extension:
 	@$(call print_help,$@:)
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
 		python -m ${openfisca} test \
-		${python_packages}/openfisca_extension_template/tests \
+		${extension_tests} \
 		--country-package openfisca_country_template \
 		--extensions openfisca_extension_template \
 		${openfisca_args}

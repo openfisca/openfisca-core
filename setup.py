@@ -106,5 +106,5 @@ setup(
         },
     include_package_data = True,  # Will read MANIFEST.in
     install_requires = general_requirements,
-    packages = find_packages(),
+    packages = find_packages(exclude=['tests*']),
     )
