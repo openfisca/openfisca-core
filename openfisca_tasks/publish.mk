@@ -3,7 +3,6 @@
 ## Install project's build dependencies
 install-dist:
 	@$(call print_help,$@:)
-	@pip install --upgrade build
 	@python setup.py egg_info
 	@pip install $$(grep -v "^\[" *.egg-info/requires.txt)
 	@$(call print_pass,$@:)

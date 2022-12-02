@@ -6,7 +6,7 @@ uninstall:
 ## Install project's overall dependencies
 install-deps:
 	@$(call print_help,$@:)
-	@pip install --upgrade pip wheel
+	@pip install --upgrade pip build wheel
 
 ## Install project's development dependencies.
 install-edit:
