@@ -1,19 +1,19 @@
 ## Uninstall project's dependencies.
 uninstall:
 	@$(call print_help,$@:)
-	pip freeze | grep -v "^-e" | sed "s/@.*//" | xargs pip uninstall -y
+	@python -m pip freeze | grep -v "^-e" | sed "s/@.*//" | xargs python -m pip uninstall -y
 	@$(call print_pass,$@:)
 
 ## Install project's overall dependencies
 install-deps:
 	@$(call print_help,$@:)
-	pip install --upgrade pip build wheel
+	@python -m pip install --upgrade pip build wheel
 	@$(call print_pass,$@:)
 
 ## Install project's development dependencies.
 install-edit:
 	@$(call print_help,$@:)
-	pip install --upgrade --editable ".[dev]"
+	@python -m pip install --upgrade --editable ".[dev]"
 	@$(call print_pass,$@:)
 
 ## Delete builds and compiled python files.

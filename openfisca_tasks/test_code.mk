@@ -1,16 +1,11 @@
 ## The openfisca command module.
 openfisca = openfisca_core.scripts.openfisca_command
 
-## The path to the installed packages.
-python_packages = $(shell python -c "import sysconfig; print(sysconfig.get_paths()[\"purelib\"])")
-
 ## The path to the templates' tests.
 ifeq ($(OS),Windows_NT)
-	country_tests = ${python_packages}\openfisca_country_template\tests
-	extension_tests = ${python_packages}\openfisca_extension_template\tests
+	tests = $(shell python -c "import os, $(1); print(repr(os.path.join($(1).__path__[0], 'tests')))")
 else
-	country_tests = ${python_packages}/openfisca_country_template/tests
-	extension_tests = ${python_packages}/openfisca_extension_template/tests
+	tests = $(shell python -c "import $(1); print($(1).__path__[0])")/tests
 endif
 
 ## Run all tasks required for testing.
@@ -19,8 +14,8 @@ install: install-deps install-edit install-test
 ## Enable regression testing with template repositories.
 install-test:
 	@$(call print_help,$@:)
-	pip install --upgrade --no-deps openfisca-country-template
-	pip install --upgrade --no-deps openfisca-extension-template
+	@python -m pip install --upgrade --no-deps openfisca-country-template
+	@python -m pip install --upgrade --no-deps openfisca-extension-template
 	@$(call print_pass,$@:)
 
 ## Run openfisca-core & country/extension template tests.
@@ -55,8 +50,8 @@ test-core: $(shell git ls-files "*test_*.py")
 test-country:
 	@$(call print_help,$@:)
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
-		openfisca test \
-		${country_tests} \
+		python -m ${openfisca} test \
+		$(call tests,"openfisca_country_template") \
 		--country-package openfisca_country_template \
 		${openfisca_args}
 	@$(call print_pass,$@:)
@@ -65,8 +60,8 @@ test-country:
 test-extension:
 	@$(call print_help,$@:)
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
-		openfisca test \
-		${extension_tests} \
+		python -m ${openfisca} test \
+		$(call tests,"openfisca_extension_template") \
 		--country-package openfisca_country_template \
 		--extensions openfisca_extension_template \
 		${openfisca_args}
