@@ -30,7 +30,7 @@ test-code: test-core test-country test-extension
 	@$(call print_pass,$@:)
 
 ## Run openfisca-core tests.
-test-core: $(shell python -m pytest --quiet --quiet --collect-only 2> /dev/null | cut -f 1 -d ":")
+test-core:
 	@$(call print_help,$@:)
 	@python -m pytest --quiet --capture=no --xdoctest --xdoctest-verbose=0 \
 		openfisca_core/commons \
@@ -38,8 +38,9 @@ test-core: $(shell python -m pytest --quiet --quiet --collect-only 2> /dev/null 
 		openfisca_core/types
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
 		python -m coverage run -m \
-		${openfisca} test $? \
-		${openfisca_args}
+		${openfisca} test \
+		${openfisca_args} \
+		$(shell python -m pytest --quiet --quiet --collect-only 2> /dev/null | cut -f 1 -d ":")
 	@$(call print_pass,$@:)
 
 ## Run country-template tests.
