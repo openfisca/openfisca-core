@@ -1,5 +1,12 @@
 # Changelog
 
+### 37.0.1 [#1171](https://github.com/openfisca/openfisca-core/pull/1171)
+
+#### Technical changes
+
+- Introduce a way to run test in parallel.
+- Check `openfisca test --help` for usage instructions.
+
 # 37.0.0 [#1142](https://github.com/openfisca/openfisca-core/pull/1142)
 
 #### Deprecations
