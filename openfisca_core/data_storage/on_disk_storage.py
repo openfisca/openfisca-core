@@ -3,18 +3,20 @@ from __future__ import annotations
 from typing import Any, NoReturn, Optional, Sequence
 
 import os
+import pathlib
 import shutil
 
 import numpy
 
 from openfisca_core import periods, indexed_enums as enums, types
 
+from . import _funcs
 from ._enums import Enums
 from ._files import Files
 
 
 class OnDiskStorage:
-    """Class responsible for storing and retrieving calculated vectors on disk.
+    """Class responsible for storing/retrieving vectors on/from disk.
 
     Attributes:
         _enums: ?
@@ -58,25 +60,18 @@ class OnDiskStorage:
         return enums.EnumArray(load, enum)
 
     def get(self, period: types.Period) -> Any:
-        if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
-        period = periods.period(period)
-
+        period = _funcs.parse_period(period, self.is_eternal)
         values = self._files.get(period)
+
         if values is None:
             return None
 
         return self._decode_file(values)
 
     def put(self, value: Any, period: types.Period) -> None:
-        if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
-
-        else:
-            period = periods.period(period)
-
-        filename = str(period)
-        path = os.path.join(self.storage_dir, filename) + ".npy"
+        period = _funcs.parse_period(period, self.is_eternal)
+        stem = str(period)
+        path = os.path.join(self.storage_dir, f"{stem}.npy")
 
         if isinstance(value, enums.EnumArray):
             self._enums = Enums({path: value.possible_values, **self._enums})
@@ -88,24 +83,63 @@ class OnDiskStorage:
     def delete(self, period: Optional[types.Period] = None) -> None:
         if period is None:
             self._files = Files({})
-            return
+            return None
 
-        if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
-        period = periods.period(period)
+        period = _funcs.parse_period(period, self.is_eternal)
 
-        if period is not None:
-            self._files = Files({
-                period_item: value
-                for period_item, value in self._files.items()
-                if not period.contains(period_item)
-                })
+        self._files = Files({
+            period_item: value
+            for period_item, value in self._files.items()
+            if not period.contains(period_item)
+            })
 
     def get_known_periods(self) -> Sequence[types.Period]:
+        """List of storage's known periods.
+
+        Returns:
+            A list of periods.
+
+        Examples:
+            >>> import tempfile
+
+            >>> with tempfile.TemporaryDirectory() as storage_dir:
+            ...     storage = OnDiskStorage(storage_dir)
+            ...     storage.get_known_periods()
+            []
+
+            >>> with tempfile.TemporaryDirectory() as storage_dir:
+            ...     instant = periods.Instant((2017, 1, 1))
+            ...     period = periods.Period(("year", instant, 1))
+            ...     storage = OnDiskStorage(storage_dir)
+            ...     storage.put([], period)
+            ...     storage.get_known_periods()
+            [Period(('year', Instant((2017, 1, 1)), 1))]
+
+        """
+
         return list(self._files.keys())
 
     def get_memory_usage(self) -> NoReturn:
-        raise NotImplementedError
+        """Memory usage of the storage.
+
+        Raises:
+            NotImplementedError: Method not implemented for this storage.
+
+        Examples:
+            >>> import tempfile
+
+            >>> with tempfile.TemporaryDirectory() as storage_dir:
+            ...     storage = OnDiskStorage(storage_dir)
+            ...     storage.get_memory_usage()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Method not implemented for this storage.
+
+        .. versionadded:: 36.0.1
+
+        """
+
+        raise NotImplementedError("Method not implemented for this storage.")
 
     def restore(self) -> None:
         self._files = Files({})
@@ -120,9 +154,16 @@ class OnDiskStorage:
 
     def __del__(self) -> None:
         if self.preserve_storage_dir:
-            return
-        shutil.rmtree(self.storage_dir)  # Remove the holder temporary files
+            return None
+
+        path = pathlib.Path(self.storage_dir)
+
+        if path.exists():
+            # Remove the holder temporary files
+            shutil.rmtree(self.storage_dir)
+
         # If the simulation temporary directory is empty, remove it
         parent_dir = os.path.abspath(os.path.join(self.storage_dir, os.pardir))
+
         if not os.listdir(parent_dir):
             shutil.rmtree(parent_dir)

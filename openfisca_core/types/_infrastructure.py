@@ -16,7 +16,7 @@ import numpy
 
 
 class Storage(Protocol):
-    """Storage protocol."""
+    """Vector storage protocol."""
 
     @abc.abstractmethod
     def get(self, period: Any) -> Optional[numpy.ndarray]:
@@ -30,6 +30,9 @@ class Storage(Protocol):
     def delete(self, period: Any = None) -> None:
         """Abstract method."""
 
+    def get_known_periods(self) -> Any:
+        """Storage's known periods."""
+
     @abc.abstractmethod
     def get_memory_usage(self) -> Any:
-        """Abstract method."""
+        """Memory usage of the storage."""
