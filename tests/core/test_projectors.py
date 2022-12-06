@@ -2,7 +2,7 @@ from openfisca_core.simulations.simulation_builder import SimulationBuilder
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_core.entities import build_entity
 from openfisca_core.model_api import Enum, Variable, ETERNITY
-import numpy as np
+import numpy
 
 
 def test_shortcut_to_containing_entity_provided():
@@ -155,7 +155,7 @@ def test_enum_projects_downwards():
             }
         })
 
-    assert (simulation.calculate("projected_enum_variable", "2021-01-01").decode_to_str() == np.array(["SECOND_OPTION"] * 3)).all()
+    assert (simulation.calculate("projected_enum_variable", "2021-01-01").decode_to_str() == numpy.array(["SECOND_OPTION"] * 3)).all()
 
 
 def test_enum_projects_upwards():
@@ -225,7 +225,7 @@ def test_enum_projects_upwards():
             }
         })
 
-    assert (simulation.calculate("household_projected_variable", "2021-01-01").decode_to_str() == np.array(["SECOND_OPTION"])).all()
+    assert (simulation.calculate("household_projected_variable", "2021-01-01").decode_to_str() == numpy.array(["SECOND_OPTION"])).all()
 
 
 def test_enum_projects_between_containing_groups():
@@ -325,5 +325,5 @@ def test_enum_projects_between_containing_groups():
             }
         })
 
-    assert (simulation.calculate("projected_family_level_variable", "2021-01-01").decode_to_str() == np.array(["SECOND_OPTION"])).all()
-    assert (simulation.calculate("decoded_projected_family_level_variable", "2021-01-01") == np.array(["SECOND_OPTION"])).all()
+    assert (simulation.calculate("projected_family_level_variable", "2021-01-01").decode_to_str() == numpy.array(["SECOND_OPTION"])).all()
+    assert (simulation.calculate("decoded_projected_family_level_variable", "2021-01-01") == numpy.array(["SECOND_OPTION"])).all()

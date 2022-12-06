@@ -2,7 +2,7 @@ import os
 from typing import List
 
 import pytest
-import numpy as np
+import numpy
 
 from openfisca_core.tools.test_runner import _get_tax_benefit_system, YamlItem, YamlFile
 from openfisca_core.errors import VariableNotFound
@@ -81,7 +81,7 @@ class TestVariable(Variable):
         self.entity = Entity('person', 'persons', None, "")
         self.is_neutralized = False
         self.set_input = None
-        self.dtype = np.float32
+        self.dtype = numpy.float32
 
 
 def test_variable_not_found():
