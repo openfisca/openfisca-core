@@ -1,5 +1,11 @@
 # Changelog
 
+### 37.0.1 [#1169](https://github.com/openfisca/openfisca-core/pull/1169)
+
+#### Technical changes
+
+- Unify casing of NumPy.
+
 # 37.0.0 [#1142](https://github.com/openfisca/openfisca-core/pull/1142)
 
 #### Deprecations
