@@ -45,7 +45,8 @@ test-core: $(shell pytest --quiet --quiet --collect-only 2> /dev/null | cut -f 1
 test-country:
 	@$(call print_help,$@:)
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
-		openfisca test ${python_packages}/openfisca_country_template/tests \
+		python -m \
+		${openfisca} test ${python_packages}/openfisca_country_template/tests \
 		--country-package openfisca_country_template \
 		${openfisca_args}
 	@$(call print_pass,$@:)
@@ -54,7 +55,8 @@ test-country:
 test-extension:
 	@$(call print_help,$@:)
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
-		openfisca test ${python_packages}/openfisca_extension_template/tests \
+		python -m \
+		${openfisca} test ${python_packages}/openfisca_extension_template/tests \
 		--country-package openfisca_country_template \
 		--extensions openfisca_extension_template \
 		${openfisca_args}

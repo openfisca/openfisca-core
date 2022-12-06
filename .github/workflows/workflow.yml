@@ -60,7 +60,7 @@ jobs:
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
       - name: Run openfisca-core tests
-        run:  make test-core
+        run:  make test-core openfisca_args="--workers auto"
 
       - name: Submit coverage to Coveralls
         run: |
@@ -89,7 +89,7 @@ jobs:
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
       - name: Run Country Template tests
-        run: make test-country
+        run: make test-country openfisca_args="--workers auto"
 
   test-extension-template:
     runs-on: ubuntu-20.04
@@ -113,7 +113,7 @@ jobs:
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
       - name: Run Extension Template tests
-        run: make test-extension
+        run: make test-extension openfisca_args="--workers auto"
 
   check-numpy:
     runs-on: ubuntu-20.04

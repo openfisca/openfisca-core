@@ -29,6 +29,7 @@ class Options(TypedDict, total = False):
     performance_graph: bool
     performance_tables: bool
     verbose: bool
+    workers: Optional[Sequence[str]]
 
 
 @dataclasses.dataclass(frozen = True)
@@ -130,6 +131,7 @@ def run_tests(
     """
 
     argv = []
+    workers = options.get("workers")
     plugins = [OpenFiscaPlugin(tax_benefit_system, options)]
 
     if options.get('pdb'):
@@ -137,6 +139,9 @@ def run_tests(
 
     if options.get('verbose'):
         argv.append('--verbose')
+
+    if workers is not None:
+        argv.append(f"--workers={workers[0]}")
 
     if isinstance(paths, str):
         paths = [paths]
