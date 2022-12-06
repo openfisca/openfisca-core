@@ -120,6 +120,7 @@ class Period(Protocol):
     @abc.abstractmethod
     def start(self) -> Any:
         """Abstract method."""
+
     @property
     @abc.abstractmethod
     def unit(self) -> Any:

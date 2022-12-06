@@ -1,10 +1,16 @@
 # Changelog
 
-### 37.0.3 [#1167](https://github.com/openfisca/openfisca-core/pull/1167)
+## 37.1.0 [#1167](https://github.com/openfisca/openfisca-core/pull/1167)
+
+#### New features
+
+- Use `UserDict` to encapsulate the data model of the `data_storage` module.
 
 #### Technical changes
 
-- Document the `data_storage` module.
+- Add tests to `data_storage`.
+- Add typing to `data_storage`.
+- Add documentation to `data_storage`.
 
 ### 37.0.2 [#1170](https://github.com/openfisca/openfisca-core/pull/1170)
 
