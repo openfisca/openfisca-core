@@ -1,5 +1,11 @@
 # Changelog
 
+### 37.0.2 [#1170](https://github.com/openfisca/openfisca-core/pull/1170)
+
+#### Technical changes
+
+- Always import numpy
+
 ### 37.0.1 [#1169](https://github.com/openfisca/openfisca-core/pull/1169)
 
 #### Technical changes
