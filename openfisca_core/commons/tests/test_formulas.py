@@ -40,7 +40,7 @@ def test_apply_thresholds_when_too_many_choices():
 
 
 def test_concat_when_this_is_array_not_str():
-    """Casts ``this`` to ``str`` when it is a numpy array other than string."""
+    """Casts ``this`` to ``str`` when it is a NumPy array other than string."""
 
     this = numpy.array([1, 2])
     that = numpy.array(["la", "o"])
@@ -51,7 +51,7 @@ def test_concat_when_this_is_array_not_str():
 
 
 def test_concat_when_that_is_array_not_str():
-    """Casts ``that`` to ``str`` when it is a numpy array other than string."""
+    """Casts ``that`` to ``str`` when it is a NumPy array other than string."""
 
     this = numpy.array(["ho", "cha"])
     that = numpy.array([1, 2])

@@ -65,7 +65,7 @@ class Variable:
 
        .. attribute:: dtype
 
-           Numpy `dtype <https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.dtype.html>`_ used under the hood for the variable.
+           NumPy `dtype <https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.dtype.html>`_ used under the hood for the variable.
 
        .. attribute:: end
 
