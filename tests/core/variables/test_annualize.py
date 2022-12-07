@@ -1,4 +1,4 @@
-import numpy as np
+import numpy
 from pytest import fixture
 
 from openfisca_core import periods
@@ -19,7 +19,7 @@ def monthly_variable():
 
         def formula(person, period, parameters):
             variable.calculation_count += 1
-            return np.asarray([100])
+            return numpy.asarray([100])
 
     variable = monthly_variable()
     variable.calculation_count = calculation_count
@@ -35,7 +35,7 @@ class PopulationMock:
 
     def __call__(self, variable_name: str, period):
         if period.start.month == 1:
-            return np.asarray([100])
+            return numpy.asarray([100])
         else:
             return self.variable.get_formula(period)(self, period, None)
 

@@ -3,7 +3,7 @@
 import json
 import os
 import csv
-import numpy as np
+import numpy
 from pytest import fixture, mark, raises, approx
 
 from openfisca_core.simulations import Simulation, CycleError, SpiralError
@@ -181,7 +181,7 @@ def test_simulation_calls_record_calculation_result():
 
 def test_record_calculation_result(tracer):
     tracer._enter_calculation('a', 2017)
-    tracer.record_calculation_result(np.asarray(100))
+    tracer.record_calculation_result(numpy.asarray(100))
     tracer._exit_calculation()
 
     assert tracer.trees[0].value == 100
@@ -202,8 +202,8 @@ def test_flat_trace(tracer):
 
 def test_flat_trace_serialize_vectorial_values(tracer):
     tracer._enter_calculation('a', 2019)
-    tracer.record_parameter_access('x.y.z', 2019, np.asarray([100, 200, 300]))
-    tracer.record_calculation_result(np.asarray([10, 20, 30]))
+    tracer.record_parameter_access('x.y.z', 2019, numpy.asarray([100, 200, 300]))
+    tracer.record_calculation_result(numpy.asarray([10, 20, 30]))
     tracer._exit_calculation()
 
     trace = tracer.get_serialized_flat_trace()
@@ -370,9 +370,9 @@ def test_variable_stats(tracer):
 def test_log_format(tracer):
     tracer._enter_calculation("A", 2017)
     tracer._enter_calculation("B", 2017)
-    tracer.record_calculation_result(np.asarray([1]))
+    tracer.record_calculation_result(numpy.asarray([1]))
     tracer._exit_calculation()
-    tracer.record_calculation_result(np.asarray([2]))
+    tracer.record_calculation_result(numpy.asarray([2]))
     tracer._exit_calculation()
 
     lines = tracer.computation_log.lines()
@@ -382,11 +382,11 @@ def test_log_format(tracer):
 
 def test_log_format_forest(tracer):
     tracer._enter_calculation("A", 2017)
-    tracer.record_calculation_result(np.asarray([1]))
+    tracer.record_calculation_result(numpy.asarray([1]))
     tracer._exit_calculation()
 
     tracer._enter_calculation("B", 2017)
-    tracer.record_calculation_result(np.asarray([2]))
+    tracer.record_calculation_result(numpy.asarray([2]))
     tracer._exit_calculation()
 
     lines = tracer.computation_log.lines()
@@ -396,7 +396,7 @@ def test_log_format_forest(tracer):
 
 def test_log_aggregate(tracer):
     tracer._enter_calculation("A", 2017)
-    tracer.record_calculation_result(np.asarray([1]))
+    tracer.record_calculation_result(numpy.asarray([1]))
     tracer._exit_calculation()
 
     lines = tracer.computation_log.lines(aggregate = True)
@@ -405,7 +405,7 @@ def test_log_aggregate(tracer):
 
 def test_log_aggregate_with_enum(tracer):
     tracer._enter_calculation("A", 2017)
-    tracer.record_calculation_result(HousingOccupancyStatus.encode(np.repeat('tenant', 100)))
+    tracer.record_calculation_result(HousingOccupancyStatus.encode(numpy.repeat('tenant', 100)))
     tracer._exit_calculation()
 
     lines = tracer.computation_log.lines(aggregate = True)
@@ -414,7 +414,7 @@ def test_log_aggregate_with_enum(tracer):
 
 def test_log_aggregate_with_strings(tracer):
     tracer._enter_calculation("A", 2017)
-    tracer.record_calculation_result(np.repeat('foo', 100))
+    tracer.record_calculation_result(numpy.repeat('foo', 100))
     tracer._exit_calculation()
 
     lines = tracer.computation_log.lines(aggregate = True)
@@ -425,11 +425,11 @@ def test_log_max_depth(tracer):
     tracer._enter_calculation("A", 2017)
     tracer._enter_calculation("B", 2017)
     tracer._enter_calculation("C", 2017)
-    tracer.record_calculation_result(np.asarray([3]))
+    tracer.record_calculation_result(numpy.asarray([3]))
     tracer._exit_calculation()
-    tracer.record_calculation_result(np.asarray([2]))
+    tracer.record_calculation_result(numpy.asarray([2]))
     tracer._exit_calculation()
-    tracer.record_calculation_result(np.asarray([1]))
+    tracer.record_calculation_result(numpy.asarray([1]))
     tracer._exit_calculation()
 
     assert len(tracer.computation_log.lines()) == 3
@@ -442,7 +442,7 @@ def test_log_max_depth(tracer):
 
 def test_no_wrapping(tracer):
     tracer._enter_calculation("A", 2017)
-    tracer.record_calculation_result(HousingOccupancyStatus.encode(np.repeat('tenant', 100)))
+    tracer.record_calculation_result(HousingOccupancyStatus.encode(numpy.repeat('tenant', 100)))
     tracer._exit_calculation()
 
     lines = tracer.computation_log.lines()
@@ -452,7 +452,7 @@ def test_no_wrapping(tracer):
 
 def test_trace_enums(tracer):
     tracer._enter_calculation("A", 2017)
-    tracer.record_calculation_result(HousingOccupancyStatus.encode(np.array(['tenant'])))
+    tracer.record_calculation_result(HousingOccupancyStatus.encode(numpy.array(['tenant'])))
     tracer._exit_calculation()
 
     lines = tracer.computation_log.lines()
@@ -460,9 +460,9 @@ def test_trace_enums(tracer):
 
 
 #  Tests on tracing with fancy indexing
-zone = np.asarray(['z1', 'z2', 'z2', 'z1'])
-housing_occupancy_status = np.asarray(['owner', 'owner', 'tenant', 'tenant'])
-family_status = np.asarray(['single', 'couple', 'single', 'couple'])
+zone = numpy.asarray(['z1', 'z2', 'z2', 'z1'])
+housing_occupancy_status = numpy.asarray(['owner', 'owner', 'tenant', 'tenant'])
+family_status = numpy.asarray(['single', 'couple', 'single', 'couple'])
 
 
 def check_tracing_params(accessor, param_key):
