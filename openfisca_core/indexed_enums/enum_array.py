@@ -11,7 +11,7 @@ if typing.TYPE_CHECKING:
 
 class EnumArray(numpy.ndarray):
     """
-    Numpy array subclass representing an array of enum items.
+    NumPy array subclass representing an array of enum items.
 
     EnumArrays are encoded as ``int`` arrays to improve performance
     """

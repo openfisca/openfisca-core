@@ -1,5 +1,11 @@
 # Changelog
 
+### 37.0.1 [#1169](https://github.com/openfisca/openfisca-core/pull/1169)
+
+#### Technical changes
+
+- Unify casing of NumPy.
+
 # 37.0.0 [#1142](https://github.com/openfisca/openfisca-core/pull/1142)
 
 #### Deprecations
@@ -432,12 +438,12 @@ _Note: this version has been unpublished due to an issue introduced by NumPy upg
 
 #### Breaking changes
 
-- Update Numpy version's upper bound to 1.18
-  - Numpy 1.18 [expires a list of old deprecations](https://numpy.org/devdocs/release/1.18.0-notes.html#expired-deprecations) that might be used in openfisca country models.
+- Update NumPy version's upper bound to 1.18
+  - NumPy 1.18 [expires a list of old deprecations](https://numpy.org/devdocs/release/1.18.0-notes.html#expired-deprecations) that might be used in openfisca country models.
 
 #### Migration details
 
-You might need to change your code if any of the [Numpy expired deprecations](https://numpy.org/devdocs/release/1.18.0-notes.html#expired-deprecations) is used in your model formulas.
+You might need to change your code if any of the [NumPy expired deprecations](https://numpy.org/devdocs/release/1.18.0-notes.html#expired-deprecations) is used in your model formulas.
 
 Here is a subset of the deprecations that you might find in your model with some checks and migration steps (where `np` stands for `numpy`):
 
@@ -595,7 +601,7 @@ _Note: this version has been unpublished due to an issue introduced by dpath upg
 
 - Downgrade numpy version's upper bound to 1.17
 - Details:
-  - Numpy 1.18 deprecates the use of several of its methods.
+  - NumPy 1.18 deprecates the use of several of its methods.
   - Changes in `numpy.select` have impacted other packages depending on OpenFisca Core.
 
 ## 34.6.0 [#920](https://github.com/openfisca/openfisca-core/pull/920)
@@ -820,7 +826,7 @@ _Note: this version has been unpublished due to an issue introduced by 34.2.9 in
 
 #### Technical changes
 
-- Update dependencies: Numpy, Flask, dpath, numexpr
+- Update dependencies: NumPy, Flask, dpath, numexpr
 
 ## 34.2.0 [#872](https://github.com/openfisca/openfisca-core/pull/872)
 
@@ -1653,7 +1659,7 @@ Country package maintainers who still want to provide the Web API by default wit
 _Note: this version has been unpublished due to an issue introduced by 23.4.0 in the Web API. Please use 23.5.2 or a more recent version._
 
 - Remove the irrelevant decimals that were added at the end of `float` results in the Web API and the test runner.
-  - These decimals were added while converting a Numpy `float32` to a regular 64-bits Python `float`.
+  - These decimals were added while converting a NumPy `float32` to a regular 64-bits Python `float`.
 
 For instance, the former Web API response extract:
 
