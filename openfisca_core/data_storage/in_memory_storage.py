@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Optional, Sequence
+from typing import Optional, Sequence
 
 import numpy
 
@@ -14,21 +14,41 @@ class InMemoryStorage:
     """Class responsible for storing/retrieving vectors in/from memory.
 
     Attributes:
-        _arrays: ?
-        is_eternal: ?
+        _arrays: A dictionary containing data that has been stored in memory.
+        is_eternal: A boolean indicating whether the storage is eternal.
 
     Args:
-        is_eternal: ?
+        is_eternal: A boolean indicating whether the storage is eternal.
 
     """
 
-    _arrays: Arrays
+    _arrays: Arrays = Arrays({})
 
     def __init__(self, is_eternal: bool = False) -> None:
-        self._arrays = Arrays({})
         self.is_eternal = is_eternal
 
-    def get(self, period: types.Period) -> Any:
+    def get(self, period: types.Period) -> Optional[numpy.ndarray]:
+        """Retrieve the data for the specified period from memory.
+
+        Args:
+            period: The period for which data should be retrieved.
+
+        Returns:
+            The data for the specified period, or None if no data is available.
+
+        Examples:
+            >>> storage = InMemoryStorage()
+            >>> value = numpy.array([1, 2, 3])
+            >>> instant = periods.Instant((2017, 1, 1))
+            >>> period = periods.Period(("year", instant, 1))
+
+            >>> storage.put(value, period)
+
+            >>> storage.get(period)
+            array([1, 2, 3])
+
+        """
+
         period = _funcs.parse_period(period, self.is_eternal)
         values = self._arrays.get(period)
 
@@ -37,11 +57,50 @@ class InMemoryStorage:
 
         return values
 
-    def put(self, value: Any, period: types.Period) -> None:
+    def put(self, value: numpy.ndarray, period: types.Period) -> None:
+        """Store the specified data in memory for the specified period.
+
+        Args:
+            value: The data to store
+            period: The period for which the data should be stored.
+
+        Examples:
+            >>> storage = InMemoryStorage()
+            >>> value = numpy.array([1, 2, 3])
+            >>> instant = periods.Instant((2017, 1, 1))
+            >>> period = periods.Period(("year", instant, 1))
+
+            >>> storage.put(value, period)
+
+        """
+
         period = _funcs.parse_period(period, self.is_eternal)
         self._arrays = Arrays({period: value, **self._arrays})
 
     def delete(self, period: Optional[types.Period] = None) -> None:
+        """Delete the data for the specified period from memory.
+
+        Args:
+            period: The period for which data should be deleted. If not
+                specified, all data will be deleted.
+
+        Examples:
+            >>> storage = InMemoryStorage()
+            >>> value = numpy.array([1, 2, 3])
+            >>> instant = periods.Instant((2017, 1, 1))
+            >>> period = periods.Period(("year", instant, 1))
+
+            >>> storage.put(value, period)
+
+            >>> storage.get(period)
+            array([1, 2, 3])
+
+            >>> storage.delete(period)
+
+            >>> storage.get(period)
+
+        """
+
         if period is None:
             self._arrays = Arrays({})
             return None
@@ -58,7 +117,7 @@ class InMemoryStorage:
         """List of storage's known periods.
 
         Returns:
-            A list of periods.
+            A sequence containing the storage's known periods.
 
         Examples:
             >>> storage = InMemoryStorage()
