@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, NoReturn, Optional, Sequence
+from typing import Any, NoReturn, Optional, Sequence, Union
 
 import os
 import pathlib
@@ -19,21 +19,21 @@ class OnDiskStorage:
     """Class responsible for storing/retrieving vectors on/from disk.
 
     Attributes:
-        _enums: ?
-        _files: ?
-        is_eternal: ?
+        _enums: Mapping of file paths to possible Enum values.
+        _files: Mapping of periods to file paths for stored vectors.
+        is_eternal: Flag indicating if the storage of period eternity.
+        preserve_storage_dir: Flag indicating if folders should be preserved.
         storage_dir: Path to store calculated vectors.
-        preserve_storage_dir: ?
 
     Args:
         storage_dir: Path to store calculated vectors.
-        is_eternal: ?
-        preserve_storage_dir: ?
+        is_eternal: Flag indicating if the storage of period eternity.
+        preserve_storage_dir: Flag indicating if folders should be preserved.
 
     """
 
-    _enums: Enums
-    _files: Files
+    _enums: Enums = Enums({})
+    _files: Files = Files({})
     is_eternal: bool
     storage_dir: str
     preserve_storage_dir: bool
@@ -44,13 +44,44 @@ class OnDiskStorage:
             is_eternal: bool = False,
             preserve_storage_dir: bool = False,
             ) -> None:
-        self._enums = Enums({})
-        self._files = Files({})
         self.is_eternal = is_eternal
         self.storage_dir = storage_dir
         self.preserve_storage_dir = preserve_storage_dir
 
     def _decode_file(self, file: str) -> Any:
+        """Decodes a file by loading its contents as a NumPy array.
+
+        If the file is associated with Enum values, the array is converted back
+        to an EnumArray object.
+
+        Args:
+            file: Path to the file to be decoded.
+
+        Returns:
+            NumPy array or EnumArray object representing the data in the file.
+
+        Examples
+            >>> import tempfile
+
+            >>> class Housing(enums.Enum):
+            ...     OWNER = "Owner"
+            ...     TENANT = "Tenant"
+            ...     FREE_LODGER = "Free lodger"
+            ...     HOMELESS = "Homeless"
+
+            >>> array = numpy.array([1])
+            >>> value = enums.EnumArray(array, Housing)
+            >>> instant = periods.Instant((2017, 1, 1))
+            >>> period = periods.Period(("year", instant, 1))
+
+            >>> with tempfile.TemporaryDirectory() as storage_dir:
+            ...     storage = OnDiskStorage(storage_dir)
+            ...     storage.put(value, period)
+            ...     storage._decode_file(storage._files[period])
+            EnumArray([<Housing.TENANT: 'Tenant'>])
+
+        """
+
         enum = self._enums.get(file)
         load = numpy.load(file)
 
@@ -59,7 +90,34 @@ class OnDiskStorage:
 
         return enums.EnumArray(load, enum)
 
-    def get(self, period: types.Period) -> Any:
+    def get(
+            self,
+            period: types.Period,
+            ) -> Optional[Union[numpy.ndarray, enums.EnumArray]]:
+        """Retrieve the data for the specified period from disk.
+
+        Args:
+            period: The period for which data should be retrieved.
+
+        Returns:
+            A NumPy array or EnumArray object representing the vector for the
+            specified period, or None if no vector is stored for that period.
+
+        Examples:
+            >>> import tempfile
+
+            >>> value = numpy.array([1, 2, 3])
+            >>> instant = periods.Instant((2017, 1, 1))
+            >>> period = periods.Period(("year", instant, 1))
+
+            >>> with tempfile.TemporaryDirectory() as storage_dir:
+            ...     storage = OnDiskStorage(storage_dir)
+            ...     storage.put(value, period)
+            ...     storage.get(period)
+            array([1, 2, 3])
+
+        """
+
         period = _funcs.parse_period(period, self.is_eternal)
         values = self._files.get(period)
 
@@ -69,6 +127,27 @@ class OnDiskStorage:
         return self._decode_file(values)
 
     def put(self, value: Any, period: types.Period) -> None:
+        """Store the specified data on disk for the specified period.
+
+        Args:
+            value: The data to store
+            period: The period for which the data should be stored.
+
+        Examples:
+            >>> import tempfile
+
+            >>> value = numpy.array([1, 2, 3])
+            >>> instant = periods.Instant((2017, 1, 1))
+            >>> period = periods.Period(("year", instant, 1))
+
+            >>> with tempfile.TemporaryDirectory() as storage_dir:
+            ...     storage = OnDiskStorage(storage_dir)
+            ...     storage.put(value, period)
+            ...     storage.get(period)
+            array([1, 2, 3])
+
+        """
+
         period = _funcs.parse_period(period, self.is_eternal)
         stem = str(period)
         path = os.path.join(self.storage_dir, f"{stem}.npy")
@@ -81,6 +160,39 @@ class OnDiskStorage:
         self._files = Files({period: path, **self._files})
 
     def delete(self, period: Optional[types.Period] = None) -> None:
+        """Delete the data for the specified period from disk.
+
+        Args:
+            period: The period for which data should be deleted. If not
+                specified, all data will be deleted.
+
+        Examples:
+            >>> import tempfile
+
+            >>> value = numpy.array([1, 2, 3])
+            >>> instant = periods.Instant((2017, 1, 1))
+            >>> period = periods.Period(("year", instant, 1))
+
+            >>> with tempfile.TemporaryDirectory() as storage_dir:
+            ...     storage = OnDiskStorage(storage_dir)
+            ...     storage.put(value, period)
+            ...     storage.get(period)
+            array([1, 2, 3])
+
+            >>> with tempfile.TemporaryDirectory() as storage_dir:
+            ...     storage = OnDiskStorage(storage_dir)
+            ...     storage.put(value, period)
+            ...     storage.delete(period)
+            ...     storage.get(period)
+
+            >>> with tempfile.TemporaryDirectory() as storage_dir:
+            ...     storage = OnDiskStorage(storage_dir)
+            ...     storage.put(value, period)
+            ...     storage.delete()
+            ...     storage.get(period)
+
+        """
+
         if period is None:
             self._files = Files({})
             return None
@@ -88,19 +200,22 @@ class OnDiskStorage:
         period = _funcs.parse_period(period, self.is_eternal)
 
         self._files = Files({
-            period_item: value
-            for period_item, value in self._files.items()
-            if not period.contains(period_item)
+            key: value
+            for key, value in self._files.items()
+            if not period.contains(key)
             })
 
     def get_known_periods(self) -> Sequence[types.Period]:
         """List of storage's known periods.
 
         Returns:
-            A list of periods.
+            A sequence containing the storage's known periods.
 
         Examples:
             >>> import tempfile
+
+            >>> instant = periods.Instant((2017, 1, 1))
+            >>> period = periods.Period(("year", instant, 1))
 
             >>> with tempfile.TemporaryDirectory() as storage_dir:
             ...     storage = OnDiskStorage(storage_dir)
@@ -108,8 +223,6 @@ class OnDiskStorage:
             []
 
             >>> with tempfile.TemporaryDirectory() as storage_dir:
-            ...     instant = periods.Instant((2017, 1, 1))
-            ...     period = periods.Period(("year", instant, 1))
             ...     storage = OnDiskStorage(storage_dir)
             ...     storage.put([], period)
             ...     storage.get_known_periods()
@@ -135,7 +248,7 @@ class OnDiskStorage:
             ...
             NotImplementedError: Method not implemented for this storage.
 
-        .. versionadded:: 36.0.1
+        .. versionadded:: 37.1.0
 
         """
 

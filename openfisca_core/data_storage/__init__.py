@@ -1,16 +1,16 @@
 """Transitional imports to ensure non-breaking changes.
 
-Could be deprecated in the next major release.
+These imports could be deprecated in the next major release.
 
-How imports are being used today::
+Currently, imports are used in the following way::
 
     from openfisca_core.module import symbol
 
-The previous example provokes cyclic dependency problems
-that prevent us from modularizing the different components
-of the library so to make them easier to test and to maintain.
+This example causes cyclic dependency problems, which prevent us from
+modularising the different components of the library and make them easier to
+test and maintain.
 
-How could them be used after the next major release::
+After the next major release, imports could be used in the following way::
 
     from openfisca_core import module
     module.symbol()

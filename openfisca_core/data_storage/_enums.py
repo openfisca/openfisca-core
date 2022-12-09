@@ -26,7 +26,7 @@ class Enums(collections.UserDict):
         >>> Enums({path: possible_values})
         {'path/to/file.py': (<Enum.A: 'a'>, <Enum.B: 'b'>)}
 
-    .. versionadded:: 36.0.1
+    .. versionadded:: 37.1.0
 
     """
 

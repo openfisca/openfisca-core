@@ -8,8 +8,6 @@ import numpy
 
 from openfisca_core import types
 
-CalculatedVector = numpy.ndarray
-
 
 class Arrays(collections.UserDict):
     """Dictionary of calculated vectors by period.
@@ -24,8 +22,8 @@ class Arrays(collections.UserDict):
         >>> Arrays({period: vector})
         {Period(('year', Instant((2023, 1, 1)), 1)): array([1])}
 
-    .. versionadded:: 36.0.1
+    .. versionadded:: 37.1.0
 
     """
 
-    data: Dict[types.Period, CalculatedVector]
+    data: Dict[types.Period, numpy.ndarray]

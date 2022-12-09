@@ -22,7 +22,7 @@ class Files(collections.UserDict):
         >>> Files({period: path})
         {Period(('year', Instant((2023, 1, 1)), 1)): 'path/to/file.py'}
 
-    .. versionadded:: 36.0.1
+    .. versionadded:: 37.1.0
 
     """
 

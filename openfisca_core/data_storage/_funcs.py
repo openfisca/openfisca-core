@@ -24,7 +24,7 @@ def parse_period(value: types.Period, eternity: bool) -> types.Period:
         >>> parse_period(period, False)
         Period(('year', Instant((2017, 1, 1)), 1))
 
-    .. versionadded:: 36.0.1
+    .. versionadded:: 37.1.0
 
     """
 

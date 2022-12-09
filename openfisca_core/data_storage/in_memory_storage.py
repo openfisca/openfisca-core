@@ -15,10 +15,10 @@ class InMemoryStorage:
 
     Attributes:
         _arrays: A dictionary containing data that has been stored in memory.
-        is_eternal: A boolean indicating whether the storage is eternal.
+        is_eternal: Flag indicating if the storage of period eternity.
 
     Args:
-        is_eternal: A boolean indicating whether the storage is eternal.
+        is_eternal: Flag indicating if the storage of period eternity.
 
     """
 
@@ -72,6 +72,9 @@ class InMemoryStorage:
 
             >>> storage.put(value, period)
 
+            >>> storage.get(period)
+            array([1, 2, 3])
+
         """
 
         period = _funcs.parse_period(period, self.is_eternal)
@@ -99,6 +102,12 @@ class InMemoryStorage:
 
             >>> storage.get(period)
 
+            >>> storage.put(value, period)
+
+            >>> storage.delete()
+
+            >>> storage.get(period)
+
         """
 
         if period is None:
@@ -108,9 +117,9 @@ class InMemoryStorage:
         period = _funcs.parse_period(period, self.is_eternal)
 
         self._arrays = Arrays({
-            period_item: value
-            for period_item, value in self._arrays.items()
-            if not period.contains(period_item)
+            key: value
+            for key, value in self._arrays.items()
+            if not period.contains(key)
             })
 
     def get_known_periods(self) -> Sequence[types.Period]:
@@ -139,10 +148,11 @@ class InMemoryStorage:
         """Memory usage of the storage.
 
         Returns:
-            A dictionary representing the memory usage.
+            A dictionary representing the storage's memory usage.
 
         Examples:
             >>> storage = InMemoryStorage()
+
             >>> storage.get_memory_usage()
             {'cell_size': nan, 'nb_arrays': 0, 'total_nb_bytes': 0}
 
