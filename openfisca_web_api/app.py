@@ -118,10 +118,13 @@ def create_app(tax_benefit_system,
 
     @app.route('/spec')
     def get_spec():
+        scheme = request.environ["wsgi.url_scheme"]
+        host = request.host
+        url = f"{scheme}://{host}"
+
         return jsonify({
-            **data['openAPI_spec'],
-            **{'host': request.host},
-            **{'schemes': [request.environ['wsgi.url_scheme']]}
+            **data["openAPI_spec"],
+            **{"servers": [{"url": url}]},
             })
 
     def handle_invalid_json(error):

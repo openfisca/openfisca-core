@@ -1,5 +1,17 @@
 # Changelog
 
+# 38.0.0 [#989](https://github.com/openfisca/openfisca-core/pull/989)
+
+#### New Features
+
+- Upgrade OpenAPI specification of the API to v3 from Swagger v2.
+- Continuously validate OpenAPI specification.
+
+#### Breaking changes
+
+- Drop support for OpenAPI specification v2 and prior.
+  - Users relying on OpenAPI v2 can use [Swagger Converter](https://converter.swagger.io/api/convert?url=OAS2_YAML_OR_JSON_URL) to migrate ([example](https://web.archive.org/web/20221103230822/https://converter.swagger.io/api/convert?url=https://api.demo.openfisca.org/latest/spec)).
+
 ### 37.0.2 [#1170](https://github.com/openfisca/openfisca-core/pull/1170)
 
 #### Technical changes

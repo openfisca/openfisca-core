@@ -55,6 +55,7 @@ dev_requirements = [
     'flake8-print >= 3.1.0, < 4.0.0',
     'flake8-rst-docstrings == 0.2.3',
     'mypy == 0.910',
+    'openapi-spec-validator >= 0.3.0',
     'pycodestyle >= 2.8.0, < 2.9.0',
     'pylint == 2.10.2',
     'xdoctest >= 1.0.0, < 2.0.0',
@@ -62,7 +63,7 @@ dev_requirements = [
 
 setup(
     name = 'OpenFisca-Core',
-    version = '37.0.2',
+    version = '38.0.0',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [
