@@ -21,7 +21,7 @@ jobs:
         python: [3.8.10, 3.7.9] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         include:
         - os: ubuntu-20.04
-          activate: source venv/bin/activate
+          activate_command: source venv/bin/activate
         - os: windows-latest
           activate: .\venv\Scripts\activate
     runs-on: ${{ matrix.os }}
@@ -43,7 +43,7 @@ jobs:
         shell: cmd
         run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
-      - name: Cache deps
+      - name: Cache dependencies
         id: restore-deps
         uses: actions/cache@v3
         with:
@@ -147,7 +147,7 @@ jobs:
           python-version: ${{ matrix.python }}
 
       - name: Use zstd for faster cache restore
-        if: ${{ matrix.os == 'windows-latest' }}
+        if: ${{ startsWith(matrix.os, 'windows') }}
         shell: cmd
         run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
@@ -196,7 +196,7 @@ jobs:
           python-version: ${{ matrix.python }}
 
       - name: Use zstd for faster cache restore
-        if: ${{ matrix.os == 'windows-latest' }}
+        if: ${{ startsWith(matrix.os, 'windows') }}
         shell: cmd
         run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
