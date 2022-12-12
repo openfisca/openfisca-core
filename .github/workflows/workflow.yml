@@ -308,8 +308,7 @@ jobs:
   # The idea behind these dependencies is we want to give feedback to
   # contributors on the version number only after they have passed all tests,
   # so they don't have to do it twice after changes happened to the main branch
-  # during the time they took to fix the tests 🙂 Perhaps this rationale could
-  # be added as a comment!
+  # during the time they took to fix the tests.
   check-version:
     runs-on: ubuntu-20.04
     needs: [ test-core, test-country-template, test-extension-template, lint-files ]
