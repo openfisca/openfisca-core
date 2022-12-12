@@ -391,6 +391,7 @@ jobs:
           curl -X POST --header "Content-Type: application/json" -d '{"branch":"master"}' https://circleci.com/api/v1.1/project/github/openfisca/openfisca-doc/build?circle-token=${{ secrets.CIRCLECI_V1_OPENFISCADOC_TOKEN }}
 
   publish-to-conda:
+    runs-on: ubuntu-20.04
     needs: [ deploy ]
 
     steps:
