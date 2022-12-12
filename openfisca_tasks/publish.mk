@@ -22,4 +22,6 @@ publish:
 	@python -m twine upload dist/* \
 		--username $PYPI_USERNAME \
 		--password $PYPI_PASSWORD
+	@git tag `python setup.py --version`
+	@git push --tags  # update the repository version
 	@$(call print_pass,$@:)
