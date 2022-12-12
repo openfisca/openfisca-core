@@ -23,7 +23,7 @@ jobs:
         - os: ubuntu-20.04
           activate_command: source venv/bin/activate
         - os: windows-latest
-          activate: .\venv\Scripts\activate
+          activate_command: .\venv\Scripts\activate
     runs-on: ${{ matrix.os }}
     name: deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     env:
@@ -58,7 +58,7 @@ jobs:
       - name: Install dependencies
         if: steps.restore-deps.outputs.cache-hit != 'true'
         run: |
-          ${{ matrix.activate }}
+          ${{ matrix.activate_command }}
           make install-deps install-dist
 
   build:
@@ -70,9 +70,9 @@ jobs:
         python: [3.8.10, 3.7.9] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         include:
         - os: ubuntu-20.04
-          activate: source venv/bin/activate
+          activate_command: source venv/bin/activate
         - os: windows-latest
-          activate: .\venv\Scripts\activate
+          activate_command: .\venv\Scripts\activate
     runs-on: ${{ matrix.os }}
     name: build-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ deps ]
@@ -116,7 +116,7 @@ jobs:
 
       - name: Build package
         run: |
-          ${{ matrix.activate }}
+          ${{ matrix.activate_command }}
           make install-test clean build
 
   test-core:
@@ -128,9 +128,9 @@ jobs:
         python: [3.8.10, 3.7.9] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         include:
         - os: ubuntu-20.04
-          activate: source venv/bin/activate
+          activate_command: source venv/bin/activate
         - os: windows-latest
-          activate: .\venv\Scripts\activate
+          activate_command: .\venv\Scripts\activate
     runs-on: ${{ matrix.os }}
     name: test-core-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ build ]
@@ -165,7 +165,7 @@ jobs:
 
       - name: Run openfisca-core tests
         run: |
-          ${{ matrix.activate }}
+          ${{ matrix.activate_command }}
           make test-core
           python -m coveralls --service=github
 
@@ -178,9 +178,9 @@ jobs:
         python: [3.8.10, 3.7.9] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         include:
         - os: ubuntu-20.04
-          activate: source venv/bin/activate
+          activate_command: source venv/bin/activate
         - os: windows-latest
-          activate: .\venv\Scripts\activate
+          activate_command: .\venv\Scripts\activate
     runs-on: ${{ matrix.os }}
     name: test-country-template-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ build ]
@@ -214,7 +214,7 @@ jobs:
 
       - name: Run Country Template tests
         run: |
-          ${{ matrix.activate }}
+          ${{ matrix.activate_command }}
           make test-country
 
   test-extension-template:
@@ -226,9 +226,9 @@ jobs:
         python: [3.8.10, 3.7.9] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         include:
         - os: ubuntu-20.04
-          activate: source venv/bin/activate
+          activate_command: source venv/bin/activate
         - os: windows-latest
-          activate: .\venv\Scripts\activate
+          activate_command: .\venv\Scripts\activate
     runs-on: ${{ matrix.os }}
     name: test-extension-template-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ build ]
@@ -262,7 +262,7 @@ jobs:
 
       - name: Run Extension Template tests
         run: |
-          ${{ matrix.activate }}
+          ${{ matrix.activate_command }}
           make test-extension
 
   lint-files:
@@ -274,9 +274,9 @@ jobs:
         python: [3.8.10, 3.7.9] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         include:
         - os: ubuntu-20.04
-          activate: source venv/bin/activate
+          activate_command: source venv/bin/activate
         - os: windows-latest
-          activate: .\venv\Scripts\activate
+          activate_command: .\venv\Scripts\activate
     runs-on: ${{ matrix.os }}
     name: lint-files-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ deps ]
@@ -306,7 +306,7 @@ jobs:
 
       - name: Run linters
         run: |
-          ${{ matrix.activate }}
+          ${{ matrix.activate_command }}
           make clean lint
 
   check-version:
