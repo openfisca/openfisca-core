@@ -18,7 +18,7 @@ jobs:
       matrix:
         os: [ubuntu-20.04, windows-latest]
         numpy: [1.20.3]
-        python: [3.8.10, 3.7.9]
+        python: [3.8.10, 3.7.9] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         include:
         - os: ubuntu-20.04
           activate: source venv/bin/activate
@@ -67,7 +67,7 @@ jobs:
       matrix:
         os: [ubuntu-20.04, windows-latest]
         numpy: [1.20.3]
-        python: [3.8.10, 3.7.9]
+        python: [3.8.10, 3.7.9] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         include:
         - os: ubuntu-20.04
           activate: source venv/bin/activate
@@ -125,7 +125,7 @@ jobs:
       matrix:
         os: [ubuntu-20.04, windows-latest]
         numpy: [1.20.3]
-        python: [3.8.10, 3.7.9]
+        python: [3.8.10, 3.7.9] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         include:
         - os: ubuntu-20.04
           activate: source venv/bin/activate
@@ -175,7 +175,7 @@ jobs:
       matrix:
         os: [ubuntu-20.04, windows-latest]
         numpy: [1.20.3]
-        python: [3.8.10, 3.7.9]
+        python: [3.8.10, 3.7.9] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         include:
         - os: ubuntu-20.04
           activate: source venv/bin/activate
@@ -223,7 +223,7 @@ jobs:
       matrix:
         os: [ubuntu-20.04, windows-latest]
         numpy: [1.20.3]
-        python: [3.8.10, 3.7.9]
+        python: [3.8.10, 3.7.9] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         include:
         - os: ubuntu-20.04
           activate: source venv/bin/activate
@@ -271,7 +271,7 @@ jobs:
       matrix:
         os: [ubuntu-20.04, windows-latest]
         numpy: [1.20.3]
-        python: [3.8.10, 3.7.9]
+        python: [3.8.10, 3.7.9] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         include:
         - os: ubuntu-20.04
           activate: source venv/bin/activate
@@ -422,7 +422,7 @@ jobs:
       matrix:
         os: [ubuntu-20.04]
         numpy: [1.20.3]
-        python: [3.7.9]
+        python: [3.7.9] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
     runs-on: ${{ matrix.os }}
     name: publish-to-conda-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}
     needs: [ deploy ]
