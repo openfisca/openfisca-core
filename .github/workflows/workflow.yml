@@ -51,13 +51,9 @@ jobs:
           key: deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-${{ hashFiles('setup.py') }}
           restore-keys: deps-${{ matrix.os }}-${{ matrix.numpy }}-${{ matrix.python }}-
 
-      - name: Create virtualenv
-        if: steps.restore-deps.outputs.cache-hit != 'true'
-        run: python -m venv venv
-
       - name: Install dependencies
-        if: steps.restore-deps.outputs.cache-hit != 'true'
         run: |
+          python -m venv venv
           ${{ matrix.activate_command }}
           make install-deps install-dist
 
