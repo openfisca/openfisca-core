@@ -3,8 +3,7 @@
 ## Install project's build dependencies.
 install-dist:
 	@$(call print_help,$@:)
-	@python setup.py egg_info
-	@python -m pip install $$(grep -v "^\[" *.egg-info/requires.txt)
+	@python -m pip install .[ci,dev]
 	@$(call print_pass,$@:)
 
 ## Build & install openfisca-core for deployment and publishing.
