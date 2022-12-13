@@ -1,4 +1,4 @@
-name: OpenFisca-Core / Build
+name: OpenFisca-Core / Review
 
 on:
   pull_request:
@@ -22,6 +22,25 @@ jobs:
         - os: windows-latest
           activate_command: .\venv\Scripts\activate
     uses: ./.github/workflows/_deps.yaml
+    with:
+        os: ${{ matrix.os }}
+        numpy: ${{ matrix.numpy }}
+        python: ${{ matrix.python }}
+        activate_command: ${{ matrix.activate_command }}
+
+  build:
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-20.04, windows-latest]
+        numpy: [1.20.3]
+        python: [3.8.10, 3.7.9] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
+        include:
+        - os: ubuntu-20.04
+          activate_command: source venv/bin/activate
+        - os: windows-latest
+          activate_command: .\venv\Scripts\activate
+    uses: ./.github/workflows/_build.yaml
     with:
         os: ${{ matrix.os }}
         numpy: ${{ matrix.numpy }}
