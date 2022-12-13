@@ -1,5 +1,11 @@
 # Changelog
 
+### 38.0.1 [#1173](https://github.com/openfisca/openfisca-core/pull/1173)
+
+#### Technical changes
+
+- Fix conda CI workflow
+
 # 38.0.0 [#989](https://github.com/openfisca/openfisca-core/pull/989)
 
 #### New Features
