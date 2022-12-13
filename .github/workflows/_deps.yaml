@@ -36,7 +36,7 @@ jobs:
           python-version: ${{ inputs.python }}
 
       - name: Use zstd for faster cache restore (windows)
-        if: ${{ startsWith(input.os, 'windows') }}
+        if: ${{ startsWith(inputs.os, 'windows') }}
         shell: cmd
         run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
