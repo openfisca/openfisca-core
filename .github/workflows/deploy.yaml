@@ -68,14 +68,13 @@ jobs:
         python: ${{ matrix.python }}
         activate_command: ${{ matrix.activate_command }}
 
-
   # The idea behind these dependencies is we want to give feedback to
   # contributors on the version number only after they have passed all tests,
   # so they don't have to do it twice after changes happened to the main branch
   # during the time they took to fix the tests.
   check-version:
     runs-on: ubuntu-20.04
-    needs: [ test-core, test-country-template, test-extension-template, lint-files ]
+    needs: [ test, lint ]
 
     steps:
       - uses: actions/checkout@v3
@@ -90,12 +89,12 @@ jobs:
       - name: Check version number has been properly updated
         run: "${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh"
 
-  # GitHub Actions does not have a halt job option, to stop from deploying if no functional changes were found.
-  # We build a separate job to substitute the halt option.
-  # The `deploy` job is dependent on the output of the `check-for-functional-changes`job.
+  # GitHub Actions does not have a halt job option, to stop from deploying if
+  # no functional changes were found. We build a separate job to substitute the
+  # halt option. The `deploy` job is dependent on the output of the
+  # `check-for-functional-changes`job.
   check-for-functional-changes:
     runs-on: ubuntu-20.04
-    if: github.ref == 'refs/heads/master' # Only triggered for the `master` branch
     needs: [ check-version ] # Last job to run
     outputs:
       status: ${{ steps.stop-early.outputs.status }}
@@ -113,7 +112,7 @@ jobs:
       - id: stop-early
         run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "::set-output name=status::success" ; fi # The `check-for-functional-changes` job should always succeed regardless of the `has-functional-changes` script's exit code. Consequently, we do not use that exit code to trigger deploy, but rather a dedicated output variable `status`, to avoid a job failure if the exit code is different from 0. Conversely, if the job fails the entire workflow would be marked as `failed` which is disturbing for contributors.
 
-  deploy:
+  publish-to-pypi:
     runs-on: ubuntu-20.04
     needs: [ check-for-functional-changes ]
     if: needs.check-for-functional-changes.outputs.status == 'success'
@@ -136,15 +135,21 @@ jobs:
         uses: actions/cache@v3
         with:
           path: venv
-          key: deps-ubuntu-20.04-1.20.3-3.8.10-${{ hashFiles('setup.py') }}
+          key: deps-ubuntu-20.04-np1.20.3-py3.8.10-${{ hashFiles('setup.py') }}
 
       - name: Cache build
         uses: actions/cache@v3
         with:
           path: venv/**/[oO]pen[fF]isca*
-          key: build-ubuntu-20.04-1.20.3-3.8.10-${{ hashFiles('setup.py') }}-${{ github.sha }}
+          key: build-ubuntu-20.04-np1.20.3-py3.8.10-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
-      - name: Upload a Python package to PyPi
+      - name: Cache release
+        uses: actions/cache@v3
+        with:
+          path: dist
+          key: release-ubuntu-20.04-np1.20.3-py3.8.10-${{ hashFiles('setup.py') }}-${{ github.sha }}
+
+      - name: Upload package to PyPi
         run: |
           source venv/bin/activate
           make publish
@@ -155,7 +160,7 @@ jobs:
 
   publish-to-conda:
     runs-on: ubuntu-20.04
-    needs: [ deploy ]
+    needs: [ publish-to-pypi ]
 
     steps:
       - uses: conda-incubator/setup-miniconda@v2
