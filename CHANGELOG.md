@@ -1,6 +1,6 @@
 # Changelog
 
-# 39.0.0 [#1168](https://github.com/openfisca/openfisca-core/pull/1168)
+# 39.0.0.rc1 [#1168](https://github.com/openfisca/openfisca-core/pull/1168)
 
 #### Breaking changes
 

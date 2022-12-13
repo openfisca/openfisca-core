@@ -2,7 +2,7 @@ name: OpenFisca-Core
 
 on:
   push:
-    branches: [ master ]
+    branches: [ rc ]
   pull_request:
     types: [ assigned, opened, reopened, synchronize, ready_for_review ]
   workflow_dispatch:
@@ -331,7 +331,7 @@ jobs:
   # The `deploy` job is dependent on the output of the `check-for-functional-changes`job.
   check-for-functional-changes:
     runs-on: ubuntu-20.04
-    if: github.ref == 'refs/heads/master' # Only triggered for the `master` branch
+    if: github.ref == 'refs/heads/rc' # Only triggered for the `rc` branch
     needs: [ check-version ] # Last job to run
     outputs:
       status: ${{ steps.stop-early.outputs.status }}
