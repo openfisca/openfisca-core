@@ -1,15 +1,15 @@
 ## Lint the codebase.
-lint: check-syntax-errors check-style lint-doc check-types lint-typing-strict
+lint: compile lint-style lint-doc lint-typing lint-typing-strict
 	@$(call print_pass,$@:)
 
 ## Compile python files to check for syntax errors.
-check-syntax-errors: .
+compile: .
 	@$(call print_help,$@:)
 	@python -m compileall -q $?
 	@$(call print_pass,$@:)
 
 ## Run linters to check for syntax and style errors.
-check-style: $(shell git ls-files "*.py")
+lint-style: $(shell git ls-files "*.py")
 	@$(call print_help,$@:)
 	@python -m flake8 $?
 	@$(call print_pass,$@:)
@@ -34,7 +34,7 @@ lint-doc-%:
 	@$(call print_pass,$@:)
 
 ## Run static type checkers for type errors.
-check-types:
+lint-typing:
 	@$(call print_help,$@:)
 	@python -m mypy --package openfisca_core --package openfisca_web_api
 	@$(call print_pass,$@:)
