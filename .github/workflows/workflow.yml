@@ -177,38 +177,39 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.7.12
+          python-version: 3.8.9
 
       - name: Check version number has been properly updated
         run: "${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh"
 
-  # GitHub Actions does not have a halt job option, to stop from deploying if no functional changes were found.
-  # We build a separate job to substitute the halt option.
-  # The `deploy` job is dependent on the output of the `check-for-functional-changes`job.
   check-for-functional-changes:
     runs-on: ubuntu-20.04
-    if: github.ref == 'refs/heads/master' # Only triggered for the `master` branch
     needs: [ check-version ]
     outputs:
-      status: ${{ steps.stop-early.outputs.status }}
+      is_fonctional_change: ${{ steps.functional_changes.outputs.result }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Fetch all the tags
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.7.12
+          python-version: 3.8.9
+      - id: check-functional-changes
+        run: ${GITHUB_WORKSPACE}/.github/has-functional-changes.sh
+        continue-on-error: true
+      - id: functional_changes
+        run: echo "result=${{ steps.check-functional-changes.outcome }}"  >> $GITHUB_OUTPUT
 
-      - id: stop-early
-        run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "::set-output name=status::success" ; fi # The `check-for-functional-changes` job should always succeed regardless of the `has-functional-changes` script's exit code. Consequently, we do not use that exit code to trigger deploy, but rather a dedicated output variable `status`, to avoid a job failure if the exit code is different from 0. Conversely, if the job fails the entire workflow would be marked as `failed` which is disturbing for contributors.
 
   deploy:
     runs-on: ubuntu-20.04
     needs: [ check-for-functional-changes ]
-    if: needs.check-for-functional-changes.outputs.status == 'success'
+    if: |
+      github.ref == 'refs/heads/master' &&
+      needs.check-for-functional-changes.outputs.is_fonctional_change == 'success'
     env:
       PYPI_USERNAME: openfisca-bot
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
@@ -251,7 +252,7 @@ jobs:
 
   build-conda:
     runs-on: ubuntu-20.04
-    needs: [ check-version-and-changelog ]
+    needs: [ check-version ]
     # Do not build on master, the artifact will be used
     if: github.ref != 'refs/heads/master'
     steps:
@@ -312,25 +313,37 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
-          python-version: 3.7.12
+          python-version: 3.7.9
           channels: conda-forge
           activate-environment: true
-      - uses: actions/checkout@v2
+      - name: Get source code
+        uses: actions/checkout@v3
+      - name: Get version
+        run: echo "PACKAGE_VERSION=$(python3 ./setup.py --version)" >> $GITHUB_ENV
+      # Get the last commit hash on the PR (-2 : before the merge commit)
+      - uses: actions/github-script@v6
+        id: last_pr_commit
         with:
-          fetch-depth: 0 # Fetch all the tags
-
-      - name: Update meta.yaml
+          script: |
+            const commits = ${{ toJSON(github.event.commits) }}
+            return commits.at(-2).id;
+          result-encoding: string
+      # Default Download artifact don't see artifact of other workflow
+      # So we use dawidd6/action-download-artifact@v2 to do it.
+      - name: Download artifact
+        id: download-artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow_conclusion: success
+          commit: ${{steps.last_pr_commit.outputs.result}}
+          name: conda-build-${{ env.PACKAGE_VERSION }}-${{steps.last_pr_commit.outputs.result}}
+          path: conda-build-tmp
+          if_no_artifact_found: fail
+      - name: Conda upload
+        # This shell is made necessary by https://github.com/conda-incubator/setup-miniconda/issues/128
+        shell: bash -l {0}
         run: |
-          python3 -m pip install requests argparse
-          # Sleep to allow PyPi to update its API
-          sleep 60
-          python3 .github/get_pypi_info.py -p OpenFisca-Core
-
-      - name: Conda Config
-        run: |
-          conda install conda-build anaconda-client
+          conda install anaconda-client
           conda info
-          conda config --set anaconda_upload yes
+          anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u openfisca ./conda-build-tmp/noarch/openfisca-core-*-py_0.tar.bz2
 
-      - name: Conda build
-        run: conda build -c conda-forge --token ${{ secrets.ANACONDA_TOKEN }} --user openfisca .conda
