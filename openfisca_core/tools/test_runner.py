@@ -131,9 +131,8 @@ def run_tests(
     """
 
     argv = []
-    plugins = [OpenFiscaPlugin(tax_benefit_system, options)]
     workers = options.get("workers")
-    tests_per_worker = options.get("tests_per_worker")
+    plugins = [OpenFiscaPlugin(tax_benefit_system, options)]
 
     if options.get('pdb'):
         argv.append('--pdb')
