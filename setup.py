@@ -57,7 +57,7 @@ dev_requirements = [
     'mypy == 0.910',
     'pycodestyle >= 2.8.0, < 2.9.0',
     'pylint == 2.10.2',
-    'pytest-parallel < 1.0.0',
+    'pytest-parallel < 0.2.0',
     'xdoctest >= 1.0.0, < 2.0.0',
     ] + api_requirements
 

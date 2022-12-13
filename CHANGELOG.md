@@ -4,8 +4,9 @@
 
 #### Technical changes
 
-- Introduce a way to run test in parallel.
-- Check `openfisca test --help` for usage instructions.
+- Introduce option `--workers` to `openfisca test to run tests in parallel`.
+  - Check `openfisca test --help` for usage instructions.
+- Add short option `-g` to `openfisca` as a synonym to `--performance-graph`.
 
 # 37.0.0 [#1142](https://github.com/openfisca/openfisca-core/pull/1142)
 
