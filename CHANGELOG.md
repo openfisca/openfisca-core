@@ -6,11 +6,13 @@
 
 - Drop support for NumPy < 1.20
 - Drop support for Python < 3.7
+- Dev dependencies are not included in published package anymore ([#1121](https://github.com/openfisca/openfisca-core/issues/1121))
 
 #### New features
 
 - Add support for Python 3.8
 - Add CI for Windows
+- Lighter and faster install ([#1121](https://github.com/openfisca/openfisca-core/issues/1121))
 
 # 38.0.0 [#989](https://github.com/openfisca/openfisca-core/pull/989)
 
