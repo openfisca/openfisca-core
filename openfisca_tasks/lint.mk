@@ -1,5 +1,5 @@
 ## Lint the codebase.
-lint: compile lint-style lint-doc lint-typing lint-typing-strict
+lint: compile lint-doc lint-style lint-typing lint-typing-strict
 	@$(call print_pass,$@:)
 
 ## Compile python files to check for syntax errors.
