@@ -32,18 +32,89 @@ def get_parser():
     parser_serve = build_serve_parser(parser_serve)
 
     def build_test_parser(parser):
-        parser.add_argument('path', help = "paths (files or directories) of tests to execute", nargs = '+')
+        parser.add_argument("path", help = "paths (files or directories) of tests to execute", nargs = "+")
+
         parser = add_tax_benefit_system_arguments(parser)
-        parser.add_argument('-a', '--aggregate', action = 'store_true', default = False, help = "increase output verbosity to aggregate. If specified, output the avg, max, and min values of the calculation trace. This flag has no effect without --verbose.")
-        parser.add_argument('-d', '--max-depth', type = int, default = None, help = "set maximal verbosity depth. If specified, output the calculation trace up to the provided depth. This flag has no effect without --verbose.")
-        parser.add_argument('-g', '--performance-graph', '--performance', action = 'store_true', default = False, help = "output a performance graph in a 'performance_graph.html' file")
-        parser.add_argument('-i', '--ignore-variables', nargs = '*', default = None, help = "variables to ignore. If specified, do not test the given variables.")
-        parser.add_argument('-n', '--name_filter', default = None, help = "partial name of tests to execute. Only tests with the given name_filter in their name, file name, or keywords will be run.")
-        parser.add_argument('-o', '--only-variables', nargs = '*', default = None, help = "variables to test. If specified, only test the given variables.")
-        parser.add_argument('-p', '--pdb', action = 'store_true', default = False, help = "drop into debugger on failures or errors")
-        parser.add_argument('-t', '--performance-tables', action = 'store_true', default = False, help = "output performance CSV tables")
-        parser.add_argument('-v', '--verbose', action = 'store_true', default = False, help = "increase output verbosity. If specified, output the entire calculation trace.")
-        parser.add_argument('-w', '--workers', nargs = 1, default = None, help = "run tests distributed. Use `auto` to detect the number of cores.")
+
+        parser.add_argument(
+            "-a",
+            "--aggregate",
+            action = "store_true",
+            default = False,
+            help = "increase output verbosity to aggregate. If specified, output the avg, max, and min values of the calculation trace. This flag has no effect without --verbose.",
+            )
+
+        parser.add_argument(
+            "-d",
+            "--max-depth",
+            type = int,
+            default = None,
+            help = "set maximal verbosity depth. If specified, output the calculation trace up to the provided depth. This flag has no effect without --verbose.",
+            )
+
+        parser.add_argument(
+            "-g",
+            "--performance-graph",
+            "--performance",
+            action = "store_true",
+            default = False,
+            help = "output a performance graph in a 'performance_graph.html' file",
+            )
+
+        parser.add_argument(
+            "-i",
+            "--ignore-variables",
+            nargs = "*",
+            default = None,
+            help = "variables to ignore. If specified, do not test the given variables.",
+            )
+
+        parser.add_argument(
+            "-n",
+            "--name_filter",
+            default = None,
+            help = "partial name of tests to execute. Only tests with the given name_filter in their name, file name, or keywords will be run.",
+            )
+
+        parser.add_argument(
+            "-o",
+            "--only-variables",
+            nargs = "*",
+            default = None,
+            help = "variables to test. If specified, only test the given variables.",
+            )
+
+        parser.add_argument(
+            "-p",
+            "--pdb",
+            action = "store_true",
+            default = False,
+            help = "drop into debugger on failures or errors",
+            )
+
+        parser.add_argument(
+            "-t",
+            "--performance-tables",
+            action = "store_true",
+            default = False,
+            help = "output performance CSV tables",
+            )
+
+        parser.add_argument(
+            "-v",
+            "--verbose",
+            action = "store_true",
+            default = False,
+            help = "increase output verbosity. If specified, output the entire calculation trace.",
+            )
+
+        parser.add_argument(
+            "-w",
+            "--workers",
+            nargs = 1,
+            default = "auto",
+            help = "run tests distributed per core. Use `auto` to detect the number of cores.",
+            )
 
         return parser
 

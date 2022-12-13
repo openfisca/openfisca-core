@@ -131,8 +131,9 @@ def run_tests(
     """
 
     argv = []
-    workers = options.get("workers")
     plugins = [OpenFiscaPlugin(tax_benefit_system, options)]
+    workers = options.get("workers")
+    tests_per_worker = options.get("tests_per_worker")
 
     if options.get('pdb'):
         argv.append('--pdb')
@@ -141,7 +142,7 @@ def run_tests(
         argv.append('--verbose')
 
     if workers is not None:
-        argv.append(f"--workers={workers[0]}")
+        argv.append(f"--workers={workers}")
 
     if isinstance(paths, str):
         paths = [paths]
