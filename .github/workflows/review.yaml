@@ -29,6 +29,7 @@ jobs:
         activate_command: ${{ matrix.activate_command }}
 
   build:
+    needs: [ deps ]
     strategy:
       fail-fast: true
       matrix:
