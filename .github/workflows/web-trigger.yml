@@ -1,0 +1,77 @@
+name: OpenFisca-Core / Web triggered workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      os:
+        description: Platform
+        required: true
+        default: ubuntu-20.04
+        type: choice
+        options:
+        - ubuntu-20.04
+        - ubuntu-latest
+        - windows-latest
+
+      numpy:
+        description: NumPy version
+        required: true
+        default: 1.20.3
+        type: choice
+        options:
+        - 1.20.3
+        - 1.21.6
+        - 1.22.4
+        - 1.23.5
+
+      python:
+        description: Python version
+        required: true
+        default: 3.7.9
+        type: choice
+        options:
+        - 3.7.9
+        - 3.7.16
+        - 3.8.10
+        - 3.8.16
+        - 3.9.13
+        - 3.9.16
+        - 3.10.9
+        - 3.11.1
+
+      activate_command:
+        description: Virtualenv activation command
+        required: true
+        default: source venv/bin/activate
+        type: choice
+        options:
+        - source venv/bin/activate
+        - .\venv\Scripts\activate
+
+
+jobs:
+  setup:
+    uses: ./.github/workflows/_before.yaml
+    with:
+        os: ${{ inputs.os }}
+        numpy: ${{ inputs.numpy }}
+        python: ${{ inputs.python }}
+        activate_command: ${{ inputs.activate_command }}
+
+  test:
+    needs: [ setup ]
+    uses: ./.github/workflows/_test.yaml
+    with:
+        os: ${{ inputs.os }}
+        numpy: ${{ inputs.numpy }}
+        python: ${{ inputs.python }}
+        activate_command: ${{ inputs.activate_command }}
+
+  lint:
+    needs: [ setup ]
+    uses: ./.github/workflows/_lint.yaml
+    with:
+        os: ${{ inputs.os }}
+        numpy: ${{ inputs.numpy }}
+        python: ${{ inputs.python }}
+        activate_command: ${{ inputs.activate_command }}
