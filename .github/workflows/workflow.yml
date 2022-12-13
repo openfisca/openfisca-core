@@ -177,38 +177,39 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.7.12
+          python-version: 3.8.9
 
       - name: Check version number has been properly updated
         run: "${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh"
 
-  # GitHub Actions does not have a halt job option, to stop from deploying if no functional changes were found.
-  # We build a separate job to substitute the halt option.
-  # The `deploy` job is dependent on the output of the `check-for-functional-changes`job.
   check-for-functional-changes:
     runs-on: ubuntu-20.04
-    if: github.ref == 'refs/heads/master' # Only triggered for the `master` branch
     needs: [ check-version ]
     outputs:
-      status: ${{ steps.stop-early.outputs.status }}
+      is_fonctional_change: ${{ steps.functional_changes.outputs.result }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Fetch all the tags
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.7.12
+          python-version: 3.8.9
+      - id: check-functional-changes
+        run: ${GITHUB_WORKSPACE}/.github/has-functional-changes.sh
+        continue-on-error: true
+      - id: functional_changes
+        run: echo "result=${{ steps.check-functional-changes.outcome }}"  >> $GITHUB_OUTPUT
 
-      - id: stop-early
-        run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "::set-output name=status::success" ; fi # The `check-for-functional-changes` job should always succeed regardless of the `has-functional-changes` script's exit code. Consequently, we do not use that exit code to trigger deploy, but rather a dedicated output variable `status`, to avoid a job failure if the exit code is different from 0. Conversely, if the job fails the entire workflow would be marked as `failed` which is disturbing for contributors.
 
   deploy:
     runs-on: ubuntu-20.04
-    needs: [ check-for-functional-changes ]
-    if: needs.check-for-functional-changes.outputs.status == 'success'
+    needs: [ check-version ]
+    if: |
+      github.ref == 'refs/heads/master' # Only triggered for the `master` branch &&
+      ${{needs.check-for-functional-changes.outputs.is_fonctional_change}} == 'success'
     env:
       PYPI_USERNAME: openfisca-bot
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
