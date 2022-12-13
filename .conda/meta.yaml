@@ -12,8 +12,7 @@ package:
   version: {{ version }}
 
 source:
-  url: PYPI_URL
-  sha256: PYPI_SHA256
+  path: ..
 
 build:
   noarch: python
@@ -61,7 +60,7 @@ outputs:
       host:
         - python
       run:
-        - python >=3.6,<4.0
+        - python >=3.7,<4.0
         # markupsafe == 2.0.1 While flask revision < 2
         - markupsafe ==2.0.1
         - flask ==1.1.4
