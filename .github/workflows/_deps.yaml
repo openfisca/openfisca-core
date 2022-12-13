@@ -21,8 +21,8 @@ on:
 
 jobs:
   deps:
-    runs-on: ${{ input.os }}
-    name: deps-${{ input.os }}-np${{ input.numpy }}-py${{ input.python }}
+    runs-on: ${{ inputs.os }}
+    name: deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}
     env:
       TERM: xterm-256color  # To colorize output of make tasks.
 
@@ -33,7 +33,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ input.python }}
+          python-version: ${{ inputs.python }}
 
       - name: Use zstd for faster cache restore (windows)
         if: ${{ startsWith(input.os, 'windows') }}
@@ -45,11 +45,11 @@ jobs:
         uses: actions/cache@v3
         with:
           path: venv
-          key: deps-${{ input.os }}-np${{ input.numpy }}-py${{ input.python }}-${{ hashFiles('setup.py') }}
-          restore-keys: deps-${{ input.os }}-np${{ input.numpy }}-py${{ input.python }}-
+          key: deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}
+          restore-keys: deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-
 
       - name: Install dependencies
         run: |
           python -m venv venv
-          ${{ input.activate_command }}
+          ${{ inputs.activate_command }}
           make install-deps install-dist
