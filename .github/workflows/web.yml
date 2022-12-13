@@ -48,7 +48,6 @@ on:
         - source venv/bin/activate
         - .\venv\Scripts\activate
 
-
 jobs:
   setup:
     uses: ./.github/workflows/_before.yaml
