@@ -252,7 +252,7 @@ jobs:
 
   build-conda:
     runs-on: ubuntu-20.04
-    needs: [ check-version-and-changelog ]
+    needs: [ check-version ]
     # Do not build on master, the artifact will be used
     if: github.ref != 'refs/heads/master'
     steps:
