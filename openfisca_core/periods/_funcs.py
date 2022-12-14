@@ -188,6 +188,7 @@ def parse_simple_period(value: str) -> Optional[types.Period]:
     else:
         return Period((_config.YEAR, Instant((date.year, date.month, 1)), 1))
 
+
 def period(value: Any) -> types.Period:
     """Build a new period, aka a triple (unit, start_instant, size).
 
