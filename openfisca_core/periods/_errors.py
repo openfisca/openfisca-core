@@ -31,13 +31,25 @@ class InstantFormatError(ValueError):
             )
 
 
+class InstantValueError(ValueError):
+    """Raised when an instant's values are not valid."""
+
+    def __init__(self, value: Any) -> None:
+        super().__init__(
+            f"Invalid instant: '{value}' has a length of {len(value)}. "
+            "Instants are described using the 'YYYY-MM-DD' format, for "
+            "instance '2015-06-15', therefore their length has to be within "
+            f" the following range: 1 <= length <= 3. {LEARN_MORE}"
+            )
+
+
 class InstantTypeError(TypeError):
     """Raised when an instant's type is not valid."""
 
     def __init__(self, value: Any) -> None:
         super().__init__(
             f"Invalid instant: {value} of type {type(value)}, expecting an "
-            f"{type(Instant)}. {LEARN_MORE}"
+            f"{type(Instant)}, {type(tuple)}, or {type(list)}. {LEARN_MORE}"
             )
 
 

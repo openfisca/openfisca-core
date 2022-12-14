@@ -45,9 +45,9 @@ def test_build_instant_with_an_invalid_argument(arg, error):
 
 
 @pytest.mark.parametrize("arg, expected", [
-    ["eternity", periods.Period((periods.ETERNITY, periods.Instant((1, 1, 1)), float("inf")))],
-    ["ETERNITY", periods.Period((periods.ETERNITY, periods.Instant((1, 1, 1)), float("inf")))],
-    [periods.ETERNITY, periods.Period((periods.ETERNITY, periods.Instant((1, 1, 1)), float("inf")))],
+    ["eternity", periods.Period((periods.ETERNITY, periods.Instant((1, 1, 1)), 1))],
+    ["ETERNITY", periods.Period((periods.ETERNITY, periods.Instant((1, 1, 1)), 1))],
+    [periods.ETERNITY, periods.Period((periods.ETERNITY, periods.Instant((1, 1, 1)), 1))],
     [periods.Instant((1, 1, 1)), periods.Period((periods.DAY, periods.Instant((1, 1, 1)), 1))],
     [periods.Period((periods.DAY, periods.Instant((1, 1, 1)), 365)), periods.Period((periods.DAY, periods.Instant((1, 1, 1)), 365))],
     [1000, periods.Period((periods.YEAR, periods.Instant((1000, 1, 1)), 1))],

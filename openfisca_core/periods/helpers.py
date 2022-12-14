@@ -9,7 +9,7 @@ from pendulum.datetime import Date
 from pendulum.parsing import ParserError
 
 from ._config import INSTANT_PATTERN
-from ._errors import InstantFormatError, PeriodFormatError
+from ._errors import InstantFormatError, InstantValueError, PeriodFormatError
 from ._units import DAY, ETERNITY, MONTH, UNIT_WEIGHTS, YEAR
 from .instant_ import Instant
 from .period_ import Period
@@ -29,6 +29,7 @@ def build_instant(value: Any) -> Optional[Instant]:
 
     Raises:
         InstantFormatError: When the arguments were invalid, like "2021-32-13".
+        InstantValueError: When the length is out of range.
 
     Examples:
         >>> build_instant(datetime.date(2021, 9, 16))
@@ -72,14 +73,11 @@ def build_instant(value: Any) -> Optional[Instant]:
     elif isinstance(value, int):
         instant = value,
 
-    elif isinstance(value, list):
-        assert 1 <= len(value) <= 3
-        instant = tuple(value)
+    elif isinstance(value, (tuple, list)) and not 1 <= len(value) <= 3:
+        raise InstantValueError(value)
 
     else:
-        assert isinstance(value, tuple), value
-        assert 1 <= len(value) <= 3
-        instant = value
+        instant = tuple(value)
 
     if len(instant) == 1:
         return Instant((instant[0], 1, 1))
@@ -110,7 +108,7 @@ def build_period(value: Any) -> Period:
         Period(('day', Instant((2021, 1, 1)), 1))
 
         >>> build_period("eternity")
-        Period(('eternity', Instant((1, 1, 1)), inf))
+        Period(('eternity', Instant((1, 1, 1)), 1))
 
         >>> build_period(2021)
         Period(('year', Instant((2021, 1, 1)), 1))
@@ -142,7 +140,7 @@ def build_period(value: Any) -> Period:
         return Period((DAY, value, 1))
 
     if value == "ETERNITY" or value == ETERNITY:
-        return Period(("eternity", build_instant(datetime.date.min), float("inf")))
+        return Period(("eternity", build_instant(datetime.date.min), 1))
 
     if isinstance(value, int):
         return Period((YEAR, Instant((value, 1, 1)), 1))
