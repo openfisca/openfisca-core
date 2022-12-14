@@ -326,6 +326,8 @@ class Variable:
 
         """
 
+        instant: Optional[Instant]
+
         if not self.formulas:
             return None
 
@@ -334,11 +336,16 @@ class Variable:
 
         if isinstance(period, Period):
             instant = period.start
+
         else:
             try:
                 instant = periods.build_period(period).start
+
             except ValueError:
-                instant = periods.instant(period)
+                instant = periods.build_instant(period)
+
+        if instant is None:
+            return None
 
         if self.end and instant.date > self.end:
             return None

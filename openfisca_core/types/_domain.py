@@ -86,9 +86,8 @@ class Params(Protocol):
 class Period(Protocol):
     """Period protocol."""
 
-    @property
     @abc.abstractmethod
-    def start(self) -> Any:
+    def __iter__(self) -> Any:
         """Abstract method."""
 
     @property
@@ -96,12 +95,18 @@ class Period(Protocol):
     def unit(self) -> Any:
         """Abstract method."""
 
+    @property
     @abc.abstractmethod
-    def offset(self, offset: Any, unit: Any = None) -> Any:
+    def start(self) -> Any:
+        """Abstract method."""
+
+    @property
+    @abc.abstractmethod
+    def stop(self) -> Any:
         """Abstract method."""
 
     @abc.abstractmethod
-    def stop(self) -> Any:
+    def offset(self, offset: Any, unit: Any = None) -> Any:
         """Abstract method."""
 
 

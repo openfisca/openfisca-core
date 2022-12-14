@@ -59,27 +59,24 @@ def build_instant(value: Any) -> Optional[types.Instant]:
     if isinstance(value, Instant):
         return value
 
-    if isinstance(value, str):
-        if not INSTANT_PATTERN.match(value):
-            raise InstantFormatError(value)
+    if isinstance(value, Period):
+        return value.start
 
-        instant = Instant(
-            int(fragment)
-            for fragment in value.split('-', 2)[:3]
-            )
+    if isinstance(value, str) and not INSTANT_PATTERN.match(value):
+        raise InstantFormatError(value)
+
+    if isinstance(value, str):
+        instant = tuple(int(fragment) for fragment in value.split('-', 2)[:3])
 
     elif isinstance(value, datetime.date):
-        instant = Instant((value.year, value.month, value.day))
+        instant = value.year, value.month, value.day
 
     elif isinstance(value, int):
-        instant = (value,)
+        instant = value,
 
     elif isinstance(value, list):
         assert 1 <= len(value) <= 3
         instant = tuple(value)
-
-    elif isinstance(value, Period):
-        instant = value.start
 
     else:
         assert isinstance(value, tuple), value
@@ -226,7 +223,7 @@ def key_period_size(period: types.Period) -> str:
 
     """
 
-    unit, start, size = period
+    unit, _start, size = period
 
     return f"{UNIT_WEIGHTS[unit]}_{size}"
 

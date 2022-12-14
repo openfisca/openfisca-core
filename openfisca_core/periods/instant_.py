@@ -5,13 +5,11 @@ from typing import Dict, Optional, Union
 import calendar
 import datetime
 
-from openfisca_core import types
-
 from ._errors import DateUnitValueError, InstantTypeError, OffsetTypeError
 from ._units import DAY, MONTH, YEAR
 
 
-class Instant(tuple):
+class Instant(tuple[int, int, int]):
     """An instant in time (``year``, ``month``, ``day``).
 
     An ``Instant`` represents the most atomic and indivisible
@@ -85,7 +83,7 @@ class Instant(tuple):
         return str(self)
 
     @staticmethod
-    def to_date(value: Optional[types.Instant]) -> Optional[datetime.date]:
+    def to_date(value: Optional[Instant]) -> Optional[datetime.date]:
         """Returns the date representation of an ``Instant``.
 
         Args:
@@ -108,7 +106,7 @@ class Instant(tuple):
         if value is None:
             return None
 
-        if isinstance(value, types.Instant):
+        if isinstance(value, Instant):
             return value.date
 
         raise InstantTypeError(value)
@@ -184,7 +182,7 @@ class Instant(tuple):
 
         return self.date
 
-    def offset(self, offset: Union[str, int], unit: str) -> types.Instant:
+    def offset(self, offset: Union[str, int], unit: str) -> Instant:
         """Increments/decrements the given instant with offset units.
 
         Args:
