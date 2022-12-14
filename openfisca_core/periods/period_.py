@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Sequence, Union
+from typing import Optional, Sequence, Tuple, Union
 
 import calendar
 import datetime
@@ -10,7 +10,7 @@ from ._units import DAY, MONTH, YEAR, ETERNITY, UNIT_WEIGHTS
 from .instant_ import Instant
 
 
-class Period(tuple[str, Instant, int]):
+class Period(Tuple[str, Instant, int]):
     """Toolbox to handle date intervals.
 
     A ``Period`` is a triple (``unit``, ``start``, ``size``).

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Tuple, Union
 
 import calendar
 import datetime
@@ -9,7 +9,7 @@ from ._errors import DateUnitValueError, InstantTypeError, OffsetTypeError
 from ._units import DAY, MONTH, YEAR
 
 
-class Instant(tuple[int, int, int]):
+class Instant(Tuple[int, int, int]):
     """An instant in time (``year``, ``month``, ``day``).
 
     An ``Instant`` represents the most atomic and indivisible

@@ -399,10 +399,10 @@ class TaxBenefitSystem:
         key: Optional[types.Instant]
         msg: str
 
-        if isinstance(instant, Instant):
+        if isinstance(instant, types.Instant):
             key = instant
 
-        elif isinstance(instant, Period):
+        elif isinstance(instant, types.Period):
             key = instant.start
 
         elif isinstance(instant, (str, int)):
