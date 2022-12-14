@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, Tuple, Union
 
 from dateutil import relativedelta
 import calendar
 import datetime
 
-from ._errors import DateUnitValueError, InstantTypeError, OffsetTypeError
+from ._errors import DateUnitValueError, OffsetTypeError
 from ._units import DAY, MONTH, YEAR
 
 
@@ -74,43 +74,13 @@ class Instant(Tuple[int, int, int]):
         return f"{Instant.__name__}({super(Instant, self).__repr__()})"
 
     def __str__(self) -> str:
-        string = Instant._strings.get(self)
+        try:
+            return Instant._strings[self]
 
-        if string is not None:
-            return string
-
-        Instant._strings = {self: self.date.isoformat(), **Instant._strings}
+        except KeyError:
+            Instant._strings = {self: self.date.isoformat(), **Instant._strings}
 
         return str(self)
-
-    @staticmethod
-    def to_date(value: Optional[Instant]) -> Optional[datetime.date]:
-        """Returns the date representation of an ``Instant``.
-
-        Args:
-            value (Any):
-                An ``instant-like`` object to get the date from.
-
-        Returns:
-            None: When ``value`` is None.
-            datetime.date: Otherwise.
-
-        Raises:
-            InstantTypeError: When ``value`` is not an ``Instant``.
-
-        Examples:
-            >>> Instant.to_date(Instant((2021, 1, 1)))
-            datetime.date(2021, 1, 1)
-
-        """
-
-        if value is None:
-            return None
-
-        if isinstance(value, Instant):
-            return value.date
-
-        raise InstantTypeError(value)
 
     @property
     def year(self) -> int:
@@ -174,12 +144,11 @@ class Instant(Tuple[int, int, int]):
 
         """
 
-        date = Instant._dates.get(self)
+        try:
+            return Instant._dates[self]
 
-        if date is not None:
-            return date
-
-        Instant._dates = {self: datetime.date(*self), **Instant._dates}
+        except KeyError:
+            Instant._dates = {self: datetime.date(*self), **Instant._dates}
 
         return self.date
 
