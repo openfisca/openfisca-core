@@ -52,8 +52,6 @@ def test_build_instant_with_an_invalid_argument(arg, error):
     [periods.Period((periods.DAY, periods.Instant((1, 1, 1)), 365)), periods.Period((periods.DAY, periods.Instant((1, 1, 1)), 365))],
     [1000, periods.Period((periods.YEAR, periods.Instant((1000, 1, 1)), 1))],
     ["1000", periods.Period((periods.YEAR, periods.Instant((1000, 1, 1)), 1))],
-    ["1000-1", periods.Period((periods.MONTH, periods.Instant((1000, 1, 1)), 1))],
-    ["1000-1-1", periods.Period((periods.DAY, periods.Instant((1000, 1, 1)), 1))],
     ["1000-01", periods.Period((periods.MONTH, periods.Instant((1000, 1, 1)), 1))],
     ["1000-01-01", periods.Period((periods.DAY, periods.Instant((1000, 1, 1)), 1))],
     ["1004-02-29", periods.Period((periods.DAY, periods.Instant((1004, 2, 29)), 1))],
@@ -81,10 +79,12 @@ def test_build_period(arg, expected):
     [datetime.date(1, 1, 1), ValueError],
     ["1000:1", ValueError],
     ["1000-0", ValueError],
+    ["1000-1", ValueError],
     ["1000-13", ValueError],
     ["1000-01:1", ValueError],
     ["1000-0-0", ValueError],
     ["1000-1-0", ValueError],
+    ["1000-1-1", ValueError],
     ["1000-2-31", ValueError],
     ["1000-01-01:1", ValueError],
     ["month:1000", ValueError],
@@ -104,16 +104,16 @@ def test_build_period_with_an_invalid_argument(arg, error):
     ["1", None],
     ["999", None],
     ["1000", periods.Period((periods.YEAR, periods.Instant((1000, 1, 1)), 1))],
-    ["1000-1", periods.Period((periods.MONTH, periods.Instant((1000, 1, 1)), 1))],
     ["1000-01", periods.Period((periods.MONTH, periods.Instant((1000, 1, 1)), 1))],
-    ["1000-1-1", periods.Period((periods.DAY, periods.Instant((1000, 1, 1)), 1))],
-    ["1000-01-1", periods.Period((periods.DAY, periods.Instant((1000, 1, 1)), 1))],
     ["1000-01-01", periods.Period((periods.DAY, periods.Instant((1000, 1, 1)), 1))],
+    ["1000-1", None],
+    ["1000-1-1", None],
+    ["1000-01-1", None],
     ["1000-01-99", None],
     ])
-def test_parse_simple_period(arg, expected):
+def test_parse_period(arg, expected):
     """Returns an ``Instant`` when given a valid ISO format string."""
-    assert periods.parse_simple_period(arg) == expected
+    assert periods.parse_period(arg) == expected
 
 
 @pytest.mark.parametrize("arg, expected", [

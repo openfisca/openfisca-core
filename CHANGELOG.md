@@ -10,6 +10,7 @@
 - Rename `instant` to `build_instant`.
 - Rename `period` to `build_period`.
 - Move `instant_date` to `Instant.to_date`.
+- Make `periods.parse_period` stricter (for example `2022-1` now fails).
 
 #### Technical changes
 

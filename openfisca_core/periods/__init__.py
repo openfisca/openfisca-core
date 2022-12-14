@@ -31,15 +31,11 @@ from ._config import (  # noqa: F401
     INSTANT_PATTERN,
     )
 
-from ._errors import (  # noqa: F401
-    InstantTypeError,
-    )
-
 from ._funcs import (  # noqa: F401
     build_instant,
     build_period,
     key_period_size,
-    parse_simple_period,
+    parse_period,
     )
 
 from ._units import (  # noqa: F401

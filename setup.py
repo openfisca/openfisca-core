@@ -26,13 +26,15 @@ long_description = (this_directory / "README.md").read_text()
 # functional and integration breaks caused by external code updates.
 
 general_requirements = [
+    'PyYAML >= 3.10',
     'dpath >= 1.5.0, < 3.0.0',
+    'importlib-metadata < 4.3.0',
     'nptyping == 1.4.4',
     'numexpr >= 2.7.0, <= 3.0',
-    'numpy >= 1.11, < 1.21',
+    'numpy >= 1.20, < 1.21',
+    'pendulum >= 2.1.0, < 3.0.0',
     'psutil >= 5.4.7, < 6.0.0',
     'pytest >= 4.4.1, < 6.0.0',  # For openfisca test
-    'PyYAML >= 3.10',
     'sortedcontainers == 2.2.2',
     'typing-extensions >= 4.0.0, < 5.0.0',
     ]
@@ -56,7 +58,7 @@ dev_requirements = [
     'flake8-rst-docstrings == 0.2.3',
     'mypy == 0.910',
     'openapi-spec-validator >= 0.3.0',
-    'pycodestyle >= 2.7.0, < 2.8.0',
+    'pycodestyle >= 2.8.0, < 2.9.0',
     'pylint == 2.10.2',
     'xdoctest >= 1.0.0, < 2.0.0',
     ] + api_requirements

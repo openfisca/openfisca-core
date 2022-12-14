@@ -22,7 +22,7 @@ def test_to_date(arg, expected):
 
 
 @pytest.mark.parametrize("arg, error", [
-    [(1, 1, 1), periods.InstantTypeError],
+    [(1, 1, 1), TypeError],
     [periods.Instant((-1, 1, 1)), ValueError],
     [periods.Instant((1, -1, 1)), ValueError],
     [periods.Instant((1, 1, -1)), ValueError],

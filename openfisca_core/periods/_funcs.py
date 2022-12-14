@@ -4,6 +4,10 @@ from typing import Any, Optional
 
 import datetime
 
+import pendulum
+from pendulum.datetime import Date
+from pendulum.parsing import ParserError
+
 from openfisca_core import types
 
 from ._config import INSTANT_PATTERN
@@ -120,16 +124,16 @@ def build_period(value: Any) -> types.Period:
         >>> build_period("year:2014")
         Period(('year', Instant((2014, 1, 1)), 1))
 
-        >>> build_period("month:2014-2")
+        >>> build_period("month:2014-02")
         Period(('month', Instant((2014, 2, 1)), 1))
 
-        >>> build_period("year:2014-2")
+        >>> build_period("year:2014-02")
         Period(('year', Instant((2014, 2, 1)), 1))
 
-        >>> build_period("day:2014-2-2")
+        >>> build_period("day:2014-02-02")
         Period(('day', Instant((2014, 2, 2)), 1))
 
-        >>> build_period("day:2014-2-2:3")
+        >>> build_period("day:2014-02-02:3")
         Period(('day', Instant((2014, 2, 2)), 3))
 
     """
@@ -150,7 +154,7 @@ def build_period(value: Any) -> types.Period:
         raise PeriodFormatError(value)
 
     # Try to parse as a simple period
-    period = parse_simple_period(value)
+    period = parse_period(value)
 
     if period is not None:
         return period
@@ -168,7 +172,7 @@ def build_period(value: Any) -> types.Period:
         raise PeriodFormatError(value)
 
     # Middle component must be a valid iso period
-    base_period = parse_simple_period(components[1])
+    base_period = parse_period(components[1])
 
     if not base_period:
         raise PeriodFormatError(value)
@@ -225,8 +229,8 @@ def key_period_size(period: types.Period) -> str:
     return f"{UNIT_WEIGHTS[unit]}_{size}"
 
 
-def parse_simple_period(value: str) -> Optional[types.Period]:
-    """Parse simple periods respecting the ISO format.
+def parse_period(value: str) -> Optional[types.Period]:
+    """Parse periods respecting the ISO format.
 
     Args:
         value: A string such as such as "2012" or "2015-03".
@@ -234,37 +238,80 @@ def parse_simple_period(value: str) -> Optional[types.Period]:
     Returns:
         A Period.
 
+    Raises:
+        AttributeError: When arguments are invalid, like ``"-1"``.
+        ValueError: When values are invalid, like ``"2022-32-13"``.
+
     Examples:
-        >>> parse_simple_period("2022")
+        >>> parse_period("2022")
         Period(('year', Instant((2022, 1, 1)), 1))
 
-        >>> parse_simple_period("2022-02")
+        >>> parse_period("2022-02")
         Period(('month', Instant((2022, 2, 1)), 1))
 
-        >>> parse_simple_period("2022-02-13")
+        >>> parse_period("2022-02-13")
         Period(('day', Instant((2022, 2, 13)), 1))
 
     """
 
+    # If it's a complex period, next!
+    if len(value.split(":")) != 1:
+        return None
+
+    # Check for a non-empty string.
+    if not (value and isinstance(value, str)):
+        raise AttributeError
+
+    # If it's negative, next!
+    if value[0] == "-":
+        raise ValueError
+
+    unit = _parse_unit(value)
+
     try:
-        date = datetime.datetime.strptime(value, '%Y')
+        date = pendulum.parse(value, exact = True)
 
-    except ValueError:
-        try:
-            date = datetime.datetime.strptime(value, '%Y-%m')
+    except ParserError:
+        return None
 
-        except ValueError:
-            try:
-                date = datetime.datetime.strptime(value, '%Y-%m-%d')
+    if not isinstance(date, Date):
+        raise ValueError
 
-            except ValueError:
-                return None
+    instant = Instant((date.year, date.month, date.day))
 
-            else:
-                return Period((DAY, Instant((date.year, date.month, date.day)), 1))
+    return Period((unit, instant, 1))
 
-        else:
-            return Period((MONTH, Instant((date.year, date.month, 1)), 1))
 
-    else:
-        return Period((YEAR, Instant((date.year, date.month, 1)), 1))
+def _parse_unit(value: str) -> str:
+    """Determine the date unit of a date string.
+
+    Args:
+        value (str): The date string to parse.
+
+    Returns:
+        A date unit.
+
+    Raises:
+        ValueError: when no date unit can be determined.
+
+    Examples:
+        >>> _parse_unit("2022")
+        'year'
+
+        >>> _parse_unit("2022-03-01")
+        'day'
+
+    """
+
+    length = len(value.split("-"))
+
+    if length == 1:
+        return YEAR
+
+    elif length == 2:
+        return MONTH
+
+    elif length == 3:
+        return DAY
+
+    raise ValueError
