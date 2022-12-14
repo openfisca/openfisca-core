@@ -13,8 +13,8 @@ from openfisca_core import types
 from ._config import INSTANT_PATTERN
 from ._errors import InstantFormatError, PeriodFormatError
 from ._units import DAY, ETERNITY, MONTH, YEAR, UNIT_WEIGHTS
-from .instant_ import Instant
-from .period_ import Period
+from .instant import Instant
+from .period import Period
 
 UNIT_MAPPING = {1: "year", 2: "month", 3: "day"}
 

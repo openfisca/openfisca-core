@@ -46,5 +46,5 @@ from ._units import (  # noqa: F401
     UNIT_WEIGHTS,
     )
 
-from .instant_ import Instant  # noqa: F401
-from .period_ import Period  # noqa: F401
+from .instant import Instant  # noqa: F401
+from .period import Period  # noqa: F401

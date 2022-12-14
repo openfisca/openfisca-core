@@ -7,7 +7,7 @@ import datetime
 
 from ._errors import DateUnitValueError
 from ._units import DAY, MONTH, YEAR, ETERNITY, UNIT_WEIGHTS
-from .instant_ import Instant
+from .instant import Instant
 
 
 class Period(Tuple[str, Instant, int]):
