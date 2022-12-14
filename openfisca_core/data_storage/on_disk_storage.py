@@ -62,7 +62,7 @@ class OnDiskStorage:
             self._files = {
                 period_item: value
                 for period_item, value in self._files.items()
-                if not period.contains(period_item)
+                if period_item not in period
                 }
 
     def get_known_periods(self):

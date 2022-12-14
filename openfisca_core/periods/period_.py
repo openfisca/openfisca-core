@@ -144,6 +144,29 @@ class Period(tuple):
         # complex period
         return '{}:{}-{:02d}:{}'.format(unit, year, month, size)
 
+    def __contains__(self, other: object) -> bool:
+        """Checks if a ``period`` contains another one.
+
+        Args:
+            other (object): The other ``Period``.
+
+        Returns:
+            True if ``other`` is contained, otherwise False.
+
+        Example:
+            >>> period = Period((YEAR, Instant((2021, 1, 1)), 1))
+            >>> sub_period = Period((MONTH, Instant((2021, 1, 1)), 3))
+
+            >>> sub_period in period
+            True
+
+        """
+
+        if isinstance(other, types.Period):
+            return self.start <= other.start and self.stop >= other.stop
+
+        return super().__contains__(other)
+
     @property
     def date(self) -> datetime.date:
         """The date representation of the ``period``'s' start date.
@@ -512,23 +535,3 @@ class Period(tuple):
         """
 
         return self.__class__((self[0], self[1].offset(offset, self[0] if unit is None else unit), self[2]))
-
-    def contains(self, other: types.Period) -> bool:
-        """Checks if a ``period`` contains another one.
-
-        Args:
-            other (:obj:`.Period`): The other ``Period``.
-
-        Returns:
-            True if ``other`` is contained, otherwise False.
-
-        Example:
-            >>> period = Period((YEAR, Instant((2021, 1, 1)), 1))
-            >>> sub_period = Period((MONTH, Instant((2021, 1, 1)), 3))
-
-            >>> period.contains(sub_period)
-            True
-
-        """
-
-        return self.start <= other.start and self.stop >= other.stop

@@ -41,7 +41,7 @@ class InMemoryStorage:
         self._arrays = {
             period_item: value
             for period_item, value in self._arrays.items()
-            if not period.contains(period_item)
+            if period_item not in period
             }
 
     def get_known_periods(self):
