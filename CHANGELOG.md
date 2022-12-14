@@ -8,22 +8,25 @@
 - Deprecate `periods.intersect`.
 - Deprecate `periods.unit_weight`.
 - Deprecate `periods.unit_weights`.
-- Rename `period` to `build_period`.
-- Rename `instant` to `build_instant`.
-- Refactor `Period.contains` as `Period.__contains__`.
 - Make `periods.parse_period` stricter (for example `2022-1` now fails).
+- Refactor `Period.contains` as `Period.__contains__`.
+- Rename `Period.get_subperiods` to `subperiods`.
+- Rename `instant` to `build_instant`.
+- Rename `period` to `build_period`.
+- Transform `Instant.date` from property to method.
+- Transform `Period.date` from property to method.
 
 #### Technical changes
 
+- Add typing to `openfisca_core.periods`.
 - Document `openfisca_core.periods`.
 - Fix `openfisca_core.periods` doctests.
-- Add typing to `openfisca_core.periods`.
 
 #### Bug fixes
 
+- Fixes impossible `last-of` and `first-of` offsets.
 - Fixes incoherent dates,
 - Fixes several race conditions,
-- Fixes impossible `last-of` and `first-of` offsets.
 
 # 38.0.0 [#989](https://github.com/openfisca/openfisca-core/pull/989)
 

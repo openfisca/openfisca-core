@@ -348,7 +348,7 @@ class Variable:
         if instant is None:
             return None
 
-        if self.end and instant.date > self.end:
+        if self.end and instant.date() > self.end:
             return None
 
         instant_str = str(instant)

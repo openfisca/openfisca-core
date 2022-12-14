@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Dict, Tuple, Union
+from typing import Tuple, Union
 
 from dateutil import relativedelta
 import calendar
 import datetime
+import functools
 
 from ._errors import DateUnitValueError, OffsetTypeError
 from ._units import DAY, MONTH, YEAR
@@ -64,23 +65,12 @@ class Instant(Tuple[int, int, int]):
 
     """
 
-    #: A cache with the ``datetime.date`` representation of the ``Instant``.
-    _dates: Dict[Instant, datetime.date] = {}
-
-    #: A cache with the ``str`` representation of the ``Instant``.
-    _strings: Dict[Instant, str] = {}
-
     def __repr__(self) -> str:
         return f"{Instant.__name__}({super(Instant, self).__repr__()})"
 
+    @functools.lru_cache(maxsize = None)
     def __str__(self) -> str:
-        try:
-            return Instant._strings[self]
-
-        except KeyError:
-            Instant._strings = {self: self.date.isoformat(), **Instant._strings}
-
-        return str(self)
+        return self.date().isoformat()
 
     @property
     def year(self) -> int:
@@ -130,13 +120,13 @@ class Instant(Tuple[int, int, int]):
 
         return self[2]
 
-    @property
+    @functools.lru_cache(maxsize = None)
     def date(self) -> datetime.date:
         """The date representation of the ``Instant``.
 
         Example:
             >>> instant = Instant((2021, 10, 1))
-            >>> instant.date
+            >>> instant.date()
             datetime.date(2021, 10, 1)
 
         Returns:
@@ -144,13 +134,7 @@ class Instant(Tuple[int, int, int]):
 
         """
 
-        try:
-            return Instant._dates[self]
-
-        except KeyError:
-            Instant._dates = {self: datetime.date(*self), **Instant._dates}
-
-        return self.date
+        return datetime.date(*self)
 
     def offset(self, offset: Union[str, int], unit: str) -> Instant:
         """Increments/decrements the given instant with offset units.
@@ -202,15 +186,15 @@ class Instant(Tuple[int, int, int]):
             raise OffsetTypeError(offset)
 
         if unit == YEAR:
-            date = self.date + relativedelta.relativedelta(years = offset)
+            date = self.date() + relativedelta.relativedelta(years = offset)
             return Instant((date.year, date.month, date.day))
 
         if unit == MONTH:
-            date = self.date + relativedelta.relativedelta(months = offset)
+            date = self.date() + relativedelta.relativedelta(months = offset)
             return Instant((date.year, date.month, date.day))
 
         if unit == DAY:
-            date = self.date + relativedelta.relativedelta(days = offset)
+            date = self.date() + relativedelta.relativedelta(days = offset)
             return Instant((date.year, date.month, date.day))
 
         return self

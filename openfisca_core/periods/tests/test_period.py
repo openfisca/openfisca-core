@@ -54,7 +54,7 @@ def test_subperiods(instant, period_unit, unit, start, cease, count):
     """Returns the expected subperiods."""
 
     period = periods.Period((period_unit, instant, 3))
-    subperiods = period.get_subperiods(unit)
+    subperiods = period.subperiods(unit)
 
     assert len(subperiods) == count
     assert subperiods[0] == periods.Period((unit, start, 1))

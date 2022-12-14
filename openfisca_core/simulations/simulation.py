@@ -185,7 +185,7 @@ class Simulation:
 
         return sum(
             self.calculate(variable_name, sub_period)
-            for sub_period in period.get_subperiods(variable.definition_period)
+            for sub_period in period.subperiods(variable.definition_period)
             )
 
     def calculate_divide(self, variable_name: str, period):
@@ -439,7 +439,7 @@ class Simulation:
             raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
         period = periods.build_period(period)
-        if ((variable.end is not None) and (period.start.date > variable.end)):
+        if ((variable.end is not None) and (period.start.date() > variable.end)):
             return
         self.get_holder(variable_name).set_input(period, value)
 

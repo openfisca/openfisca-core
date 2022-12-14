@@ -124,24 +124,28 @@ class Period(Tuple[str, Instant, int]):
             if month == 1:
                 # civil year starting from january
                 return str(year)
+
             else:
                 # rolling year
-                return f'{YEAR}:{year}-{month:02d}'
+                return f"{YEAR}:{year}-{month:02d}"
+
         # simple month
         if unit == MONTH and size == 1:
-            return f'{year}-{month:02d}'
+            return f"{year}-{month:02d}"
+
         # several civil years
         if unit == YEAR and month == 1:
-            return f'{unit}:{year}:{size}'
+            return f"{unit}:{year}:{size}"
 
         if unit == DAY:
             if size == 1:
-                return f'{year}-{month:02d}-{day:02d}'
+                return f"{year}-{month:02d}-{day:02d}"
+
             else:
-                return f'{unit}:{year}-{month:02d}-{day:02d}:{size}'
+                return f"{unit}:{year}-{month:02d}-{day:02d}:{size}"
 
         # complex period
-        return f'{unit}:{year}-{month:02d}:{size}'
+        return f"{unit}:{year}-{month:02d}:{size}"
 
     def __contains__(self, other: object) -> bool:
         """Checks if a ``period`` contains another one.
@@ -165,34 +169,6 @@ class Period(Tuple[str, Instant, int]):
             return self.start <= other.start and self.stop >= other.stop
 
         return super().__contains__(other)
-
-    @property
-    def date(self) -> datetime.date:
-        """The date representation of the ``period``'s' start date.
-
-        Returns:
-            A datetime.date.
-
-        Raises:
-            ValueError: If the period's size is greater than 1.
-
-        Examples:
-            >>> instant = Instant((2021, 10, 1))
-            >>> period = Period((YEAR, instant, 1))
-            >>> period.date
-            datetime.date(2021, 10, 1)
-
-            >>> period = Period((YEAR, instant, 3))
-            >>> period.date
-            Traceback (most recent call last):
-            ValueError: "date" is undefined for a period of size > 1: year:2021-10:3.
-
-        """
-
-        if self.size != 1:
-            raise ValueError(f'"date" is undefined for a period of size > 1: {self}.')
-
-        return self.start.date
 
     @property
     def unit(self) -> str:
@@ -230,7 +206,7 @@ class Period(Tuple[str, Instant, int]):
 
         """
 
-        return (self.stop.date - self.start.date).days + 1
+        return (self.stop.date() - self.start.date()).days + 1
 
     @property
     def size(self) -> int:
@@ -309,7 +285,7 @@ class Period(Tuple[str, Instant, int]):
 
         if unit in [MONTH, YEAR]:
             last_day = self.start.offset(length, unit).offset(-1, DAY)
-            return (last_day.date - self.start.date).days + 1
+            return (last_day.date() - self.start.date()).days + 1
 
         raise ValueError(f"Cannot calculate number of days in {unit}")
 
@@ -337,6 +313,9 @@ class Period(Tuple[str, Instant, int]):
         Returns:
             An Instant.
 
+        Raises:
+            DateUnitValueError: If the period's unit isn't day, month or year.
+
         Examples:
             >>> Period(("year", Instant((2012, 2, 29)), 1)).stop
             Instant((2013, 2, 28))
@@ -359,37 +338,49 @@ class Period(Tuple[str, Instant, int]):
             if size > 1:
                 day += size - 1
                 month_last_day = calendar.monthrange(year, month)[1]
+
                 while day > month_last_day:
                     month += 1
+
                     if month == 13:
                         year += 1
                         month = 1
+
                     day -= month_last_day
                     month_last_day = calendar.monthrange(year, month)[1]
 
         else:
-            if unit == 'month':
+            if unit == "month":
                 month += size
                 while month > 12:
                     year += 1
                     month -= 12
             else:
-                assert unit == 'year', f'Invalid unit: {unit} of type {type(unit)}'
+                if not unit == "year":
+                    raise DateUnitValueError(unit)
+
                 year += size
             day -= 1
+
             if day < 1:
                 month -= 1
+
                 if month == 0:
                     year -= 1
                     month = 12
+
                 day += calendar.monthrange(year, month)[1]
+
             else:
                 month_last_day = calendar.monthrange(year, month)[1]
+
                 if day > month_last_day:
                     month += 1
+
                     if month == 13:
                         year += 1
                         month = 1
+
                     day -= month_last_day
 
         return Instant((year, month, day))
@@ -469,43 +460,32 @@ class Period(Tuple[str, Instant, int]):
         """
         return Period((DAY, self.start, 1))
 
-    def get_subperiods(self, unit: str) -> Sequence[Period]:
-        """Return the list of all the periods of unit ``unit``.
-
-        Args:
-            unit: A string representing period's ``unit``.
+    def date(self) -> datetime.date:
+        """The date representation of the ``period``'s' start date.
 
         Returns:
-            A list of periods.
+            A datetime.date.
 
         Raises:
-            DateUnitValueError: If the ``unit`` is not a valid date unit.
-            ValueError: If the period's unit is smaller than the given unit.
+            ValueError: If the period's size is greater than 1.
 
         Examples:
-            >>> period = Period((YEAR, Instant((2021, 1, 1)), 1))
-            >>> period.get_subperiods(MONTH)
-            [Period(('month', Instant((2021, 1, 1)), 1)),...2021, 12, 1)), 1))]
+            >>> instant = Instant((2021, 10, 1))
+            >>> period = Period((YEAR, instant, 1))
+            >>> period.date()
+            datetime.date(2021, 10, 1)
 
-            >>> period = Period((YEAR, Instant((2021, 1, 1)), 2))
-            >>> period.get_subperiods(YEAR)
-            [Period(('year', Instant((2021, 1, 1)), 1)),...((2022, 1, 1)), 1))]
+            >>> period = Period((YEAR, instant, 3))
+            >>> period.date()
+            Traceback (most recent call last):
+            ValueError: 'date' undefined for period size > 1: year:2021-10:3.
 
         """
 
-        if UNIT_WEIGHTS[self.unit] < UNIT_WEIGHTS[unit]:
-            raise ValueError(f"Cannot subdivide {self.unit} into {unit}")
+        if self.size > 1:
+            raise ValueError(f"'date' undefined for period size > 1: {self}.")
 
-        if unit == YEAR:
-            return [self.this_year.offset(i, YEAR) for i in range(self.size)]
-
-        if unit == MONTH:
-            return [self.first_month.offset(i, MONTH) for i in range(self.size_in_months)]
-
-        if unit == DAY:
-            return [self.first_day.offset(i, DAY) for i in range(self.size_in_days)]
-
-        raise DateUnitValueError(unit)
+        return self.start.date()
 
     def offset(
             self,
@@ -539,3 +519,41 @@ class Period(Tuple[str, Instant, int]):
         start = self[1].offset(offset, self[0] if unit is None else unit)
 
         return Period((self[0], start, self[2]))
+
+    def subperiods(self, unit: str) -> Sequence[Period]:
+        """Return the list of all the periods of unit ``unit``.
+
+        Args:
+            unit: A string representing period's ``unit``.
+
+        Returns:
+            A list of periods.
+
+        Raises:
+            DateUnitValueError: If the ``unit`` is not a valid date unit.
+            ValueError: If the period's unit is smaller than the given unit.
+
+        Examples:
+            >>> period = Period((YEAR, Instant((2021, 1, 1)), 1))
+            >>> period.subperiods(MONTH)
+            [Period(('month', Instant((2021, 1, 1)), 1)),...2021, 12, 1)), 1))]
+
+            >>> period = Period((YEAR, Instant((2021, 1, 1)), 2))
+            >>> period.subperiods(YEAR)
+            [Period(('year', Instant((2021, 1, 1)), 1)),...((2022, 1, 1)), 1))]
+
+        """
+
+        if UNIT_WEIGHTS[self.unit] < UNIT_WEIGHTS[unit]:
+            raise ValueError(f"Cannot subdivide {self.unit} into {unit}")
+
+        if unit == YEAR:
+            return [self.this_year.offset(i, YEAR) for i in range(self.size)]
+
+        if unit == MONTH:
+            return [self.first_month.offset(i, MONTH) for i in range(self.size_in_months)]
+
+        if unit == DAY:
+            return [self.first_day.offset(i, DAY) for i in range(self.size_in_days)]
+
+        raise DateUnitValueError(unit)

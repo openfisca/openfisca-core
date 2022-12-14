@@ -106,7 +106,7 @@ class age(Variable):
             if age_en_mois is not None:
                 return age_en_mois // 12
             birth = simulation.calculate('birth', period)
-        return (numpy.datetime64(period.date) - birth).astype('timedelta64[Y]')
+        return (numpy.datetime64(period.date()) - birth).astype('timedelta64[Y]')
 
 
 class dom_tom(Variable):
