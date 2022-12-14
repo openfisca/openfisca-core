@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from typing import Optional, Union
+from typing import Any, Dict, Optional, Union
 
 import calendar
 import datetime
 
 from openfisca_core import types
 
-from . import _config
+from . import _config, _funcs
 
 
 class Instant(tuple):
@@ -64,16 +64,47 @@ class Instant(tuple):
 
     """
 
+    #: A cache with the ``datetime.date`` representation of the ``Instant``.
+    dates: Dict[Instant, datetime.date] = {}
+
+    #: A cache with the ``str`` representation of the ``Instant``.
+    strings: Dict[Instant, str] = {}
+
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({super(Instant, self).__repr__()})"
+        return f"{Instant.__name__}({super(Instant, self).__repr__()})"
 
     def __str__(self) -> str:
-        instant_str = _config.str_by_instant_cache.get(self)
+        string = Instant.strings.get(self)
 
-        if instant_str is None:
-            _config.str_by_instant_cache[self] = instant_str = self.date.isoformat()
+        if string is None:
+            Instant.strings[self] = self.date.isoformat()
 
-        return instant_str
+        return Instant.strings[self]
+
+    @staticmethod
+    def to_date(value: Any) -> Optional[datetime.date]:
+        """Returns the date representation of an ``Instant``.
+
+        Args:
+            value (:any:):
+                An ``instant-like`` object to get the date from.
+
+        Returns:
+            None: When ``value`` is None.
+            datetime.date: Otherwise.
+
+        Examples:
+            >>> Instant.to_date(Instant((2021, 1, 1)))
+            datetime.date(2021, 1, 1)
+
+        """
+
+        instant = _funcs.build_instant(value)
+
+        if instant is None:
+            return None
+
+        return instant.date
 
     @property
     def year(self) -> int:
@@ -137,40 +168,12 @@ class Instant(tuple):
 
         """
 
-        instant_date = _config.date_by_instant_cache.get(self)
-
-        if instant_date is None:
-            _config.date_by_instant_cache[self] = instant_date = datetime.date(*self)
-
-        return instant_date
-
-    @staticmethod
-    def to_date(instant: Optional[types.Instant]) -> Optional[datetime.date]:
-        """Returns the date representation of an ``Instant``.
-
-        Args:
-            instant (:obj:`.Instant`, optional):
-                An ``instant`` to get the date from.
-
-        Returns:
-            None: When ``instant`` is None.
-            datetime.date: Otherwise.
-
-        Examples:
-            >>> Instant.to_date(Instant((2021, 1, 1)))
-            datetime.date(2021, 1, 1)
-
-        """
-
-        if instant is None:
-            return None
-
-        date = _config.date_by_instant_cache.get(instant)
+        date = Instant.dates.get(self)
 
         if date is None:
-            _config.date_by_instant_cache[instant] = date = datetime.date(*instant)
+            Instant.dates[self] = datetime.date(*self)
 
-        return date
+        return Instant.dates[self]
 
     def offset(self, offset: Union[str, int], unit: str) -> types.Instant:
         """Increments/decrements the given instant with offset units.
@@ -277,4 +280,4 @@ class Instant(tuple):
                 if day > month_last_day:
                     day = month_last_day
 
-        return self.__class__((year, month, day))
+        return Instant((year, month, day))

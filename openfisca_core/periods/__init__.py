@@ -33,9 +33,6 @@ from ._config import (  # noqa: F401
     YEAR,
     ETERNITY,
     INSTANT_PATTERN,
-    date_by_instant_cache,
-    str_by_instant_cache,
-    year_or_month_or_day_re,
     )
 
 from ._funcs import (  # noqa: F401

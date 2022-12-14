@@ -75,7 +75,7 @@ class Period(tuple):
     """
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({super(Period, self).__repr__()})"
+        return f"{Period.__name__}({super(Period, self).__repr__()})"
 
     def __str__(self) -> str:
         """Transform period to a string.
