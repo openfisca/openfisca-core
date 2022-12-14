@@ -12,7 +12,7 @@ class AtInstantLike(abc.ABC):
         return self.get_at_instant(instant)
 
     def get_at_instant(self, instant):
-        instant = str(periods.instant(instant))
+        instant = str(periods.build_instant(instant))
         return self._get_at_instant(instant)
 
     @abc.abstractmethod

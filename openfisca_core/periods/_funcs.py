@@ -12,7 +12,7 @@ from .instant_ import Instant
 from .period_ import Period
 
 
-def instant(value: Any) -> Optional[types.Instant]:
+def build_instant(value: Any) -> Optional[types.Instant]:
     """Build a new instant, aka a triple of integers (year, month, day).
 
     Args:
@@ -26,22 +26,22 @@ def instant(value: Any) -> Optional[types.Instant]:
         ValueError: When the arguments were invalid, like "2021-32-13".
 
     Examples:
-        >>> instant(datetime.date(2021, 9, 16))
+        >>> build_instant(datetime.date(2021, 9, 16))
         Instant((2021, 9, 16))
 
-        >>> instant(Instant((2021, 9, 16)))
+        >>> build_instant(Instant((2021, 9, 16)))
         Instant((2021, 9, 16))
 
-        >>> instant(Period(("year", Instant((2021, 9, 16)), 1)))
+        >>> build_instant(Period(("year", Instant((2021, 9, 16)), 1)))
         Instant((2021, 9, 16))
 
-        >>> instant("2021")
+        >>> build_instant("2021")
         Instant((2021, 1, 1))
 
-        >>> instant(2021)
+        >>> build_instant(2021)
         Instant((2021, 1, 1))
 
-        >>> instant((2021, 9))
+        >>> build_instant((2021, 9))
         Instant((2021, 9, 1))
 
     """
@@ -241,7 +241,7 @@ def period(value: Any) -> types.Period:
         return Period((_config.DAY, value, 1))
 
     if value == "ETERNITY" or value == _config.ETERNITY:
-        return Period(("eternity", instant(datetime.date.min), float("inf")))
+        return Period(("eternity", build_instant(datetime.date.min), float("inf")))
 
     if isinstance(value, int):
         return Period((_config.YEAR, Instant((value, 1, 1)), 1))

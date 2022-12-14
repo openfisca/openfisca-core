@@ -5,6 +5,7 @@
 #### Breaking changes
 
 - Deprecate `periods.intersect`.
+- Rename `instant` to `build_instant`
 
 #### Technical changes
 
