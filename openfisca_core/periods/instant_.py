@@ -7,7 +7,7 @@ import datetime
 
 from openfisca_core import types
 
-from . import config
+from . import _config
 
 
 class Instant(tuple):
@@ -68,10 +68,10 @@ class Instant(tuple):
         return f"{self.__class__.__name__}({super(Instant, self).__repr__()})"
 
     def __str__(self) -> str:
-        instant_str = config.str_by_instant_cache.get(self)
+        instant_str = _config.str_by_instant_cache.get(self)
 
         if instant_str is None:
-            config.str_by_instant_cache[self] = instant_str = self.date.isoformat()
+            _config.str_by_instant_cache[self] = instant_str = self.date.isoformat()
 
         return instant_str
 
@@ -137,10 +137,10 @@ class Instant(tuple):
 
         """
 
-        instant_date = config.date_by_instant_cache.get(self)
+        instant_date = _config.date_by_instant_cache.get(self)
 
         if instant_date is None:
-            config.date_by_instant_cache[self] = instant_date = datetime.date(*self)
+            _config.date_by_instant_cache[self] = instant_date = datetime.date(*self)
 
         return instant_date
 
@@ -176,28 +176,28 @@ class Instant(tuple):
 
         year, month, day = self
 
-        assert unit in (config.DAY, config.MONTH, config.YEAR), 'Invalid unit: {} of type {}'.format(unit, type(unit))
+        assert unit in (_config.DAY, _config.MONTH, _config.YEAR), 'Invalid unit: {} of type {}'.format(unit, type(unit))
 
         if offset == 'first-of':
-            if unit == config.MONTH:
+            if unit == _config.MONTH:
                 day = 1
 
-            elif unit == config.YEAR:
+            elif unit == _config.YEAR:
                 month = 1
                 day = 1
 
         elif offset == 'last-of':
-            if unit == config.MONTH:
+            if unit == _config.MONTH:
                 day = calendar.monthrange(year, month)[1]
 
-            elif unit == config.YEAR:
+            elif unit == _config.YEAR:
                 month = 12
                 day = 31
 
         else:
             assert isinstance(offset, int), 'Invalid offset: {} of type {}'.format(offset, type(offset))
 
-            if unit == config.DAY:
+            if unit == _config.DAY:
                 day += offset
 
                 if offset < 0:
@@ -223,7 +223,7 @@ class Instant(tuple):
                         day -= month_last_day
                         month_last_day = calendar.monthrange(year, month)[1]
 
-            elif unit == config.MONTH:
+            elif unit == _config.MONTH:
                 month += offset
 
                 if offset < 0:
@@ -240,7 +240,7 @@ class Instant(tuple):
                 if day > month_last_day:
                     day = month_last_day
 
-            elif unit == config.YEAR:
+            elif unit == _config.YEAR:
                 year += offset
 
                 # Handle february month of leap year.

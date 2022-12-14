@@ -1,27 +1,33 @@
-# Transitional imports to ensure non-breaking changes.
-# Could be deprecated in the next major release.
-#
-# How imports are being used today:
-#
-#   >>> from openfisca_core.module import symbol
-#
-# The previous example provokes cyclic dependency problems
-# that prevent us from modularizing the different components
-# of the library so to make them easier to test and to maintain.
-#
-# How could them be used after the next major release:
-#
-#   >>> from openfisca_core import module
-#   >>> module.symbol()
-#
-# And for classes:
-#
-#   >>> from openfisca_core.module import Symbol
-#   >>> Symbol()
-#
-# See: https://www.python.org/dev/peps/pep-0008/#imports
+"""Transitional imports to ensure non-breaking changes.
 
-from .config import (  # noqa: F401
+These imports could be deprecated in the next major release.
+
+Currently, imports are used in the following way::
+    from openfisca_core.module import symbol
+
+This example causes cyclic dependency problems, which prevent us from
+modularising the different components of the library and make them easier to
+test and maintain.
+
+After the next major release, imports could be used in the following way::
+    from openfisca_core import module
+    module.symbol()
+
+And for classes::
+    from openfisca_core.module import Symbol
+    Symbol()
+
+.. seealso:: `PEP8#Imports`_ and `OpenFisca's Styleguide`_.
+
+.. _PEP8#Imports:
+    https://www.python.org/dev/peps/pep-0008/#imports
+
+.. _OpenFisca's Styleguide:
+    https://github.com/openfisca/openfisca-core/blob/master/STYLEGUIDE.md
+
+"""
+
+from ._config import (  # noqa: F401
     DAY,
     MONTH,
     YEAR,
@@ -32,13 +38,14 @@ from .config import (  # noqa: F401
     year_or_month_or_day_re,
     )
 
-from .helpers import (  # noqa: F401
+from ._funcs import (  # noqa: F401
     instant,
     instant_date,
-    period,
     key_period_size,
-    unit_weights,
+    parse_simple_period,
+    period,
     unit_weight,
+    unit_weights,
     )
 
 from .instant_ import Instant  # noqa: F401

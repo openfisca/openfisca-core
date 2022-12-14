@@ -7,7 +7,7 @@ import os
 
 from openfisca_core import types
 
-from . import config
+from . import _config
 from .instant_ import Instant
 from .period_ import Period
 
@@ -53,7 +53,7 @@ def instant(value: Any) -> Optional[types.Instant]:
         return value
 
     if isinstance(value, str):
-        if not config.INSTANT_PATTERN.match(value):
+        if not _config.INSTANT_PATTERN.match(value):
             raise ValueError(
                 f"'{value}' is not a valid instant. Instants are described"
                 "using the 'YYYY-MM-DD' format, for instance '2015-06-15'."
@@ -111,13 +111,82 @@ def instant_date(instant: Optional[types.Instant]) -> Optional[datetime.date]:
     if instant is None:
         return None
 
-    instant_date = config.date_by_instant_cache.get(instant)
+    instant_date = _config.date_by_instant_cache.get(instant)
 
     if instant_date is None:
-        config.date_by_instant_cache[instant] = instant_date = datetime.date(*instant)
+        _config.date_by_instant_cache[instant] = instant_date = datetime.date(*instant)
 
     return instant_date
 
+
+def key_period_size(period: types.Period) -> str:
+    """Define a key in order to sort periods by length.
+
+    It uses two aspects: first, ``unit``, then, ``size``.
+
+    Args:
+        period: An :mod:`.openfisca_core` :obj:`.Period`.
+
+    Returns:
+        :obj:`str`: A string.
+
+    Examples:
+        >>> instant = Instant((2021, 9, 14))
+
+        >>> period = Period(("day", instant, 1))
+        >>> key_period_size(period)
+        '100_1'
+
+        >>> period = Period(("year", instant, 3))
+        >>> key_period_size(period)
+        '300_3'
+
+    """
+
+    unit, start, size = period
+
+    return f"{unit_weight(unit)}_{size}"
+
+
+def parse_simple_period(value: str) -> Optional[types.Period]:
+    """Parse simple periods respecting the ISO format.
+
+    Such as "2012" or "2015-03".
+
+    Examples:
+        >>> parse_simple_period("2022")
+        Period(('year', Instant((2022, 1, 1)), 1))
+
+        >>> parse_simple_period("2022-02")
+        Period(('month', Instant((2022, 2, 1)), 1))
+
+        >>> parse_simple_period("2022-02-13")
+        Period(('day', Instant((2022, 2, 13)), 1))
+
+    """
+
+    try:
+        date = datetime.datetime.strptime(value, '%Y')
+
+    except ValueError:
+        try:
+            date = datetime.datetime.strptime(value, '%Y-%m')
+
+        except ValueError:
+            try:
+                date = datetime.datetime.strptime(value, '%Y-%m-%d')
+
+            except ValueError:
+                return None
+
+            else:
+                return Period((_config.DAY, Instant((date.year, date.month, date.day)), 1))
+
+        else:
+            return Period((_config.MONTH, Instant((date.year, date.month, 1)), 1))
+
+    else:
+        return Period((_config.YEAR, Instant((date.year, date.month, 1)), 1))
 
 def period(value: Any) -> types.Period:
     """Build a new period, aka a triple (unit, start_instant, size).
@@ -168,19 +237,19 @@ def period(value: Any) -> types.Period:
         return value
 
     if isinstance(value, Instant):
-        return Period((config.DAY, value, 1))
+        return Period((_config.DAY, value, 1))
 
-    if value == "ETERNITY" or value == config.ETERNITY:
+    if value == "ETERNITY" or value == _config.ETERNITY:
         return Period(("eternity", instant(datetime.date.min), float("inf")))
 
     if isinstance(value, int):
-        return Period((config.YEAR, Instant((value, 1, 1)), 1))
+        return Period((_config.YEAR, Instant((value, 1, 1)), 1))
 
     if not isinstance(value, str):
         _raise_error(value)
 
     # Try to parse as a simple period
-    period = _parse_simple_period(value)
+    period = parse_simple_period(value)
 
     if period is not None:
         return period
@@ -194,11 +263,11 @@ def period(value: Any) -> types.Period:
     # Left-most component must be a valid unit
     unit = components[0]
 
-    if unit not in (config.DAY, config.MONTH, config.YEAR):
+    if unit not in (_config.DAY, _config.MONTH, _config.YEAR):
         _raise_error(value)
 
     # Middle component must be a valid iso period
-    base_period = _parse_simple_period(components[1])
+    base_period = parse_simple_period(components[1])
 
     if not base_period:
         _raise_error(value)
@@ -226,45 +295,33 @@ def period(value: Any) -> types.Period:
     return Period((unit, base_period.start, size))
 
 
-def _parse_simple_period(value: str) -> Optional[types.Period]:
-    """Parse simple periods respecting the ISO format.
-
-    Such as "2012" or "2015-03".
+def unit_weights() -> Dict[str, int]:
+    """Assign weights to date units.
 
     Examples:
-        >>> _parse_simple_period("2022")
-        Period(('year', Instant((2022, 1, 1)), 1))
-
-        >>> _parse_simple_period("2022-02")
-        Period(('month', Instant((2022, 2, 1)), 1))
-
-        >>> _parse_simple_period("2022-02-13")
-        Period(('day', Instant((2022, 2, 13)), 1))
+        >>> unit_weights()
+        {'day': 100, ...}
 
     """
 
-    try:
-        date = datetime.datetime.strptime(value, '%Y')
+    return {
+        _config.DAY: 100,
+        _config.MONTH: 200,
+        _config.YEAR: 300,
+        _config.ETERNITY: 400,
+        }
 
-    except ValueError:
-        try:
-            date = datetime.datetime.strptime(value, '%Y-%m')
 
-        except ValueError:
-            try:
-                date = datetime.datetime.strptime(value, '%Y-%m-%d')
+def unit_weight(unit: str) -> int:
+    """Retrieves a specific date unit weight.
 
-            except ValueError:
-                return None
+    Examples:
+        >>> unit_weight("day")
+        100
 
-            else:
-                return Period((config.DAY, Instant((date.year, date.month, date.day)), 1))
+    """
 
-        else:
-            return Period((config.MONTH, Instant((date.year, date.month, 1)), 1))
-
-    else:
-        return Period((config.YEAR, Instant((date.year, date.month, 1)), 1))
+    return unit_weights()[unit]
 
 
 def _raise_error(value: str) -> NoReturn:
@@ -286,61 +343,3 @@ def _raise_error(value: str) -> NoReturn:
         ])
 
     raise ValueError(message)
-
-
-def key_period_size(period: types.Period) -> str:
-    """Define a key in order to sort periods by length.
-
-    It uses two aspects: first, ``unit``, then, ``size``.
-
-    Args:
-        period: An :mod:`.openfisca_core` :obj:`.Period`.
-
-    Returns:
-        :obj:`str`: A string.
-
-    Examples:
-        >>> instant = Instant((2021, 9, 14))
-
-        >>> period = Period(("day", instant, 1))
-        >>> key_period_size(period)
-        '100_1'
-
-        >>> period = Period(("year", instant, 3))
-        >>> key_period_size(period)
-        '300_3'
-
-    """
-
-    unit, start, size = period
-
-    return f"{unit_weight(unit)}_{size}"
-
-
-def unit_weights() -> Dict[str, int]:
-    """Assign weights to date units.
-
-    Examples:
-        >>> unit_weights()
-        {'day': 100, ...}
-
-    """
-
-    return {
-        config.DAY: 100,
-        config.MONTH: 200,
-        config.YEAR: 300,
-        config.ETERNITY: 400,
-        }
-
-
-def unit_weight(unit: str) -> int:
-    """Retrieves a specific date unit weight.
-
-    Examples:
-        >>> unit_weight("day")
-        100
-
-    """
-
-    return unit_weights()[unit]
