@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Dict, Optional, Tuple, Union
 
+from dateutil import relativedelta
 import calendar
 import datetime
 
@@ -216,76 +217,31 @@ class Instant(Tuple[int, int, int]):
         if unit not in (DAY, MONTH, YEAR):
             raise DateUnitValueError(unit)
 
-        if offset == 'first-of':
-            if unit == MONTH:
-                day = 1
+        if offset == "first-of" and unit == YEAR:
+            return Instant((year, 1, 1))
 
-            elif unit == YEAR:
-                month = 1
-                day = 1
+        if offset == "first-of" and unit == MONTH:
+            return Instant((year, month, 1))
 
-        elif offset == 'last-of':
-            if unit == MONTH:
-                day = calendar.monthrange(year, month)[1]
+        if offset == "last-of" and unit == YEAR:
+            return Instant((year, 12, 31))
 
-            elif unit == YEAR:
-                month = 12
-                day = 31
+        if offset == "last-of" and unit == MONTH:
+            return Instant((year, month, calendar.monthrange(year, month)[1]))
 
-        else:
-            if not isinstance(offset, int):
-                raise OffsetTypeError(offset)
+        if not isinstance(offset, int):
+            raise OffsetTypeError(offset)
 
-            if unit == DAY:
-                day += offset
+        if unit == YEAR:
+            date = self.date + relativedelta.relativedelta(years = offset)
+            return Instant((date.year, date.month, date.day))
 
-                if offset < 0:
-                    while day < 1:
-                        month -= 1
+        if unit == MONTH:
+            date = self.date + relativedelta.relativedelta(months = offset)
+            return Instant((date.year, date.month, date.day))
 
-                        if month == 0:
-                            year -= 1
-                            month = 12
+        if unit == DAY:
+            date = self.date + relativedelta.relativedelta(days = offset)
+            return Instant((date.year, date.month, date.day))
 
-                        day += calendar.monthrange(year, month)[1]
-
-                elif offset > 0:
-                    month_last_day = calendar.monthrange(year, month)[1]
-
-                    while day > month_last_day:
-                        month += 1
-
-                        if month == 13:
-                            year += 1
-                            month = 1
-
-                        day -= month_last_day
-                        month_last_day = calendar.monthrange(year, month)[1]
-
-            elif unit == MONTH:
-                month += offset
-
-                if offset < 0:
-                    while month < 1:
-                        year -= 1
-                        month += 12
-
-                elif offset > 0:
-                    while month > 12:
-                        year += 1
-                        month -= 12
-                month_last_day = calendar.monthrange(year, month)[1]
-
-                if day > month_last_day:
-                    day = month_last_day
-
-            elif unit == YEAR:
-                year += offset
-
-                # Handle february month of leap year.
-                month_last_day = calendar.monthrange(year, month)[1]
-
-                if day > month_last_day:
-                    day = month_last_day
-
-        return Instant((year, month, day))
+        return self

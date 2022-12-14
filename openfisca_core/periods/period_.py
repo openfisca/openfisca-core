@@ -536,4 +536,6 @@ class Period(Tuple[str, Instant, int]):
 
         """
 
-        return Period((self[0], self[1].offset(offset, self[0] if unit is None else unit), self[2]))
+        start = self[1].offset(offset, self[0] if unit is None else unit)
+
+        return Period((self[0], start, self[2]))

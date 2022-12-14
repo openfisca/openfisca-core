@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any
 
 from ._units import DAY, MONTH, YEAR
-from .typing import Instant
 
 LEARN_MORE = (
     "Learn more about legal period formats in OpenFisca: "
@@ -49,7 +48,7 @@ class InstantTypeError(TypeError):
     def __init__(self, value: Any) -> None:
         super().__init__(
             f"Invalid instant: {value} of type {type(value)}, expecting an "
-            f"{type(Instant)}, {type(tuple)}, or {type(list)}. {LEARN_MORE}"
+            f"'Instant', 'tuple', or 'list'. {LEARN_MORE}"
             )
 
 
@@ -70,5 +69,5 @@ class OffsetTypeError(TypeError):
     def __init__(self, value: Any) -> None:
         super().__init__(
             f"Invalid offset: {value} of type {type(value)}, expecting an "
-            f"{type(int)}. {LEARN_MORE}"
+            f"'int'. {LEARN_MORE}"
             )
