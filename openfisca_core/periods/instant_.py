@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Union
+from typing import Optional, Union
 
 import calendar
 import datetime
@@ -143,6 +143,34 @@ class Instant(tuple):
             _config.date_by_instant_cache[self] = instant_date = datetime.date(*self)
 
         return instant_date
+
+    @staticmethod
+    def to_date(instant: Optional[types.Instant]) -> Optional[datetime.date]:
+        """Returns the date representation of an ``Instant``.
+
+        Args:
+            instant (:obj:`.Instant`, optional):
+                An ``instant`` to get the date from.
+
+        Returns:
+            None: When ``instant`` is None.
+            datetime.date: Otherwise.
+
+        Examples:
+            >>> Instant.to_date(Instant((2021, 1, 1)))
+            datetime.date(2021, 1, 1)
+
+        """
+
+        if instant is None:
+            return None
+
+        date = _config.date_by_instant_cache.get(instant)
+
+        if date is None:
+            _config.date_by_instant_cache[instant] = date = datetime.date(*instant)
+
+        return date
 
     def offset(self, offset: Union[str, int], unit: str) -> types.Instant:
         """Increments/decrements the given instant with offset units.

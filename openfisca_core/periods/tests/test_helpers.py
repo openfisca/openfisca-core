@@ -15,8 +15,8 @@ from openfisca_core import periods
     ["1000-01", periods.Instant((1000, 1, 1))],
     ["1000-01-01", periods.Instant((1000, 1, 1))],
     ])
-def test_instant(arg, expected):
-    assert periods.instant(arg) == expected
+def test_build_instant(arg, expected):
+    assert periods.build_instant(arg) == expected
 
 
 @pytest.mark.parametrize("arg, error", [
@@ -36,32 +36,9 @@ def test_instant(arg, expected):
     ["year:1000-01-01:1", ValueError],
     ["year:1000-01-01:3", ValueError],
     ])
-def test_instant_with_an_invalid_argument(arg, error):
+def test_build_instant_with_an_invalid_argument(arg, error):
     with pytest.raises(error):
-        periods.instant(arg)
-
-
-@pytest.mark.parametrize("arg, expected", [
-    [None, None],
-    [periods.Instant((1, 1, 1)), datetime.date(1, 1, 1)],
-    [periods.Instant((4, 2, 29)), datetime.date(4, 2, 29)],
-    [(1, 1, 1), datetime.date(1, 1, 1)],
-    ])
-def test_instant_date(arg, expected):
-    assert periods.instant_date(arg) == expected
-
-
-@pytest.mark.parametrize("arg, error", [
-    [periods.Instant((-1, 1, 1)), ValueError],
-    [periods.Instant((1, -1, 1)), ValueError],
-    [periods.Instant((1, 1, -1)), ValueError],
-    [periods.Instant((1, 13, 1)), ValueError],
-    [periods.Instant((1, 1, 32)), ValueError],
-    [periods.Instant((1, 2, 29)), ValueError],
-    ])
-def test_instant_date_with_an_invalid_argument(arg, error):
-    with pytest.raises(error):
-        periods.instant_date(arg)
+        periods.build_instant(arg)
 
 
 @pytest.mark.parametrize("arg, expected", [
@@ -90,7 +67,7 @@ def test_instant_date_with_an_invalid_argument(arg, error):
     ["day:1000-01-01", periods.Period((periods.DAY, periods.Instant((1000, 1, 1)), 1))],
     ["day:1000-01-01:3", periods.Period((periods.DAY, periods.Instant((1000, 1, 1)), 3))],
     ])
-def test_period(arg, expected):
+def test_build_period(arg, expected):
     assert periods.build_period(arg) == expected
 
 
@@ -112,7 +89,7 @@ def test_period(arg, expected):
     ["day:1000-01", ValueError],
     ["day:1000-01:1", ValueError],
     ])
-def test_period_with_an_invalid_argument(arg, error):
+def test_build_period_with_an_invalid_argument(arg, error):
     with pytest.raises(error):
         periods.build_period(arg)
 
@@ -128,7 +105,7 @@ def test_period_with_an_invalid_argument(arg, error):
     ["1000-01-01", periods.Period((periods.DAY, periods.Instant((1000, 1, 1)), 1))],
     ["1000-01-99", None],
     ])
-def testparse_simple_period(arg, expected):
+def test_parse_simple_period(arg, expected):
     assert periods.parse_simple_period(arg) == expected
 
 

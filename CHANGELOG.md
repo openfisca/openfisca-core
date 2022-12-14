@@ -7,6 +7,7 @@
 - Deprecate `periods.intersect`.
 - Rename `instant` to `build_instant`
 - Rename `period` to `build_period`
+- Move `instant_date` to `Instant.to_date`
 
 #### Technical changes
 

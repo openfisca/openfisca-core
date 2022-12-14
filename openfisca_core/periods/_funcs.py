@@ -198,34 +198,6 @@ def build_period(value: Any) -> types.Period:
     return Period((unit, base_period.start, size))
 
 
-def instant_date(instant: Optional[types.Instant]) -> Optional[datetime.date]:
-    """Returns the date representation of an ``Instant``.
-
-    Args:
-        instant (:obj:`.Instant`, optional):
-            An ``instant`` to get the date from.
-
-    Returns:
-        None: When ``instant`` is None.
-        datetime.date: Otherwise.
-
-    Examples:
-        >>> instant_date(Instant((2021, 1, 1)))
-        datetime.date(2021, 1, 1)
-
-    """
-
-    if instant is None:
-        return None
-
-    instant_date = _config.date_by_instant_cache.get(instant)
-
-    if instant_date is None:
-        _config.date_by_instant_cache[instant] = instant_date = datetime.date(*instant)
-
-    return instant_date
-
-
 def key_period_size(period: types.Period) -> str:
     """Define a key in order to sort periods by length.
 

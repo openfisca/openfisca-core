@@ -41,7 +41,6 @@ from ._config import (  # noqa: F401
 from ._funcs import (  # noqa: F401
     build_instant,
     build_period,
-    instant_date,
     key_period_size,
     parse_simple_period,
     unit_weight,
