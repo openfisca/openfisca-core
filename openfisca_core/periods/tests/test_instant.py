@@ -7,6 +7,7 @@ from openfisca_core import periods
 
 @pytest.fixture
 def instant():
+    """Returns a ``Instant``."""
     return periods.Instant((2020, 2, 29))
 
 
@@ -14,13 +15,14 @@ def instant():
     [None, None],
     [periods.Instant((1, 1, 1)), datetime.date(1, 1, 1)],
     [periods.Instant((4, 2, 29)), datetime.date(4, 2, 29)],
-    [(1, 1, 1), datetime.date(1, 1, 1)],
     ])
 def test_to_date(arg, expected):
+    """Returns the expected ``date``."""
     assert periods.Instant.to_date(arg) == expected
 
 
 @pytest.mark.parametrize("arg, error", [
+    [(1, 1, 1), periods.InstantTypeError],
     [periods.Instant((-1, 1, 1)), ValueError],
     [periods.Instant((1, -1, 1)), ValueError],
     [periods.Instant((1, 1, -1)), ValueError],
@@ -29,6 +31,8 @@ def test_to_date(arg, expected):
     [periods.Instant((1, 2, 29)), ValueError],
     ])
 def test_to_date_with_an_invalid_argument(arg, error):
+    """Raises ``ValueError`` when given an invalid argument."""
+
     with pytest.raises(error):
         periods.Instant.to_date(arg)
 
@@ -48,4 +52,5 @@ def test_to_date_with_an_invalid_argument(arg, error):
     [3, periods.DAY, periods.Instant((2020, 3, 3))],
     ])
 def test_offset(instant, offset, unit, expected):
+    """Returns the expected ``Instant``."""
     assert instant.offset(offset, unit) == expected

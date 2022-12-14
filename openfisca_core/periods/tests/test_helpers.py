@@ -16,6 +16,7 @@ from openfisca_core import periods
     ["1000-01-01", periods.Instant((1000, 1, 1))],
     ])
 def test_build_instant(arg, expected):
+    """Returns the expected ``Instant``."""
     assert periods.build_instant(arg) == expected
 
 
@@ -37,6 +38,8 @@ def test_build_instant(arg, expected):
     ["year:1000-01-01:3", ValueError],
     ])
 def test_build_instant_with_an_invalid_argument(arg, error):
+    """Raises ``ValueError`` when given an invalid argument."""
+
     with pytest.raises(error):
         periods.build_instant(arg)
 
@@ -68,6 +71,7 @@ def test_build_instant_with_an_invalid_argument(arg, error):
     ["day:1000-01-01:3", periods.Period((periods.DAY, periods.Instant((1000, 1, 1)), 3))],
     ])
 def test_build_period(arg, expected):
+    """Returns the expected ``Period``."""
     assert periods.build_period(arg) == expected
 
 
@@ -90,6 +94,8 @@ def test_build_period(arg, expected):
     ["day:1000-01:1", ValueError],
     ])
 def test_build_period_with_an_invalid_argument(arg, error):
+    """Raises ``ValueError`` when given an invalid argument."""
+
     with pytest.raises(error):
         periods.build_period(arg)
 
@@ -106,6 +112,7 @@ def test_build_period_with_an_invalid_argument(arg, error):
     ["1000-01-99", None],
     ])
 def test_parse_simple_period(arg, expected):
+    """Returns an ``Instant`` when given a valid ISO format string."""
     assert periods.parse_simple_period(arg) == expected
 
 
@@ -116,4 +123,5 @@ def test_parse_simple_period(arg, expected):
     [periods.Period((periods.ETERNITY, periods.Instant((1, 1, 1)), 1)), "400_1"],
     ])
 def test_key_period_size_with_a_valid_argument(arg, expected):
+    """Returns the corresponding period's weight."""
     assert periods.key_period_size(arg) == expected

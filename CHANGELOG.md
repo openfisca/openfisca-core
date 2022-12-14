@@ -5,13 +5,17 @@
 #### Breaking changes
 
 - Deprecate `periods.intersect`.
-- Rename `instant` to `build_instant`
-- Rename `period` to `build_period`
-- Move `instant_date` to `Instant.to_date`
+- Deprecate `periods.unit_weight`.
+- Deprecate `periods.unit_weights`.
+- Rename `instant` to `build_instant`.
+- Rename `period` to `build_period`.
+- Move `instant_date` to `Instant.to_date`.
 
 #### Technical changes
 
+- Add typing to `openfisca_core.periods`.
 - Fix `openfisca_core.periods` doctests.
+- Document `openfisca_core.periods`.
 
 # 38.0.0 [#989](https://github.com/openfisca/openfisca-core/pull/989)
 

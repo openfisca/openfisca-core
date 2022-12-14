@@ -5,6 +5,7 @@ from openfisca_core import periods
 
 @pytest.fixture
 def instant():
+    """Returns a ``Instant``."""
     return periods.Instant((2022, 12, 31))
 
 
@@ -17,6 +18,7 @@ def instant():
     [periods.YEAR, periods.Instant((2022, 1, 3)), 3, "year:2022:3"],
     ])
 def test_str_with_years(date_unit, instant, size, expected):
+    """Returns the expected string."""
     assert str(periods.Period((date_unit, instant, size))) == expected
 
 
@@ -26,6 +28,7 @@ def test_str_with_years(date_unit, instant, size, expected):
     [periods.MONTH, periods.Instant((2022, 3, 1)), 3, "month:2022-03:3"],
     ])
 def test_str_with_months(date_unit, instant, size, expected):
+    """Returns the expected string."""
     assert str(periods.Period((date_unit, instant, size))) == expected
 
 
@@ -35,6 +38,7 @@ def test_str_with_months(date_unit, instant, size, expected):
     [periods.DAY, periods.Instant((2022, 3, 1)), 3, "day:2022-03-01:3"],
     ])
 def test_str_with_days(date_unit, instant, size, expected):
+    """Returns the expected string."""
     assert str(periods.Period((date_unit, instant, size))) == expected
 
 
@@ -47,8 +51,11 @@ def test_str_with_days(date_unit, instant, size, expected):
     [periods.DAY, periods.DAY, periods.Instant((2022, 12, 31)), periods.Instant((2023, 1, 2)), 3],
     ])
 def test_subperiods(instant, period_unit, unit, start, cease, count):
+    """Returns the expected subperiods."""
+
     period = periods.Period((period_unit, instant, 3))
     subperiods = period.get_subperiods(unit)
+
     assert len(subperiods) == count
     assert subperiods[0] == periods.Period((unit, start, 1))
     assert subperiods[-1] == periods.Period((unit, cease, 1))
@@ -78,7 +85,10 @@ def test_subperiods(instant, period_unit, unit, start, cease, count):
     [periods.DAY, 3, periods.DAY, periods.Period(('day', periods.Instant((2023, 1, 3)), 3))],
     ])
 def test_offset(instant, period_unit, offset, unit, expected):
+    """Returns the expected ``Period``."""
+
     period = periods.Period((period_unit, instant, 3))
+
     assert period.offset(offset, unit) == expected
 
 
@@ -92,7 +102,10 @@ def test_offset(instant, period_unit, offset, unit, expected):
     [periods.YEAR, periods.Instant((2022, 1, 1)), 2, 24],
     ])
 def test_day_size_in_months(date_unit, instant, size, expected):
+    """Returns the expected number of months."""
+
     period = periods.Period((date_unit, instant, size))
+
     assert period.size_in_months == expected
 
 
@@ -108,5 +121,8 @@ def test_day_size_in_months(date_unit, instant, size, expected):
     [periods.YEAR, periods.Instant((2022, 1, 1)), 2, 730],
     ])
 def test_day_size_in_days(date_unit, instant, size, expected):
+    """Returns the expected number of days."""
+
     period = periods.Period((date_unit, instant, size))
+
     assert period.size_in_days == expected

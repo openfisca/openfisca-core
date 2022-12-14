@@ -7,7 +7,8 @@ import datetime
 
 from openfisca_core import types
 
-from .. import periods
+from ._units import DAY, MONTH, YEAR, ETERNITY, UNIT_WEIGHTS
+from .instant_ import Instant
 
 
 class Period(tuple):
@@ -28,8 +29,8 @@ class Period(tuple):
             The ``unit``, ``start``, and ``size``, accordingly.
 
     Examples:
-        >>> instant = periods.Instant((2021, 9, 1))
-        >>> period = periods.Period((periods.YEAR, instant, 3))
+        >>> instant = Instant((2021, 9, 1))
+        >>> period = Period((YEAR, instant, 3))
 
         ``Periods`` are represented as a ``tuple`` containing the ``unit``,
         an ``Instant`` and the ``size``:
@@ -61,10 +62,10 @@ class Period(tuple):
         >>> len(period)
         3
 
-        >>> period == periods.Period(("year", instant, 3))
+        >>> period == Period(("year", instant, 3))
         True
 
-        >>> period > periods.Period(("year", instant, 3))
+        >>> period > Period(("year", instant, 3))
         False
 
         >>> unit, (year, month, day), size = period
@@ -83,58 +84,58 @@ class Period(tuple):
             str: A string representation of the period.
 
         Examples:
-            >>> str(Period(("year", periods.Instant((2021, 1, 1)), 1)))
+            >>> str(Period(("year", Instant((2021, 1, 1)), 1)))
             '2021'
 
-            >>> str(Period(("year", periods.Instant((2021, 2, 1)), 1)))
+            >>> str(Period(("year", Instant((2021, 2, 1)), 1)))
             'year:2021-02'
 
-            >>> str(Period(("month", periods.Instant((2021, 2, 1)), 1)))
+            >>> str(Period(("month", Instant((2021, 2, 1)), 1)))
             '2021-02'
 
-            >>> str(Period(("year", periods.Instant((2021, 1, 1)), 2)))
+            >>> str(Period(("year", Instant((2021, 1, 1)), 2)))
             'year:2021:2'
 
-            >>> str(Period(("month", periods.Instant((2021, 1, 1)), 2)))
+            >>> str(Period(("month", Instant((2021, 1, 1)), 2)))
             'month:2021-01:2'
 
-            >>> str(Period(("month", periods.Instant((2021, 1, 1)), 12)))
+            >>> str(Period(("month", Instant((2021, 1, 1)), 12)))
             '2021'
 
-            >>> str(Period(("year", periods.Instant((2021, 3, 1)), 2)))
+            >>> str(Period(("year", Instant((2021, 3, 1)), 2)))
             'year:2021-03:2'
 
-            >>> str(Period(("month", periods.Instant((2021, 3, 1)), 2)))
+            >>> str(Period(("month", Instant((2021, 3, 1)), 2)))
             'month:2021-03:2'
 
-            >>> str(Period(("month", periods.Instant((2021, 3, 1)), 12)))
+            >>> str(Period(("month", Instant((2021, 3, 1)), 12)))
             'year:2021-03'
 
         """
 
         unit, start_instant, size = self
 
-        if unit == periods.ETERNITY:
+        if unit == ETERNITY:
             return "ETERNITY"
 
         year, month, day = start_instant
 
         # 1 year long period
-        if (unit == periods.MONTH and size == 12 or unit == periods.YEAR and size == 1):
+        if (unit == MONTH and size == 12 or unit == YEAR and size == 1):
             if month == 1:
                 # civil year starting from january
                 return str(year)
             else:
                 # rolling year
-                return '{}:{}-{:02d}'.format(periods.YEAR, year, month)
+                return '{}:{}-{:02d}'.format(YEAR, year, month)
         # simple month
-        if unit == periods.MONTH and size == 1:
+        if unit == MONTH and size == 1:
             return '{}-{:02d}'.format(year, month)
         # several civil years
-        if unit == periods.YEAR and month == 1:
+        if unit == YEAR and month == 1:
             return '{}:{}:{}'.format(unit, year, size)
 
-        if unit == periods.DAY:
+        if unit == DAY:
             if size == 1:
                 return '{}-{:02d}-{:02d}'.format(year, month, day)
             else:
@@ -154,12 +155,12 @@ class Period(tuple):
             ValueError: If the period's size is greater than 1.
 
         Examples:
-            >>> instant = periods.Instant((2021, 10, 1))
-            >>> period = periods.Period((periods.YEAR, instant, 1))
+            >>> instant = Instant((2021, 10, 1))
+            >>> period = Period((YEAR, instant, 1))
             >>> period.date
             datetime.date(2021, 10, 1)
 
-            >>> period = periods.Period((periods.YEAR, instant, 3))
+            >>> period = Period((YEAR, instant, 3))
             >>> period.date
             Traceback (most recent call last):
             ValueError: "date" is undefined for a period of size > 1: year:2021-10:3.
@@ -179,8 +180,8 @@ class Period(tuple):
             An int.
 
         Example:
-            >>> instant = periods.Instant((2021, 10, 1))
-            >>> period = periods.Period((periods.YEAR, instant, 3))
+            >>> instant = Instant((2021, 10, 1))
+            >>> period = Period((YEAR, instant, 3))
             >>> period.unit
             'year'
 
@@ -196,12 +197,12 @@ class Period(tuple):
             An int.
 
         Examples:
-            >>> instant = periods.Instant((2021, 10, 1))
-            >>> period = periods.Period((periods.YEAR, instant, 3))
+            >>> instant = Instant((2021, 10, 1))
+            >>> period = Period((YEAR, instant, 3))
             >>> period.size_in_days
             1096
 
-            >>> period = periods.Period((periods.MONTH, instant, 3))
+            >>> period = Period((MONTH, instant, 3))
             >>> period.size_in_days
             92
 
@@ -217,8 +218,8 @@ class Period(tuple):
             An int.
 
         Example:
-            >>> instant = periods.Instant((2021, 10, 1))
-            >>> period = periods.Period((periods.YEAR, instant, 3))
+            >>> instant = Instant((2021, 10, 1))
+            >>> period = Period((YEAR, instant, 3))
             >>> period.size
             3
 
@@ -237,22 +238,22 @@ class Period(tuple):
             ValueError: If the period's unit is not a month or a year.
 
         Examples:
-            >>> instant = periods.Instant((2021, 10, 1))
-            >>> period = periods.Period((periods.YEAR, instant, 3))
+            >>> instant = Instant((2021, 10, 1))
+            >>> period = Period((YEAR, instant, 3))
             >>> period.size_in_months
             36
 
-            >>> period = periods.Period((periods.DAY, instant, 3))
+            >>> period = Period((DAY, instant, 3))
             >>> period.size_in_months
             Traceback (most recent call last):
             ValueError: Cannot calculate number of months in day.
 
         """
 
-        if (self[0] == periods.MONTH):
+        if (self[0] == MONTH):
             return self[2]
 
-        if(self[0] == periods.YEAR):
+        if(self[0] == YEAR):
             return self[2] * 12
 
         raise ValueError(f"Cannot calculate number of months in {self[0]}.")
@@ -268,12 +269,12 @@ class Period(tuple):
             ValueError: If the period's unit is not a day, a month or a year.
 
         Examples:
-            >>> instant = periods.Instant((2019, 10, 1))
-            >>> period = periods.Period((periods.YEAR, instant, 3))
+            >>> instant = Instant((2019, 10, 1))
+            >>> period = Period((YEAR, instant, 3))
             >>> period.size_in_days
             1096
 
-            >>> period = periods.Period((periods.MONTH, instant, 3))
+            >>> period = Period((MONTH, instant, 3))
             >>> period.size_in_days
             92
 
@@ -281,11 +282,11 @@ class Period(tuple):
 
         unit, instant, length = self
 
-        if unit == periods.DAY:
+        if unit == DAY:
             return length
 
-        if unit in [periods.MONTH, periods.YEAR]:
-            last_day = self.start.offset(length, unit).offset(-1, periods.DAY)
+        if unit in [MONTH, YEAR]:
+            last_day = self.start.offset(length, unit).offset(-1, DAY)
             return (last_day.date - self.start.date).days + 1
 
         raise ValueError(f"Cannot calculate number of days in {unit}")
@@ -298,8 +299,8 @@ class Period(tuple):
             An Instant.
 
         Example:
-            >>> instant = periods.Instant((2021, 10, 1))
-            >>> period = periods.Period((periods.YEAR, instant, 3))
+            >>> instant = Instant((2021, 10, 1))
+            >>> period = Period((YEAR, instant, 3))
             >>> period.start
             Instant((2021, 10, 1))
 
@@ -315,13 +316,13 @@ class Period(tuple):
             An Instant.
 
         Examples:
-            >>> periods.Period(("year", periods.Instant((2012, 2, 29)), 1)).stop
+            >>> Period(("year", Instant((2012, 2, 29)), 1)).stop
             Instant((2013, 2, 28))
 
-            >>> periods.Period(("month", periods.Instant((2012, 2, 29)), 1)).stop
+            >>> Period(("month", Instant((2012, 2, 29)), 1)).stop
             Instant((2012, 3, 28))
 
-            >>> periods.Period(("day", periods.Instant((2012, 2, 29)), 1)).stop
+            >>> Period(("day", Instant((2012, 2, 29)), 1)).stop
             Instant((2012, 2, 29))
 
         """
@@ -329,8 +330,8 @@ class Period(tuple):
         unit, start_instant, size = self
         year, month, day = start_instant
 
-        if unit == periods.ETERNITY:
-            return periods.Instant((float("inf"), float("inf"), float("inf")))
+        if unit == ETERNITY:
+            return Instant((float("inf"), float("inf"), float("inf")))
 
         if unit == 'day':
             if size > 1:
@@ -369,7 +370,7 @@ class Period(tuple):
                         month = 1
                     day -= month_last_day
 
-        return periods.Instant((year, month, day))
+        return Instant((year, month, day))
 
     @property
     def last_month(self) -> types.Period:
@@ -392,13 +393,13 @@ class Period(tuple):
         """
 
         start: types.Instant = self.first_month.start
-        return self.__class__((periods.MONTH, start, 3)).offset(-3)
+        return self.__class__((MONTH, start, 3)).offset(-3)
 
     @property
     def last_year(self) -> types.Period:
         """Last year of the ``Period``."""
-        start: types.Instant = self.start.offset("first-of", periods.YEAR)
-        return self.__class__((periods.YEAR, start, 1)).offset(-1)
+        start: types.Instant = self.start.offset("first-of", YEAR)
+        return self.__class__((YEAR, start, 1)).offset(-1)
 
     @property
     def n_2(self) -> types.Period:
@@ -409,8 +410,8 @@ class Period(tuple):
 
         """
 
-        start: types.Instant = self.start.offset("first-of", periods.YEAR)
-        return self.__class__((periods.YEAR, start, 1)).offset(-2)
+        start: types.Instant = self.start.offset("first-of", YEAR)
+        return self.__class__((YEAR, start, 1)).offset(-2)
 
     @property
     def this_year(self) -> types.Period:
@@ -421,8 +422,8 @@ class Period(tuple):
 
         """
 
-        start: types.Instant = self.start.offset("first-of", periods.YEAR)
-        return self.__class__((periods.YEAR, start, 1))
+        start: types.Instant = self.start.offset("first-of", YEAR)
+        return self.__class__((YEAR, start, 1))
 
     @property
     def first_month(self) -> types.Period:
@@ -433,8 +434,8 @@ class Period(tuple):
 
         """
 
-        start: types.Instant = self.start.offset("first-of", periods.MONTH)
-        return self.__class__((periods.MONTH, start, 1))
+        start: types.Instant = self.start.offset("first-of", MONTH)
+        return self.__class__((MONTH, start, 1))
 
     @property
     def first_day(self) -> types.Period:
@@ -444,7 +445,7 @@ class Period(tuple):
             A Period.
 
         """
-        return self.__class__((periods.DAY, self.start, 1))
+        return self.__class__((DAY, self.start, 1))
 
     def get_subperiods(self, unit: str) -> Sequence[types.Period]:
         """Return the list of all the periods of unit ``unit``.
@@ -459,27 +460,27 @@ class Period(tuple):
             ValueError: If the period's unit is smaller than the given unit.
 
         Examples:
-            >>> period = periods.Period((periods.YEAR, periods.Instant((2021, 1, 1)), 1))
-            >>> period.get_subperiods(periods.MONTH)
+            >>> period = Period((YEAR, Instant((2021, 1, 1)), 1))
+            >>> period.get_subperiods(MONTH)
             [Period(('month', Instant((2021, 1, 1)), 1)),...2021, 12, 1)), 1))]
 
-            >>> period = periods.Period((periods.YEAR, periods.Instant((2021, 1, 1)), 2))
-            >>> period.get_subperiods(periods.YEAR)
+            >>> period = Period((YEAR, Instant((2021, 1, 1)), 2))
+            >>> period.get_subperiods(YEAR)
             [Period(('year', Instant((2021, 1, 1)), 1)),...((2022, 1, 1)), 1))]
 
         """
 
-        if periods.unit_weight(self.unit) < periods.unit_weight(unit):
+        if UNIT_WEIGHTS[self.unit] < UNIT_WEIGHTS[unit]:
             raise ValueError('Cannot subdivide {0} into {1}'.format(self.unit, unit))
 
-        if unit == periods.YEAR:
-            return [self.this_year.offset(i, periods.YEAR) for i in range(self.size)]
+        if unit == YEAR:
+            return [self.this_year.offset(i, YEAR) for i in range(self.size)]
 
-        if unit == periods.MONTH:
-            return [self.first_month.offset(i, periods.MONTH) for i in range(self.size_in_months)]
+        if unit == MONTH:
+            return [self.first_month.offset(i, MONTH) for i in range(self.size_in_months)]
 
-        if unit == periods.DAY:
-            return [self.first_day.offset(i, periods.DAY) for i in range(self.size_in_days)]
+        if unit == DAY:
+            return [self.first_day.offset(i, DAY) for i in range(self.size_in_days)]
 
     def offset(
             self,
@@ -496,16 +497,16 @@ class Period(tuple):
             Period: A new one.
 
         Examples:
-            >>> periods.Period(("day", periods.Instant((2014, 2, 3)), 1)).offset("first-of", "month")
+            >>> Period(("day", Instant((2014, 2, 3)), 1)).offset("first-of", "month")
             Period(('day', Instant((2014, 2, 1)), 1))
 
-            >>> periods.Period(("month", periods.Instant((2014, 2, 3)), 4)).offset("last-of", "month")
+            >>> Period(("month", Instant((2014, 2, 3)), 4)).offset("last-of", "month")
             Period(('month', Instant((2014, 2, 28)), 4))
 
-            >>> periods.Period(("day", periods.Instant((2021, 1, 1)), 365)).offset(-3)
+            >>> Period(("day", Instant((2021, 1, 1)), 365)).offset(-3)
             Period(('day', Instant((2020, 12, 29)), 365))
 
-            >>> periods.Period(("day", periods.Instant((2021, 1, 1)), 365)).offset(1, "year")
+            >>> Period(("day", Instant((2021, 1, 1)), 365)).offset(1, "year")
             Period(('day', Instant((2022, 1, 1)), 365))
 
         """
@@ -522,8 +523,8 @@ class Period(tuple):
             True if ``other`` is contained, otherwise False.
 
         Example:
-            >>> period = periods.Period((periods.YEAR, periods.Instant((2021, 1, 1)), 1))
-            >>> sub_period = periods.Period((periods.MONTH, periods.Instant((2021, 1, 1)), 3))
+            >>> period = Period((YEAR, Instant((2021, 1, 1)), 1))
+            >>> sub_period = Period((MONTH, Instant((2021, 1, 1)), 3))
 
             >>> period.contains(sub_period)
             True

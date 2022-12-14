@@ -28,11 +28,11 @@ And for classes::
 """
 
 from ._config import (  # noqa: F401
-    DAY,
-    MONTH,
-    YEAR,
-    ETERNITY,
     INSTANT_PATTERN,
+    )
+
+from ._errors import (  # noqa: F401
+    InstantTypeError,
     )
 
 from ._funcs import (  # noqa: F401
@@ -40,8 +40,14 @@ from ._funcs import (  # noqa: F401
     build_period,
     key_period_size,
     parse_simple_period,
-    unit_weight,
-    unit_weights,
+    )
+
+from ._units import (  # noqa: F401
+    DAY,
+    ETERNITY,
+    MONTH,
+    YEAR,
+    UNIT_WEIGHTS,
     )
 
 from .instant_ import Instant  # noqa: F401

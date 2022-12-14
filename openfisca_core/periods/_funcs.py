@@ -1,13 +1,16 @@
 from __future__ import annotations
 
-from typing import Any, Dict, NoReturn, Optional
+from typing import Any, Optional
 
 import datetime
-import os
 
 from openfisca_core import types
 
-from .. import periods
+from ._config import INSTANT_PATTERN
+from ._errors import InstantFormatError, PeriodFormatError
+from ._units import DAY, ETERNITY, MONTH, YEAR, UNIT_WEIGHTS
+from .instant_ import Instant
+from .period_ import Period
 
 
 def build_instant(value: Any) -> Optional[types.Instant]:
@@ -21,16 +24,16 @@ def build_instant(value: Any) -> Optional[types.Instant]:
         :obj:`.Instant`: Otherwise.
 
     Raises:
-        ValueError: When the arguments were invalid, like "2021-32-13".
+        InstantFormatError: When the arguments were invalid, like "2021-32-13".
 
     Examples:
         >>> build_instant(datetime.date(2021, 9, 16))
         Instant((2021, 9, 16))
 
-        >>> build_instant(periods.Instant((2021, 9, 16)))
+        >>> build_instant(Instant((2021, 9, 16)))
         Instant((2021, 9, 16))
 
-        >>> build_instant(periods.Period(("year", periods.Instant((2021, 9, 16)), 1)))
+        >>> build_instant(Period(("year", Instant((2021, 9, 16)), 1)))
         Instant((2021, 9, 16))
 
         >>> build_instant("2021")
@@ -47,23 +50,20 @@ def build_instant(value: Any) -> Optional[types.Instant]:
     if value is None:
         return None
 
-    if isinstance(value, periods.Instant):
+    if isinstance(value, Instant):
         return value
 
     if isinstance(value, str):
-        if not periods.INSTANT_PATTERN.match(value):
-            raise ValueError(
-                f"'{value}' is not a valid instant. Instants are described"
-                "using the 'YYYY-MM-DD' format, for instance '2015-06-15'."
-                )
+        if not INSTANT_PATTERN.match(value):
+            raise InstantFormatError(value)
 
-        instant = periods.Instant(
+        instant = Instant(
             int(fragment)
             for fragment in value.split('-', 2)[:3]
             )
 
     elif isinstance(value, datetime.date):
-        instant = periods.Instant((value.year, value.month, value.day))
+        instant = Instant((value.year, value.month, value.day))
 
     elif isinstance(value, int):
         instant = (value,)
@@ -72,7 +72,7 @@ def build_instant(value: Any) -> Optional[types.Instant]:
         assert 1 <= len(value) <= 3
         instant = tuple(value)
 
-    elif isinstance(value, periods.Period):
+    elif isinstance(value, Period):
         instant = value.start
 
     else:
@@ -81,12 +81,12 @@ def build_instant(value: Any) -> Optional[types.Instant]:
         instant = value
 
     if len(instant) == 1:
-        return periods.Instant((instant[0], 1, 1))
+        return Instant((instant[0], 1, 1))
 
     if len(instant) == 2:
-        return periods.Instant((instant[0], instant[1], 1))
+        return Instant((instant[0], instant[1], 1))
 
-    return periods.Instant(instant)
+    return Instant(instant)
 
 
 def build_period(value: Any) -> types.Period:
@@ -99,13 +99,13 @@ def build_period(value: Any) -> types.Period:
         :obj:`.Period`: A period.
 
     Raises:
-        :exc:`ValueError`: When the arguments were invalid, like "2021-32-13".
+        PeriodFormatError: When the arguments were invalid, like "2021-32-13".
 
     Examples:
-        >>> build_period(periods.Period(("year", periods.Instant((2021, 1, 1)), 1)))
+        >>> build_period(Period(("year", Instant((2021, 1, 1)), 1)))
         Period(('year', Instant((2021, 1, 1)), 1))
 
-        >>> build_period(periods.Instant((2021, 1, 1)))
+        >>> build_period(Instant((2021, 1, 1)))
         Period(('day', Instant((2021, 1, 1)), 1))
 
         >>> build_period("eternity")
@@ -134,20 +134,20 @@ def build_period(value: Any) -> types.Period:
 
     """
 
-    if isinstance(value, periods.Period):
+    if isinstance(value, Period):
         return value
 
-    if isinstance(value, periods.Instant):
-        return periods.Period((periods.DAY, value, 1))
+    if isinstance(value, Instant):
+        return Period((DAY, value, 1))
 
-    if value == "ETERNITY" or value == periods.ETERNITY:
-        return periods.Period(("eternity", build_instant(datetime.date.min), float("inf")))
+    if value == "ETERNITY" or value == ETERNITY:
+        return Period(("eternity", build_instant(datetime.date.min), float("inf")))
 
     if isinstance(value, int):
-        return periods.Period((periods.YEAR, periods.Instant((value, 1, 1)), 1))
+        return Period((YEAR, Instant((value, 1, 1)), 1))
 
     if not isinstance(value, str):
-        _raise_error(value)
+        raise PeriodFormatError(value)
 
     # Try to parse as a simple period
     period = parse_simple_period(value)
@@ -157,21 +157,21 @@ def build_period(value: Any) -> types.Period:
 
     # Complex periods must have a ':' in their strings
     if ":" not in value:
-        _raise_error(value)
+        raise PeriodFormatError(value)
 
     components = value.split(":")
 
     # Left-most component must be a valid unit
     unit = components[0]
 
-    if unit not in (periods.DAY, periods.MONTH, periods.YEAR):
-        _raise_error(value)
+    if unit not in (DAY, MONTH, YEAR):
+        raise PeriodFormatError(value)
 
     # Middle component must be a valid iso period
     base_period = parse_simple_period(components[1])
 
     if not base_period:
-        _raise_error(value)
+        raise PeriodFormatError(value)
 
     # Periods like year:2015-03 have a size of 1
     if len(components) == 2:
@@ -183,17 +183,17 @@ def build_period(value: Any) -> types.Period:
             size = int(components[2])
 
         except ValueError:
-            _raise_error(value)
+            raise PeriodFormatError(value)
 
     # If there are more than 2 ":" in the string, the period is invalid
     else:
-        _raise_error(value)
+        raise PeriodFormatError(value)
 
     # Reject ambiguous periods such as month:2014
-    if unit_weight(base_period.unit) > unit_weight(unit):
-        _raise_error(value)
+    if UNIT_WEIGHTS[base_period.unit] > UNIT_WEIGHTS[unit]:
+        raise PeriodFormatError(value)
 
-    return periods.Period((unit, base_period.start, size))
+    return Period((unit, base_period.start, size))
 
 
 def key_period_size(period: types.Period) -> str:
@@ -208,13 +208,13 @@ def key_period_size(period: types.Period) -> str:
         :obj:`str`: A string.
 
     Examples:
-        >>> instant = periods.Instant((2021, 9, 14))
+        >>> instant = Instant((2021, 9, 14))
 
-        >>> period = periods.Period(("day", instant, 1))
+        >>> period = Period(("day", instant, 1))
         >>> key_period_size(period)
         '100_1'
 
-        >>> period = periods.Period(("year", instant, 3))
+        >>> period = Period(("year", instant, 3))
         >>> key_period_size(period)
         '300_3'
 
@@ -222,13 +222,17 @@ def key_period_size(period: types.Period) -> str:
 
     unit, start, size = period
 
-    return f"{unit_weight(unit)}_{size}"
+    return f"{UNIT_WEIGHTS[unit]}_{size}"
 
 
 def parse_simple_period(value: str) -> Optional[types.Period]:
     """Parse simple periods respecting the ISO format.
 
-    Such as "2012" or "2015-03".
+    Args:
+        value: A string such as such as "2012" or "2015-03".
+
+    Returns:
+        A Period.
 
     Examples:
         >>> parse_simple_period("2022")
@@ -257,60 +261,10 @@ def parse_simple_period(value: str) -> Optional[types.Period]:
                 return None
 
             else:
-                return periods.Period((periods.DAY, periods.Instant((date.year, date.month, date.day)), 1))
+                return Period((DAY, Instant((date.year, date.month, date.day)), 1))
 
         else:
-            return periods.Period((periods.MONTH, periods.Instant((date.year, date.month, 1)), 1))
+            return Period((MONTH, Instant((date.year, date.month, 1)), 1))
 
     else:
-        return periods.Period((periods.YEAR, periods.Instant((date.year, date.month, 1)), 1))
-
-
-def unit_weights() -> Dict[str, int]:
-    """Assign weights to date units.
-
-    Examples:
-        >>> unit_weights()
-        {'day': 100, ...}
-
-    """
-
-    return {
-        periods.DAY: 100,
-        periods.MONTH: 200,
-        periods.YEAR: 300,
-        periods.ETERNITY: 400,
-        }
-
-
-def unit_weight(unit: str) -> int:
-    """Retrieves a specific date unit weight.
-
-    Examples:
-        >>> unit_weight("day")
-        100
-
-    """
-
-    return unit_weights()[unit]
-
-
-def _raise_error(value: str) -> NoReturn:
-    """Raise an error.
-
-    Examples:
-        >>> _raise_error("Oi mate!")
-        Traceback (most recent call last):
-        ValueError: Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got:
-        'Oi mate!'. Learn more about legal period formats in OpenFisca:
-        <https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-simulations>.
-
-    """
-
-    message = os.linesep.join([
-        "Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got:",
-        f"'{value}'. Learn more about legal period formats in OpenFisca:",
-        "<https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-simulations>."
-        ])
-
-    raise ValueError(message)
+        return Period((YEAR, Instant((date.year, date.month, 1)), 1))

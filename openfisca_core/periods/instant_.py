@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Union
+from typing import Dict, Optional, Union
 
 import calendar
 import datetime
 
 from openfisca_core import types
 
-from .. import periods
+from ._errors import DateUnitValueError, InstantTypeError, OffsetTypeError
+from ._units import DAY, MONTH, YEAR
 
 
 class Instant(tuple):
@@ -84,7 +85,7 @@ class Instant(tuple):
         return str(self)
 
     @staticmethod
-    def to_date(value: Any) -> Optional[datetime.date]:
+    def to_date(value: Optional[types.Instant]) -> Optional[datetime.date]:
         """Returns the date representation of an ``Instant``.
 
         Args:
@@ -95,18 +96,22 @@ class Instant(tuple):
             None: When ``value`` is None.
             datetime.date: Otherwise.
 
+        Raises:
+            InstantTypeError: When ``value`` is not an ``Instant``.
+
         Examples:
             >>> Instant.to_date(Instant((2021, 1, 1)))
             datetime.date(2021, 1, 1)
 
         """
 
-        instant = periods.build_instant(value)
-
-        if instant is None:
+        if value is None:
             return None
 
-        return instant.date
+        if isinstance(value, types.Instant):
+            return value.date
+
+        raise InstantTypeError(value)
 
     @property
     def year(self) -> int:
@@ -190,9 +195,8 @@ class Instant(tuple):
             Instant: A new one.
 
         Raises:
-            AssertionError: When ``unit`` is not a date unit.
-            AssertionError: When ``offset`` is not either ``first-of``,
-                ``last-of``, or any ``int``.
+            DateUnitValueError: When ``unit`` is not a date unit.
+            OffsetTypeError: When ``offset`` is of type ``int``.
 
         Examples:
             >>> Instant((2020, 12, 31)).offset("first-of", "month")
@@ -211,28 +215,30 @@ class Instant(tuple):
 
         year, month, day = self
 
-        assert unit in (periods.DAY, periods.MONTH, periods.YEAR), 'Invalid unit: {} of type {}'.format(unit, type(unit))
+        if unit not in (DAY, MONTH, YEAR):
+            raise DateUnitValueError(unit)
 
         if offset == 'first-of':
-            if unit == periods.MONTH:
+            if unit == MONTH:
                 day = 1
 
-            elif unit == periods.YEAR:
+            elif unit == YEAR:
                 month = 1
                 day = 1
 
         elif offset == 'last-of':
-            if unit == periods.MONTH:
+            if unit == MONTH:
                 day = calendar.monthrange(year, month)[1]
 
-            elif unit == periods.YEAR:
+            elif unit == YEAR:
                 month = 12
                 day = 31
 
         else:
-            assert isinstance(offset, int), 'Invalid offset: {} of type {}'.format(offset, type(offset))
+            if not isinstance(offset, int):
+                raise OffsetTypeError(offset)
 
-            if unit == periods.DAY:
+            if unit == DAY:
                 day += offset
 
                 if offset < 0:
@@ -258,7 +264,7 @@ class Instant(tuple):
                         day -= month_last_day
                         month_last_day = calendar.monthrange(year, month)[1]
 
-            elif unit == periods.MONTH:
+            elif unit == MONTH:
                 month += offset
 
                 if offset < 0:
@@ -275,7 +281,7 @@ class Instant(tuple):
                 if day > month_last_day:
                     day = month_last_day
 
-            elif unit == periods.YEAR:
+            elif unit == YEAR:
                 year += offset
 
                 # Handle february month of leap year.

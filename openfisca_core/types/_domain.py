@@ -55,6 +55,7 @@ class Holder(Protocol):
         """Abstract method."""
 
 
+@typing_extensions.runtime_checkable
 class Instant(Protocol):
     """Instant protocol."""
 
