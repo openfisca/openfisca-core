@@ -91,6 +91,113 @@ def build_instant(value: Any) -> Optional[types.Instant]:
     return Instant(instant)
 
 
+def build_period(value: Any) -> types.Period:
+    """Build a new period, aka a triple (unit, start_instant, size).
+
+    Args:
+        value: A ``period-like`` object.
+
+    Returns:
+        :obj:`.Period`: A period.
+
+    Raises:
+        :exc:`ValueError`: When the arguments were invalid, like "2021-32-13".
+
+    Examples:
+        >>> build_period(Period(("year", Instant((2021, 1, 1)), 1)))
+        Period(('year', Instant((2021, 1, 1)), 1))
+
+        >>> build_period(Instant((2021, 1, 1)))
+        Period(('day', Instant((2021, 1, 1)), 1))
+
+        >>> build_period("eternity")
+        Period(('eternity', Instant((1, 1, 1)), inf))
+
+        >>> build_period(2021)
+        Period(('year', Instant((2021, 1, 1)), 1))
+
+        >>> build_period("2014")
+        Period(('year', Instant((2014, 1, 1)), 1))
+
+        >>> build_period("year:2014")
+        Period(('year', Instant((2014, 1, 1)), 1))
+
+        >>> build_period("month:2014-2")
+        Period(('month', Instant((2014, 2, 1)), 1))
+
+        >>> build_period("year:2014-2")
+        Period(('year', Instant((2014, 2, 1)), 1))
+
+        >>> build_period("day:2014-2-2")
+        Period(('day', Instant((2014, 2, 2)), 1))
+
+        >>> build_period("day:2014-2-2:3")
+        Period(('day', Instant((2014, 2, 2)), 3))
+
+    """
+
+    if isinstance(value, Period):
+        return value
+
+    if isinstance(value, Instant):
+        return Period((_config.DAY, value, 1))
+
+    if value == "ETERNITY" or value == _config.ETERNITY:
+        return Period(("eternity", build_instant(datetime.date.min), float("inf")))
+
+    if isinstance(value, int):
+        return Period((_config.YEAR, Instant((value, 1, 1)), 1))
+
+    if not isinstance(value, str):
+        _raise_error(value)
+
+    # Try to parse as a simple period
+    period = parse_simple_period(value)
+
+    if period is not None:
+        return period
+
+    # Complex periods must have a ':' in their strings
+    if ":" not in value:
+        _raise_error(value)
+
+    components = value.split(":")
+
+    # Left-most component must be a valid unit
+    unit = components[0]
+
+    if unit not in (_config.DAY, _config.MONTH, _config.YEAR):
+        _raise_error(value)
+
+    # Middle component must be a valid iso period
+    base_period = parse_simple_period(components[1])
+
+    if not base_period:
+        _raise_error(value)
+
+    # Periods like year:2015-03 have a size of 1
+    if len(components) == 2:
+        size = 1
+
+    # If provided, make sure the size is an integer
+    elif len(components) == 3:
+        try:
+            size = int(components[2])
+
+        except ValueError:
+            _raise_error(value)
+
+    # If there are more than 2 ":" in the string, the period is invalid
+    else:
+        _raise_error(value)
+
+    # Reject ambiguous periods such as month:2014
+    if unit_weight(base_period.unit) > unit_weight(unit):
+        _raise_error(value)
+
+    return Period((unit, base_period.start, size))
+
+
 def instant_date(instant: Optional[types.Instant]) -> Optional[datetime.date]:
     """Returns the date representation of an ``Instant``.
 
@@ -187,113 +294,6 @@ def parse_simple_period(value: str) -> Optional[types.Period]:
 
     else:
         return Period((_config.YEAR, Instant((date.year, date.month, 1)), 1))
-
-
-def period(value: Any) -> types.Period:
-    """Build a new period, aka a triple (unit, start_instant, size).
-
-    Args:
-        value: A ``period-like`` object.
-
-    Returns:
-        :obj:`.Period`: A period.
-
-    Raises:
-        :exc:`ValueError`: When the arguments were invalid, like "2021-32-13".
-
-    Examples:
-        >>> period(Period(("year", Instant((2021, 1, 1)), 1)))
-        Period(('year', Instant((2021, 1, 1)), 1))
-
-        >>> period(Instant((2021, 1, 1)))
-        Period(('day', Instant((2021, 1, 1)), 1))
-
-        >>> period("eternity")
-        Period(('eternity', Instant((1, 1, 1)), inf))
-
-        >>> period(2021)
-        Period(('year', Instant((2021, 1, 1)), 1))
-
-        >>> period("2014")
-        Period(('year', Instant((2014, 1, 1)), 1))
-
-        >>> period("year:2014")
-        Period(('year', Instant((2014, 1, 1)), 1))
-
-        >>> period("month:2014-2")
-        Period(('month', Instant((2014, 2, 1)), 1))
-
-        >>> period("year:2014-2")
-        Period(('year', Instant((2014, 2, 1)), 1))
-
-        >>> period("day:2014-2-2")
-        Period(('day', Instant((2014, 2, 2)), 1))
-
-        >>> period("day:2014-2-2:3")
-        Period(('day', Instant((2014, 2, 2)), 3))
-
-    """
-
-    if isinstance(value, Period):
-        return value
-
-    if isinstance(value, Instant):
-        return Period((_config.DAY, value, 1))
-
-    if value == "ETERNITY" or value == _config.ETERNITY:
-        return Period(("eternity", build_instant(datetime.date.min), float("inf")))
-
-    if isinstance(value, int):
-        return Period((_config.YEAR, Instant((value, 1, 1)), 1))
-
-    if not isinstance(value, str):
-        _raise_error(value)
-
-    # Try to parse as a simple period
-    period = parse_simple_period(value)
-
-    if period is not None:
-        return period
-
-    # Complex periods must have a ':' in their strings
-    if ":" not in value:
-        _raise_error(value)
-
-    components = value.split(":")
-
-    # Left-most component must be a valid unit
-    unit = components[0]
-
-    if unit not in (_config.DAY, _config.MONTH, _config.YEAR):
-        _raise_error(value)
-
-    # Middle component must be a valid iso period
-    base_period = parse_simple_period(components[1])
-
-    if not base_period:
-        _raise_error(value)
-
-    # Periods like year:2015-03 have a size of 1
-    if len(components) == 2:
-        size = 1
-
-    # If provided, make sure the size is an integer
-    elif len(components) == 3:
-        try:
-            size = int(components[2])
-
-        except ValueError:
-            _raise_error(value)
-
-    # If there are more than 2 ":" in the string, the period is invalid
-    else:
-        _raise_error(value)
-
-    # Reject ambiguous periods such as month:2014
-    if unit_weight(base_period.unit) > unit_weight(unit):
-        _raise_error(value)
-
-    return Period((unit, base_period.start, size))
 
 
 def unit_weights() -> Dict[str, int]:

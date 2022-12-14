@@ -28,8 +28,8 @@ class OnDiskStorage:
 
     def get(self, period):
         if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
-        period = periods.period(period)
+            period = periods.build_period(periods.ETERNITY)
+        period = periods.build_period(period)
 
         values = self._files.get(period)
         if values is None:
@@ -38,8 +38,8 @@ class OnDiskStorage:
 
     def put(self, value, period):
         if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
-        period = periods.period(period)
+            period = periods.build_period(periods.ETERNITY)
+        period = periods.build_period(period)
 
         filename = str(period)
         path = os.path.join(self.storage_dir, filename) + '.npy'
@@ -55,8 +55,8 @@ class OnDiskStorage:
             return
 
         if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
-        period = periods.period(period)
+            period = periods.build_period(periods.ETERNITY)
+        period = periods.build_period(period)
 
         if period is not None:
             self._files = {
@@ -76,7 +76,7 @@ class OnDiskStorage:
                 continue
             path = os.path.join(self.storage_dir, filename)
             filename_core = filename.rsplit('.', 1)[0]
-            period = periods.period(filename_core)
+            period = periods.build_period(filename_core)
             files[period] = path
 
     def __del__(self):

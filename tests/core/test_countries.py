@@ -5,7 +5,7 @@ from openfisca_core.errors import VariableNameConflictError, VariableNotFoundErr
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.variables import Variable
 
-PERIOD = periods.period("2016-01")
+PERIOD = periods.build_period("2016-01")
 
 
 @pytest.mark.parametrize("simulation", [({"salary": 2000}, PERIOD)], indirect = True)

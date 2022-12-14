@@ -210,7 +210,7 @@ class Holder:
 
         """
 
-        period = periods.period(period)
+        period = periods.build_period(period)
         if period.unit == periods.ETERNITY and self.variable.definition_period != periods.ETERNITY:
             error_message = os.linesep.join([
                 'Unable to set a value for variable {0} for periods.ETERNITY.',

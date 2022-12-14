@@ -325,7 +325,7 @@ class SimulationBuilder:
 
     def set_default_period(self, period_str):
         if period_str:
-            self.default_period = str(periods.period(period_str))
+            self.default_period = str(periods.build_period(period_str))
 
     def get_input(self, variable, period_str):
         if variable not in self.input_buffer:
@@ -368,7 +368,7 @@ class SimulationBuilder:
 
             for period_str, value in variable_values.items():
                 try:
-                    periods.period(period_str)
+                    periods.build_period(period_str)
                 except ValueError as e:
                     raise SituationParsingError(path_in_json, e.args[0])
                 variable = entity.get_variable(variable_name)
@@ -393,7 +393,7 @@ class SimulationBuilder:
 
         array[instance_index] = value
 
-        self.input_buffer[variable.name][str(periods.period(period_str))] = array
+        self.input_buffer[variable.name][str(periods.build_period(period_str))] = array
 
     def finalize_variables_init(self, population):
         # Due to set_input mechanism, we must bufferize all inputs, then actually set them,
@@ -411,7 +411,7 @@ class SimulationBuilder:
             except ValueError:  # Wrong entity, we can just ignore that
                 continue
             buffer = self.input_buffer[variable_name]
-            unsorted_periods = [periods.period(period_str) for period_str in self.input_buffer[variable_name].keys()]
+            unsorted_periods = [periods.build_period(period_str) for period_str in self.input_buffer[variable_name].keys()]
             # We need to handle small periods first for set_input to work
             sorted_periods = sorted(unsorted_periods, key = periods.key_period_size)
             for period_value in sorted_periods:

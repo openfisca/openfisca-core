@@ -96,7 +96,7 @@ class Simulation:
         """Calculate ``variable_name`` for ``period``."""
 
         if period is not None and not isinstance(period, Period):
-            period = periods.period(period)
+            period = periods.build_period(period)
 
         self.tracer.record_calculation_start(variable_name, period)
 
@@ -168,7 +168,7 @@ class Simulation:
             raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
         if period is not None and not isinstance(period, Period):
-            period = periods.period(period)
+            period = periods.build_period(period)
 
         # Check that the requested period matches definition_period
         if periods.unit_weight(variable.definition_period) > periods.unit_weight(period.unit):
@@ -197,7 +197,7 @@ class Simulation:
             raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
         if period is not None and not isinstance(period, Period):
-            period = periods.period(period)
+            period = periods.build_period(period)
 
         # Check that the requested period matches definition_period
         if variable.definition_period != periods.YEAR:
@@ -345,7 +345,7 @@ class Simulation:
         Unlike :meth:`.calculate`, this method *does not* trigger calculations and *does not* use any formula.
         """
         if period is not None and not isinstance(period, Period):
-            period = periods.period(period)
+            period = periods.build_period(period)
         return self.get_holder(variable_name).get_array(period)
 
     def get_holder(self, variable_name: str):
@@ -438,7 +438,7 @@ class Simulation:
         if variable is None:
             raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
-        period = periods.period(period)
+        period = periods.build_period(period)
         if ((variable.end is not None) and (period.start.date > variable.end)):
             return
         self.get_holder(variable_name).set_input(period, value)

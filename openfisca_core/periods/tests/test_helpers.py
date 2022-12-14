@@ -91,7 +91,7 @@ def test_instant_date_with_an_invalid_argument(arg, error):
     ["day:1000-01-01:3", periods.Period((periods.DAY, periods.Instant((1000, 1, 1)), 3))],
     ])
 def test_period(arg, expected):
-    assert periods.period(arg) == expected
+    assert periods.build_period(arg) == expected
 
 
 @pytest.mark.parametrize("arg, error", [
@@ -114,7 +114,7 @@ def test_period(arg, expected):
     ])
 def test_period_with_an_invalid_argument(arg, error):
     with pytest.raises(error):
-        periods.period(arg)
+        periods.build_period(arg)
 
 
 @pytest.mark.parametrize("arg, expected", [

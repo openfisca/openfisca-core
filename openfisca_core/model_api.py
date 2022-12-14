@@ -27,7 +27,7 @@ from openfisca_core.parameters import (  # noqa: F401
     ValuesHistory,
     )
 
-from openfisca_core.periods import DAY, MONTH, YEAR, ETERNITY, period  # noqa: F401
+from openfisca_core.periods import DAY, MONTH, YEAR, ETERNITY, build_period  # noqa: F401
 from openfisca_core.populations import ADD, DIVIDE  # noqa: F401
 from openfisca_core.reforms import Reform  # noqa: F401
 
