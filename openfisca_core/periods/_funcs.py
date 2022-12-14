@@ -12,7 +12,7 @@ from openfisca_core import types
 
 from ._config import INSTANT_PATTERN
 from ._errors import InstantFormatError, PeriodFormatError
-from ._units import DAY, ETERNITY, MONTH, YEAR, UNIT_WEIGHTS
+from ._units import DAY, ETERNITY, MONTH, UNIT_WEIGHTS, YEAR
 from .instant import Instant
 from .period import Period
 

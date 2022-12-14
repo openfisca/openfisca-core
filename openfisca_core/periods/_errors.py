@@ -6,7 +6,6 @@ from openfisca_core import types
 
 from ._units import DAY, MONTH, YEAR
 
-
 LEARN_MORE = (
     "Learn more about legal period formats in OpenFisca: "
     "<https://openfisca.org/doc/coding-the-legislation/35_html#periods-in-simulations>."

@@ -6,7 +6,7 @@ import calendar
 import datetime
 
 from ._errors import DateUnitValueError
-from ._units import DAY, MONTH, YEAR, ETERNITY, UNIT_WEIGHTS
+from ._units import DAY, ETERNITY, MONTH, UNIT_WEIGHTS, YEAR
 from .instant import Instant
 
 
