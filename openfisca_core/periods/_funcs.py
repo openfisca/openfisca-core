@@ -7,9 +7,7 @@ import os
 
 from openfisca_core import types
 
-from . import _config
-from .instant_ import Instant
-from .period_ import Period
+from .. import periods
 
 
 def build_instant(value: Any) -> Optional[types.Instant]:
@@ -29,10 +27,10 @@ def build_instant(value: Any) -> Optional[types.Instant]:
         >>> build_instant(datetime.date(2021, 9, 16))
         Instant((2021, 9, 16))
 
-        >>> build_instant(Instant((2021, 9, 16)))
+        >>> build_instant(periods.Instant((2021, 9, 16)))
         Instant((2021, 9, 16))
 
-        >>> build_instant(Period(("year", Instant((2021, 9, 16)), 1)))
+        >>> build_instant(periods.Period(("year", periods.Instant((2021, 9, 16)), 1)))
         Instant((2021, 9, 16))
 
         >>> build_instant("2021")
@@ -49,23 +47,23 @@ def build_instant(value: Any) -> Optional[types.Instant]:
     if value is None:
         return None
 
-    if isinstance(value, Instant):
+    if isinstance(value, periods.Instant):
         return value
 
     if isinstance(value, str):
-        if not _config.INSTANT_PATTERN.match(value):
+        if not periods.INSTANT_PATTERN.match(value):
             raise ValueError(
                 f"'{value}' is not a valid instant. Instants are described"
                 "using the 'YYYY-MM-DD' format, for instance '2015-06-15'."
                 )
 
-        instant = Instant(
+        instant = periods.Instant(
             int(fragment)
             for fragment in value.split('-', 2)[:3]
             )
 
     elif isinstance(value, datetime.date):
-        instant = Instant((value.year, value.month, value.day))
+        instant = periods.Instant((value.year, value.month, value.day))
 
     elif isinstance(value, int):
         instant = (value,)
@@ -74,7 +72,7 @@ def build_instant(value: Any) -> Optional[types.Instant]:
         assert 1 <= len(value) <= 3
         instant = tuple(value)
 
-    elif isinstance(value, Period):
+    elif isinstance(value, periods.Period):
         instant = value.start
 
     else:
@@ -83,12 +81,12 @@ def build_instant(value: Any) -> Optional[types.Instant]:
         instant = value
 
     if len(instant) == 1:
-        return Instant((instant[0], 1, 1))
+        return periods.Instant((instant[0], 1, 1))
 
     if len(instant) == 2:
-        return Instant((instant[0], instant[1], 1))
+        return periods.Instant((instant[0], instant[1], 1))
 
-    return Instant(instant)
+    return periods.Instant(instant)
 
 
 def build_period(value: Any) -> types.Period:
@@ -104,10 +102,10 @@ def build_period(value: Any) -> types.Period:
         :exc:`ValueError`: When the arguments were invalid, like "2021-32-13".
 
     Examples:
-        >>> build_period(Period(("year", Instant((2021, 1, 1)), 1)))
+        >>> build_period(periods.Period(("year", periods.Instant((2021, 1, 1)), 1)))
         Period(('year', Instant((2021, 1, 1)), 1))
 
-        >>> build_period(Instant((2021, 1, 1)))
+        >>> build_period(periods.Instant((2021, 1, 1)))
         Period(('day', Instant((2021, 1, 1)), 1))
 
         >>> build_period("eternity")
@@ -136,17 +134,17 @@ def build_period(value: Any) -> types.Period:
 
     """
 
-    if isinstance(value, Period):
+    if isinstance(value, periods.Period):
         return value
 
-    if isinstance(value, Instant):
-        return Period((_config.DAY, value, 1))
+    if isinstance(value, periods.Instant):
+        return periods.Period((periods.DAY, value, 1))
 
-    if value == "ETERNITY" or value == _config.ETERNITY:
-        return Period(("eternity", build_instant(datetime.date.min), float("inf")))
+    if value == "ETERNITY" or value == periods.ETERNITY:
+        return periods.Period(("eternity", build_instant(datetime.date.min), float("inf")))
 
     if isinstance(value, int):
-        return Period((_config.YEAR, Instant((value, 1, 1)), 1))
+        return periods.Period((periods.YEAR, periods.Instant((value, 1, 1)), 1))
 
     if not isinstance(value, str):
         _raise_error(value)
@@ -166,7 +164,7 @@ def build_period(value: Any) -> types.Period:
     # Left-most component must be a valid unit
     unit = components[0]
 
-    if unit not in (_config.DAY, _config.MONTH, _config.YEAR):
+    if unit not in (periods.DAY, periods.MONTH, periods.YEAR):
         _raise_error(value)
 
     # Middle component must be a valid iso period
@@ -195,7 +193,7 @@ def build_period(value: Any) -> types.Period:
     if unit_weight(base_period.unit) > unit_weight(unit):
         _raise_error(value)
 
-    return Period((unit, base_period.start, size))
+    return periods.Period((unit, base_period.start, size))
 
 
 def key_period_size(period: types.Period) -> str:
@@ -210,13 +208,13 @@ def key_period_size(period: types.Period) -> str:
         :obj:`str`: A string.
 
     Examples:
-        >>> instant = Instant((2021, 9, 14))
+        >>> instant = periods.Instant((2021, 9, 14))
 
-        >>> period = Period(("day", instant, 1))
+        >>> period = periods.Period(("day", instant, 1))
         >>> key_period_size(period)
         '100_1'
 
-        >>> period = Period(("year", instant, 3))
+        >>> period = periods.Period(("year", instant, 3))
         >>> key_period_size(period)
         '300_3'
 
@@ -259,13 +257,13 @@ def parse_simple_period(value: str) -> Optional[types.Period]:
                 return None
 
             else:
-                return Period((_config.DAY, Instant((date.year, date.month, date.day)), 1))
+                return periods.Period((periods.DAY, periods.Instant((date.year, date.month, date.day)), 1))
 
         else:
-            return Period((_config.MONTH, Instant((date.year, date.month, 1)), 1))
+            return periods.Period((periods.MONTH, periods.Instant((date.year, date.month, 1)), 1))
 
     else:
-        return Period((_config.YEAR, Instant((date.year, date.month, 1)), 1))
+        return periods.Period((periods.YEAR, periods.Instant((date.year, date.month, 1)), 1))
 
 
 def unit_weights() -> Dict[str, int]:
@@ -278,10 +276,10 @@ def unit_weights() -> Dict[str, int]:
     """
 
     return {
-        _config.DAY: 100,
-        _config.MONTH: 200,
-        _config.YEAR: 300,
-        _config.ETERNITY: 400,
+        periods.DAY: 100,
+        periods.MONTH: 200,
+        periods.YEAR: 300,
+        periods.ETERNITY: 400,
         }
 
 

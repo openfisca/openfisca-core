@@ -7,7 +7,7 @@ import datetime
 
 from openfisca_core import types
 
-from . import _config, _funcs
+from .. import periods
 
 
 class Instant(tuple):
@@ -65,28 +65,30 @@ class Instant(tuple):
     """
 
     #: A cache with the ``datetime.date`` representation of the ``Instant``.
-    dates: Dict[Instant, datetime.date] = {}
+    _dates: Dict[Instant, datetime.date] = {}
 
     #: A cache with the ``str`` representation of the ``Instant``.
-    strings: Dict[Instant, str] = {}
+    _strings: Dict[Instant, str] = {}
 
     def __repr__(self) -> str:
         return f"{Instant.__name__}({super(Instant, self).__repr__()})"
 
     def __str__(self) -> str:
-        string = Instant.strings.get(self)
+        string = Instant._strings.get(self)
 
-        if string is None:
-            Instant.strings[self] = self.date.isoformat()
+        if string is not None:
+            return string
 
-        return Instant.strings[self]
+        Instant._strings = {self: self.date.isoformat(), **Instant._strings}
+
+        return str(self)
 
     @staticmethod
     def to_date(value: Any) -> Optional[datetime.date]:
         """Returns the date representation of an ``Instant``.
 
         Args:
-            value (:any:):
+            value (Any):
                 An ``instant-like`` object to get the date from.
 
         Returns:
@@ -99,7 +101,7 @@ class Instant(tuple):
 
         """
 
-        instant = _funcs.build_instant(value)
+        instant = periods.build_instant(value)
 
         if instant is None:
             return None
@@ -168,12 +170,14 @@ class Instant(tuple):
 
         """
 
-        date = Instant.dates.get(self)
+        date = Instant._dates.get(self)
 
-        if date is None:
-            Instant.dates[self] = datetime.date(*self)
+        if date is not None:
+            return date
 
-        return Instant.dates[self]
+        Instant._dates = {self: datetime.date(*self), **Instant._dates}
+
+        return self.date
 
     def offset(self, offset: Union[str, int], unit: str) -> types.Instant:
         """Increments/decrements the given instant with offset units.
@@ -207,28 +211,28 @@ class Instant(tuple):
 
         year, month, day = self
 
-        assert unit in (_config.DAY, _config.MONTH, _config.YEAR), 'Invalid unit: {} of type {}'.format(unit, type(unit))
+        assert unit in (periods.DAY, periods.MONTH, periods.YEAR), 'Invalid unit: {} of type {}'.format(unit, type(unit))
 
         if offset == 'first-of':
-            if unit == _config.MONTH:
+            if unit == periods.MONTH:
                 day = 1
 
-            elif unit == _config.YEAR:
+            elif unit == periods.YEAR:
                 month = 1
                 day = 1
 
         elif offset == 'last-of':
-            if unit == _config.MONTH:
+            if unit == periods.MONTH:
                 day = calendar.monthrange(year, month)[1]
 
-            elif unit == _config.YEAR:
+            elif unit == periods.YEAR:
                 month = 12
                 day = 31
 
         else:
             assert isinstance(offset, int), 'Invalid offset: {} of type {}'.format(offset, type(offset))
 
-            if unit == _config.DAY:
+            if unit == periods.DAY:
                 day += offset
 
                 if offset < 0:
@@ -254,7 +258,7 @@ class Instant(tuple):
                         day -= month_last_day
                         month_last_day = calendar.monthrange(year, month)[1]
 
-            elif unit == _config.MONTH:
+            elif unit == periods.MONTH:
                 month += offset
 
                 if offset < 0:
@@ -271,7 +275,7 @@ class Instant(tuple):
                 if day > month_last_day:
                     day = month_last_day
 
-            elif unit == _config.YEAR:
+            elif unit == periods.YEAR:
                 year += offset
 
                 # Handle february month of leap year.

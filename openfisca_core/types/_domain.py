@@ -58,6 +58,11 @@ class Holder(Protocol):
 class Instant(Protocol):
     """Instant protocol."""
 
+    @property
+    @abc.abstractmethod
+    def date(self) -> Any:
+        """Abstract method."""
+
     @abc.abstractmethod
     def offset(self, offset: Any, unit: Any) -> Any:
         """Abstract method."""

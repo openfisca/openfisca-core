@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Pattern
+from typing import Pattern
 
 import re
 
