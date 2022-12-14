@@ -16,6 +16,8 @@ from ._units import DAY, ETERNITY, MONTH, YEAR, UNIT_WEIGHTS
 from .instant_ import Instant
 from .period_ import Period
 
+UNIT_MAPPING = {1: "year", 2: "month", 3: "day"}
+
 
 def build_instant(value: Any) -> Optional[types.Instant]:
     """Build a new instant, aka a triple of integers (year, month, day).
@@ -262,11 +264,9 @@ def parse_period(value: str) -> Optional[types.Period]:
     if not (value and isinstance(value, str)):
         raise AttributeError
 
-    # If it's negative, next!
-    if value[0] == "-":
+    # If it's negative period, next!
+    if value[0] == "-" or len(value.split(":")) != 1:
         raise ValueError
-
-    unit = _parse_unit(value)
 
     try:
         date = pendulum.parse(value, exact = True)
@@ -277,41 +277,6 @@ def parse_period(value: str) -> Optional[types.Period]:
     if not isinstance(date, Date):
         raise ValueError
 
-    instant = Instant((date.year, date.month, date.day))
-
-    return Period((unit, instant, 1))
-
-
-def _parse_unit(value: str) -> str:
-    """Determine the date unit of a date string.
-
-    Args:
-        value (str): The date string to parse.
-
-    Returns:
-        A date unit.
-
-    Raises:
-        ValueError: when no date unit can be determined.
-
-    Examples:
-        >>> _parse_unit("2022")
-        'year'
-
-        >>> _parse_unit("2022-03-01")
-        'day'
-
-    """
-
-    length = len(value.split("-"))
-
-    if length == 1:
-        return YEAR
-
-    elif length == 2:
-        return MONTH
-
-    elif length == 3:
-        return DAY
-
-    raise ValueError
+    unit = UNIT_MAPPING[len(value.split("-"))]
+    start = Instant((date.year, date.month, date.day))
+    return Period((unit, start, 1))
