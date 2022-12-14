@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-import numpy
 import typing_extensions
 from typing import Any, Optional
 from typing_extensions import Protocol
 
 import abc
+
+import numpy
 
 
 class Entity(Protocol):
@@ -37,7 +38,7 @@ class Formula(Protocol):
     def __call__(
             self,
             population: Population,
-            instant: Instant,
+            instant: Any,
             params: Params,
             ) -> numpy.ndarray:
         """Abstract method."""
@@ -56,20 +57,6 @@ class Holder(Protocol):
 
 
 @typing_extensions.runtime_checkable
-class Instant(Protocol):
-    """Instant protocol."""
-
-    @property
-    @abc.abstractmethod
-    def date(self) -> Any:
-        """Abstract method."""
-
-    @abc.abstractmethod
-    def offset(self, offset: Any, unit: Any) -> Any:
-        """Abstract method."""
-
-
-@typing_extensions.runtime_checkable
 class ParameterNodeAtInstant(Protocol):
     """ParameterNodeAtInstant protocol."""
 
@@ -78,7 +65,7 @@ class Params(Protocol):
     """Params protocol."""
 
     @abc.abstractmethod
-    def __call__(self, instant: Instant) -> ParameterNodeAtInstant:
+    def __call__(self, instant: Any) -> ParameterNodeAtInstant:
         """Abstract method."""
 
 

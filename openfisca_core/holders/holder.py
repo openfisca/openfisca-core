@@ -8,15 +8,12 @@ import warnings
 import numpy
 import psutil
 
-from openfisca_core import (
-    errors,
-    commons,
-    data_storage as storage,
-    indexed_enums as enums,
-    periods,
-    tools,
-    types,
-    )
+from openfisca_core import commons
+from openfisca_core import data_storage as storage
+from openfisca_core import errors
+from openfisca_core import indexed_enums as enums
+from openfisca_core import periods, tools
+from openfisca_core.periods.typing import Period
 
 from .memory_usage import MemoryUsage
 
@@ -164,7 +161,7 @@ class Holder:
 
     def set_input(
             self,
-            period: types.Period,
+            period: Period,
             array: Union[numpy.ndarray, Sequence[Any]],
             ) -> Optional[numpy.ndarray]:
         """Set a Variable's array of values of a given Period.
@@ -211,6 +208,10 @@ class Holder:
         """
 
         period = periods.build_period(period)
+
+        if period is None:
+            raise ValueError(f"Invalid period value: {period}")
+
         if period.unit == periods.ETERNITY and self.variable.definition_period != periods.ETERNITY:
             error_message = os.linesep.join([
                 'Unable to set a value for variable {0} for periods.ETERNITY.',

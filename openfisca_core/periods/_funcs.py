@@ -8,8 +8,6 @@ import pendulum
 from pendulum.datetime import Date
 from pendulum.parsing import ParserError
 
-from openfisca_core import types
-
 from ._config import INSTANT_PATTERN
 from ._errors import InstantFormatError, PeriodFormatError
 from ._units import DAY, ETERNITY, MONTH, UNIT_WEIGHTS, YEAR
@@ -19,7 +17,7 @@ from .period import Period
 UNIT_MAPPING = {1: "year", 2: "month", 3: "day"}
 
 
-def build_instant(value: Any) -> Optional[types.Instant]:
+def build_instant(value: Any) -> Optional[Instant]:
     """Build a new instant, aka a triple of integers (year, month, day).
 
     Args:
@@ -92,7 +90,7 @@ def build_instant(value: Any) -> Optional[types.Instant]:
     return Instant(instant)
 
 
-def build_period(value: Any) -> types.Period:
+def build_period(value: Any) -> Period:
     """Build a new period, aka a triple (unit, start_instant, size).
 
     Args:
@@ -199,7 +197,7 @@ def build_period(value: Any) -> types.Period:
     return Period((unit, base_period.start, size))
 
 
-def key_period_size(period: types.Period) -> str:
+def key_period_size(period: Period) -> str:
     """Define a key in order to sort periods by length.
 
     It uses two aspects: first, ``unit``, then, ``size``.
@@ -228,7 +226,7 @@ def key_period_size(period: types.Period) -> str:
     return f"{UNIT_WEIGHTS[unit]}_{size}"
 
 
-def parse_period(value: str) -> Optional[types.Period]:
+def parse_period(value: str) -> Optional[Period]:
     """Parse periods respecting the ISO format.
 
     Args:

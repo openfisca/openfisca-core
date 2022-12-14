@@ -10,7 +10,8 @@ import numpy
 from openfisca_core import periods, projectors
 from openfisca_core.holders import Holder, MemoryUsage
 from openfisca_core.projectors import Projector
-from openfisca_core.types import Array, Entity, Period, Role, Simulation
+from openfisca_core.periods.typing import Period
+from openfisca_core.types import Array, Entity, Role, Simulation
 
 from . import config
 

@@ -384,7 +384,7 @@ class TaxBenefitSystem:
     @functools.lru_cache()
     def get_parameters_at_instant(
             self,
-            instant: Union[str, int, types.Period, types.Instant],
+            instant: Union[str, int, Period, Instant],
             ) -> Optional[types.ParameterNodeAtInstant]:
         """Get the parameters of the legislation at a given instant
 
@@ -396,13 +396,13 @@ class TaxBenefitSystem:
 
         """
 
-        key: Optional[types.Instant]
+        key: Optional[Instant]
         msg: str
 
-        if isinstance(instant, types.Instant):
+        if isinstance(instant, Instant):
             key = instant
 
-        elif isinstance(instant, types.Period):
+        elif isinstance(instant, Period):
             key = instant.start
 
         elif isinstance(instant, (str, int)):

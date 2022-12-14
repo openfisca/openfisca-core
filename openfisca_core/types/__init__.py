@@ -11,10 +11,8 @@ Official Public API:
     * :attr:`.Entity`
     * :attr:`.Formula`
     * :attr:`.Holder`
-    * :attr:`.Instant`
     * :attr:`.ParameterNodeAtInstant`
     * :attr:`.Params`
-    * :attr:`.Period`
     * :attr:`.Population`
     * :attr:`.Role`,
     * :attr:`.Simulation`,
@@ -49,19 +47,13 @@ Note:
 
 # Official Public API
 
-from ._data import (  # noqa: F401
-    Array,
-    ArrayLike,
-    )
-
+from ._data import Array, ArrayLike  # noqa: F401
 from ._domain import (  # noqa: F401
     Entity,
     Formula,
     Holder,
-    Instant,
     ParameterNodeAtInstant,
     Params,
-    Period,
     Population,
     Role,
     Simulation,
@@ -75,10 +67,8 @@ __all__ = [
     "Entity",
     "Formula",
     "Holder",
-    "Instant",
     "ParameterNodeAtInstant",
     "Params",
-    "Period",
     "Population",
     "Role",
     "Simulation",

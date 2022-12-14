@@ -14,7 +14,8 @@ from openfisca_core import periods, tools
 from openfisca_core.entities import Entity
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import Period
-from openfisca_core.types import Formula, Instant
+from openfisca_core.periods.typing import Instant
+from openfisca_core.types import Formula
 
 from . import config, helpers
 
