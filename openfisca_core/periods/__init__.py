@@ -28,7 +28,7 @@ And for classes::
 """
 
 from ._config import INSTANT_PATTERN
-from ._funcs import build_instant, build_period, key_period_size, parse_period
 from ._units import DAY, ETERNITY, MONTH, UNIT_WEIGHTS, YEAR
-from .instant import Instant
-from .period import Period
+from .helpers import build_instant, build_period, key_period_size, parse_period
+from .instant_ import Instant
+from .period_ import Period
