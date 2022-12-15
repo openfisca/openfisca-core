@@ -151,7 +151,7 @@ class Holder:
         If the value is not known, return ``None``.
         """
         if self.neutralised:
-            return self.default_array()
+            return self.variable.default_array(self.population.count)
 
         for store in self.stores.values():
             value = store.get(period)
@@ -381,10 +381,3 @@ class Holder:
             return
 
         self._set(period, value)
-
-    def default_array(self):
-        """
-        Return a new array of the appropriate length for the entity, filled with the variable default values.
-        """
-
-        return self.variable.default_array(self.population.count)
