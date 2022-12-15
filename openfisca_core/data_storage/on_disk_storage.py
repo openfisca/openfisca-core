@@ -8,7 +8,8 @@ import shutil
 
 import numpy
 
-from openfisca_core import periods, indexed_enums as enums, types
+from openfisca_core import indexed_enums as enums
+from openfisca_core import periods, types
 
 from . import _funcs
 from ._enums import Enums
@@ -205,7 +206,7 @@ class OnDiskStorage:
             if not period.contains(key)
             })
 
-    def get_known_periods(self) -> Sequence[types.Period]:
+    def periods(self) -> Sequence[types.Period]:
         """List of storage's known periods.
 
         Returns:
@@ -219,20 +220,20 @@ class OnDiskStorage:
 
             >>> with tempfile.TemporaryDirectory() as storage_dir:
             ...     storage = OnDiskStorage(storage_dir)
-            ...     storage.get_known_periods()
+            ...     storage.periods()
             []
 
             >>> with tempfile.TemporaryDirectory() as storage_dir:
             ...     storage = OnDiskStorage(storage_dir)
             ...     storage.put([], period)
-            ...     storage.get_known_periods()
+            ...     storage.periods()
             [Period(('year', Instant((2017, 1, 1)), 1))]
 
         """
 
         return list(self._files.keys())
 
-    def get_memory_usage(self) -> NoReturn:
+    def usage(self) -> NoReturn:
         """Memory usage of the storage.
 
         Raises:
@@ -243,7 +244,7 @@ class OnDiskStorage:
 
             >>> with tempfile.TemporaryDirectory() as storage_dir:
             ...     storage = OnDiskStorage(storage_dir)
-            ...     storage.get_memory_usage()
+            ...     storage.usage()
             Traceback (most recent call last):
             ...
             NotImplementedError: Method not implemented for this storage.
