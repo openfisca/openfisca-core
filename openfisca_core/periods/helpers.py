@@ -250,7 +250,9 @@ def _raise_error(value: str) -> NoReturn:
     Examples:
         >>> _raise_error("Oi mate!")
         Traceback (most recent call last):
-        ValueError: Expected a period (eg. '2017', ...); got: 'Oi mate!'.
+        ValueError: Expected a period (eg. '2017', '2017-01', '2017-01-01', ...
+        Learn more about legal period formats in OpenFisca:
+        <https://openfisca.org/doc/coding-the-legislation/35_periods.html#pe...
 
     """
 

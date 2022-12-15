@@ -117,7 +117,7 @@ class Holder:
             >>> entity = entities.Entity("", "", "", "")
 
             >>> class MyVariable(variables.Variable):
-            ...     definition_period = "year"
+            ...     definition_period = periods.DateUnit.YEAR
             ...     entity = entity
             ...     value_type = int
 
@@ -188,7 +188,7 @@ class Holder:
             >>> entity = entities.Entity("", "", "", "")
 
             >>> class MyVariable(variables.Variable):
-            ...     definition_period = "year"
+            ...     definition_period = periods.DateUnit.YEAR
             ...     entity = entity
             ...     value_type = int
 

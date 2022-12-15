@@ -246,7 +246,7 @@ class Period(tuple):
             >>> period = Period((DateUnit.YEAR, instant, 3))
             >>> period.date
             Traceback (most recent call last):
-            ValueError: "date" is undefined for a period of size > 1: year:2021-09:3.
+            ValueError: "date" is undefined for a period of size > 1: year:2021-10:3.
 
         """
 
