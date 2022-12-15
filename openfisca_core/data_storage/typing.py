@@ -1,16 +1,11 @@
-"""Infrastructure-model.
-
-The infrastructure-model is composed of structures meant to encapsulate the
-relationships with layers outside of the domain (memory, disk, etc.).
-
-"""
-
-from __future__ import annotations
+# pylint: disable=missing-class-docstring,missing-function-docstring
 
 from typing import Any
-from typing_extensions import Protocol
+from typing_extensions import Protocol, TypedDict
 
 import abc
+
+import numpy
 
 
 class Storage(Protocol):
@@ -27,3 +22,28 @@ class Storage(Protocol):
 
     @abc.abstractmethod
     def usage(self) -> Any: ...
+
+
+class MemoryUsage(TypedDict, total = False):
+    """Virtual memory usage of a storage."""
+
+    #: The amount of bytes assigned to each value.
+    cell_size: float
+
+    #: The :mod:`numpy.dtype` of any, each, and every value.
+    dtype: numpy.dtype
+
+    #: The number of arrays for which the storage contains values.
+    nb_arrays: int
+
+    #: The number of entities in the current Simulation.
+    nb_cells_by_array: int
+
+    #: The number of times the Variable has been computed.
+    nb_requests: int
+
+    #: Average times a stored array has been read.
+    nb_requests_by_array: int
+
+    #: The total number of bytes used by the storage.
+    total_nb_bytes: int
