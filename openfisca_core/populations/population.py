@@ -1,5 +1,15 @@
 from __future__ import annotations
 
+from openfisca_core.data_storage.typing import MemoryUsage
+from openfisca_core.types import (
+    Array,
+    Entity,
+    Period,
+    Role,
+    Simulation,
+    TaxBenefitSystem,
+    Variable,
+    )
 from typing import Dict, NamedTuple, Optional, Sequence, Union
 from typing_extensions import TypedDict
 
@@ -7,7 +17,7 @@ import traceback
 
 import numpy
 
-from openfisca_core import errors, periods, projectors, types
+from openfisca_core import errors, periods, projectors
 from openfisca_core.holders import Holder
 from openfisca_core.projectors import Projector
 
@@ -16,20 +26,20 @@ from . import config
 
 class Population:
 
-    simulation: Optional[types.Simulation]
-    entity: types.Entity
+    simulation: Optional[Simulation]
+    entity: Entity
     _holders: Dict[str, Holder]
     count: int
-    ids: types.Array[str]
+    ids: Array[str]
 
-    def __init__(self, entity: types.Entity) -> None:
+    def __init__(self, entity: Entity) -> None:
         self.simulation = None
         self.entity = entity
         self._holders = {}
         self.count = 0
         self.ids = []
 
-    def clone(self, simulation: types.Simulation) -> Population:
+    def clone(self, simulation: Simulation) -> Population:
         result = Population(self.entity)
         result.simulation = simulation
         result._holders = {variable: holder.clone(result) for (variable, holder) in self._holders.items()}
@@ -37,14 +47,14 @@ class Population:
         result.ids = self.ids
         return result
 
-    def empty_array(self) -> types.Array[float]:
+    def empty_array(self) -> Array[float]:
         return numpy.zeros(self.count)
 
     def filled_array(
             self,
             value: Union[float, bool],
             dtype: Optional[numpy.dtype] = None,
-            ) -> Union[types.Array[float], types.Array[bool]]:
+            ) -> Union[Array[float], Array[bool]]:
         return numpy.full(self.count, value, dtype)
 
     def __getattr__(self, attribute: str) -> Projector:
@@ -63,7 +73,7 @@ class Population:
 
     def check_array_compatible_with_entity(
             self,
-            array: types.Array[float],
+            array: Array[float],
             ) -> None:
         if self.count == array.size:
             return None
@@ -74,9 +84,9 @@ class Population:
     def check_period_validity(
             self,
             variable_name: str,
-            period: Optional[Union[int, str, types.Period]],
+            period: Optional[Union[int, str, Period]],
             ) -> None:
-        if isinstance(period, (int, str, types.Period)):
+        if isinstance(period, (int, str, Period)):
             return None
 
         stack = traceback.extract_stack()
@@ -92,9 +102,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     def __call__(
             self,
             variable_name: str,
-            period: Optional[Union[int, str, types.Period]] = None,
+            period: Optional[Union[int, str, Period]] = None,
             options: Optional[Sequence[str]] = None,
-            ) -> Optional[types.Array[float]]:
+            ) -> Optional[Array[float]]:
         """
             Calculate the variable ``variable_name`` for the entity and the period ``period``, using the variable formula if it exists.
 
@@ -140,10 +150,10 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     # Helpers
 
     def get_holder(self, variable_name: str) -> Holder:
-        holder: Optional[types.Holder]
-        variable: Optional[types.Variable]
-        simulation: Optional[types.Simulation]
-        tax_benefit_system: Optional[types.TaxBenefitSystem]
+        holder: Optional[Holder]
+        variable: Optional[Variable]
+        simulation: Optional[Simulation]
+        tax_benefit_system: Optional[TaxBenefitSystem]
 
         self.entity.check_variable_defined_for_entity(variable_name)
         holder = self._holders.get(variable_name)
@@ -190,7 +200,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             })
 
     @projectors.projectable
-    def has_role(self, role: types.Role) -> Optional[types.Array[bool]]:
+    def has_role(self, role: Role) -> Optional[Array[bool]]:
         """
             Check if a person has a given role within its `GroupEntity`
 
@@ -216,10 +226,10 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     @projectors.projectable
     def value_from_partner(
             self,
-            array: types.Array[float],
+            array: Array[float],
             entity: Projector,
-            role: types.Role,
-            ) -> Optional[types.Array[float]]:
+            role: Role,
+            ) -> Optional[Array[float]]:
         self.check_array_compatible_with_entity(array)
         self.entity.check_role_validity(role)
 
@@ -239,9 +249,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     def get_rank(
             self,
             entity: Population,
-            criteria: types.Array[float],
+            criteria: Array[float],
             condition: bool = True,
-            ) -> types.Array[int]:
+            ) -> Array[int]:
         """
         Get the rank of a person within an entity according to a criteria.
         The person with rank 0 has the minimum value of criteria.
@@ -286,10 +296,10 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
 class Calculate(NamedTuple):
     variable: str
-    period: types.Period
+    period: Period
     option: Optional[Sequence[str]]
 
 
 class MemoryUsageByVariable(TypedDict, total = False):
-    by_variable: Dict[str, types.MemoryUsage]
+    by_variable: Dict[str, MemoryUsage]
     total_nb_bytes: int
