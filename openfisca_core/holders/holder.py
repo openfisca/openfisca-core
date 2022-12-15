@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from openfisca_core.data_storage.typing import MemoryUsage, Storage
+from openfisca_core.holders.typing import MemoryUsage, Storage
 from openfisca_core.types import Period, Population, Simulation, Variable
-from typing import Any, Dict, Optional, Sequence, Union
+from typing import Any, Sequence
 from typing_extensions import Literal
 
 import itertools
@@ -13,11 +13,11 @@ import numpy
 import psutil
 from sortedcontainers import sorteddict
 
-from openfisca_core import commons
-from openfisca_core import data_storage as storage
-from openfisca_core import errors, experimental
+from openfisca_core import commons, errors, experimental
 from openfisca_core import indexed_enums as enums
 from openfisca_core import periods, tools
+
+from .storage import DiskStorage, MemoryStorage
 
 
 class Holder:
@@ -26,7 +26,7 @@ class Holder:
     variable: Variable
     population: Population
     simulation: Simulation
-    __stores__: Dict[Literal['memory', 'disk'], Storage]
+    __stores__: dict[Literal['memory', 'disk'], Storage]
 
     def __init__(self, variable: Variable, population: Population) -> None:
         self.variable = variable
@@ -35,13 +35,13 @@ class Holder:
 
         if self.storable:
             self.stores = sorteddict.SortedDict({
-                "memory": storage.InMemoryStorage(self.eternal),
+                "memory": MemoryStorage(),
                 "disk": self.create_disk_storage(),
                 })
 
         else:
             self.stores = sorteddict.SortedDict({
-                "memory": storage.InMemoryStorage(self.eternal),
+                "memory": MemoryStorage(),
                 })
 
     @property
@@ -61,7 +61,7 @@ class Holder:
         return self.variable.is_neutralized
 
     @property
-    def config(self) -> Optional[experimental.MemoryConfig]:
+    def config(self) -> experimental.MemoryConfig | None:
         try:
             return self.simulation.memory_config
 
@@ -97,11 +97,11 @@ class Holder:
         return self.name not in self.config.variables_to_drop
 
     @property
-    def stores(self) -> Dict[Literal['memory', 'disk'], Storage]:
+    def stores(self) -> dict[Literal['memory', 'disk'], Storage]:
         return self.__stores__
 
     @stores.setter
-    def stores(self, stores: Dict[Literal['memory', 'disk'], Storage]) -> None:
+    def stores(self, stores: dict[Literal['memory', 'disk'], Storage]) -> None:
         self.__stores__ = stores
 
     def clone(self, population):
@@ -122,7 +122,7 @@ class Holder:
 
     def create_disk_storage(
             self,
-            directory: Optional[str] = None,
+            directory: str | None = None,
             preserve: bool = False,
             ) -> Storage:
         if directory is None:
@@ -130,14 +130,20 @@ class Holder:
         storage_dir = os.path.join(directory, self.name)
         if not os.path.isdir(storage_dir):
             os.mkdir(storage_dir)
-        return storage.OnDiskStorage(storage_dir, self.eternal, preserve)
+        return DiskStorage(storage_dir, preserve)
 
-    def delete_arrays(self, period = None):
+    def delete_arrays(self, period: Any = None):
         """
         If ``period`` is ``None``, remove all known values of the variable.
 
         If ``period`` is not ``None``, only remove all values for any period included in period (e.g. if period is "2017", values for "2017-01", "2017-07", etc. would be removed)
         """
+
+        if self.eternal and period is not None:
+            period = periods.ETERNITY
+
+        else:
+            period = periods.period(period)
 
         for store in self.stores.values():
             store.delete(period)
@@ -152,6 +158,12 @@ class Holder:
         """
         if self.neutralised:
             return self.variable.default_array(self.population.count)
+
+        if self.eternal:
+            period = periods.ETERNITY
+
+        else:
+            period = periods.period(period)
 
         for store in self.stores.values():
             value = store.get(period)
@@ -231,8 +243,8 @@ class Holder:
     def set_input(
             self,
             period: Period,
-            array: Union[numpy.ndarray, Sequence[Any]],
-            ) -> Optional[numpy.ndarray]:
+            array: numpy.ndarray | Sequence[Any],
+            ) -> numpy.ndarray | None:
         """Set a Variable's array of values of a given Period.
 
         Args:
@@ -294,7 +306,7 @@ class Holder:
                 )
 
         if self.neutralised:
-            warning_message = "You cannot set a value for the variable {}, as it has been neutralized. The value you provided ({}) will be ignored.".format(self.name, array)
+            warning_message = f"You cannot set a value for the variable {self.name}, as it has been neutralized. The value you provided ({array}) will be ignored."
             return warnings.warn(
                 warning_message,
                 Warning
@@ -338,11 +350,14 @@ class Holder:
     def _set(self, period, value):
         value = self._to_array(value)
 
-        if not self.eternal:
+        if self.eternal:
+            period = periods.ETERNITY
+
+        else:
             if period is None:
                 raise ValueError('A period must be specified to set values, except for variables with periods.ETERNITY as as period_definition.')
 
-            if (self.period != period.unit or period.size > 1):
+            if self.period != period.unit or period.size > 1:
                 name = self.name
                 period_size_adj = f'{period.unit}' if (period.size == 1) else f'{period.size}-{period.unit}s'
                 error_message = os.linesep.join([

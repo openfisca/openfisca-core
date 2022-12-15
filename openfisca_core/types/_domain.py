@@ -79,18 +79,6 @@ class Formula(Protocol):
         """Abstract method."""
 
 
-class Holder(Protocol):
-    """Holder protocol."""
-
-    @abc.abstractmethod
-    def clone(self, population: Any) -> Holder:
-        """Abstract method."""
-
-    @abc.abstractmethod
-    def get_memory_usage(self) -> Any:
-        """Abstract method."""
-
-
 @typing_extensions.runtime_checkable
 class ParameterNodeAtInstant(Protocol):
     """ParameterNodeAtInstant protocol."""

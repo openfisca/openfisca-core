@@ -12,7 +12,6 @@ Official Public API:
     * :attr:`.EnumArray`
     * :attr:`.Entity`
     * :attr:`.Formula`
-    * :attr:`.Holder`
     * :attr:`.Instant`
     * :attr:`.ParameterNodeAtInstant`
     * :attr:`.Params`
@@ -62,7 +61,6 @@ from ._data import (  # noqa: F401
 from ._domain import (  # noqa: F401
     Entity,
     Formula,
-    Holder,
     ParameterNodeAtInstant,
     Params,
     Population,
@@ -79,7 +77,6 @@ __all__ = [
     "Enum",
     "EnumArray",
     "Formula",
-    "Holder",
     "Instant",
     "ParameterNodeAtInstant",
     "Params",

@@ -1,35 +1,21 @@
 from __future__ import annotations
 
+from openfisca_core.holders.typing import MemoryUsage
 from openfisca_core.types import Period
-from typing import Optional, Sequence
+from typing import Sequence
 
 import numpy
 
 from openfisca_core import periods
 
-from . import _funcs
-from ._arrays import Arrays
-from .typing import MemoryUsage
 
+class MemoryStorage:
+    """Class responsible for storing/retrieving vectors in/from memory."""
 
-class InMemoryStorage:
-    """Class responsible for storing/retrieving vectors in/from memory.
+    #: A dictionary containing data that has been stored in memory.
+    __arrays__: dict[Period, numpy.ndarray] = {}
 
-    Attributes:
-        _arrays: A dictionary containing data that has been stored in memory.
-        is_eternal: Flag indicating if the storage of period eternity.
-
-    Args:
-        is_eternal: Flag indicating if the storage of period eternity.
-
-    """
-
-    _arrays: Arrays = Arrays({})
-
-    def __init__(self, is_eternal: bool = False) -> None:
-        self.is_eternal = is_eternal
-
-    def get(self, period: Period) -> Optional[numpy.ndarray]:
+    def get(self, period: Period) -> numpy.ndarray | None:
         """Retrieve the data for the specified period from memory.
 
         Args:
@@ -39,7 +25,7 @@ class InMemoryStorage:
             The data for the specified period, or None if no data is available.
 
         Examples:
-            >>> storage = InMemoryStorage()
+            >>> storage = MemoryStorage()
             >>> value = numpy.array([1, 2, 3])
             >>> instant = periods.Instant((2017, 1, 1))
             >>> period = periods.Period(("year", instant, 1))
@@ -51,8 +37,7 @@ class InMemoryStorage:
 
         """
 
-        period = _funcs.parse_period(period, self.is_eternal)
-        values = self._arrays.get(period)
+        values = self.__arrays__.get(period)
 
         if values is None:
             return None
@@ -67,7 +52,7 @@ class InMemoryStorage:
             period: The period for which the data should be stored.
 
         Examples:
-            >>> storage = InMemoryStorage()
+            >>> storage = MemoryStorage()
             >>> value = numpy.array([1, 2, 3])
             >>> instant = periods.Instant((2017, 1, 1))
             >>> period = periods.Period(("year", instant, 1))
@@ -79,10 +64,9 @@ class InMemoryStorage:
 
         """
 
-        period = _funcs.parse_period(period, self.is_eternal)
-        self._arrays = Arrays({period: value, **self._arrays})
+        self.__arrays__ = {period: value, **self.__arrays__}
 
-    def delete(self, period: Optional[Period] = None) -> None:
+    def delete(self, period: Period | None = None) -> None:
         """Delete the data for the specified period from memory.
 
         Args:
@@ -90,7 +74,7 @@ class InMemoryStorage:
                 specified, all data will be deleted.
 
         Examples:
-            >>> storage = InMemoryStorage()
+            >>> storage = MemoryStorage()
             >>> value = numpy.array([1, 2, 3])
             >>> instant = periods.Instant((2017, 1, 1))
             >>> period = periods.Period(("year", instant, 1))
@@ -113,16 +97,14 @@ class InMemoryStorage:
         """
 
         if period is None:
-            self._arrays = Arrays({})
+            self.__arrays__ = {}
             return None
 
-        period = _funcs.parse_period(period, self.is_eternal)
-
-        self._arrays = Arrays({
+        self.__arrays__ = {
             key: value
-            for key, value in self._arrays.items()
+            for key, value in self.__arrays__.items()
             if not period.contains(key)
-            })
+            }
 
     def periods(self) -> Sequence[Period]:
         """List of storage's known periods.
@@ -131,7 +113,7 @@ class InMemoryStorage:
             A sequence containing the storage's known periods.
 
         Examples:
-            >>> storage = InMemoryStorage()
+            >>> storage = MemoryStorage()
 
             >>> storage.periods()
             []
@@ -144,7 +126,7 @@ class InMemoryStorage:
 
         """
 
-        return list(self._arrays.keys())
+        return list(self.__arrays__.keys())
 
     def usage(self) -> MemoryUsage:
         """Memory usage of the storage.
@@ -153,22 +135,22 @@ class InMemoryStorage:
             A dictionary representing the storage's memory usage.
 
         Examples:
-            >>> storage = InMemoryStorage()
+            >>> storage = MemoryStorage()
 
             >>> storage.usage()
             {'cell_size': nan, 'nb_arrays': 0, 'total_nb_bytes': 0}
 
         """
 
-        if not self._arrays:
+        if not self.__arrays__:
             return MemoryUsage(
                 cell_size = numpy.nan,
                 nb_arrays = 0,
                 total_nb_bytes = 0,
                 )
 
-        nb_arrays = len(self._arrays)
-        array = next(iter(self._arrays.values()))
+        nb_arrays = len(self.__arrays__)
+        array = next(iter(self.__arrays__.values()))
         total = array.nbytes * nb_arrays
 
         return MemoryUsage(

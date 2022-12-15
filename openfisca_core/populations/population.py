@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from openfisca_core.data_storage.typing import MemoryUsage
+from openfisca_core.holders.typing import MemoryUsage
 from openfisca_core.types import (
     Array,
     Entity,

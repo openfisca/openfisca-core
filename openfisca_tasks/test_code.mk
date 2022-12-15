@@ -33,7 +33,6 @@ test-core: $(shell pytest --quiet --quiet --collect-only 2> /dev/null | cut -f 1
 	@$(call print_help,$@:)
 	@pytest --quiet --capture=no --xdoctest --xdoctest-verbose=0 \
 		openfisca_core/commons \
-		openfisca_core/data_storage \
 		openfisca_core/holders \
 		openfisca_core/types
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \

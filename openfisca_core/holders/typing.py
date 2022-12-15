@@ -1,11 +1,21 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring
 
+from __future__ import annotations
+
 from typing import Any
 from typing_extensions import Protocol, TypedDict
 
 import abc
 
 import numpy
+
+
+class Holder(Protocol):
+    @abc.abstractmethod
+    def clone(self, population: Any) -> Holder: ...
+
+    @abc.abstractmethod
+    def get_memory_usage(self) -> Any: ...
 
 
 class Storage(Protocol):
