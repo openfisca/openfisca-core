@@ -14,14 +14,12 @@ Official Public API:
     * :attr:`.Formula`
     * :attr:`.Holder`
     * :attr:`.Instant`
-    * :attr:`.MemoryUsage`
     * :attr:`.ParameterNodeAtInstant`
     * :attr:`.Params`
     * :attr:`.Period`
     * :attr:`.Population`
     * :attr:`.Role`
     * :attr:`.Simulation`
-    * :attr:`.Storage`
     * :attr:`.TaxBenefitSystem`
     * :attr:`.Variable`
 
@@ -59,10 +57,8 @@ from ._data import (  # noqa: F401
     Enum,
     EnumArray,
     Instant,
-    MemoryUsage,
     Period,
     )
-
 from ._domain import (  # noqa: F401
     Entity,
     Formula,
@@ -76,10 +72,6 @@ from ._domain import (  # noqa: F401
     Variable,
     )
 
-from ._infrastructure import (  # noqa: F401
-    Storage,
-    )
-
 __all__ = [
     "Array",
     "ArrayLike",
@@ -89,14 +81,12 @@ __all__ = [
     "Formula",
     "Holder",
     "Instant",
-    "MemoryUsage",
     "ParameterNodeAtInstant",
     "Params",
     "Period",
     "Population",
     "Role",
     "Simulation",
-    "Storage",
     "TaxBenefitSystem",
     "Variable",
     ]

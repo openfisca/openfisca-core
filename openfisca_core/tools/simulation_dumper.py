@@ -5,9 +5,9 @@ import os
 
 import numpy
 
-from openfisca_core.simulations import Simulation
 from openfisca_core.data_storage import OnDiskStorage
 from openfisca_core.periods import ETERNITY
+from openfisca_core.simulations import Simulation
 
 
 def dump_simulation(simulation, directory):
@@ -126,6 +126,6 @@ def _restore_holder(simulation, variable, directory):
 
     holder = simulation.get_holder(variable)
 
-    for period in disk_storage.get_known_periods():
+    for period in disk_storage.periods():
         value = disk_storage.get(period)
         holder.put_in_cache(value, period)
