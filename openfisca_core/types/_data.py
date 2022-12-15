@@ -96,6 +96,11 @@ class Period(Protocol):
 
     @property
     @abc.abstractmethod
+    def size(self) -> int:
+        """Abstract property."""
+
+    @property
+    @abc.abstractmethod
     def start(self) -> Any:
         """Abstract method."""
 

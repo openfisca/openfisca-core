@@ -9,7 +9,7 @@ import numpy
 from openfisca_core import periods
 
 
-class MemoryStorage:
+class MemoryRepo:
     """Class responsible for storing/retrieving vectors in/from memory."""
 
     #: A dictionary containing data that has been stored in memory.
@@ -25,7 +25,7 @@ class MemoryStorage:
             The data for the specified period, or None if no data is available.
 
         Examples:
-            >>> storage = MemoryStorage()
+            >>> storage = MemoryRepo()
             >>> value = numpy.array([1, 2, 3])
             >>> instant = periods.Instant((2017, 1, 1))
             >>> period = periods.Period(("year", instant, 1))
@@ -52,7 +52,7 @@ class MemoryStorage:
             period: The period for which the data should be stored.
 
         Examples:
-            >>> storage = MemoryStorage()
+            >>> storage = MemoryRepo()
             >>> value = numpy.array([1, 2, 3])
             >>> instant = periods.Instant((2017, 1, 1))
             >>> period = periods.Period(("year", instant, 1))
@@ -74,7 +74,7 @@ class MemoryStorage:
                 specified, all data will be deleted.
 
         Examples:
-            >>> storage = MemoryStorage()
+            >>> storage = MemoryRepo()
             >>> value = numpy.array([1, 2, 3])
             >>> instant = periods.Instant((2017, 1, 1))
             >>> period = periods.Period(("year", instant, 1))
@@ -113,7 +113,7 @@ class MemoryStorage:
             A sequence containing the storage's known periods.
 
         Examples:
-            >>> storage = MemoryStorage()
+            >>> storage = MemoryRepo()
 
             >>> storage.periods()
             []
@@ -135,7 +135,7 @@ class MemoryStorage:
             A dictionary representing the storage's memory usage.
 
         Examples:
-            >>> storage = MemoryStorage()
+            >>> storage = MemoryRepo()
 
             >>> storage.usage()
             {'cell_size': nan, 'nb_arrays': 0, 'total_nb_bytes': 0}

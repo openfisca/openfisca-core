@@ -13,7 +13,7 @@ from openfisca_core import indexed_enums as enums
 from openfisca_core import periods
 
 
-class DiskStorage:
+class DiskRepo:
     """Class responsible for storing/retrieving vectors on/from disk.
 
     Attributes:
@@ -57,7 +57,7 @@ class DiskStorage:
             >>> period = periods.Period(("year", instant, 1))
 
             >>> with tempfile.TemporaryDirectory() as directory:
-            ...     storage = DiskStorage(directory)
+            ...     storage = DiskRepo(directory)
             ...     storage.put(value, period)
             ...     storage.get(period)
             array([1, 2, 3])
@@ -86,7 +86,7 @@ class DiskStorage:
             >>> period = periods.Period(("year", instant, 1))
 
             >>> with tempfile.TemporaryDirectory() as directory:
-            ...     storage = DiskStorage(directory)
+            ...     storage = DiskRepo(directory)
             ...     storage.put(value, period)
             ...     storage.get(period)
             array([1, 2, 3])
@@ -118,19 +118,19 @@ class DiskStorage:
             >>> period = periods.Period(("year", instant, 1))
 
             >>> with tempfile.TemporaryDirectory() as directory:
-            ...     storage = DiskStorage(directory)
+            ...     storage = DiskRepo(directory)
             ...     storage.put(value, period)
             ...     storage.get(period)
             array([1, 2, 3])
 
             >>> with tempfile.TemporaryDirectory() as directory:
-            ...     storage = DiskStorage(directory)
+            ...     storage = DiskRepo(directory)
             ...     storage.put(value, period)
             ...     storage.delete(period)
             ...     storage.get(period)
 
             >>> with tempfile.TemporaryDirectory() as directory:
-            ...     storage = DiskStorage(directory)
+            ...     storage = DiskRepo(directory)
             ...     storage.put(value, period)
             ...     storage.delete()
             ...     storage.get(period)
@@ -160,12 +160,12 @@ class DiskStorage:
             >>> period = periods.Period(("year", instant, 1))
 
             >>> with tempfile.TemporaryDirectory() as directory:
-            ...     storage = DiskStorage(directory)
+            ...     storage = DiskRepo(directory)
             ...     storage.periods()
             []
 
             >>> with tempfile.TemporaryDirectory() as directory:
-            ...     storage = DiskStorage(directory)
+            ...     storage = DiskRepo(directory)
             ...     storage.put([], period)
             ...     storage.periods()
             [Period(('year', Instant((2017, 1, 1)), 1))]
@@ -184,7 +184,7 @@ class DiskStorage:
             >>> import tempfile
 
             >>> with tempfile.TemporaryDirectory() as directory:
-            ...     storage = DiskStorage(directory)
+            ...     storage = DiskRepo(directory)
             ...     storage.usage()
             Traceback (most recent call last):
             ...
@@ -250,7 +250,7 @@ class DiskStorage:
             >>> period = periods.Period(("year", instant, 1))
 
             >>> with tempfile.TemporaryDirectory() as directory:
-            ...     storage = DiskStorage(directory)
+            ...     storage = DiskRepo(directory)
             ...     storage.put(value, period)
             ...     storage._decode_file(storage.__files__[period])
             EnumArray([<Housing.TENANT: 'Tenant'>])

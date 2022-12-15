@@ -17,7 +17,7 @@ from openfisca_core import commons, errors, experimental
 from openfisca_core import indexed_enums as enums
 from openfisca_core import periods, tools
 
-from .storage import DiskStorage, MemoryStorage
+from .repos import DiskRepo, MemoryRepo
 
 
 class Holder:
@@ -35,13 +35,13 @@ class Holder:
 
         if self.storable:
             self.stores = sorteddict.SortedDict({
-                "memory": MemoryStorage(),
-                "disk": self.create_disk_storage(),
+                "memory": MemoryRepo(),
+                "disk": self.create_disk_repo(),
                 })
 
         else:
             self.stores = sorteddict.SortedDict({
-                "memory": MemoryStorage(),
+                "memory": MemoryRepo(),
                 })
 
     @property
@@ -120,7 +120,7 @@ class Holder:
 
         return new
 
-    def create_disk_storage(
+    def create_disk_repo(
             self,
             directory: str | None = None,
             preserve: bool = False,
@@ -130,9 +130,9 @@ class Holder:
         storage_dir = os.path.join(directory, self.name)
         if not os.path.isdir(storage_dir):
             os.mkdir(storage_dir)
-        return DiskStorage(storage_dir, preserve)
+        return DiskRepo(storage_dir, preserve)
 
-    def delete_arrays(self, period: Any = None):
+    def delete_arrays(self, period: Any = None) -> None:
         """
         If ``period`` is ``None``, remove all known values of the variable.
 
@@ -140,7 +140,7 @@ class Holder:
         """
 
         if self.eternal and period is not None:
-            period = periods.ETERNITY
+            period = periods.period(periods.ETERNITY)
 
         else:
             period = periods.period(period)
@@ -150,7 +150,7 @@ class Holder:
 
         return None
 
-    def get_array(self, period):
+    def get_array(self, period: Period) -> numpy.ndarray | None:
         """
         Get the value of the variable for the given period.
 
@@ -160,7 +160,7 @@ class Holder:
             return self.variable.default_array(self.population.count)
 
         if self.eternal:
-            period = periods.ETERNITY
+            period = periods.period(periods.ETERNITY)
 
         else:
             period = periods.period(period)
@@ -231,7 +231,7 @@ class Holder:
 
         return usage
 
-    def get_known_periods(self):
+    def get_known_periods(self) -> Sequence[Period]:
         """
         Get the list of periods the variable value is known for.
         """
@@ -318,9 +318,11 @@ class Holder:
         if self.variable.set_input:
             return self.variable.set_input(self, period, array)
 
-        return self._set(period, array)
+        self._set(period, array)
 
-    def _to_array(self, value):
+        return None
+
+    def _to_array(self, value: Any) -> numpy.ndarray:
         if not isinstance(value, numpy.ndarray):
             value = numpy.asarray(value)
 
@@ -347,11 +349,11 @@ class Holder:
 
         return value
 
-    def _set(self, period, value):
+    def _set(self, period: Period | None, value: numpy.ndarray | Sequence[Any]) -> None:
         value = self._to_array(value)
 
         if self.eternal:
-            period = periods.ETERNITY
+            period = periods.period(periods.ETERNITY)
 
         else:
             if period is None:
@@ -386,7 +388,7 @@ class Holder:
         else:
             self.stores["memory"].put(value, period)
 
-    def put_in_cache(self, value, period):
+    def put_in_cache(self, value: numpy.ndarray, period: Period) -> None:
         if not self.transient and not self.cacheable:
             return None
 

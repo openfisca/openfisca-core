@@ -60,7 +60,7 @@ def restore_simulation(directory, tax_benefit_system, **kwargs):
 
 
 def _dump_holder(holder, directory):
-    disk_storage = holder.create_disk_storage(directory, preserve = True)
+    disk_storage = holder.create_disk_repo(directory, preserve = True)
     for period in holder.get_known_periods():
         value = holder.get_array(period)
         disk_storage.put(value, period)
@@ -115,7 +115,7 @@ def _restore_entity(population, directory):
 
 def _restore_holder(simulation, variable, directory):
     storage_dir = os.path.join(directory, variable)
-    disk_storage = holders.DiskStorage(storage_dir, keep = True)
+    disk_storage = holders.DiskRepo(storage_dir, keep = True)
     disk_storage.restore()
 
     holder = simulation.get_holder(variable)

@@ -36,7 +36,7 @@ Examples:
 from __future__ import annotations
 
 import typing_extensions
-from typing import Any, Optional
+from typing import Any
 from typing_extensions import Protocol
 
 import abc
@@ -62,7 +62,7 @@ class Entity(Protocol):
     def get_variable(
             self, variable_name: Any,
             check_existence: Any = ...,
-            ) -> Optional[Any]:
+            ) -> Any | None:
         """Abstract method."""
 
 
@@ -117,6 +117,7 @@ class Simulation(Protocol):
     trace: Any
     tracer: Any
     memory_config: Any
+    opt_out_cache: Any
     data_storage_dir: Any
     tax_benefit_system: Any
 
@@ -133,7 +134,7 @@ class Simulation(Protocol):
         """Abstract method."""
 
     @abc.abstractmethod
-    def get_population(self, plural: Optional[Any]) -> Any:
+    def get_population(self, plural: Any | None) -> Any:
         """Abstract method."""
 
 
@@ -146,7 +147,7 @@ class TaxBenefitSystem(Protocol):
     def get_variable(
             self, variable_name: Any,
             check_existence: Any = ...,
-            ) -> Optional[Any]:
+            ) -> Any | None:
         """Abstract method."""
 
 
@@ -160,4 +161,9 @@ class Variable(Protocol):
     set_input: Any
     value_type: Any
     is_neutralized: Any
+    possible_values: Any
     definition_period: Any
+
+    @abc.abstractmethod
+    def default_array(self, array_size: Any) -> Any:
+        """Abstract method."""
