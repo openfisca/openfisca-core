@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from openfisca_core.types import Period
 from typing import Optional, Sequence
 
 import numpy
 
-from openfisca_core import periods, types
+from openfisca_core import periods
 
 from . import _funcs
 from ._arrays import Arrays
+from .typing import MemoryUsage
 
 
 class InMemoryStorage:
@@ -27,7 +29,7 @@ class InMemoryStorage:
     def __init__(self, is_eternal: bool = False) -> None:
         self.is_eternal = is_eternal
 
-    def get(self, period: types.Period) -> Optional[numpy.ndarray]:
+    def get(self, period: Period) -> Optional[numpy.ndarray]:
         """Retrieve the data for the specified period from memory.
 
         Args:
@@ -57,7 +59,7 @@ class InMemoryStorage:
 
         return values
 
-    def put(self, value: numpy.ndarray, period: types.Period) -> None:
+    def put(self, value: numpy.ndarray, period: Period) -> None:
         """Store the specified data in memory for the specified period.
 
         Args:
@@ -80,7 +82,7 @@ class InMemoryStorage:
         period = _funcs.parse_period(period, self.is_eternal)
         self._arrays = Arrays({period: value, **self._arrays})
 
-    def delete(self, period: Optional[types.Period] = None) -> None:
+    def delete(self, period: Optional[Period] = None) -> None:
         """Delete the data for the specified period from memory.
 
         Args:
@@ -122,7 +124,7 @@ class InMemoryStorage:
             if not period.contains(key)
             })
 
-    def get_known_periods(self) -> Sequence[types.Period]:
+    def periods(self) -> Sequence[Period]:
         """List of storage's known periods.
 
         Returns:
@@ -131,20 +133,20 @@ class InMemoryStorage:
         Examples:
             >>> storage = InMemoryStorage()
 
-            >>> storage.get_known_periods()
+            >>> storage.periods()
             []
 
             >>> instant = periods.Instant((2017, 1, 1))
             >>> period = periods.Period(("year", instant, 1))
             >>> storage.put([], period)
-            >>> storage.get_known_periods()
+            >>> storage.periods()
             [Period(('year', Instant((2017, 1, 1)), 1))]
 
         """
 
         return list(self._arrays.keys())
 
-    def get_memory_usage(self) -> types.MemoryUsage:
+    def usage(self) -> MemoryUsage:
         """Memory usage of the storage.
 
         Returns:
@@ -153,13 +155,13 @@ class InMemoryStorage:
         Examples:
             >>> storage = InMemoryStorage()
 
-            >>> storage.get_memory_usage()
+            >>> storage.usage()
             {'cell_size': nan, 'nb_arrays': 0, 'total_nb_bytes': 0}
 
         """
 
         if not self._arrays:
-            return types.MemoryUsage(
+            return MemoryUsage(
                 cell_size = numpy.nan,
                 nb_arrays = 0,
                 total_nb_bytes = 0,
@@ -169,7 +171,7 @@ class InMemoryStorage:
         array = next(iter(self._arrays.values()))
         total = array.nbytes * nb_arrays
 
-        return types.MemoryUsage(
+        return MemoryUsage(
             cell_size = array.itemsize,
             nb_arrays = nb_arrays,
             total_nb_bytes = total,
