@@ -21,5 +21,8 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
-from .helpers import set_input_dispatch_by_period, set_input_divide_by_period  # noqa: F401
+from .helpers import (  # noqa: F401
+    set_input_dispatch_by_period,
+    set_input_divide_by_period,
+    )
 from .holder import Holder  # noqa: F401
