@@ -3,7 +3,6 @@ include openfisca_tasks/lint.mk
 include openfisca_tasks/publish.mk
 include openfisca_tasks/serve.mk
 include openfisca_tasks/test_code.mk
-include openfisca_tasks/test_doc.mk
 
 ## To share info with the user, but no action is needed.
 print_info = $$(tput setaf 6)[i]$$(tput sgr0)

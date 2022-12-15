@@ -4,8 +4,8 @@ import shutil
 import numpy
 
 from openfisca_core import periods
-from openfisca_core.periods import DateUnit
 from openfisca_core.indexed_enums import EnumArray
+from openfisca_core.periods import DateUnit
 
 
 class OnDiskStorage:
@@ -29,8 +29,8 @@ class OnDiskStorage:
 
     def get(self, period):
         if self.is_eternal:
-            period = periods.period(DateUnit.ETERNITY)
-        period = periods.period(period)
+            period = periods.build_period(DateUnit.ETERNITY)
+        period = periods.build_period(period)
 
         values = self._files.get(period)
         if values is None:
@@ -39,8 +39,8 @@ class OnDiskStorage:
 
     def put(self, value, period):
         if self.is_eternal:
-            period = periods.period(DateUnit.ETERNITY)
-        period = periods.period(period)
+            period = periods.build_period(DateUnit.ETERNITY)
+        period = periods.build_period(period)
 
         filename = str(period)
         path = os.path.join(self.storage_dir, filename) + '.npy'
@@ -56,14 +56,14 @@ class OnDiskStorage:
             return
 
         if self.is_eternal:
-            period = periods.period(DateUnit.ETERNITY)
-        period = periods.period(period)
+            period = periods.build_period(DateUnit.ETERNITY)
+        period = periods.build_period(period)
 
         if period is not None:
             self._files = {
                 period_item: value
                 for period_item, value in self._files.items()
-                if not period.contains(period_item)
+                if period_item not in period
                 }
 
     def get_known_periods(self):
@@ -77,7 +77,7 @@ class OnDiskStorage:
                 continue
             path = os.path.join(self.storage_dir, filename)
             filename_core = filename.rsplit('.', 1)[0]
-            period = periods.period(filename_core)
+            period = periods.build_period(filename_core)
             files[period] = path
 
     def __del__(self):

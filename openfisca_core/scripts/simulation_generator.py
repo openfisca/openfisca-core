@@ -1,6 +1,7 @@
-import numpy as np
-
 import random
+
+import numpy
+
 from openfisca_core.simulations import Simulation
 
 
@@ -17,14 +18,14 @@ def make_simulation(tax_benefit_system, nb_persons, nb_groups, **kwargs):
         >>> simulation.calculate('revenu_disponible', 2017)
     """
     simulation = Simulation(tax_benefit_system = tax_benefit_system, **kwargs)
-    simulation.persons.ids = np.arange(nb_persons)
+    simulation.persons.ids = numpy.arange(nb_persons)
     simulation.persons.count = nb_persons
     adults = [0] + sorted(random.sample(range(1, nb_persons), nb_groups - 1))
 
-    members_entity_id = np.empty(nb_persons, dtype = int)
+    members_entity_id = numpy.empty(nb_persons, dtype = int)
 
     # A legacy role is an index that every person within an entity has. For instance, the 'demandeur' has legacy role 0, the 'conjoint' 1, the first 'child' 2, the second 3, etc.
-    members_legacy_role = np.empty(nb_persons, dtype = int)
+    members_legacy_role = numpy.empty(nb_persons, dtype = int)
 
     id_group = -1
     for id_person in range(nb_persons):
@@ -40,11 +41,11 @@ def make_simulation(tax_benefit_system, nb_persons, nb_groups, **kwargs):
         if not entity.is_person:
             entity.members_entity_id = members_entity_id
             entity.count = nb_groups
-            entity.members_role = np.where(members_legacy_role == 0, entity.flattened_roles[0], entity.flattened_roles[-1])
+            entity.members_role = numpy.where(members_legacy_role == 0, entity.flattened_roles[0], entity.flattened_roles[-1])
     return simulation
 
 
-def randomly_init_variable(simulation, variable_name, period, max_value, condition = None):
+def randomly_init_variable(simulation, variable_name: str, period, max_value, condition = None):
     """
         Initialise a variable with random values (from 0 to max_value) for the given period.
         If a condition vector is provided, only set the value of persons or groups for which condition is True.
@@ -62,5 +63,5 @@ def randomly_init_variable(simulation, variable_name, period, max_value, conditi
         condition = True
     variable = simulation.tax_benefit_system.get_variable(variable_name)
     population = simulation.get_variable_population(variable_name)
-    value = (np.random.rand(population.count) * max_value * condition).astype(variable.dtype)
+    value = (numpy.random.rand(population.count) * max_value * condition).astype(variable.dtype)
     simulation.set_input(variable_name, period, value)

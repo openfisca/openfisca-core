@@ -6,11 +6,11 @@
 # The following are transitional imports to ensure non-breaking changes.
 # Could be deprecated in the next major release.
 
-from openfisca_core.simulations import (    # noqa: F401
-    Simulation,
-    SimulationBuilder,
+from openfisca_core.simulations import (  # noqa: F401
     calculate_output_add,
     calculate_output_divide,
     check_type,
+    Simulation,
+    SimulationBuilder,
     transform_to_strict_syntax,
     )

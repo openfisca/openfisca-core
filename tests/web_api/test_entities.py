@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from http import client
 import json
+from http import client
 
 from openfisca_country_template import entities
-
 
 # /entities
 

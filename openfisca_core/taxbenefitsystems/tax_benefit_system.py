@@ -1,24 +1,29 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Sequence
+import typing
+from typing import Any, Dict, Optional, Sequence, Union
 
 import copy
+import functools
 import glob
 import importlib
 import inspect
 import logging
 import os
-import pkg_resources
 import sys
 import traceback
-import typing
 
-from openfisca_core import commons, periods, variables
+import importlib_metadata
+
+from openfisca_core import commons, periods, types, variables
 from openfisca_core.entities import Entity
-from openfisca_core.errors import VariableNameConflictError, VariableNotFoundError
+from openfisca_core.errors import (
+    VariableNameConflictError,
+    VariableNotFoundError,
+    )
 from openfisca_core.parameters import ParameterNode
 from openfisca_core.periods import Instant, Period
-from openfisca_core.populations import Population, GroupPopulation
+from openfisca_core.populations import GroupPopulation, Population
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.variables import Variable
 
@@ -26,10 +31,10 @@ log = logging.getLogger(__name__)
 
 
 class TaxBenefitSystem:
-    """
-    Represents the legislation.
+    """Represents the legislation.
 
-    It stores parameters (values defined for everyone) and variables (values defined for some given entity e.g. a person).
+    It stores parameters (values defined for everyone) and variables (values
+    defined for some given entity e.g. a person).
 
     Attributes:
         parameters: Directory containing the YAML parameter files.
@@ -38,8 +43,10 @@ class TaxBenefitSystem:
         entities: Entities used by the tax benefit system.
 
     """
+    person_entity: Entity
+
     _base_tax_benefit_system = None
-    _parameters_at_instant_cache: Optional[Dict[Any, Any]] = None
+    _parameters_at_instant_cache: Dict[Instant, types.ParameterNodeAtInstant] = {}
     person_key_plural = None
     preprocess_parameters = None
     baseline = None  # Baseline tax-benefit system. Used only by reforms. Note: Reforms can be chained.
@@ -49,7 +56,6 @@ class TaxBenefitSystem:
     def __init__(self, entities: Sequence[Entity]) -> None:
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
         self.parameters: Optional[ParameterNode] = None
-        self._parameters_at_instant_cache = {}  # weakref.WeakValueDictionary()
         self.variables: Dict[Any, Any] = {}
         self.open_api_config: Dict[Any, Any] = {}
         # Tax benefit systems are mutable, so entities (which need to know about our variables) can't be shared among them
@@ -154,33 +160,45 @@ class TaxBenefitSystem:
         """
         return self.load_variable(variable, update = False)
 
-    def replace_variable(self, variable):
-        """
-        Replaces an existing OpenFisca variable in the tax and benefit system by a new one.
+    def replace_variable(self, variable: Variable) -> None:
+        """Replaces an existing variable by a new one.
 
         The new variable must have the same name than the replaced one.
 
-        If no variable with the given name exists in the tax and benefit system, no error will be raised and the new variable will be simply added.
+        If no variable with the given name exists in the Tax-Benefit system, no
+        error will be raised and the new variable will be simply added.
 
-        :param Variable variable: New variable to add. Must be a subclass of Variable.
+        Args:
+            variable: The variable to replace.
+
         """
         name = variable.__name__
+
         if self.variables.get(name) is not None:
             del self.variables[name]
+
         self.load_variable(variable, update = False)
 
-    def update_variable(self, variable):
-        """
-        Updates an existing OpenFisca variable in the tax and benefit system.
+    def update_variable(self, variable: Variable) -> Variable:
+        """Update an existing variable in the Tax-Benefit system.
 
-        All attributes of the updated variable that are not explicitely overridden by the new ``variable`` will stay unchanged.
+        All attributes of the updated variable that are not explicitly
+        overridden by the new ``variable`` will stay unchanged.
 
         The new variable must have the same name than the updated one.
 
-        If no variable with the given name exists in the tax and benefit system, no error will be raised and the new variable will be simply added.
+        If no variable with the given name exists in the tax and benefit
+        system, no error will be raised and the new variable will be simply
+        added.
 
-        :param Variable variable: Variable to add. Must be a subclass of Variable.
+        Args:
+            variable: Variable to add. Must be a subclass of Variable.
+
+        Returns:
+            The added variable.
+
         """
+
         return self.load_variable(variable, update = True)
 
     def add_variables_from_file(self, file_path):
@@ -292,20 +310,29 @@ class TaxBenefitSystem:
 
         return reform(self)
 
-    def get_variable(self, variable_name, check_existence = False):
+    def get_variable(
+            self,
+            variable_name: str,
+            check_existence: bool = False,
+            ) -> Optional[Variable]:
         """
         Get a variable from the tax and benefit system.
 
         :param variable_name: Name of the requested variable.
         :param check_existence: If True, raise an error if the requested variable does not exist.
         """
-        variables = self.variables
-        found = variables.get(variable_name)
-        if not found and check_existence:
-            raise VariableNotFoundError(variable_name, self)
-        return found
+        variables: Dict[str, Optional[Variable]] = self.variables
+        variable: Optional[Variable] = variables.get(variable_name)
 
-    def neutralize_variable(self, variable_name):
+        if isinstance(variable, Variable):
+            return variable
+
+        if not isinstance(variable, Variable) and not check_existence:
+            return variable
+
+        raise VariableNotFoundError(variable_name, self)
+
+    def neutralize_variable(self, variable_name: str):
         """
         Neutralizes an OpenFisca variable existing in the tax and benefit system.
 
@@ -315,8 +342,24 @@ class TaxBenefitSystem:
         """
         self.variables[variable_name] = variables.get_neutralized_variable(self.get_variable(variable_name))
 
-    def annualize_variable(self, variable_name: str, period: typing.Optional[Period] = None):
-        self.variables[variable_name] = variables.get_annualized_variable(self.get_variable(variable_name, period))
+    def annualize_variable(
+            self,
+            variable_name: str,
+            period: Optional[Period] = None,
+            ) -> None:
+        check: bool
+        variable: Optional[Variable]
+        annualised_variable: Variable
+
+        check = bool(period)
+        variable = self.get_variable(variable_name, check)
+
+        if variable is None:
+            raise VariableNotFoundError(variable_name, self)
+
+        annualised_variable = variables.get_annualized_variable(variable)
+
+        self.variables[variable_name] = annualised_variable
 
     def load_parameters(self, path_to_yaml_dir):
         """
@@ -342,36 +385,49 @@ class TaxBenefitSystem:
             return self.get_parameters_at_instant(instant)
         return baseline._get_baseline_parameters_at_instant(instant)
 
-    def get_parameters_at_instant(self, instant):
-        """
-        Get the parameters of the legislation at a given instant
+    @functools.lru_cache()
+    def get_parameters_at_instant(
+            self,
+            instant: Union[str, int, Period, Instant],
+            ) -> Optional[types.ParameterNodeAtInstant]:
+        """Get the parameters of the legislation at a given instant
 
-        :param instant: :obj:`str` of the format 'YYYY-MM-DD' or :class:`.Instant` instance.
-        :returns: The parameters of the legislation at a given instant.
-        :rtype: :class:`.ParameterNodeAtInstant`
+        Args:
+            instant: :obj:`str` formatted "YYYY-MM-DD" or :class:`~openfisca_core.periods.Instant`.
+
+        Returns:
+            The parameters of the legislation at a given instant.
+
         """
-        if isinstance(instant, Period):
-            instant = instant.start
+
+        key: Optional[Instant]
+        msg: str
+
+        if isinstance(instant, Instant):
+            key = instant
+
+        elif isinstance(instant, Period):
+            key = instant.start
+
         elif isinstance(instant, (str, int)):
-            instant = periods.instant(instant)
+            key = periods.build_instant(instant)
+
         else:
-            assert isinstance(instant, Instant), "Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {}.".format(instant)
+            msg = f"Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {instant}."
+            raise AssertionError(msg)
 
-        parameters_at_instant = self._parameters_at_instant_cache.get(instant)
-        if parameters_at_instant is None and self.parameters is not None:
-            parameters_at_instant = self.parameters.get_at_instant(str(instant))
-            self._parameters_at_instant_cache[instant] = parameters_at_instant
-        return parameters_at_instant
+        if self.parameters is None:
+            return None
 
-    def get_package_metadata(self):
-        """
-            Gets metatada relative to the country package the tax and benefit system is built from.
+        return self.parameters.get_at_instant(key)
 
-            :returns: Country package metadata
-            :rtype: dict
+    def get_package_metadata(self) -> Dict[str, str]:
+        """Gets metadata relative to the country package.
 
-            Example:
+        Returns:
+            A dictionary with the country package metadata
 
+        Example:
             >>> tax_benefit_system.get_package_metadata()
             >>> {
             >>>    'location': '/path/to/dir/containing/package',
@@ -379,7 +435,9 @@ class TaxBenefitSystem:
             >>>    'repository_url': 'https://github.com/openfisca/openfisca-france',
             >>>    'version': '17.2.0'
             >>>    }
+
         """
+
         # Handle reforms
         if self.baseline:
             return self.baseline.get_package_metadata()
@@ -392,38 +450,52 @@ class TaxBenefitSystem:
             }
 
         module = inspect.getmodule(self)
-        if not module.__package__:
+
+        if module is None:
             return fallback_metadata
+
+        if module.__package__ is None:
+            return fallback_metadata
+
         package_name = module.__package__.split('.')[0]
+
         try:
-            distribution = pkg_resources.get_distribution(package_name)
-        except pkg_resources.DistributionNotFound:
+            distribution = importlib_metadata.distribution(package_name)
+
+        except importlib_metadata.PackageNotFoundError:
             return fallback_metadata
 
-        location = inspect.getsourcefile(module).split(package_name)[0].rstrip('/')
+        source_file = inspect.getsourcefile(module)
 
-        home_page_metadatas = [
-            metadata.split(':', 1)[1].strip(' ')
-            for metadata in distribution._get_metadata(distribution.PKG_INFO) if 'Home-page' in metadata
-            ]
-        repository_url = home_page_metadatas[0] if home_page_metadatas else ''
+        if source_file is not None:
+            location = source_file.split(package_name)[0].rstrip("/")
+
+        else:
+            location = ""
+
+        metadata = distribution.metadata
+
         return {
-            'name': distribution.key,
+            'name': metadata["Name"].lower(),
             'version': distribution.version,
-            'repository_url': repository_url,
+            'repository_url': metadata["Home-page"],
             'location': location,
             }
 
-    def get_variables(self, entity = None):
+    def get_variables(
+            self,
+            entity: Optional[Entity] = None,
+            ) -> Dict[str, Variable]:
+        """Gets all variables contained in a tax and benefit system.
+
+        Args:
+            entity: If set, returns the variable defined for the given entity.
+
+        Returns:
+            A dictionary, indexed by variable names.
+
         """
-        Gets all variables contained in a tax and benefit system.
 
-        :param Entity entity: If set, returns only the variable defined for the given entity.
-
-        :returns: A dictionary, indexed by variable names.
-        :rtype: dict
-
-        """
         if not entity:
             return self.variables
         else:

@@ -1,14 +1,21 @@
+from __future__ import annotations
+
+from openfisca_core.periods.typing import Period
+from typing import Any, Optional, Sequence, Union
+
 import os
 import warnings
 
 import numpy
 import psutil
 
-from openfisca_core import commons, periods, tools
-from openfisca_core.errors import PeriodMismatchError
-from openfisca_core.data_storage import InMemoryStorage, OnDiskStorage
-from openfisca_core.indexed_enums import Enum
-from openfisca_core.periods import DateUnit
+from openfisca_core import commons
+from openfisca_core import data_storage as storage
+from openfisca_core import errors
+from openfisca_core import indexed_enums as enums
+from openfisca_core import periods, tools
+
+from .memory_usage import MemoryUsage
 
 
 class Holder:
@@ -20,7 +27,7 @@ class Holder:
         self.population = population
         self.variable = variable
         self.simulation = population.simulation
-        self._memory_storage = InMemoryStorage(is_eternal = (self.variable.definition_period == DateUnit.ETERNITY))
+        self._memory_storage = storage.InMemoryStorage(is_eternal = (self.variable.definition_period == periods.DateUnit.ETERNITY))
 
         # By default, do not activate on-disk storage, or variable dropping
         self._disk_storage = None
@@ -55,9 +62,9 @@ class Holder:
         storage_dir = os.path.join(directory, self.variable.name)
         if not os.path.isdir(storage_dir):
             os.mkdir(storage_dir)
-        return OnDiskStorage(
+        return storage.OnDiskStorage(
             storage_dir,
-            is_eternal = (self.variable.definition_period == DateUnit.ETERNITY),
+            is_eternal = (self.variable.definition_period == periods.DateUnit.ETERNITY),
             preserve_storage_dir = preserve
             )
 
@@ -86,28 +93,49 @@ class Holder:
         if self._disk_storage:
             return self._disk_storage.get(period)
 
-    def get_memory_usage(self):
+    def get_memory_usage(self) -> MemoryUsage:
+        """Get data about the virtual memory usage of the Holder.
+
+        Returns:
+            Memory usage data.
+
+        Examples:
+            >>> from pprint import pprint
+
+            >>> from openfisca_core import (
+            ...     entities,
+            ...     populations,
+            ...     simulations,
+            ...     taxbenefitsystems,
+            ...     variables,
+            ...     )
+
+            >>> entity = entities.Entity("", "", "", "")
+
+            >>> class MyVariable(variables.Variable):
+            ...     definition_period = "year"
+            ...     entity = entity
+            ...     value_type = int
+
+            >>> population = populations.Population(entity)
+            >>> variable = MyVariable()
+            >>> holder = Holder(variable, population)
+
+            >>> tbs = taxbenefitsystems.TaxBenefitSystem([entity])
+            >>> entities = {entity.key: population}
+            >>> simulation = simulations.Simulation(tbs, entities)
+            >>> holder.simulation = simulation
+
+            >>> pprint(holder.get_memory_usage(), indent = 3)
+            {  'cell_size': nan,
+               'dtype': <class 'numpy.int32'>,
+               'nb_arrays': 0,
+               'nb_cells_by_array': 0,
+               'total_nb_bytes': 0...
+
         """
-        Get data about the virtual memory usage of the holder.
 
-        :returns: Memory usage data
-        :rtype: dict
-
-        Example:
-
-        >>> holder.get_memory_usage()
-        >>> {
-        >>>    'nb_arrays': 12,  # The holder contains the variable values for 12 different periods
-        >>>    'nb_cells_by_array': 100, # There are 100 entities (e.g. persons) in our simulation
-        >>>    'cell_size': 8,  # Each value takes 8B of memory
-        >>>    'dtype': dtype('float64')  # Each value is a float 64
-        >>>    'total_nb_bytes': 10400  # The holder uses 10.4kB of virtual memory
-        >>>    'nb_requests': 24  # The variable has been computed 24 times
-        >>>    'nb_requests_by_array': 2  # Each array stored has been on average requested twice
-        >>>    }
-        """
-
-        usage = dict(
+        usage = MemoryUsage(
             nb_cells_by_array = self.population.count,
             dtype = self.variable.dtype,
             )
@@ -131,25 +159,60 @@ class Holder:
         return list(self._memory_storage.get_known_periods()) + list((
             self._disk_storage.get_known_periods() if self._disk_storage else []))
 
-    def set_input(self, period, array):
+    def set_input(
+            self,
+            period: Period,
+            array: Union[numpy.ndarray, Sequence[Any]],
+            ) -> Optional[numpy.ndarray]:
+        """Set a Variable's array of values of a given Period.
+
+        Args:
+            period: The period at which the value is set.
+            array: The input value for the variable.
+
+        Returns:
+            The set input array.
+
+        Note:
+            If a ``set_input`` property has been set for the variable, this
+            method may accept inputs for periods not matching the
+            ``definition_period`` of the Variable. To read
+            more about this, check the `documentation`_.
+
+        Examples:
+            >>> from openfisca_core import entities, populations, variables
+            >>> entity = entities.Entity("", "", "", "")
+
+            >>> class MyVariable(variables.Variable):
+            ...     definition_period = "year"
+            ...     entity = entity
+            ...     value_type = int
+
+            >>> variable = MyVariable()
+
+            >>> population = populations.Population(entity)
+            >>> population.count = 2
+
+            >>> holder = Holder(variable, population)
+            >>> holder.set_input("2018", numpy.array([12.5, 14]))
+            >>> holder.get_array("2018")
+            array([12, 14], dtype=int32)
+
+            >>> holder.set_input("2018", [12.5, 14])
+            >>> holder.get_array("2018")
+            array([12, 14], dtype=int32)
+
+        .. _documentation:
+            https://openfisca.org/doc/coding-the-legislation/35_periods.html#set-input-automatically-process-variable-inputs-defined-for-periods-not-matching-the-definition-period
+
         """
-        Set a variable's value (``array``) for a given period (``period``)
 
-        :param array: the input value for the variable
-        :param period: the period at which the value is setted
+        period = periods.build_period(period)
 
-        Example :
+        if period is None:
+            raise ValueError(f"Invalid period value: {period}")
 
-        >>> holder.set_input([12, 14], '2018-04')
-        >>> holder.get_array('2018-04')
-        >>> [12, 14]
-
-
-        If a ``set_input`` property has been set for the variable, this method may accept inputs for periods not matching the ``definition_period`` of the variable. To read more about this, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#set-input-automatically-process-variable-inputs-defined-for-periods-not-matching-the-definition-period>`_.
-        """
-
-        period = periods.period(period)
-        if period.unit == DateUnit.ETERNITY and self.variable.definition_period != DateUnit.ETERNITY:
+        if period.unit == periods.DateUnit.ETERNITY and self.variable.definition_period != periods.DateUnit.ETERNITY:
             error_message = os.linesep.join([
                 'Unable to set a value for variable {0} for DateUnit.ETERNITY.',
                 '{0} is only defined for {1}s. Please adapt your input.',
@@ -157,7 +220,7 @@ class Holder:
                     self.variable.name,
                     self.variable.definition_period
                 )
-            raise PeriodMismatchError(
+            raise errors.PeriodMismatchError(
                 self.variable.name,
                 period,
                 self.variable.definition_period,
@@ -185,7 +248,7 @@ class Holder:
             raise ValueError(
                 'Unable to set value "{}" for variable "{}", as its length is {} while there are {} {} in the simulation.'
                 .format(value, self.variable.name, len(value), self.population.count, self.population.entity.plural))
-        if self.variable.value_type == Enum:
+        if self.variable.value_type == enums.Enum:
             value = self.variable.possible_values.encode(value)
         if value.dtype != self.variable.dtype:
             try:
@@ -198,7 +261,7 @@ class Holder:
 
     def _set(self, period, value):
         value = self._to_array(value)
-        if self.variable.definition_period != DateUnit.ETERNITY:
+        if self.variable.definition_period != periods.DateUnit.ETERNITY:
             if period is None:
                 raise ValueError('A period must be specified to set values, except for variables with DateUnit.ETERNITY as as period_definition.')
             if (self.variable.definition_period != period.unit or period.size > 1):
@@ -210,7 +273,7 @@ class Holder:
                     f'If you are the maintainer of "{name}", you can consider adding it a set_input attribute to enable automatic period casting.'
                     ])
 
-                raise PeriodMismatchError(
+                raise errors.PeriodMismatchError(
                     self.variable.name,
                     period,
                     self.variable.definition_period,

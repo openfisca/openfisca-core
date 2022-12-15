@@ -6,22 +6,22 @@ from .variables import TestVariable
 
 
 class TestEntity(Entity):
-    def get_variable(self, variable_name):
+    def get_variable(self, variable_name: str):
         result = TestVariable(self)
         result.name = variable_name
         return result
 
-    def check_variable_defined_for_entity(self, variable_name):
+    def check_variable_defined_for_entity(self, variable_name: str):
         return True
 
 
 class TestGroupEntity(GroupEntity):
-    def get_variable(self, variable_name):
+    def get_variable(self, variable_name: str):
         result = TestVariable(self)
         result.name = variable_name
         return result
 
-    def check_variable_defined_for_entity(self, variable_name):
+    def check_variable_defined_for_entity(self, variable_name: str):
         return True
 
 

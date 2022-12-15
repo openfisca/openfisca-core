@@ -1,9 +1,10 @@
 import copy
-import dpath.util
-from http import client
 import json
+from http import client
 
-from openfisca_country_template.situation_examples import single, couple
+import dpath.util
+
+from openfisca_country_template.situation_examples import couple, single
 
 
 def assert_items_equal(x, y):

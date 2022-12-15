@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from http.client import OK
+
 from openfisca_core.scripts import build_tax_benefit_system
 from openfisca_web_api.app import create_app
-
 
 TEST_COUNTRY_PACKAGE_NAME = 'openfisca_country_template'
 TEST_EXTENSION_PACKAGE_NAMES = ['openfisca_extension_template']

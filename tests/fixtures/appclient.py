@@ -20,7 +20,7 @@ def test_client(tax_benefit_system):
             class new_variable(Variable):
                 value_type = float
                 entity = entities.Person
-                definition_period = DateUnit.MONTH
+                definition_period = periods.DateUnit.MONTH
                 label = "New variable"
                 reference = "https://law.gov.example/new_variable"  # Always use the most official source
 

@@ -1,8 +1,9 @@
 import copy
-import dpath.util
 import json
-from http import client
 import os
+from http import client
+
+import dpath.util
 import pytest
 
 from openfisca_country_template.situation_examples import couple
@@ -41,8 +42,8 @@ def check_response(client, data, expected_error_code, path_to_check, content_to_
     ('{"persons": {"bob": {}}, "households": {"household": {"parents": ["unexpected_person_id"]}}}', client.BAD_REQUEST, 'households/household/parents', 'has not been declared in persons',),
     ('{"persons": {"bob": {}}, "households": {"household": {"parents": ["bob", "bob"]}}}', client.BAD_REQUEST, 'households/household/parents', 'has been declared more than once',),
     ('{"persons": {"bob": {}}, "households": {"household": {"parents": ["bob", {}]}}}', client.BAD_REQUEST, 'households/household/parents/1', 'Invalid type',),
-    ('{"persons": {"bob": {"salary": {"invalid period": 2000 }}}}', client.BAD_REQUEST, 'persons/bob/salary', 'Expected a period',),
-    ('{"persons": {"bob": {"salary": {"invalid period": null }}}}', client.BAD_REQUEST, 'persons/bob/salary', 'Expected a period',),
+    ('{"persons": {"bob": {"salary": {"invalid period": 2000 }}}}', client.BAD_REQUEST, 'persons/bob/salary', 'is not a valid period',),
+    ('{"persons": {"bob": {"salary": {"invalid period": null }}}}', client.BAD_REQUEST, 'persons/bob/salary', 'is not a valid period',),
     ('{"persons": {"bob": {"basic_income": {"2017": 2000 }}}, "households": {"household": {"parents": ["bob"]}}}', client.BAD_REQUEST, 'persons/bob/basic_income/2017', '"basic_income" can only be set for one month',),
     ('{"persons": {"bob": {"salary": {"ETERNITY": 2000 }}}, "households": {"household": {"parents": ["bob"]}}}', client.BAD_REQUEST, 'persons/bob/salary/ETERNITY', 'salary is only defined for months',),
     ('{"persons": {"alice": {}, "bob": {}, "charlie": {}}, "households": {"_": {"parents": ["alice", "bob", "charlie"]}}}', client.BAD_REQUEST, 'households/_/parents', 'at most 2 parents in a household',),
@@ -268,7 +269,7 @@ def test_encoding_period_id(test_client):
     response_json = json.loads(response.data.decode('utf-8'))
 
     # In Python 3, there is no encoding issue.
-    if "Expected a period" not in str(response.data):
+    if "is not a valid period" not in str(response.data):
         message = "'à' is not a valid ASCII value."
         text = response_json['error']
         assert message in text

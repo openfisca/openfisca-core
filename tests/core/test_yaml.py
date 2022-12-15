@@ -2,10 +2,10 @@ import os
 import subprocess
 
 import pytest
+
 import openfisca_extension_template
 
 from openfisca_core.tools.test_runner import run_tests
-
 from tests.fixtures import yaml_tests
 
 yaml_tests_dir = os.path.dirname(yaml_tests.__file__)

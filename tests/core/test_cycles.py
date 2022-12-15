@@ -4,14 +4,13 @@ from openfisca_country_template import entities
 
 from openfisca_core import periods, tools
 from openfisca_core.errors import CycleError
-from openfisca_core.periods import DateUnit
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.variables import Variable
 
 
 @pytest.fixture
 def reference_period():
-    return periods.period('2013-01')
+    return periods.build_period('2013-01')
 
 
 @pytest.fixture
@@ -23,7 +22,7 @@ def simulation(tax_benefit_system):
 class variable1(Variable):
     value_type = int
     entity = entities.Person
-    definition_period = DateUnit.MONTH
+    definition_period = periods.DateUnit.MONTH
 
     def formula(person, period):
         return person('variable2', period)
@@ -32,7 +31,7 @@ class variable1(Variable):
 class variable2(Variable):
     value_type = int
     entity = entities.Person
-    definition_period = DateUnit.MONTH
+    definition_period = periods.DateUnit.MONTH
 
     def formula(person, period):
         return person('variable1', period)
@@ -42,7 +41,7 @@ class variable2(Variable):
 class variable3(Variable):
     value_type = int
     entity = entities.Person
-    definition_period = DateUnit.MONTH
+    definition_period = periods.DateUnit.MONTH
 
     def formula(person, period):
         return person('variable4', period.last_month)
@@ -51,7 +50,7 @@ class variable3(Variable):
 class variable4(Variable):
     value_type = int
     entity = entities.Person
-    definition_period = DateUnit.MONTH
+    definition_period = periods.DateUnit.MONTH
 
     def formula(person, period):
         return person('variable3', period)
@@ -62,7 +61,7 @@ class variable4(Variable):
 class variable5(Variable):
     value_type = int
     entity = entities.Person
-    definition_period = DateUnit.MONTH
+    definition_period = periods.DateUnit.MONTH
 
     def formula(person, period):
         variable6 = person('variable6', period.last_month)
@@ -72,7 +71,7 @@ class variable5(Variable):
 class variable6(Variable):
     value_type = int
     entity = entities.Person
-    definition_period = DateUnit.MONTH
+    definition_period = periods.DateUnit.MONTH
 
     def formula(person, period):
         variable5 = person('variable5', period)
@@ -82,7 +81,7 @@ class variable6(Variable):
 class variable7(Variable):
     value_type = int
     entity = entities.Person
-    definition_period = DateUnit.MONTH
+    definition_period = periods.DateUnit.MONTH
 
     def formula(person, period):
         variable5 = person('variable5', period)
@@ -93,7 +92,7 @@ class variable7(Variable):
 class cotisation(Variable):
     value_type = int
     entity = entities.Person
-    definition_period = DateUnit.MONTH
+    definition_period = periods.DateUnit.MONTH
 
     def formula(person, period):
         if period.start.month == 12:

@@ -2,7 +2,12 @@ import tempfile
 
 import pytest
 
-from openfisca_core.parameters import ParameterNotFound, ParameterNode, ParameterNodeAtInstant, load_parameter_file
+from openfisca_core.parameters import (
+    load_parameter_file,
+    ParameterNode,
+    ParameterNodeAtInstant,
+    ParameterNotFound,
+    )
 
 
 def test_get_at_instant(tax_benefit_system):

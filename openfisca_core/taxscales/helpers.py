@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import logging
 import typing
+
+import logging
 
 from openfisca_core import taxscales
 

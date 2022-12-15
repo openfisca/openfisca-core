@@ -21,23 +21,23 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
 
     '''
 
-    import numpy as np
+    import numpy
 
     if absolute_error_margin is None and relative_error_margin is None:
         absolute_error_margin = 0
-    if not isinstance(value, np.ndarray):
-        value = np.array(value)
+    if not isinstance(value, numpy.ndarray):
+        value = numpy.array(value)
     if isinstance(value, EnumArray):
         return assert_enum_equals(value, target_value, message)
-    if np.issubdtype(value.dtype, np.datetime64):
-        target_value = np.array(target_value, dtype = value.dtype)
+    if numpy.issubdtype(value.dtype, numpy.datetime64):
+        target_value = numpy.array(target_value, dtype = value.dtype)
         assert_datetime_equals(value, target_value, message)
     if isinstance(target_value, str):
         target_value = eval_expression(target_value)
 
-    target_value = np.array(target_value).astype(np.float32)
+    target_value = numpy.array(target_value).astype(numpy.float32)
 
-    value = np.array(value).astype(np.float32)
+    value = numpy.array(value).astype(numpy.float32)
     diff = abs(target_value - value)
     if absolute_error_margin is not None:
         assert (diff <= absolute_error_margin).all(), \

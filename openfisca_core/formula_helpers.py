@@ -6,4 +6,8 @@
 # The following are transitional imports to ensure non-breaking changes.
 # Could be deprecated in the next major release.
 
-from openfisca_core.commons import apply_thresholds, concat, switch  # noqa: F401
+from openfisca_core.commons import (  # noqa: F401
+    apply_thresholds,
+    concat,
+    switch,
+    )

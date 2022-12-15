@@ -1,0 +1,201 @@
+from __future__ import annotations
+
+from typing import Tuple
+
+import calendar
+import datetime
+import functools
+
+from dateutil import relativedelta
+
+from openfisca_core.periods._errors import DateUnitValueError, OffsetTypeError
+from openfisca_core.periods.domain._unit import DateUnit
+
+
+class Instant(Tuple[int, int, int]):
+    """An instant in time (``year``, ``month``, ``day``).
+
+    An ``Instant`` represents the most atomic and indivisible
+    legislation's date unit.
+
+    Current implementation considers this unit to be a day, so
+    ``instants`` can be thought of as "day dates".
+
+    Args:
+        (tuple(tuple(int, int, int))):
+            The ``year``, ``month``, and ``day``, accordingly.
+
+    Examples:
+        >>> instant = Instant((2021, 9, 13))
+
+        ``Instants`` are represented as a ``tuple`` containing the date units:
+
+        >>> repr(instant)
+        'Instant((2021, 9, 13))'
+
+        However, their user-friendly representation is as a date in the
+        ISO format:
+
+        >>> str(instant)
+        '2021-09-13'
+
+        Because ``Instants`` are ``tuples``, they are immutable, which allows
+        us to use them as keys in hashmaps:
+
+        >>> dict([(instant, (2021, 9, 13))])
+        {Instant((2021, 9, 13)): (2021, 9, 13)}
+
+        All the rest of the ``tuple`` protocols are inherited as well:
+
+        >>> instant[0]
+        2021
+
+        >>> instant[0] in instant
+        True
+
+        >>> len(instant)
+        3
+
+        >>> instant == (2021, 9, 13)
+        True
+
+        >>> instant > (2020, 9, 13)
+        True
+
+        >>> year, month, day = instant
+
+    """
+
+    def __repr__(self) -> str:
+        return f"{Instant.__name__}({super(Instant, self).__repr__()})"
+
+    @functools.lru_cache(maxsize=None)
+    def __str__(self) -> str:
+        return self.date().isoformat()
+
+    @property
+    def year(self) -> int:
+        """The ``year`` of the ``Instant``.
+
+        Example:
+            >>> instant = Instant((2021, 10, 1))
+            >>> instant.year
+            2021
+
+        Returns:
+            An int.
+
+        """
+
+        return self[0]
+
+    @property
+    def month(self) -> int:
+        """The ``month`` of the ``Instant``.
+
+        Example:
+            >>> instant = Instant((2021, 10, 1))
+            >>> instant.month
+            10
+
+        Returns:
+            An int.
+
+        """
+
+        return self[1]
+
+    @property
+    def day(self) -> int:
+        """The ``day`` of the ``Instant``.
+
+        Example:
+            >>> instant = Instant((2021, 10, 1))
+            >>> instant.day
+            1
+
+        Returns:
+            An int.
+
+        """
+
+        return self[2]
+
+    @functools.lru_cache(maxsize=None)
+    def date(self) -> datetime.date:
+        """The date representation of the ``Instant``.
+
+        Example:
+            >>> instant = Instant((2021, 10, 1))
+            >>> instant.date()
+            datetime.date(2021, 10, 1)
+
+        Returns:
+            A datetime.time.
+
+        """
+
+        return datetime.date(*self)
+
+    def offset(self, offset: str | int, unit: str) -> Instant:
+        """Increments/decrements the given instant with offset units.
+
+        Args:
+            offset (str | int): How much of ``unit`` to offset.
+            unit (str): What to offset.
+
+        Returns:
+            Instant: A new one.
+
+        Raises:
+            DateUnitValueError: When ``unit`` is not a date unit.
+            OffsetTypeError: When ``offset`` is of type ``int``.
+
+        Examples:
+            >>> Instant((2020, 12, 31)).offset("first-of", DateUnit.MONTH)
+            Instant((2020, 12, 1))
+
+            >>> Instant((2020, 1, 1)).offset("last-of", DateUnit.YEAR)
+            Instant((2020, 12, 31))
+
+            >>> Instant((2020, 1, 1)).offset(1, DateUnit.YEAR)
+            Instant((2021, 1, 1))
+
+            >>> Instant((2020, 1, 1)).offset(-3, DateUnit.DAY)
+            Instant((2019, 12, 29))
+
+        """
+
+        year, month, day = self
+
+        if unit not in (DateUnit.DAY, DateUnit.MONTH, DateUnit.YEAR):
+            raise DateUnitValueError(unit)
+
+        if offset == "first-of" and unit == DateUnit.YEAR:
+            return Instant((year, 1, 1))
+
+        if offset == "first-of" and unit == DateUnit.MONTH:
+            return Instant((year, month, 1))
+
+        if offset == "last-of" and unit == DateUnit.YEAR:
+            return Instant((year, 12, 31))
+
+        if offset == "last-of" and unit == DateUnit.MONTH:
+            return Instant((year, month, calendar.monthrange(year, month)[1]))
+
+        if not isinstance(offset, int):
+            raise OffsetTypeError(offset)
+
+        if unit == DateUnit.YEAR:
+            date = self.date() + relativedelta.relativedelta(years=offset)
+            return Instant((date.year, date.month, date.day))
+
+        if unit == DateUnit.MONTH:
+            date = self.date() + relativedelta.relativedelta(months=offset)
+            return Instant((date.year, date.month, date.day))
+
+        if unit == DateUnit.DAY:
+            date = self.date() + relativedelta.relativedelta(days=offset)
+            return Instant((date.year, date.month, date.day))
+
+        return self

@@ -21,7 +21,9 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
-from .config import VALUE_TYPES, FORMULA_NAME_PREFIX  # noqa: F401
-from .helpers import get_annualized_variable, get_neutralized_variable  # noqa: F401
+from .config import FORMULA_NAME_PREFIX, VALUE_TYPES  # noqa: F401
+from .helpers import (  # noqa: F401
+    get_annualized_variable,
+    get_neutralized_variable,
+    )
 from .variable import Variable  # noqa: F401
-from .typing import Formula  # noqa: F401

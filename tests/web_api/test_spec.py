@@ -1,7 +1,9 @@
-import dpath.util
 import json
-import pytest
 from http import client
+
+import dpath.util
+import pytest
+from openapi_spec_validator import openapi_v3_spec_validator
 
 
 def assert_items_equal(x, y):
@@ -34,22 +36,22 @@ def test_paths(body):
 
 
 def test_entity_definition(body):
-    assert 'parents' in dpath.util.get(body, 'definitions/Household/properties')
-    assert 'children' in dpath.util.get(body, 'definitions/Household/properties')
-    assert 'salary' in dpath.util.get(body, 'definitions/Person/properties')
-    assert 'rent' in dpath.util.get(body, 'definitions/Household/properties')
-    assert 'number' == dpath.util.get(body, 'definitions/Person/properties/salary/additionalProperties/type')
+    assert 'parents' in dpath.util.get(body, 'components/schemas/Household/properties')
+    assert 'children' in dpath.util.get(body, 'components/schemas/Household/properties')
+    assert 'salary' in dpath.util.get(body, 'components/schemas/Person/properties')
+    assert 'rent' in dpath.util.get(body, 'components/schemas/Household/properties')
+    assert 'number' == dpath.util.get(body, 'components/schemas/Person/properties/salary/additionalProperties/type')
 
 
 def test_situation_definition(body):
-    situation_input = body['definitions']['SituationInput']
-    situation_output = body['definitions']['SituationOutput']
+    situation_input = body['components']['schemas']['SituationInput']
+    situation_output = body['components']['schemas']['SituationOutput']
     for situation in situation_input, situation_output:
         assert 'households' in dpath.util.get(situation, '/properties')
         assert 'persons' in dpath.util.get(situation, '/properties')
-        assert "#/definitions/Household" == dpath.util.get(situation, '/properties/households/additionalProperties/$ref')
-        assert "#/definitions/Person" == dpath.util.get(situation, '/properties/persons/additionalProperties/$ref')
+        assert "#/components/schemas/Household" == dpath.util.get(situation, '/properties/households/additionalProperties/$ref')
+        assert "#/components/schemas/Person" == dpath.util.get(situation, '/properties/persons/additionalProperties/$ref')
 
 
-def test_host(body):
-    assert 'http' not in body['host']
+def test_respects_spec(body):
+    assert not [error for error in openapi_v3_spec_validator.iter_errors(body)]

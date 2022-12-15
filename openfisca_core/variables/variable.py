@@ -1,15 +1,21 @@
+from __future__ import annotations
+
+from openfisca_core.periods.typing import Instant
+from openfisca_core.types import Formula
+from typing import Optional, Union
+
 import datetime
 import inspect
 import re
 import textwrap
-import sortedcontainers
 
 import numpy
+import sortedcontainers
 
 from openfisca_core import periods, tools
 from openfisca_core.entities import Entity
 from openfisca_core.indexed_enums import Enum, EnumArray
-from openfisca_core.periods import DateUnit, Period
+from openfisca_core.periods import Period
 
 from . import config, helpers
 
@@ -60,7 +66,7 @@ class Variable:
 
        .. attribute:: dtype
 
-           Numpy `dtype <https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.dtype.html>`_ used under the hood for the variable.
+           NumPy `dtype <https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.dtype.html>`_ used under the hood for the variable.
 
        .. attribute:: end
 
@@ -95,6 +101,8 @@ class Variable:
            Free multilines text field describing the variable context and usage.
     """
 
+    __name__: str
+
     def __init__(self, baseline_variable = None):
         self.name = self.__class__.__name__
         attr = {
@@ -115,7 +123,7 @@ class Variable:
         else:
             self.default_value = self.set(attr, 'default_value', allowed_type = self.value_type, default = config.VALUE_TYPES[self.value_type].get('default'))
         self.entity = self.set(attr, 'entity', required = True, setter = self.set_entity)
-        self.definition_period = self.set(attr, 'definition_period', required = True, allowed_values = (DateUnit.DAY, DateUnit.MONTH, DateUnit.YEAR, DateUnit.ETERNITY))
+        self.definition_period = self.set(attr, 'definition_period', required = True, allowed_values = (periods.DateUnit.DAY, periods.DateUnit.MONTH, periods.DateUnit.YEAR, periods.DateUnit.ETERNITY))
         self.label = self.set(attr, 'label', allowed_type = str, setter = self.set_label)
         self.end = self.set(attr, 'end', allowed_type = str, setter = self.set_end)
         self.reference = self.set(attr, 'reference', setter = self.set_reference)
@@ -302,16 +310,24 @@ class Variable:
 
         return comments, source_file_path, source_code, start_line_number
 
-    def get_formula(self, period = None):
+    def get_formula(
+            self,
+            period: Union[Instant, Period, str, int] = None,
+            ) -> Optional[Formula]:
+        """Returns the formula to compute the variable at the given period.
+
+        If no period is given and the variable has several formulas, the method
+        returns the oldest formula.
+
+        Args:
+            period: The period to get the formula.
+
+        Returns:
+            Formula used to compute the variable.
+
         """
-        Returns the formula used to compute the variable at the given period.
 
-        If no period is given and the variable has several formula, return the oldest formula.
-
-        :returns: Formula used to compute the variable
-        :rtype: :any:`Formula`
-
-        """
+        instant: Optional[Instant]
 
         if not self.formulas:
             return None
@@ -321,18 +337,24 @@ class Variable:
 
         if isinstance(period, Period):
             instant = period.start
+
         else:
             try:
-                instant = periods.period(period).start
-            except ValueError:
-                instant = periods.instant(period)
+                instant = periods.build_period(period).start
 
-        if self.end and instant.date > self.end:
+            except ValueError:
+                instant = periods.build_instant(period)
+
+        if instant is None:
             return None
 
-        instant = str(instant)
+        if self.end and instant.date() > self.end:
+            return None
+
+        instant_str = str(instant)
+
         for start_date in reversed(self.formulas):
-            if start_date <= instant:
+            if start_date <= instant_str:
                 return self.formulas[start_date]
 
         return None

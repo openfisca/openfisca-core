@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import typing
+
 import abc
 import bisect
 import os
-import typing
 
 import numpy
 

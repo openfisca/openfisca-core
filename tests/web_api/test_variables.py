@@ -1,7 +1,8 @@
-from http import client
 import json
-import pytest
 import re
+from http import client
+
+import pytest
 
 
 def assert_items_equal(x, y):

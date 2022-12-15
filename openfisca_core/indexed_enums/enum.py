@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import enum
 from typing import Union
+
+import enum
 
 import numpy
 

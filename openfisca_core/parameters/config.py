@@ -1,9 +1,11 @@
-import warnings
-import os
-import yaml
 import typing
-from openfisca_core.warnings import LibYAMLWarning
 
+import os
+import warnings
+
+import yaml
+
+from openfisca_core.warnings import LibYAMLWarning
 
 try:
     from yaml import CLoader as Loader

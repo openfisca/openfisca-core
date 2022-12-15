@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa T001
 
-import os
 import fnmatch
+import os
 import sys
 
 from bs4 import BeautifulSoup

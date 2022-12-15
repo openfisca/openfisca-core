@@ -4,6 +4,15 @@ openfisca = openfisca_core.scripts.openfisca_command
 ## The path to the installed packages.
 python_packages = $(shell python -c "import sysconfig; print(sysconfig.get_paths()[\"purelib\"])")
 
+## Run all tasks required for testing.
+install: install-deps install-edit install-test
+
+## Enable regression testing with template repositories.
+install-test:
+	@$(call print_help,$@:)
+	@pip install --upgrade --no-dependencies openfisca-country-template
+	@pip install --upgrade --no-dependencies openfisca-extension-template
+
 ## Run openfisca-core & country/extension template tests.
 test-code: test-core test-country test-extension
 	@##	Usage:
@@ -22,6 +31,11 @@ test-code: test-core test-country test-extension
 ## Run openfisca-core tests.
 test-core: $(shell pytest --quiet --quiet --collect-only 2> /dev/null | cut -f 1 -d ":")
 	@$(call print_help,$@:)
+	@pytest --quiet --capture=no --xdoctest --xdoctest-verbose=0 \
+		openfisca_core/commons \
+		openfisca_core/holders \
+		openfisca_core/periods \
+		openfisca_core/types
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
 		coverage run -m \
 		${openfisca} test $? \

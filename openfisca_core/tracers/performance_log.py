@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import typing
+
 import csv
 import importlib.resources
 import itertools
 import json
 import os
-import typing
 
 from .. import tracers
 

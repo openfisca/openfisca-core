@@ -1,10 +1,11 @@
+import typing
+
 import copy
 import os
-import typing
 
 from openfisca_core import commons, parameters, tools
 from openfisca_core.errors import ParameterParsingError
-from openfisca_core.parameters import config, helpers, AtInstantLike
+from openfisca_core.parameters import AtInstantLike, config, helpers
 from openfisca_core.taxscales import (
     LinearAverageRateTaxScale,
     MarginalAmountTaxScale,
@@ -96,25 +97,17 @@ class ParameterScale(AtInstantLike):
             scale = LinearAverageRateTaxScale()
 
             for bracket in brackets:
-                if 'base' in bracket._children:
-                    base = bracket.base
-                else:
-                    base = 1.
                 if 'average_rate' in bracket._children and 'threshold' in bracket._children:
                     average_rate = bracket.average_rate
                     threshold = bracket.threshold
-                    scale.add_bracket(threshold, average_rate * base)
+                    scale.add_bracket(threshold, average_rate)
             return scale
         else:
             scale = MarginalRateTaxScale()
 
             for bracket in brackets:
-                if 'base' in bracket._children:
-                    base = bracket.base
-                else:
-                    base = 1.
                 if 'rate' in bracket._children and 'threshold' in bracket._children:
                     rate = bracket.rate
                     threshold = bracket.threshold
-                    scale.add_bracket(threshold, rate * base)
+                    scale.add_bracket(threshold, rate)
             return scale

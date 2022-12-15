@@ -1,12 +1,17 @@
-import copy
-import dpath.util
-import typing
+from typing import Dict, Iterable, List
 
+import copy
+
+import dpath.util
 import numpy
 
 from openfisca_core import periods
 from openfisca_core.entities import Entity
-from openfisca_core.errors import PeriodMismatchError, SituationParsingError, VariableNotFoundError
+from openfisca_core.errors import (
+    PeriodMismatchError,
+    SituationParsingError,
+    VariableNotFoundError,
+    )
 from openfisca_core.populations import Population
 from openfisca_core.simulations import helpers, Simulation
 from openfisca_core.variables import Variable
@@ -19,24 +24,24 @@ class SimulationBuilder:
         self.persons_plural = None  # Plural name for person entity in current tax and benefits system
 
         # JSON input - Memory of known input values. Indexed by variable or axis name.
-        self.input_buffer: typing.Dict[Variable.name, typing.Dict[str(periods.period), numpy.array]] = {}
-        self.populations: typing.Dict[Entity.key, Population] = {}
+        self.input_buffer: Dict[Variable.name, Dict[str(periods.period), numpy.array]] = {}
+        self.populations: Dict[Entity.key, Population] = {}
         # JSON input - Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
-        self.entity_counts: typing.Dict[Entity.plural, int] = {}
-        # JSON input - typing.List of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_counts``.
-        self.entity_ids: typing.Dict[Entity.plural, typing.List[int]] = {}
+        self.entity_counts: Dict[Entity.plural, int] = {}
+        # JSON input - List of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_counts``.
+        self.entity_ids: Dict[Entity.plural, List[int]] = {}
 
         # Links entities with persons. For each person index in persons ids list, set entity index in entity ids id. E.g.: self.memberships[entity.plural][person_index] = entity_ids.index(instance_id)
-        self.memberships: typing.Dict[Entity.plural, typing.List[int]] = {}
-        self.roles: typing.Dict[Entity.plural, typing.List[int]] = {}
+        self.memberships: Dict[Entity.plural, List[int]] = {}
+        self.roles: Dict[Entity.plural, List[int]] = {}
 
-        self.variable_entities: typing.Dict[Variable.name, Entity] = {}
+        self.variable_entities: Dict[Variable.name, Entity] = {}
 
         self.axes = [[]]
-        self.axes_entity_counts: typing.Dict[Entity.plural, int] = {}
-        self.axes_entity_ids: typing.Dict[Entity.plural, typing.List[int]] = {}
-        self.axes_memberships: typing.Dict[Entity.plural, typing.List[int]] = {}
-        self.axes_roles: typing.Dict[Entity.plural, typing.List[int]] = {}
+        self.axes_entity_counts: Dict[Entity.plural, int] = {}
+        self.axes_entity_ids: Dict[Entity.plural, List[int]] = {}
+        self.axes_memberships: Dict[Entity.plural, List[int]] = {}
+        self.axes_roles: Dict[Entity.plural, List[int]] = {}
 
     def build_from_dict(self, tax_benefit_system, input_dict):
         """
@@ -167,14 +172,14 @@ class SimulationBuilder:
     def create_entities(self, tax_benefit_system):
         self.populations = tax_benefit_system.instantiate_entities()
 
-    def declare_person_entity(self, person_singular, persons_ids: typing.Iterable):
+    def declare_person_entity(self, person_singular, persons_ids: Iterable):
         person_instance = self.populations[person_singular]
         person_instance.ids = numpy.array(list(persons_ids))
         person_instance.count = len(person_instance.ids)
 
         self.persons_plural = person_instance.entity.plural
 
-    def declare_entity(self, entity_singular, entity_ids: typing.Iterable):
+    def declare_entity(self, entity_singular, entity_ids: Iterable):
         entity_instance = self.populations[entity_singular]
         entity_instance.ids = numpy.array(list(entity_ids))
         entity_instance.count = len(entity_instance.ids)
@@ -183,7 +188,7 @@ class SimulationBuilder:
     def nb_persons(self, entity_singular, role = None):
         return self.populations[entity_singular].nb_persons(role = role)
 
-    def join_with_persons(self, group_population, persons_group_assignment, roles: typing.Iterable[str]):
+    def join_with_persons(self, group_population, persons_group_assignment, roles: Iterable[str]):
         # Maps group's identifiers to a 0-based integer range, for indexing into members_roles (see PR#876)
         group_sorted_indices = numpy.unique(persons_group_assignment, return_inverse = True)[1]
         group_population.members_entity_id = numpy.argsort(group_population.ids)[group_sorted_indices]
@@ -324,7 +329,7 @@ class SimulationBuilder:
 
     def set_default_period(self, period_str):
         if period_str:
-            self.default_period = str(periods.period(period_str))
+            self.default_period = str(periods.build_period(period_str))
 
     def get_input(self, variable, period_str):
         if variable not in self.input_buffer:
@@ -367,7 +372,7 @@ class SimulationBuilder:
 
             for period_str, value in variable_values.items():
                 try:
-                    periods.period(period_str)
+                    periods.build_period(period_str)
                 except ValueError as e:
                     raise SituationParsingError(path_in_json, e.args[0])
                 variable = entity.get_variable(variable_name)
@@ -392,7 +397,7 @@ class SimulationBuilder:
 
         array[instance_index] = value
 
-        self.input_buffer[variable.name][str(periods.period(period_str))] = array
+        self.input_buffer[variable.name][str(periods.build_period(period_str))] = array
 
     def finalize_variables_init(self, population):
         # Due to set_input mechanism, we must bufferize all inputs, then actually set them,
@@ -410,7 +415,7 @@ class SimulationBuilder:
             except ValueError:  # Wrong entity, we can just ignore that
                 continue
             buffer = self.input_buffer[variable_name]
-            unsorted_periods = [periods.period(period_str) for period_str in self.input_buffer[variable_name].keys()]
+            unsorted_periods = [periods.build_period(period_str) for period_str in self.input_buffer[variable_name].keys()]
             # We need to handle small periods first for set_input to work
             sorted_periods = sorted(unsorted_periods, key = periods.key_period_size)
             for period_value in sorted_periods:
@@ -421,7 +426,7 @@ class SimulationBuilder:
                 variable = holder.variable
                 # TODO - this duplicates the check in Simulation.set_input, but
                 # fixing that requires improving Simulation's handling of entities
-                if (variable.end is None) or (period_value.start.date <= variable.end):
+                if (variable.end is None) or (period_value.start.date() <= variable.end):
                     holder.set_input(period_value, array)
 
     def raise_period_mismatch(self, entity, json, e):
@@ -523,7 +528,7 @@ class SimulationBuilder:
                 # Set input
                 self.input_buffer[axis_name][str(axis_period)] = array
         else:
-            first_axes_count: typing.List[int] = (
+            first_axes_count: List[int] = (
                 parallel_axes[0]["count"]
                 for parallel_axes
                 in self.axes
@@ -554,8 +559,8 @@ class SimulationBuilder:
                         + mesh.reshape(cell_count) * (axis['max'] - axis['min']) / (axis_count - 1)
                     self.input_buffer[axis_name][str(axis_period)] = array
 
-    def get_variable_entity(self, variable_name):
+    def get_variable_entity(self, variable_name: str):
         return self.variable_entities[variable_name]
 
-    def register_variable(self, variable_name, entity):
+    def register_variable(self, variable_name: str, entity):
         self.variable_entities[variable_name] = entity

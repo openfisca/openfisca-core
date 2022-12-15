@@ -7,7 +7,12 @@ import os
 
 from openfisca_core import commons, periods
 from openfisca_core.errors import ParameterParsingError
-from openfisca_core.parameters import config, helpers, AtInstantLike, ParameterAtInstant
+from openfisca_core.parameters import (
+    AtInstantLike,
+    config,
+    helpers,
+    ParameterAtInstant,
+    )
 
 
 class Parameter(AtInstantLike):
@@ -120,7 +125,7 @@ class Parameter(AtInstantLike):
             if start is not None or stop is not None:
                 raise TypeError("Wrong input for 'update' method: use either 'update(period, value = value)' or 'update(start = start, stop = stop, value = value)'. You cannot both use 'period' and 'start' or 'stop'.")
             if isinstance(period, str):
-                period = periods.period(period)
+                period = periods.build_period(period)
             start = period.start
             stop = period.stop
         if start is None:

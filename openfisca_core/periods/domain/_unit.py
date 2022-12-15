@@ -1,7 +1,7 @@
-from strenum import StrEnum
+import enum
 
 
-class DateUnit(StrEnum):
+class DateUnit(str, enum.Enum):
     """The date units of a rule system.
 
     Examples:
@@ -9,25 +9,25 @@ class DateUnit(StrEnum):
         "<enum 'DateUnit'>"
 
         >>> repr(DateUnit.DAY)
-        "<DateUnit.DAY: 'day'>"
+        "'day'"
 
         >>> str(DateUnit.DAY)
         'day'
 
         >>> dict([(DateUnit.DAY, DateUnit.DAY.value)])
-        {<DateUnit.DAY: 'day'>: 'day'}
+        {'day': 'day'}
 
         >>> list(DateUnit)
-        [<DateUnit.DAY: 'day'>, <DateUnit.MONTH: 'month'>, ...]
+        ['day', 'month', 'year', 'eternity']
 
         >>> len(DateUnit)
         4
 
         >>> DateUnit["DAY"]
-        <DateUnit.DAY: 'day'>
+        'day'
 
         >>> DateUnit(DateUnit.DAY)
-        <DateUnit.DAY: 'day'>
+        'day'
 
         >>> DateUnit.DAY in DateUnit
         True
@@ -44,7 +44,7 @@ class DateUnit(StrEnum):
         >>> DateUnit.DAY.value
         'day'
 
-    .. versionadded:: 35.9.0
+    .. versionadded:: 39.1.0
 
     """
 
@@ -52,3 +52,9 @@ class DateUnit(StrEnum):
     MONTH = "month"
     YEAR = "year"
     ETERNITY = "eternity"
+
+    def __repr__(self) -> str:
+        return self.value.__repr__()
+
+    def __str__(self) -> str:
+        return self.value.__str__()

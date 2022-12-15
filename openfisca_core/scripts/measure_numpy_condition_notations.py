@@ -6,18 +6,17 @@
 """
 Measure and compare different vectorial condition notations:
 - using multiplication notation: (choice == 1) * choice_1_value + (choice == 2) * choice_2_value
-- using np.select: the same than multiplication but more idiomatic like a "switch" control-flow statement
-- using np.fromiter: iterates in Python over the array and calculates lazily only the required values
+- using numpy.select: the same than multiplication but more idiomatic like a "switch" control-flow statement
+- using numpy.fromiter: iterates in Python over the array and calculates lazily only the required values
 
 The aim of this script is to compare the time taken by the calculation of the values
 """
-from contextlib import contextmanager
 import argparse
 import sys
 import time
+from contextlib import contextmanager
 
-import numpy as np
-
+import numpy
 
 args = None
 
@@ -39,7 +38,7 @@ def switch_fromiter(conditions, function_by_condition, dtype):
             value_by_condition[condition] = value
         return value_by_condition[condition]
 
-    return np.fromiter(
+    return numpy.fromiter(
         (
             get_or_store_value(condition)
             for condition in conditions
@@ -53,7 +52,7 @@ def switch_select(conditions, value_by_condition):
         conditions == condition
         for condition in value_by_condition.keys()
         ]
-    return np.select(condlist, value_by_condition.values())
+    return numpy.select(condlist, value_by_condition.values())
 
 
 def calculate_choice_1_value():
@@ -87,7 +86,7 @@ def test_switch_fromiter(choice):
             2: calculate_choice_2_value,
             3: calculate_choice_3_value,
             },
-        dtype = np.int,
+        dtype = numpy.int,
         )
     return result
 
@@ -109,7 +108,7 @@ def test_switch_select(choice):
 
 def test_all_notations():
     # choice is an array with 1 and 2 items like [2, 1, ..., 1, 2]
-    choice = np.random.randint(2, size = args.array_length) + 1
+    choice = numpy.random.randint(2, size = args.array_length) + 1
 
     with measure_time('multiplication'):
         test_multiplication(choice)

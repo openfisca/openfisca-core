@@ -21,6 +21,9 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
-from openfisca_core.errors import VariableNameConflict, VariableNotFound  # noqa: F401
+from openfisca_core.errors import (  # noqa: F401
+    VariableNameConflict,
+    VariableNotFound,
+    )
 
 from .tax_benefit_system import TaxBenefitSystem  # noqa: F401

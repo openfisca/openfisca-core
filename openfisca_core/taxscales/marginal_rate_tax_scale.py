@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import typing
+
 import bisect
 import itertools
-import typing
 
 import numpy
 

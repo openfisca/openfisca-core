@@ -1,7 +1,23 @@
-#! /usr/bin/env python
+"""Package config file.
 
-from setuptools import setup, find_packages
+This file contains all package's metadata, including the current version and
+its third-party dependencies.
+
+Note:
+    For integration testing, OpenFisca-Core relies on two other packages,
+    listed below. Because these packages rely at the same time on
+    OpenFisca-Core, adding them as official dependencies creates a resolution
+    loop that makes it hard to contribute. We've therefore decided to install
+    them via the task manager (`make install-test`)::
+
+        openfisca-country-template = "*"
+        openfisca-extension-template = "*"
+
+"""
+
 from pathlib import Path
+
+from setuptools import find_packages, setup
 
 # Read the contents of our README file for PyPi
 this_directory = Path(__file__).parent
@@ -11,16 +27,18 @@ long_description = (this_directory / "README.md").read_text()
 # functional and integration breaks caused by external code updates.
 
 general_requirements = [
+    'PyYAML >= 3.10',
+    'StrEnum >= 0.4.8, < 0.5.0',  # 3.11.x backport
     'dpath >= 1.5.0, < 3.0.0',
+    'importlib-metadata < 4.3.0',
     'nptyping == 1.4.4',
     'numexpr >= 2.7.0, <= 3.0',
-    'numpy >= 1.11, < 1.21',
+    'numpy >= 1.20, < 1.21',
+    'pendulum >= 2.1.0, < 3.0.0',
     'psutil >= 5.4.7, < 6.0.0',
     'pytest >= 4.4.1, < 6.0.0',  # For openfisca test
-    'PyYAML >= 3.10',
     'sortedcontainers == 2.2.2',
-    'StrEnum >= 0.4.8, < 0.5.0',  # 3.11.x backport
-    'typing-extensions == 3.10.0.2',
+    'typing-extensions >= 4.0.0, < 5.0.0',
     ]
 
 api_requirements = [
@@ -41,14 +59,15 @@ dev_requirements = [
     'flake8-print >= 3.1.0, < 4.0.0',
     'flake8-rst-docstrings == 0.2.3',
     'mypy == 0.910',
-    'openfisca-country-template >= 3.10.0, < 4.0.0',
-    'openfisca-extension-template >= 1.2.0rc0, < 2.0.0',
+    'openapi-spec-validator >= 0.3.0',
+    'pycodestyle >= 2.8.0, < 2.9.0',
     'pylint == 2.10.2',
+    'xdoctest >= 1.0.0, < 2.0.0',
     ] + api_requirements
 
 setup(
     name = 'OpenFisca-Core',
-    version = '35.9.0',
+    version = '39.1.0',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [

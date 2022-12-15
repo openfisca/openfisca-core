@@ -1,15 +1,20 @@
-import os
 from typing import List
 
-import pytest
-import numpy as np
+import os
 
-from openfisca_core.tools.test_runner import _get_tax_benefit_system, YamlItem, YamlFile
-from openfisca_core.errors import VariableNotFound
-from openfisca_core.variables import Variable
-from openfisca_core.populations import Population
+import numpy
+import pytest
+
+from openfisca_core import periods
 from openfisca_core.entities import Entity
-from openfisca_core.periods import DateUnit
+from openfisca_core.errors import VariableNotFound
+from openfisca_core.populations import Population
+from openfisca_core.tools.test_runner import (
+    _get_tax_benefit_system,
+    YamlFile,
+    YamlItem,
+    )
+from openfisca_core.variables import Variable
 
 
 class TaxBenefitSystem:
@@ -36,7 +41,7 @@ class TaxBenefitSystem:
     def instantiate_entities(self):
         return {'person': Population(self.person_entity)}
 
-    def get_variable(self, variable_name, check_existence = True):
+    def get_variable(self, variable_name: str, check_existence = True):
         return self.variables.get(variable_name)
 
     def clone(self):
@@ -73,7 +78,7 @@ class TestItem(YamlItem):
 
 
 class TestVariable(Variable):
-    definition_period = DateUnit.ETERNITY
+    definition_period = periods.DateUnit.ETERNITY
     value_type = float
 
     def __init__(self):
@@ -81,7 +86,7 @@ class TestVariable(Variable):
         self.entity = Entity('person', 'persons', None, "")
         self.is_neutralized = False
         self.set_input = None
-        self.dtype = np.float32
+        self.dtype = numpy.float32
 
 
 def test_variable_not_found():

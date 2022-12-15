@@ -1,16 +1,14 @@
-import pytest
-
 import numpy
+import pytest
 
 from openfisca_country_template import situation_examples
 from openfisca_country_template.variables import housing
 
 from openfisca_core import holders, periods, tools
 from openfisca_core.errors import PeriodMismatchError
-from openfisca_core.memory_config import MemoryConfig
-from openfisca_core.periods import DateUnit
-from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.holders import Holder
+from openfisca_core.memory_config import MemoryConfig
+from openfisca_core.simulations import SimulationBuilder
 
 
 @pytest.fixture
@@ -27,7 +25,7 @@ def couple(tax_benefit_system):
         build_from_entities(tax_benefit_system, situation_examples.couple)
 
 
-period = periods.period('2017-12')
+period = periods.build_period('2017-12')
 
 
 def test_set_input_enum_string(couple):
@@ -90,17 +88,17 @@ def test_permanent_variable_filled(single):
     simulation = single
     holder = simulation.person.get_holder('birth')
     value = numpy.asarray(['1980-01-01'], dtype = holder.variable.dtype)
-    holder.set_input(periods.period(DateUnit.ETERNITY), value)
+    holder.set_input(periods.build_period(periods.DateUnit.ETERNITY), value)
     assert holder.get_array(None) == value
-    assert holder.get_array(DateUnit.ETERNITY) == value
+    assert holder.get_array(periods.DateUnit.ETERNITY) == value
     assert holder.get_array('2016-01') == value
 
 
 def test_delete_arrays(single):
     simulation = single
     salary_holder = simulation.person.get_holder('salary')
-    salary_holder.set_input(periods.period(2017), numpy.asarray([30000]))
-    salary_holder.set_input(periods.period(2018), numpy.asarray([60000]))
+    salary_holder.set_input(periods.build_period(2017), numpy.asarray([30000]))
+    salary_holder.set_input(periods.build_period(2018), numpy.asarray([60000]))
     assert simulation.person('salary', '2017-01') == 2500
     assert simulation.person('salary', '2018-01') == 5000
     salary_holder.delete_arrays(period = 2018)
@@ -110,7 +108,7 @@ def test_delete_arrays(single):
     salary_array = simulation.get_array('salary', '2018-01')
     assert salary_array is None
 
-    salary_holder.set_input(periods.period(2018), numpy.asarray([15000]))
+    salary_holder.set_input(periods.build_period(2018), numpy.asarray([15000]))
     assert simulation.person('salary', '2017-01') == 2500
     assert simulation.person('salary', '2018-01') == 1250
 
@@ -120,7 +118,7 @@ def test_get_memory_usage(single):
     salary_holder = simulation.person.get_holder('salary')
     memory_usage = salary_holder.get_memory_usage()
     assert memory_usage['total_nb_bytes'] == 0
-    salary_holder.set_input(periods.period(2017), numpy.asarray([30000]))
+    salary_holder.set_input(periods.build_period(2017), numpy.asarray([30000]))
     memory_usage = salary_holder.get_memory_usage()
     assert memory_usage['nb_cells_by_array'] == 1
     assert memory_usage['cell_size'] == 4  # float 32
@@ -133,7 +131,7 @@ def test_get_memory_usage_with_trace(single):
     simulation = single
     simulation.trace = True
     salary_holder = simulation.person.get_holder('salary')
-    salary_holder.set_input(periods.period(2017), numpy.asarray([30000]))
+    salary_holder.set_input(periods.build_period(2017), numpy.asarray([30000]))
     simulation.calculate('salary', '2017-01')
     simulation.calculate('salary', '2017-01')
     simulation.calculate('salary', '2017-02')
@@ -148,7 +146,7 @@ def test_set_input_dispatch_by_period(single):
     variable = simulation.tax_benefit_system.get_variable('housing_occupancy_status')
     entity = simulation.household
     holder = Holder(variable, entity)
-    holders.set_input_dispatch_by_period(holder, periods.period(2019), 'owner')
+    holders.set_input_dispatch_by_period(holder, periods.build_period(2019), 'owner')
     assert holder.get_array('2019-01') == holder.get_array('2019-12')  # Check the feature
     assert holder.get_array('2019-01') is holder.get_array('2019-12')  # Check that the vectors are the same in memory, to avoid duplication
 
@@ -160,12 +158,12 @@ def test_delete_arrays_on_disk(single):
     simulation = single
     simulation.memory_config = force_storage_on_disk
     salary_holder = simulation.person.get_holder('salary')
-    salary_holder.set_input(periods.period(2017), numpy.asarray([30000]))
-    salary_holder.set_input(periods.period(2018), numpy.asarray([60000]))
+    salary_holder.set_input(periods.build_period(2017), numpy.asarray([30000]))
+    salary_holder.set_input(periods.build_period(2018), numpy.asarray([60000]))
     assert simulation.person('salary', '2017-01') == 2500
     assert simulation.person('salary', '2018-01') == 5000
     salary_holder.delete_arrays(period = 2018)
-    salary_holder.set_input(periods.period(2018), numpy.asarray([15000]))
+    salary_holder.set_input(periods.build_period(2018), numpy.asarray([15000]))
     assert simulation.person('salary', '2017-01') == 2500
     assert simulation.person('salary', '2018-01') == 1250
 
@@ -173,7 +171,7 @@ def test_delete_arrays_on_disk(single):
 def test_cache_disk(couple):
     simulation = couple
     simulation.memory_config = force_storage_on_disk
-    month = periods.period('2017-01')
+    month = periods.build_period('2017-01')
     holder = simulation.person.get_holder('disposable_income')
     data = numpy.asarray([2000, 3000])
     holder.put_in_cache(data, month)
@@ -184,8 +182,8 @@ def test_cache_disk(couple):
 def test_known_periods(couple):
     simulation = couple
     simulation.memory_config = force_storage_on_disk
-    month = periods.period('2017-01')
-    month_2 = periods.period('2017-02')
+    month = periods.build_period('2017-01')
+    month_2 = periods.build_period('2017-02')
     holder = simulation.person.get_holder('disposable_income')
     data = numpy.asarray([2000, 3000])
     holder.put_in_cache(data, month)
@@ -197,7 +195,7 @@ def test_known_periods(couple):
 def test_cache_enum_on_disk(single):
     simulation = single
     simulation.memory_config = force_storage_on_disk
-    month = periods.period('2017-01')
+    month = periods.build_period('2017-01')
     simulation.calculate('housing_occupancy_status', month)  # First calculation
     housing_occupancy_status = simulation.calculate('housing_occupancy_status', month)  # Read from cache
     assert housing_occupancy_status == housing.HousingOccupancyStatus.tenant
