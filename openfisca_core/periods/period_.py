@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Sequence, Tuple, Union
+from typing import Sequence, Tuple
 
 import calendar
 import datetime
@@ -489,8 +489,8 @@ class Period(Tuple[str, Instant, int]):
 
     def offset(
             self,
-            offset: Union[str, int],
-            unit: Optional[str] = None,
+            offset: str | int,
+            unit: str | None = None,
             ) -> Period:
         """Increment (or decrement) the given period with offset units.
 

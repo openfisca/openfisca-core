@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import typing_extensions
-from typing import Any, Optional
+from typing import Any
 from typing_extensions import Protocol
 
 import abc
@@ -27,7 +27,7 @@ class Entity(Protocol):
     def get_variable(
             self, variable_name: Any,
             check_existence: Any = ...,
-            ) -> Optional[Any]:
+            ) -> Any | None:
         """Abstract method."""
 
 
@@ -130,7 +130,7 @@ class Simulation(Protocol):
         """Abstract method."""
 
     @abc.abstractmethod
-    def get_population(self, plural: Optional[Any]) -> Any:
+    def get_population(self, plural: Any | None) -> Any:
         """Abstract method."""
 
 
@@ -143,7 +143,7 @@ class TaxBenefitSystem(Protocol):
     def get_variable(
             self, variable_name: Any,
             check_existence: Any = ...,
-            ) -> Optional[Any]:
+            ) -> Any | None:
         """Abstract method."""
 
 

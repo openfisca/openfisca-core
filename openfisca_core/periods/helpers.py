@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 import datetime
 
@@ -17,7 +17,7 @@ from .period_ import Period
 UNIT_MAPPING = {1: "year", 2: "month", 3: "day"}
 
 
-def build_instant(value: Any) -> Optional[Instant]:
+def build_instant(value: Any) -> Instant | None:
     """Build a new instant, aka a triple of integers (year, month, day).
 
     Args:
@@ -224,7 +224,7 @@ def key_period_size(period: Period) -> str:
     return f"{UNIT_WEIGHTS[unit]}_{size}"
 
 
-def parse_period(value: str) -> Optional[Period]:
+def parse_period(value: str) -> Period | None:
     """Parse periods respecting the ISO format.
 
     Args:

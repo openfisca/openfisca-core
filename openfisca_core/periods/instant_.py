@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Union
+from typing import Tuple
 
 from dateutil import relativedelta
 import calendar
@@ -136,7 +136,7 @@ class Instant(Tuple[int, int, int]):
 
         return datetime.date(*self)
 
-    def offset(self, offset: Union[str, int], unit: str) -> Instant:
+    def offset(self, offset: str | int, unit: str) -> Instant:
         """Increments/decrements the given instant with offset units.
 
         Args:
