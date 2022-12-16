@@ -343,7 +343,7 @@ class Variable:
                 instant = periods.build_period(period).start
 
             except ValueError:
-                instant = periods.build_instant(period)
+                instant = periods.Instant.build(period)
 
         if instant is None:
             return None

@@ -11,7 +11,7 @@
 - Make `periods.parse_period` stricter (for example `2022-1` now fails).
 - Refactor `Period.contains` as `Period.__contains__`.
 - Rename `Period.get_subperiods` to `subperiods`.
-- Rename `instant` to `build_instant`.
+- Rename `instant` to `Instant.build`.
 - Rename `period` to `build_period`.
 - Transform `Instant.date` from property to method.
 - Transform `Period.date` from property to method.

@@ -17,7 +17,7 @@ from openfisca_core import periods
     ])
 def test_build_instant(arg, expected):
     """Returns the expected ``Instant``."""
-    assert periods.build_instant(arg) == expected
+    assert periods.Instant.build(arg) == expected
 
 
 @pytest.mark.parametrize("arg, error", [
@@ -41,7 +41,7 @@ def test_build_instant_with_an_invalid_argument(arg, error):
     """Raises ``ValueError`` when given an invalid argument."""
 
     with pytest.raises(error):
-        periods.build_instant(arg)
+        periods.Instant.build(arg)
 
 
 @pytest.mark.parametrize("arg, expected", [

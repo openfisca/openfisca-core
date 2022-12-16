@@ -17,76 +17,6 @@ from .period_ import Period
 UNIT_MAPPING = {1: "year", 2: "month", 3: "day"}
 
 
-def build_instant(value: Any) -> Instant | None:
-    """Build a new instant, aka a triple of integers (year, month, day).
-
-    Args:
-        value: An ``instant-like`` object.
-
-    Returns:
-        None: When ``instant`` is None.
-        :obj:`.Instant`: Otherwise.
-
-    Raises:
-        InstantFormatError: When the arguments were invalid, like "2021-32-13".
-        InstantValueError: When the length is out of range.
-
-    Examples:
-        >>> build_instant(datetime.date(2021, 9, 16))
-        Instant((2021, 9, 16))
-
-        >>> build_instant(Instant((2021, 9, 16)))
-        Instant((2021, 9, 16))
-
-        >>> build_instant(Period(("year", Instant((2021, 9, 16)), 1)))
-        Instant((2021, 9, 16))
-
-        >>> build_instant("2021")
-        Instant((2021, 1, 1))
-
-        >>> build_instant(2021)
-        Instant((2021, 1, 1))
-
-        >>> build_instant((2021, 9))
-        Instant((2021, 9, 1))
-
-    """
-
-    if value is None:
-        return None
-
-    if isinstance(value, Instant):
-        return value
-
-    if isinstance(value, Period):
-        return value.start
-
-    if isinstance(value, str) and not INSTANT_PATTERN.match(value):
-        raise InstantFormatError(value)
-
-    if isinstance(value, str):
-        instant = tuple(int(fragment) for fragment in value.split('-', 2)[:3])
-
-    elif isinstance(value, datetime.date):
-        instant = value.year, value.month, value.day
-
-    elif isinstance(value, int):
-        instant = value,
-
-    elif isinstance(value, (tuple, list)) and not 1 <= len(value) <= 3:
-        raise InstantValueError(value)
-
-    else:
-        instant = tuple(value)
-
-    if len(instant) == 1:
-        return Instant((instant[0], 1, 1))
-
-    if len(instant) == 2:
-        return Instant((instant[0], instant[1], 1))
-
-    return Instant(instant)
-
 
 def build_period(value: Any) -> Period:
     """Build a new period, aka a triple (unit, start_instant, size).
@@ -140,7 +70,7 @@ def build_period(value: Any) -> Period:
         return Period((DAY, value, 1))
 
     if value == "ETERNITY" or value == ETERNITY:
-        return Period(("eternity", build_instant(datetime.date.min), 1))
+        return Period(("eternity", Instant.build(datetime.date.min), 1))
 
     if isinstance(value, int):
         return Period((YEAR, Instant((value, 1, 1)), 1))
