@@ -171,7 +171,8 @@ jobs:
   check-version:
     runs-on: ubuntu-20.04
     needs: [ test-core, test-country-template, test-extension-template, check-numpy, lint-files ] # Last job to run
-
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -184,6 +185,9 @@ jobs:
 
       - name: Check version number has been properly updated
         run: "${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh"
+      - id: get_version
+        run: echo "version=$(python3 ./setup.py --version)"  >> $GITHUB_OUTPUT
+
 
   check-for-functional-changes:
     runs-on: ubuntu-20.04
@@ -200,6 +204,8 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: 3.8.9
+      - name: Display version
+        run: echo "version=${{ needs.check-version.outputs.version }}"
       - id: check-functional-changes
         run: ${GITHUB_WORKSPACE}/.github/has-functional-changes.sh
         continue-on-error: true
@@ -271,8 +277,8 @@ jobs:
         run: |
           python3 -m pip install requests argparse
           python3 .github/get_pypi_info.py -p OpenFisca-Core
-      - name: Get version
-        run: echo "PACKAGE_VERSION=$(python3 ./setup.py --version)" >> $GITHUB_ENV
+      - name: Display version
+        run: echo "version=${{ needs.check-version.outputs.version }}"
       - name: Conda Config
         run: |
           conda install conda-build anaconda-client
@@ -282,12 +288,12 @@ jobs:
       - name: Upload Conda build
         uses: actions/upload-artifact@v3
         with:
-          name: conda-build-${{ env.PACKAGE_VERSION }}-${{ github.sha }}
+          name: conda-build-${{ needs.check-version.outputs.version }}-${{ github.sha }}
           path: /tmp/conda
 
   test-on-windows:
     runs-on: "windows-latest"
-    needs: [ build-conda ]
+    needs: [ check-version, build-conda ]
 
     steps:
       - uses: conda-incubator/setup-miniconda@v2
@@ -297,21 +303,24 @@ jobs:
           channels: conda-forge
           activate-environment: true
 
-      - uses: actions/checkout@v3
+      # - uses: actions/checkout@v3
+      - name: Get version
+        run: |
+          echo "Version=${{ needs.check-version.outputs.version }}"
       - name: Download conda build
         uses: actions/download-artifact@v3
         with:
-          name: conda-build-${{ env.PACKAGE_VERSION }}-${{ github.sha }}
+          name: conda-build-${{ needs.check-version.outputs.version }}-${{ github.sha }}
           path: conda-build-tmp
       - name: Install with conda
         run: |
-          conda install -c ./conda-build-tmp/noarch/openfisca-core-dev-${{ env.PACKAGE_VERSION }}-py_0.tar.bz2  openfisca-core-dev
+          conda install -c ./conda-build-tmp/noarch/openfisca-core-dev-${{ needs.check-version.outputs.version }}-py_0.tar.bz2  openfisca-core-dev
       - name: Test openfisca
         run: openfisca --help
 
   publish-to-conda:
     runs-on: "ubuntu-20.04"
-    needs: [ deploy ]
+    needs: [ check-version, deploy ]
     steps:
       - uses: conda-incubator/setup-miniconda@v2
         with:
@@ -319,11 +328,6 @@ jobs:
           python-version: 3.7.9
           channels: conda-forge
           activate-environment: true
-      - name: Get source code
-        uses: actions/checkout@v3
-      - name: Get version
-        run: echo "PACKAGE_VERSION=$(python3 ./setup.py --version)" >> $GITHUB_ENV
-      # Get the last commit hash on the PR (-2 : before the merge commit)
       - uses: actions/github-script@v6
         id: last_pr_commit
         with:
@@ -339,7 +343,7 @@ jobs:
         with:
           workflow_conclusion: success
           commit: ${{steps.last_pr_commit.outputs.result}}
-          name: conda-build-${{ env.PACKAGE_VERSION }}-${{steps.last_pr_commit.outputs.result}}
+          name: conda-build-${{ needs.check-version.outputs.version }}-${{steps.last_pr_commit.outputs.result}}
           path: conda-build-tmp
           if_no_artifact_found: fail
       - name: Conda upload
@@ -349,4 +353,3 @@ jobs:
           conda install anaconda-client
           conda info
           anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u openfisca ./conda-build-tmp/noarch/openfisca-core-*-py_0.tar.bz2
-
