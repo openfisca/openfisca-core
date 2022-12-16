@@ -41,7 +41,7 @@ Do the following in the project root folder:
 To check if a local package work before publication:
 ```
 docker run -i -t -v /media/data-nvme/dev/anaconda3/conda-bld/:/conda-bld continuumio/anaconda3 /bin/bash
-conda install -c /conda-bld/noarch/openfisca-core-dev-38.0.1-py_0.tar.bz2 openfisca-core-dev
+conda install -c conda-forge -c /conda-bld/noarch/openfisca-core-dev-38.0.1-py_0.tar.bz2 openfisca-core-dev
 openfisca -h
 ```
 
