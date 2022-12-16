@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple
+from typing import Any, Tuple
 
 import calendar
 import datetime
@@ -8,13 +8,15 @@ import functools
 
 from dateutil import relativedelta
 
-from ._errors import DateUnitValueError, OffsetTypeError
+from ._config import INSTANT_PATTERN
+from ._errors import (
+    DateUnitValueError,
+    InstantFormatError,
+    InstantValueError,
+    OffsetTypeError,
+    )
 from ._units import DAY, MONTH, YEAR
 from .typing import Period
-
-from ._config import INSTANT_PATTERN
-
-from ._errors import InstantFormatError, InstantValueError
 
 
 class Instant(Tuple[int, int, int]):
@@ -221,24 +223,29 @@ class Instant(Tuple[int, int, int]):
             InstantValueError: When the length is out of range.
 
         Examples:
-            >>> build_instant(datetime.date(2021, 9, 16))
+            >>> from openfisca_core import periods
+
+            >>> periods.Instant.build(datetime.date(2021, 9, 16))
             Instant((2021, 9, 16))
 
-            >>> build_instant(Instant((2021, 9, 16)))
+            >>> periods.Instant.build(Instant((2021, 9, 16)))
             Instant((2021, 9, 16))
 
-            >>> build_instant(Period(("year", Instant((2021, 9, 16)), 1)))
-            Instant((2021, 9, 16))
-
-            >>> build_instant("2021")
+            >>> periods.Instant.build("2021")
             Instant((2021, 1, 1))
 
-            >>> build_instant(2021)
+            >>> periods.Instant.build(2021)
             Instant((2021, 1, 1))
 
-            >>> build_instant((2021, 9))
+            >>> periods.Instant.build((2021, 9))
             Instant((2021, 9, 1))
 
+            >>> start = periods.Instant((2021, 9, 16))
+            >>> period = periods.Period(("year", start, 1))
+            >>> periods.Instant.build(period)
+            Instant((2021, 9, 16))
+
+            .. versionadded:: 39.0.0
         """
 
         if value is None:
@@ -254,13 +261,19 @@ class Instant(Tuple[int, int, int]):
             raise InstantFormatError(value)
 
         if isinstance(value, str):
-            instant = tuple(int(fragment) for fragment in value.split('-', 2)[:3])
+            instant = tuple(
+                int(fragment)
+                for fragment in value.split('-', 2)[:3]
+                )
 
         elif isinstance(value, datetime.date):
             instant = value.year, value.month, value.day
 
         elif isinstance(value, int):
             instant = value,
+
+        elif isinstance(value, (dict, set)):
+            raise InstantValueError(value)
 
         elif isinstance(value, (tuple, list)) and not 1 <= len(value) <= 3:
             raise InstantValueError(value)

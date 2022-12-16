@@ -6,45 +6,6 @@ from openfisca_core import periods
 
 
 @pytest.mark.parametrize("arg, expected", [
-    [None, None],
-    [datetime.date(1, 1, 1), periods.Instant((1, 1, 1))],
-    [periods.Instant((1, 1, 1)), periods.Instant((1, 1, 1))],
-    [periods.Period((periods.DAY, periods.Instant((1, 1, 1)), 365)), periods.Instant((1, 1, 1))],
-    [1000, periods.Instant((1000, 1, 1))],
-    ["1000", periods.Instant((1000, 1, 1))],
-    ["1000-01", periods.Instant((1000, 1, 1))],
-    ["1000-01-01", periods.Instant((1000, 1, 1))],
-    ])
-def test_build_instant(arg, expected):
-    """Returns the expected ``Instant``."""
-    assert periods.Instant.build(arg) == expected
-
-
-@pytest.mark.parametrize("arg, error", [
-    [periods.YEAR, ValueError],
-    [periods.ETERNITY, ValueError],
-    ["1000-0", ValueError],
-    ["1000-1", ValueError],
-    ["1000-13", ValueError],
-    ["1000-0-0", ValueError],
-    ["1000-1-1", ValueError],
-    ["1000-01-0", ValueError],
-    ["1000-01-1", ValueError],
-    ["1000-01-32", ValueError],
-    ["month:1000", ValueError],
-    ["month:1000:1", ValueError],
-    ["year:1000-01-01", ValueError],
-    ["year:1000-01-01:1", ValueError],
-    ["year:1000-01-01:3", ValueError],
-    ])
-def test_build_instant_with_an_invalid_argument(arg, error):
-    """Raises ``ValueError`` when given an invalid argument."""
-
-    with pytest.raises(error):
-        periods.Instant.build(arg)
-
-
-@pytest.mark.parametrize("arg, expected", [
     ["eternity", periods.Period((periods.ETERNITY, periods.Instant((1, 1, 1)), 1))],
     ["ETERNITY", periods.Period((periods.ETERNITY, periods.Instant((1, 1, 1)), 1))],
     [periods.ETERNITY, periods.Period((periods.ETERNITY, periods.Instant((1, 1, 1)), 1))],
