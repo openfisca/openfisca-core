@@ -230,9 +230,6 @@ class Period(Tuple[DateUnit, Instant, int]):
         Returns:
             An Instant.
 
-        Raises:
-            DateUnitValueError: If the period's unit isn't day, month or year.
-
         Examples:
             >>> start = instant((2012, 2, 29))
 
@@ -282,7 +279,7 @@ class Period(Tuple[DateUnit, Instant, int]):
             Traceback (most recent call last):
             ValueError: 'date' undefined for period size > 1: year:2021-10:3.
 
-        .. vesionchanged:: 39.0.0:
+        .. versionchanged:: 39.0.0:
             Made it a normal method instead of a property.
 
         """
@@ -545,7 +542,8 @@ class Period(Tuple[DateUnit, Instant, int]):
             :obj:`.Period`: A period.
 
         Raises:
-            PeriodFormatError: When the arguments were invalid, like "2021-32-13".
+            PeriodFormatError: When arguments are invalid, like "2021-32-13".
+            PeriodTypeError: When ``value`` is not a ``period-like`` object.
 
         Examples:
             >>> Period.build(Period((YEAR, instant((2021, 1, 1)), 1)))

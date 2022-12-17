@@ -4,6 +4,8 @@ import enum
 
 
 class DateUnitMeta(enum.EnumMeta):
+    """Metaclass for ``DateUnit``."""
+
     @property
     def isoformat(self) -> DateUnit:
         """Date units corresponding to the ISO format (day, month, and year).
