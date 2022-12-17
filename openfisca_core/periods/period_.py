@@ -9,8 +9,7 @@ import inflect
 from ._errors import DateUnitValueError, PeriodFormatError, PeriodTypeError
 from ._parsers import ISOFormat
 from ._units import DateUnit, DAY, ETERNITY, MONTH, YEAR
-from .instant_ import Instant as instant
-from .typing import Instant
+from .instant_ import Instant
 
 
 class Period(Tuple[DateUnit, Instant, int]):
@@ -31,7 +30,7 @@ class Period(Tuple[DateUnit, Instant, int]):
             The ``unit``, ``start``, and ``size``, accordingly.
 
     Examples:
-        >>> start = instant((2021, 9, 1))
+        >>> start = Instant((2021, 9, 1))
         >>> period = Period((YEAR, start, 3))
 
         ``Periods`` are represented as a ``tuple`` containing the ``unit``,
@@ -91,7 +90,7 @@ class Period(Tuple[DateUnit, Instant, int]):
             str: A string representation of the period.
 
         Examples:
-            >>> jan = instant((2021, 1, 1))
+            >>> jan = Instant((2021, 1, 1))
             >>> feb = jan.offset(1, MONTH)
 
             >>> str(Period((YEAR, jan, 1)))
@@ -159,7 +158,7 @@ class Period(Tuple[DateUnit, Instant, int]):
             True if ``other`` is contained, otherwise False.
 
         Example:
-            >>> start = instant((2021, 1, 1))
+            >>> start = Instant((2021, 1, 1))
             >>> period = Period((YEAR, start, 1))
             >>> sub_period = Period((MONTH, start, 3))
             >>> sub_period in period
@@ -180,7 +179,7 @@ class Period(Tuple[DateUnit, Instant, int]):
             An int.
 
         Example:
-            >>> start = instant((2021, 10, 1))
+            >>> start = Instant((2021, 10, 1))
             >>> period = Period((YEAR, start, 3))
             >>> period.unit
             year
@@ -197,7 +196,7 @@ class Period(Tuple[DateUnit, Instant, int]):
             An Instant.
 
         Example:
-            >>> start = instant((2021, 10, 1))
+            >>> start = Instant((2021, 10, 1))
             >>> period = Period((YEAR, start, 3))
             >>> period.start
             Instant((2021, 10, 1))
@@ -214,7 +213,7 @@ class Period(Tuple[DateUnit, Instant, int]):
             An int.
 
         Example:
-            >>> start = instant((2021, 10, 1))
+            >>> start = Instant((2021, 10, 1))
             >>> period = Period((YEAR, start, 3))
             >>> period.size
             3
@@ -231,7 +230,7 @@ class Period(Tuple[DateUnit, Instant, int]):
             An Instant.
 
         Examples:
-            >>> start = instant((2012, 2, 29))
+            >>> start = Instant((2012, 2, 29))
 
             >>> Period((YEAR, start, 2)).stop
             Instant((2014, 2, 27))
@@ -268,7 +267,7 @@ class Period(Tuple[DateUnit, Instant, int]):
             ValueError: If the period's size is greater than 1.
 
         Examples:
-            >>> start = instant((2021, 10, 1))
+            >>> start = Instant((2021, 10, 1))
 
             >>> period = Period((YEAR, start, 1))
             >>> period.date()
@@ -302,7 +301,7 @@ class Period(Tuple[DateUnit, Instant, int]):
             ValueError: If the period's unit is not a day, a month or a year.
 
         Examples:
-            >>> start = instant((2021, 10, 1))
+            >>> start = Instant((2021, 10, 1))
 
             >>> period = Period((YEAR, start, 3))
             >>> period.count(DAY)
@@ -358,7 +357,7 @@ class Period(Tuple[DateUnit, Instant, int]):
             A Period.
 
         Examples:
-            >>> start = instant((2023, 1, 1))
+            >>> start = Instant((2023, 1, 1))
 
             >>> period = Period((YEAR, start, 3))
 
@@ -388,7 +387,7 @@ class Period(Tuple[DateUnit, Instant, int]):
             A Period.
 
         Examples:
-            >>> start = instant((2023, 1, 1))
+            >>> start = Instant((2023, 1, 1))
 
             >>> period = Period((YEAR, start, 3))
 
@@ -427,7 +426,7 @@ class Period(Tuple[DateUnit, Instant, int]):
             A Period.
 
         Examples:
-            >>> start = instant((2023, 1, 1))
+            >>> start = Instant((2023, 1, 1))
 
             >>> period = Period((YEAR, start, 3))
 
@@ -466,7 +465,7 @@ class Period(Tuple[DateUnit, Instant, int]):
             Period: A new one.
 
         Examples:
-            >>> start = instant((2014, 2, 3))
+            >>> start = Instant((2014, 2, 3))
 
             >>> Period((DAY, start, 1)).offset("first-of", MONTH)
             Period((day, Instant((2014, 2, 1)), 1))
@@ -474,7 +473,7 @@ class Period(Tuple[DateUnit, Instant, int]):
             >>> Period((MONTH, start, 4)).offset("last-of", MONTH)
             Period((month, Instant((2014, 2, 28)), 4))
 
-            >>> start = instant((2021, 1, 1))
+            >>> start = Instant((2021, 1, 1))
 
             >>> Period((DAY, start, 365)).offset(-3)
             Period((day, Instant((2020, 12, 29)), 365))
@@ -505,7 +504,7 @@ class Period(Tuple[DateUnit, Instant, int]):
             ValueError: If the period's unit is smaller than the given unit.
 
         Examples:
-            >>> start = instant((2021, 1, 1))
+            >>> start = Instant((2021, 1, 1))
 
             >>> period = Period((YEAR, start, 1))
             >>> period.subperiods(MONTH)
@@ -546,10 +545,10 @@ class Period(Tuple[DateUnit, Instant, int]):
             PeriodTypeError: When ``value`` is not a ``period-like`` object.
 
         Examples:
-            >>> Period.build(Period((YEAR, instant((2021, 1, 1)), 1)))
+            >>> Period.build(Period((YEAR, Instant((2021, 1, 1)), 1)))
             Period((year, Instant((2021, 1, 1)), 1))
 
-            >>> Period.build(instant((2021, 1, 1)))
+            >>> Period.build(Instant((2021, 1, 1)))
             Period((day, Instant((2021, 1, 1)), 1))
 
             >>> Period.build(ETERNITY)
@@ -583,7 +582,7 @@ class Period(Tuple[DateUnit, Instant, int]):
         size: int | str
 
         if value in {ETERNITY, ETERNITY.name, ETERNITY.name.lower()}:
-            return cls((ETERNITY, instant.build(datetime.date.min), 1))
+            return cls((ETERNITY, Instant.build(datetime.date.min), 1))
 
         if value is None or isinstance(value, DateUnit):
             raise PeriodTypeError(value)
@@ -595,7 +594,7 @@ class Period(Tuple[DateUnit, Instant, int]):
             return cls((DAY, value, 1))
 
         if isinstance(value, int):
-            return cls((YEAR, instant((value, 1, 1)), 1))
+            return cls((YEAR, Instant((value, 1, 1)), 1))
 
         if not isinstance(value, str):
             raise PeriodFormatError(value)
@@ -604,7 +603,7 @@ class Period(Tuple[DateUnit, Instant, int]):
         part = ISOFormat.parse(value)
 
         if part is not None:
-            return cls((DateUnit(part.unit), instant((part[1:-1])), 1))
+            return cls((DateUnit(part.unit), Instant((part[1:-1])), 1))
 
         # Complex periods must have a ':' in their strings
         if ":" not in value:
@@ -656,4 +655,4 @@ class Period(Tuple[DateUnit, Instant, int]):
         if part.unit > unit:
             raise PeriodFormatError(value)
 
-        return cls((unit, instant((part[1:-1])), size))
+        return cls((unit, Instant((part[1:-1])), size))

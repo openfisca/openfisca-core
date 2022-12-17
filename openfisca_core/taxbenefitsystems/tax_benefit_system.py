@@ -400,9 +400,6 @@ class TaxBenefitSystem:
 
         """
 
-        key: Optional[Instant]
-        msg: str
-
         if isinstance(instant, Instant):
             key = instant
 

@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from openfisca_core.periods.typing import Instant, Period
 from openfisca_core.types import Formula
-from typing import Optional, Union
 
 import datetime
 import inspect
@@ -311,8 +309,8 @@ class Variable:
 
     def get_formula(
             self,
-            period: Union[Instant, Period, str, int] = None,
-            ) -> Optional[Formula]:
+            period: periods.period | periods.instant | str | int | None = None,
+            ) -> Formula | None:
         """Returns the formula to compute the variable at the given period.
 
         If no period is given and the variable has several formulas, the method
@@ -326,7 +324,7 @@ class Variable:
 
         """
 
-        instant: Optional[Instant]
+        instant: periods.instant | None
 
         if not self.formulas:
             return None
@@ -334,7 +332,7 @@ class Variable:
         if period is None:
             return self.formulas.peekitem(index = 0)[1]  # peekitem gets the 1st key-value tuple (the oldest start_date and formula). Return the formula.
 
-        if isinstance(period, Period):
+        if isinstance(period, periods.period):
             instant = period.start
 
         else:
