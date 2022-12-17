@@ -77,15 +77,3 @@ def test_parse_period(arg, expected):
     """Returns an ``Instant`` when given a valid ISO format string."""
 
     assert periods.parse_period(arg) == expected
-
-
-@pytest.mark.parametrize("arg, expected", [
-    [periods.Period((periods.DAY, periods.Instant((1, 1, 1)), 365)), "1_365"],
-    [periods.Period((periods.MONTH, periods.Instant((1, 1, 1)), 12)), "2_12"],
-    [periods.Period((periods.YEAR, periods.Instant((1, 1, 1)), 2)), "4_2"],
-    [periods.Period((periods.ETERNITY, periods.Instant((1, 1, 1)), 1)), "8_1"],
-    ])
-def test_key_period_size_with_a_valid_argument(arg, expected):
-    """Returns the corresponding period's weight."""
-
-    assert periods.key_period_size(arg) == expected

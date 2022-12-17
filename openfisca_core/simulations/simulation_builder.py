@@ -413,7 +413,8 @@ class SimulationBuilder:
             buffer = self.input_buffer[variable_name]
             unsorted_periods = [periods.build_period(period_str) for period_str in self.input_buffer[variable_name].keys()]
             # We need to handle small periods first for set_input to work
-            sorted_periods = sorted(unsorted_periods, key = periods.key_period_size)
+            sorted_periods = sorted(unsorted_periods, key = lambda period: f"{periods.DateUnit[period.unit].value}_{period.size}")
+
             for period_value in sorted_periods:
                 values = buffer[str(period_value)]
                 # Hack to replicate the values in the persons entity

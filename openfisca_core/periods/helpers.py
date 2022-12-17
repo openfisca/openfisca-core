@@ -123,35 +123,6 @@ def build_period(value: Any) -> Period:
     return Period((unit, base_period.start, size))
 
 
-def key_period_size(period: Period) -> str:
-    """Define a key in order to sort periods by length.
-
-    It uses two aspects: first, ``unit``, then, ``size``.
-
-    Args:
-        period: An :mod:`.openfisca_core` :obj:`.Period`.
-
-    Returns:
-        :obj:`str`: A string.
-
-    Examples:
-        >>> instant = Instant((2021, 9, 14))
-
-        >>> period = Period((DAY, instant, 1))
-        >>> key_period_size(period)
-        '1_1'
-
-        >>> period = Period((YEAR, instant, 3))
-        >>> key_period_size(period)
-        '4_3'
-
-    """
-
-    unit, _start, size = period
-
-    return f"{DateUnit[unit]}_{size}"
-
-
 def parse_period(value: str) -> Period | None:
     """Parse periods respecting the ISO format.
 

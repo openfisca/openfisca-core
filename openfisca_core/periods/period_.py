@@ -398,7 +398,6 @@ class Period(Tuple[str, Instant, int]):
 
         return type(self)((unit, self.start.offset("first-of", unit), 1))
 
-
     def last(self, unit: str, size: int = 1) -> Period:
         """Last ``size`` ``unit``s of the ``Period``.
 

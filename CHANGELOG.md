@@ -8,11 +8,12 @@
 - Deprecate `periods.intersect`.
 - Deprecate `periods.unit_weight`.
 - Deprecate `periods.unit_weights`.
+- Deprecate `periods.key_period_size`.
 - Make `periods.parse_period` stricter (for example `2022-1` now fails).
 - Refactor `Period.contains` as `Period.__contains__`.
 - Rename `Period.get_subperiods` to `subperiods`.
 - Rename `instant` to `Instant.build`.
-- Rename `period` to `Instant.period`.
+- Rename `period` to `Period.build`.
 - Transform `Instant.date` from property to method.
 - Transform `Period.date` from property to method.
 - Simplify reference periods.
