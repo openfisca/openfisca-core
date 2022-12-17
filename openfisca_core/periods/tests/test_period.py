@@ -110,7 +110,7 @@ def test_day_size_in_months(date_unit, instant, size, expected):
 
     period = periods.Period((date_unit, instant, size))
 
-    assert period.size_in_months == expected
+    assert period.count("month") == expected
 
 
 @pytest.mark.parametrize("date_unit, instant, size, expected", [
@@ -129,4 +129,4 @@ def test_day_size_in_days(date_unit, instant, size, expected):
 
     period = periods.Period((date_unit, instant, size))
 
-    assert period.size_in_days == expected
+    assert period.count("day") == expected

@@ -30,17 +30,6 @@ def test_offset(instant, offset, unit, expected):
     assert instant.offset(offset, unit) == expected
 
 
-@pytest.mark.parametrize("offset, unit, expected", [
-    ["first-of", periods.DAY, TypeError],
-    ["last-of", periods.DAY, TypeError],
-    ])
-def test_offset_with_an_invalid_offset(instant, offset, unit, expected):
-    """Raises ``OffsetTypeError`` when given an invalid offset."""
-
-    with pytest.raises(TypeError):
-        instant.offset(offset, unit)
-
-
 @pytest.mark.parametrize("arg, expected", [
     ["1000", periods.Instant((1000, 1, 1))],
     ["1000-01", periods.Instant((1000, 1, 1))],

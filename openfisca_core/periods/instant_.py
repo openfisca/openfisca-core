@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Tuple
+from typing import Any, Callable, Tuple
 
 import calendar
 import datetime
 import functools
 
-from dateutil import relativedelta
-
+import inflect
 import pendulum
 
 from ._config import INSTANT_PATTERN
@@ -76,6 +75,8 @@ class Instant(Tuple[int, int, int]):
 
     """
 
+    plural: Callable[[str], str] = inflect.engine().plural
+
     def __repr__(self) -> str:
         return (
             f"{type(self).__name__}"
@@ -141,10 +142,10 @@ class Instant(Tuple[int, int, int]):
         Example:
             >>> instant = Instant((2021, 10, 1))
             >>> instant.date()
-            datetime.date(2021, 10, 1)
+            Date(2021, 10, 1)
 
         Returns:
-            A datetime.time.
+            A date.
 
         """
 
@@ -165,16 +166,16 @@ class Instant(Tuple[int, int, int]):
             OffsetTypeError: When ``offset`` is of type ``int``.
 
         Examples:
-            >>> Instant((2020, 12, 31)).offset("first-of", "month")
+            >>> Instant((2020, 12, 31)).offset("first-of", MONTH)
             Instant((2020, 12, 1))
 
-            >>> Instant((2020, 1, 1)).offset("last-of", "year")
+            >>> Instant((2020, 1, 1)).offset("last-of", YEAR)
             Instant((2020, 12, 31))
 
-            >>> Instant((2020, 1, 1)).offset(1, "year")
+            >>> Instant((2020, 1, 1)).offset(1, YEAR)
             Instant((2021, 1, 1))
 
-            >>> Instant((2020, 1, 1)).offset(-3, "day")
+            >>> Instant((2020, 1, 1)).offset(-3, DAY)
             Instant((2019, 12, 29))
 
         """
@@ -203,19 +204,9 @@ class Instant(Tuple[int, int, int]):
         if not isinstance(offset, int):
             raise OffsetTypeError(offset)
 
-        if unit == DAY:
-            date = self.date() + relativedelta.relativedelta(days = offset)
-            return type(self)((date.year, date.month, date.day))
+        date = self.date().add(**{self.plural(unit): offset})
 
-        if unit == MONTH:
-            date = self.date() + relativedelta.relativedelta(months = offset)
-            return type(self)((date.year, date.month, date.day))
-
-        if unit == YEAR:
-            date = self.date() + relativedelta.relativedelta(years = offset)
-            return type(self)((date.year, date.month, date.day))
-
-        return self
+        return type(self)((date.year, date.month, date.day))
 
     @classmethod
     def build(cls, value: Any) -> Instant:
@@ -251,7 +242,7 @@ class Instant(Tuple[int, int, int]):
             Instant((2021, 9, 1))
 
             >>> start = periods.Instant((2021, 9, 16))
-            >>> period = periods.Period(("year", start, 1))
+            >>> period = periods.Period((YEAR, start, 1))
             >>> periods.Instant.build(period)
             Instant((2021, 9, 16))
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Callable, Sequence, Tuple
 
 import inflect
-from pendulum import datetime
+import datetime
 
 from ._errors import DateUnitValueError
 from ._units import DAY, ETERNITY, MONTH, UNIT_WEIGHTS, YEAR
@@ -272,7 +272,7 @@ class Period(Tuple[str, Instant, int]):
 
         return type(start)((stop.year, stop.month, stop.day))
 
-    def date(self) -> datetime.Date:
+    def date(self) -> datetime.date:
         """The date representation of the ``period``'s' start date.
 
         Returns:
