@@ -51,9 +51,9 @@ def test_build_period(arg, expected):
     ["day:1000:1", ValueError],
     ["month:1000", ValueError],
     ["month:1000:1", ValueError],
-    [None, ValueError],
+    [None, TypeError],
     [datetime.date(1, 1, 1), ValueError],
-    [periods.YEAR, ValueError],
+    [periods.YEAR, TypeError],
     ])
 def test_build_period_with_an_invalid_argument(arg, error):
     """Raises ``ValueError`` when given an invalid argument."""

@@ -50,7 +50,7 @@ class InstantTypeError(TypeError):
     def __init__(self, value: Any) -> None:
         super().__init__(
             f"Invalid instant: '{str(value)}' of type {type(value)}, "
-            f"expecting an 'Instant', 'tuple', or 'list'. {LEARN_MORE}"
+            f"expecting an 'Instant', 'tuple', 'list', or 'str'. {LEARN_MORE}"
             )
 
 
@@ -62,6 +62,16 @@ class PeriodFormatError(ValueError):
             f"'{str(value)}' is not a valid period. Periods are described "
             "using the 'unit:YYYY-MM-DD:size' format, for instance "
             f"'day:2023-01-15:3'. {LEARN_MORE}"
+            )
+
+
+class PeriodTypeError(TypeError):
+    """Raised when a period's type is not valid."""
+
+    def __init__(self, value: Any) -> None:
+        super().__init__(
+            f"Invalid period: '{str(value)}' of type {type(value)}, "
+            f"expecting a 'Period', 'tuple', 'list', or 'str. {LEARN_MORE}"
             )
 
 

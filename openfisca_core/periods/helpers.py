@@ -8,7 +8,7 @@ import pendulum
 from pendulum.datetime import Date
 from pendulum.parsing import ParserError
 
-from ._errors import PeriodFormatError
+from ._errors import PeriodFormatError, PeriodTypeError
 from ._units import DateUnit, DAY, ETERNITY, MONTH, YEAR
 from .instant_ import Instant
 from .period_ import Period
@@ -61,14 +61,17 @@ def build_period(value: Any) -> Period:
 
     """
 
+    if value in {ETERNITY, ETERNITY.name, ETERNITY.name.lower()}:
+        return Period((ETERNITY, Instant.build(datetime.date.min), 1))
+
+    if value is None or isinstance(value, DateUnit):
+        raise PeriodTypeError(value)
+
     if isinstance(value, Period):
         return value
 
     if isinstance(value, Instant):
         return Period((DAY, value, 1))
-
-    if value in {ETERNITY, ETERNITY.name}:
-        return Period((ETERNITY, Instant.build(datetime.date.min), 1))
 
     if isinstance(value, int):
         return Period((YEAR, Instant((value, 1, 1)), 1))
@@ -86,34 +89,43 @@ def build_period(value: Any) -> Period:
     if ":" not in value:
         raise PeriodFormatError(value)
 
-    components = value.split(":")
+    # We know the first element has to be a ``unit``
+    unit, *rest = value.split(":")
+
+    # Units are case insensitive so we need to upper them
+    unit = unit.upper()
 
     # Left-most component must be a valid unit
-    unit = DateUnit[components[0].upper()]
-
-    if unit not in DateUnit.isoformat:
+    if unit not in dir(DateUnit):
         raise PeriodFormatError(value)
+
+    unit = DateUnit[unit]
+
+    # We get the first remaining component
+    period, *rest = rest
 
     # Middle component must be a valid ISO period
-    period = parse_period(components[1])
+    period = parse_period(period)
 
-    if not period:
+    if not isinstance(period, Period):
         raise PeriodFormatError(value)
 
-    # Periods like year:2015-03 have a size of 1
-    if len(components) == 2:
+    # Finally we try to parse the size, if any
+    try:
+        size, *rest = rest
+
+    except ValueError:
         size = 1
 
     # If provided, make sure the size is an integer
-    elif len(components) == 3:
-        try:
-            size = int(components[2])
+    try:
+        size = int(size)
 
-        except ValueError:
-            raise PeriodFormatError(value)
+    except ValueError:
+        raise PeriodFormatError(value)
 
     # If there are more than 2 ":" in the string, the period is invalid
-    else:
+    if len(rest) > 0:
         raise PeriodFormatError(value)
 
     # Reject ambiguous periods such as month:2014
