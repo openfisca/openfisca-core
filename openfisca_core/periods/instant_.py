@@ -13,8 +13,8 @@ from ._config import INSTANT_PATTERN
 from ._errors import (
     DateUnitValueError,
     InstantFormatError,
-    InstantValueError,
     InstantTypeError,
+    InstantValueError,
     OffsetTypeError,
     )
 from ._units import DAY, MONTH, YEAR

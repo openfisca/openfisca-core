@@ -9,7 +9,7 @@ from pendulum.datetime import Date
 from pendulum.parsing import ParserError
 
 from ._errors import PeriodFormatError
-from ._units import DAY, ETERNITY, MONTH, UNIT_WEIGHTS, YEAR
+from ._units import DateUnit, DAY, ETERNITY, MONTH, YEAR
 from .instant_ import Instant
 from .period_ import Period
 
@@ -117,7 +117,7 @@ def build_period(value: Any) -> Period:
         raise PeriodFormatError(value)
 
     # Reject ambiguous periods such as month:2014
-    if UNIT_WEIGHTS[base_period.unit] > UNIT_WEIGHTS[unit]:
+    if DateUnit[base_period.unit] > DateUnit[unit]:
         raise PeriodFormatError(value)
 
     return Period((unit, base_period.start, size))
@@ -137,19 +137,19 @@ def key_period_size(period: Period) -> str:
     Examples:
         >>> instant = Instant((2021, 9, 14))
 
-        >>> period = Period(("day", instant, 1))
+        >>> period = Period((DAY, instant, 1))
         >>> key_period_size(period)
-        '100_1'
+        '1_1'
 
-        >>> period = Period(("year", instant, 3))
+        >>> period = Period((YEAR, instant, 3))
         >>> key_period_size(period)
-        '300_3'
+        '4_3'
 
     """
 
     unit, _start, size = period
 
-    return f"{UNIT_WEIGHTS[unit]}_{size}"
+    return f"{DateUnit[unit]}_{size}"
 
 
 def parse_period(value: str) -> Period | None:

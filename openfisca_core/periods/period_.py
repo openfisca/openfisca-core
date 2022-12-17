@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from typing import Callable, Sequence, Tuple
 
-import inflect
 import datetime
 
+import inflect
+
 from ._errors import DateUnitValueError
-from ._units import DAY, ETERNITY, MONTH, UNIT_WEIGHTS, YEAR
+from ._units import DateUnit, DAY, ETERNITY, MONTH, YEAR
 from .typing import Instant
 
 
@@ -549,7 +550,7 @@ class Period(Tuple[str, Instant, int]):
 
         """
 
-        if UNIT_WEIGHTS[self.unit] < UNIT_WEIGHTS[unit]:
+        if DateUnit[self.unit] < DateUnit[unit]:
             raise ValueError(f"Cannot subdivide {self.unit} into {unit}")
 
         if unit not in (DAY, MONTH, YEAR):

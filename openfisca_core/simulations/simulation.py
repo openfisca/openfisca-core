@@ -171,7 +171,7 @@ class Simulation:
             period = periods.build_period(period)
 
         # Check that the requested period matches definition_period
-        if periods.UNIT_WEIGHTS[variable.definition_period] > periods.UNIT_WEIGHTS[period.unit]:
+        if periods.DateUnit[variable.definition_period] > periods.DateUnit[period.unit]:
             raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' can only be computed for {2}-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this(YEAR)'.".format(
                 variable.name,
                 period,

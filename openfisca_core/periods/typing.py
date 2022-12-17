@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import datetime
-
 import typing_extensions
 from typing import Any, Iterable, Iterator
 from typing_extensions import Protocol
 
 import abc
+import datetime
 
 
 @typing_extensions.runtime_checkable
