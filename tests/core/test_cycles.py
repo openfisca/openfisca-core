@@ -10,7 +10,7 @@ from openfisca_core.variables import Variable
 
 @pytest.fixture
 def reference_period():
-    return periods.Period.build('2013-01')
+    return periods.build('2013-01')
 
 
 @pytest.fixture

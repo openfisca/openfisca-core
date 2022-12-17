@@ -113,7 +113,7 @@ class Holder:
             >>> entity = entities.Entity("", "", "", "")
 
             >>> class MyVariable(variables.Variable):
-            ...     definition_period = "year"
+            ...     definition_period = periods.YEAR
             ...     entity = entity
             ...     value_type = int
 
@@ -184,7 +184,7 @@ class Holder:
             >>> entity = entities.Entity("", "", "", "")
 
             >>> class MyVariable(variables.Variable):
-            ...     definition_period = "year"
+            ...     definition_period = periods.YEAR
             ...     entity = entity
             ...     value_type = int
 
@@ -207,7 +207,7 @@ class Holder:
 
         """
 
-        period = periods.Period.build(period)
+        period = periods.build(period)
 
         if period is None:
             raise ValueError(f"Invalid period value: {period}")

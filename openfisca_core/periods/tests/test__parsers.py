@@ -17,4 +17,4 @@ from openfisca_core import periods
 def test_parse_iso_format(arg, expected):
     """Returns an ``ISOFormat`` when given a valid ISO format string."""
 
-    assert periods.ISOFormat.parse(arg) == expected
+    assert periods.isoformat(arg) == expected

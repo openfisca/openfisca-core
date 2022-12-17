@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from openfisca_core.periods.typing import Period
+from openfisca_core.types import Population, TaxBenefitSystem, Variable
 from typing import Dict, NamedTuple, Optional, Set
 
 import tempfile
@@ -8,11 +10,17 @@ import warnings
 import numpy
 
 from openfisca_core import commons, periods
-from openfisca_core.errors import CycleError, SpiralError, VariableNotFoundError
+from openfisca_core.errors import (
+    CycleError,
+    SpiralError,
+    VariableNotFoundError,
+    )
 from openfisca_core.indexed_enums import Enum, EnumArray
-from openfisca_core.periods import Period
-from openfisca_core.tracers import FullTracer, SimpleTracer, TracingParameterNodeAtInstant
-from openfisca_core.types import Population, TaxBenefitSystem, Variable
+from openfisca_core.tracers import (
+    FullTracer,
+    SimpleTracer,
+    TracingParameterNodeAtInstant,
+    )
 from openfisca_core.warnings import TempfileWarning
 
 
@@ -96,7 +104,7 @@ class Simulation:
         """Calculate ``variable_name`` for ``period``."""
 
         if period is not None and not isinstance(period, Period):
-            period = periods.Period.build(period)
+            period = periods.build(period)
 
         self.tracer.record_calculation_start(variable_name, period)
 
@@ -168,7 +176,7 @@ class Simulation:
             raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
         if period is not None and not isinstance(period, Period):
-            period = periods.Period.build(period)
+            period = periods.build(period)
 
         # Check that the requested period matches definition_period
         if variable.definition_period > period.unit:
@@ -197,7 +205,7 @@ class Simulation:
             raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
         if period is not None and not isinstance(period, Period):
-            period = periods.Period.build(period)
+            period = periods.build(period)
 
         # Check that the requested period matches definition_period
         if variable.definition_period != periods.YEAR:
@@ -345,7 +353,7 @@ class Simulation:
         Unlike :meth:`.calculate`, this method *does not* trigger calculations and *does not* use any formula.
         """
         if period is not None and not isinstance(period, Period):
-            period = periods.Period.build(period)
+            period = periods.build(period)
         return self.get_holder(variable_name).get_array(period)
 
     def get_holder(self, variable_name: str):
@@ -438,7 +446,7 @@ class Simulation:
         if variable is None:
             raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
-        period = periods.Period.build(period)
+        period = periods.build(period)
         if ((variable.end is not None) and (period.start.date() > variable.end)):
             return
         self.get_holder(variable_name).set_input(period, value)

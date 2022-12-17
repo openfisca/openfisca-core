@@ -15,7 +15,7 @@ def monthly_variable():
     class monthly_variable(Variable):
         value_type = int
         entity = Person
-        definition_period = MONTH
+        definition_period = periods.MONTH
 
         def formula(person, period, parameters):
             variable.calculation_count += 1
@@ -41,13 +41,13 @@ class PopulationMock:
 
 
 def test_without_annualize(monthly_variable):
-    period = periods.Period.build(2019)
+    period = periods.build(2019)
 
     person = PopulationMock(monthly_variable)
 
     yearly_sum = sum(
         person('monthly_variable', month)
-        for month in period.subperiods(MONTH)
+        for month in period.subperiods(periods.MONTH)
         )
 
     assert monthly_variable.calculation_count == 11
@@ -55,14 +55,14 @@ def test_without_annualize(monthly_variable):
 
 
 def test_with_annualize(monthly_variable):
-    period = periods.Period.build(2019)
+    period = periods.build(2019)
     annualized_variable = get_annualized_variable(monthly_variable)
 
     person = PopulationMock(annualized_variable)
 
     yearly_sum = sum(
         person('monthly_variable', month)
-        for month in period.subperiods(MONTH)
+        for month in period.subperiods(periods.MONTH)
         )
 
     assert monthly_variable.calculation_count == 0
@@ -70,14 +70,14 @@ def test_with_annualize(monthly_variable):
 
 
 def test_with_partial_annualize(monthly_variable):
-    period = periods.Period.build('year:2018:2')
-    annualized_variable = get_annualized_variable(monthly_variable, periods.Period.build(2018))
+    period = periods.build('year:2018:2')
+    annualized_variable = get_annualized_variable(monthly_variable, periods.build(2018))
 
     person = PopulationMock(annualized_variable)
 
     yearly_sum = sum(
         person('monthly_variable', month)
-        for month in period.subperiods(MONTH)
+        for month in period.subperiods(periods.MONTH)
         )
 
     assert monthly_variable.calculation_count == 11

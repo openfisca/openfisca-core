@@ -227,24 +227,24 @@ class Instant(Tuple[int, int, int]):
         Examples:
             >>> from openfisca_core import periods
 
-            >>> periods.Instant.build(datetime.date(2021, 9, 16))
+            >>> Instant.build(datetime.date(2021, 9, 16))
             Instant((2021, 9, 16))
 
-            >>> periods.Instant.build(Instant((2021, 9, 16)))
+            >>> Instant.build(Instant((2021, 9, 16)))
             Instant((2021, 9, 16))
 
-            >>> periods.Instant.build("2021")
+            >>> Instant.build("2021")
             Instant((2021, 1, 1))
 
-            >>> periods.Instant.build(2021)
+            >>> Instant.build(2021)
             Instant((2021, 1, 1))
 
-            >>> periods.Instant.build((2021, 9))
+            >>> Instant.build((2021, 9))
             Instant((2021, 9, 1))
 
-            >>> start = periods.Instant((2021, 9, 16))
-            >>> period = periods.Period((YEAR, start, 1))
-            >>> periods.Instant.build(period)
+            >>> start = Instant((2021, 9, 16))
+            >>> period = periods.period((YEAR, start, 1))
+            >>> Instant.build(period)
             Instant((2021, 9, 16))
 
             .. versionadded:: 39.0.0

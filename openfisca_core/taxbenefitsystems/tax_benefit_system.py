@@ -410,7 +410,7 @@ class TaxBenefitSystem:
             key = instant.start
 
         elif isinstance(instant, (str, int)):
-            key = periods.Instant.build(instant)
+            key = periods.instant.build(instant)
 
         else:
             msg = f"Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {instant}."

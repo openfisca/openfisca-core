@@ -2,12 +2,12 @@ import warnings
 
 import pytest
 
-from openfisca_core import periods
-from openfisca_core.periods import Instant
-from openfisca_core.tools import assert_near
-from openfisca_core.parameters import ValuesHistory, ParameterNode
 from openfisca_country_template.entities import Household, Person
+
+from openfisca_core import periods
 from openfisca_core.model_api import *  # noqa analysis:ignore
+from openfisca_core.parameters import ParameterNode, ValuesHistory
+from openfisca_core.tools import assert_near
 
 
 class goes_to_school(Variable):
@@ -15,7 +15,7 @@ class goes_to_school(Variable):
     default_value = True
     entity = Person
     label = "The person goes to school (only relevant for children)"
-    definition_period = MONTH
+    definition_period = periods.MONTH
 
 
 class WithBasicIncomeNeutralized(Reform):
@@ -124,23 +124,23 @@ def test_update_items():
     check_update_items(
         'Replace an item by a new item',
         ValuesHistory('dummy_name', {"2013-01-01": {'value': 0.0}, "2014-01-01": {'value': None}}),
-        periods.Period.build(2013).start,
-        periods.Period.build(2013).stop,
+        periods.build(2013).start,
+        periods.build(2013).stop,
         1.0,
         ValuesHistory('dummy_name', {"2013-01-01": {'value': 1.0}, "2014-01-01": {'value': None}}),
         )
     check_update_items(
         'Replace an item by a new item in a list of items, the last being open',
         ValuesHistory('dummy_name', {"2014-01-01": {'value': 9.53}, "2015-01-01": {'value': 9.61}, "2016-01-01": {'value': 9.67}}),
-        periods.Period.build(2015).start,
-        periods.Period.build(2015).stop,
+        periods.build(2015).start,
+        periods.build(2015).stop,
         1.0,
         ValuesHistory('dummy_name', {"2014-01-01": {'value': 9.53}, "2015-01-01": {'value': 1.0}, "2016-01-01": {'value': 9.67}}),
         )
     check_update_items(
         'Open the stop instant to the future',
         ValuesHistory('dummy_name', {"2013-01-01": {'value': 0.0}, "2014-01-01": {'value': None}}),
-        periods.Period.build(2013).start,
+        periods.build(2013).start,
         None,  # stop instant
         1.0,
         ValuesHistory('dummy_name', {"2013-01-01": {'value': 1.0}}),
@@ -148,15 +148,15 @@ def test_update_items():
     check_update_items(
         'Insert a new item in the middle of an existing item',
         ValuesHistory('dummy_name', {"2010-01-01": {'value': 0.0}, "2014-01-01": {'value': None}}),
-        periods.Period.build(2011).start,
-        periods.Period.build(2011).stop,
+        periods.build(2011).start,
+        periods.build(2011).stop,
         1.0,
         ValuesHistory('dummy_name', {"2010-01-01": {'value': 0.0}, "2011-01-01": {'value': 1.0}, "2012-01-01": {'value': 0.0}, "2014-01-01": {'value': None}}),
         )
     check_update_items(
         'Insert a new open item coming after the last open item',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
-        periods.Period.build(2015).start,
+        periods.build(2015).start,
         None,  # stop instant
         1.0,
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}, "2015-01-01": {'value': 1.0}}),
@@ -164,15 +164,15 @@ def test_update_items():
     check_update_items(
         'Insert a new item starting at the same date than the last open item',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
-        periods.Period.build(2014).start,
-        periods.Period.build(2014).stop,
+        periods.build(2014).start,
+        periods.build(2014).stop,
         1.0,
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 1.0}, "2015-01-01": {'value': 0.14}}),
         )
     check_update_items(
         'Insert a new open item starting at the same date than the last open item',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
-        periods.Period.build(2014).start,
+        periods.build(2014).start,
         None,  # stop instant
         1.0,
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 1.0}}),
@@ -180,23 +180,23 @@ def test_update_items():
     check_update_items(
         'Insert a new item coming before the first item',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
-        periods.Period.build(2005).start,
-        periods.Period.build(2005).stop,
+        periods.build(2005).start,
+        periods.build(2005).stop,
         1.0,
         ValuesHistory('dummy_name', {"2005-01-01": {'value': 1.0}, "2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         )
     check_update_items(
         'Insert a new item coming before the first item with a hole',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
-        periods.Period.build(2003).start,
-        periods.Period.build(2003).stop,
+        periods.build(2003).start,
+        periods.build(2003).stop,
         1.0,
         ValuesHistory('dummy_name', {"2003-01-01": {'value': 1.0}, "2004-01-01": {'value': None}, "2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         )
     check_update_items(
         'Insert a new open item starting before the start date of the first item',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
-        periods.Period.build(2005).start,
+        periods.build(2005).start,
         None,  # stop instant
         1.0,
         ValuesHistory('dummy_name', {"2005-01-01": {'value': 1.0}}),
@@ -204,7 +204,7 @@ def test_update_items():
     check_update_items(
         'Insert a new open item starting at the same date than the first item',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
-        periods.Period.build(2006).start,
+        periods.build(2006).start,
         None,  # stop instant
         1.0,
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 1.0}}),
@@ -216,7 +216,7 @@ def test_add_variable(make_simulation, tax_benefit_system):
         value_type = int
         label = "Nouvelle variable introduite par la réforme"
         entity = Household
-        definition_period = MONTH
+        definition_period = periods.MONTH
 
         def formula(household, period):
             return household.empty_array() + 10
@@ -240,7 +240,7 @@ def test_add_dated_variable(make_simulation, tax_benefit_system):
         value_type = int
         label = "Nouvelle variable introduite par la réforme"
         entity = Household
-        definition_period = MONTH
+        definition_period = periods.MONTH
 
         def formula_2010_01_01(household, period):
             return household.empty_array() + 10
@@ -263,7 +263,7 @@ def test_add_dated_variable(make_simulation, tax_benefit_system):
 def test_update_variable(make_simulation, tax_benefit_system):
 
     class disposable_income(Variable):
-        definition_period = MONTH
+        definition_period = periods.MONTH
 
         def formula_2018(household, period):
             return household.empty_array() + 10
@@ -294,7 +294,7 @@ def test_update_variable(make_simulation, tax_benefit_system):
 def test_replace_variable(tax_benefit_system):
 
     class disposable_income(Variable):
-        definition_period = MONTH
+        definition_period = periods.MONTH
         entity = Person
         label = "Disposable income"
         value_type = float
@@ -344,7 +344,7 @@ def test_modify_parameters(tax_benefit_system):
     parameters_new_node = reform.parameters.children['new_node']
     assert parameters_new_node is not None
 
-    instant = Instant((2013, 1, 1))
+    instant = periods.instant((2013, 1, 1))
     parameters_at_instant = reform.get_parameters_at_instant(instant)
     assert parameters_at_instant.new_node.new_param is True
 
@@ -355,7 +355,7 @@ def test_attributes_conservation(tax_benefit_system):
         value_type = int
         entity = Person
         label = "Variable with many attributes"
-        definition_period = MONTH
+        definition_period = periods.MONTH
         set_input = set_input_divide_by_period
         calculate_output = calculate_output_add
 
