@@ -158,7 +158,7 @@ def test_day_size_in_days(date_unit, instant, size, expected):
     [periods.Instant((1, 1, 1)), periods.Period((periods.DAY, periods.Instant((1, 1, 1)), 1))],
     [periods.Period((periods.DAY, periods.Instant((1, 1, 1)), 365)), periods.Period((periods.DAY, periods.Instant((1, 1, 1)), 365))],
     ])
-def test_build_period(arg, expected):
+def test_build(arg, expected):
     """Returns the expected ``Period``."""
 
     assert periods.Period.build(arg) == expected
@@ -184,7 +184,7 @@ def test_build_period(arg, expected):
     [datetime.date(1, 1, 1), ValueError],
     [periods.YEAR, TypeError],
     ])
-def test_build_period_with_an_invalid_argument(arg, error):
+def test_build_with_an_invalid_argument(arg, error):
     """Raises ``ValueError`` when given an invalid argument."""
 
     with pytest.raises(error):

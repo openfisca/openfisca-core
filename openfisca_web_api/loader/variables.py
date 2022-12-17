@@ -71,7 +71,7 @@ def build_variable(variable, country_package_metadata, tax_benefit_system):
         'description': variable.label,
         'valueType': VALUE_TYPES[variable.value_type]['formatted_value_type'],
         'defaultValue': get_default_value(variable),
-        'definitionPeriod': variable.definition_period.upper(),
+        'definitionPeriod': variable.definition_period.__str__().upper(),
         'entity': variable.entity.key,
         }
 

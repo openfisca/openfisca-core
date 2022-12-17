@@ -120,13 +120,13 @@ class Parameter(AtInstantLike):
             if start is not None or stop is not None:
                 raise TypeError("Wrong input for 'update' method: use either 'update(period, value = value)' or 'update(start = start, stop = stop, value = value)'. You cannot both use 'period' and 'start' or 'stop'.")
             if isinstance(period, str):
-                period = periods.build_period(period)
+                period = periods.Period.build(period)
             start = period.start
             stop = period.stop
         if start is None:
             raise ValueError("You must provide either a start or a period")
         start_str = str(start)
-        stop_str = str(stop.offset(1, 'day')) if stop else None
+        stop_str = str(stop.offset(1, periods.DAY)) if stop else None
 
         old_values = self.values_list
         new_values = []

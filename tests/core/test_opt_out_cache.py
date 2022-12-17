@@ -7,7 +7,7 @@ from openfisca_core.periods import MONTH
 from openfisca_core.variables import Variable
 
 
-PERIOD = periods.build_period("2016-01")
+PERIOD = periods.Period.build("2016-01")
 
 
 class input(Variable):

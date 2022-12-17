@@ -112,7 +112,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
         calculate: Calculate = Calculate(
             variable = variable_name,
-            period = periods.build_period(period),
+            period = periods.Period.build(period),
             option = options,
             )
 

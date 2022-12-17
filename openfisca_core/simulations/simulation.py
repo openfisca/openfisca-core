@@ -96,7 +96,7 @@ class Simulation:
         """Calculate ``variable_name`` for ``period``."""
 
         if period is not None and not isinstance(period, Period):
-            period = periods.build_period(period)
+            period = periods.Period.build(period)
 
         self.tracer.record_calculation_start(variable_name, period)
 
@@ -168,10 +168,10 @@ class Simulation:
             raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
         if period is not None and not isinstance(period, Period):
-            period = periods.build_period(period)
+            period = periods.Period.build(period)
 
         # Check that the requested period matches definition_period
-        if periods.DateUnit[variable.definition_period] > periods.DateUnit[period.unit]:
+        if variable.definition_period > period.unit:
             raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' can only be computed for {2}-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this(YEAR)'.".format(
                 variable.name,
                 period,
@@ -197,7 +197,7 @@ class Simulation:
             raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
         if period is not None and not isinstance(period, Period):
-            period = periods.build_period(period)
+            period = periods.Period.build(period)
 
         # Check that the requested period matches definition_period
         if variable.definition_period != periods.YEAR:
@@ -345,7 +345,7 @@ class Simulation:
         Unlike :meth:`.calculate`, this method *does not* trigger calculations and *does not* use any formula.
         """
         if period is not None and not isinstance(period, Period):
-            period = periods.build_period(period)
+            period = periods.Period.build(period)
         return self.get_holder(variable_name).get_array(period)
 
     def get_holder(self, variable_name: str):
@@ -438,7 +438,7 @@ class Simulation:
         if variable is None:
             raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
-        period = periods.build_period(period)
+        period = periods.Period.build(period)
         if ((variable.end is not None) and (period.start.date() > variable.end)):
             return
         self.get_holder(variable_name).set_input(period, value)
