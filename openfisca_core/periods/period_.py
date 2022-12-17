@@ -233,122 +233,6 @@ class Period(Tuple[str, Instant, int]):
         return self[2]
 
     @property
-    def size_in_days(self) -> int:
-        """The ``size`` of the ``Period`` in days.
-
-        Returns:
-            An int.
-
-        Raises:
-            ValueError: If the period's unit is not a day, a month or a year.
-
-        Examples:
-            >>> from openfisca_core import periods
-
-            >>> start = periods.Instant((2021, 10, 1))
-
-            >>> period = Period((YEAR, start, 3))
-            >>> period.size_in_days
-            1096
-
-            >>> period = Period((MONTH, start, 3))
-            >>> period.size_in_days
-            92
-
-        """
-
-        if self.unit == DAY:
-            return self.size
-
-        if self.unit in (MONTH, YEAR):
-            return (self.stop.date() - self.start.date()).days + 1
-
-        raise ValueError(f"Cannot calculate number of days in {self.unit}.")
-
-    @property
-    def size_in_months(self) -> int:
-        """The ``size`` of the ``Period`` in months.
-
-        Returns:
-            An int.
-
-        Raises:
-            ValueError: If the period's unit is not a month or a year.
-
-        Examples:
-            >>> from openfisca_core import periods
-
-            >>> start = periods.Instant((2021, 10, 1))
-
-            >>> period = Period((YEAR, start, 3))
-            >>> period.size_in_months
-            36
-
-            >>> period = Period((DAY, start, 3))
-            >>> period.size_in_months
-            Traceback (most recent call last):
-            ValueError: Cannot calculate number of months in day.
-
-        """
-
-        if self.unit == MONTH:
-            return self.size
-
-        if self.unit == YEAR:
-            return self.size * 12
-
-        raise ValueError(f"Cannot calculate number of months in {self[0]}.")
-
-    @property
-    def size_in_years(self) -> int:
-        """The ``size`` of the ``Period`` in years.
-
-        Examples:
-            >>> from openfisca_core import periods
-
-            >>> start = periods.Instant((2021, 10, 1))
-
-            >>> period = Period((YEAR, start, 3))
-            >>> period.size_in_years
-            3
-
-            >>> period = Period((MONTH, start, 3))
-            >>> period.size_in_years
-            Traceback (most recent call last):
-            ValueError: Cannot calculate number of years in month.
-
-        """
-
-        if self.unit == YEAR:
-            return self.size
-
-        raise ValueError(f"Cannot calculate number of years in {self.unit}.")
-
-    @property
-    def days(self) -> int:
-        """Count the number of days in period.
-
-        Returns:
-            An int.
-
-        Examples:
-            >>> from openfisca_core import periods
-
-            >>> start = periods.Instant((2021, 10, 1))
-
-            >>> period = Period((YEAR, start, 3))
-            >>> period.days
-            1096
-
-            >>> period = Period((MONTH, start, 3))
-            >>> period.days
-            92
-
-        """
-
-        return self.size_in_days
-
-    @property
     def stop(self) -> Instant:
         """Last day of the ``Period`` as an ``Instant``.
 
@@ -388,29 +272,6 @@ class Period(Tuple[str, Instant, int]):
 
         return type(start)((stop.year, stop.month, stop.day))
 
-    @property
-    def today(self) -> Period:
-        """A new day ``Period`` representing today.
-
-        Returns:
-            A Period.
-
-        Examples:
-            >>> from openfisca_core import periods
-
-            >>> start = periods.Instant((2023, 1, 1))
-
-            >>> period = Period((YEAR, start, 3))
-
-            >>> period.today
-            Period(('day', Instant((2023, 1, 1)), 1))
-
-        .. versionadded:: 39.0.0
-
-        """
-
-        return self.this(DAY)
-
     def date(self) -> datetime.Date:
         """The date representation of the ``period``'s' start date.
 
@@ -444,7 +305,7 @@ class Period(Tuple[str, Instant, int]):
 
         return self.start.date()
 
-    def size_in(self, unit: str) -> int:
+    def count(self, unit: str) -> int:
         """The ``size`` of the ``Period`` in the given unit.
 
         Args:
@@ -459,31 +320,46 @@ class Period(Tuple[str, Instant, int]):
         Examples:
             >>> from openfisca_core import periods
 
-            >>> start = periods.Instant((2022, 1, 1))
+            >>> start = periods.Instant((2021, 10, 1))
 
             >>> period = Period((YEAR, start, 3))
-
-            >>> period.size_in(DAY)
+            >>> period.count(DAY)
             1096
 
-            >>> period.size_in(MONTH)
+            >>> period = Period((MONTH, start, 3))
+            >>> period.count(DAY)
+            92
+
+            >>> period = Period((YEAR, start, 3))
+            >>> period.count(MONTH)
             36
 
-            >>> period.size_in(YEAR)
+            >>> period = Period((DAY, start, 3))
+            >>> period.count(MONTH)
+            Traceback (most recent call last):
+            ValueError: Cannot calculate number of months in day.
+
+            >>> period = Period((YEAR, start, 3))
+            >>> period.count(YEAR)
             3
+
+            >>> period = Period((MONTH, start, 3))
+            >>> period.count(YEAR)
+            Traceback (most recent call last):
+            ValueError: Cannot calculate number of years in month.
 
         .. versionadded:: 39.0.0
 
         """
 
-        if unit == DAY:
-            return self.size_in_days
+        if unit == self.unit:
+            return self.size
 
-        if unit == MONTH:
-            return self.size_in_months
+        if unit == DAY and self.unit in (MONTH, YEAR):
+            return (self.stop.date() - self.start.date()).days + 1
 
-        if unit == YEAR:
-            return self.size_in_years
+        if unit == MONTH and self.unit == YEAR:
+            return self.size * 12
 
         raise ValueError(f"Cannot calculate number of {unit} in {self.unit}.")
 
@@ -670,22 +546,10 @@ class Period(Tuple[str, Instant, int]):
         if UNIT_WEIGHTS[self.unit] < UNIT_WEIGHTS[unit]:
             raise ValueError(f"Cannot subdivide {self.unit} into {unit}")
 
-        if unit == YEAR:
-            return [
-                self.this(YEAR).offset(offset, YEAR)
-                for offset in range(self.size)
-                ]
+        if unit not in (DAY, MONTH, YEAR):
+            raise DateUnitValueError(unit)
 
-        if unit == MONTH:
-            return [
-                self.this(MONTH).offset(offset, MONTH)
-                for offset in range(self.size_in_months)
-                ]
-
-        if unit == DAY:
-            return [
-                self.this(DAY).offset(offset, DAY)
-                for offset in range(self.size_in_days)
-                ]
-
-        raise DateUnitValueError(unit)
+        return [
+            self.this(unit).offset(offset, unit)
+            for offset in range(self.count(unit))
+            ]
