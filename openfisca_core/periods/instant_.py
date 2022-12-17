@@ -17,7 +17,7 @@ from ._errors import (
     InstantValueError,
     OffsetTypeError,
     )
-from ._units import DAY, MONTH, YEAR
+from ._units import DateUnit, DAY, MONTH, YEAR
 from .typing import Period
 
 
@@ -56,10 +56,10 @@ class Instant(Tuple[int, int, int]):
 
         All the rest of the ``tuple`` protocols are inherited as well:
 
-        >>> instant[0]
+        >>> instant.year
         2021
 
-        >>> instant[0] in instant
+        >>> instant.year in instant
         True
 
         >>> len(instant)
@@ -182,10 +182,10 @@ class Instant(Tuple[int, int, int]):
 
         year, month, day = self
 
-        if unit not in (DAY, MONTH, YEAR):
+        if unit not in DateUnit.isoformat:
             raise DateUnitValueError(unit)
 
-        if offset in ("first-of", "last-of") and unit == DAY:
+        if offset in {"first-of", "last-of"} and unit == DAY:
             return self
 
         if offset == "first-of" and unit == MONTH:
@@ -249,7 +249,7 @@ class Instant(Tuple[int, int, int]):
             .. versionadded:: 39.0.0
         """
 
-        if value is None:
+        if value is None or isinstance(value, DateUnit):
             raise InstantTypeError(value)
 
         if isinstance(value, Instant):

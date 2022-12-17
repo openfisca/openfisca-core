@@ -66,27 +66,27 @@ def test_subperiods(instant, period_unit, unit, start, cease, count):
 
 
 @pytest.mark.parametrize("period_unit, offset, unit, expected", [
-    [periods.DAY, "first-of", periods.MONTH, periods.Period(("day", periods.Instant((2022, 12, 1)), 3))],
-    [periods.DAY, "first-of", periods.YEAR, periods.Period(("day", periods.Instant((2022, 1, 1)), 3))],
-    [periods.DAY, "last-of", periods.MONTH, periods.Period(("day", periods.Instant((2022, 12, 31)), 3))],
-    [periods.DAY, "last-of", periods.YEAR, periods.Period(("day", periods.Instant((2022, 12, 31)), 3))],
-    [periods.DAY, -3, periods.YEAR, periods.Period(("day", periods.Instant((2019, 12, 31)), 3))],
-    [periods.DAY, 1, periods.MONTH, periods.Period(("day", periods.Instant((2023, 1, 31)), 3))],
-    [periods.DAY, 3, periods.DAY, periods.Period(("day", periods.Instant((2023, 1, 3)), 3))],
-    [periods.MONTH, "first-of", periods.MONTH, periods.Period(("month", periods.Instant((2022, 12, 1)), 3))],
-    [periods.MONTH, "first-of", periods.YEAR, periods.Period(("month", periods.Instant((2022, 1, 1)), 3))],
-    [periods.MONTH, "last-of", periods.MONTH, periods.Period(("month", periods.Instant((2022, 12, 31)), 3))],
-    [periods.MONTH, "last-of", periods.YEAR, periods.Period(("month", periods.Instant((2022, 12, 31)), 3))],
-    [periods.MONTH, -3, periods.YEAR, periods.Period(("month", periods.Instant((2019, 12, 31)), 3))],
-    [periods.MONTH, 1, periods.MONTH, periods.Period(("month", periods.Instant((2023, 1, 31)), 3))],
-    [periods.MONTH, 3, periods.DAY, periods.Period(("month", periods.Instant((2023, 1, 3)), 3))],
-    [periods.YEAR, "first-of", periods.MONTH, periods.Period(("year", periods.Instant((2022, 12, 1)), 3))],
-    [periods.YEAR, "first-of", periods.YEAR, periods.Period(("year", periods.Instant((2022, 1, 1)), 3))],
-    [periods.YEAR, "last-of", periods.MONTH, periods.Period(("year", periods.Instant((2022, 12, 31)), 3))],
-    [periods.YEAR, "last-of", periods.YEAR, periods.Period(("year", periods.Instant((2022, 12, 31)), 3))],
-    [periods.YEAR, -3, periods.YEAR, periods.Period(("year", periods.Instant((2019, 12, 31)), 3))],
-    [periods.YEAR, 1, periods.MONTH, periods.Period(("year", periods.Instant((2023, 1, 31)), 3))],
-    [periods.YEAR, 3, periods.DAY, periods.Period(("year", periods.Instant((2023, 1, 3)), 3))],
+    [periods.DAY, "first-of", periods.MONTH, periods.Period((periods.DAY, periods.Instant((2022, 12, 1)), 3))],
+    [periods.DAY, "first-of", periods.YEAR, periods.Period((periods.DAY, periods.Instant((2022, 1, 1)), 3))],
+    [periods.DAY, "last-of", periods.MONTH, periods.Period((periods.DAY, periods.Instant((2022, 12, 31)), 3))],
+    [periods.DAY, "last-of", periods.YEAR, periods.Period((periods.DAY, periods.Instant((2022, 12, 31)), 3))],
+    [periods.DAY, -3, periods.YEAR, periods.Period((periods.DAY, periods.Instant((2019, 12, 31)), 3))],
+    [periods.DAY, 1, periods.MONTH, periods.Period((periods.DAY, periods.Instant((2023, 1, 31)), 3))],
+    [periods.DAY, 3, periods.DAY, periods.Period((periods.DAY, periods.Instant((2023, 1, 3)), 3))],
+    [periods.MONTH, "first-of", periods.MONTH, periods.Period((periods.MONTH, periods.Instant((2022, 12, 1)), 3))],
+    [periods.MONTH, "first-of", periods.YEAR, periods.Period((periods.MONTH, periods.Instant((2022, 1, 1)), 3))],
+    [periods.MONTH, "last-of", periods.MONTH, periods.Period((periods.MONTH, periods.Instant((2022, 12, 31)), 3))],
+    [periods.MONTH, "last-of", periods.YEAR, periods.Period((periods.MONTH, periods.Instant((2022, 12, 31)), 3))],
+    [periods.MONTH, -3, periods.YEAR, periods.Period((periods.MONTH, periods.Instant((2019, 12, 31)), 3))],
+    [periods.MONTH, 1, periods.MONTH, periods.Period((periods.MONTH, periods.Instant((2023, 1, 31)), 3))],
+    [periods.MONTH, 3, periods.DAY, periods.Period((periods.MONTH, periods.Instant((2023, 1, 3)), 3))],
+    [periods.YEAR, "first-of", periods.MONTH, periods.Period((periods.YEAR, periods.Instant((2022, 12, 1)), 3))],
+    [periods.YEAR, "first-of", periods.YEAR, periods.Period((periods.YEAR, periods.Instant((2022, 1, 1)), 3))],
+    [periods.YEAR, "last-of", periods.MONTH, periods.Period((periods.YEAR, periods.Instant((2022, 12, 31)), 3))],
+    [periods.YEAR, "last-of", periods.YEAR, periods.Period((periods.YEAR, periods.Instant((2022, 12, 31)), 3))],
+    [periods.YEAR, -3, periods.YEAR, periods.Period((periods.YEAR, periods.Instant((2019, 12, 31)), 3))],
+    [periods.YEAR, 1, periods.MONTH, periods.Period((periods.YEAR, periods.Instant((2023, 1, 31)), 3))],
+    [periods.YEAR, 3, periods.DAY, periods.Period((periods.YEAR, periods.Instant((2023, 1, 3)), 3))],
     ])
 def test_offset(instant, period_unit, offset, unit, expected):
     """Returns the expected ``Period``."""
@@ -110,7 +110,7 @@ def test_day_size_in_months(date_unit, instant, size, expected):
 
     period = periods.Period((date_unit, instant, size))
 
-    assert period.count("month") == expected
+    assert period.count(periods.MONTH) == expected
 
 
 @pytest.mark.parametrize("date_unit, instant, size, expected", [
@@ -129,4 +129,4 @@ def test_day_size_in_days(date_unit, instant, size, expected):
 
     period = periods.Period((date_unit, instant, size))
 
-    assert period.count("day") == expected
+    assert period.count(periods.DAY) == expected

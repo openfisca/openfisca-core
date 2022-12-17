@@ -15,8 +15,9 @@ class DateUnitValueError(ValueError):
 
     def __init__(self, value: Any) -> None:
         super().__init__(
-            f"'{value}' is not a valid ISO format date unit. ISO format date "
-            f"units are any of: '{DAY}', '{MONTH}', or '{YEAR}'. {LEARN_MORE}"
+            f"'{str(value)}' is not a valid ISO format date unit. ISO format "
+            f"date units are any of: '{str(DAY)}', '{str(MONTH)}', or "
+            f"'{str(YEAR)}'. {LEARN_MORE}"
             )
 
 
@@ -25,8 +26,9 @@ class InstantFormatError(ValueError):
 
     def __init__(self, value: Any) -> None:
         super().__init__(
-            f"'{value}' is not a valid instant. Instants are described using "
-            "the 'YYYY-MM-DD' format, for instance '2015-06-15'. {LEARN_MORE}"
+            f"'{str(value)}' is not a valid instant. Instants are described "
+            "using the 'YYYY-MM-DD' format, for instance '2015-06-15'. "
+            f"{LEARN_MORE}"
             )
 
 
@@ -35,7 +37,7 @@ class InstantValueError(ValueError):
 
     def __init__(self, value: Any) -> None:
         super().__init__(
-            f"Invalid instant: '{value}' has a length of {len(value)}. "
+            f"Invalid instant: '{str(value)}' has a length of {len(value)}. "
             "Instants are described using the 'YYYY-MM-DD' format, for "
             "instance '2015-06-15', therefore their length has to be within "
             f" the following range: 1 <= length <= 3. {LEARN_MORE}"
@@ -47,8 +49,8 @@ class InstantTypeError(TypeError):
 
     def __init__(self, value: Any) -> None:
         super().__init__(
-            f"Invalid instant: {value} of type {type(value)}, expecting an "
-            f"'Instant', 'tuple', or 'list'. {LEARN_MORE}"
+            f"Invalid instant: '{str(value)}' of type {type(value)}, "
+            f"expecting an 'Instant', 'tuple', or 'list'. {LEARN_MORE}"
             )
 
 
@@ -57,8 +59,8 @@ class PeriodFormatError(ValueError):
 
     def __init__(self, value: Any) -> None:
         super().__init__(
-            f"'{value}' is not a valid period. Periods are described using "
-            "the 'unit:YYYY-MM-DD:size' format, for instance "
+            f"'{str(value)}' is not a valid period. Periods are described "
+            "using the 'unit:YYYY-MM-DD:size' format, for instance "
             f"'day:2023-01-15:3'. {LEARN_MORE}"
             )
 
@@ -68,6 +70,6 @@ class OffsetTypeError(TypeError):
 
     def __init__(self, value: Any) -> None:
         super().__init__(
-            f"Invalid offset: {value} of type {type(value)}, expecting an "
-            f"'int'. {LEARN_MORE}"
+            f"Invalid offset: '{str(value)}' of type {type(value)}, expecting "
+            f"an 'int'. {LEARN_MORE}"
             )

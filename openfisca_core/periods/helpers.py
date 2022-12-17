@@ -29,35 +29,35 @@ def build_period(value: Any) -> Period:
         PeriodFormatError: When the arguments were invalid, like "2021-32-13".
 
     Examples:
-        >>> build_period(Period(("year", Instant((2021, 1, 1)), 1)))
-        Period(('year', Instant((2021, 1, 1)), 1))
+        >>> build_period(Period((YEAR, Instant((2021, 1, 1)), 1)))
+        Period((year, Instant((2021, 1, 1)), 1))
 
         >>> build_period(Instant((2021, 1, 1)))
-        Period(('day', Instant((2021, 1, 1)), 1))
+        Period((day, Instant((2021, 1, 1)), 1))
 
-        >>> build_period("eternity")
-        Period(('eternity', Instant((1, 1, 1)), 1))
+        >>> build_period(ETERNITY)
+        Period((eternity, Instant((1, 1, 1)), 1))
 
         >>> build_period(2021)
-        Period(('year', Instant((2021, 1, 1)), 1))
+        Period((year, Instant((2021, 1, 1)), 1))
 
         >>> build_period("2014")
-        Period(('year', Instant((2014, 1, 1)), 1))
+        Period((year, Instant((2014, 1, 1)), 1))
 
         >>> build_period("year:2014")
-        Period(('year', Instant((2014, 1, 1)), 1))
+        Period((year, Instant((2014, 1, 1)), 1))
 
         >>> build_period("month:2014-02")
-        Period(('month', Instant((2014, 2, 1)), 1))
+        Period((month, Instant((2014, 2, 1)), 1))
 
         >>> build_period("year:2014-02")
-        Period(('year', Instant((2014, 2, 1)), 1))
+        Period((year, Instant((2014, 2, 1)), 1))
 
         >>> build_period("day:2014-02-02")
-        Period(('day', Instant((2014, 2, 2)), 1))
+        Period((day, Instant((2014, 2, 2)), 1))
 
         >>> build_period("day:2014-02-02:3")
-        Period(('day', Instant((2014, 2, 2)), 3))
+        Period((day, Instant((2014, 2, 2)), 3))
 
     """
 
@@ -67,8 +67,8 @@ def build_period(value: Any) -> Period:
     if isinstance(value, Instant):
         return Period((DAY, value, 1))
 
-    if value == "ETERNITY" or value == ETERNITY:
-        return Period(("eternity", Instant.build(datetime.date.min), 1))
+    if value in {ETERNITY, ETERNITY.name}:
+        return Period((ETERNITY, Instant.build(datetime.date.min), 1))
 
     if isinstance(value, int):
         return Period((YEAR, Instant((value, 1, 1)), 1))
@@ -89,15 +89,15 @@ def build_period(value: Any) -> Period:
     components = value.split(":")
 
     # Left-most component must be a valid unit
-    unit = components[0]
+    unit = DateUnit[components[0].upper()]
 
-    if unit not in (DAY, MONTH, YEAR):
+    if unit not in DateUnit.isoformat:
         raise PeriodFormatError(value)
 
-    # Middle component must be a valid iso period
-    base_period = parse_period(components[1])
+    # Middle component must be a valid ISO period
+    period = parse_period(components[1])
 
-    if not base_period:
+    if not period:
         raise PeriodFormatError(value)
 
     # Periods like year:2015-03 have a size of 1
@@ -117,10 +117,10 @@ def build_period(value: Any) -> Period:
         raise PeriodFormatError(value)
 
     # Reject ambiguous periods such as month:2014
-    if DateUnit[base_period.unit] > DateUnit[unit]:
+    if period.unit > unit:
         raise PeriodFormatError(value)
 
-    return Period((unit, base_period.start, size))
+    return Period((unit, period.start, size))
 
 
 def parse_period(value: str) -> Period | None:
@@ -138,13 +138,13 @@ def parse_period(value: str) -> Period | None:
 
     Examples:
         >>> parse_period("2022")
-        Period(('year', Instant((2022, 1, 1)), 1))
+        Period((year, Instant((2022, 1, 1)), 1))
 
         >>> parse_period("2022-02")
-        Period(('month', Instant((2022, 2, 1)), 1))
+        Period((month, Instant((2022, 2, 1)), 1))
 
         >>> parse_period("2022-02-13")
-        Period(('day', Instant((2022, 2, 13)), 1))
+        Period((day, Instant((2022, 2, 13)), 1))
 
     """
 
@@ -169,6 +169,14 @@ def parse_period(value: str) -> Period | None:
     if not isinstance(date, Date):
         raise ValueError
 
-    unit = UNIT_MAPPING[len(value.split("-"))]
+    # We get the shape of the string (e.g. "2012-02" = 2)
+    size = len(value.split("-"))
+
+    # We get the unit from the shape (e.g. 2 = "month")
+    unit = DateUnit(pow(2, 3 - size))
+
+    # We build the corresponding start instant
     start = Instant((date.year, date.month, date.day))
+
+    # And return the period
     return Period((unit, start, 1))
