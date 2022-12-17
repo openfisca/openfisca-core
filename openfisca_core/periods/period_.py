@@ -10,7 +10,6 @@ from ._errors import DateUnitValueError, PeriodFormatError, PeriodTypeError
 from ._parsers import ISOFormat
 from ._units import DateUnit, DAY, ETERNITY, MONTH, YEAR
 from .instant_ import Instant
-
 from .typing import Plural
 
 
@@ -332,7 +331,8 @@ class Period(Tuple[DateUnit, Instant, int]):
             return self.size
 
         if unit == DAY and self.unit in {MONTH, YEAR}:
-            return (self.stop.date() - self.start.date()).days + 1
+            delta: int = (self.stop.date() - self.start.date()).days
+            return delta + 1
 
         if unit == MONTH and self.unit == YEAR:
             return self.size * 12

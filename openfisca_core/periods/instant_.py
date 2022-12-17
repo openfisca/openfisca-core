@@ -6,8 +6,6 @@ import calendar
 import datetime
 import functools
 
-from .typing import Add, Plural
-
 import inflect
 import pendulum
 from pendulum.datetime import Date
@@ -22,6 +20,7 @@ from ._errors import (
     )
 from ._parsers import ISOFormat
 from ._units import DateUnit, DAY, MONTH, YEAR
+from .typing import Add, Plural
 
 
 class Instant(Tuple[int, int, int]):
@@ -248,8 +247,10 @@ class Instant(Tuple[int, int, int]):
 
             >>> start = Instant((2021, 9, 16))
             >>> period = periods.period((YEAR, start, 1))
+
             >>> Instant.build(period)
-            Instant((2021, 9, 16))
+            Traceback (most recent call last):
+            TypeError: int() argument must be a string, a bytes-like object ...
 
             .. versionadded:: 39.0.0
 
@@ -262,9 +263,6 @@ class Instant(Tuple[int, int, int]):
 
         if isinstance(value, Instant):
             return value
-
-        if hasattr(value, "start"):
-            return value.start
 
         if isinstance(value, str) and not INSTANT_PATTERN.match(value):
             raise InstantFormatError(value)

@@ -324,8 +324,6 @@ class Variable:
 
         """
 
-        instant: periods.instant | None
-
         if not self.formulas:
             return None
 

@@ -40,7 +40,6 @@ def test_offset(instant, offset, unit, expected):
     [(1000, 1, 1), periods.instant((1000, 1, 1))],
     [datetime.date(1, 1, 1), periods.instant((1, 1, 1))],
     [periods.instant((1, 1, 1)), periods.instant((1, 1, 1))],
-    [periods.period((periods.DAY, periods.instant((1, 1, 1)), 365)), periods.instant((1, 1, 1))],
     ])
 def test_build_instant(arg, expected):
     """Returns the expected ``Instant``."""
@@ -66,6 +65,7 @@ def test_build_instant(arg, expected):
     [None, TypeError],
     [periods.ETERNITY, TypeError],
     [periods.YEAR, TypeError],
+    [periods.period((periods.DAY, periods.instant((1, 1, 1)), 365)), TypeError],
     ])
 def test_build_instant_with_an_invalid_argument(arg, error):
     """Raises ``ValueError`` when given an invalid argument."""
