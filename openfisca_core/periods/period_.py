@@ -337,7 +337,7 @@ class Period(Tuple[str, Instant, int]):
             >>> period = Period((DAY, start, 3))
             >>> period.count(MONTH)
             Traceback (most recent call last):
-            ValueError: Cannot calculate number of months in day.
+            ValueError: Cannot calculate number of months in a day.
 
             >>> period = Period((YEAR, start, 3))
             >>> period.count(YEAR)
@@ -346,7 +346,7 @@ class Period(Tuple[str, Instant, int]):
             >>> period = Period((MONTH, start, 3))
             >>> period.count(YEAR)
             Traceback (most recent call last):
-            ValueError: Cannot calculate number of years in month.
+            ValueError: Cannot calculate number of years in a month.
 
         .. versionadded:: 39.0.0
 
@@ -361,7 +361,10 @@ class Period(Tuple[str, Instant, int]):
         if unit == MONTH and self.unit == YEAR:
             return self.size * 12
 
-        raise ValueError(f"Cannot calculate number of {unit} in {self.unit}.")
+        raise ValueError(
+            f"Cannot calculate number of {self.plural(unit)} in a "
+            f"{self.unit}."
+            )
 
     def this(self, unit: str) -> Period:
         """A new month ``Period`` starting at the first of ``unit``.
@@ -508,9 +511,12 @@ class Period(Tuple[str, Instant, int]):
 
         """
 
-        start = self[1].offset(offset, self[0] if unit is None else unit)
+        if unit is None:
+            unit = self.unit
 
-        return type(self)((self[0], start, self[2]))
+        start = self.start.offset(offset, unit)
+
+        return type(self)((self.unit, start, self.size))
 
     def subperiods(self, unit: str) -> Sequence[Period]:
         """Return the list of all the periods of unit ``unit``.

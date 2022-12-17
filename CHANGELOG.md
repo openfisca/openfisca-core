@@ -12,9 +12,10 @@
 - Refactor `Period.contains` as `Period.__contains__`.
 - Rename `Period.get_subperiods` to `subperiods`.
 - Rename `instant` to `Instant.build`.
-- Rename `period` to `build_period`.
+- Rename `period` to `Instant.period`.
 - Transform `Instant.date` from property to method.
 - Transform `Period.date` from property to method.
+- Simplify reference periods.
 
 #### Technical changes
 

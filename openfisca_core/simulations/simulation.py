@@ -209,7 +209,7 @@ class Simulation:
             raise ValueError("DIVIDE option can only be used for a one-year or a one-month requested period")
 
         if period.unit == periods.MONTH:
-            computation_period = period.this(YEAR)
+            computation_period = period.this(periods.YEAR)
             return self.calculate(variable_name, period = computation_period) / 12.
         elif period.unit == periods.YEAR:
             return self.calculate(variable_name, period)
