@@ -17,6 +17,7 @@ from ._errors import (
     InstantValueError,
     OffsetTypeError,
     )
+from ._parsers import ISOFormat
 from ._units import DateUnit, DAY, MONTH, YEAR
 from .typing import Period
 
@@ -261,11 +262,11 @@ class Instant(Tuple[int, int, int]):
         if isinstance(value, str) and not INSTANT_PATTERN.match(value):
             raise InstantFormatError(value)
 
+        if isinstance(value, str) and len(value.split("-")) > 3:
+            raise InstantValueError(value)
+
         if isinstance(value, str):
-            instant = tuple(
-                int(fragment)
-                for fragment in value.split('-', 2)[:3]
-                )
+            instant = ISOFormat.parse(value)[1:-1]
 
         elif isinstance(value, datetime.date):
             instant = value.year, value.month, value.day

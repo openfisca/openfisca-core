@@ -4,16 +4,11 @@ from typing import Any
 
 import datetime
 
-import pendulum
-from pendulum.datetime import Date
-from pendulum.parsing import ParserError
-
 from ._errors import PeriodFormatError, PeriodTypeError
+from ._parsers import ISOFormat
 from ._units import DateUnit, DAY, ETERNITY, MONTH, YEAR
 from .instant_ import Instant
 from .period_ import Period
-
-UNIT_MAPPING = {1: "year", 2: "month", 3: "day"}
 
 
 def build_period(value: Any) -> Period:
@@ -80,10 +75,10 @@ def build_period(value: Any) -> Period:
         raise PeriodFormatError(value)
 
     # Try to parse as a simple period
-    period = parse_period(value)
+    period = ISOFormat.parse(value)
 
     if period is not None:
-        return period
+        return Period((DateUnit(period.unit), Instant((period[1:-1])), 1))
 
     # Complex periods must have a ':' in their strings
     if ":" not in value:
@@ -105,9 +100,9 @@ def build_period(value: Any) -> Period:
     period, *rest = rest
 
     # Middle component must be a valid ISO period
-    period = parse_period(period)
+    period = ISOFormat.parse(period)
 
-    if not isinstance(period, Period):
+    if period is None:
         raise PeriodFormatError(value)
 
     # Finally we try to parse the size, if any
@@ -124,7 +119,7 @@ def build_period(value: Any) -> Period:
     except ValueError:
         raise PeriodFormatError(value)
 
-    # If there are more than 2 ":" in the string, the period is invalid
+    # If there were more than 2 ":" in the string, the period is invalid
     if len(rest) > 0:
         raise PeriodFormatError(value)
 
@@ -132,63 +127,4 @@ def build_period(value: Any) -> Period:
     if period.unit > unit:
         raise PeriodFormatError(value)
 
-    return Period((unit, period.start, size))
-
-
-def parse_period(value: str) -> Period | None:
-    """Parse periods respecting the ISO format.
-
-    Args:
-        value: A string such as such as "2012" or "2015-03".
-
-    Returns:
-        A Period.
-
-    Raises:
-        AttributeError: When arguments are invalid, like ``"-1"``.
-        ValueError: When values are invalid, like ``"2022-32-13"``.
-
-    Examples:
-        >>> parse_period("2022")
-        Period((year, Instant((2022, 1, 1)), 1))
-
-        >>> parse_period("2022-02")
-        Period((month, Instant((2022, 2, 1)), 1))
-
-        >>> parse_period("2022-02-13")
-        Period((day, Instant((2022, 2, 13)), 1))
-
-    """
-
-    # If it's a complex period, next!
-    if len(value.split(":")) != 1:
-        return None
-
-    # Check for a non-empty string.
-    if not (value and isinstance(value, str)):
-        raise AttributeError
-
-    # If it's negative period, next!
-    if value[0] == "-" or len(value.split(":")) != 1:
-        raise ValueError
-
-    try:
-        date = pendulum.parse(value, exact = True)
-
-    except ParserError:
-        return None
-
-    if not isinstance(date, Date):
-        raise ValueError
-
-    # We get the shape of the string (e.g. "2012-02" = 2)
-    size = len(value.split("-"))
-
-    # We get the unit from the shape (e.g. 2 = "month")
-    unit = DateUnit(pow(2, 3 - size))
-
-    # We build the corresponding start instant
-    start = Instant((date.year, date.month, date.day))
-
-    # And return the period
-    return Period((unit, start, 1))
+    return Period((unit, Instant((period[1:-1])), size))

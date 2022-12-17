@@ -64,16 +64,16 @@ def test_build_period_with_an_invalid_argument(arg, error):
 
 @pytest.mark.parametrize("arg, expected", [
     ["1", None],
-    ["1000", periods.Period((periods.YEAR, periods.Instant((1000, 1, 1)), 1))],
-    ["1000-01", periods.Period((periods.MONTH, periods.Instant((1000, 1, 1)), 1))],
-    ["1000-01-01", periods.Period((periods.DAY, periods.Instant((1000, 1, 1)), 1))],
+    ["1000", (4, 1000, 1, 1, 1)],
+    ["1000-01", (2, 1000, 1, 1, 2)],
+    ["1000-01-01", (1, 1000, 1, 1, 3)],
     ["1000-01-1", None],
     ["1000-01-99", None],
     ["1000-1", None],
     ["1000-1-1", None],
     ["999", None],
     ])
-def test_parse_period(arg, expected):
-    """Returns an ``Instant`` when given a valid ISO format string."""
+def test_parse_iso_format(arg, expected):
+    """Returns an ``ISOFormat`` when given a valid ISO format string."""
 
-    assert periods.parse_period(arg) == expected
+    assert periods.ISOFormat.parse(arg) == expected
