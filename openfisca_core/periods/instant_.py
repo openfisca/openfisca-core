@@ -20,7 +20,6 @@ from ._errors import (
     )
 from ._parsers import ISOFormat
 from ._units import DateUnit, DAY, MONTH, YEAR
-from .typing import Period
 
 
 class Instant(Tuple[int, int, int]):
@@ -153,6 +152,26 @@ class Instant(Tuple[int, int, int]):
 
         return pendulum.date(*self)
 
+    def add(self, unit: str, size: int) -> Date:
+        """Adds a given ``size`` amount to a date.
+
+        Args:
+            unit (str): The unit to add.
+            size (int): The amount to add.
+
+        Returns:
+            A date.
+
+        Examples:
+            >>> Instant((2020, 1, 1)).add("years", 1)
+            Date(2021, 1, 1)
+
+        """
+
+        add: Callable[..., Date] = self.date().add
+
+        return add(**{unit: size})
+
     def offset(self, offset: str | int, unit: int) -> Instant:
         """Increments/decrements the given instant with offset units.
 
@@ -206,7 +225,7 @@ class Instant(Tuple[int, int, int]):
         if not isinstance(offset, int):
             raise OffsetTypeError(offset)
 
-        date = self.date().add(**{type(self).plural(str(unit)): offset})
+        date = self.add(type(self).plural(str(unit)), offset)
 
         return type(self)((date.year, date.month, date.day))
 
@@ -215,7 +234,7 @@ class Instant(Tuple[int, int, int]):
         """Build a new instant, aka a triple of integers (year, month, day).
 
         Args:
-            value: An ``instant-like`` object.
+            value (Any): An ``instant-like`` object.
 
         Returns:
             An Instant.
@@ -260,7 +279,7 @@ class Instant(Tuple[int, int, int]):
         if isinstance(value, Instant):
             return value
 
-        if isinstance(value, Period):
+        if hasattr(value, "start"):
             return value.start
 
         if isinstance(value, str) and not INSTANT_PATTERN.match(value):

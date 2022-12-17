@@ -1,18 +1,18 @@
 from __future__ import annotations
 
 from numpy.typing import ArrayLike
-from openfisca_core.periods.typing import Period
 from typing import List
 
 import dataclasses
 
+from openfisca_core import periods
 from openfisca_core.indexed_enums import EnumArray
 
 
 @dataclasses.dataclass
 class TraceNode:
     name: str
-    period: Period
+    period: periods.period
     parent: TraceNode | None = None
     children: List[TraceNode] = dataclasses.field(default_factory = list)
     parameters: List[TraceNode] = dataclasses.field(default_factory = list)

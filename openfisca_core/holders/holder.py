@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Optional, Sequence, Union
+from typing import Any, Sequence
 
 import os
 import warnings
@@ -13,7 +13,6 @@ from openfisca_core import data_storage as storage
 from openfisca_core import errors
 from openfisca_core import indexed_enums as enums
 from openfisca_core import periods, tools
-from openfisca_core.periods.typing import Period
 
 from .memory_usage import MemoryUsage
 
@@ -161,9 +160,9 @@ class Holder:
 
     def set_input(
             self,
-            period: Period,
-            array: Union[numpy.ndarray, Sequence[Any]],
-            ) -> Optional[numpy.ndarray]:
+            period: periods.period,
+            array: numpy.ndarray | Sequence[Any],
+            ) -> numpy.ndarray | None:
         """Set a Variable's array of values of a given Period.
 
         Args:

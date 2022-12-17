@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import typing
-from openfisca_core.periods.typing import Instant, Period
-from typing import Any, Dict, Optional, Sequence, Union
+from typing import Any, Dict, Optional, Sequence
 
 import copy
 import functools
@@ -46,7 +45,7 @@ class TaxBenefitSystem:
     person_entity: Entity
 
     _base_tax_benefit_system = None
-    _parameters_at_instant_cache: Dict[Instant, types.ParameterNodeAtInstant] = {}
+    _parameters_at_instant_cache: Dict[periods.instant, types.ParameterNodeAtInstant] = {}
     person_key_plural = None
     preprocess_parameters = None
     baseline = None  # Baseline tax-benefit system. Used only by reforms. Note: Reforms can be chained.
@@ -345,7 +344,7 @@ class TaxBenefitSystem:
     def annualize_variable(
             self,
             variable_name: str,
-            period: Optional[Period] = None,
+            period: periods.period | None = None,
             ) -> None:
         check: bool
         variable: Optional[Variable]
@@ -388,7 +387,7 @@ class TaxBenefitSystem:
     @functools.lru_cache()
     def get_parameters_at_instant(
             self,
-            instant: Union[str, int, Period, Instant],
+            instant: periods.period | periods.instant | str | int,
             ) -> Optional[types.ParameterNodeAtInstant]:
         """Get the parameters of the legislation at a given instant
 
@@ -400,10 +399,10 @@ class TaxBenefitSystem:
 
         """
 
-        if isinstance(instant, Instant):
+        if isinstance(instant, periods.instant):
             key = instant
 
-        elif isinstance(instant, Period):
+        elif isinstance(instant, periods.period):
             key = instant.start
 
         elif isinstance(instant, (str, int)):

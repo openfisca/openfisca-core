@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from openfisca_core.periods.typing import Period
 from openfisca_core.types import Population, TaxBenefitSystem, Variable
 from typing import Dict, NamedTuple, Optional, Set
 
@@ -103,7 +102,7 @@ class Simulation:
     def calculate(self, variable_name: str, period):
         """Calculate ``variable_name`` for ``period``."""
 
-        if period is not None and not isinstance(period, Period):
+        if period is not None and not isinstance(period, periods.period):
             period = periods.build(period)
 
         self.tracer.record_calculation_start(variable_name, period)
@@ -117,7 +116,7 @@ class Simulation:
             self.tracer.record_calculation_end()
             self.purge_cache_of_invalid_values()
 
-    def _calculate(self, variable_name: str, period: Period):
+    def _calculate(self, variable_name: str, period: periods.period):
         """
         Calculate the variable ``variable_name`` for the period ``period``, using the variable formula if it exists.
 
@@ -175,7 +174,7 @@ class Simulation:
         if variable is None:
             raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
-        if period is not None and not isinstance(period, Period):
+        if period is not None and not isinstance(period, periods.period):
             period = periods.build(period)
 
         # Check that the requested period matches definition_period
@@ -204,7 +203,7 @@ class Simulation:
         if variable is None:
             raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
-        if period is not None and not isinstance(period, Period):
+        if period is not None and not isinstance(period, periods.period):
             period = periods.build(period)
 
         # Check that the requested period matches definition_period
@@ -352,7 +351,7 @@ class Simulation:
 
         Unlike :meth:`.calculate`, this method *does not* trigger calculations and *does not* use any formula.
         """
-        if period is not None and not isinstance(period, Period):
+        if period is not None and not isinstance(period, periods.period):
             period = periods.build(period)
         return self.get_holder(variable_name).get_array(period)
 
@@ -418,7 +417,7 @@ class Simulation:
         >>> simulation.set_input('age', '2018-04', [12, 14])
         >>> simulation.set_input('age', '2018-05', [13, 14])
         >>> simulation.get_known_periods('age')
-        [Period((u'month', Instant((2018, 5, 1)), 1)), Period((u'month', Instant((2018, 4, 1)), 1))]
+        [periods.period((u'month', Instant((2018, 5, 1)), 1)), periods.period((u'month', Instant((2018, 4, 1)), 1))]
         """
         return self.get_holder(variable).get_known_periods()
 
@@ -502,4 +501,4 @@ class Simulation:
 
 class Cache(NamedTuple):
     variable: str
-    period: Period
+    period: periods.period

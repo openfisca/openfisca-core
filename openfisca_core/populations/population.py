@@ -10,7 +10,6 @@ import numpy
 from openfisca_core import periods, projectors
 from openfisca_core.holders import Holder, MemoryUsage
 from openfisca_core.projectors import Projector
-from openfisca_core.periods.typing import Period
 from openfisca_core.types import Array, Entity, Role, Simulation
 
 from . import config
@@ -76,9 +75,9 @@ class Population:
     def check_period_validity(
             self,
             variable_name: str,
-            period: Optional[Union[int, str, Period]],
+            period: periods.period | int | str | None,
             ) -> None:
-        if isinstance(period, (int, str, Period)):
+        if isinstance(period, (int, str, periods.period)):
             return None
 
         stack = traceback.extract_stack()
@@ -94,7 +93,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     def __call__(
             self,
             variable_name: str,
-            period: Optional[Union[int, str, Period]] = None,
+            period: periods.period | int | str | None = None,
             options: Optional[Sequence[str]] = None,
             ) -> Optional[Array[float]]:
         """
@@ -266,8 +265,8 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
 class Calculate(NamedTuple):
     variable: str
-    period: Period
-    option: Optional[Sequence[str]]
+    period: periods.period
+    option: Sequence[str] | None
 
 
 class MemoryUsageByVariable(TypedDict, total = False):
