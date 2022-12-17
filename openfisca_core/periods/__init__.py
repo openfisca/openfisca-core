@@ -30,6 +30,5 @@ And for classes::
 from ._config import INSTANT_PATTERN
 from ._parsers import ISOFormat
 from ._units import DateUnit, DAY, ETERNITY, MONTH, YEAR
-from .helpers import build_period
 from .instant_ import Instant
 from .period_ import Period

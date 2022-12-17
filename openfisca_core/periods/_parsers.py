@@ -8,10 +8,21 @@ from pendulum.parsing import ParserError
 
 
 class ISOFormat(NamedTuple):
+    """An implementation of the `parse` protocol."""
+
+    #: The unit of the parsed period, in binary.
     unit: int
+
+    #: The year of the parsed period.
     year: int
+
+    #: The month of the parsed period.
     month: int
+
+    #: The month of the parsed period.
     day: int
+
+    #: The number of fragments in the parsed period.
     shape: int
 
     @classmethod
