@@ -7,7 +7,7 @@ class DateUnitMeta(enum.EnumMeta):
     """Metaclass for ``DateUnit``."""
 
     @property
-    def isoformat(self) -> DateUnit:
+    def isoformat(self) -> int:
         """Date units corresponding to the ISO format (day, month, and year).
 
         Returns:
@@ -104,4 +104,4 @@ class DateUnit(enum.IntFlag, metaclass = DateUnitMeta):
             return super().__str__()
 
 
-DAY, MONTH, YEAR, ETERNITY = DateUnit
+DAY, MONTH, YEAR, ETERNITY = tuple(DateUnit)
