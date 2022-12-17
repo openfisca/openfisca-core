@@ -8,6 +8,7 @@ import functools
 
 import inflect
 import pendulum
+from pendulum.datetime import Date
 
 from ._config import INSTANT_PATTERN
 from ._errors import (
@@ -137,7 +138,7 @@ class Instant(Tuple[int, int, int]):
         return self[2]
 
     @functools.lru_cache(maxsize = None)
-    def date(self) -> datetime.date:
+    def date(self) -> Date:
         """The date representation of the ``Instant``.
 
         Example:
@@ -152,12 +153,12 @@ class Instant(Tuple[int, int, int]):
 
         return pendulum.date(*self)
 
-    def offset(self, offset: str | int, unit: str) -> Instant:
+    def offset(self, offset: str | int, unit: int) -> Instant:
         """Increments/decrements the given instant with offset units.
 
         Args:
             offset (str | int): How much of ``unit`` to offset.
-            unit (str): What to offset.
+            unit (int): What to offset.
 
         Returns:
             Instant: A new one.
@@ -183,7 +184,7 @@ class Instant(Tuple[int, int, int]):
 
         year, month, day = self
 
-        if unit not in DateUnit.isoformat:
+        if not unit & DateUnit.isoformat:
             raise DateUnitValueError(unit)
 
         if offset in {"first-of", "last-of"} and unit == DAY:
@@ -205,7 +206,7 @@ class Instant(Tuple[int, int, int]):
         if not isinstance(offset, int):
             raise OffsetTypeError(offset)
 
-        date = self.date().add(**{self.plural(unit): offset})
+        date = self.date().add(**{type(self).plural(str(unit)): offset})
 
         return type(self)((date.year, date.month, date.day))
 
@@ -248,7 +249,10 @@ class Instant(Tuple[int, int, int]):
             Instant((2021, 9, 16))
 
             .. versionadded:: 39.0.0
+
         """
+
+        instant: Tuple[int, ...] | ISOFormat | None
 
         if value is None or isinstance(value, DateUnit):
             raise InstantTypeError(value)
@@ -266,13 +270,13 @@ class Instant(Tuple[int, int, int]):
             raise InstantValueError(value)
 
         if isinstance(value, str):
-            instant = ISOFormat.parse(value)[1:-1]
+            instant = ISOFormat.parse(value)
 
         elif isinstance(value, datetime.date):
             instant = value.year, value.month, value.day
 
         elif isinstance(value, int):
-            instant = value,
+            instant = value, 1, 1
 
         elif isinstance(value, (dict, set)):
             raise InstantValueError(value)
@@ -281,12 +285,18 @@ class Instant(Tuple[int, int, int]):
             raise InstantValueError(value)
 
         else:
-            instant = tuple(value)
+            instant = tuple(int(value) for value in tuple(value))
+
+        if instant is None:
+            raise InstantFormatError(value)
 
         if len(instant) == 1:
             return cls((instant[0], 1, 1))
 
         if len(instant) == 2:
             return cls((instant[0], instant[1], 1))
+
+        if len(instant) == 5:
+            return cls(instant[1:-1])
 
         return cls(instant)

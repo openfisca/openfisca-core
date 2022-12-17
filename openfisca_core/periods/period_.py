@@ -173,7 +173,7 @@ class Period(Tuple[DateUnit, Instant, int]):
         return super().__contains__(other)
 
     @property
-    def unit(self) -> str:
+    def unit(self) -> int:
         """The ``unit`` of the ``Period``.
 
         Returns:
@@ -252,7 +252,7 @@ class Period(Tuple[DateUnit, Instant, int]):
         stop = (
             start
             .date()
-            .add(**{self.plural(unit): size})
+            .add(**{type(self).plural(str(unit)): size})
             .subtract(days = 1)
             )
 
@@ -289,7 +289,7 @@ class Period(Tuple[DateUnit, Instant, int]):
 
         return self.start.date()
 
-    def count(self, unit: str) -> int:
+    def count(self, unit: int) -> int:
         """The ``size`` of the ``Period`` in the given unit.
 
         Args:
@@ -344,15 +344,15 @@ class Period(Tuple[DateUnit, Instant, int]):
             return self.size * 12
 
         raise ValueError(
-            f"Cannot calculate number of {self.plural(unit)} in a "
+            f"Cannot calculate number of {type(self).plural(str(unit))} in a "
             f"{str(self.unit)}."
             )
 
-    def this(self, unit: str) -> Period:
+    def this(self, unit: int) -> Period:
         """A new month ``Period`` starting at the first of ``unit``.
 
         Args:
-            unit: The unit of the requested Period.
+            unit (int): The unit of the requested Period.
 
         Returns:
             A Period.
@@ -377,12 +377,12 @@ class Period(Tuple[DateUnit, Instant, int]):
 
         return type(self)((unit, self.start.offset("first-of", unit), 1))
 
-    def last(self, unit: str, size: int = 1) -> Period:
+    def last(self, unit: int, size: int = 1) -> Period:
         """Last ``size`` ``unit``s of the ``Period``.
 
         Args:
-            unit: The unit of the requested Period.
-            size: The number of units to include in the Period.
+            unit (int): The unit of the requested Period.
+            size (int): The number of units to include in the Period.
 
         Returns:
             A Period.
@@ -416,12 +416,12 @@ class Period(Tuple[DateUnit, Instant, int]):
 
         return type(self)((unit, self.ago(unit, size).start, size))
 
-    def ago(self, unit: str, size: int = 1) -> Period:
+    def ago(self, unit: int, size: int = 1) -> Period:
         """``size`` ``unit``s ago of the ``Period``.
 
         Args:
-            unit: The unit of the requested Period.
-            size: The number of units ago.
+            unit (int): The unit of the requested Period.
+            size (int): The number of units ago.
 
         Returns:
             A Period.
@@ -455,12 +455,12 @@ class Period(Tuple[DateUnit, Instant, int]):
 
         return type(self)((unit, self.this(unit).start, 1)).offset(-size)
 
-    def offset(self, offset: str | int, unit: str | None = None) -> Period:
+    def offset(self, offset: str | int, unit: int | None = None) -> Period:
         """Increment (or decrement) the given period with offset units.
 
         Args:
             offset (str | int): How much of ``unit`` to offset.
-            unit (str): What to offset.
+            unit (int, optional): What to offset.
 
         Returns:
             Period: A new one.
@@ -491,11 +491,11 @@ class Period(Tuple[DateUnit, Instant, int]):
 
         return type(self)((self.unit, start, self.size))
 
-    def subperiods(self, unit: str) -> Sequence[Period]:
+    def subperiods(self, unit: int) -> Sequence[Period]:
         """Return the list of all the periods of unit ``unit``.
 
         Args:
-            unit: A string representing period's ``unit``.
+            unit (int): A string representing period's ``unit``.
 
         Returns:
             A list of periods.
@@ -523,7 +523,7 @@ class Period(Tuple[DateUnit, Instant, int]):
         if self.unit < unit:
             raise ValueError(f"Cannot subdivide {self.unit} into {unit}")
 
-        if unit not in DateUnit.isoformat:
+        if not unit & DateUnit.isoformat:
             raise DateUnitValueError(unit)
 
         return [
@@ -536,10 +536,10 @@ class Period(Tuple[DateUnit, Instant, int]):
         """Build a new period, aka a triple (unit, start_instant, size).
 
         Args:
-            value: A ``period-like`` object.
+            value (Any): A ``period-like`` object.
 
         Returns:
-            :obj:`.Period`: A period.
+            A period.
 
         Raises:
             PeriodFormatError: When arguments are invalid, like "2021-32-13".
@@ -578,6 +578,10 @@ class Period(Tuple[DateUnit, Instant, int]):
 
         """
 
+        unit: int | str
+        part: ISOFormat | None
+        size: int | str
+
         if value in {ETERNITY, ETERNITY.name, ETERNITY.name.lower()}:
             return cls((ETERNITY, instant.build(datetime.date.min), 1))
 
@@ -597,10 +601,10 @@ class Period(Tuple[DateUnit, Instant, int]):
             raise PeriodFormatError(value)
 
         # Try to parse as a simple period
-        period = ISOFormat.parse(value)
+        part = ISOFormat.parse(value)
 
-        if period is not None:
-            return cls((DateUnit(period.unit), instant((period[1:-1])), 1))
+        if part is not None:
+            return cls((DateUnit(part.unit), instant((part[1:-1])), 1))
 
         # Complex periods must have a ':' in their strings
         if ":" not in value:
@@ -619,12 +623,15 @@ class Period(Tuple[DateUnit, Instant, int]):
         unit = DateUnit[unit]
 
         # We get the first remaining component
-        period, *rest = rest
+        date, *rest = rest
+
+        if date is None:
+            raise PeriodFormatError(value)
 
         # Middle component must be a valid ISO period
-        period = ISOFormat.parse(period)
+        part = ISOFormat.parse(date)
 
-        if period is None:
+        if part is None:
             raise PeriodFormatError(value)
 
         # Finally we try to parse the size, if any
@@ -646,7 +653,7 @@ class Period(Tuple[DateUnit, Instant, int]):
             raise PeriodFormatError(value)
 
         # Reject ambiguous periods such as month:2014
-        if period.unit > unit:
+        if part.unit > unit:
             raise PeriodFormatError(value)
 
-        return cls((unit, instant((period[1:-1])), size))
+        return cls((unit, instant((part[1:-1])), size))
