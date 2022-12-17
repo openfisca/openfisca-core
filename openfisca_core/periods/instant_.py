@@ -8,11 +8,14 @@ import functools
 
 from dateutil import relativedelta
 
+import pendulum
+
 from ._config import INSTANT_PATTERN
 from ._errors import (
     DateUnitValueError,
     InstantFormatError,
     InstantValueError,
+    InstantTypeError,
     OffsetTypeError,
     )
 from ._units import DAY, MONTH, YEAR
@@ -74,7 +77,10 @@ class Instant(Tuple[int, int, int]):
     """
 
     def __repr__(self) -> str:
-        return f"{Instant.__name__}({super(Instant, self).__repr__()})"
+        return (
+            f"{type(self).__name__}"
+            f"({super(type(self), self).__repr__()})"
+            )
 
     @functools.lru_cache(maxsize = None)
     def __str__(self) -> str:
@@ -142,7 +148,7 @@ class Instant(Tuple[int, int, int]):
 
         """
 
-        return datetime.date(*self)
+        return pendulum.date(*self)
 
     def offset(self, offset: str | int, unit: str) -> Instant:
         """Increments/decrements the given instant with offset units.
@@ -178,49 +184,53 @@ class Instant(Tuple[int, int, int]):
         if unit not in (DAY, MONTH, YEAR):
             raise DateUnitValueError(unit)
 
-        if offset == "first-of" and unit == YEAR:
-            return Instant((year, 1, 1))
+        if offset in ("first-of", "last-of") and unit == DAY:
+            return self
 
         if offset == "first-of" and unit == MONTH:
-            return Instant((year, month, 1))
+            return type(self)((year, month, 1))
 
-        if offset == "last-of" and unit == YEAR:
-            return Instant((year, 12, 31))
+        if offset == "first-of" and unit == YEAR:
+            return type(self)((year, 1, 1))
 
         if offset == "last-of" and unit == MONTH:
-            return Instant((year, month, calendar.monthrange(year, month)[1]))
+            day = calendar.monthrange(year, month)[1]
+            return type(self)((year, month, day))
+
+        if offset == "last-of" and unit == YEAR:
+            return type(self)((year, 12, 31))
 
         if not isinstance(offset, int):
             raise OffsetTypeError(offset)
 
-        if unit == YEAR:
-            date = self.date() + relativedelta.relativedelta(years = offset)
-            return Instant((date.year, date.month, date.day))
+        if unit == DAY:
+            date = self.date() + relativedelta.relativedelta(days = offset)
+            return type(self)((date.year, date.month, date.day))
 
         if unit == MONTH:
             date = self.date() + relativedelta.relativedelta(months = offset)
-            return Instant((date.year, date.month, date.day))
+            return type(self)((date.year, date.month, date.day))
 
-        if unit == DAY:
-            date = self.date() + relativedelta.relativedelta(days = offset)
-            return Instant((date.year, date.month, date.day))
+        if unit == YEAR:
+            date = self.date() + relativedelta.relativedelta(years = offset)
+            return type(self)((date.year, date.month, date.day))
 
         return self
 
-    @staticmethod
-    def build(value: Any) -> Instant:
+    @classmethod
+    def build(cls, value: Any) -> Instant:
         """Build a new instant, aka a triple of integers (year, month, day).
 
         Args:
             value: An ``instant-like`` object.
 
         Returns:
-            None: When ``instant`` is None.
-            :obj:`.Instant`: Otherwise.
+            An Instant.
 
         Raises:
-            InstantFormatError: When the arguments were invalid, like "2021-32-13".
-            InstantValueError: When the length is out of range.
+            InstantFormatError: When ``value`` is invalid, like "2021-32-13".
+            InstantValueError: When the length of ``value`` is out of range.
+            InstantTypeError: When ``value`` is None.
 
         Examples:
             >>> from openfisca_core import periods
@@ -249,7 +259,7 @@ class Instant(Tuple[int, int, int]):
         """
 
         if value is None:
-            return None
+            raise InstantTypeError(value)
 
         if isinstance(value, Instant):
             return value
@@ -282,9 +292,9 @@ class Instant(Tuple[int, int, int]):
             instant = tuple(value)
 
         if len(instant) == 1:
-            return Instant((instant[0], 1, 1))
+            return cls((instant[0], 1, 1))
 
         if len(instant) == 2:
-            return Instant((instant[0], instant[1], 1))
+            return cls((instant[0], instant[1], 1))
 
-        return Instant(instant)
+        return cls(instant)

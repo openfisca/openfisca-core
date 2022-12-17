@@ -29,6 +29,7 @@ general_requirements = [
     'PyYAML >= 3.10',
     'dpath >= 1.5.0, < 3.0.0',
     'importlib-metadata < 4.3.0',
+    'inflect >= 6.0.0, < 7.0.0',
     'nptyping == 1.4.4',
     'numexpr >= 2.7.0, <= 3.0',
     'numpy >= 1.20, < 1.21',

@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import datetime
+
 import typing_extensions
-from typing import Any
+from typing import Any, Iterable, Iterator
 from typing_extensions import Protocol
 
 import abc
@@ -11,12 +13,22 @@ import abc
 
 @typing_extensions.runtime_checkable
 class Instant(Protocol):
-    @property
-    @abc.abstractmethod
-    def date(self) -> Any: ...
+    def __init__(cls, *args: Iterable[int]) -> None: ...
 
     @abc.abstractmethod
-    def offset(self, offset: Any, unit: Any) -> Any: ...
+    def __iter__(self) -> Iterator[int]: ...
+
+    @abc.abstractmethod
+    def __ge__(self, other: object) -> bool: ...
+
+    @abc.abstractmethod
+    def __le__(self, other: object) -> bool: ...
+
+    @abc.abstractmethod
+    def date(self) -> datetime.date: ...
+
+    @abc.abstractmethod
+    def offset(self, offset: str | int, unit: str) -> Instant: ...
 
 
 @typing_extensions.runtime_checkable

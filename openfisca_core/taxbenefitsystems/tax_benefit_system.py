@@ -1,25 +1,29 @@
 from __future__ import annotations
 
+import typing
+from openfisca_core.periods.typing import Instant, Period
 from typing import Any, Dict, Optional, Sequence, Union
 
 import copy
 import functools
 import glob
 import importlib
-import importlib_metadata
 import inspect
 import logging
 import os
 import sys
 import traceback
-import typing
+
+import importlib_metadata
 
 from openfisca_core import commons, periods, types, variables
 from openfisca_core.entities import Entity
-from openfisca_core.errors import VariableNameConflictError, VariableNotFoundError
+from openfisca_core.errors import (
+    VariableNameConflictError,
+    VariableNotFoundError,
+    )
 from openfisca_core.parameters import ParameterNode
-from openfisca_core.periods import Instant, Period
-from openfisca_core.populations import Population, GroupPopulation
+from openfisca_core.populations import GroupPopulation, Population
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.variables import Variable
 

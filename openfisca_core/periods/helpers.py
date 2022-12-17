@@ -8,14 +8,12 @@ import pendulum
 from pendulum.datetime import Date
 from pendulum.parsing import ParserError
 
-from ._config import INSTANT_PATTERN
-from ._errors import InstantFormatError, InstantValueError, PeriodFormatError
+from ._errors import PeriodFormatError
 from ._units import DAY, ETERNITY, MONTH, UNIT_WEIGHTS, YEAR
 from .instant_ import Instant
 from .period_ import Period
 
 UNIT_MAPPING = {1: "year", 2: "month", 3: "day"}
-
 
 
 def build_period(value: Any) -> Period:

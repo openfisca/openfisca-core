@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from typing import Sequence, Tuple
+from typing import Callable, Sequence, Tuple
 
-import calendar
-import datetime
+import inflect
+from pendulum import datetime
 
 from ._errors import DateUnitValueError
 from ._units import DAY, ETERNITY, MONTH, UNIT_WEIGHTS, YEAR
-from .instant_ import Instant
+from .typing import Instant
 
 
 class Period(Tuple[str, Instant, int]):
@@ -28,8 +28,10 @@ class Period(Tuple[str, Instant, int]):
             The ``unit``, ``start``, and ``size``, accordingly.
 
     Examples:
-        >>> instant = Instant((2021, 9, 1))
-        >>> period = Period((YEAR, instant, 3))
+        >>> from openfisca_core import periods
+
+        >>> start = periods.Instant((2021, 9, 1))
+        >>> period = Period((YEAR, start, 3))
 
         ``Periods`` are represented as a ``tuple`` containing the ``unit``,
         an ``Instant`` and the ``size``:
@@ -61,10 +63,10 @@ class Period(Tuple[str, Instant, int]):
         >>> len(period)
         3
 
-        >>> period == Period(("year", instant, 3))
+        >>> period == Period((YEAR, start, 3))
         True
 
-        >>> period > Period(("year", instant, 3))
+        >>> period > Period((YEAR, start, 3))
         False
 
         >>> unit, (year, month, day), size = period
@@ -73,8 +75,13 @@ class Period(Tuple[str, Instant, int]):
 
     """
 
+    plural: Callable[[str], str] = inflect.engine().plural
+
     def __repr__(self) -> str:
-        return f"{Period.__name__}({super(Period, self).__repr__()})"
+        return (
+            f"{type(self).__name__}"
+            f"({super(type(self), self).__repr__()})"
+            )
 
     def __str__(self) -> str:
         """Transform period to a string.
@@ -83,41 +90,37 @@ class Period(Tuple[str, Instant, int]):
             str: A string representation of the period.
 
         Examples:
-            >>> str(Period(("year", Instant((2021, 1, 1)), 1)))
+            >>> from openfisca_core import periods
+
+            >>> jan = periods.Instant((2021, 1, 1))
+            >>> feb = jan.offset(1, MONTH)
+
+            >>> str(Period((YEAR, jan, 1)))
             '2021'
 
-            >>> str(Period(("year", Instant((2021, 2, 1)), 1)))
+            >>> str(Period((YEAR, feb, 1)))
             'year:2021-02'
 
-            >>> str(Period(("month", Instant((2021, 2, 1)), 1)))
+            >>> str(Period((MONTH, feb, 1)))
             '2021-02'
 
-            >>> str(Period(("year", Instant((2021, 1, 1)), 2)))
+            >>> str(Period((YEAR, jan, 2)))
             'year:2021:2'
 
-            >>> str(Period(("month", Instant((2021, 1, 1)), 2)))
+            >>> str(Period((MONTH, jan, 2)))
             'month:2021-01:2'
 
-            >>> str(Period(("month", Instant((2021, 1, 1)), 12)))
+            >>> str(Period((MONTH, jan, 12)))
             '2021'
-
-            >>> str(Period(("year", Instant((2021, 3, 1)), 2)))
-            'year:2021-03:2'
-
-            >>> str(Period(("month", Instant((2021, 3, 1)), 2)))
-            'month:2021-03:2'
-
-            >>> str(Period(("month", Instant((2021, 3, 1)), 12)))
-            'year:2021-03'
 
         """
 
-        unit, start_instant, size = self
+        unit, start, size = self
 
         if unit == ETERNITY:
             return "ETERNITY"
 
-        year, month, day = start_instant
+        year, month, day = start
 
         # 1 year long period
         if unit == MONTH and size == 12 or unit == YEAR and size == 1:
@@ -157,9 +160,11 @@ class Period(Tuple[str, Instant, int]):
             True if ``other`` is contained, otherwise False.
 
         Example:
-            >>> period = Period((YEAR, Instant((2021, 1, 1)), 1))
-            >>> sub_period = Period((MONTH, Instant((2021, 1, 1)), 3))
+            >>> from openfisca_core import periods
 
+            >>> start = periods.Instant((2021, 1, 1))
+            >>> period = Period((YEAR, start, 1))
+            >>> sub_period = Period((MONTH, start, 3))
             >>> sub_period in period
             True
 
@@ -178,8 +183,10 @@ class Period(Tuple[str, Instant, int]):
             An int.
 
         Example:
-            >>> instant = Instant((2021, 10, 1))
-            >>> period = Period((YEAR, instant, 3))
+            >>> from openfisca_core import periods
+
+            >>> start = periods.Instant((2021, 10, 1))
+            >>> period = Period((YEAR, start, 3))
             >>> period.unit
             'year'
 
@@ -188,25 +195,23 @@ class Period(Tuple[str, Instant, int]):
         return self[0]
 
     @property
-    def days(self) -> int:
-        """Count the number of days in period.
+    def start(self) -> Instant:
+        """The ``Instant`` at which the ``Period`` starts.
 
         Returns:
-            An int.
+            An Instant.
 
-        Examples:
-            >>> instant = Instant((2021, 10, 1))
-            >>> period = Period((YEAR, instant, 3))
-            >>> period.size_in_days
-            1096
+        Example:
+            >>> from openfisca_core import periods
 
-            >>> period = Period((MONTH, instant, 3))
-            >>> period.size_in_days
-            92
+            >>> start = periods.Instant((2021, 10, 1))
+            >>> period = Period((YEAR, start, 3))
+            >>> period.start
+            Instant((2021, 10, 1))
 
         """
 
-        return (self.stop.date() - self.start.date()).days + 1
+        return self[1]
 
     @property
     def size(self) -> int:
@@ -216,45 +221,16 @@ class Period(Tuple[str, Instant, int]):
             An int.
 
         Example:
-            >>> instant = Instant((2021, 10, 1))
-            >>> period = Period((YEAR, instant, 3))
+            >>> from openfisca_core import periods
+
+            >>> start = periods.Instant((2021, 10, 1))
+            >>> period = Period((YEAR, start, 3))
             >>> period.size
             3
 
         """
 
         return self[2]
-
-    @property
-    def size_in_months(self) -> int:
-        """The ``size`` of the ``Period`` in months.
-
-        Returns:
-            An int.
-
-        Raises:
-            ValueError: If the period's unit is not a month or a year.
-
-        Examples:
-            >>> instant = Instant((2021, 10, 1))
-            >>> period = Period((YEAR, instant, 3))
-            >>> period.size_in_months
-            36
-
-            >>> period = Period((DAY, instant, 3))
-            >>> period.size_in_months
-            Traceback (most recent call last):
-            ValueError: Cannot calculate number of months in day.
-
-        """
-
-        if self[0] == MONTH:
-            return self[2]
-
-        if self[0] == YEAR:
-            return self[2] * 12
-
-        raise ValueError(f"Cannot calculate number of months in {self[0]}.")
 
     @property
     def size_in_days(self) -> int:
@@ -267,44 +243,110 @@ class Period(Tuple[str, Instant, int]):
             ValueError: If the period's unit is not a day, a month or a year.
 
         Examples:
-            >>> instant = Instant((2019, 10, 1))
-            >>> period = Period((YEAR, instant, 3))
+            >>> from openfisca_core import periods
+
+            >>> start = periods.Instant((2021, 10, 1))
+
+            >>> period = Period((YEAR, start, 3))
             >>> period.size_in_days
             1096
 
-            >>> period = Period((MONTH, instant, 3))
+            >>> period = Period((MONTH, start, 3))
             >>> period.size_in_days
             92
 
         """
 
-        unit, instant, length = self
+        if self.unit == DAY:
+            return self.size
 
-        if unit == DAY:
-            return length
+        if self.unit in (MONTH, YEAR):
+            return (self.stop.date() - self.start.date()).days + 1
 
-        if unit in [MONTH, YEAR]:
-            last_day = self.start.offset(length, unit).offset(-1, DAY)
-            return (last_day.date() - self.start.date()).days + 1
-
-        raise ValueError(f"Cannot calculate number of days in {unit}")
+        raise ValueError(f"Cannot calculate number of days in {self.unit}.")
 
     @property
-    def start(self) -> Instant:
-        """The ``Instant`` at which the ``Period`` starts.
+    def size_in_months(self) -> int:
+        """The ``size`` of the ``Period`` in months.
 
         Returns:
-            An Instant.
+            An int.
 
-        Example:
-            >>> instant = Instant((2021, 10, 1))
-            >>> period = Period((YEAR, instant, 3))
-            >>> period.start
-            Instant((2021, 10, 1))
+        Raises:
+            ValueError: If the period's unit is not a month or a year.
+
+        Examples:
+            >>> from openfisca_core import periods
+
+            >>> start = periods.Instant((2021, 10, 1))
+
+            >>> period = Period((YEAR, start, 3))
+            >>> period.size_in_months
+            36
+
+            >>> period = Period((DAY, start, 3))
+            >>> period.size_in_months
+            Traceback (most recent call last):
+            ValueError: Cannot calculate number of months in day.
 
         """
 
-        return self[1]
+        if self.unit == MONTH:
+            return self.size
+
+        if self.unit == YEAR:
+            return self.size * 12
+
+        raise ValueError(f"Cannot calculate number of months in {self[0]}.")
+
+    @property
+    def size_in_years(self) -> int:
+        """The ``size`` of the ``Period`` in years.
+
+        Examples:
+            >>> from openfisca_core import periods
+
+            >>> start = periods.Instant((2021, 10, 1))
+
+            >>> period = Period((YEAR, start, 3))
+            >>> period.size_in_years
+            3
+
+            >>> period = Period((MONTH, start, 3))
+            >>> period.size_in_years
+            Traceback (most recent call last):
+            ValueError: Cannot calculate number of years in month.
+
+        """
+
+        if self.unit == YEAR:
+            return self.size
+
+        raise ValueError(f"Cannot calculate number of years in {self.unit}.")
+
+    @property
+    def days(self) -> int:
+        """Count the number of days in period.
+
+        Returns:
+            An int.
+
+        Examples:
+            >>> from openfisca_core import periods
+
+            >>> start = periods.Instant((2021, 10, 1))
+
+            >>> period = Period((YEAR, start, 3))
+            >>> period.days
+            1096
+
+            >>> period = Period((MONTH, start, 3))
+            >>> period.days
+            92
+
+        """
+
+        return self.size_in_days
 
     @property
     def stop(self) -> Instant:
@@ -317,150 +359,59 @@ class Period(Tuple[str, Instant, int]):
             DateUnitValueError: If the period's unit isn't day, month or year.
 
         Examples:
-            >>> Period(("year", Instant((2012, 2, 29)), 1)).stop
-            Instant((2013, 2, 28))
+            >>> from openfisca_core import periods
 
-            >>> Period(("month", Instant((2012, 2, 29)), 1)).stop
-            Instant((2012, 3, 28))
+            >>> start = periods.Instant((2012, 2, 29))
 
-            >>> Period(("day", Instant((2012, 2, 29)), 1)).stop
-            Instant((2012, 2, 29))
+            >>> Period((YEAR, start, 2)).stop
+            Instant((2014, 2, 27))
+
+            >>> Period((MONTH, start, 36)).stop
+            Instant((2015, 2, 27))
+
+            >>> Period((DAY, start, 1096)).stop
+            Instant((2015, 2, 28))
 
         """
 
-        unit, start_instant, size = self
-        year, month, day = start_instant
+        unit, start, size = self
 
         if unit == ETERNITY:
-            return Instant((1, 1, 1))
+            return type(self.start)((1, 1, 1))
 
-        if unit == 'day':
-            if size > 1:
-                day += size - 1
-                month_last_day = calendar.monthrange(year, month)[1]
+        stop = (
+            start
+            .date()
+            .add(**{self.plural(unit): size})
+            .subtract(days = 1)
+            )
 
-                while day > month_last_day:
-                    month += 1
-
-                    if month == 13:
-                        year += 1
-                        month = 1
-
-                    day -= month_last_day
-                    month_last_day = calendar.monthrange(year, month)[1]
-
-        else:
-            if unit == "month":
-                month += size
-                while month > 12:
-                    year += 1
-                    month -= 12
-            else:
-                if not unit == "year":
-                    raise DateUnitValueError(unit)
-
-                year += size
-            day -= 1
-
-            if day < 1:
-                month -= 1
-
-                if month == 0:
-                    year -= 1
-                    month = 12
-
-                day += calendar.monthrange(year, month)[1]
-
-            else:
-                month_last_day = calendar.monthrange(year, month)[1]
-
-                if day > month_last_day:
-                    month += 1
-
-                    if month == 13:
-                        year += 1
-                        month = 1
-
-                    day -= month_last_day
-
-        return Instant((year, month, day))
+        return type(start)((stop.year, stop.month, stop.day))
 
     @property
-    def last_month(self) -> Period:
-        """Last month of the ``Period``.
+    def today(self) -> Period:
+        """A new day ``Period`` representing today.
 
         Returns:
             A Period.
 
-        """
+        Examples:
+            >>> from openfisca_core import periods
 
-        return self.first_month.offset(-1)
+            >>> start = periods.Instant((2023, 1, 1))
 
-    @property
-    def last_3_months(self) -> Period:
-        """Last 3 months of the ``Period``.
+            >>> period = Period((YEAR, start, 3))
 
-        Returns:
-            A Period.
+            >>> period.today
+            Period(('day', Instant((2023, 1, 1)), 1))
 
-        """
-
-        start: Instant = self.first_month.start
-        return Period((MONTH, start, 3)).offset(-3)
-
-    @property
-    def last_year(self) -> Period:
-        """Last year of the ``Period``."""
-        start: Instant = self.start.offset("first-of", YEAR)
-        return Period((YEAR, start, 1)).offset(-1)
-
-    @property
-    def n_2(self) -> Period:
-        """Last 2 years of the ``Period``.
-
-        Returns:
-            A Period.
+        .. versionadded:: 39.0.0
 
         """
 
-        start: Instant = self.start.offset("first-of", YEAR)
-        return Period((YEAR, start, 1)).offset(-2)
+        return self.this(DAY)
 
-    @property
-    def this_year(self) -> Period:
-        """A new year ``Period`` starting at the beginning of the year.
-
-        Returns:
-            A Period.
-
-        """
-
-        start: Instant = self.start.offset("first-of", YEAR)
-        return Period((YEAR, start, 1))
-
-    @property
-    def first_month(self) -> Period:
-        """A new month ``Period`` starting at the first of the month.
-
-        Returns:
-            A Period.
-
-        """
-
-        start: Instant = self.start.offset("first-of", MONTH)
-        return Period((MONTH, start, 1))
-
-    @property
-    def first_day(self) -> Period:
-        """A new day ``Period``.
-
-        Returns:
-            A Period.
-
-        """
-        return Period((DAY, self.start, 1))
-
-    def date(self) -> datetime.date:
+    def date(self) -> datetime.Date:
         """The date representation of the ``period``'s' start date.
 
         Returns:
@@ -470,15 +421,21 @@ class Period(Tuple[str, Instant, int]):
             ValueError: If the period's size is greater than 1.
 
         Examples:
-            >>> instant = Instant((2021, 10, 1))
-            >>> period = Period((YEAR, instant, 1))
-            >>> period.date()
-            datetime.date(2021, 10, 1)
+            >>> from openfisca_core import periods
 
-            >>> period = Period((YEAR, instant, 3))
+            >>> start = periods.Instant((2021, 10, 1))
+
+            >>> period = Period((YEAR, start, 1))
+            >>> period.date()
+            Date(2021, 10, 1)
+
+            >>> period = Period((YEAR, start, 3))
             >>> period.date()
             Traceback (most recent call last):
             ValueError: 'date' undefined for period size > 1: year:2021-10:3.
+
+        .. vesionchanged:: 39.0.0:
+            Made it a normal method instead of a property.
 
         """
 
@@ -487,11 +444,164 @@ class Period(Tuple[str, Instant, int]):
 
         return self.start.date()
 
-    def offset(
-            self,
-            offset: str | int,
-            unit: str | None = None,
-            ) -> Period:
+    def size_in(self, unit: str) -> int:
+        """The ``size`` of the ``Period`` in the given unit.
+
+        Args:
+            unit: The unit to convert to.
+
+        Returns:
+            An int.
+
+        Raises:
+            ValueError: If the period's unit is not a day, a month or a year.
+
+        Examples:
+            >>> from openfisca_core import periods
+
+            >>> start = periods.Instant((2022, 1, 1))
+
+            >>> period = Period((YEAR, start, 3))
+
+            >>> period.size_in(DAY)
+            1096
+
+            >>> period.size_in(MONTH)
+            36
+
+            >>> period.size_in(YEAR)
+            3
+
+        .. versionadded:: 39.0.0
+
+        """
+
+        if unit == DAY:
+            return self.size_in_days
+
+        if unit == MONTH:
+            return self.size_in_months
+
+        if unit == YEAR:
+            return self.size_in_years
+
+        raise ValueError(f"Cannot calculate number of {unit} in {self.unit}.")
+
+    def this(self, unit: str) -> Period:
+        """A new month ``Period`` starting at the first of ``unit``.
+
+        Args:
+            unit: The unit of the requested Period.
+
+        Returns:
+            A Period.
+
+        Examples:
+            >>> from openfisca_core import periods
+
+            >>> start = periods.Instant((2023, 1, 1))
+
+            >>> period = Period((YEAR, start, 3))
+
+            >>> period.this(DAY)
+            Period(('day', Instant((2023, 1, 1)), 1))
+
+            >>> period.this(MONTH)
+            Period(('month', Instant((2023, 1, 1)), 1))
+
+            >>> period.this(YEAR)
+            Period(('year', Instant((2023, 1, 1)), 1))
+
+        .. versionadded:: 39.0.0
+
+        """
+
+        return type(self)((unit, self.start.offset("first-of", unit), 1))
+
+
+    def last(self, unit: str, size: int = 1) -> Period:
+        """Last ``size`` ``unit``s of the ``Period``.
+
+        Args:
+            unit: The unit of the requested Period.
+            size: The number of units to include in the Period.
+
+        Returns:
+            A Period.
+
+        Examples:
+            >>> from openfisca_core import periods
+
+            >>> start = periods.Instant((2023, 1, 1))
+
+            >>> period = Period((YEAR, start, 3))
+
+            >>> period.last(DAY)
+            Period(('day', Instant((2022, 12, 31)), 1))
+
+            >>> period.last(DAY, 7)
+            Period(('day', Instant((2022, 12, 25)), 7))
+
+            >>> period.last(MONTH)
+            Period(('month', Instant((2022, 12, 1)), 1))
+
+            >>> period.last(MONTH, 3)
+            Period(('month', Instant((2022, 10, 1)), 3))
+
+            >>> period.last(YEAR)
+            Period(('year', Instant((2022, 1, 1)), 1))
+
+            >>> period.last(YEAR, 1)
+            Period(('year', Instant((2022, 1, 1)), 1))
+
+        .. versionadded:: 39.0.0
+
+        """
+
+        return type(self)((unit, self.ago(unit, size).start, size))
+
+    def ago(self, unit: str, size: int = 1) -> Period:
+        """``size`` ``unit``s ago of the ``Period``.
+
+        Args:
+            unit: The unit of the requested Period.
+            size: The number of units ago.
+
+        Returns:
+            A Period.
+
+        Examples:
+            >>> from openfisca_core import periods
+
+            >>> start = periods.Instant((2023, 1, 1))
+
+            >>> period = Period((YEAR, start, 3))
+
+            >>> period.ago(DAY)
+            Period(('day', Instant((2022, 12, 31)), 1))
+
+            >>> period.ago(DAY, 7)
+            Period(('day', Instant((2022, 12, 25)), 1))
+
+            >>> period.ago(MONTH)
+            Period(('month', Instant((2022, 12, 1)), 1))
+
+            >>> period.ago(MONTH, 3)
+            Period(('month', Instant((2022, 10, 1)), 1))
+
+            >>> period.ago(YEAR)
+            Period(('year', Instant((2022, 1, 1)), 1))
+
+            >>> period.ago(YEAR, 1)
+            Period(('year', Instant((2022, 1, 1)), 1))
+
+        .. versionadded:: 39.0.0
+
+        """
+
+        return type(self)((unit, self.this(unit).start, 1)).offset(-size)
+
+    def offset(self, offset: str | int, unit: str | None = None) -> Period:
         """Increment (or decrement) the given period with offset units.
 
         Args:
@@ -502,23 +612,29 @@ class Period(Tuple[str, Instant, int]):
             Period: A new one.
 
         Examples:
-            >>> Period(("day", Instant((2014, 2, 3)), 1)).offset("first-of", "month")
+            >>> from openfisca_core import periods
+
+            >>> start = periods.Instant((2014, 2, 3))
+
+            >>> Period((DAY, start, 1)).offset("first-of", MONTH)
             Period(('day', Instant((2014, 2, 1)), 1))
 
-            >>> Period(("month", Instant((2014, 2, 3)), 4)).offset("last-of", "month")
+            >>> Period((MONTH, start, 4)).offset("last-of", MONTH)
             Period(('month', Instant((2014, 2, 28)), 4))
 
-            >>> Period(("day", Instant((2021, 1, 1)), 365)).offset(-3)
+            >>> start = periods.Instant((2021, 1, 1))
+
+            >>> Period((DAY, start, 365)).offset(-3)
             Period(('day', Instant((2020, 12, 29)), 365))
 
-            >>> Period(("day", Instant((2021, 1, 1)), 365)).offset(1, "year")
+            >>> Period((DAY, start, 365)).offset(1, YEAR)
             Period(('day', Instant((2022, 1, 1)), 365))
 
         """
 
         start = self[1].offset(offset, self[0] if unit is None else unit)
 
-        return Period((self[0], start, self[2]))
+        return type(self)((self[0], start, self[2]))
 
     def subperiods(self, unit: str) -> Sequence[Period]:
         """Return the list of all the periods of unit ``unit``.
@@ -534,13 +650,20 @@ class Period(Tuple[str, Instant, int]):
             ValueError: If the period's unit is smaller than the given unit.
 
         Examples:
-            >>> period = Period((YEAR, Instant((2021, 1, 1)), 1))
+            >>> from openfisca_core import periods
+
+            >>> start = periods.Instant((2021, 1, 1))
+
+            >>> period = Period((YEAR, start, 1))
             >>> period.subperiods(MONTH)
             [Period(('month', Instant((2021, 1, 1)), 1)),...2021, 12, 1)), 1))]
 
-            >>> period = Period((YEAR, Instant((2021, 1, 1)), 2))
+            >>> period = Period((YEAR, start, 2))
             >>> period.subperiods(YEAR)
             [Period(('year', Instant((2021, 1, 1)), 1)),...((2022, 1, 1)), 1))]
+
+        .. versionchanged:: 39.0.0:
+            Renamed from ``get_subperiods`` to ``subperiods``.
 
         """
 
@@ -548,12 +671,21 @@ class Period(Tuple[str, Instant, int]):
             raise ValueError(f"Cannot subdivide {self.unit} into {unit}")
 
         if unit == YEAR:
-            return [self.this_year.offset(i, YEAR) for i in range(self.size)]
+            return [
+                self.this(YEAR).offset(offset, YEAR)
+                for offset in range(self.size)
+                ]
 
         if unit == MONTH:
-            return [self.first_month.offset(i, MONTH) for i in range(self.size_in_months)]
+            return [
+                self.this(MONTH).offset(offset, MONTH)
+                for offset in range(self.size_in_months)
+                ]
 
         if unit == DAY:
-            return [self.first_day.offset(i, DAY) for i in range(self.size_in_days)]
+            return [
+                self.this(DAY).offset(offset, DAY)
+                for offset in range(self.size_in_days)
+                ]
 
         raise DateUnitValueError(unit)
