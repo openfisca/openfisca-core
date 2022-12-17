@@ -77,7 +77,7 @@ class Instant(Tuple[int, int, int]):
 
     """
 
-    plural: Plural[str] = inflect.engine().plural
+    plural: Plural = inflect.engine().plural
 
     def __repr__(self) -> str:
         return (
@@ -206,7 +206,7 @@ class Instant(Tuple[int, int, int]):
         if not isinstance(offset, int):
             raise OffsetTypeError(offset)
 
-        add: Add[Date] = self.date().add
+        add: Add = self.date().add
 
         date = add(**{type(self).plural(str(unit)): offset})
 

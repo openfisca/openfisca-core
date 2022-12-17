@@ -76,7 +76,7 @@ class Period(Tuple[DateUnit, Instant, int]):
 
     """
 
-    plural: Plural[str] = inflect.engine().plural
+    plural: Plural = inflect.engine().plural
 
     def __repr__(self) -> str:
         return (
