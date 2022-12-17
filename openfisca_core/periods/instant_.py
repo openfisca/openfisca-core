@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Tuple
+from typing import Any, Tuple
 
 import calendar
 import datetime
 import functools
+
+from .typing import Add, Plural
 
 import inflect
 import pendulum
@@ -76,7 +78,7 @@ class Instant(Tuple[int, int, int]):
 
     """
 
-    plural: Callable[[str], str] = inflect.engine().plural
+    plural: Plural[str] = inflect.engine().plural
 
     def __repr__(self) -> str:
         return (
@@ -152,26 +154,6 @@ class Instant(Tuple[int, int, int]):
 
         return pendulum.date(*self)
 
-    def add(self, unit: str, size: int) -> Date:
-        """Adds a given ``size`` amount to a date.
-
-        Args:
-            unit (str): The unit to add.
-            size (int): The amount to add.
-
-        Returns:
-            A date.
-
-        Examples:
-            >>> Instant((2020, 1, 1)).add("years", 1)
-            Date(2021, 1, 1)
-
-        """
-
-        add: Callable[..., Date] = self.date().add
-
-        return add(**{unit: size})
-
     def offset(self, offset: str | int, unit: int) -> Instant:
         """Increments/decrements the given instant with offset units.
 
@@ -225,7 +207,9 @@ class Instant(Tuple[int, int, int]):
         if not isinstance(offset, int):
             raise OffsetTypeError(offset)
 
-        date = self.add(type(self).plural(str(unit)), offset)
+        add: Add[Date] = self.date().add
+
+        date = add(**{type(self).plural(str(unit)): offset})
 
         return type(self)((date.year, date.month, date.day))
 

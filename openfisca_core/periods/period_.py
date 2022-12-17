@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Sequence, Tuple
+from typing import Any, Sequence, Tuple
 
 import datetime
 
@@ -10,6 +10,8 @@ from ._errors import DateUnitValueError, PeriodFormatError, PeriodTypeError
 from ._parsers import ISOFormat
 from ._units import DateUnit, DAY, ETERNITY, MONTH, YEAR
 from .instant_ import Instant
+
+from .typing import Plural
 
 
 class Period(Tuple[DateUnit, Instant, int]):
@@ -75,7 +77,7 @@ class Period(Tuple[DateUnit, Instant, int]):
 
     """
 
-    plural: Callable[[str], str] = inflect.engine().plural
+    plural: Plural[str] = inflect.engine().plural
 
     def __repr__(self) -> str:
         return (
@@ -248,14 +250,7 @@ class Period(Tuple[DateUnit, Instant, int]):
         if unit == ETERNITY:
             return type(self.start)((1, 1, 1))
 
-        stop = (
-            start
-            .date()
-            .add(**{type(self).plural(str(unit)): size})
-            .subtract(days = 1)
-            )
-
-        return type(start)((stop.year, stop.month, stop.day))
+        return start.offset(size, unit).offset(-1, DAY)
 
     def date(self) -> datetime.date:
         """The date representation of the ``period``'s' start date.

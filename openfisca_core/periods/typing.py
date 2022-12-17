@@ -1,7 +1,22 @@
-# # pylint: disable=missing-class-docstring,missing-function-docstring
-#
-# from __future__ import annotations
-#
+# pylint: disable=missing-class-docstring,missing-function-docstring
+
+from __future__ import annotations
+
+from typing import Any, TypeVar
+from typing_extensions import Protocol
+
+A = TypeVar("A", covariant = True)
+P = TypeVar("P")
+
+
+class Add(Protocol[A]):
+    def __call__(self, years: int, months: int, week: int, days: int) -> A: ...
+
+
+class Plural(Protocol[P]):
+    def __call__(self, __arg1: P, __arg2: Any = None) -> P: ...
+
+
 # from typing import Any, Iterable, Iterator, TypeVar
 # from typing_extensions import Protocol
 #
