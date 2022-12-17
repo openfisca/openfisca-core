@@ -1,17 +1,14 @@
 from __future__ import annotations
 
-import time
-import typing
+from numpy.typing import ArrayLike
+from openfisca_core.periods.typing import Period
 from typing import Dict, Iterator, List, Optional, Union
+
+import time
 
 from .. import tracers
 
-if typing.TYPE_CHECKING:
-    from numpy.typing import ArrayLike
-
-    from openfisca_core.periods import Period
-
-    Stack = List[Dict[str, Union[str, Period]]]
+Stack = List[Dict[str, Union[str, Period]]]
 
 
 class FullTracer:
