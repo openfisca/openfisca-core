@@ -20,7 +20,13 @@ class DateUnitMeta(enum.EnumMeta):
             >>> DateUnit.DAY in DateUnit.isoformat
             True
 
+            >>> bool(DateUnit.DAY & DateUnit.isoformat)
+            True
+
             >>> DateUnit.ETERNITY in DateUnit.isoformat
+            False
+
+            >>> bool(DateUnit.ETERNITY & DateUnit.isoformat)
             False
 
         .. versionadded:: 39.0.0
@@ -59,6 +65,9 @@ class DateUnit(enum.IntFlag, metaclass = DateUnitMeta):
         day
 
         >>> DateUnit.DAY in DateUnit
+        True
+
+        >>> bool(DateUnit.DAY & ~DateUnit.ETERNITY)
         True
 
         >>> "DAY" in DateUnit
