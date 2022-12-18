@@ -65,9 +65,9 @@ def test_build_instant(arg, expected):
     ["year:1000-01-01:1", ValueError],
     ["year:1000-01-01:3", ValueError],
     [None, TypeError],
-    [eternity, TypeError],
-    [year, TypeError],
-    [Period((day, Instant((1, 1, 1)), 365)), TypeError],
+    [eternity, ValueError],
+    [year, ValueError],
+    [Period((day, Instant((1, 1, 1)), 365)), ValueError],
     ])
 def test_build_instant_with_an_invalid_argument(arg, error):
     """Raises ``ValueError`` when given an invalid argument."""

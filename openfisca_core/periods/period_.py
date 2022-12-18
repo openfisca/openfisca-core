@@ -597,7 +597,7 @@ class Period(Tuple[DateUnit, Instant, int]):
             raise PeriodFormatError(value)
 
         # Try to parse as a simple period
-        part = ISOFormat.parse(value)
+        part = ISOFormat.fromstr(value)
 
         if part is not None:
             start = Instant((part.year, part.month, part.day))
@@ -626,7 +626,7 @@ class Period(Tuple[DateUnit, Instant, int]):
             raise PeriodFormatError(value)
 
         # Middle component must be a valid ISO period
-        part = ISOFormat.parse(date)
+        part = ISOFormat.fromstr(date)
 
         if part is None:
             raise PeriodFormatError(value)

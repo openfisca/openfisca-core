@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Tuple
+from typing import Any, Sequence, Tuple
 
 import calendar
 import datetime
@@ -186,6 +186,9 @@ class Instant(Tuple[int, int, int]):
 
         year, month, day = self
 
+        if not isinstance(unit, DateUnit):
+            raise DateUnitValueError(unit)
+
         if not unit & DateUnit.isoformat:
             raise DateUnitValueError(unit)
 
@@ -252,54 +255,33 @@ class Instant(Tuple[int, int, int]):
 
             >>> Instant.build(period)
             Traceback (most recent call last):
-            TypeError: int() argument must be a string, a bytes-like object ...
+            InstantFormatError: 'year:2021-09' is not a valid instant.
 
             .. versionadded:: 39.0.0
 
         """
 
-        instant: Tuple[int, ...] | ISOFormat | None
-
-        if value is None or isinstance(value, DateUnit):
-            raise InstantTypeError(value)
+        instant: ISOFormat | None
 
         if isinstance(value, Instant):
             return value
 
-        if isinstance(value, str) and not INSTANT_PATTERN.match(value):
-            raise InstantFormatError(value)
+        if isinstance(value, datetime.date):
+            return cls((value.year, value.month, value.day))
 
-        if isinstance(value, str) and len(value.split("-")) > 3:
-            raise InstantValueError(value)
+        if isinstance(value, int):
+            instant = ISOFormat.fromint(value)
 
-        if isinstance(value, str):
-            instant = ISOFormat.parse(value)
+        elif isinstance(value, str):
+            instant = ISOFormat.fromstr(value)
 
-        elif isinstance(value, datetime.date):
-            instant = value.year, value.month, value.day
-
-        elif isinstance(value, int):
-            instant = value, 1, 1
-
-        elif isinstance(value, (dict, set)):
-            raise InstantValueError(value)
-
-        elif isinstance(value, (tuple, list)) and not 1 <= len(value) <= 3:
-            raise InstantValueError(value)
+        elif isinstance(value, (list, tuple)):
+            instant = ISOFormat.fromseq(value)
 
         else:
-            instant = tuple(int(value) for value in tuple(value))
+            raise InstantTypeError(value)
 
         if instant is None:
             raise InstantFormatError(value)
 
-        if len(instant) == 1:
-            return cls((instant[0], 1, 1))
-
-        if len(instant) == 2:
-            return cls((instant[0], instant[1], 1))
-
-        if len(instant) == 5:
-            return cls((instant.year, instant.month, instant.day))
-
-        return cls(instant)
+        return cls((instant.year, instant.month, instant.day))
