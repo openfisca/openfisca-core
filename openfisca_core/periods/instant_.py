@@ -300,6 +300,6 @@ class Instant(Tuple[int, int, int]):
             return cls((instant[0], instant[1], 1))
 
         if len(instant) == 5:
-            return cls(instant[1:-1])
+            return cls((instant.year, instant.month, instant.day))
 
         return cls(instant)

@@ -10,9 +10,6 @@ from pendulum.parsing import ParserError
 class ISOFormat(NamedTuple):
     """An implementation of the `parse` protocol."""
 
-    #: The unit of the parsed period, in binary.
-    unit: int
-
     #: The year of the parsed period.
     year: int
 
@@ -21,6 +18,9 @@ class ISOFormat(NamedTuple):
 
     #: The month of the parsed period.
     day: int
+
+    #: The unit of the parsed period, in binary.
+    unit: int
 
     #: The number of fragments in the parsed period.
     shape: int
@@ -44,13 +44,13 @@ class ISOFormat(NamedTuple):
             >>> ISOFormat.parse("ETERNITY")
 
             >>> ISOFormat.parse("2022")
-            ISOFormat(unit=4, year=2022, month=1, day=1, shape=1)
+            ISOFormat(year=2022, month=1, day=1, unit=4, shape=1)
 
             >>> ISOFormat.parse("2022-02")
-            ISOFormat(unit=2, year=2022, month=2, day=1, shape=2)
+            ISOFormat(year=2022, month=2, day=1, unit=2, shape=2)
 
             >>> ISOFormat.parse("2022-02-13")
-            ISOFormat(unit=1, year=2022, month=2, day=13, shape=3)
+            ISOFormat(year=2022, month=2, day=13, unit=1, shape=3)
 
         .. versionadded:: 39.0.0
 
@@ -84,4 +84,4 @@ class ISOFormat(NamedTuple):
         unit = pow(2, 3 - shape)
 
         # We build the corresponding ISOFormat object
-        return cls(unit, date.year, date.month, date.day, shape)
+        return cls(date.year, date.month, date.day, unit, shape)
