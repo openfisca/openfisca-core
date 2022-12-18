@@ -69,34 +69,6 @@ class Params(Protocol):
         """Abstract method."""
 
 
-@typing_extensions.runtime_checkable
-class Period(Protocol):
-    """Period protocol."""
-
-    @abc.abstractmethod
-    def __iter__(self) -> Any:
-        """Abstract method."""
-
-    @property
-    @abc.abstractmethod
-    def unit(self) -> Any:
-        """Abstract method."""
-
-    @property
-    @abc.abstractmethod
-    def start(self) -> Any:
-        """Abstract method."""
-
-    @property
-    @abc.abstractmethod
-    def stop(self) -> Any:
-        """Abstract method."""
-
-    @abc.abstractmethod
-    def offset(self, offset: Any, unit: Any = None) -> Any:
-        """Abstract method."""
-
-
 class Population(Protocol):
     """Population protocol."""
 
