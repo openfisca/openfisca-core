@@ -14,8 +14,8 @@ class InMemoryStorage:
 
     def get(self, period):
         if self.is_eternal:
-            period = periods.build(periods.ETERNITY)
-        period = periods.build(period)
+            period = periods.period.build(periods.ETERNITY)
+        period = periods.period.build(period)
 
         values = self._arrays.get(period)
         if values is None:
@@ -24,8 +24,8 @@ class InMemoryStorage:
 
     def put(self, value, period):
         if self.is_eternal:
-            period = periods.build(periods.ETERNITY)
-        period = periods.build(period)
+            period = periods.period.build(periods.ETERNITY)
+        period = periods.period.build(period)
 
         self._arrays[period] = value
 
@@ -35,8 +35,8 @@ class InMemoryStorage:
             return
 
         if self.is_eternal:
-            period = periods.build(periods.ETERNITY)
-        period = periods.build(period)
+            period = periods.period.build(periods.ETERNITY)
+        period = periods.period.build(period)
 
         self._arrays = {
             period_item: value

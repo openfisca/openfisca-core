@@ -109,7 +109,7 @@ class ISOFormat(NamedTuple):
 
         # If it's negative period, next!
         if value[0] == "-":
-            raise ValueError
+            return None
 
         try:
             # We parse the date
@@ -129,7 +129,6 @@ class ISOFormat(NamedTuple):
 
         # We build the corresponding ISOFormat object
         return cls(date.year, date.month, date.day, unit, shape)
-
 
     @classmethod
     def fromseq(cls, value: Sequence[int]) -> ISOFormat | None:

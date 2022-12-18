@@ -6,9 +6,9 @@ import datetime
 
 import inflect
 
+from ._date_unit import DateUnit
 from ._errors import DateUnitValueError, PeriodFormatError, PeriodTypeError
 from ._parsers import ISOFormat
-from ._date_unit import DateUnit
 from .instant_ import Instant
 from .typing import Plural
 

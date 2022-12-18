@@ -2,7 +2,7 @@ import datetime
 
 import pytest
 
-from openfisca_core.periods import DateUnit, Period, Instant
+from openfisca_core.periods import DateUnit, Instant, Period
 
 day, month, year, eternity = DateUnit
 

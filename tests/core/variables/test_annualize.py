@@ -41,7 +41,7 @@ class PopulationMock:
 
 
 def test_without_annualize(monthly_variable):
-    period = periods.build(2019)
+    period = periods.period.build(2019)
 
     person = PopulationMock(monthly_variable)
 
@@ -55,7 +55,7 @@ def test_without_annualize(monthly_variable):
 
 
 def test_with_annualize(monthly_variable):
-    period = periods.build(2019)
+    period = periods.period.build(2019)
     annualized_variable = get_annualized_variable(monthly_variable)
 
     person = PopulationMock(annualized_variable)
@@ -70,8 +70,8 @@ def test_with_annualize(monthly_variable):
 
 
 def test_with_partial_annualize(monthly_variable):
-    period = periods.build('year:2018:2')
-    annualized_variable = get_annualized_variable(monthly_variable, periods.build(2018))
+    period = periods.period.build('year:2018:2')
+    annualized_variable = get_annualized_variable(monthly_variable, periods.period.build(2018))
 
     person = PopulationMock(annualized_variable)
 

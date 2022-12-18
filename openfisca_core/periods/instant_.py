@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Sequence, Tuple
+from typing import Any, Tuple
 
 import calendar
 import datetime
@@ -10,16 +10,14 @@ import inflect
 import pendulum
 from pendulum.datetime import Date
 
-from ._config import INSTANT_PATTERN
+from ._date_unit import DateUnit
 from ._errors import (
     DateUnitValueError,
     InstantFormatError,
     InstantTypeError,
-    InstantValueError,
     OffsetTypeError,
     )
 from ._parsers import ISOFormat
-from ._date_unit import DateUnit
 from .typing import Add, Plural
 
 DAY, MONTH, YEAR, _ = tuple(DateUnit)
@@ -229,7 +227,6 @@ class Instant(Tuple[int, int, int]):
 
         Raises:
             InstantFormatError: When ``value`` is invalid, like "2021-32-13".
-            InstantValueError: When the length of ``value`` is out of range.
             InstantTypeError: When ``value`` is None.
 
         Examples:
@@ -255,7 +252,7 @@ class Instant(Tuple[int, int, int]):
 
             >>> Instant.build(period)
             Traceback (most recent call last):
-            InstantFormatError: 'year:2021-09' is not a valid instant.
+            openfisca_core.periods._errors.InstantFormatError: 'year:2021-09...
 
             .. versionadded:: 39.0.0
 

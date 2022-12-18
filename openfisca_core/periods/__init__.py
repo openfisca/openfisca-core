@@ -27,9 +27,8 @@ And for classes::
 
 """
 
-from ._parsers import ISOFormat
 from ._date_unit import DateUnit
-from ._config import INSTANT_PATTERN
+from ._parsers import ISOFormat
 from .instant_ import Instant
 from .period_ import Period
 
@@ -41,3 +40,8 @@ dateunit = DateUnit
 instant = Instant
 period = Period
 isoformat = ISOFormat
+
+# Deprecated
+
+setattr(Period, "this_year", property(lambda self: self.this(YEAR)))  # noqa: B010
+setattr(Period, "first_month", property(lambda self: self.this(MONTH)))  # noqa: B010

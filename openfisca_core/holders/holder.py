@@ -206,7 +206,7 @@ class Holder:
 
         """
 
-        period = periods.build(period)
+        period = periods.period.build(period)
 
         if period is None:
             raise ValueError(f"Invalid period value: {period}")
