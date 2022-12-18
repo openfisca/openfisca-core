@@ -600,7 +600,8 @@ class Period(Tuple[DateUnit, Instant, int]):
         part = ISOFormat.parse(value)
 
         if part is not None:
-            return cls((DateUnit(part.unit), Instant((part[1:-1])), 1))
+            start = Instant((part.year, part.month, part.day))
+            return cls((DateUnit(part.unit), start, 1))
 
         # Complex periods must have a ':' in their strings
         if ":" not in value:
@@ -652,4 +653,6 @@ class Period(Tuple[DateUnit, Instant, int]):
         if part.unit > unit:
             raise PeriodFormatError(value)
 
-        return cls((unit, Instant((part[1:-1])), size))
+        start = Instant((part.year, part.month, part.day))
+
+        return cls((unit, start, size))
