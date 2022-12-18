@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from ._units import DAY, MONTH, YEAR
+from ._date_unit import DateUnit
+
+day, month, year, _ = tuple(DateUnit)
 
 LEARN_MORE = (
     "Learn more about legal period formats in OpenFisca: "
@@ -16,8 +18,8 @@ class DateUnitValueError(ValueError):
     def __init__(self, value: Any) -> None:
         super().__init__(
             f"'{str(value)}' is not a valid ISO format date unit. ISO format "
-            f"date units are any of: '{str(DAY)}', '{str(MONTH)}', or "
-            f"'{str(YEAR)}'. {LEARN_MORE}"
+            f"date units are any of: '{str(day)}', '{str(month)}', or "
+            f"'{str(year)}'. {LEARN_MORE}"
             )
 
 

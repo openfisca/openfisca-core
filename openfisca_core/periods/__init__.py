@@ -27,16 +27,17 @@ And for classes::
 
 """
 
-from . import _parsers as parsers
-from . import _units as units
+from ._parsers import ISOFormat
+from ._date_unit import DateUnit
 from ._config import INSTANT_PATTERN
-from .instant_ import Instant as instant
-from .period_ import Period as period
+from .instant_ import Instant
+from .period_ import Period
 
-DAY = units.DAY
-MONTH = units.MONTH
-YEAR = units.YEAR
-ETERNITY = units.ETERNITY
-dateunit = units.DateUnit
-build = period.build
-isoformat = parsers.ISOFormat.parse
+DAY = DateUnit.DAY
+MONTH = DateUnit.MONTH
+YEAR = DateUnit.YEAR
+ETERNITY = DateUnit.ETERNITY
+dateunit = DateUnit
+instant = Instant
+period = Period
+isoformat = ISOFormat

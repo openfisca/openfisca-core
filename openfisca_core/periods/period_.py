@@ -8,9 +8,11 @@ import inflect
 
 from ._errors import DateUnitValueError, PeriodFormatError, PeriodTypeError
 from ._parsers import ISOFormat
-from ._units import DateUnit, DAY, ETERNITY, MONTH, YEAR
+from ._date_unit import DateUnit
 from .instant_ import Instant
 from .typing import Plural
+
+DAY, MONTH, YEAR, ETERNITY = tuple(DateUnit)
 
 
 class Period(Tuple[DateUnit, Instant, int]):

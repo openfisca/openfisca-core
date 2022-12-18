@@ -19,8 +19,10 @@ from ._errors import (
     OffsetTypeError,
     )
 from ._parsers import ISOFormat
-from ._units import DateUnit, DAY, MONTH, YEAR
+from ._date_unit import DateUnit
 from .typing import Add, Plural
+
+DAY, MONTH, YEAR, _ = tuple(DateUnit)
 
 
 class Instant(Tuple[int, int, int]):

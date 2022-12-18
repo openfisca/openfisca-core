@@ -102,6 +102,3 @@ class DateUnit(enum.IntFlag, metaclass = DateUnitMeta):
 
         except AttributeError:
             return super().__str__()
-
-
-DAY, MONTH, YEAR, ETERNITY = tuple(DateUnit)
