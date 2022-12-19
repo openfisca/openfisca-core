@@ -15,8 +15,8 @@ from ._errors import (
     PeriodFormatError,
     PeriodTypeError,
     )
-from ._instants import Instant
-from ._periods import Period
+from .instant_ import Instant
+from .period_ import Period
 
 day, _month, year, eternity = tuple(DateUnit)
 

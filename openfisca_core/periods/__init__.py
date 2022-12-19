@@ -28,11 +28,11 @@ And for classes::
 """
 
 from ._dates import DateUnit
-from ._helpers import build_instant as instant
-from ._helpers import build_period as period
-from ._helpers import parse_instant_str as parse
-from ._instants import Instant
-from ._periods import Period
+from .helpers import build_instant as instant
+from .helpers import build_period as period
+from .helpers import parse_instant_str as parse
+from .instant_ import Instant
+from .period_ import Period
 
 DAY, MONTH, YEAR, ETERNITY = tuple(DateUnit)
 

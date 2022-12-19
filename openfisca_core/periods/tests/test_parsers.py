@@ -2,7 +2,7 @@ import pytest
 
 from openfisca_core import periods
 from openfisca_core.periods import DateUnit
-from openfisca_core.periods import _helpers as parsers
+from openfisca_core.periods import helpers as parsers
 
 year = DateUnit.YEAR
 

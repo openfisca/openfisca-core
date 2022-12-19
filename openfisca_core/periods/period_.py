@@ -6,7 +6,7 @@ import datetime
 
 from ._dates import DateUnit
 from ._errors import DateUnitValueError
-from ._instants import Instant
+from .instant_ import Instant
 
 DAY, MONTH, YEAR, ETERNITY = tuple(DateUnit)
 
