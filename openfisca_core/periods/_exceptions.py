@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ._date_unit import DateUnit
+from ._units import DateUnit
 
 day, month, year, _ = tuple(DateUnit)
 

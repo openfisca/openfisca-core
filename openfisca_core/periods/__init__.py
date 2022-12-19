@@ -27,8 +27,8 @@ And for classes::
 
 """
 
-from ._date_unit import DateUnit
 from ._parsers import ISOFormat
+from ._units import DateUnit
 from .instant_ import Instant
 from .period_ import Period
 

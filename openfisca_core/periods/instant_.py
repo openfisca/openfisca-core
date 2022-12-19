@@ -10,14 +10,14 @@ import inflect
 import pendulum
 from pendulum.datetime import Date
 
-from ._date_unit import DateUnit
-from ._errors import (
+from ._exceptions import (
     DateUnitValueError,
     InstantFormatError,
     InstantTypeError,
     OffsetTypeError,
     )
 from ._parsers import ISOFormat
+from ._units import DateUnit
 from .typing import Add, Plural
 
 DAY, MONTH, YEAR, _ = tuple(DateUnit)
@@ -252,7 +252,7 @@ class Instant(Tuple[int, int, int]):
 
             >>> Instant.build(period)
             Traceback (most recent call last):
-            openfisca_core.periods._errors.InstantFormatError: 'year:2021-09...
+            InstantFormatError: 'year:2021-09' is not a valid instant.
 
             .. versionadded:: 39.0.0
 
