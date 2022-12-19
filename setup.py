@@ -27,7 +27,7 @@ long_description = (this_directory / "README.md").read_text()
 
 general_requirements = [
     'dpath >= 1.5.0, < 3.0.0',
-    'importlib_metadata >= 5.2.0',
+    'importlib-metadata < 4.3',  # For flake8 4 compatibility
     'nptyping == 1.4.4',
     'numexpr >= 2.7.0, <= 3.0',
     'numpy >= 1.11, < 1.21',
