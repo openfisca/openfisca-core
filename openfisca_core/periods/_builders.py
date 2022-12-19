@@ -13,7 +13,7 @@ from ._exceptions import (
     )
 from ._instant import Instant
 from ._iso_format import ISOFormat
-from ._parsers import fromint, fromseq, fromstr
+from ._parsers import fromcomplex, fromint, fromseq, fromstr
 from ._period import Period
 
 day, _month, year, eternity = tuple(DateUnit)
@@ -130,10 +130,6 @@ def period(value: Any) -> Period:
 
     """
 
-    unit: DateUnit | int | str
-    part: ISOFormat | None
-    size: int | str
-
     if value in {eternity, eternity.name, eternity.name.lower()}:
         return Period((eternity, instant(datetime.date.min), 1))
 
@@ -152,63 +148,12 @@ def period(value: Any) -> Period:
     if not isinstance(value, str):
         raise PeriodFormatError(value)
 
-    # Try to parse as a simple period
-    part = fromstr(value)
+    # Try to parse as a complex period
+    isoformat = fromcomplex(value)
 
-    if part is not None:
-        start = Instant((part.year, part.month, part.day))
-        return Period((DateUnit(part.unit), start, 1))
-
-    # Complex periods must have a ':' in their strings
-    if ":" not in value:
+    if isoformat is None:
         raise PeriodFormatError(value)
 
-    # We know the first element has to be a ``unit``
-    unit, *rest = value.split(":")
+    unit = DateUnit(isoformat.unit)
 
-    # Units are case insensitive so we need to upper them
-    unit = unit.upper()
-
-    # Left-most component must be a valid unit
-    if unit not in dir(DateUnit):
-        raise PeriodFormatError(value)
-
-    unit = DateUnit[unit]
-
-    # We get the first remaining component
-    date, *rest = rest
-
-    if date is None:
-        raise PeriodFormatError(value)
-
-    # Middle component must be a valid ISO period
-    part = fromstr(date)
-
-    if part is None:
-        raise PeriodFormatError(value)
-
-    # Finally we try to parse the size, if any
-    try:
-        size, *rest = rest
-
-    except ValueError:
-        size = 1
-
-    # If provided, make sure the size is an integer
-    try:
-        size = int(size)
-
-    except ValueError:
-        raise PeriodFormatError(value)
-
-    # If there were more than 2 ":" in the string, the period is invalid
-    if len(rest) > 0:
-        raise PeriodFormatError(value)
-
-    # Reject ambiguous periods such as month:2014
-    if part.unit > unit:
-        raise PeriodFormatError(value)
-
-    start = Instant((part.year, part.month, part.day))
-
-    return Period((unit, start, size))
+    return Period((unit, instant(isoformat[:3]), isoformat.size))

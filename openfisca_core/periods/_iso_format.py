@@ -18,5 +18,5 @@ class ISOFormat(NamedTuple):
     #: The unit of the parsed period, in binary.
     unit: int
 
-    #: The number of fragments in the parsed period.
-    shape: int
+    #: The size of the parsed instant or period.
+    size: int

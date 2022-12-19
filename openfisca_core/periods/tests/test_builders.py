@@ -75,6 +75,11 @@ def test_build_instant_with_an_invalid_argument(arg, error):
     [eternity, Period((eternity, Instant((1, 1, 1)), 1))],
     [Instant((1, 1, 1)), Period((day, Instant((1, 1, 1)), 1))],
     [Period((day, Instant((1, 1, 1)), 365)), Period((day, Instant((1, 1, 1)), 365))],
+    ["month:1000:1", Period((2, Instant((1000, 1, 1)), 1))],
+    ["month:1000", Period((2, Instant((1000, 1, 1)), 1))],
+    ["day:1000:1", Period((1, Instant((1000, 1, 1)), 1))],
+    ["day:1000-01:1", Period((1, Instant((1000, 1, 1)), 1))],
+    ["day:1000-01", Period((1, Instant((1000, 1, 1)), 1))],
     ])
 def test_build_period(arg, expected):
     """Returns the expected ``Period``."""
@@ -93,11 +98,6 @@ def test_build_period(arg, expected):
     ["1000-13", ValueError],
     ["1000-2-31", ValueError],
     ["1000:1", ValueError],
-    ["day:1000-01", ValueError],
-    ["day:1000-01:1", ValueError],
-    ["day:1000:1", ValueError],
-    ["month:1000", ValueError],
-    ["month:1000:1", ValueError],
     [None, TypeError],
     [datetime.date(1, 1, 1), ValueError],
     [year, TypeError],
