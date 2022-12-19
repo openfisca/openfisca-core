@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple
+from typing import Callable, Tuple
 
 import calendar
 import functools
@@ -8,9 +8,8 @@ import functools
 import pendulum
 from pendulum.datetime import Date
 
-from ._date_unit import DateUnit
-from ._exceptions import DateUnitValueError, OffsetTypeError
-from ._utils import add
+from ._dates import DateUnit
+from ._errors import DateUnitValueError, OffsetTypeError
 
 DAY, MONTH, YEAR, _ = tuple(DateUnit)
 
@@ -143,6 +142,31 @@ class Instant(Tuple[int, int, int]):
 
         return pendulum.date(*self)
 
+    def add(self, unit: str, count: int) -> Date:
+        """Add ``count`` ``unit``s to a ``date``.
+
+        Args:
+            unit: The unit to add.
+            count: The number of units to add.
+
+        Returns:
+            A new Date.
+
+        Examples:
+            >>> instant = Instant((2021, 10, 1))
+            >>> instant.add("months", 6)
+            Date(2022, 4, 1)
+
+        .. versionadded:: 39.0.0
+
+        """
+
+        fun: Callable[..., Date] = self.date().add
+
+        new: Date = fun(**{unit: count})
+
+        return new
+
     def offset(self, offset: str | int, unit: DateUnit) -> Instant:
         """Increments/decrements the given instant with offset units.
 
@@ -199,6 +223,6 @@ class Instant(Tuple[int, int, int]):
         if not isinstance(offset, int):
             raise OffsetTypeError(offset)
 
-        date = add(self.date(), unit.plural, offset)
+        date = self.add(unit.plural, offset)
 
         return type(self)((date.year, date.month, date.day))

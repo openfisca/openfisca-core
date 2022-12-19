@@ -27,12 +27,12 @@ And for classes::
 
 """
 
-from . import _parsers as isoformat
-from ._builders import instant, period
-from ._date_unit import DateUnit
-from ._instant import Instant
-from ._parsers import fromstr as parse
-from ._period import Period
+from ._dates import DateUnit
+from ._helpers import build_instant as instant
+from ._helpers import build_period as period
+from ._helpers import parse_instant_str as parse
+from ._instants import Instant
+from ._periods import Period
 
 DAY, MONTH, YEAR, ETERNITY = tuple(DateUnit)
 

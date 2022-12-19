@@ -4,9 +4,9 @@ from typing import Sequence, Tuple
 
 import datetime
 
-from ._date_unit import DateUnit
-from ._exceptions import DateUnitValueError
-from ._instant import Instant
+from ._dates import DateUnit
+from ._errors import DateUnitValueError
+from ._instants import Instant
 
 DAY, MONTH, YEAR, ETERNITY = tuple(DateUnit)
 

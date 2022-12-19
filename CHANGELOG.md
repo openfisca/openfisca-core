@@ -11,7 +11,7 @@
 ##### Deprecations
 
 - Deprecate `INSTANT_PATTERN`
-  - The feature is now provided by `periods.isoformat.fromstr`
+  - The feature is now provided by `periods.parse`
 - Deprecate `instant_date`.
   - The feature is now provided by `periods.instant.date`.
 - Deprecate `periods.{unit_weight, unit_weights, key_period_size}`.
