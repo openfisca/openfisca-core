@@ -48,6 +48,7 @@ api_requirements = [
     ]
 
 dev_requirements = [
+    'idna >= 3.4.0, < 4.0.0',
     'autopep8 >= 1.4.0, < 1.6.0',
     'coverage >= 6.0.2, < 7.0.0',
     'darglint == 1.8.0',
@@ -56,8 +57,9 @@ dev_requirements = [
     'flake8-docstrings == 1.6.0',
     'flake8-print >= 3.1.0, < 4.0.0',
     'flake8-rst-docstrings == 0.2.3',
+    'isort >= 5.0.0, < 6.0.0',
     'mypy == 0.910',
-    'openapi-spec-validator >= 0.3.0',
+    'openapi-spec-validator >= 0.5.0, < 0.6.0',
     'pycodestyle >= 2.8.0, < 2.9.0',
     'pylint == 2.10.2',
     'xdoctest >= 1.0.0, < 2.0.0',
