@@ -101,9 +101,8 @@ setup(
     extras_require = {
         'web-api': api_requirements,
         'dev': dev_requirements,
-        'tracker': [
-            'openfisca-tracker == 0.4.0',
-            ],
+        'ci': ['coveralls', 'twine'],
+        'tracker': ['openfisca-tracker == 0.4.0'],
         },
     include_package_data = True,  # Will read MANIFEST.in
     install_requires = general_requirements,
