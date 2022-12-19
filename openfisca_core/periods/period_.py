@@ -4,13 +4,10 @@ from typing import Any, Sequence, Tuple
 
 import datetime
 
-import inflect
-
 from ._exceptions import DateUnitValueError, PeriodFormatError, PeriodTypeError
 from ._parsers import ISOFormat
 from ._units import DateUnit
 from .instant_ import Instant
-from .typing import Plural
 
 DAY, MONTH, YEAR, ETERNITY = tuple(DateUnit)
 
@@ -21,15 +18,12 @@ class Period(Tuple[DateUnit, Instant, int]):
     A ``Period`` is a triple (``unit``, ``start``, ``size``).
 
     Attributes:
-        unit (str):
-            Either ``year``, ``month``, ``day`` or ``eternity``.
-        start (:obj:`.Instant`):
-            The "instant" the :obj:`.Period` starts at.
-        size (int):
-            The amount of ``unit``, starting at ``start``, at least ``1``.
+        unit: Either ``year``, ``month``, ``day`` or ``eternity``.
+        start: The "instant" the Period starts at.
+        size: The amount of ``unit``, starting at ``start``, at least ``1``.
 
     Args:
-        tuple(str, .Instant, int))):
+        (tuple(DateUnit, .Instant, int)):
             The ``unit``, ``start``, and ``size``, accordingly.
 
     Examples:
@@ -78,8 +72,6 @@ class Period(Tuple[DateUnit, Instant, int]):
 
     """
 
-    plural: Plural = inflect.engine().plural
-
     def __repr__(self) -> str:
         return (
             f"{type(self).__name__}"
@@ -90,7 +82,7 @@ class Period(Tuple[DateUnit, Instant, int]):
         """Transform period to a string.
 
         Returns:
-            str: A string representation of the period.
+            A string representation of the period.
 
         Examples:
             >>> jan = Instant((2021, 1, 1))
@@ -155,7 +147,7 @@ class Period(Tuple[DateUnit, Instant, int]):
         """Checks if a ``period`` contains another one.
 
         Args:
-            other (object): The other ``Period``.
+            other: The other ``Period``.
 
         Returns:
             True if ``other`` is contained, otherwise False.
@@ -175,11 +167,11 @@ class Period(Tuple[DateUnit, Instant, int]):
         return super().__contains__(other)
 
     @property
-    def unit(self) -> int:
+    def unit(self) -> DateUnit:
         """The ``unit`` of the ``Period``.
 
         Returns:
-            An int.
+            A DateUnit.
 
         Example:
             >>> start = Instant((2021, 10, 1))
@@ -284,7 +276,7 @@ class Period(Tuple[DateUnit, Instant, int]):
 
         return self.start.date()
 
-    def count(self, unit: int) -> int:
+    def count(self, unit: DateUnit) -> int:
         """The ``size`` of the ``Period`` in the given unit.
 
         Args:
@@ -340,15 +332,15 @@ class Period(Tuple[DateUnit, Instant, int]):
             return self.size * 12
 
         raise ValueError(
-            f"Cannot calculate number of {type(self).plural(str(unit))} in a "
+            f"Cannot calculate number of {unit.plural} in a "
             f"{str(self.unit)}."
             )
 
-    def this(self, unit: int) -> Period:
+    def this(self, unit: DateUnit) -> Period:
         """A new month ``Period`` starting at the first of ``unit``.
 
         Args:
-            unit (int): The unit of the requested Period.
+            unit: The unit of the requested Period.
 
         Returns:
             A Period.
@@ -373,12 +365,12 @@ class Period(Tuple[DateUnit, Instant, int]):
 
         return type(self)((unit, self.start.offset("first-of", unit), 1))
 
-    def last(self, unit: int, size: int = 1) -> Period:
+    def last(self, unit: DateUnit, size: int = 1) -> Period:
         """Last ``size`` ``unit``s of the ``Period``.
 
         Args:
-            unit (int): The unit of the requested Period.
-            size (int): The number of units to include in the Period.
+            unit: The unit of the requested Period.
+            size: The number of units to include in the Period.
 
         Returns:
             A Period.
@@ -412,12 +404,12 @@ class Period(Tuple[DateUnit, Instant, int]):
 
         return type(self)((unit, self.ago(unit, size).start, size))
 
-    def ago(self, unit: int, size: int = 1) -> Period:
+    def ago(self, unit: DateUnit, size: int = 1) -> Period:
         """``size`` ``unit``s ago of the ``Period``.
 
         Args:
-            unit (int): The unit of the requested Period.
-            size (int): The number of units ago.
+            unit: The unit of the requested Period.
+            size: The number of units ago.
 
         Returns:
             A Period.
@@ -451,12 +443,12 @@ class Period(Tuple[DateUnit, Instant, int]):
 
         return type(self)((unit, self.this(unit).start, 1)).offset(-size)
 
-    def offset(self, offset: str | int, unit: int | None = None) -> Period:
+    def offset(self, offset: str | int, unit: DateUnit | None = None) -> Period:
         """Increment (or decrement) the given period with offset units.
 
         Args:
-            offset (str | int): How much of ``unit`` to offset.
-            unit (int, optional): What to offset.
+            offset: How much of ``unit`` to offset.
+            unit: What to offset.
 
         Returns:
             Period: A new one.
@@ -487,11 +479,11 @@ class Period(Tuple[DateUnit, Instant, int]):
 
         return type(self)((self.unit, start, self.size))
 
-    def subperiods(self, unit: int) -> Sequence[Period]:
+    def subperiods(self, unit: DateUnit) -> Sequence[Period]:
         """Return the list of all the periods of unit ``unit``.
 
         Args:
-            unit (int): A string representing period's ``unit``.
+            unit: A string representing period's ``unit``.
 
         Returns:
             A list of periods.
@@ -532,7 +524,7 @@ class Period(Tuple[DateUnit, Instant, int]):
         """Build a new period, aka a triple (unit, start_instant, size).
 
         Args:
-            value (Any): A ``period-like`` object.
+            value: A ``period-like`` object.
 
         Returns:
             A period.
@@ -574,7 +566,7 @@ class Period(Tuple[DateUnit, Instant, int]):
 
         """
 
-        unit: int | str
+        unit: DateUnit | int | str
         part: ISOFormat | None
         size: int | str
 

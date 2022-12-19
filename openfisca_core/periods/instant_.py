@@ -6,7 +6,6 @@ import calendar
 import datetime
 import functools
 
-import inflect
 import pendulum
 from pendulum.datetime import Date
 
@@ -18,7 +17,7 @@ from ._exceptions import (
     )
 from ._parsers import ISOFormat
 from ._units import DateUnit
-from .typing import Add, Plural
+from ._utils import add
 
 DAY, MONTH, YEAR, _ = tuple(DateUnit)
 
@@ -76,8 +75,6 @@ class Instant(Tuple[int, int, int]):
         >>> year, month, day = instant
 
     """
-
-    plural: Plural = inflect.engine().plural
 
     def __repr__(self) -> str:
         return (
@@ -153,15 +150,15 @@ class Instant(Tuple[int, int, int]):
 
         return pendulum.date(*self)
 
-    def offset(self, offset: str | int, unit: int) -> Instant:
+    def offset(self, offset: str | int, unit: DateUnit) -> Instant:
         """Increments/decrements the given instant with offset units.
 
         Args:
-            offset (str | int): How much of ``unit`` to offset.
-            unit (int): What to offset.
+            offset: How much of ``unit`` to offset.
+            unit: What to offset.
 
         Returns:
-            Instant: A new one.
+            A new Instant.
 
         Raises:
             DateUnitValueError: When ``unit`` is not a date unit.
@@ -209,9 +206,7 @@ class Instant(Tuple[int, int, int]):
         if not isinstance(offset, int):
             raise OffsetTypeError(offset)
 
-        add: Add = self.date().add
-
-        date = add(**{type(self).plural(str(unit)): offset})
+        date = add(self.date(), unit.plural, offset)
 
         return type(self)((date.year, date.month, date.day))
 
@@ -220,7 +215,7 @@ class Instant(Tuple[int, int, int]):
         """Build a new instant, aka a triple of integers (year, month, day).
 
         Args:
-            value (Any): An ``instant-like`` object.
+            value: An ``instant-like`` object.
 
         Returns:
             An Instant.

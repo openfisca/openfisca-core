@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import enum
 
+from ._exceptions import DateUnitValueError
+
 
 class DateUnitMeta(enum.EnumMeta):
     """Metaclass for ``DateUnit``."""
@@ -111,3 +113,30 @@ class DateUnit(enum.IntFlag, metaclass = DateUnitMeta):
 
         except AttributeError:
             return super().__str__()
+
+    @property
+    def plural(self) -> str:
+        """Returns the plural form of the date unit.
+
+        Returns:
+            str: The plural form.
+
+        Raises:
+            DateUnitValueError: When the date unit is not a ISO format unit.
+
+        Examples:
+            >>> DateUnit.DAY.plural
+            'days'
+
+            >>> DateUnit.ETERNITY.plural
+            Traceback (most recent call last):
+            DateUnitValueError: 'eternity' is not a valid ISO format date unit.
+
+        .. versionadded:: 39.0.0
+
+        """
+
+        if self & type(self).isoformat:
+            return str(self) + "s"
+
+        raise DateUnitValueError(self)
