@@ -1,5 +1,11 @@
 # Changelog
 
+### 38.0.1 [#1178](https://github.com/openfisca/openfisca-core/pull/1178)
+
+#### Technical changes
+
+- Remove use of `importlib_metadata`.
+
 # 38.0.0 [#989](https://github.com/openfisca/openfisca-core/pull/989)
 
 #### New Features
