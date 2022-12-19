@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Union
+from openfisca_core.types import Formula
 
 import datetime
 import inspect
@@ -13,8 +13,6 @@ import sortedcontainers
 from openfisca_core import periods, tools
 from openfisca_core.entities import Entity
 from openfisca_core.indexed_enums import Enum, EnumArray
-from openfisca_core.periods import Period
-from openfisca_core.types import Formula, Instant
 
 from . import config, helpers
 
@@ -311,8 +309,8 @@ class Variable:
 
     def get_formula(
             self,
-            period: Union[Instant, Period, str, int] = None,
-            ) -> Optional[Formula]:
+            period: periods.Period | periods.Instant | str | int | None = None,
+            ) -> Formula | None:
         """Returns the formula to compute the variable at the given period.
 
         If no period is given and the variable has several formulas, the method
@@ -332,15 +330,20 @@ class Variable:
         if period is None:
             return self.formulas.peekitem(index = 0)[1]  # peekitem gets the 1st key-value tuple (the oldest start_date and formula). Return the formula.
 
-        if isinstance(period, Period):
+        if isinstance(period, periods.Period):
             instant = period.start
+
         else:
             try:
                 instant = periods.period(period).start
+
             except ValueError:
                 instant = periods.instant(period)
 
-        if self.end and instant.date > self.end:
+        if instant is None:
+            return None
+
+        if self.end and instant.date() > self.end:
             return None
 
         instant_str = str(instant)

@@ -73,7 +73,7 @@ class Parameter(AtInstantLike):
 
         values_list = []
         for instant_str in instants:
-            if not periods.INSTANT_PATTERN.match(instant_str):
+            if periods.parse(instant_str) is None:
                 raise ParameterParsingError(
                     "Invalid property '{}' in '{}'. Properties must be valid YYYY-MM-DD instants, such as 2017-01-15."
                     .format(instant_str, self.name),
@@ -126,7 +126,7 @@ class Parameter(AtInstantLike):
         if start is None:
             raise ValueError("You must provide either a start or a period")
         start_str = str(start)
-        stop_str = str(stop.offset(1, 'day')) if stop else None
+        stop_str = str(stop.offset(1, periods.DAY)) if stop else None
 
         old_values = self.values_list
         new_values = []

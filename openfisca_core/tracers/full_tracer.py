@@ -1,17 +1,15 @@
 from __future__ import annotations
 
-import time
-import typing
+from numpy.typing import ArrayLike
 from typing import Dict, Iterator, List, Optional, Union
+
+import time
+
+from openfisca_core import periods
 
 from .. import tracers
 
-if typing.TYPE_CHECKING:
-    from numpy.typing import ArrayLike
-
-    from openfisca_core.periods import Period
-
-    Stack = List[Dict[str, Union[str, Period]]]
+Stack = List[Dict[str, Union[str, periods.Period]]]
 
 
 class FullTracer:
@@ -28,7 +26,7 @@ class FullTracer:
     def record_calculation_start(
             self,
             variable: str,
-            period: Period,
+            period: periods.Period,
             ) -> None:
         self._simple_tracer.record_calculation_start(variable, period)
         self._enter_calculation(variable, period)
@@ -37,7 +35,7 @@ class FullTracer:
     def _enter_calculation(
             self,
             variable: str,
-            period: Period,
+            period: periods.Period,
             ) -> None:
         new_node = tracers.TraceNode(
             name = variable,
@@ -56,7 +54,7 @@ class FullTracer:
     def record_parameter_access(
             self,
             parameter: str,
-            period: Period,
+            period: periods.Period,
             value: ArrayLike,
             ) -> None:
 

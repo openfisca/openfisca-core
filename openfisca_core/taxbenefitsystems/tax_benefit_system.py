@@ -1,27 +1,29 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Sequence, Union
+import typing
+from typing import Any, Dict, Optional, Sequence
 
 import copy
 import functools
 import glob
 import importlib
-import importlib_metadata
 import inspect
 import logging
 import os
 import sys
 import traceback
-import typing
 
-from openfisca_core import commons, periods, variables
+import importlib_metadata
+
+from openfisca_core import commons, periods, types, variables
 from openfisca_core.entities import Entity
-from openfisca_core.errors import VariableNameConflictError, VariableNotFoundError
+from openfisca_core.errors import (
+    VariableNameConflictError,
+    VariableNotFoundError,
+    )
 from openfisca_core.parameters import ParameterNode
-from openfisca_core.periods import Instant, Period
-from openfisca_core.populations import Population, GroupPopulation
+from openfisca_core.populations import GroupPopulation, Population
 from openfisca_core.simulations import SimulationBuilder
-from openfisca_core.types import ParameterNodeAtInstant
 from openfisca_core.variables import Variable
 
 log = logging.getLogger(__name__)
@@ -43,7 +45,7 @@ class TaxBenefitSystem:
     person_entity: Entity
 
     _base_tax_benefit_system = None
-    _parameters_at_instant_cache: Dict[Instant, ParameterNodeAtInstant] = {}
+    _parameters_at_instant_cache: Dict[periods.Instant, types.ParameterNodeAtInstant] = {}
     person_key_plural = None
     preprocess_parameters = None
     baseline = None  # Baseline tax-benefit system. Used only by reforms. Note: Reforms can be chained.
@@ -342,7 +344,7 @@ class TaxBenefitSystem:
     def annualize_variable(
             self,
             variable_name: str,
-            period: Optional[Period] = None,
+            period: periods.Period | None = None,
             ) -> None:
         check: bool
         variable: Optional[Variable]
@@ -385,8 +387,8 @@ class TaxBenefitSystem:
     @functools.lru_cache()
     def get_parameters_at_instant(
             self,
-            instant: Union[str, int, Period, Instant],
-            ) -> Optional[ParameterNodeAtInstant]:
+            instant: periods.Period | periods.Instant | str | int,
+            ) -> Optional[types.ParameterNodeAtInstant]:
         """Get the parameters of the legislation at a given instant
 
         Args:
@@ -397,20 +399,17 @@ class TaxBenefitSystem:
 
         """
 
-        key: Instant
-        msg: str
-
-        if isinstance(instant, Instant):
+        if isinstance(instant, periods.Instant):
             key = instant
 
-        elif isinstance(instant, Period):
+        elif isinstance(instant, periods.Period):
             key = instant.start
 
         elif isinstance(instant, (str, int)):
             key = periods.instant(instant)
 
         else:
-            msg = f"Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {key}."
+            msg = f"Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {instant}."
             raise AssertionError(msg)
 
         if self.parameters is None:

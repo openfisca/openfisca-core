@@ -1,14 +1,15 @@
 from __future__ import annotations
 
-import sortedcontainers
 from typing import Optional
 
-from openfisca_core.periods import Period
+import sortedcontainers
+
+from openfisca_core import periods
 
 from .. import variables
 
 
-def get_annualized_variable(variable: variables.Variable, annualization_period: Optional[Period] = None) -> variables.Variable:
+def get_annualized_variable(variable: variables.Variable, annualization_period: Optional[periods.Period] = None) -> variables.Variable:
     """
     Returns a clone of ``variable`` that is annualized for the period ``annualization_period``.
     When annualized, a variable's formula is only called for a January calculation, and the results for other months are assumed to be identical.
@@ -17,8 +18,8 @@ def get_annualized_variable(variable: variables.Variable, annualization_period: 
     def make_annual_formula(original_formula, annualization_period = None):
 
         def annual_formula(population, period, parameters):
-            if period.start.month != 1 and (annualization_period is None or annualization_period.contains(period)):
-                return population(variable.name, period.this_year.first_month)
+            if period.start.month != 1 and (annualization_period is None or period not in annualization_period):
+                return population(variable.name, period.this(periods.YEAR).this(periods.MONTH))
             if original_formula.__code__.co_argcount == 2:
                 return original_formula(population, period)
             return original_formula(population, period, parameters)

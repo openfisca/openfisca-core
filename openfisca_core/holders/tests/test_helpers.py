@@ -3,7 +3,6 @@ import pytest
 from openfisca_core import holders, periods, tools
 from openfisca_core.entities import Entity
 from openfisca_core.holders import Holder
-from openfisca_core.periods import Instant, Period
 from openfisca_core.populations import Population
 from openfisca_core.variables import Variable
 
@@ -58,8 +57,8 @@ def test_set_input_dispatch_by_period(
     Income.definition_period = definition_unit
     income = Income()
     holder = Holder(income, population)
-    instant = Instant((2022, 1, 1))
-    dispatch_period = Period((dispatch_unit, instant, 3))
+    instant = periods.Instant((2022, 1, 1))
+    dispatch_period = periods.Period((dispatch_unit, instant, 3))
 
     holders.set_input_dispatch_by_period(holder, dispatch_period, values)
     total = sum(map(holder.get_array, holder.get_known_periods()))
@@ -89,8 +88,8 @@ def test_set_input_divide_by_period(
     Income.definition_period = definition_unit
     income = Income()
     holder = Holder(income, population)
-    instant = Instant((2022, 1, 1))
-    divide_period = Period((divide_unit, instant, 3))
+    instant = periods.Instant((2022, 1, 1))
+    divide_period = periods.Period((divide_unit, instant, 3))
 
     holders.set_input_divide_by_period(holder, divide_period, values)
     last = holder.get_array(holder.get_known_periods()[-1])

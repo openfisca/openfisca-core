@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from openfisca_core.types import Population, TaxBenefitSystem, Variable
 from typing import Dict, NamedTuple, Optional, Set
 
 import tempfile
@@ -8,11 +9,17 @@ import warnings
 import numpy
 
 from openfisca_core import commons, periods
-from openfisca_core.errors import CycleError, SpiralError, VariableNotFoundError
+from openfisca_core.errors import (
+    CycleError,
+    SpiralError,
+    VariableNotFoundError,
+    )
 from openfisca_core.indexed_enums import Enum, EnumArray
-from openfisca_core.periods import Period
-from openfisca_core.tracers import FullTracer, SimpleTracer, TracingParameterNodeAtInstant
-from openfisca_core.types import Population, TaxBenefitSystem, Variable
+from openfisca_core.tracers import (
+    FullTracer,
+    SimpleTracer,
+    TracingParameterNodeAtInstant,
+    )
 from openfisca_core.warnings import TempfileWarning
 
 
@@ -95,7 +102,7 @@ class Simulation:
     def calculate(self, variable_name: str, period):
         """Calculate ``variable_name`` for ``period``."""
 
-        if period is not None and not isinstance(period, Period):
+        if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
 
         self.tracer.record_calculation_start(variable_name, period)
@@ -109,7 +116,7 @@ class Simulation:
             self.tracer.record_calculation_end()
             self.purge_cache_of_invalid_values()
 
-    def _calculate(self, variable_name: str, period: Period):
+    def _calculate(self, variable_name: str, period: periods.Period):
         """
         Calculate the variable ``variable_name`` for the period ``period``, using the variable formula if it exists.
 
@@ -167,12 +174,12 @@ class Simulation:
         if variable is None:
             raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
-        if period is not None and not isinstance(period, Period):
+        if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
 
         # Check that the requested period matches definition_period
-        if periods.unit_weight(variable.definition_period) > periods.unit_weight(period.unit):
-            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' can only be computed for {2}-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.".format(
+        if variable.definition_period > period.unit:
+            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' can only be computed for {2}-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this(YEAR)'.".format(
                 variable.name,
                 period,
                 variable.definition_period
@@ -185,7 +192,7 @@ class Simulation:
 
         return sum(
             self.calculate(variable_name, sub_period)
-            for sub_period in period.get_subperiods(variable.definition_period)
+            for sub_period in period.subperiods(variable.definition_period)
             )
 
     def calculate_divide(self, variable_name: str, period):
@@ -196,7 +203,7 @@ class Simulation:
         if variable is None:
             raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
-        if period is not None and not isinstance(period, Period):
+        if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
 
         # Check that the requested period matches definition_period
@@ -209,7 +216,7 @@ class Simulation:
             raise ValueError("DIVIDE option can only be used for a one-year or a one-month requested period")
 
         if period.unit == periods.MONTH:
-            computation_period = period.this_year
+            computation_period = period.this(periods.YEAR)
             return self.calculate(variable_name, period = computation_period) / 12.
         elif period.unit == periods.YEAR:
             return self.calculate(variable_name, period)
@@ -276,7 +283,7 @@ class Simulation:
                 ))
 
         if variable.definition_period == periods.YEAR and period.unit != periods.YEAR:
-            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.".format(
+            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this(YEAR)'.".format(
                 variable.name,
                 period
                 ))
@@ -344,7 +351,7 @@ class Simulation:
 
         Unlike :meth:`.calculate`, this method *does not* trigger calculations and *does not* use any formula.
         """
-        if period is not None and not isinstance(period, Period):
+        if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
         return self.get_holder(variable_name).get_array(period)
 
@@ -410,7 +417,7 @@ class Simulation:
         >>> simulation.set_input('age', '2018-04', [12, 14])
         >>> simulation.set_input('age', '2018-05', [13, 14])
         >>> simulation.get_known_periods('age')
-        [Period((u'month', Instant((2018, 5, 1)), 1)), Period((u'month', Instant((2018, 4, 1)), 1))]
+        [periods.period((u'month', Instant((2018, 5, 1)), 1)), periods.period((u'month', Instant((2018, 4, 1)), 1))]
         """
         return self.get_holder(variable).get_known_periods()
 
@@ -439,7 +446,7 @@ class Simulation:
             raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
         period = periods.period(period)
-        if ((variable.end is not None) and (period.start.date > variable.end)):
+        if ((variable.end is not None) and (period.start.date() > variable.end)):
             return
         self.get_holder(variable_name).set_input(period, value)
 
@@ -494,4 +501,4 @@ class Simulation:
 
 class Cache(NamedTuple):
     variable: str
-    period: Period
+    period: periods.Period

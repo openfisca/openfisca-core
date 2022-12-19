@@ -413,7 +413,8 @@ class SimulationBuilder:
             buffer = self.input_buffer[variable_name]
             unsorted_periods = [periods.period(period_str) for period_str in self.input_buffer[variable_name].keys()]
             # We need to handle small periods first for set_input to work
-            sorted_periods = sorted(unsorted_periods, key = periods.key_period_size)
+            sorted_periods = sorted(unsorted_periods, key = lambda period: f"{period.unit}_{period.size}")
+
             for period_value in sorted_periods:
                 values = buffer[str(period_value)]
                 # Hack to replicate the values in the persons entity
@@ -422,7 +423,7 @@ class SimulationBuilder:
                 variable = holder.variable
                 # TODO - this duplicates the check in Simulation.set_input, but
                 # fixing that requires improving Simulation's handling of entities
-                if (variable.end is None) or (period_value.start.date <= variable.end):
+                if (variable.end is None) or (period_value.start.date() <= variable.end):
                     holder.set_input(period_value, array)
 
     def raise_period_mismatch(self, entity, json, e):

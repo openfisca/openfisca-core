@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-import typing
+from numpy.typing import ArrayLike
 from typing import Dict, List, Union
 
-if typing.TYPE_CHECKING:
-    from numpy.typing import ArrayLike
+from openfisca_core import periods
 
-    from openfisca_core.periods import Period
-
-    Stack = List[Dict[str, Union[str, Period]]]
+Stack = List[Dict[str, Union[str, periods.Period]]]
 
 
 class SimpleTracer:
@@ -18,7 +15,7 @@ class SimpleTracer:
     def __init__(self) -> None:
         self._stack = []
 
-    def record_calculation_start(self, variable: str, period: Period) -> None:
+    def record_calculation_start(self, variable: str, period: periods.Period) -> None:
         self.stack.append({'name': variable, 'period': period})
 
     def record_calculation_result(self, value: ArrayLike) -> None:

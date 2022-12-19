@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Optional, Sequence, Union
+from typing import Any, Sequence
 
 import os
 import warnings
@@ -8,15 +8,11 @@ import warnings
 import numpy
 import psutil
 
-from openfisca_core import (
-    errors,
-    commons,
-    data_storage as storage,
-    indexed_enums as enums,
-    periods,
-    tools,
-    types,
-    )
+from openfisca_core import commons
+from openfisca_core import data_storage as storage
+from openfisca_core import errors
+from openfisca_core import indexed_enums as enums
+from openfisca_core import periods, tools
 
 from .memory_usage import MemoryUsage
 
@@ -116,7 +112,7 @@ class Holder:
             >>> entity = entities.Entity("", "", "", "")
 
             >>> class MyVariable(variables.Variable):
-            ...     definition_period = "year"
+            ...     definition_period = periods.YEAR
             ...     entity = entity
             ...     value_type = int
 
@@ -164,9 +160,9 @@ class Holder:
 
     def set_input(
             self,
-            period: types.Period,
-            array: Union[numpy.ndarray, Sequence[Any]],
-            ) -> Optional[numpy.ndarray]:
+            period: periods.Period,
+            array: numpy.ndarray | Sequence[Any],
+            ) -> numpy.ndarray | None:
         """Set a Variable's array of values of a given Period.
 
         Args:
@@ -187,7 +183,7 @@ class Holder:
             >>> entity = entities.Entity("", "", "", "")
 
             >>> class MyVariable(variables.Variable):
-            ...     definition_period = "year"
+            ...     definition_period = periods.YEAR
             ...     entity = entity
             ...     value_type = int
 
@@ -211,13 +207,17 @@ class Holder:
         """
 
         period = periods.period(period)
+
+        if period is None:
+            raise ValueError(f"Invalid period value: {period}")
+
         if period.unit == periods.ETERNITY and self.variable.definition_period != periods.ETERNITY:
             error_message = os.linesep.join([
                 'Unable to set a value for variable {0} for periods.ETERNITY.',
                 '{0} is only defined for {1}s. Please adapt your input.',
                 ]).format(
                     self.variable.name,
-                    self.variable.definition_period
+                    str(self.variable.definition_period)
                 )
             raise errors.PeriodMismatchError(
                 self.variable.name,
@@ -265,10 +265,10 @@ class Holder:
                 raise ValueError('A period must be specified to set values, except for variables with periods.ETERNITY as as period_definition.')
             if (self.variable.definition_period != period.unit or period.size > 1):
                 name = self.variable.name
-                period_size_adj = f'{period.unit}' if (period.size == 1) else f'{period.size}-{period.unit}s'
+                period_size_adj = f'{str(period.unit)}' if (period.size == 1) else f'{period.size}-{str(period.unit)}s'
                 error_message = os.linesep.join([
                     f'Unable to set a value for variable "{name}" for {period_size_adj}-long period "{period}".',
-                    f'"{name}" can only be set for one {self.variable.definition_period} at a time. Please adapt your input.',
+                    f'"{name}" can only be set for one {str(self.variable.definition_period)} at a time. Please adapt your input.',
                     f'If you are the maintainer of "{name}", you can consider adding it a set_input attribute to enable automatic period casting.'
                     ])
 

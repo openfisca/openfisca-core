@@ -1,45 +1,42 @@
-# Transitional imports to ensure non-breaking changes.
-# Could be deprecated in the next major release.
-#
-# How imports are being used today:
-#
-#   >>> from openfisca_core.module import symbol
-#
-# The previous example provokes cyclic dependency problems
-# that prevent us from modularizing the different components
-# of the library so to make them easier to test and to maintain.
-#
-# How could them be used after the next major release:
-#
-#   >>> from openfisca_core import module
-#   >>> module.symbol()
-#
-# And for classes:
-#
-#   >>> from openfisca_core.module import Symbol
-#   >>> Symbol()
-#
-# See: https://www.python.org/dev/peps/pep-0008/#imports
+"""Transitional imports to ensure non-breaking changes.
 
-from .config import (  # noqa: F401
-    DAY,
-    MONTH,
-    YEAR,
-    ETERNITY,
-    INSTANT_PATTERN,
-    date_by_instant_cache,
-    str_by_instant_cache,
-    year_or_month_or_day_re,
-    )
+These imports could be deprecated in the next major release.
 
-from .helpers import (  # noqa: F401
-    instant,
-    instant_date,
-    period,
-    key_period_size,
-    unit_weights,
-    unit_weight,
-    )
+Currently, imports are used in the following way::
+    from openfisca_core.module import symbol
 
-from .instant_ import Instant  # noqa: F401
-from .period_ import Period  # noqa: F401
+This example causes cyclic dependency problems, which prevent us from
+modularising the different components of the library and make them easier to
+test and maintain.
+
+After the next major release, imports could be used in the following way::
+    from openfisca_core import module
+    module.symbol()
+
+And for classes::
+    from openfisca_core.module import Symbol
+    Symbol()
+
+.. seealso:: `PEP8#Imports`_ and `OpenFisca's Styleguide`_.
+
+.. _PEP8#Imports:
+    https://www.python.org/dev/peps/pep-0008/#imports
+
+.. _OpenFisca's Styleguide:
+    https://github.com/openfisca/openfisca-core/blob/master/STYLEGUIDE.md
+
+"""
+
+from . import _parsers as isoformat
+from ._builders import instant, period
+from ._date_unit import DateUnit
+from ._instant import Instant
+from ._parsers import fromstr as parse
+from ._period import Period
+
+DAY, MONTH, YEAR, ETERNITY = tuple(DateUnit)
+
+# Deprecated
+
+setattr(Period, "this_year", property(lambda self: self.this(YEAR)))  # noqa: B010
+setattr(Period, "first_month", property(lambda self: self.this(MONTH)))  # noqa: B010

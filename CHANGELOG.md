@@ -1,5 +1,62 @@
 # Changelog
 
+# 39.0.0 [#1138](https://github.com/openfisca/openfisca-core/pull/1138)
+
+#### Breaking changes
+
+##### Renames
+
+- Rename `periods.period.get_subperiods` to `periods.period.subperiods`.
+
+##### Deprecations
+
+- Deprecate `INSTANT_PATTERN`
+  - The feature is now provided by `periods.isoformat.fromstr`
+- Deprecate `instant_date`.
+  - The feature is now provided by `periods.instant.date`.
+- Deprecate `periods.{unit_weight, unit_weights, key_period_size}`.
+  - These features are now provided by `periods.dateunit`.
+- Deprecate `periods.intersect`.
+  - The feature has no replacement.
+- Make `periods.parse_period` stricter.
+  - For example `2022-1` now fails.
+- Refactor `periods.period.contains` as `__contains__`.
+  - For example `subperiod in period` is now possible.
+
+##### Structural changes
+
+- Transform `Period.date` from property to method.
+  - Now it has to be used as `period.date()` (note the parenthesis).
+- Transform `Instant.date` from property to method.
+  - Now it has to be used as `instant.date()` (note the parenthesis).
+- Rationalise the reference periods.
+  - Before, there was a definite list of reference periods. For example, 
+    `period.first_month` or `period.n_2`.
+  - This has been simplified to allow users to build their own:
+    - `period.ago(unit: DateUnit, size: int = 1) -> Period`.
+    - `period.last(unit: DateUnit, size: int = 1) -> Period`.
+    - `period.this(unit: DateUnit) -> Period`.
+- Rationalise date units.
+  - Before, usage of "month", YEAR, and so on was fairly inconsistent, and 
+    providing a perfect hotbed for bugs to breed.
+  - This has been fixed by introducing a new `dateunit` module, which 
+    provides a single source of truth for all date units.
+  - Note that if you used `periods.YEAR` and the like, there is nothing to 
+    change in your code.
+  - However, strings like `"year"` or `"ETERNITY"` are no longer allowed (in 
+    fact, date unit are int enums an no longer strings). 
+
+#### Technical changes
+
+- Add typing to `openfisca_core.periods`.
+- Fix `openfisca_core.periods` doctests.
+- Document `openfisca_core.periods`.
+
+#### Bug fixes
+
+- Fixes incoherent dates.
+- Fixes several race conditions.
+
 # 38.0.0 [#989](https://github.com/openfisca/openfisca-core/pull/989)
 
 #### New Features

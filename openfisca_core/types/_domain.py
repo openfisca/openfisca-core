@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-import numpy
 import typing_extensions
-from typing import Any, Optional
+from typing import Any
 from typing_extensions import Protocol
 
 import abc
+
+import numpy
 
 
 class Entity(Protocol):
@@ -26,7 +27,7 @@ class Entity(Protocol):
     def get_variable(
             self, variable_name: Any,
             check_existence: Any = ...,
-            ) -> Optional[Any]:
+            ) -> Any | None:
         """Abstract method."""
 
 
@@ -37,7 +38,7 @@ class Formula(Protocol):
     def __call__(
             self,
             population: Population,
-            instant: Instant,
+            instant: Any,
             params: Params,
             ) -> numpy.ndarray:
         """Abstract method."""
@@ -55,10 +56,6 @@ class Holder(Protocol):
         """Abstract method."""
 
 
-class Instant(Protocol):
-    """Instant protocol."""
-
-
 @typing_extensions.runtime_checkable
 class ParameterNodeAtInstant(Protocol):
     """ParameterNodeAtInstant protocol."""
@@ -68,21 +65,7 @@ class Params(Protocol):
     """Params protocol."""
 
     @abc.abstractmethod
-    def __call__(self, instant: Instant) -> ParameterNodeAtInstant:
-        """Abstract method."""
-
-
-@typing_extensions.runtime_checkable
-class Period(Protocol):
-    """Period protocol."""
-
-    @property
-    @abc.abstractmethod
-    def start(self) -> Any:
-        """Abstract method."""
-    @property
-    @abc.abstractmethod
-    def unit(self) -> Any:
+    def __call__(self, instant: Any) -> ParameterNodeAtInstant:
         """Abstract method."""
 
 
@@ -119,7 +102,7 @@ class Simulation(Protocol):
         """Abstract method."""
 
     @abc.abstractmethod
-    def get_population(self, plural: Optional[Any]) -> Any:
+    def get_population(self, plural: Any | None) -> Any:
         """Abstract method."""
 
 
@@ -132,7 +115,7 @@ class TaxBenefitSystem(Protocol):
     def get_variable(
             self, variable_name: Any,
             check_existence: Any = ...,
-            ) -> Optional[Any]:
+            ) -> Any | None:
         """Abstract method."""
 
 

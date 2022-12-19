@@ -1,30 +1,26 @@
 from __future__ import annotations
 
+from numpy.typing import ArrayLike
+from typing import List
+
 import dataclasses
-import typing
 
-if typing.TYPE_CHECKING:
-    import numpy
-
-    from openfisca_core.indexed_enums import EnumArray
-    from openfisca_core.periods import Period
-
-    Array = typing.Union[EnumArray, numpy.typing.ArrayLike]
-    Time = typing.Union[float, int]
+from openfisca_core import periods
+from openfisca_core.indexed_enums import EnumArray
 
 
 @dataclasses.dataclass
 class TraceNode:
     name: str
-    period: Period
-    parent: typing.Optional[TraceNode] = None
-    children: typing.List[TraceNode] = dataclasses.field(default_factory = list)
-    parameters: typing.List[TraceNode] = dataclasses.field(default_factory = list)
-    value: typing.Optional[Array] = None
+    period: periods.Period
+    parent: TraceNode | None = None
+    children: List[TraceNode] = dataclasses.field(default_factory = list)
+    parameters: List[TraceNode] = dataclasses.field(default_factory = list)
+    value: EnumArray | ArrayLike | None = None
     start: float = 0
     end: float = 0
 
-    def calculation_time(self, round_: bool = True) -> Time:
+    def calculation_time(self, round_: bool = True) -> float | int:
         result = self.end - self.start
 
         if round_:
@@ -50,5 +46,5 @@ class TraceNode:
         self.children.append(node)
 
     @staticmethod
-    def round(time: Time) -> float:
+    def round(time: float | int) -> float:
         return float(f'{time:.4g}')  # Keep only 4 significant figures
