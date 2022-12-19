@@ -358,18 +358,17 @@ class Period(Tuple[DateUnit, Instant, int]):
             >>> period.this(YEAR)
             Period((year, Instant((2023, 1, 1)), 1))
 
-        .. versionadded:: 39.0.0
 
         """
 
         return type(self)((unit, self.start.offset("first-of", unit), 1))
 
-    def last(self, unit: DateUnit, size: int = 1) -> Period:
-        """Last ``size`` ``unit``s of the ``Period``.
+    def come(self, unit: DateUnit, size: int = 1) -> Period:
+        """The next ``unit``s ``size`` from ``Period.start``.
 
         Args:
             unit: The unit of the requested Period.
-            size: The number of units to include in the Period.
+            size: The number of units ago.
 
         Returns:
             A Period.
@@ -379,32 +378,30 @@ class Period(Tuple[DateUnit, Instant, int]):
 
             >>> period = Period((YEAR, start, 3))
 
-            >>> period.last(DAY)
-            Period((day, Instant((2022, 12, 31)), 1))
+            >>> period.come(DAY)
+            Period((day, Instant((2023, 1, 2)), 1))
 
-            >>> period.last(DAY, 7)
-            Period((day, Instant((2022, 12, 25)), 7))
+            >>> period.come(DAY, 7)
+            Period((day, Instant((2023, 1, 8)), 1))
 
-            >>> period.last(MONTH)
-            Period((month, Instant((2022, 12, 1)), 1))
+            >>> period.come(MONTH)
+            Period((month, Instant((2023, 2, 1)), 1))
 
-            >>> period.last(MONTH, 3)
-            Period((month, Instant((2022, 10, 1)), 3))
+            >>> period.come(MONTH, 3)
+            Period((month, Instant((2023, 4, 1)), 1))
 
-            >>> period.last(YEAR)
-            Period((year, Instant((2022, 1, 1)), 1))
+            >>> period.come(YEAR)
+            Period((year, Instant((2024, 1, 1)), 1))
 
-            >>> period.last(YEAR, 1)
-            Period((year, Instant((2022, 1, 1)), 1))
-
-        .. versionadded:: 39.0.0
+            >>> period.come(YEAR, 1)
+            Period((year, Instant((2024, 1, 1)), 1))
 
         """
 
-        return type(self)((unit, self.ago(unit, size).start, size))
+        return type(self)((unit, self.this(unit).start, 1)).offset(size)
 
     def ago(self, unit: DateUnit, size: int = 1) -> Period:
-        """``size`` ``unit``s ago of the ``Period``.
+        """``size`` ``unit``s ago from ``Period.start``.
 
         Args:
             unit: The unit of the requested Period.
@@ -436,11 +433,83 @@ class Period(Tuple[DateUnit, Instant, int]):
             >>> period.ago(YEAR, 1)
             Period((year, Instant((2022, 1, 1)), 1))
 
-        .. versionadded:: 39.0.0
+        """
+
+        return self.come(unit, -size)
+
+    def until(self, unit: DateUnit, size: int = 1) -> Period:
+        """Next ``unit`` ``size``s from ``Period.start``.
+
+        Args:
+            unit: The unit of the requested Period.
+            size: The number of units to include in the Period.
+
+        Returns:
+            A Period.
+
+        Examples:
+            >>> start = Instant((2023, 1, 1))
+
+            >>> period = Period((YEAR, start, 3))
+
+            >>> period.until(DAY)
+            Period((day, Instant((2023, 1, 1)), 1))
+
+            >>> period.until(DAY, 7)
+            Period((day, Instant((2023, 1, 1)), 7))
+
+            >>> period.until(MONTH)
+            Period((month, Instant((2023, 1, 1)), 1))
+
+            >>> period.until(MONTH, 3)
+            Period((month, Instant((2023, 1, 1)), 3))
+
+            >>> period.until(YEAR)
+            Period((year, Instant((2023, 1, 1)), 1))
+
+            >>> period.until(YEAR, 1)
+            Period((year, Instant((2023, 1, 1)), 1))
 
         """
 
-        return type(self)((unit, self.this(unit).start, 1)).offset(-size)
+        return type(self)((unit, self.this(unit).start, size))
+
+    def last(self, unit: DateUnit, size: int = 1) -> Period:
+        """Last ``size`` ``unit``s from ``Period.start``.
+
+        Args:
+            unit: The unit of the requested Period.
+            size: The number of units to include in the Period.
+
+        Returns:
+            A Period.
+
+        Examples:
+            >>> start = Instant((2023, 1, 1))
+
+            >>> period = Period((YEAR, start, 3))
+
+            >>> period.last(DAY)
+            Period((day, Instant((2022, 12, 31)), 1))
+
+            >>> period.last(DAY, 7)
+            Period((day, Instant((2022, 12, 25)), 7))
+
+            >>> period.last(MONTH)
+            Period((month, Instant((2022, 12, 1)), 1))
+
+            >>> period.last(MONTH, 3)
+            Period((month, Instant((2022, 10, 1)), 3))
+
+            >>> period.last(YEAR)
+            Period((year, Instant((2022, 1, 1)), 1))
+
+            >>> period.last(YEAR, 1)
+            Period((year, Instant((2022, 1, 1)), 1))
+
+        """
+
+        return type(self)((unit, self.ago(unit, size).start, size))
 
     def offset(self, offset: str | int, unit: DateUnit | None = None) -> Period:
         """Increment (or decrement) the given period with offset units.
