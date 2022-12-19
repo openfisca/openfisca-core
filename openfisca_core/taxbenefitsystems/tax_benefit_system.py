@@ -469,8 +469,6 @@ class TaxBenefitSystem:
         else:
             location = ""
 
-        metadata = distribution.metadata
-
         home_page_metadatas = [
             metadata.split(':', 1)[1].strip(' ')
             for metadata in distribution._get_metadata(distribution.PKG_INFO)
@@ -479,7 +477,7 @@ class TaxBenefitSystem:
         repository_url = home_page_metadatas[0] if home_page_metadatas else ''
 
         return {
-            'name': metadata['Name'].lower(),
+            'name': distribution.key,
             'version': distribution.version,
             'repository_url': repository_url,
             'location': location,
