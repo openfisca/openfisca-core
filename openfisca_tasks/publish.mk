@@ -1,5 +1,11 @@
 .PHONY: build
 
+## Install project's build dependencies.
+install-dist:
+	@$(call print_help,$@:)
+	@pip install .[ci,dev]
+	@$(call print_pass,$@:)
+
 ## Build & install openfisca-core for deployment and publishing.
 build:
 	@## This allows us to be sure tests are run against the packaged version
