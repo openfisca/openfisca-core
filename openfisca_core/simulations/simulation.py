@@ -102,8 +102,8 @@ class Simulation:
     def calculate(self, variable_name: str, period):
         """Calculate ``variable_name`` for ``period``."""
 
-        if period is not None and not isinstance(period, periods.period):
-            period = periods.period.build(period)
+        if period is not None and not isinstance(period, periods.Period):
+            period = periods.period(period)
 
         self.tracer.record_calculation_start(variable_name, period)
 
@@ -116,7 +116,7 @@ class Simulation:
             self.tracer.record_calculation_end()
             self.purge_cache_of_invalid_values()
 
-    def _calculate(self, variable_name: str, period: periods.period):
+    def _calculate(self, variable_name: str, period: periods.Period):
         """
         Calculate the variable ``variable_name`` for the period ``period``, using the variable formula if it exists.
 
@@ -174,8 +174,8 @@ class Simulation:
         if variable is None:
             raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
-        if period is not None and not isinstance(period, periods.period):
-            period = periods.period.build(period)
+        if period is not None and not isinstance(period, periods.Period):
+            period = periods.period(period)
 
         # Check that the requested period matches definition_period
         if variable.definition_period > period.unit:
@@ -203,8 +203,8 @@ class Simulation:
         if variable is None:
             raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
-        if period is not None and not isinstance(period, periods.period):
-            period = periods.period.build(period)
+        if period is not None and not isinstance(period, periods.Period):
+            period = periods.period(period)
 
         # Check that the requested period matches definition_period
         if variable.definition_period != periods.YEAR:
@@ -351,8 +351,8 @@ class Simulation:
 
         Unlike :meth:`.calculate`, this method *does not* trigger calculations and *does not* use any formula.
         """
-        if period is not None and not isinstance(period, periods.period):
-            period = periods.period.build(period)
+        if period is not None and not isinstance(period, periods.Period):
+            period = periods.period(period)
         return self.get_holder(variable_name).get_array(period)
 
     def get_holder(self, variable_name: str):
@@ -445,7 +445,7 @@ class Simulation:
         if variable is None:
             raise VariableNotFoundError(variable_name, self.tax_benefit_system)
 
-        period = periods.period.build(period)
+        period = periods.period(period)
         if ((variable.end is not None) and (period.start.date() > variable.end)):
             return
         self.get_holder(variable_name).set_input(period, value)
@@ -501,4 +501,4 @@ class Simulation:
 
 class Cache(NamedTuple):
     variable: str
-    period: periods.period
+    period: periods.Period

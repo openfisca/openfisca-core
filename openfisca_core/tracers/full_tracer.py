@@ -9,7 +9,7 @@ from openfisca_core import periods
 
 from .. import tracers
 
-Stack = List[Dict[str, Union[str, periods.period]]]
+Stack = List[Dict[str, Union[str, periods.Period]]]
 
 
 class FullTracer:
@@ -26,7 +26,7 @@ class FullTracer:
     def record_calculation_start(
             self,
             variable: str,
-            period: periods.period,
+            period: periods.Period,
             ) -> None:
         self._simple_tracer.record_calculation_start(variable, period)
         self._enter_calculation(variable, period)
@@ -35,7 +35,7 @@ class FullTracer:
     def _enter_calculation(
             self,
             variable: str,
-            period: periods.period,
+            period: periods.Period,
             ) -> None:
         new_node = tracers.TraceNode(
             name = variable,
@@ -54,7 +54,7 @@ class FullTracer:
     def record_parameter_access(
             self,
             parameter: str,
-            period: periods.period,
+            period: periods.Period,
             value: ArrayLike,
             ) -> None:
 

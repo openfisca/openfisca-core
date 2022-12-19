@@ -27,19 +27,14 @@ And for classes::
 
 """
 
-from ._parsers import ISOFormat
-from ._units import DateUnit
-from .instant_ import Instant
-from .period_ import Period
+from . import _parsers as isoformat
+from ._builders import instant, period
+from ._date_unit import DateUnit
+from ._instant import Instant
+from ._parsers import fromstr as parse
+from ._period import Period
 
-DAY = DateUnit.DAY
-MONTH = DateUnit.MONTH
-YEAR = DateUnit.YEAR
-ETERNITY = DateUnit.ETERNITY
-dateunit = DateUnit
-instant = Instant
-period = Period
-isoformat = ISOFormat
+DAY, MONTH, YEAR, ETERNITY = tuple(DateUnit)
 
 # Deprecated
 

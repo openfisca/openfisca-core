@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Sequence, Tuple
+from typing import Sequence, Tuple
 
 import datetime
 
-from ._exceptions import DateUnitValueError, PeriodFormatError, PeriodTypeError
-from ._parsers import ISOFormat
-from ._units import DateUnit
-from .instant_ import Instant
+from ._date_unit import DateUnit
+from ._exceptions import DateUnitValueError
+from ._instant import Instant
 
 DAY, MONTH, YEAR, ETERNITY = tuple(DateUnit)
 
@@ -518,133 +517,3 @@ class Period(Tuple[DateUnit, Instant, int]):
             self.this(unit).offset(offset, unit)
             for offset in range(self.count(unit))
             ]
-
-    @classmethod
-    def build(cls, value: Any) -> Period:
-        """Build a new period, aka a triple (unit, start_instant, size).
-
-        Args:
-            value: A ``period-like`` object.
-
-        Returns:
-            A period.
-
-        Raises:
-            PeriodFormatError: When arguments are invalid, like "2021-32-13".
-            PeriodTypeError: When ``value`` is not a ``period-like`` object.
-
-        Examples:
-            >>> Period.build(Period((YEAR, Instant((2021, 1, 1)), 1)))
-            Period((year, Instant((2021, 1, 1)), 1))
-
-            >>> Period.build(Instant((2021, 1, 1)))
-            Period((day, Instant((2021, 1, 1)), 1))
-
-            >>> Period.build(ETERNITY)
-            Period((eternity, Instant((1, 1, 1)), 1))
-
-            >>> Period.build(2021)
-            Period((year, Instant((2021, 1, 1)), 1))
-
-            >>> Period.build("2014")
-            Period((year, Instant((2014, 1, 1)), 1))
-
-            >>> Period.build("year:2014")
-            Period((year, Instant((2014, 1, 1)), 1))
-
-            >>> Period.build("month:2014-02")
-            Period((month, Instant((2014, 2, 1)), 1))
-
-            >>> Period.build("year:2014-02")
-            Period((year, Instant((2014, 2, 1)), 1))
-
-            >>> Period.build("day:2014-02-02")
-            Period((day, Instant((2014, 2, 2)), 1))
-
-            >>> Period.build("day:2014-02-02:3")
-            Period((day, Instant((2014, 2, 2)), 3))
-
-        """
-
-        unit: DateUnit | int | str
-        part: ISOFormat | None
-        size: int | str
-
-        if value in {ETERNITY, ETERNITY.name, ETERNITY.name.lower()}:
-            return cls((ETERNITY, Instant.build(datetime.date.min), 1))
-
-        if value is None or isinstance(value, DateUnit):
-            raise PeriodTypeError(value)
-
-        if isinstance(value, Period):
-            return value
-
-        if isinstance(value, Instant):
-            return cls((DAY, value, 1))
-
-        if isinstance(value, int):
-            return cls((YEAR, Instant((value, 1, 1)), 1))
-
-        if not isinstance(value, str):
-            raise PeriodFormatError(value)
-
-        # Try to parse as a simple period
-        part = ISOFormat.fromstr(value)
-
-        if part is not None:
-            start = Instant((part.year, part.month, part.day))
-            return cls((DateUnit(part.unit), start, 1))
-
-        # Complex periods must have a ':' in their strings
-        if ":" not in value:
-            raise PeriodFormatError(value)
-
-        # We know the first element has to be a ``unit``
-        unit, *rest = value.split(":")
-
-        # Units are case insensitive so we need to upper them
-        unit = unit.upper()
-
-        # Left-most component must be a valid unit
-        if unit not in dir(DateUnit):
-            raise PeriodFormatError(value)
-
-        unit = DateUnit[unit]
-
-        # We get the first remaining component
-        date, *rest = rest
-
-        if date is None:
-            raise PeriodFormatError(value)
-
-        # Middle component must be a valid ISO period
-        part = ISOFormat.fromstr(date)
-
-        if part is None:
-            raise PeriodFormatError(value)
-
-        # Finally we try to parse the size, if any
-        try:
-            size, *rest = rest
-
-        except ValueError:
-            size = 1
-
-        # If provided, make sure the size is an integer
-        try:
-            size = int(size)
-
-        except ValueError:
-            raise PeriodFormatError(value)
-
-        # If there were more than 2 ":" in the string, the period is invalid
-        if len(rest) > 0:
-            raise PeriodFormatError(value)
-
-        # Reject ambiguous periods such as month:2014
-        if part.unit > unit:
-            raise PeriodFormatError(value)
-
-        start = Instant((part.year, part.month, part.day))
-
-        return cls((unit, start, size))

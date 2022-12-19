@@ -9,7 +9,7 @@ from openfisca_core import periods
 from .. import variables
 
 
-def get_annualized_variable(variable: variables.Variable, annualization_period: Optional[periods.period] = None) -> variables.Variable:
+def get_annualized_variable(variable: variables.Variable, annualization_period: Optional[periods.Period] = None) -> variables.Variable:
     """
     Returns a clone of ``variable`` that is annualized for the period ``annualization_period``.
     When annualized, a variable's formula is only called for a January calculation, and the results for other months are assumed to be identical.

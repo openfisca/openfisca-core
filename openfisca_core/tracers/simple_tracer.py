@@ -5,7 +5,7 @@ from typing import Dict, List, Union
 
 from openfisca_core import periods
 
-Stack = List[Dict[str, Union[str, periods.period]]]
+Stack = List[Dict[str, Union[str, periods.Period]]]
 
 
 class SimpleTracer:
@@ -15,7 +15,7 @@ class SimpleTracer:
     def __init__(self) -> None:
         self._stack = []
 
-    def record_calculation_start(self, variable: str, period: periods.period) -> None:
+    def record_calculation_start(self, variable: str, period: periods.Period) -> None:
         self.stack.append({'name': variable, 'period': period})
 
     def record_calculation_result(self, value: ArrayLike) -> None:

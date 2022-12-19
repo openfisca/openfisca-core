@@ -12,7 +12,7 @@ from openfisca_core.indexed_enums import EnumArray
 @dataclasses.dataclass
 class TraceNode:
     name: str
-    period: periods.period
+    period: periods.Period
     parent: TraceNode | None = None
     children: List[TraceNode] = dataclasses.field(default_factory = list)
     parameters: List[TraceNode] = dataclasses.field(default_factory = list)

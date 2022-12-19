@@ -7,8 +7,6 @@
 ##### Renames
 
 - Rename `periods.period.get_subperiods` to `periods.period.subperiods`.
-- Rename `periods.instant` to `periods.instant.build`.
-- Rename `periods.period` to `periods.period.build`.
 
 ##### Deprecations
 

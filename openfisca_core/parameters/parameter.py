@@ -73,7 +73,7 @@ class Parameter(AtInstantLike):
 
         values_list = []
         for instant_str in instants:
-            if periods.isoformat.fromstr(instant_str) is None:
+            if periods.parse(instant_str) is None:
                 raise ParameterParsingError(
                     "Invalid property '{}' in '{}'. Properties must be valid YYYY-MM-DD instants, such as 2017-01-15."
                     .format(instant_str, self.name),
@@ -120,7 +120,7 @@ class Parameter(AtInstantLike):
             if start is not None or stop is not None:
                 raise TypeError("Wrong input for 'update' method: use either 'update(period, value = value)' or 'update(start = start, stop = stop, value = value)'. You cannot both use 'period' and 'start' or 'stop'.")
             if isinstance(period, str):
-                period = periods.period.build(period)
+                period = periods.period(period)
             start = period.start
             stop = period.stop
         if start is None:

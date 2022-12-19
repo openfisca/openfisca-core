@@ -1,5 +1,3 @@
-import datetime
-
 import pytest
 
 from openfisca_core.periods import DateUnit, Instant, Period
@@ -134,60 +132,3 @@ def test_day_size_in_days(date_unit, instant, size, expected):
     period = Period((date_unit, instant, size))
 
     assert period.count(day) == expected
-
-
-@pytest.mark.parametrize("arg, expected", [
-    ["1000", Period((year, Instant((1000, 1, 1)), 1))],
-    ["1000-01", Period((month, Instant((1000, 1, 1)), 1))],
-    ["1000-01-01", Period((day, Instant((1000, 1, 1)), 1))],
-    ["1004-02-29", Period((day, Instant((1004, 2, 29)), 1))],
-    ["ETERNITY", Period((eternity, Instant((1, 1, 1)), 1))],
-    ["day:1000-01-01", Period((day, Instant((1000, 1, 1)), 1))],
-    ["day:1000-01-01:3", Period((day, Instant((1000, 1, 1)), 3))],
-    ["eternity", Period((eternity, Instant((1, 1, 1)), 1))],
-    ["month:1000-01", Period((month, Instant((1000, 1, 1)), 1))],
-    ["month:1000-01-01", Period((month, Instant((1000, 1, 1)), 1))],
-    ["month:1000-01-01:3", Period((month, Instant((1000, 1, 1)), 3))],
-    ["month:1000-01:3", Period((month, Instant((1000, 1, 1)), 3))],
-    ["year:1000", Period((year, Instant((1000, 1, 1)), 1))],
-    ["year:1000-01", Period((year, Instant((1000, 1, 1)), 1))],
-    ["year:1000-01-01", Period((year, Instant((1000, 1, 1)), 1))],
-    ["year:1000-01-01:3", Period((year, Instant((1000, 1, 1)), 3))],
-    ["year:1000-01:3", Period((year, Instant((1000, 1, 1)), 3))],
-    ["year:1000:3", Period((year, Instant((1000, 1, 1)), 3))],
-    [1000, Period((year, Instant((1000, 1, 1)), 1))],
-    [eternity, Period((eternity, Instant((1, 1, 1)), 1))],
-    [Instant((1, 1, 1)), Period((day, Instant((1, 1, 1)), 1))],
-    [Period((day, Instant((1, 1, 1)), 365)), Period((day, Instant((1, 1, 1)), 365))],
-    ])
-def test_build(arg, expected):
-    """Returns the expected ``Period``."""
-
-    assert Period.build(arg) == expected
-
-
-@pytest.mark.parametrize("arg, error", [
-    ["1000-0", ValueError],
-    ["1000-0-0", ValueError],
-    ["1000-01-01:1", ValueError],
-    ["1000-01:1", ValueError],
-    ["1000-1", ValueError],
-    ["1000-1-0", ValueError],
-    ["1000-1-1", ValueError],
-    ["1000-13", ValueError],
-    ["1000-2-31", ValueError],
-    ["1000:1", ValueError],
-    ["day:1000-01", ValueError],
-    ["day:1000-01:1", ValueError],
-    ["day:1000:1", ValueError],
-    ["month:1000", ValueError],
-    ["month:1000:1", ValueError],
-    [None, TypeError],
-    [datetime.date(1, 1, 1), ValueError],
-    [year, TypeError],
-    ])
-def test_build_with_an_invalid_argument(arg, error):
-    """Raises ``ValueError`` when given an invalid argument."""
-
-    with pytest.raises(error):
-        Period.build(arg)

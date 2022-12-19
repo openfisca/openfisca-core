@@ -1,22 +1,15 @@
 from __future__ import annotations
 
-from typing import Any, Tuple
+from typing import Tuple
 
 import calendar
-import datetime
 import functools
 
 import pendulum
 from pendulum.datetime import Date
 
-from ._exceptions import (
-    DateUnitValueError,
-    InstantFormatError,
-    InstantTypeError,
-    OffsetTypeError,
-    )
-from ._parsers import ISOFormat
-from ._units import DateUnit
+from ._date_unit import DateUnit
+from ._exceptions import DateUnitValueError, OffsetTypeError
 from ._utils import add
 
 DAY, MONTH, YEAR, _ = tuple(DateUnit)
@@ -209,71 +202,3 @@ class Instant(Tuple[int, int, int]):
         date = add(self.date(), unit.plural, offset)
 
         return type(self)((date.year, date.month, date.day))
-
-    @classmethod
-    def build(cls, value: Any) -> Instant:
-        """Build a new instant, aka a triple of integers (year, month, day).
-
-        Args:
-            value: An ``instant-like`` object.
-
-        Returns:
-            An Instant.
-
-        Raises:
-            InstantFormatError: When ``value`` is invalid, like "2021-32-13".
-            InstantTypeError: When ``value`` is None.
-
-        Examples:
-            >>> from openfisca_core import periods
-
-            >>> Instant.build(datetime.date(2021, 9, 16))
-            Instant((2021, 9, 16))
-
-            >>> Instant.build(Instant((2021, 9, 16)))
-            Instant((2021, 9, 16))
-
-            >>> Instant.build("2021")
-            Instant((2021, 1, 1))
-
-            >>> Instant.build(2021)
-            Instant((2021, 1, 1))
-
-            >>> Instant.build((2021, 9))
-            Instant((2021, 9, 1))
-
-            >>> start = Instant((2021, 9, 16))
-            >>> period = periods.period((YEAR, start, 1))
-
-            >>> Instant.build(period)
-            Traceback (most recent call last):
-            InstantFormatError: 'year:2021-09' is not a valid instant.
-
-            .. versionadded:: 39.0.0
-
-        """
-
-        instant: ISOFormat | None
-
-        if isinstance(value, Instant):
-            return value
-
-        if isinstance(value, datetime.date):
-            return cls((value.year, value.month, value.day))
-
-        if isinstance(value, int):
-            instant = ISOFormat.fromint(value)
-
-        elif isinstance(value, str):
-            instant = ISOFormat.fromstr(value)
-
-        elif isinstance(value, (list, tuple)):
-            instant = ISOFormat.fromseq(value)
-
-        else:
-            raise InstantTypeError(value)
-
-        if instant is None:
-            raise InstantFormatError(value)
-
-        return cls((instant.year, instant.month, instant.day))

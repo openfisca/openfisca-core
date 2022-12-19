@@ -160,7 +160,7 @@ class Holder:
 
     def set_input(
             self,
-            period: periods.period,
+            period: periods.Period,
             array: numpy.ndarray | Sequence[Any],
             ) -> numpy.ndarray | None:
         """Set a Variable's array of values of a given Period.
@@ -206,7 +206,7 @@ class Holder:
 
         """
 
-        period = periods.period.build(period)
+        period = periods.period(period)
 
         if period is None:
             raise ValueError(f"Invalid period value: {period}")

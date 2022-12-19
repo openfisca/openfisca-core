@@ -75,9 +75,9 @@ class Population:
     def check_period_validity(
             self,
             variable_name: str,
-            period: periods.period | int | str | None,
+            period: periods.Period | int | str | None,
             ) -> None:
-        if isinstance(period, (int, str, periods.period)):
+        if isinstance(period, (int, str, periods.Period)):
             return None
 
         stack = traceback.extract_stack()
@@ -93,7 +93,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     def __call__(
             self,
             variable_name: str,
-            period: periods.period | int | str | None = None,
+            period: periods.Period | int | str | None = None,
             options: Optional[Sequence[str]] = None,
             ) -> Optional[Array[float]]:
         """
@@ -111,7 +111,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
         calculate: Calculate = Calculate(
             variable = variable_name,
-            period = periods.period.build(period),
+            period = periods.period(period),
             option = options,
             )
 
@@ -265,7 +265,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
 class Calculate(NamedTuple):
     variable: str
-    period: periods.period
+    period: periods.Period
     option: Sequence[str] | None
 
 

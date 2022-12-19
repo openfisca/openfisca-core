@@ -63,7 +63,7 @@ def _parse_child(child_name, child, child_path):
         return parameters.Parameter(child_name, child, child_path)
     elif 'brackets' in child:
         return parameters.ParameterScale(child_name, child, child_path)
-    elif isinstance(child, dict) and all([periods.isoformat.fromstr(str(key)) for key in child.keys()]):
+    elif isinstance(child, dict) and all([periods.parse(str(key)) for key in child.keys()]):
         return parameters.Parameter(child_name, child, child_path)
     else:
         return parameters.ParameterNode(child_name, data = child, file_path = child_path)

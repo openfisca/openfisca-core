@@ -1,6 +1,8 @@
 import pytest
 
-from openfisca_core.periods import DateUnit, ISOFormat
+from openfisca_core.periods import DateUnit, isoformat
+
+year = DateUnit.YEAR
 
 
 @pytest.mark.parametrize("arg, expected", [
@@ -33,7 +35,7 @@ from openfisca_core.periods import DateUnit, ISOFormat
     [1., None],
     [1000, (1000, 1, 1, 4, 1)],
     [1000., None],
-    [DateUnit.YEAR, None],
+    [year, None],
     [{1, 1, 1, 1}, None],
     [{1, 1, 1}, None],
     [{1, 1}, None],
@@ -42,7 +44,7 @@ from openfisca_core.periods import DateUnit, ISOFormat
 def test_parse_iso_format_from_int(arg, expected):
     """Returns an ``ISOFormat`` when given a valid ISO format int."""
 
-    assert ISOFormat.fromint(arg) == expected
+    assert isoformat.fromint(arg) == expected
 
 
 @pytest.mark.parametrize("arg, expected", [
@@ -75,7 +77,7 @@ def test_parse_iso_format_from_int(arg, expected):
     [1., None],
     [1000, None],
     [1000., None],
-    [DateUnit.YEAR, None],
+    [year, None],
     [{1, 1, 1, 1}, None],
     [{1, 1, 1}, None],
     [{1, 1}, None],
@@ -84,7 +86,7 @@ def test_parse_iso_format_from_int(arg, expected):
 def test_parse_iso_format_from_str(arg, expected):
     """Returns an ``ISOFormat`` when given a valid ISO format string."""
 
-    assert ISOFormat.fromstr(arg) == expected
+    assert isoformat.fromstr(arg) == expected
 
 
 @pytest.mark.parametrize("arg, expected", [
@@ -117,7 +119,7 @@ def test_parse_iso_format_from_str(arg, expected):
     [1., None],
     [1000, None],
     [1000., None],
-    [DateUnit.YEAR, None],
+    [year, None],
     [{1, 1, 1, 1}, None],
     [{1, 1, 1}, None],
     [{1, 1}, None],
@@ -126,4 +128,4 @@ def test_parse_iso_format_from_str(arg, expected):
 def test_parse_iso_format_from_seq(arg, expected):
     """Returns an ``ISOFormat`` when given a valid ISO format sequence."""
 
-    assert ISOFormat.fromseq(arg) == expected
+    assert isoformat.fromseq(arg) == expected

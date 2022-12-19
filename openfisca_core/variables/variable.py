@@ -309,7 +309,7 @@ class Variable:
 
     def get_formula(
             self,
-            period: periods.period | periods.instant | str | int | None = None,
+            period: periods.Period | periods.Instant | str | int | None = None,
             ) -> Formula | None:
         """Returns the formula to compute the variable at the given period.
 
@@ -330,15 +330,15 @@ class Variable:
         if period is None:
             return self.formulas.peekitem(index = 0)[1]  # peekitem gets the 1st key-value tuple (the oldest start_date and formula). Return the formula.
 
-        if isinstance(period, periods.period):
+        if isinstance(period, periods.Period):
             instant = period.start
 
         else:
             try:
-                instant = periods.period.build(period).start
+                instant = periods.period(period).start
 
             except ValueError:
-                instant = periods.instant.build(period)
+                instant = periods.instant(period)
 
         if instant is None:
             return None

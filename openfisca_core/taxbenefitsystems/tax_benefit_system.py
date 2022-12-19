@@ -45,7 +45,7 @@ class TaxBenefitSystem:
     person_entity: Entity
 
     _base_tax_benefit_system = None
-    _parameters_at_instant_cache: Dict[periods.instant, types.ParameterNodeAtInstant] = {}
+    _parameters_at_instant_cache: Dict[periods.Instant, types.ParameterNodeAtInstant] = {}
     person_key_plural = None
     preprocess_parameters = None
     baseline = None  # Baseline tax-benefit system. Used only by reforms. Note: Reforms can be chained.
@@ -344,7 +344,7 @@ class TaxBenefitSystem:
     def annualize_variable(
             self,
             variable_name: str,
-            period: periods.period | None = None,
+            period: periods.Period | None = None,
             ) -> None:
         check: bool
         variable: Optional[Variable]
@@ -387,7 +387,7 @@ class TaxBenefitSystem:
     @functools.lru_cache()
     def get_parameters_at_instant(
             self,
-            instant: periods.period | periods.instant | str | int,
+            instant: periods.Period | periods.Instant | str | int,
             ) -> Optional[types.ParameterNodeAtInstant]:
         """Get the parameters of the legislation at a given instant
 
@@ -399,14 +399,14 @@ class TaxBenefitSystem:
 
         """
 
-        if isinstance(instant, periods.instant):
+        if isinstance(instant, periods.Instant):
             key = instant
 
-        elif isinstance(instant, periods.period):
+        elif isinstance(instant, periods.Period):
             key = instant.start
 
         elif isinstance(instant, (str, int)):
-            key = periods.instant.build(instant)
+            key = periods.instant(instant)
 
         else:
             msg = f"Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {instant}."
