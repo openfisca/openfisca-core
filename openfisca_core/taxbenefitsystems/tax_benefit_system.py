@@ -471,7 +471,7 @@ class TaxBenefitSystem:
 
         home_page_metadatas = [
             metadata.split(':', 1)[1].strip(' ')
-            for metadata in distribution._get_metadata(distribution.PKG_INFO)
+            for metadata in distribution._get_metadata(distribution.PKG_INFO)  # type: ignore
             if 'Home-page' in metadata
             ]
         repository_url = home_page_metadatas[0] if home_page_metadatas else ''
