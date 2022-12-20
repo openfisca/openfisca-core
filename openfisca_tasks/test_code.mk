@@ -10,8 +10,8 @@ install: install-deps install-edit install-test
 ## Enable regression testing with template repositories.
 install-test:
 	@$(call print_help,$@:)
-	@pip install --upgrade --no-dependencies openfisca-country-template
-	@pip install --upgrade --no-dependencies openfisca-extension-template
+	@python -m pip install --upgrade --no-deps openfisca-country-template
+	@python -m pip install --upgrade --no-deps openfisca-extension-template
 
 ## Run openfisca-core & country/extension template tests.
 test-code: test-core test-country test-extension
@@ -31,7 +31,7 @@ test-code: test-core test-country test-extension
 ## Run openfisca-core tests.
 test-core: $(shell pytest --quiet --quiet --collect-only 2> /dev/null | cut -f 1 -d ":")
 	@$(call print_help,$@:)
-	@pytest --quiet --capture=no --xdoctest --xdoctest-verbose=0 \
+	@python -m pytest --quiet --capture=no --xdoctest --xdoctest-verbose=0 \
 		openfisca_core/commons \
 		openfisca_core/holders \
 		openfisca_core/types

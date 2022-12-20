@@ -10,7 +10,6 @@ import abc
 
 class Entity(Protocol):
     """Entity protocol."""
-
     key: Any
     plural: Any
 
@@ -30,6 +29,15 @@ class Entity(Protocol):
         """Abstract method."""
 
 
+@typing_extensions.runtime_checkable
+class EnumArray(Protocol):
+    """EnumArray protocol."""
+
+    @abc.abstractmethod
+    def decode_to_str(self) -> numpy.ndarray:
+        """Abstract method."""
+
+
 class Formula(Protocol):
     """Formula protocol."""
 
@@ -41,6 +49,12 @@ class Formula(Protocol):
             params: Params,
             ) -> numpy.ndarray:
         """Abstract method."""
+
+
+class FullTracer(Protocol):
+    """FullTracer protocol."""
+    trees: Any
+    browse_trace: Any
 
 
 class Holder(Protocol):
@@ -80,6 +94,7 @@ class Period(Protocol):
     @abc.abstractmethod
     def start(self) -> Any:
         """Abstract method."""
+
     @property
     @abc.abstractmethod
     def unit(self) -> Any:
@@ -88,7 +103,6 @@ class Period(Protocol):
 
 class Population(Protocol):
     """Population protocol."""
-
     entity: Any
 
     @abc.abstractmethod
@@ -98,7 +112,6 @@ class Population(Protocol):
 
 class Role(Protocol):
     """Role protocol."""
-
     entity: Any
     subroles: Any
 
@@ -125,7 +138,6 @@ class Simulation(Protocol):
 
 class TaxBenefitSystem(Protocol):
     """TaxBenefitSystem protocol."""
-
     person_entity: Any
 
     @abc.abstractmethod
@@ -136,7 +148,17 @@ class TaxBenefitSystem(Protocol):
         """Abstract method."""
 
 
+class TraceNode(Protocol):
+    """TraceNode protocol."""
+    name: Any
+    value: Any
+    period: Any
+    children: Any
+    parameters: Any
+    formula_time: Any
+    calculation_time: Any
+
+
 class Variable(Protocol):
     """Variable protocol."""
-
     entity: Any

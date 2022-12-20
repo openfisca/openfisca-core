@@ -100,6 +100,19 @@ To run a single test:
 pytest tests/core/test_parameters.py -k test_parameter_for_period
 ```
 
+### Testing with Nox
+
+In order to test several Python and NumPy versions locally, we recommend you to
+install [pipx](https://pypa.github.io/pipx/installation/) and configure it with
+your a Python version manager like [pyenv](https://github.com/pyenv/pyenv) and  
+[nox](https://nox.thea.codes/en/stable/tutorial.html#installation).
+
+Then run:
+
+```sh
+nox -s
+```
+
 ## Types
 
 This repository relies on MyPy for optional dynamic & static type checking.

@@ -6,10 +6,10 @@ and expected behaviours.
 
 Official Public API:
     * :attr:`.Array`
-    * ``ArrayLike``
-    * :attr:`.Cache`
     * :attr:`.Entity`
+    * :attr:`.EnumArray`
     * :attr:`.Formula`
+    * :attr:`.FullTracer`
     * :attr:`.Holder`
     * :attr:`.Instant`
     * :attr:`.ParameterNodeAtInstant`
@@ -19,6 +19,7 @@ Official Public API:
     * :attr:`.Role`,
     * :attr:`.Simulation`,
     * :attr:`.TaxBenefitSystem`
+    * :attr:`.TraceNode`
     * :attr:`.Variable`
 
 Note:
@@ -51,12 +52,13 @@ Note:
 
 from ._data import (  # noqa: F401
     Array,
-    ArrayLike,
     )
 
 from ._domain import (  # noqa: F401
     Entity,
+    EnumArray,
     Formula,
+    FullTracer,
     Holder,
     Instant,
     ParameterNodeAtInstant,
@@ -66,14 +68,16 @@ from ._domain import (  # noqa: F401
     Role,
     Simulation,
     TaxBenefitSystem,
+    TraceNode,
     Variable,
     )
 
 __all__ = [
     "Array",
-    "ArrayLike",
     "Entity",
+    "EnumArray",
     "Formula",
+    "FullTracer",
     "Holder",
     "Instant",
     "ParameterNodeAtInstant",
@@ -83,5 +87,6 @@ __all__ = [
     "Role",
     "Simulation",
     "TaxBenefitSystem",
+    "TraceNode",
     "Variable",
     ]

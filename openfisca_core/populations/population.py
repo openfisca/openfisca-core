@@ -10,7 +10,7 @@ import numpy
 from openfisca_core import periods, projectors
 from openfisca_core.holders import Holder, MemoryUsage
 from openfisca_core.projectors import Projector
-from openfisca_core.types import Array, Entity, Period, Role, Simulation
+from openfisca_core.types import Entity, Period, Role, Simulation
 
 from . import config
 
@@ -21,14 +21,14 @@ class Population:
     entity: Entity
     _holders: Dict[str, Holder]
     count: int
-    ids: Array[str]
+    ids: numpy.ndarray
 
     def __init__(self, entity: Entity) -> None:
         self.simulation = None
         self.entity = entity
         self._holders = {}
         self.count = 0
-        self.ids = []
+        self.ids = numpy.array([])
 
     def clone(self, simulation: Simulation) -> Population:
         result = Population(self.entity)
@@ -38,14 +38,14 @@ class Population:
         result.ids = self.ids
         return result
 
-    def empty_array(self) -> Array[float]:
+    def empty_array(self) -> numpy.ndarray:
         return numpy.zeros(self.count)
 
     def filled_array(
             self,
             value: Union[float, bool],
             dtype: Optional[numpy.dtype] = None,
-            ) -> Union[Array[float], Array[bool]]:
+            ) -> numpy.ndarray:
         return numpy.full(self.count, value, dtype)
 
     def __getattr__(self, attribute: str) -> Projector:
@@ -64,7 +64,7 @@ class Population:
 
     def check_array_compatible_with_entity(
             self,
-            array: Array[float],
+            array: numpy.ndarray,
             ) -> None:
         if self.count == array.size:
             return None
@@ -95,7 +95,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             variable_name: str,
             period: Optional[Union[int, str, Period]] = None,
             options: Optional[Sequence[str]] = None,
-            ) -> Optional[Array[float]]:
+            ) -> Optional[Sequence[float]]:
         """
             Calculate the variable ``variable_name`` for the entity and the period ``period``, using the variable formula if it exists.
 
@@ -169,7 +169,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             })
 
     @projectors.projectable
-    def has_role(self, role: Role) -> Optional[Array[bool]]:
+    def has_role(self, role: Role) -> Optional[Sequence[bool]]:
         """
             Check if a person has a given role within its `GroupEntity`
 
@@ -195,10 +195,10 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     @projectors.projectable
     def value_from_partner(
             self,
-            array: Array[float],
+            array: numpy.ndarray,
             entity: Projector,
             role: Role,
-            ) -> Optional[Array[float]]:
+            ) -> Optional[numpy.ndarray]:
         self.check_array_compatible_with_entity(array)
         self.entity.check_role_validity(role)
 
@@ -218,9 +218,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     def get_rank(
             self,
             entity: Population,
-            criteria: Array[float],
+            criteria: Sequence[float],
             condition: bool = True,
-            ) -> Array[int]:
+            ) -> numpy.ndarray:
         """
         Get the rank of a person within an entity according to a criteria.
         The person with rank 0 has the minimum value of criteria.

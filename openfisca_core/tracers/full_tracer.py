@@ -1,34 +1,34 @@
 from __future__ import annotations
 
 import time
-import typing
-from typing import Dict, Iterator, List, Optional, Union
+from typing import Any, Dict, Iterator, List, Optional, Sequence, Union
 
-from .. import tracers
+from openfisca_core import types
 
-if typing.TYPE_CHECKING:
-    from numpy.typing import ArrayLike
+from .computation_log import ComputationLog
+from .flat_trace import FlatTrace
+from .performance_log import PerformanceLog
+from .simple_tracer import SimpleTracer
+from .trace_node import TraceNode
 
-    from openfisca_core.periods import Period
-
-    Stack = List[Dict[str, Union[str, Period]]]
+Stack = List[Dict[str, Union[str, types.Period]]]
+Value = Union[types.Array[Any], Sequence[Any]]
 
 
 class FullTracer:
-
-    _simple_tracer: tracers.SimpleTracer
+    _simple_tracer: SimpleTracer
     _trees: list
-    _current_node: Optional[tracers.TraceNode]
+    _current_node: Optional[types.TraceNode]
 
     def __init__(self) -> None:
-        self._simple_tracer = tracers.SimpleTracer()
+        self._simple_tracer = SimpleTracer()
         self._trees = []
         self._current_node = None
 
     def record_calculation_start(
             self,
             variable: str,
-            period: Period,
+            period: types.Period,
             ) -> None:
         self._simple_tracer.record_calculation_start(variable, period)
         self._enter_calculation(variable, period)
@@ -37,9 +37,9 @@ class FullTracer:
     def _enter_calculation(
             self,
             variable: str,
-            period: Period,
+            period: types.Period,
             ) -> None:
-        new_node = tracers.TraceNode(
+        new_node = TraceNode(
             name = variable,
             period = period,
             parent = self._current_node,
@@ -56,13 +56,14 @@ class FullTracer:
     def record_parameter_access(
             self,
             parameter: str,
-            period: Period,
-            value: ArrayLike,
+            period: types.Period,
+            value: Value,
             ) -> None:
 
         if self._current_node is not None:
-            self._current_node.parameters.append(
-                tracers.TraceNode(name = parameter, period = period, value = value),
+            self._current_node.parameters = (
+                *self._current_node.parameters,
+                TraceNode(parameter, period, value = value),
                 )
 
     def _record_start_time(
@@ -75,7 +76,7 @@ class FullTracer:
         if self._current_node is not None:
             self._current_node.start = time_in_s
 
-    def record_calculation_result(self, value: ArrayLike) -> None:
+    def record_calculation_result(self, value: Value) -> None:
         if self._current_node is not None:
             self._current_node.value = value
 
@@ -103,20 +104,20 @@ class FullTracer:
         return self._simple_tracer.stack
 
     @property
-    def trees(self) -> List[tracers.TraceNode]:
+    def trees(self) -> List[TraceNode]:
         return self._trees
 
     @property
-    def computation_log(self) -> tracers.ComputationLog:
-        return tracers.ComputationLog(self)
+    def computation_log(self) -> ComputationLog:
+        return ComputationLog(self)
 
     @property
-    def performance_log(self) -> tracers.PerformanceLog:
-        return tracers.PerformanceLog(self)
+    def performance_log(self) -> PerformanceLog:
+        return PerformanceLog(self)
 
     @property
-    def flat_trace(self) -> tracers.FlatTrace:
-        return tracers.FlatTrace(self)
+    def flat_trace(self) -> FlatTrace:
+        return FlatTrace(self)
 
     def _get_time_in_sec(self) -> float:
         return time.time_ns() / (10**9)
@@ -130,7 +131,7 @@ class FullTracer:
     def generate_performance_tables(self, dir_path: str) -> None:
         self.performance_log.generate_performance_tables(dir_path)
 
-    def _get_nb_requests(self, tree: tracers.TraceNode, variable: str) -> int:
+    def _get_nb_requests(self, tree: TraceNode, variable: str) -> int:
         tree_call = tree.name == variable
         children_calls = sum(
             self._get_nb_requests(child, variable)
@@ -153,7 +154,7 @@ class FullTracer:
     def get_serialized_flat_trace(self) -> dict:
         return self.flat_trace.get_serialized_trace()
 
-    def browse_trace(self) -> Iterator[tracers.TraceNode]:
+    def browse_trace(self) -> Iterator[TraceNode]:
 
         def _browse_node(node):
             yield node

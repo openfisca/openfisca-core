@@ -6,12 +6,12 @@ uninstall:
 ## Install project's overall dependencies
 install-deps:
 	@$(call print_help,$@:)
-	@pip install --upgrade pip twine wheel
+	@python -m pip install --upgrade pip twine wheel
 
 ## Install project's development dependencies.
 install-edit:
 	@$(call print_help,$@:)
-	@pip install --upgrade --editable ".[dev]"
+	@python -m pip install --upgrade --editable ".[dev]"
 
 ## Delete builds and compiled python files.
 clean:

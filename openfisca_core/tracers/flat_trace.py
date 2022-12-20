@@ -1,28 +1,19 @@
 from __future__ import annotations
 
-import typing
-from typing import Dict, Optional, Union
+from typing import Any, Dict
 
 import numpy
 
-from openfisca_core import tracers
-from openfisca_core.indexed_enums import EnumArray
-
-if typing.TYPE_CHECKING:
-    from numpy.typing import ArrayLike
-
-    Array = Union[EnumArray, ArrayLike]
-    Trace = Dict[str, dict]
+from openfisca_core import indexed_enums as enums, types
 
 
 class FlatTrace:
+    _full_tracer: types.FullTracer
 
-    _full_tracer: tracers.FullTracer
-
-    def __init__(self, full_tracer: tracers.FullTracer) -> None:
+    def __init__(self, full_tracer: types.FullTracer) -> None:
         self._full_tracer = full_tracer
 
-    def key(self, node: tracers.TraceNode) -> str:
+    def key(self, node: types.TraceNode) -> str:
         name = node.name
         period = node.period
         return f"{name}<{period}>"
@@ -52,26 +43,19 @@ class FlatTrace:
             for key, flat_trace in self.get_trace().items()
             }
 
-    def serialize(
-            self,
-            value: Optional[Array],
-            ) -> Union[Optional[Array], list]:
-        if isinstance(value, EnumArray):
-            value = value.decode_to_str()
+    def serialize(self, value: Any) -> Any:
+        if not isinstance(value, numpy.ndarray):
+            return value
 
-        if isinstance(value, numpy.ndarray) and \
-           numpy.issubdtype(value.dtype, numpy.dtype(bytes)):
-            value = value.astype(numpy.dtype(str))
+        if isinstance(value, enums.EnumArray):
+            return value.decode_to_str().tolist()
 
-        if isinstance(value, numpy.ndarray):
-            value = value.tolist()
+        if numpy.issubdtype(value.dtype, numpy.dtype(bytes)):
+            return value.astype(numpy.dtype(str)).tolist()
 
-        return value
+        return value.tolist()
 
-    def _get_flat_trace(
-            self,
-            node: tracers.TraceNode,
-            ) -> Trace:
+    def _get_flat_trace(self, node: types.TraceNode) -> Dict[str, dict]:
         key = self.key(node)
 
         node_trace = {

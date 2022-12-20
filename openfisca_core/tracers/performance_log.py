@@ -1,23 +1,24 @@
 from __future__ import annotations
 
+from typing import Dict, Tuple, Sequence
+
 import csv
 import importlib.resources
 import itertools
 import json
 import os
-import typing
 
-from .. import tracers
+from openfisca_core import types
 
-if typing.TYPE_CHECKING:
-    Trace = typing.Dict[str, dict]
-    Calculation = typing.Tuple[str, dict]
-    SortedTrace = typing.List[Calculation]
+from .trace_node import TraceNode
+
+Trace = Dict[str, dict]
+Calculation = Tuple[str, dict]
+SortedTrace = Sequence[Calculation]
 
 
 class PerformanceLog:
-
-    def __init__(self, full_tracer: tracers.FullTracer) -> None:
+    def __init__(self, full_tracer: types.FullTracer) -> None:
         self._full_tracer = full_tracer
 
     def generate_graph(self, dir_path: str) -> None:
@@ -66,7 +67,7 @@ class PerformanceLog:
     def aggregate_calculation_times(
             self,
             flat_trace: Trace,
-            ) -> typing.Dict[str, dict]:
+            ) -> Dict[str, dict]:
 
         def _aggregate_calculations(calculations: list) -> dict:
             calculation_count = len(calculations)
@@ -85,10 +86,10 @@ class PerformanceLog:
 
             return {
                 'calculation_count': calculation_count,
-                'calculation_time': tracers.TraceNode.round(calculation_time),
-                'formula_time': tracers.TraceNode.round(formula_time),
-                'avg_calculation_time': tracers.TraceNode.round(calculation_time / calculation_count),
-                'avg_formula_time': tracers.TraceNode.round(formula_time / calculation_count),
+                'calculation_time': TraceNode.round(calculation_time),
+                'formula_time': TraceNode.round(formula_time),
+                'avg_calculation_time': TraceNode.round(calculation_time / calculation_count),
+                'avg_formula_time': TraceNode.round(formula_time / calculation_count),
                 }
 
         def _groupby(calculation: Calculation) -> str:
@@ -112,7 +113,7 @@ class PerformanceLog:
             'children': children,
             }
 
-    def _json_tree(self, tree: tracers.TraceNode) -> dict:
+    def _json_tree(self, tree: types.TraceNode) -> dict:
         calculation_total_time = tree.calculation_time()
         children = [self._json_tree(child) for child in tree.children]
 
@@ -122,7 +123,7 @@ class PerformanceLog:
             'children': children,
             }
 
-    def _write_csv(self, path: str, rows: typing.List[dict]) -> None:
+    def _write_csv(self, path: str, rows: Sequence[dict]) -> None:
         fieldnames = list(rows[0].keys())
 
         with open(path, 'w') as csv_file:
