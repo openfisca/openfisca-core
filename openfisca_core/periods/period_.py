@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Sequence, Tuple
+from typing import NamedTuple, Sequence
 
 import datetime
 
@@ -10,32 +10,23 @@ from .typing import Offsetable
 
 DAY, MONTH, YEAR, ETERNITY = tuple(DateUnit)
 
+Instant = Offsetable[int, int, int]
 
-class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
+
+class Period(NamedTuple):
     """Toolbox to handle date intervals.
-
-    A ``Period`` is a triple (``unit``, ``start``, ``size``).
-
-    Attributes:
-        unit: Either ``year``, ``month``, ``day`` or ``eternity``.
-        start: The "instant" the Period starts at.
-        size: The amount of ``unit``, starting at ``start``, at least ``1``.
-
-    Args:
-        (tuple(DateUnit, .Instant, int)):
-            The ``unit``, ``start``, and ``size``, accordingly.
 
     Examples:
         >>> from openfisca_core.periods import Instant
 
         >>> start = Instant(2021, 9, 1)
-        >>> period = Period((YEAR, start, 3))
+        >>> period = Period(YEAR, start, 3)
 
         ``Periods`` are represented as a ``tuple`` containing the ``unit``,
         an ``Instant`` and the ``size``:
 
         >>> repr(period)
-        'Period((year, Instant(year=2021, month=9, day=1), 3))'
+        'Period(unit=year, start=Instant(year=2021, month=9, day=1), size=3)'
 
         Their user-friendly representation is as a date in the
         ISO format, prefixed with the ``unit`` and suffixed with its ``size``:
@@ -47,7 +38,7 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
         contain a nested data structure, they're not hashable:
 
         >>> {period: (2021, 9, 13)}
-        {Period((year, Instant(year=2021, month=9, day=1), 3)): (2021, 9, 13)}
+        {Period(unit=year, start=Instant(year=2021, month=9, day=1), size=3):...}
 
         All the rest of the ``tuple`` protocols are inherited as well:
 
@@ -60,10 +51,10 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
         >>> len(period)
         3
 
-        >>> period == Period((YEAR, start, 3))
+        >>> period == Period(YEAR, start, 3)
         True
 
-        >>> period > Period((YEAR, start, 3))
+        >>> period > Period(YEAR, start, 3)
         False
 
         >>> unit, (year, month, day), size = period
@@ -72,11 +63,14 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
 
     """
 
-    def __repr__(self) -> str:
-        return (
-            f"{type(self).__name__}"
-            f"({super(type(self), self).__repr__()})"
-            )
+    #: Either ``year``, ``month``, ``day`` or ``eternity``.
+    unit: DateUnit
+
+    #: The "instant" the Period starts at.
+    start: Offsetable[int, int, int]
+
+    #: The amount of ``unit``, starting at ``start``, at least ``1``.
+    size: int
 
     def __str__(self) -> str:
         """Transform period to a string.
@@ -90,33 +84,31 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
             >>> jan = Instant(2021, 1, 1)
             >>> feb = jan.offset(1, MONTH)
 
-            >>> str(Period((YEAR, jan, 1)))
+            >>> str(Period(YEAR, jan, 1))
             '2021'
 
-            >>> str(Period((YEAR, feb, 1)))
+            >>> str(Period(YEAR, feb, 1))
             'year:2021-02'
 
-            >>> str(Period((MONTH, feb, 1)))
+            >>> str(Period(MONTH, feb, 1))
             '2021-02'
 
-            >>> str(Period((YEAR, jan, 2)))
+            >>> str(Period(YEAR, jan, 2))
             'year:2021:2'
 
-            >>> str(Period((MONTH, jan, 2)))
+            >>> str(Period(MONTH, jan, 2))
             'month:2021-01:2'
 
-            >>> str(Period((MONTH, jan, 12)))
+            >>> str(Period(MONTH, jan, 12))
             '2021'
 
         """
 
-        size = self.size
-        start = self.start
-        unit = self.unit
+        year: int
+        month: int
+        day: int
 
-        day = start.day
-        month = start.month
-        year = start.year
+        unit, (year, month, day), size = self
 
         if unit == ETERNITY:
             return str(unit.name)
@@ -162,8 +154,8 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
             >>> from openfisca_core.periods import Instant
 
             >>> start = Instant(2021, 1, 1)
-            >>> period = Period((YEAR, start, 1))
-            >>> sub_period = Period((MONTH, start, 3))
+            >>> period = Period(YEAR, start, 1)
+            >>> sub_period = Period(MONTH, start, 3)
 
             >>> sub_period in period
             True
@@ -176,67 +168,7 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
         return super().__contains__(other)
 
     @property
-    def unit(self) -> DateUnit:
-        """The ``unit`` of the ``Period``.
-
-        Returns:
-            A DateUnit.
-
-        Example:
-            >>> from openfisca_core.periods import Instant
-
-            >>> start = Instant(2021, 10, 1)
-            >>> period = Period((YEAR, start, 3))
-
-            >>> period.unit
-            year
-
-        """
-
-        return self[0]
-
-    @property
-    def start(self) -> Offsetable[int, int, int]:
-        """The ``Instant`` at which the ``Period`` starts.
-
-        Returns:
-            An Instant.
-
-        Example:
-            >>> from openfisca_core.periods import Instant
-
-            >>> start = Instant(2021, 10, 1)
-            >>> period = Period((YEAR, start, 3))
-
-            >>> period.start
-            Instant(year=2021, month=10, day=1)
-
-        """
-
-        return self[1]
-
-    @property
-    def size(self) -> int:
-        """The ``size`` of the ``Period``.
-
-        Returns:
-            An int.
-
-        Example:
-            >>> from openfisca_core.periods import Instant
-
-            >>> start = Instant(2021, 10, 1)
-            >>> period = Period((YEAR, start, 3))
-
-            >>> period.size
-            3
-
-        """
-
-        return self[2]
-
-    @property
-    def stop(self) -> Offsetable[int, int, int]:
+    def stop(self) -> Instant:
         """Last day of the ``Period`` as an ``Instant``.
 
         Returns:
@@ -247,13 +179,13 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
 
             >>> start = Instant(2012, 2, 29)
 
-            >>> Period((YEAR, start, 2)).stop
+            >>> Period(YEAR, start, 2).stop
             Instant(year=2014, month=2, day=27)
 
-            >>> Period((MONTH, start, 36)).stop
+            >>> Period(MONTH, start, 36).stop
             Instant(year=2015, month=2, day=27)
 
-            >>> Period((DAY, start, 1096)).stop
+            >>> Period(DAY, start, 1096).stop
             Instant(year=2015, month=2, day=28)
 
         """
@@ -279,11 +211,11 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
 
             >>> start = Instant(2021, 10, 1)
 
-            >>> period = Period((YEAR, start, 1))
+            >>> period = Period(YEAR, start, 1)
             >>> period.date()
             Date(2021, 10, 1)
 
-            >>> period = Period((YEAR, start, 3))
+            >>> period = Period(YEAR, start, 3)
             >>> period.date()
             Traceback (most recent call last):
             ValueError: 'date' undefined for period size > 1: year:2021-10:3.
@@ -315,28 +247,28 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
 
             >>> start = Instant(2021, 10, 1)
 
-            >>> period = Period((YEAR, start, 3))
+            >>> period = Period(YEAR, start, 3)
             >>> period.count(DAY)
             1096
 
-            >>> period = Period((MONTH, start, 3))
+            >>> period = Period(MONTH, start, 3)
             >>> period.count(DAY)
             92
 
-            >>> period = Period((YEAR, start, 3))
+            >>> period = Period(YEAR, start, 3)
             >>> period.count(MONTH)
             36
 
-            >>> period = Period((DAY, start, 3))
+            >>> period = Period(DAY, start, 3)
             >>> period.count(MONTH)
             Traceback (most recent call last):
             ValueError: Cannot calculate number of months in a day.
 
-            >>> period = Period((YEAR, start, 3))
+            >>> period = Period(YEAR, start, 3)
             >>> period.count(YEAR)
             3
 
-            >>> period = Period((MONTH, start, 3))
+            >>> period = Period(MONTH, start, 3)
             >>> period.count(YEAR)
             Traceback (most recent call last):
             ValueError: Cannot calculate number of years in a month.
@@ -374,22 +306,22 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
 
             >>> start = Instant(2023, 1, 1)
 
-            >>> period = Period((YEAR, start, 3))
+            >>> period = Period(YEAR, start, 3)
 
             >>> period.first(DAY)
-            Period((day, Instant(year=2023, month=1, day=1), 1))
+            Period(unit=day, start=Instant(year=2023, month=1, day=1), size=1)
 
             >>> period.first(MONTH)
-            Period((month, Instant(year=2023, month=1, day=1), 1))
+            Period(unit=month, start=Instant(year=2023, month=1, day=1), size=1)
 
             >>> period.first(YEAR)
-            Period((year, Instant(year=2023, month=1, day=1), 1))
+            Period(unit=year, start=Instant(year=2023, month=1, day=1), size=1)
 
         .. versionadded:: 39.0.0
 
         """
 
-        return type(self)((unit, self.start.offset("first-of", unit), 1))
+        return type(self)(unit, self.start.offset("first-of", unit), 1)
 
     def come(self, unit: DateUnit, size: int = 1) -> Period:
         """The next ``unit``s ``size`` from ``Period.start``.
@@ -406,31 +338,31 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
 
             >>> start = Instant(2023, 1, 1)
 
-            >>> period = Period((YEAR, start, 3))
+            >>> period = Period(YEAR, start, 3)
 
             >>> period.come(DAY)
-            Period((day, Instant(year=2023, month=1, day=2), 1))
+            Period(unit=day, start=Instant(year=2023, month=1, day=2), size=1)
 
             >>> period.come(DAY, 7)
-            Period((day, Instant(year=2023, month=1, day=8), 1))
+            Period(unit=day, start=Instant(year=2023, month=1, day=8), size=1)
 
             >>> period.come(MONTH)
-            Period((month, Instant(year=2023, month=2, day=1), 1))
+            Period(unit=month, start=Instant(year=2023, month=2, day=1), size=1)
 
             >>> period.come(MONTH, 3)
-            Period((month, Instant(year=2023, month=4, day=1), 1))
+            Period(unit=month, start=Instant(year=2023, month=4, day=1), size=1)
 
             >>> period.come(YEAR)
-            Period((year, Instant(year=2024, month=1, day=1), 1))
+            Period(unit=year, start=Instant(year=2024, month=1, day=1), size=1)
 
             >>> period.come(YEAR, 1)
-            Period((year, Instant(year=2024, month=1, day=1), 1))
+            Period(unit=year, start=Instant(year=2024, month=1, day=1), size=1)
 
         .. versionadded:: 39.0.0
 
         """
 
-        return type(self)((unit, self.first(unit).start, 1)).offset(size)
+        return type(self)(unit, self.first(unit).start, 1).offset(size)
 
     def ago(self, unit: DateUnit, size: int = 1) -> Period:
         """``size`` ``unit``s ago from ``Period.start``.
@@ -447,31 +379,31 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
 
             >>> start = Instant(2020, 3, 31)
 
-            >>> period = Period((YEAR, start, 3))
+            >>> period = Period(YEAR, start, 3)
 
             >>> period.ago(DAY)
-            Period((day, Instant(year=2020, month=3, day=30), 1))
+            Period(unit=day, start=Instant(year=2020, month=3, day=30), size=1)
 
             >>> period.ago(DAY, 7)
-            Period((day, Instant(year=2020, month=3, day=24), 1))
+            Period(unit=day, start=Instant(year=2020, month=3, day=24), size=1)
 
             >>> period.ago(MONTH)
-            Period((month, Instant(year=2020, month=2, day=29), 1))
+            Period(unit=month, start=Instant(year=2020, month=2, day=29), size=1)
 
             >>> period.ago(MONTH, 3)
-            Period((month, Instant(year=2019, month=12, day=31), 1))
+            Period(unit=month, start=Instant(year=2019, month=12, day=31), size=1)
 
             >>> period.ago(YEAR)
-            Period((year, Instant(year=2019, month=3, day=31), 1))
+            Period(unit=year, start=Instant(year=2019, month=3, day=31), size=1)
 
             >>> period.ago(YEAR, 1)
-            Period((year, Instant(year=2019, month=3, day=31), 1))
+            Period(unit=year, start=Instant(year=2019, month=3, day=31), size=1)
 
         .. versionadded:: 39.0.0
 
         """
 
-        return type(self)((unit, self.start, 1)).offset(-size)
+        return type(self)(unit, self.start, 1).offset(-size)
 
     def until(self, unit: DateUnit, size: int = 1) -> Period:
         """Next ``unit`` ``size``s from ``Period.start``.
@@ -488,31 +420,31 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
 
             >>> start = Instant(2023, 1, 1)
 
-            >>> period = Period((YEAR, start, 3))
+            >>> period = Period(YEAR, start, 3)
 
             >>> period.until(DAY)
-            Period((day, Instant(year=2023, month=1, day=1), 1))
+            Period(unit=day, start=Instant(year=2023, month=1, day=1), size=1)
 
             >>> period.until(DAY, 7)
-            Period((day, Instant(year=2023, month=1, day=1), 7))
+            Period(unit=day, start=Instant(year=2023, month=1, day=1), size=7)
 
             >>> period.until(MONTH)
-            Period((month, Instant(year=2023, month=1, day=1), 1))
+            Period(unit=month, start=Instant(year=2023, month=1, day=1), size=1)
 
             >>> period.until(MONTH, 3)
-            Period((month, Instant(year=2023, month=1, day=1), 3))
+            Period(unit=month, start=Instant(year=2023, month=1, day=1), size=3)
 
             >>> period.until(YEAR)
-            Period((year, Instant(year=2023, month=1, day=1), 1))
+            Period(unit=year, start=Instant(year=2023, month=1, day=1), size=1)
 
             >>> period.until(YEAR, 1)
-            Period((year, Instant(year=2023, month=1, day=1), 1))
+            Period(unit=year, start=Instant(year=2023, month=1, day=1), size=1)
 
         .. versionadded:: 39.0.0
 
         """
 
-        return type(self)((unit, self.first(unit).start, size))
+        return type(self)(unit, self.first(unit).start, size)
 
     def last(self, unit: DateUnit, size: int = 1) -> Period:
         """Last ``size`` ``unit``s from ``Period.start``.
@@ -529,31 +461,31 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
 
             >>> start = Instant(2023, 1, 1)
 
-            >>> period = Period((YEAR, start, 3))
+            >>> period = Period(YEAR, start, 3)
 
             >>> period.last(DAY)
-            Period((day, Instant(year=2022, month=12, day=31), 1))
+            Period(unit=day, start=Instant(year=2022, month=12, day=31), size=1)
 
             >>> period.last(DAY, 7)
-            Period((day, Instant(year=2022, month=12, day=25), 7))
+            Period(unit=day, start=Instant(year=2022, month=12, day=25), size=7)
 
             >>> period.last(MONTH)
-            Period((month, Instant(year=2022, month=12, day=1), 1))
+            Period(unit=month, start=Instant(year=2022, month=12, day=1), size=1)
 
             >>> period.last(MONTH, 3)
-            Period((month, Instant(year=2022, month=10, day=1), 3))
+            Period(unit=month, start=Instant(year=2022, month=10, day=1), size=3)
 
             >>> period.last(YEAR)
-            Period((year, Instant(year=2022, month=1, day=1), 1))
+            Period(unit=year, start=Instant(year=2022, month=1, day=1), size=1)
 
             >>> period.last(YEAR, 1)
-            Period((year, Instant(year=2022, month=1, day=1), 1))
+            Period(unit=year, start=Instant(year=2022, month=1, day=1), size=1)
 
         .. versionadded:: 39.0.0
 
         """
 
-        return type(self)((unit, self.ago(unit, size).start, size))
+        return type(self)(unit, self.ago(unit, size).start, size)
 
     def offset(self, offset: str | int, unit: DateUnit | None = None) -> Period:
         """Increment (or decrement) the given period with offset units.
@@ -570,19 +502,19 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
 
             >>> start = Instant(2014, 2, 3)
 
-            >>> Period((DAY, start, 1)).offset("first-of", MONTH)
-            Period((day, Instant(year=2014, month=2, day=1), 1))
+            >>> Period(DAY, start, 1).offset("first-of", MONTH)
+            Period(unit=day, start=Instant(year=2014, month=2, day=1), size=1)
 
-            >>> Period((MONTH, start, 4)).offset("last-of", MONTH)
-            Period((month, Instant(year=2014, month=2, day=28), 4))
+            >>> Period(MONTH, start, 4).offset("last-of", MONTH)
+            Period(unit=month, start=Instant(year=2014, month=2, day=28), size=4)
 
             >>> start = Instant(2021, 1, 1)
 
-            >>> Period((DAY, start, 365)).offset(-3)
-            Period((day, Instant(year=2020, month=12, day=29), 365))
+            >>> Period(DAY, start, 365).offset(-3)
+            Period(unit=day, start=Instant(year=2020, month=12, day=29), size=365)
 
-            >>> Period((DAY, start, 365)).offset(1, YEAR)
-            Period((day, Instant(year=2022, month=1, day=1), 365))
+            >>> Period(DAY, start, 365).offset(1, YEAR)
+            Period(unit=day, start=Instant(year=2022, month=1, day=1), size=365)
 
         """
 
@@ -591,7 +523,7 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
 
         start = self.start.offset(offset, unit)
 
-        return type(self)((self.unit, start, self.size))
+        return type(self)(self.unit, start, self.size)
 
     def subperiods(self, unit: DateUnit) -> Sequence[Period]:
         """Return the list of all the periods of unit ``unit``.
@@ -611,13 +543,13 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
 
             >>> start = Instant(2021, 1, 1)
 
-            >>> period = Period((YEAR, start, 1))
+            >>> period = Period(YEAR, start, 1)
             >>> period.subperiods(MONTH)
-            [Period((month, Instant(year=2021, month=1, day=1), 1)),...1), 1))]
+            [Period(unit=month, start=Instant(year=2021, month=1, day=1), size=1), ...]
 
-            >>> period = Period((YEAR, start, 2))
+            >>> period = Period(YEAR, start, 2)
             >>> period.subperiods(YEAR)
-            [Period((year, Instant(year=2021, month=1, day=1), 1)), ...1), 1))]
+            [Period(unit=year, start=Instant(year=2021, month=1, day=1), size=1), ...]
 
         .. versionchanged:: 39.0.0:
             Renamed from ``get_subperiods`` to ``subperiods``.

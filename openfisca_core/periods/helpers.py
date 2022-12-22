@@ -52,7 +52,7 @@ def build_instant(value: Any) -> Instant:
 
         >>> start = Instant(2021, 9, 16)
 
-        >>> build_instant(Period((year, start, 1)))
+        >>> build_instant(Period(year, start, 1))
         Traceback (most recent call last):
         InstantFormatError: 'year:2021-09' is not a valid instant.
 
@@ -100,40 +100,40 @@ def build_period(value: Any) -> Period:
         PeriodTypeError: When ``value`` is not a ``period-like`` object.
 
     Examples:
-        >>> build_period(Period((year, Instant(2021, 1, 1), 1)))
-        Period((year, Instant(year=2021, month=1, day=1), 1))
+        >>> build_period(Period(year, Instant(2021, 1, 1), 1))
+        Period(unit=year, start=Instant(year=2021, month=1, day=1), size=1)
 
         >>> build_period(Instant(2021, 1, 1))
-        Period((day, Instant(year=2021, month=1, day=1), 1))
+        Period(unit=day, start=Instant(year=2021, month=1, day=1), size=1)
 
         >>> build_period(eternity)
-        Period((eternity, Instant(year=1, month=1, day=1), 1))
+        Period(unit=eternity, start=Instant(year=1, month=1, day=1), size=1)
 
         >>> build_period(2021)
-        Period((year, Instant(year=2021, month=1, day=1), 1))
+        Period(unit=year, start=Instant(year=2021, month=1, day=1), size=1)
 
         >>> build_period("2014")
-        Period((year, Instant(year=2014, month=1, day=1), 1))
+        Period(unit=year, start=Instant(year=2014, month=1, day=1), size=1)
 
         >>> build_period("year:2014")
-        Period((year, Instant(year=2014, month=1, day=1), 1))
+        Period(unit=year, start=Instant(year=2014, month=1, day=1), size=1)
 
         >>> build_period("month:2014-02")
-        Period((month, Instant(year=2014, month=2, day=1), 1))
+        Period(unit=month, start=Instant(year=2014, month=2, day=1), size=1)
 
         >>> build_period("year:2014-02")
-        Period((year, Instant(year=2014, month=2, day=1), 1))
+         Period(unit=year, start=Instant(year=2014, month=2, day=1), size=1)
 
         >>> build_period("day:2014-02-02")
-        Period((day, Instant(year=2014, month=2, day=2), 1))
+        Period(unit=day, start=Instant(year=2014, month=2, day=2), size=1)
 
         >>> build_period("day:2014-02-02:3")
-        Period((day, Instant(year=2014, month=2, day=2), 3))
+        Period(unit=day, start=Instant(year=2014, month=2, day=2), size=3)
 
     """
 
     if value in {eternity, eternity.name, eternity.name.lower()}:
-        return Period((eternity, build_instant(datetime.date.min), 1))
+        return Period(eternity, build_instant(datetime.date.min), 1)
 
     if value is None or isinstance(value, DateUnit):
         raise PeriodTypeError(value)
@@ -142,10 +142,10 @@ def build_period(value: Any) -> Period:
         return value
 
     if isinstance(value, Instant):
-        return Period((day, value, 1))
+        return Period(day, value, 1)
 
     if isinstance(value, int):
-        return Period((year, Instant(value, 1, 1), 1))
+        return Period(year, Instant(value, 1, 1), 1)
 
     if not isinstance(value, str):
         raise PeriodFormatError(value)
@@ -158,7 +158,7 @@ def build_period(value: Any) -> Period:
 
     unit = DateUnit(isoformat.unit)
 
-    return Period((unit, build_instant(isoformat[:3]), isoformat.size))
+    return Period(unit, build_instant(isoformat[:3]), isoformat.size)
 
 
 def parse_int(value: int) -> ISOFormat | None:

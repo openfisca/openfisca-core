@@ -23,7 +23,7 @@ def instant():
 def test_str_with_years(date_unit, instant, size, expected):
     """Returns the expected string."""
 
-    assert str(Period((date_unit, instant, size))) == expected
+    assert str(Period(date_unit, instant, size)) == expected
 
 
 @pytest.mark.parametrize("date_unit, instant, size, expected", [
@@ -34,7 +34,7 @@ def test_str_with_years(date_unit, instant, size, expected):
 def test_str_with_months(date_unit, instant, size, expected):
     """Returns the expected string."""
 
-    assert str(Period((date_unit, instant, size))) == expected
+    assert str(Period(date_unit, instant, size)) == expected
 
 
 @pytest.mark.parametrize("date_unit, instant, size, expected", [
@@ -45,7 +45,7 @@ def test_str_with_months(date_unit, instant, size, expected):
 def test_str_with_days(date_unit, instant, size, expected):
     """Returns the expected string."""
 
-    assert str(Period((date_unit, instant, size))) == expected
+    assert str(Period(date_unit, instant, size)) == expected
 
 
 @pytest.mark.parametrize("period_unit, unit, start, cease, count", [
@@ -59,41 +59,41 @@ def test_str_with_days(date_unit, instant, size, expected):
 def test_subperiods(instant, period_unit, unit, start, cease, count):
     """Returns the expected subperiods."""
 
-    period = Period((period_unit, instant, 3))
+    period = Period(period_unit, instant, 3)
     subperiods = period.subperiods(unit)
 
     assert len(subperiods) == count
-    assert subperiods[0] == Period((unit, start, 1))
-    assert subperiods[-1] == Period((unit, cease, 1))
+    assert subperiods[0] == Period(unit, start, 1)
+    assert subperiods[-1] == Period(unit, cease, 1)
 
 
 @pytest.mark.parametrize("period_unit, offset, unit, expected", [
-    [day, "first-of", month, Period((day, Instant(2022, 12, 1), 3))],
-    [day, "first-of", year, Period((day, Instant(2022, 1, 1), 3))],
-    [day, "last-of", month, Period((day, Instant(2022, 12, 31), 3))],
-    [day, "last-of", year, Period((day, Instant(2022, 12, 31), 3))],
-    [day, -3, year, Period((day, Instant(2019, 12, 31), 3))],
-    [day, 1, month, Period((day, Instant(2023, 1, 31), 3))],
-    [day, 3, day, Period((day, Instant(2023, 1, 3), 3))],
-    [month, "first-of", month, Period((month, Instant(2022, 12, 1), 3))],
-    [month, "first-of", year, Period((month, Instant(2022, 1, 1), 3))],
-    [month, "last-of", month, Period((month, Instant(2022, 12, 31), 3))],
-    [month, "last-of", year, Period((month, Instant(2022, 12, 31), 3))],
-    [month, -3, year, Period((month, Instant(2019, 12, 31), 3))],
-    [month, 1, month, Period((month, Instant(2023, 1, 31), 3))],
-    [month, 3, day, Period((month, Instant(2023, 1, 3), 3))],
-    [year, "first-of", month, Period((year, Instant(2022, 12, 1), 3))],
-    [year, "first-of", year, Period((year, Instant(2022, 1, 1), 3))],
-    [year, "last-of", month, Period((year, Instant(2022, 12, 31), 3))],
-    [year, "last-of", year, Period((year, Instant(2022, 12, 31), 3))],
-    [year, -3, year, Period((year, Instant(2019, 12, 31), 3))],
-    [year, 1, month, Period((year, Instant(2023, 1, 31), 3))],
-    [year, 3, day, Period((year, Instant(2023, 1, 3), 3))],
+    [day, "first-of", month, Period(day, Instant(2022, 12, 1), 3)],
+    [day, "first-of", year, Period(day, Instant(2022, 1, 1), 3)],
+    [day, "last-of", month, Period(day, Instant(2022, 12, 31), 3)],
+    [day, "last-of", year, Period(day, Instant(2022, 12, 31), 3)],
+    [day, -3, year, Period(day, Instant(2019, 12, 31), 3)],
+    [day, 1, month, Period(day, Instant(2023, 1, 31), 3)],
+    [day, 3, day, Period(day, Instant(2023, 1, 3), 3)],
+    [month, "first-of", month, Period(month, Instant(2022, 12, 1), 3)],
+    [month, "first-of", year, Period(month, Instant(2022, 1, 1), 3)],
+    [month, "last-of", month, Period(month, Instant(2022, 12, 31), 3)],
+    [month, "last-of", year, Period(month, Instant(2022, 12, 31), 3)],
+    [month, -3, year, Period(month, Instant(2019, 12, 31), 3)],
+    [month, 1, month, Period(month, Instant(2023, 1, 31), 3)],
+    [month, 3, day, Period(month, Instant(2023, 1, 3), 3)],
+    [year, "first-of", month, Period(year, Instant(2022, 12, 1), 3)],
+    [year, "first-of", year, Period(year, Instant(2022, 1, 1), 3)],
+    [year, "last-of", month, Period(year, Instant(2022, 12, 31), 3)],
+    [year, "last-of", year, Period(year, Instant(2022, 12, 31), 3)],
+    [year, -3, year, Period(year, Instant(2019, 12, 31), 3)],
+    [year, 1, month, Period(year, Instant(2023, 1, 31), 3)],
+    [year, 3, day, Period(year, Instant(2023, 1, 3), 3)],
     ])
 def test_offset(instant, period_unit, offset, unit, expected):
     """Returns the expected ``Period``."""
 
-    period = Period((period_unit, instant, 3))
+    period = Period(period_unit, instant, 3)
 
     assert period.offset(offset, unit) == expected
 
@@ -110,7 +110,7 @@ def test_offset(instant, period_unit, offset, unit, expected):
 def test_day_size_in_months(date_unit, instant, size, expected):
     """Returns the expected number of months."""
 
-    period = Period((date_unit, instant, size))
+    period = Period(date_unit, instant, size)
 
     assert period.count(month) == expected
 
@@ -129,6 +129,6 @@ def test_day_size_in_months(date_unit, instant, size, expected):
 def test_day_size_in_days(date_unit, instant, size, expected):
     """Returns the expected number of days."""
 
-    period = Period((date_unit, instant, size))
+    period = Period(date_unit, instant, size)
 
     assert period.count(day) == expected

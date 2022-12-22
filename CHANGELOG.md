@@ -92,7 +92,7 @@
 
 #### Migration details
 
-- Replace `some_period.start.period` and similar methods with `Period((unit, some_period.start, 1))`.
+- Replace `some_period.start.period` and similar methods with `Period(unit, some_period.start, 1)`.
 
 # 36.0.0 [#1149](https://github.com/openfisca/openfisca-core/pull/1162)
 

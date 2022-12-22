@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Tuple, TypeVar
+from typing import Any, Iterator, Tuple, TypeVar
 from typing_extensions import Protocol
 
 import abc
@@ -18,6 +18,10 @@ V = TypeVar("V", covariant = True)
 class Offsetable(Protocol[T, U, V]):
     @abc.abstractmethod
     def __init__(self, *args: Tuple[T, U, V]) -> None:
+        ...
+
+    @abc.abstractmethod
+    def __iter__(self) -> Iterator[U]:
         ...
 
     @abc.abstractmethod
