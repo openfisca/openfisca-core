@@ -25,7 +25,7 @@ from openfisca_core.parameters import ParameterNode
 from openfisca_core.populations import GroupPopulation, Population
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.variables import Variable
-from openfisca_core.periods.typing import Offsetable
+from openfisca_core.periods.typing import Instant
 
 log = logging.getLogger(__name__)
 
@@ -388,7 +388,7 @@ class TaxBenefitSystem:
     @functools.lru_cache()
     def get_parameters_at_instant(
             self,
-            instant: periods.Period | Offsetable[int, int, int] | str | int,
+            instant: periods.Period | Instant | str | int,
             ) -> Optional[types.ParameterNodeAtInstant]:
         """Get the parameters of the legislation at a given instant
 
@@ -400,7 +400,7 @@ class TaxBenefitSystem:
 
         """
 
-        key: Offsetable[int, int, int]
+        key: Instant
 
         if isinstance(instant, periods.Instant):
             key = instant

@@ -6,11 +6,9 @@ import datetime
 
 from ._dates import DateUnit
 from ._errors import DateUnitValueError
-from .typing import Offsetable
+from .typing import Instant
 
 DAY, MONTH, YEAR, ETERNITY = tuple(DateUnit)
-
-Instant = Offsetable[int, int, int]
 
 
 class Period(NamedTuple):
@@ -67,7 +65,7 @@ class Period(NamedTuple):
     unit: DateUnit
 
     #: The "instant" the Period starts at.
-    start: Offsetable[int, int, int]
+    start: Instant
 
     #: The amount of ``unit``, starting at ``start``, at least ``1``.
     size: int
@@ -103,10 +101,6 @@ class Period(NamedTuple):
             '2021'
 
         """
-
-        year: int
-        month: int
-        day: int
 
         unit, (year, month, day), size = self
 
@@ -193,7 +187,7 @@ class Period(NamedTuple):
         unit, start, size = self
 
         if unit == ETERNITY:
-            return type(self.start)((1, 1, 1))
+            return type(self.start)(1, 1, 1)
 
         return start.offset(size, unit).offset(-1, DAY)
 
@@ -321,7 +315,9 @@ class Period(NamedTuple):
 
         """
 
-        return type(self)(unit, self.start.offset("first-of", unit), 1)
+        start: Instant = self.start.offset("first-of", unit)
+
+        return type(self)(unit = unit, start = start, size = 1)
 
     def come(self, unit: DateUnit, size: int = 1) -> Period:
         """The next ``unit``s ``size`` from ``Period.start``.
@@ -362,7 +358,9 @@ class Period(NamedTuple):
 
         """
 
-        return type(self)(unit, self.first(unit).start, 1).offset(size)
+        start: Instant = self.first(unit).start
+
+        return type(self)(unit = unit, start = start, size = 1).offset(size)
 
     def ago(self, unit: DateUnit, size: int = 1) -> Period:
         """``size`` ``unit``s ago from ``Period.start``.
@@ -403,7 +401,9 @@ class Period(NamedTuple):
 
         """
 
-        return type(self)(unit, self.start, 1).offset(-size)
+        start: Instant = self.start
+
+        return type(self)(unit = unit, start = start, size = 1).offset(-size)
 
     def until(self, unit: DateUnit, size: int = 1) -> Period:
         """Next ``unit`` ``size``s from ``Period.start``.
@@ -444,7 +444,9 @@ class Period(NamedTuple):
 
         """
 
-        return type(self)(unit, self.first(unit).start, size)
+        start: Instant = self.first(unit).start
+
+        return type(self)(unit = unit, start = start, size = size)
 
     def last(self, unit: DateUnit, size: int = 1) -> Period:
         """Last ``size`` ``unit``s from ``Period.start``.
@@ -485,7 +487,9 @@ class Period(NamedTuple):
 
         """
 
-        return type(self)(unit, self.ago(unit, size).start, size)
+        start: Instant = self.ago(unit, size).start
+
+        return type(self)(unit = unit, start = start, size = size)
 
     def offset(self, offset: str | int, unit: DateUnit | None = None) -> Period:
         """Increment (or decrement) the given period with offset units.
@@ -521,9 +525,9 @@ class Period(NamedTuple):
         if unit is None:
             unit = self.unit
 
-        start = self.start.offset(offset, unit)
+        start: Instant = self.start.offset(offset, unit)
 
-        return type(self)(self.unit, start, self.size)
+        return type(self)(unit = self.unit, start = start, size = self.size)
 
     def subperiods(self, unit: DateUnit) -> Sequence[Period]:
         """Return the list of all the periods of unit ``unit``.

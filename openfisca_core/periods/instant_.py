@@ -159,21 +159,21 @@ class Instant(NamedTuple):
             return self
 
         if offset == "first-of" and unit == MONTH:
-            return type(self)(year, month, 1)
+            return type(self)(year = year, month = month, day = 1)
 
         if offset == "first-of" and unit == YEAR:
-            return type(self)(year, 1, 1)
+            return type(self)(year = year, month = 1, day = 1)
 
         if offset == "last-of" and unit == MONTH:
             day = calendar.monthrange(year, month)[1]
-            return type(self)(year, month, day)
+            return type(self)(year = year, month = month, day = day)
 
         if offset == "last-of" and unit == YEAR:
-            return type(self)(year, 12, 31)
+            return type(self)(year = year, month = 12, day = 31)
 
         if not isinstance(offset, int):
             raise OffsetTypeError(offset)
 
         date = self.add(unit.plural, offset)
 
-        return type(self)(date.year, date.month, date.day)
+        return type(self)(year = date.year, month = date.month, day = date.day)

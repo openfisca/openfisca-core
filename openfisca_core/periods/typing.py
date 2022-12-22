@@ -2,26 +2,26 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterator, Tuple, TypeVar
+from typing import Any, Iterator, TypeVar
 from typing_extensions import Protocol
 
 import abc
 
 from pendulum.datetime import Date
 
-Self = TypeVar("Self")
-T = TypeVar("T", covariant = True)
-U = TypeVar("U", covariant = True)
-V = TypeVar("V", covariant = True)
+_T = TypeVar("_T", covariant = True)
+_U = TypeVar("_U", covariant = True)
+_V = TypeVar("_V", covariant = True)
+_Self = TypeVar("_Self")
 
 
-class Offsetable(Protocol[T, U, V]):
+class _Offsetable(Protocol[_T, _U, _V]):
     @abc.abstractmethod
-    def __init__(self, *args: Tuple[T, U, V]) -> None:
+    def __init__(self, *args: _T | _U | _V) -> None:
         ...
 
     @abc.abstractmethod
-    def __iter__(self) -> Iterator[U]:
+    def __iter__(self) -> Iterator[_T | _U | _V]:
         ...
 
     @abc.abstractmethod
@@ -56,5 +56,10 @@ class Offsetable(Protocol[T, U, V]):
         ...
 
     @abc.abstractmethod
-    def offset(self: Self, offset: Any, unit: Any) -> Self:
+    def offset(self: _Self, offset: Any, unit: Any) -> _Self:
         ...
+
+
+Instant = _Offsetable[int, int, int]
+
+Period = _Offsetable[Any, Instant, int]
