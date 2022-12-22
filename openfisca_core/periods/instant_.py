@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, Tuple
+from typing import Callable, NamedTuple
 
 import calendar
 import functools
@@ -14,7 +14,7 @@ from ._errors import DateUnitValueError, OffsetTypeError
 DAY, MONTH, YEAR, _ = tuple(DateUnit)
 
 
-class Instant(Tuple[int, int, int]):
+class Instant(NamedTuple):
     """An instant in time (``year``, ``month``, ``day``).
 
     An ``Instant`` represents the most atomic and indivisible
@@ -23,17 +23,13 @@ class Instant(Tuple[int, int, int]):
     Current implementation considers this unit to be a day, so
     ``instants`` can be thought of as "day dates".
 
-    Args:
-        (tuple(int, int, int)):
-            The ``year``, ``month``, and ``day``, accordingly.
-
     Examples:
-        >>> instant = Instant((2021, 9, 13))
+        >>> instant = Instant(2021, 9, 13)
 
         ``Instants`` are represented as a ``tuple`` containing the date units:
 
         >>> repr(instant)
-        'Instant((2021, 9, 13))'
+        'Instant(year=2021, month=9, day=13)'
 
         However, their user-friendly representation is as a date in the
         ISO format:
@@ -44,8 +40,8 @@ class Instant(Tuple[int, int, int]):
         Because ``Instants`` are ``tuples``, they are immutable, which allows
         us to use them as keys in hashmaps:
 
-        >>> dict([(instant, (2021, 9, 13))])
-        {Instant((2021, 9, 13)): (2021, 9, 13)}
+        >>> {instant: (2021, 9, 13)}
+        {Instant(year=2021, month=9, day=13): (2021, 9, 13)}
 
         All the rest of the ``tuple`` protocols are inherited as well:
 
@@ -68,70 +64,25 @@ class Instant(Tuple[int, int, int]):
 
     """
 
-    def __repr__(self) -> str:
-        return (
-            f"{type(self).__name__}"
-            f"({super(type(self), self).__repr__()})"
-            )
+    #: The year.
+    year: int
+
+    #: The month.
+    month: int
+
+    #: The day.
+    day: int
 
     @functools.lru_cache(maxsize = None)
     def __str__(self) -> str:
         return self.date().isoformat()
-
-    @property
-    def year(self) -> int:
-        """The ``year`` of the ``Instant``.
-
-        Example:
-            >>> instant = Instant((2021, 10, 1))
-            >>> instant.year
-            2021
-
-        Returns:
-            An int.
-
-        """
-
-        return self[0]
-
-    @property
-    def month(self) -> int:
-        """The ``month`` of the ``Instant``.
-
-        Example:
-            >>> instant = Instant((2021, 10, 1))
-            >>> instant.month
-            10
-
-        Returns:
-            An int.
-
-        """
-
-        return self[1]
-
-    @property
-    def day(self) -> int:
-        """The ``day`` of the ``Instant``.
-
-        Example:
-            >>> instant = Instant((2021, 10, 1))
-            >>> instant.day
-            1
-
-        Returns:
-            An int.
-
-        """
-
-        return self[2]
 
     @functools.lru_cache(maxsize = None)
     def date(self) -> Date:
         """The date representation of the ``Instant``.
 
         Example:
-            >>> instant = Instant((2021, 10, 1))
+            >>> instant = Instant(2021, 10, 1)
             >>> instant.date()
             Date(2021, 10, 1)
 
@@ -153,7 +104,7 @@ class Instant(Tuple[int, int, int]):
             A new Date.
 
         Examples:
-            >>> instant = Instant((2021, 10, 1))
+            >>> instant = Instant(2021, 10, 1)
             >>> instant.add("months", 6)
             Date(2022, 4, 1)
 
@@ -182,17 +133,17 @@ class Instant(Tuple[int, int, int]):
             OffsetTypeError: When ``offset`` is of type ``int``.
 
         Examples:
-            >>> Instant((2020, 12, 31)).offset("first-of", MONTH)
-            Instant((2020, 12, 1))
+            >>> Instant(2020, 12, 31).offset("first-of", MONTH)
+            Instant(year=2020, month=12, day=1)
 
-            >>> Instant((2020, 1, 1)).offset("last-of", YEAR)
-            Instant((2020, 12, 31))
+            >>> Instant(2020, 1, 1).offset("last-of", YEAR)
+            Instant(year=2020, month=12, day=31)
 
-            >>> Instant((2020, 1, 1)).offset(1, YEAR)
-            Instant((2021, 1, 1))
+            >>> Instant(2020, 1, 1).offset(1, YEAR)
+            Instant(year=2021, month=1, day=1)
 
-            >>> Instant((2020, 1, 1)).offset(-3, DAY)
-            Instant((2019, 12, 29))
+            >>> Instant(2020, 1, 1).offset(-3, DAY)
+            Instant(year=2019, month=12, day=29)
 
         """
 
@@ -208,21 +159,21 @@ class Instant(Tuple[int, int, int]):
             return self
 
         if offset == "first-of" and unit == MONTH:
-            return type(self)((year, month, 1))
+            return type(self)(year, month, 1)
 
         if offset == "first-of" and unit == YEAR:
-            return type(self)((year, 1, 1))
+            return type(self)(year, 1, 1)
 
         if offset == "last-of" and unit == MONTH:
             day = calendar.monthrange(year, month)[1]
-            return type(self)((year, month, day))
+            return type(self)(year, month, day)
 
         if offset == "last-of" and unit == YEAR:
-            return type(self)((year, 12, 31))
+            return type(self)(year, 12, 31)
 
         if not isinstance(offset, int):
             raise OffsetTypeError(offset)
 
         date = self.add(unit.plural, offset)
 
-        return type(self)((date.year, date.month, date.day))
+        return type(self)(date.year, date.month, date.day)

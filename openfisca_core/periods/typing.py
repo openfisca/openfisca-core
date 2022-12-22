@@ -17,7 +17,7 @@ V = TypeVar("V", covariant = True)
 
 class Offsetable(Protocol[T, U, V]):
     @abc.abstractmethod
-    def __init__(self, values: Tuple[T, U, V]) -> None:
+    def __init__(self, *args: Tuple[T, U, V]) -> None:
         ...
 
     @abc.abstractmethod

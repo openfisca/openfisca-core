@@ -417,7 +417,7 @@ class Simulation:
         >>> simulation.set_input('age', '2018-04', [12, 14])
         >>> simulation.set_input('age', '2018-05', [13, 14])
         >>> simulation.get_known_periods('age')
-        [periods.period((u'month', Instant((2018, 5, 1)), 1)), periods.period((u'month', Instant((2018, 4, 1)), 1))]
+        [periods.period((u'month', Instant(2018, 5, 1)), 1)), periods.period((u'month', Instant((2018, 4, 1)), 1)]
         """
         return self.get_holder(variable).get_known_periods()
 

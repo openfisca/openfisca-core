@@ -28,14 +28,14 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
     Examples:
         >>> from openfisca_core.periods import Instant
 
-        >>> start = Instant((2021, 9, 1))
+        >>> start = Instant(2021, 9, 1)
         >>> period = Period((YEAR, start, 3))
 
         ``Periods`` are represented as a ``tuple`` containing the ``unit``,
         an ``Instant`` and the ``size``:
 
         >>> repr(period)
-        'Period((year, Instant((2021, 9, 1)), 3))'
+        'Period((year, Instant(year=2021, month=9, day=1), 3))'
 
         Their user-friendly representation is as a date in the
         ISO format, prefixed with the ``unit`` and suffixed with its ``size``:
@@ -46,9 +46,8 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
         However, you won't be able to use them as hashmaps keys. Because they
         contain a nested data structure, they're not hashable:
 
-        >>> dict([period, (2021, 9, 13)])
-        Traceback (most recent call last):
-        ValueError: dictionary update sequence element #0 has length 3...
+        >>> {period: (2021, 9, 13)}
+        {Period((year, Instant(year=2021, month=9, day=1), 3)): (2021, 9, 13)}
 
         All the rest of the ``tuple`` protocols are inherited as well:
 
@@ -88,7 +87,7 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
         Examples:
             >>> from openfisca_core.periods import Instant
 
-            >>> jan = Instant((2021, 1, 1))
+            >>> jan = Instant(2021, 1, 1)
             >>> feb = jan.offset(1, MONTH)
 
             >>> str(Period((YEAR, jan, 1)))
@@ -162,7 +161,7 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
         Example:
             >>> from openfisca_core.periods import Instant
 
-            >>> start = Instant((2021, 1, 1))
+            >>> start = Instant(2021, 1, 1)
             >>> period = Period((YEAR, start, 1))
             >>> sub_period = Period((MONTH, start, 3))
 
@@ -186,7 +185,7 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
         Example:
             >>> from openfisca_core.periods import Instant
 
-            >>> start = Instant((2021, 10, 1))
+            >>> start = Instant(2021, 10, 1)
             >>> period = Period((YEAR, start, 3))
 
             >>> period.unit
@@ -206,11 +205,11 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
         Example:
             >>> from openfisca_core.periods import Instant
 
-            >>> start = Instant((2021, 10, 1))
+            >>> start = Instant(2021, 10, 1)
             >>> period = Period((YEAR, start, 3))
 
             >>> period.start
-            Instant((2021, 10, 1))
+            Instant(year=2021, month=10, day=1)
 
         """
 
@@ -226,7 +225,7 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
         Example:
             >>> from openfisca_core.periods import Instant
 
-            >>> start = Instant((2021, 10, 1))
+            >>> start = Instant(2021, 10, 1)
             >>> period = Period((YEAR, start, 3))
 
             >>> period.size
@@ -246,16 +245,16 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
         Examples:
             >>> from openfisca_core.periods import Instant
 
-            >>> start = Instant((2012, 2, 29))
+            >>> start = Instant(2012, 2, 29)
 
             >>> Period((YEAR, start, 2)).stop
-            Instant((2014, 2, 27))
+            Instant(year=2014, month=2, day=27)
 
             >>> Period((MONTH, start, 36)).stop
-            Instant((2015, 2, 27))
+            Instant(year=2015, month=2, day=27)
 
             >>> Period((DAY, start, 1096)).stop
-            Instant((2015, 2, 28))
+            Instant(year=2015, month=2, day=28)
 
         """
 
@@ -278,7 +277,7 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
         Examples:
             >>> from openfisca_core.periods import Instant
 
-            >>> start = Instant((2021, 10, 1))
+            >>> start = Instant(2021, 10, 1)
 
             >>> period = Period((YEAR, start, 1))
             >>> period.date()
@@ -314,7 +313,7 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
         Examples:
             >>> from openfisca_core.periods import Instant
 
-            >>> start = Instant((2021, 10, 1))
+            >>> start = Instant(2021, 10, 1)
 
             >>> period = Period((YEAR, start, 3))
             >>> period.count(DAY)
@@ -373,18 +372,18 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
         Examples:
             >>> from openfisca_core.periods import Instant
 
-            >>> start = Instant((2023, 1, 1))
+            >>> start = Instant(2023, 1, 1)
 
             >>> period = Period((YEAR, start, 3))
 
             >>> period.first(DAY)
-            Period((day, Instant((2023, 1, 1)), 1))
+            Period((day, Instant(year=2023, month=1, day=1), 1))
 
             >>> period.first(MONTH)
-            Period((month, Instant((2023, 1, 1)), 1))
+            Period((month, Instant(year=2023, month=1, day=1), 1))
 
             >>> period.first(YEAR)
-            Period((year, Instant((2023, 1, 1)), 1))
+            Period((year, Instant(year=2023, month=1, day=1), 1))
 
         .. versionadded:: 39.0.0
 
@@ -405,27 +404,27 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
         Examples:
             >>> from openfisca_core.periods import Instant
 
-            >>> start = Instant((2023, 1, 1))
+            >>> start = Instant(2023, 1, 1)
 
             >>> period = Period((YEAR, start, 3))
 
             >>> period.come(DAY)
-            Period((day, Instant((2023, 1, 2)), 1))
+            Period((day, Instant(year=2023, month=1, day=2), 1))
 
             >>> period.come(DAY, 7)
-            Period((day, Instant((2023, 1, 8)), 1))
+            Period((day, Instant(year=2023, month=1, day=8), 1))
 
             >>> period.come(MONTH)
-            Period((month, Instant((2023, 2, 1)), 1))
+            Period((month, Instant(year=2023, month=2, day=1), 1))
 
             >>> period.come(MONTH, 3)
-            Period((month, Instant((2023, 4, 1)), 1))
+            Period((month, Instant(year=2023, month=4, day=1), 1))
 
             >>> period.come(YEAR)
-            Period((year, Instant((2024, 1, 1)), 1))
+            Period((year, Instant(year=2024, month=1, day=1), 1))
 
             >>> period.come(YEAR, 1)
-            Period((year, Instant((2024, 1, 1)), 1))
+            Period((year, Instant(year=2024, month=1, day=1), 1))
 
         .. versionadded:: 39.0.0
 
@@ -446,33 +445,33 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
         Examples:
             >>> from openfisca_core.periods import Instant
 
-            >>> start = Instant((2023, 1, 1))
+            >>> start = Instant(2020, 3, 31)
 
             >>> period = Period((YEAR, start, 3))
 
             >>> period.ago(DAY)
-            Period((day, Instant((2022, 12, 31)), 1))
+            Period((day, Instant(year=2020, month=3, day=30), 1))
 
             >>> period.ago(DAY, 7)
-            Period((day, Instant((2022, 12, 25)), 1))
+            Period((day, Instant(year=2020, month=3, day=24), 1))
 
             >>> period.ago(MONTH)
-            Period((month, Instant((2022, 12, 1)), 1))
+            Period((month, Instant(year=2020, month=2, day=29), 1))
 
             >>> period.ago(MONTH, 3)
-            Period((month, Instant((2022, 10, 1)), 1))
+            Period((month, Instant(year=2019, month=12, day=31), 1))
 
             >>> period.ago(YEAR)
-            Period((year, Instant((2022, 1, 1)), 1))
+            Period((year, Instant(year=2019, month=3, day=31), 1))
 
             >>> period.ago(YEAR, 1)
-            Period((year, Instant((2022, 1, 1)), 1))
+            Period((year, Instant(year=2019, month=3, day=31), 1))
 
         .. versionadded:: 39.0.0
 
         """
 
-        return self.come(unit, -size)
+        return type(self)((unit, self.start, 1)).offset(-size)
 
     def until(self, unit: DateUnit, size: int = 1) -> Period:
         """Next ``unit`` ``size``s from ``Period.start``.
@@ -487,27 +486,27 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
         Examples:
             >>> from openfisca_core.periods import Instant
 
-            >>> start = Instant((2023, 1, 1))
+            >>> start = Instant(2023, 1, 1)
 
             >>> period = Period((YEAR, start, 3))
 
             >>> period.until(DAY)
-            Period((day, Instant((2023, 1, 1)), 1))
+            Period((day, Instant(year=2023, month=1, day=1), 1))
 
             >>> period.until(DAY, 7)
-            Period((day, Instant((2023, 1, 1)), 7))
+            Period((day, Instant(year=2023, month=1, day=1), 7))
 
             >>> period.until(MONTH)
-            Period((month, Instant((2023, 1, 1)), 1))
+            Period((month, Instant(year=2023, month=1, day=1), 1))
 
             >>> period.until(MONTH, 3)
-            Period((month, Instant((2023, 1, 1)), 3))
+            Period((month, Instant(year=2023, month=1, day=1), 3))
 
             >>> period.until(YEAR)
-            Period((year, Instant((2023, 1, 1)), 1))
+            Period((year, Instant(year=2023, month=1, day=1), 1))
 
             >>> period.until(YEAR, 1)
-            Period((year, Instant((2023, 1, 1)), 1))
+            Period((year, Instant(year=2023, month=1, day=1), 1))
 
         .. versionadded:: 39.0.0
 
@@ -528,27 +527,27 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
         Examples:
             >>> from openfisca_core.periods import Instant
 
-            >>> start = Instant((2023, 1, 1))
+            >>> start = Instant(2023, 1, 1)
 
             >>> period = Period((YEAR, start, 3))
 
             >>> period.last(DAY)
-            Period((day, Instant((2022, 12, 31)), 1))
+            Period((day, Instant(year=2022, month=12, day=31), 1))
 
             >>> period.last(DAY, 7)
-            Period((day, Instant((2022, 12, 25)), 7))
+            Period((day, Instant(year=2022, month=12, day=25), 7))
 
             >>> period.last(MONTH)
-            Period((month, Instant((2022, 12, 1)), 1))
+            Period((month, Instant(year=2022, month=12, day=1), 1))
 
             >>> period.last(MONTH, 3)
-            Period((month, Instant((2022, 10, 1)), 3))
+            Period((month, Instant(year=2022, month=10, day=1), 3))
 
             >>> period.last(YEAR)
-            Period((year, Instant((2022, 1, 1)), 1))
+            Period((year, Instant(year=2022, month=1, day=1), 1))
 
             >>> period.last(YEAR, 1)
-            Period((year, Instant((2022, 1, 1)), 1))
+            Period((year, Instant(year=2022, month=1, day=1), 1))
 
         .. versionadded:: 39.0.0
 
@@ -569,21 +568,21 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
         Examples:
             >>> from openfisca_core.periods import Instant
 
-            >>> start = Instant((2014, 2, 3))
+            >>> start = Instant(2014, 2, 3)
 
             >>> Period((DAY, start, 1)).offset("first-of", MONTH)
-            Period((day, Instant((2014, 2, 1)), 1))
+            Period((day, Instant(year=2014, month=2, day=1), 1))
 
             >>> Period((MONTH, start, 4)).offset("last-of", MONTH)
-            Period((month, Instant((2014, 2, 28)), 4))
+            Period((month, Instant(year=2014, month=2, day=28), 4))
 
-            >>> start = Instant((2021, 1, 1))
+            >>> start = Instant(2021, 1, 1)
 
             >>> Period((DAY, start, 365)).offset(-3)
-            Period((day, Instant((2020, 12, 29)), 365))
+            Period((day, Instant(year=2020, month=12, day=29), 365))
 
             >>> Period((DAY, start, 365)).offset(1, YEAR)
-            Period((day, Instant((2022, 1, 1)), 365))
+            Period((day, Instant(year=2022, month=1, day=1), 365))
 
         """
 
@@ -610,15 +609,15 @@ class Period(Tuple[DateUnit, Offsetable[int, int, int], int]):
         Examples:
             >>> from openfisca_core.periods import Instant
 
-            >>> start = Instant((2021, 1, 1))
+            >>> start = Instant(2021, 1, 1)
 
             >>> period = Period((YEAR, start, 1))
             >>> period.subperiods(MONTH)
-            [Period((month, Instant((2021, 1, 1)), 1)),...2021, 12, 1)), 1))]
+            [Period((month, Instant(year=2021, month=1, day=1), 1)),...1), 1))]
 
             >>> period = Period((YEAR, start, 2))
             >>> period.subperiods(YEAR)
-            [Period((year, Instant((2021, 1, 1)), 1)),...((2022, 1, 1)), 1))]
+            [Period((year, Instant(year=2021, month=1, day=1), 1)), ...1), 1))]
 
         .. versionchanged:: 39.0.0:
             Renamed from ``get_subperiods`` to ``subperiods``.

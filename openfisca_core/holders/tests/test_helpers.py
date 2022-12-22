@@ -57,7 +57,7 @@ def test_set_input_dispatch_by_period(
     Income.definition_period = definition_unit
     income = Income()
     holder = Holder(income, population)
-    instant = periods.Instant((2022, 1, 1))
+    instant = periods.Instant(2022, 1, 1)
     dispatch_period = periods.Period((dispatch_unit, instant, 3))
 
     holders.set_input_dispatch_by_period(holder, dispatch_period, values)
@@ -88,7 +88,7 @@ def test_set_input_divide_by_period(
     Income.definition_period = definition_unit
     income = Income()
     holder = Holder(income, population)
-    instant = periods.Instant((2022, 1, 1))
+    instant = periods.Instant(2022, 1, 1)
     divide_period = periods.Period((divide_unit, instant, 3))
 
     holders.set_input_divide_by_period(holder, divide_period, values)

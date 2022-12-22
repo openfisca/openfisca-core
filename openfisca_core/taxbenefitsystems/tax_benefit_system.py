@@ -412,7 +412,7 @@ class TaxBenefitSystem:
             key = periods.instant(instant)
 
         else:
-            msg = f"Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {instant}."
+            msg = f"Expected an Instant (e.g. Instant(2017, 1, 1) ). Got: {instant}."
             raise AssertionError(msg)
 
         if self.parameters is None:
