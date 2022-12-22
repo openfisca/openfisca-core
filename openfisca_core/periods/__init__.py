@@ -38,5 +38,5 @@ DAY, MONTH, YEAR, ETERNITY = tuple(DateUnit)
 
 # Deprecated
 
-setattr(Period, "this_year", property(lambda self: self.this(YEAR)))  # noqa: B010
-setattr(Period, "first_month", property(lambda self: self.this(MONTH)))  # noqa: B010
+setattr(Period, "this_year", property(lambda self: self.first(YEAR)))  # noqa: B010
+setattr(Period, "first_month", property(lambda self: self.first(MONTH)))  # noqa: B010

@@ -51,7 +51,7 @@ def test_non_existing_variable(simulation):
 
 @pytest.mark.parametrize("simulation", [({}, PERIOD)], indirect = True)
 def test_calculate_variable_with_wrong_definition_period(simulation):
-    year = str(PERIOD.this(periods.YEAR))
+    year = str(PERIOD.first(periods.YEAR))
 
     with pytest.raises(ValueError) as error:
         simulation.calculate("basic_income", year)
@@ -84,7 +84,7 @@ def test_divide_option_with_complex_period(simulation):
 
 
 def test_input_with_wrong_period(tax_benefit_system):
-    year = str(PERIOD.this(periods.YEAR))
+    year = str(PERIOD.first(periods.YEAR))
     variables = {"basic_income": {year: 12000}}
     simulation_builder = SimulationBuilder()
     simulation_builder.set_default_period(PERIOD)

@@ -35,7 +35,7 @@
   - This has been simplified to allow users to build their own:
     - `period.ago(unit: DateUnit, size: int = 1) -> Period`.
     - `period.last(unit: DateUnit, size: int = 1) -> Period`.
-    - `period.this(unit: DateUnit) -> Period`.
+    - `period.first(unit: DateUnit) -> Period`.
 - Rationalise date units.
   - Before, usage of "month", YEAR, and so on was fairly inconsistent, and 
     providing a perfect hotbed for bugs to breed.

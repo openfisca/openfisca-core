@@ -179,7 +179,7 @@ class Simulation:
 
         # Check that the requested period matches definition_period
         if variable.definition_period > period.unit:
-            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' can only be computed for {2}-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this(YEAR)'.".format(
+            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' can only be computed for {2}-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.first(YEAR)'.".format(
                 variable.name,
                 period,
                 variable.definition_period
@@ -216,7 +216,7 @@ class Simulation:
             raise ValueError("DIVIDE option can only be used for a one-year or a one-month requested period")
 
         if period.unit == periods.MONTH:
-            computation_period = period.this(periods.YEAR)
+            computation_period = period.first(periods.YEAR)
             return self.calculate(variable_name, period = computation_period) / 12.
         elif period.unit == periods.YEAR:
             return self.calculate(variable_name, period)
@@ -283,7 +283,7 @@ class Simulation:
                 ))
 
         if variable.definition_period == periods.YEAR and period.unit != periods.YEAR:
-            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this(YEAR)'.".format(
+            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.first(YEAR)'.".format(
                 variable.name,
                 period
                 ))

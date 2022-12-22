@@ -19,7 +19,7 @@ def get_annualized_variable(variable: variables.Variable, annualization_period: 
 
         def annual_formula(population, period, parameters):
             if period.start.month != 1 and (annualization_period is None or period not in annualization_period):
-                return population(variable.name, period.this(periods.YEAR).this(periods.MONTH))
+                return population(variable.name, period.first(periods.YEAR).first(periods.MONTH))
             if original_formula.__code__.co_argcount == 2:
                 return original_formula(population, period)
             return original_formula(population, period, parameters)
