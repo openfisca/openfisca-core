@@ -48,15 +48,15 @@ class _Offsetable(Protocol[_T, _U, _V]):
         ...
 
     @abc.abstractmethod
-    def add(self, unit: str, count: int) -> Date:
-        ...
-
-    @abc.abstractmethod
     def date(self) -> Date:
         ...
 
     @abc.abstractmethod
     def offset(self: _Self, offset: Any, unit: Any) -> _Self:
+        ...
+
+    @abc.abstractmethod
+    def _add(self, unit: str, count: int) -> Date:
         ...
 
 

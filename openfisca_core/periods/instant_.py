@@ -93,31 +93,6 @@ class Instant(NamedTuple):
 
         return pendulum.date(*self)
 
-    def add(self, unit: str, count: int) -> Date:
-        """Add ``count`` ``unit``s to a ``date``.
-
-        Args:
-            unit: The unit to add.
-            count: The number of units to add.
-
-        Returns:
-            A new Date.
-
-        Examples:
-            >>> instant = Instant(2021, 10, 1)
-            >>> instant.add("months", 6)
-            Date(2022, 4, 1)
-
-        .. versionadded:: 39.0.0
-
-        """
-
-        fun: Callable[..., Date] = self.date().add
-
-        new: Date = fun(**{unit: count})
-
-        return new
-
     def offset(self, offset: str | int, unit: DateUnit) -> Instant:
         """Increments/decrements the given instant with offset units.
 
@@ -174,6 +149,31 @@ class Instant(NamedTuple):
         if not isinstance(offset, int):
             raise OffsetTypeError(offset)
 
-        date = self.add(unit.plural, offset)
+        date = self._add(unit.plural, offset)
 
         return type(self)(year = date.year, month = date.month, day = date.day)
+
+    def _add(self, unit: str, count: int) -> Date:
+        """Add ``count`` ``unit``s to a ``date``.
+
+        Args:
+            unit: The unit to add.
+            count: The number of units to add.
+
+        Returns:
+            A new Date.
+
+        Examples:
+            >>> instant = Instant(2021, 10, 1)
+            >>> instant._add("months", 6)
+            Date(2022, 4, 1)
+
+        .. versionadded:: 39.0.0
+
+        """
+
+        fun: Callable[..., Date] = self.date().add
+
+        new: Date = fun(**{unit: count})
+
+        return new

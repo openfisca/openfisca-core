@@ -35,6 +35,7 @@ from .instant_ import Instant
 from .period_ import Period
 
 DAY, MONTH, YEAR, ETERNITY = tuple(DateUnit)
+day, month, year, eternity = tuple(DateUnit)
 
 # Deprecated
 
