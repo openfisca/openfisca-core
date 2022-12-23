@@ -11,7 +11,7 @@ from pendulum.datetime import Date
 from ._dates import DateUnit
 from ._errors import DateUnitValueError, OffsetTypeError
 
-DAY, MONTH, YEAR, _ = tuple(DateUnit)
+day, month, year, _ = tuple(DateUnit)
 
 
 class Instant(NamedTuple):
@@ -60,8 +60,6 @@ class Instant(NamedTuple):
         >>> instant > (2020, 9, 13)
         True
 
-        >>> year, month, day = instant
-
     """
 
     #: The year.
@@ -108,21 +106,19 @@ class Instant(NamedTuple):
             OffsetTypeError: When ``offset`` is of type ``int``.
 
         Examples:
-            >>> Instant(2020, 12, 31).offset("first-of", MONTH)
+            >>> Instant(2020, 12, 31).offset("first-of", month)
             Instant(year=2020, month=12, day=1)
 
-            >>> Instant(2020, 1, 1).offset("last-of", YEAR)
+            >>> Instant(2020, 1, 1).offset("last-of", year)
             Instant(year=2020, month=12, day=31)
 
-            >>> Instant(2020, 1, 1).offset(1, YEAR)
+            >>> Instant(2020, 1, 1).offset(1, year)
             Instant(year=2021, month=1, day=1)
 
-            >>> Instant(2020, 1, 1).offset(-3, DAY)
+            >>> Instant(2020, 1, 1).offset(-3, day)
             Instant(year=2019, month=12, day=29)
 
         """
-
-        year, month, day = self
 
         if not isinstance(unit, DateUnit):
             raise DateUnitValueError(unit)
@@ -130,28 +126,28 @@ class Instant(NamedTuple):
         if not unit & DateUnit.isoformat:
             raise DateUnitValueError(unit)
 
-        if offset in {"first-of", "last-of"} and unit == DAY:
+        if offset in {"first-of", "last-of"} and unit == day:
             return self
 
-        if offset == "first-of" and unit == MONTH:
-            return type(self)(year = year, month = month, day = 1)
+        if offset == "first-of" and unit == month:
+            return Instant(self.year, self.month, 1)
 
-        if offset == "first-of" and unit == YEAR:
-            return type(self)(year = year, month = 1, day = 1)
+        if offset == "first-of" and unit == year:
+            return Instant(self.year, 1, 1)
 
-        if offset == "last-of" and unit == MONTH:
-            day = calendar.monthrange(year, month)[1]
-            return type(self)(year = year, month = month, day = day)
+        if offset == "last-of" and unit == month:
+            monthrange = calendar.monthrange(self.year, self.month)
+            return Instant(self.year, self.month, monthrange[1])
 
-        if offset == "last-of" and unit == YEAR:
-            return type(self)(year = year, month = 12, day = 31)
+        if offset == "last-of" and unit == year:
+            return Instant(self.year, 12, 31)
 
         if not isinstance(offset, int):
             raise OffsetTypeError(offset)
 
         date = self._add(unit.plural, offset)
 
-        return type(self)(year = date.year, month = date.month, day = date.day)
+        return Instant(date.year, date.month, date.day)
 
     def _add(self, unit: str, count: int) -> Date:
         """Add ``count`` ``unit``s to a ``date``.
