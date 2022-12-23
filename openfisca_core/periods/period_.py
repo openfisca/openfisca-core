@@ -9,6 +9,7 @@ from ._errors import DateUnitValueError
 from .typing import Instant
 
 day, month, year, eternity = tuple(DateUnit)
+days, months, years, _ = tuple(DateUnit)
 
 
 class Period(NamedTuple):
@@ -227,28 +228,28 @@ class Period(NamedTuple):
             >>> start = Instant(2021, 10, 1)
 
             >>> period = Period(year, start, 3)
-            >>> period.count(day)
+            >>> period.count(days)
             1096
 
             >>> period = Period(month, start, 3)
-            >>> period.count(day)
+            >>> period.count(days)
             92
 
             >>> period = Period(year, start, 3)
-            >>> period.count(month)
+            >>> period.count(months)
             36
 
             >>> period = Period(day, start, 3)
-            >>> period.count(month)
+            >>> period.count(months)
             Traceback (most recent call last):
             ValueError: Cannot calculate number of months in a day.
 
             >>> period = Period(year, start, 3)
-            >>> period.count(year)
+            >>> period.count(years)
             3
 
             >>> period = Period(month, start, 3)
-            >>> period.count(year)
+            >>> period.count(years)
             Traceback (most recent call last):
             ValueError: Cannot calculate number of years in a month.
 
@@ -304,12 +305,12 @@ class Period(NamedTuple):
 
         return Period(unit, start, 1)
 
-    def come(self, unit: DateUnit, size: int = 1) -> Period:
+    def come(self, size: int, unit: DateUnit) -> Period:
         """The next ``unit``s ``size`` from ``Period.start``.
 
         Args:
-            unit: The unit of the requested Period.
             size: The number of units ago.
+            unit: The unit of the requested Period.
 
         Returns:
             A Period.
@@ -321,23 +322,23 @@ class Period(NamedTuple):
 
             >>> period = Period(year, start, 3)
 
-            >>> period.come(day)
+            >>> period.come(1, day)
             Period(unit=day, start=Instant(year=2023, month=1, day=2), size=1)
 
-            >>> period.come(day, 7)
+            >>> period.come(7, days)
             Period(unit=day, start=Instant(year=2023, month=1, day=8), size=1)
 
-            >>> period.come(month)
+            >>> period.come(1, month)
             Period(unit=month, start=Instant(year=2023, month=2, day=1), size=1)
 
-            >>> period.come(month, 3)
+            >>> period.come(3, months)
             Period(unit=month, start=Instant(year=2023, month=4, day=1), size=1)
 
-            >>> period.come(year)
+            >>> period.come(1, year)
             Period(unit=year, start=Instant(year=2024, month=1, day=1), size=1)
 
-            >>> period.come(year, 1)
-            Period(unit=year, start=Instant(year=2024, month=1, day=1), size=1)
+            >>> period.come(2, years)
+            Period(unit=year, start=Instant(year=2025, month=1, day=1), size=1)
 
         .. versionadded:: 39.0.0
 
@@ -347,12 +348,12 @@ class Period(NamedTuple):
 
         return Period(unit, start, 1).offset(size)
 
-    def ago(self, unit: DateUnit, size: int = 1) -> Period:
+    def ago(self, size: int, unit: DateUnit) -> Period:
         """``size`` ``unit``s ago from ``Period.start``.
 
         Args:
-            unit: The unit of the requested Period.
             size: The number of units ago.
+            unit: The unit of the requested Period.
 
         Returns:
             A Period.
@@ -364,23 +365,23 @@ class Period(NamedTuple):
 
             >>> period = Period(year, start, 3)
 
-            >>> period.ago(day)
+            >>> period.ago(1, day)
             Period(unit=day, start=Instant(year=2020, month=3, day=30), size=1)
 
-            >>> period.ago(day, 7)
+            >>> period.ago(7, days)
             Period(unit=day, start=Instant(year=2020, month=3, day=24), size=1)
 
-            >>> period.ago(month)
+            >>> period.ago(1, month)
             Period(unit=month, start=Instant(year=2020, month=2, day=29), size=1)
 
-            >>> period.ago(month, 3)
+            >>> period.ago(3, months)
             Period(unit=month, start=Instant(year=2019, month=12, day=31), size=1)
 
-            >>> period.ago(year)
+            >>> period.ago(1, year)
             Period(unit=year, start=Instant(year=2019, month=3, day=31), size=1)
 
-            >>> period.ago(year, 1)
-            Period(unit=year, start=Instant(year=2019, month=3, day=31), size=1)
+            >>> period.ago(2, years)
+            Period(unit=year, start=Instant(year=2018, month=3, day=31), size=1)
 
         .. versionadded:: 39.0.0
 
@@ -390,12 +391,12 @@ class Period(NamedTuple):
 
         return Period(unit, start, 1).offset(-size)
 
-    def until(self, unit: DateUnit, size: int = 1) -> Period:
+    def until(self, size: int, unit: DateUnit) -> Period:
         """Next ``unit`` ``size``s from ``Period.start``.
 
         Args:
-            unit: The unit of the requested Period.
             size: The number of units to include in the Period.
+            unit: The unit of the requested Period.
 
         Returns:
             A Period.
@@ -407,23 +408,23 @@ class Period(NamedTuple):
 
             >>> period = Period(year, start, 3)
 
-            >>> period.until(day)
+            >>> period.until(1, day)
             Period(unit=day, start=Instant(year=2023, month=1, day=1), size=1)
 
-            >>> period.until(day, 7)
+            >>> period.until(7, days)
             Period(unit=day, start=Instant(year=2023, month=1, day=1), size=7)
 
-            >>> period.until(month)
+            >>> period.until(1, month)
             Period(unit=month, start=Instant(year=2023, month=1, day=1), size=1)
 
-            >>> period.until(month, 3)
+            >>> period.until(3, months)
             Period(unit=month, start=Instant(year=2023, month=1, day=1), size=3)
 
-            >>> period.until(year)
+            >>> period.until(1, year)
             Period(unit=year, start=Instant(year=2023, month=1, day=1), size=1)
 
-            >>> period.until(year, 1)
-            Period(unit=year, start=Instant(year=2023, month=1, day=1), size=1)
+            >>> period.until(2, years)
+            Period(unit=year, start=Instant(year=2023, month=1, day=1), size=2)
 
         .. versionadded:: 39.0.0
 
@@ -433,12 +434,12 @@ class Period(NamedTuple):
 
         return Period(unit, start, size)
 
-    def last(self, unit: DateUnit, size: int = 1) -> Period:
+    def last(self, size: int, unit: DateUnit) -> Period:
         """Last ``size`` ``unit``s from ``Period.start``.
 
         Args:
-            unit: The unit of the requested Period.
             size: The number of units to include in the Period.
+            unit: The unit of the requested Period.
 
         Returns:
             A Period.
@@ -450,29 +451,29 @@ class Period(NamedTuple):
 
             >>> period = Period(year, start, 3)
 
-            >>> period.last(day)
+            >>> period.last(1, day)
             Period(unit=day, start=Instant(year=2022, month=12, day=31), size=1)
 
-            >>> period.last(day, 7)
+            >>> period.last(7, days)
             Period(unit=day, start=Instant(year=2022, month=12, day=25), size=7)
 
-            >>> period.last(month)
+            >>> period.last(1, month)
             Period(unit=month, start=Instant(year=2022, month=12, day=1), size=1)
 
-            >>> period.last(month, 3)
+            >>> period.last(3, months)
             Period(unit=month, start=Instant(year=2022, month=10, day=1), size=3)
 
-            >>> period.last(year)
+            >>> period.last(1, year)
             Period(unit=year, start=Instant(year=2022, month=1, day=1), size=1)
 
-            >>> period.last(year, 1)
-            Period(unit=year, start=Instant(year=2022, month=1, day=1), size=1)
+            >>> period.last(2, years)
+            Period(unit=year, start=Instant(year=2021, month=1, day=1), size=2)
 
         .. versionadded:: 39.0.0
 
         """
 
-        start: Instant = self.ago(unit, size).start
+        start: Instant = self.ago(size, unit).start
 
         return Period(unit, start, size)
 

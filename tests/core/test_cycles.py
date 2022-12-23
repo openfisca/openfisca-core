@@ -44,7 +44,7 @@ class variable3(Variable):
     definition_period = periods.MONTH
 
     def formula(person, period):
-        return person('variable4', period.last(periods.MONTH))
+        return person('variable4', period.last(1, periods.month))
 
 
 class variable4(Variable):
@@ -64,7 +64,7 @@ class variable5(Variable):
     definition_period = periods.MONTH
 
     def formula(person, period):
-        variable6 = person('variable6', period.last(periods.MONTH))
+        variable6 = person('variable6', period.last(1, periods.month))
         return 5 + variable6
 
 
@@ -96,7 +96,7 @@ class cotisation(Variable):
 
     def formula(person, period):
         if period.start.month == 12:
-            return 2 * person('cotisation', period.last(periods.MONTH))
+            return 2 * person('cotisation', period.last(1, periods.month))
         else:
             return person.empty_array() + 1
 
@@ -128,7 +128,7 @@ def test_spirals_result_in_default_value(simulation, reference_period):
 def test_spiral_heuristic(simulation, reference_period):
     variable5 = simulation.calculate('variable5', period = reference_period)
     variable6 = simulation.calculate('variable6', period = reference_period)
-    variable6_last_month = simulation.calculate('variable6', reference_period.last(periods.MONTH))
+    variable6_last_month = simulation.calculate('variable6', reference_period.last(1, periods.month))
     tools.assert_near(variable5, [11])
     tools.assert_near(variable6, [11])
     tools.assert_near(variable6_last_month, [11])
@@ -141,6 +141,6 @@ def test_spiral_cache(simulation, reference_period):
 
 
 def test_cotisation_1_level(simulation, reference_period):
-    month = reference_period.last(periods.MONTH)
+    month = reference_period.last(1, periods.month)
     cotisation = simulation.calculate('cotisation', period = month)
     tools.assert_near(cotisation, [0])

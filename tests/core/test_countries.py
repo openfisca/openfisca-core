@@ -71,7 +71,7 @@ def test_divide_option_on_month_defined_variable(simulation):
 
 @pytest.mark.parametrize("simulation", [({}, PERIOD)], indirect = True)
 def test_divide_option_with_complex_period(simulation):
-    quarter = PERIOD.last(periods.MONTH, 3)
+    quarter = PERIOD.last(3, periods.months)
 
     with pytest.raises(ValueError) as error:
         simulation.household("housing_tax", quarter, options = [populations.DIVIDE])

@@ -36,6 +36,7 @@ from .period_ import Period
 
 DAY, MONTH, YEAR, ETERNITY = tuple(DateUnit)
 day, month, year, eternity = tuple(DateUnit)
+days, months, years, _ = tuple(DateUnit)
 
 # Deprecated
 
