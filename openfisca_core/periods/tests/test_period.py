@@ -13,12 +13,12 @@ def instant():
 
 
 @pytest.mark.parametrize("date_unit, instant, size, expected", [
-    [month, Instant(2022, 1, 1), 12, "2022"],
-    [month, Instant(2022, 3, 1), 12, "year:2022-03"],
+    [month, Instant(2022, 1, 1), 12, "month:2022-01:12"],
+    [month, Instant(2022, 3, 1), 12, "month:2022-03:12"],
     [year, Instant(2022, 1, 1), 1, "2022"],
     [year, Instant(2022, 1, 1), 3, "year:2022:3"],
     [year, Instant(2022, 1, 3), 3, "year:2022:3"],
-    [year, Instant(2022, 3, 1), 1, "year:2022-03"],
+    [year, Instant(2022, 3, 1), 1, "year:2022-03:1"],
     ])
 def test_str_with_years(date_unit, instant, size, expected):
     """Returns the expected string."""
