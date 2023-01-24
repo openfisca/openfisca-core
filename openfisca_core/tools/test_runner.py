@@ -8,7 +8,6 @@ import os
 import sys
 import textwrap
 import traceback
-import warnings
 
 import pytest
 
@@ -16,7 +15,6 @@ from openfisca_core.errors import SituationParsingError, VariableNotFound
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.tools import assert_near
 from openfisca_core.types import TaxBenefitSystem
-from openfisca_core.warnings import LibYAMLWarning
 
 
 class Options(TypedDict, total = False):
@@ -74,17 +72,13 @@ def build_test(params: Dict[str, Any]) -> Test:
 
 def import_yaml():
     import yaml
+
     try:
         from yaml import CLoader as Loader
+
     except ImportError:
-        message = [
-            "libyaml is not installed in your environment.",
-            "This can make your test suite slower to run. Once you have installed libyaml, ",
-            "run 'pip uninstall pyyaml && pip install pyyaml --no-cache-dir'",
-            "so that it is used in your Python environment."
-            ]
-        warnings.warn(" ".join(message), LibYAMLWarning)
         from yaml import SafeLoader as Loader
+
     return yaml, Loader
 
 

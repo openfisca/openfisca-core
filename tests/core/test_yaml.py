@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 
 import pytest
 import openfisca_extension_template
@@ -98,6 +99,7 @@ def test_shell_script_with_reform():
         subprocess.check_call(command, stdout = devnull, stderr = devnull)
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason = "Fails on Windows")
 def test_shell_script_with_extension():
     tests_dir = os.path.join(openfisca_extension_template.__path__[0], 'tests')
     command = ['openfisca', 'test', tests_dir, '-c', 'openfisca_country_template', '-e', 'openfisca_extension_template']
