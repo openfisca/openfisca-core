@@ -28,7 +28,7 @@ jobs:
             build-${{ env.pythonLocation }}-
 
       - name: Build package
-        run: make install-deps install-test build
+        run: make install-deps install-dist install-test clean build
 
       - name: Cache release
         id: restore-release
@@ -63,9 +63,7 @@ jobs:
         run:  make test-core
 
       - name: Submit coverage to Coveralls
-        run: |
-          pip install coveralls
-          coveralls --service=github
+        run: coveralls --service=github
 
   test-country-template:
     runs-on: ubuntu-20.04

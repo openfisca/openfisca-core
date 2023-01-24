@@ -28,7 +28,7 @@ class Period(tuple):
         >>> repr(period('day', '2014-2-3'))
         "Period(('day', Instant((2014, 2, 3)), 1))"
         """
-        return '{}({})'.format(self.__class__.__name__, super(Period, self).__repr__())
+        return '{}({})'.format(self.__class__.__name__, super(self.__class__, self).__repr__())
 
     def __str__(self):
         """

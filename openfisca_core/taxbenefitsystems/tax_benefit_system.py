@@ -6,10 +6,10 @@ import copy
 import functools
 import glob
 import importlib
+import importlib_metadata
 import inspect
 import logging
 import os
-import pkg_resources
 import sys
 import traceback
 import typing
@@ -457,8 +457,9 @@ class TaxBenefitSystem:
         package_name = module.__package__.split('.')[0]
 
         try:
-            distribution = pkg_resources.get_distribution(package_name)
-        except pkg_resources.DistributionNotFound:
+            distribution = importlib_metadata.distribution(package_name)
+
+        except importlib_metadata.PackageNotFoundError:
             return fallback_metadata
 
         source_file = inspect.getsourcefile(module)
@@ -469,17 +470,12 @@ class TaxBenefitSystem:
         else:
             location = ""
 
-        home_page_metadatas = [
-            metadata.split(':', 1)[1].strip(' ')
-            for metadata in distribution._get_metadata(distribution.PKG_INFO)  # type: ignore
-            if 'Home-page' in metadata
-            ]
-        repository_url = home_page_metadatas[0] if home_page_metadatas else ''
+        metadata = distribution.metadata
 
         return {
-            'name': distribution.key,
+            'name': metadata["Name"].lower(),
             'version': distribution.version,
-            'repository_url': repository_url,
+            'repository_url': metadata["Home-page"],
             'location': location,
             }
 

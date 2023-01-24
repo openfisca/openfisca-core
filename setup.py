@@ -26,13 +26,14 @@ long_description = (this_directory / "README.md").read_text()
 # functional and integration breaks caused by external code updates.
 
 general_requirements = [
+    'PyYAML >= 3.10',
     'dpath >= 1.5.0, < 3.0.0',
+    'importlib-metadata < 4.3.0',  # Required for Python 3.7 and Flake8
     'nptyping == 1.4.4',
     'numexpr >= 2.7.0, <= 3.0',
     'numpy >= 1.11, < 1.21',
     'psutil >= 5.4.7, < 6.0.0',
     'pytest >= 4.4.1, < 6.0.0',  # For openfisca test
-    'PyYAML >= 3.10',
     'sortedcontainers == 2.2.2',
     'typing-extensions >= 4.0.0, < 5.0.0',
     ]
@@ -47,15 +48,17 @@ api_requirements = [
 
 dev_requirements = [
     'autopep8 >= 1.4.0, < 1.6.0',
-    'coverage == 6.0.2',
+    'coverage >= 6.0.2, < 7.0.0',
     'darglint == 1.8.0',
     'flake8 >= 4.0.0, < 4.1.0',
     'flake8-bugbear >= 19.3.0, < 20.0.0',
     'flake8-docstrings == 1.6.0',
     'flake8-print >= 3.1.0, < 4.0.0',
     'flake8-rst-docstrings == 0.2.3',
+    'idna >= 3.4.0, < 4.0.0',
+    'isort >= 5.0.0, < 6.0.0',
     'mypy == 0.910',
-    'openapi-spec-validator >= 0.3.0',
+    'openapi-spec-validator >= 0.5.0, < 0.6.0',
     'pycodestyle >= 2.8.0, < 2.9.0',
     'pylint == 2.10.2',
     'xdoctest >= 1.0.0, < 2.0.0',
@@ -63,7 +66,7 @@ dev_requirements = [
 
 setup(
     name = 'OpenFisca-Core',
-    version = '38.0.2',
+    version = '38.0.3',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [
@@ -100,9 +103,13 @@ setup(
     extras_require = {
         'web-api': api_requirements,
         'dev': dev_requirements,
-        'tracker': [
-            'openfisca-tracker == 0.4.0',
+        'ci': [
+            'build >= 0.9.0, < 1.0.0',
+            'coveralls >= 3.0.0, < 4.0.0',
+            'twine >= 4.0.0, < 5.0.0',
+            'wheel < 1.0.0',
             ],
+        'tracker': ['openfisca-tracker == 0.4.0'],
         },
     include_package_data = True,  # Will read MANIFEST.in
     install_requires = general_requirements,
