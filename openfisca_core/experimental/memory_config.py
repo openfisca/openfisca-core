@@ -5,7 +5,7 @@ from openfisca_core.warnings import MemoryConfigWarning
 
 class MemoryConfig:
     """
-    Move data to disk
+    Move data to disk !
     """
 
     def __init__(self,
