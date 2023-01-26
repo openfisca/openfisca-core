@@ -13,11 +13,11 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-20.04, windows-latest]
+        os: [ubuntu-22.04, windows-latest]
         numpy: [1.20.3]
         python: [3.8.10, 3.7.9] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         include:
-        - os: ubuntu-20.04
+        - os: ubuntu-22.04
           activate_command: source venv/bin/activate
         - os: windows-latest
           activate_command: .\venv\Scripts\activate
@@ -33,11 +33,11 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-20.04, windows-latest]
+        os: [ubuntu-22.04, windows-latest]
         numpy: [1.20.3]
         python: [3.8.10, 3.7.9] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
         include:
-        - os: ubuntu-20.04
+        - os: ubuntu-22.04
           activate_command: source venv/bin/activate
         - os: windows-latest
           activate_command: .\venv\Scripts\activate
@@ -57,7 +57,7 @@ jobs:
         python: [3.8.10, 3.7.9] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
     uses: ./.github/workflows/_lint.yaml
     with:
-        os: ubuntu-20.04
+        os: ubuntu-22.04
         numpy: ${{ matrix.numpy }}
         python: ${{ matrix.python }}
         activate_command: source venv/bin/activate
@@ -67,7 +67,7 @@ jobs:
   # so they don't have to do it twice after changes happened to the main branch
   # during the time they took to fix the tests.
   check-version:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: [test, lint]
 
     steps:
