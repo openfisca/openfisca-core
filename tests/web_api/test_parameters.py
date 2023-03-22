@@ -143,14 +143,14 @@ def check_code(client, route, code):
 @pytest.mark.parametrize(
     "expected_code",
     [
-        ("/parameters/", client.OK),
+        ("/parameters/", client.FOUND),
         ("/parameter", client.NOT_FOUND),
-        ("/parameter/", client.NOT_FOUND),
+        ("/parameter/", client.FOUND),
         ("/parameter/with-ÜNı©ød€", client.NOT_FOUND),
         ("/parameter/with%20url%20encoding", client.NOT_FOUND),
-        ("/parameter/taxes/income_tax_rate/", client.OK),
+        ("/parameter/taxes/income_tax_rate/", client.FOUND),
         ("/parameter/taxes/income_tax_rate/too-much-nesting", client.NOT_FOUND),
-        ("/parameter//taxes/income_tax_rate/", client.NOT_FOUND),
+        ("/parameter//taxes/income_tax_rate/", client.FOUND),
     ],
 )
 def test_routes_robustness(test_client, expected_code):

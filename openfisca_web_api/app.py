@@ -10,7 +10,7 @@ from openfisca_web_api.errors import handle_import_error
 from openfisca_web_api import handlers
 
 try:
-    from flask import Flask, jsonify, abort, request, make_response
+    from flask import Flask, jsonify, abort, request, make_response, redirect
     from flask_cors import CORS
     from werkzeug.middleware.proxy_fix import ProxyFix
     import werkzeug.exceptions
@@ -72,6 +72,11 @@ def create_app(
     data = build_data(tax_benefit_system)
 
     DEFAULT_WELCOME_MESSAGE = "This is the root of an OpenFisca Web API. To learn how to use it, check the general documentation (https://openfisca.org/doc/) and the OpenAPI specification of this instance ({}spec)."
+
+    @app.before_request
+    def before_request():
+        if request.path != "/" and request.path.endswith("/"):
+            return redirect(request.path[:-1])
 
     @app.route("/")
     def get_root():
