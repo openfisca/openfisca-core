@@ -465,7 +465,7 @@ def test_gracefully_handle_unexpected_errors(test_client):
     In the `country-template`, Housing Tax is only defined from 2010 onwards.
     The calculation engine should therefore raise an exception `ParameterNotFound`.
     The API is not expecting this, but she should handle the situation nonetheless.
-    """
+    """  # noqa RST399
     variable = "housing_tax"
     period = "1234-05-06"
 

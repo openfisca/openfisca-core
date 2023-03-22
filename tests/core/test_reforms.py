@@ -424,7 +424,7 @@ def test_wrong_reform(tax_benefit_system):
         # A Reform must implement an `apply` method
         pass
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         wrong_reform(tax_benefit_system)
 
 

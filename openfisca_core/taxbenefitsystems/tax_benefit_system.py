@@ -430,7 +430,7 @@ class TaxBenefitSystem:
             return self.get_parameters_at_instant(instant)
         return baseline._get_baseline_parameters_at_instant(instant)
 
-    @functools.lru_cache()
+    @functools.lru_cache()  # noqa BO19
     def get_parameters_at_instant(
         self,
         instant: Union[str, int, Period, Instant],
