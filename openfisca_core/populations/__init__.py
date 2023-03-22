@@ -26,12 +26,12 @@ from openfisca_core.projectors import (  # noqa: F401
     EntityToPersonProjector,
     FirstPersonToEntityProjector,
     UniqueRoleToEntityProjector,
-    )
+)
 
 from openfisca_core.projectors.helpers import (  # noqa: F401
     projectable,
     get_projector_from_shortcut,
-    )
+)
 
 from .config import ADD, DIVIDE  # noqa: F401
 from .population import Population  # noqa: F401

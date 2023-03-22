@@ -24,9 +24,10 @@ class Entity(Protocol):
 
     @abc.abstractmethod
     def get_variable(
-            self, variable_name: Any,
-            check_existence: Any = ...,
-            ) -> Optional[Any]:
+        self,
+        variable_name: Any,
+        check_existence: Any = ...,
+    ) -> Optional[Any]:
         """Abstract method."""
 
 
@@ -35,11 +36,11 @@ class Formula(Protocol):
 
     @abc.abstractmethod
     def __call__(
-            self,
-            population: Population,
-            instant: Instant,
-            params: Params,
-            ) -> numpy.ndarray:
+        self,
+        population: Population,
+        instant: Instant,
+        params: Params,
+    ) -> numpy.ndarray:
         """Abstract method."""
 
 
@@ -80,6 +81,7 @@ class Period(Protocol):
     @abc.abstractmethod
     def start(self) -> Any:
         """Abstract method."""
+
     @property
     @abc.abstractmethod
     def unit(self) -> Any:
@@ -130,9 +132,10 @@ class TaxBenefitSystem(Protocol):
 
     @abc.abstractmethod
     def get_variable(
-            self, variable_name: Any,
-            check_existence: Any = ...,
-            ) -> Optional[Any]:
+        self,
+        variable_name: Any,
+        check_existence: Any = ...,
+    ) -> Optional[Any]:
         """Abstract method."""
 
 

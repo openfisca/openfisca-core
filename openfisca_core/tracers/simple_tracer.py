@@ -12,14 +12,13 @@ if typing.TYPE_CHECKING:
 
 
 class SimpleTracer:
-
     _stack: Stack
 
     def __init__(self) -> None:
         self._stack = []
 
     def record_calculation_start(self, variable: str, period: Period) -> None:
-        self.stack.append({'name': variable, 'period': period})
+        self.stack.append({"name": variable, "period": period})
 
     def record_calculation_result(self, value: ArrayLike) -> None:
         pass  # ignore calculation result

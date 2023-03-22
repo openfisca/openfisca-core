@@ -30,14 +30,14 @@ class Enum(enum.Enum):
 
     @classmethod
     def encode(
-            cls,
-            array: Union[
-                EnumArray,
-                numpy.int_,
-                numpy.float_,
-                numpy.object_,
-                ],
-            ) -> EnumArray:
+        cls,
+        array: Union[
+            EnumArray,
+            numpy.int_,
+            numpy.float_,
+            numpy.object_,
+        ],
+    ) -> EnumArray:
         """
         Encode a string numpy array, an enum item numpy array, or an int numpy
         array into an :any:`EnumArray`. See :any:`EnumArray.decode` for
@@ -67,16 +67,14 @@ class Enum(enum.Enum):
             return array
 
         # String array
-        if isinstance(array, numpy.ndarray) and \
-                array.dtype.kind in {'U', 'S'}:
+        if isinstance(array, numpy.ndarray) and array.dtype.kind in {"U", "S"}:
             array = numpy.select(
                 [array == item.name for item in cls],
                 [item.index for item in cls],
-                ).astype(ENUM_ARRAY_DTYPE)
+            ).astype(ENUM_ARRAY_DTYPE)
 
         # Enum items arrays
-        elif isinstance(array, numpy.ndarray) and \
-                array.dtype.kind == 'O':
+        elif isinstance(array, numpy.ndarray) and array.dtype.kind == "O":
             # Ensure we are comparing the comparable. The problem this fixes:
             # On entering this method "cls" will generally come from
             # variable.possible_values, while the array values may come from
@@ -94,6 +92,6 @@ class Enum(enum.Enum):
             array = numpy.select(
                 [array == item for item in cls],
                 [item.index for item in cls],
-                ).astype(ENUM_ARRAY_DTYPE)
+            ).astype(ENUM_ARRAY_DTYPE)
 
         return EnumArray(array, cls)

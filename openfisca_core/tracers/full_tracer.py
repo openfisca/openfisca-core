@@ -15,7 +15,6 @@ if typing.TYPE_CHECKING:
 
 
 class FullTracer:
-
     _simple_tracer: tracers.SimpleTracer
     _trees: list
     _current_node: Optional[tracers.TraceNode]
@@ -26,24 +25,24 @@ class FullTracer:
         self._current_node = None
 
     def record_calculation_start(
-            self,
-            variable: str,
-            period: Period,
-            ) -> None:
+        self,
+        variable: str,
+        period: Period,
+    ) -> None:
         self._simple_tracer.record_calculation_start(variable, period)
         self._enter_calculation(variable, period)
         self._record_start_time()
 
     def _enter_calculation(
-            self,
-            variable: str,
-            period: Period,
-            ) -> None:
+        self,
+        variable: str,
+        period: Period,
+    ) -> None:
         new_node = tracers.TraceNode(
-            name = variable,
-            period = period,
-            parent = self._current_node,
-            )
+            name=variable,
+            period=period,
+            parent=self._current_node,
+        )
 
         if self._current_node is None:
             self._trees.append(new_node)
@@ -54,21 +53,20 @@ class FullTracer:
         self._current_node = new_node
 
     def record_parameter_access(
-            self,
-            parameter: str,
-            period: Period,
-            value: ArrayLike,
-            ) -> None:
-
+        self,
+        parameter: str,
+        period: Period,
+        value: ArrayLike,
+    ) -> None:
         if self._current_node is not None:
             self._current_node.parameters.append(
-                tracers.TraceNode(name = parameter, period = period, value = value),
-                )
+                tracers.TraceNode(name=parameter, period=period, value=value),
+            )
 
     def _record_start_time(
-            self,
-            time_in_s: Optional[float] = None,
-            ) -> None:
+        self,
+        time_in_s: Optional[float] = None,
+    ) -> None:
         if time_in_s is None:
             time_in_s = self._get_time_in_sec()
 
@@ -85,9 +83,9 @@ class FullTracer:
         self._exit_calculation()
 
     def _record_end_time(
-            self,
-            time_in_s: Optional[float] = None,
-            ) -> None:
+        self,
+        time_in_s: Optional[float] = None,
+    ) -> None:
         if time_in_s is None:
             time_in_s = self._get_time_in_sec()
 
@@ -121,7 +119,7 @@ class FullTracer:
     def _get_time_in_sec(self) -> float:
         return time.time_ns() / (10**9)
 
-    def print_computation_log(self, aggregate = False, max_depth = None):
+    def print_computation_log(self, aggregate=False, max_depth=None):
         self.computation_log.print_log(aggregate, max_depth)
 
     def generate_performance_graph(self, dir_path: str) -> None:
@@ -133,19 +131,13 @@ class FullTracer:
     def _get_nb_requests(self, tree: tracers.TraceNode, variable: str) -> int:
         tree_call = tree.name == variable
         children_calls = sum(
-            self._get_nb_requests(child, variable)
-            for child
-            in tree.children
-            )
+            self._get_nb_requests(child, variable) for child in tree.children
+        )
 
         return tree_call + children_calls
 
     def get_nb_requests(self, variable: str) -> int:
-        return sum(
-            self._get_nb_requests(tree, variable)
-            for tree
-            in self.trees
-            )
+        return sum(self._get_nb_requests(tree, variable) for tree in self.trees)
 
     def get_flat_trace(self) -> dict:
         return self.flat_trace.get_trace()
@@ -154,7 +146,6 @@ class FullTracer:
         return self.flat_trace.get_serialized_trace()
 
     def browse_trace(self) -> Iterator[tracers.TraceNode]:
-
         def _browse_node(node):
             yield node
 

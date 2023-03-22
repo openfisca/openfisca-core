@@ -6,23 +6,20 @@ import datetime
 import sys
 import numpy
 
-assert(len(sys.argv) == 2)
+assert len(sys.argv) == 2
 filename = sys.argv[1]
 
-with open(filename, 'r') as f:
+with open(filename, "r") as f:
     lines = f.readlines()
 
 
 # Remove fuzzy
 
-lines_2 = [
-    line.replace(' fuzzy="true"', '')
-    for line in lines
-    ]
+lines_2 = [line.replace(' fuzzy="true"', "") for line in lines]
 
-regex_indent = r'^(\s*)<VALUE '
+regex_indent = r"^(\s*)<VALUE "
 regex_fin = r' fin="([0-9\-]+)"'
-regex_iso8601 = r'([0-9]+)-([0-9]+)-([0-9]+)'
+regex_iso8601 = r"([0-9]+)-([0-9]+)-([0-9]+)"
 one_day = datetime.timedelta(days=1)
 
 lines_3 = []
@@ -49,30 +46,18 @@ for line in lines_2:
 
 # Remove useless END tags
 
-regex_code = '<(CODE|SEUIL|TAUX|ASSIETTE)'
-regex_code_end = '</(CODE|SEUIL|TAUX|ASSIETTE)'
-regex_value = '<VALUE'
-regex_end = '<END'
+regex_code = "<(CODE|SEUIL|TAUX|ASSIETTE)"
+regex_code_end = "</(CODE|SEUIL|TAUX|ASSIETTE)"
+regex_value = "<VALUE"
+regex_end = "<END"
 
-bool_code = [
-    bool(re.search(regex_code, line))
-    for line in lines_3
-    ]
+bool_code = [bool(re.search(regex_code, line)) for line in lines_3]
 
-bool_code_end = [
-    bool(re.search(regex_code_end, line))
-    for line in lines_3
-    ]
+bool_code_end = [bool(re.search(regex_code_end, line)) for line in lines_3]
 
-bool_value = [
-    bool(re.search(regex_value, line))
-    for line in lines_3
-    ]
+bool_value = [bool(re.search(regex_value, line)) for line in lines_3]
 
-bool_end = [
-    bool(re.search(regex_end, line))
-    for line in lines_3
-    ]
+bool_end = [bool(re.search(regex_end, line)) for line in lines_3]
 
 
 index_code = [i + 1 for i, x in enumerate(bool_code) if x]
@@ -104,7 +89,7 @@ for code_begining, code_end in position_code:
             local_i + code_begining
             for local_i, deb in enumerate(deb_list)
             if deb == repr_deb
-            ]
+        ]
 
         assert len(part_list) <= 2
 
@@ -130,23 +115,13 @@ for code_begining, code_end in position_code:
 end_to_remove_set = set(end_to_remove)
 
 
-lines_4 = [
-    line
-    for j, line in enumerate(lines_3)
-    if j not in end_to_remove_set
-    ]
+lines_4 = [line for j, line in enumerate(lines_3) if j not in end_to_remove_set]
 
 # Order by "deb"
 
-bool_code = [
-    bool(re.search(regex_code, line))
-    for line in lines_4
-    ]
+bool_code = [bool(re.search(regex_code, line)) for line in lines_4]
 
-bool_code_end = [
-    bool(re.search(regex_code_end, line))
-    for line in lines_4
-    ]
+bool_code_end = [bool(re.search(regex_code_end, line)) for line in lines_4]
 
 
 index_code = [j + 1 for j, x in enumerate(bool_code) if x]
@@ -175,19 +150,16 @@ for code_begining, code_end in position_code:
             deb_list.append(deb_tmp)
         else:
             comment_list.append(local_i)
-            deb_list.append('z')
+            deb_list.append("z")
 
-    lines_5 += [
-        lines_4[local_i + code_begining]
-        for local_i in comment_list
-        ]
+    lines_5 += [lines_4[local_i + code_begining] for local_i in comment_list]
 
     order = numpy.argsort(deb_list)[::-1]
     lines_5 += [
         lines_4[local_i + code_begining]
         for local_i in order
-        if deb_list[local_i] != 'z'
-        ]
+        if deb_list[local_i] != "z"
+    ]
 
     i += 1
 while i < len(lines_4):
@@ -199,15 +171,9 @@ while i < len(lines_4):
 
 regex_value2 = r'^(?: )*<VALUE deb="\d{4}-\d{2}-\d{2}" valeur="((?:\d|.)+)" \/>\n$'
 
-bool_code = [
-    bool(re.search(regex_code, line))
-    for line in lines_5
-    ]
+bool_code = [bool(re.search(regex_code, line)) for line in lines_5]
 
-bool_code_end = [
-    bool(re.search(regex_code_end, line))
-    for line in lines_5
-    ]
+bool_code_end = [bool(re.search(regex_code_end, line)) for line in lines_5]
 
 list_value = []
 for line in lines_5:
@@ -227,19 +193,19 @@ position_code = list(zip(index_code, index_code_end))
 
 to_remove = []
 for i in range(len(lines_5) - 1):
-    if (list_value[i] is not None) and (list_value[i + 1] is not None) and (list_value[i] == list_value[i + 1]):
+    if (
+        (list_value[i] is not None)
+        and (list_value[i + 1] is not None)
+        and (list_value[i] == list_value[i + 1])
+    ):
         to_remove.append(i)
 
 to_remove_set = set(to_remove)
 
-lines_6 = [
-    line
-    for j, line in enumerate(lines_5)
-    if j not in to_remove_set
-    ]
+lines_6 = [line for j, line in enumerate(lines_5) if j not in to_remove_set]
 
 # Write
 
-with open(filename, 'w') as f:
+with open(filename, "w") as f:
     for line in lines_6:
         f.write(line)

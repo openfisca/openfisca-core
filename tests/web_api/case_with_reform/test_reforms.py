@@ -11,7 +11,7 @@ TEST_REFORMS_PATHS = [
     f"{TEST_COUNTRY_PACKAGE_NAME}.reforms.flat_social_security_contribution.flat_social_security_contribution",
     f"{TEST_COUNTRY_PACKAGE_NAME}.reforms.modify_social_security_taxation.modify_social_security_taxation",
     f"{TEST_COUNTRY_PACKAGE_NAME}.reforms.removal_basic_income.removal_basic_income",
-    ]
+]
 
 
 # Create app as in 'openfisca serve' script
@@ -19,9 +19,9 @@ TEST_REFORMS_PATHS = [
 def client():
     tax_benefit_system = scripts.build_tax_benefit_system(
         TEST_COUNTRY_PACKAGE_NAME,
-        extensions = None,
-        reforms = TEST_REFORMS_PATHS,
-        )
+        extensions=None,
+        reforms=TEST_REFORMS_PATHS,
+    )
 
     return app.create_app(tax_benefit_system).test_client()
 

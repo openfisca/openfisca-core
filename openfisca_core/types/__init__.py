@@ -52,7 +52,7 @@ Note:
 from ._data import (  # noqa: F401
     Array,
     ArrayLike,
-    )
+)
 
 from ._domain import (  # noqa: F401
     Entity,
@@ -67,7 +67,7 @@ from ._domain import (  # noqa: F401
     Simulation,
     TaxBenefitSystem,
     Variable,
-    )
+)
 
 __all__ = [
     "Array",
@@ -84,4 +84,4 @@ __all__ = [
     "Simulation",
     "TaxBenefitSystem",
     "Variable",
-    ]
+]

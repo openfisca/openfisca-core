@@ -12,7 +12,7 @@ class OnDiskStorage:
     Low-level class responsible for storing and retrieving calculated vectors on disk
     """
 
-    def __init__(self, storage_dir, is_eternal = False, preserve_storage_dir = False):
+    def __init__(self, storage_dir, is_eternal=False, preserve_storage_dir=False):
         self._files = {}
         self._enums = {}
         self.is_eternal = is_eternal
@@ -42,14 +42,14 @@ class OnDiskStorage:
         period = periods.period(period)
 
         filename = str(period)
-        path = os.path.join(self.storage_dir, filename) + '.npy'
+        path = os.path.join(self.storage_dir, filename) + ".npy"
         if isinstance(value, EnumArray):
             self._enums[path] = value.possible_values
             value = value.view(numpy.ndarray)
         numpy.save(path, value)
         self._files[period] = path
 
-    def delete(self, period = None):
+    def delete(self, period=None):
         if period is None:
             self._files = {}
             return
@@ -63,7 +63,7 @@ class OnDiskStorage:
                 period_item: value
                 for period_item, value in self._files.items()
                 if not period.contains(period_item)
-                }
+            }
 
     def get_known_periods(self):
         return self._files.keys()
@@ -72,10 +72,10 @@ class OnDiskStorage:
         self._files = files = {}
         # Restore self._files from content of storage_dir.
         for filename in os.listdir(self.storage_dir):
-            if not filename.endswith('.npy'):
+            if not filename.endswith(".npy"):
                 continue
             path = os.path.join(self.storage_dir, filename)
-            filename_core = filename.rsplit('.', 1)[0]
+            filename_core = filename.rsplit(".", 1)[0]
             period = periods.period(filename_core)
             files[period] = path
 
