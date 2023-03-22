@@ -5,6 +5,7 @@ from typing_extensions import Literal, TypedDict
 
 import dataclasses
 import os
+import pathlib
 import sys
 import textwrap
 import traceback
@@ -162,8 +163,8 @@ def run_tests(
 
 
 class YamlFile(pytest.File):
-    def __init__(self, path, fspath, parent, tax_benefit_system, options):
-        super(YamlFile, self).__init__(path, parent)
+    def __init__(self, *, tax_benefit_system, options, **kwargs):
+        super(YamlFile, self).__init__(**kwargs)
         self.tax_benefit_system = tax_benefit_system
         self.options = options
 
@@ -207,8 +208,8 @@ class YamlItem(pytest.Item):
     Terminal nodes of the test collection tree.
     """
 
-    def __init__(self, name, parent, baseline_tax_benefit_system, test, options):
-        super(YamlItem, self).__init__(name, parent)
+    def __init__(self, *, baseline_tax_benefit_system, test, options, **kwargs):
+        super(YamlItem, self).__init__(**kwargs)
         self.baseline_tax_benefit_system = baseline_tax_benefit_system
         self.options = options
         self.test = build_test(test)
@@ -373,7 +374,7 @@ class OpenFiscaPlugin(object):
         if path.ext in [".yaml", ".yml"]:
             return YamlFile.from_parent(
                 parent,
-                path=path,
+                path=pathlib.Path(path),
                 tax_benefit_system=self.tax_benefit_system,
                 options=self.options,
             )
