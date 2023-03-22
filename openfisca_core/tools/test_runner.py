@@ -162,7 +162,7 @@ def run_tests(
 
 
 class YamlFile(pytest.File):
-    def __init__(self, path, parent, tax_benefit_system, options):
+    def __init__(self, path, fspath, parent, tax_benefit_system, options):
         super(YamlFile, self).__init__(path, parent)
         self.tax_benefit_system = tax_benefit_system
         self.options = options
