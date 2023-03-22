@@ -11,22 +11,20 @@ from openfisca_core.variables import Variable
 @pytest.fixture
 def people():
     return Entity(
-        key = "person",
-        plural = "people",
-        label = "An individual member of a larger group.",
-        doc = "People have the particularity of not being someone else.",
-        )
+        key="person",
+        plural="people",
+        label="An individual member of a larger group.",
+        doc="People have the particularity of not being someone else.",
+    )
 
 
 @pytest.fixture
 def Income(people):
     return type(
         "Income",
-        (Variable,), {
-            "value_type": float,
-            "entity": people
-            },
-        )
+        (Variable,),
+        {"value_type": float, "entity": people},
+    )
 
 
 @pytest.fixture
@@ -36,25 +34,28 @@ def population(people):
     return population
 
 
-@pytest.mark.parametrize("dispatch_unit, definition_unit, values, expected", [
-    [periods.YEAR, periods.YEAR, [1.], [3.]],
-    [periods.YEAR, periods.MONTH, [1.], [36.]],
-    [periods.YEAR, periods.DAY, [1.], [1096.]],
-    [periods.MONTH, periods.YEAR, [1.], [1.]],
-    [periods.MONTH, periods.MONTH, [1.], [3.]],
-    [periods.MONTH, periods.DAY, [1.], [90.]],
-    [periods.DAY, periods.YEAR, [1.], [1.]],
-    [periods.DAY, periods.MONTH, [1.], [1.]],
-    [periods.DAY, periods.DAY, [1.], [3.]],
-    ])
+@pytest.mark.parametrize(
+    "dispatch_unit, definition_unit, values, expected",
+    [
+        [periods.YEAR, periods.YEAR, [1.0], [3.0]],
+        [periods.YEAR, periods.MONTH, [1.0], [36.0]],
+        [periods.YEAR, periods.DAY, [1.0], [1096.0]],
+        [periods.MONTH, periods.YEAR, [1.0], [1.0]],
+        [periods.MONTH, periods.MONTH, [1.0], [3.0]],
+        [periods.MONTH, periods.DAY, [1.0], [90.0]],
+        [periods.DAY, periods.YEAR, [1.0], [1.0]],
+        [periods.DAY, periods.MONTH, [1.0], [1.0]],
+        [periods.DAY, periods.DAY, [1.0], [3.0]],
+    ],
+)
 def test_set_input_dispatch_by_period(
-        Income,
-        population,
-        dispatch_unit,
-        definition_unit,
-        values,
-        expected,
-        ):
+    Income,
+    population,
+    dispatch_unit,
+    definition_unit,
+    values,
+    expected,
+):
     Income.definition_period = definition_unit
     income = Income()
     holder = Holder(income, population)
@@ -64,28 +65,31 @@ def test_set_input_dispatch_by_period(
     holders.set_input_dispatch_by_period(holder, dispatch_period, values)
     total = sum(map(holder.get_array, holder.get_known_periods()))
 
-    tools.assert_near(total, expected, absolute_error_margin = 0.001)
+    tools.assert_near(total, expected, absolute_error_margin=0.001)
 
 
-@pytest.mark.parametrize("divide_unit, definition_unit, values, expected", [
-    [periods.YEAR, periods.YEAR, [3.], [1.]],
-    [periods.YEAR, periods.MONTH, [36.], [1.]],
-    [periods.YEAR, periods.DAY, [1095.], [1.]],
-    [periods.MONTH, periods.YEAR, [1.], [1.]],
-    [periods.MONTH, periods.MONTH, [3.], [1.]],
-    [periods.MONTH, periods.DAY, [90.], [1.]],
-    [periods.DAY, periods.YEAR, [1.], [1.]],
-    [periods.DAY, periods.MONTH, [1.], [1.]],
-    [periods.DAY, periods.DAY, [3.], [1.]],
-    ])
+@pytest.mark.parametrize(
+    "divide_unit, definition_unit, values, expected",
+    [
+        [periods.YEAR, periods.YEAR, [3.0], [1.0]],
+        [periods.YEAR, periods.MONTH, [36.0], [1.0]],
+        [periods.YEAR, periods.DAY, [1095.0], [1.0]],
+        [periods.MONTH, periods.YEAR, [1.0], [1.0]],
+        [periods.MONTH, periods.MONTH, [3.0], [1.0]],
+        [periods.MONTH, periods.DAY, [90.0], [1.0]],
+        [periods.DAY, periods.YEAR, [1.0], [1.0]],
+        [periods.DAY, periods.MONTH, [1.0], [1.0]],
+        [periods.DAY, periods.DAY, [3.0], [1.0]],
+    ],
+)
 def test_set_input_divide_by_period(
-        Income,
-        population,
-        divide_unit,
-        definition_unit,
-        values,
-        expected,
-        ):
+    Income,
+    population,
+    divide_unit,
+    definition_unit,
+    values,
+    expected,
+):
     Income.definition_period = definition_unit
     income = Income()
     holder = Holder(income, population)
@@ -95,4 +99,4 @@ def test_set_input_divide_by_period(
     holders.set_input_divide_by_period(holder, divide_period, values)
     last = holder.get_array(holder.get_known_periods()[-1])
 
-    tools.assert_near(last, expected, absolute_error_margin = 0.001)
+    tools.assert_near(last, expected, absolute_error_margin=0.001)

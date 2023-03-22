@@ -34,7 +34,7 @@ def get_info(package_name: str = "") -> dict:
                 "last_version": version,
                 "url": v["url"],
                 "sha256": v["digests"]["sha256"],
-                }
+            }
     return {}
 
 
@@ -64,15 +64,17 @@ if __name__ == "__main__":
         default="",
         required=True,
         help="The name of the package",
-        )
+    )
     parser.add_argument(
         "-f",
         "--filename",
         type=str,
         default=".conda/meta.yaml",
         help="Path to meta.yaml, with filename",
-        )
+    )
     args = parser.parse_args()
     info = get_info(args.package)
-    print("Information of the last published PyPi package :", info["last_version"])  # noqa: T001
+    print(
+        "Information of the last published PyPi package :", info["last_version"]
+    )  # noqa: T001
     replace_in_file(args.filename, info)

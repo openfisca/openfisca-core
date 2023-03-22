@@ -3,7 +3,7 @@ class ParameterNotFoundError(AttributeError):
     Exception raised when a parameter is not found in the parameters.
     """
 
-    def __init__(self, name, instant_str, variable_name = None):
+    def __init__(self, name, instant_str, variable_name=None):
         """
         :param name: Name of the parameter
         :param instant_str: Instant where the parameter does not exist, in the format `YYYY-MM-DD`.
@@ -15,7 +15,7 @@ class ParameterNotFoundError(AttributeError):
         message = "The parameter '{}'".format(name)
         if variable_name is not None:
             message += " requested by variable '{}'".format(variable_name)
-        message += (
-            " was not found in the {} tax and benefit system."
-            ).format(instant_str)
+        message += (" was not found in the {} tax and benefit system.").format(
+            instant_str
+        )
         super(ParameterNotFoundError, self).__init__(message)

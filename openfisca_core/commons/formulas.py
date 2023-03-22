@@ -8,10 +8,10 @@ T = TypeVar("T")
 
 
 def apply_thresholds(
-        input: Array[float],
-        thresholds: ArrayLike[float],
-        choices: ArrayLike[float],
-        ) -> Array[float]:
+    input: Array[float],
+    thresholds: ArrayLike[float],
+    choices: ArrayLike[float],
+) -> Array[float]:
     """Makes a choice based on an input and thresholds.
 
     From a list of ``choices``, this function selects one of these values
@@ -48,11 +48,12 @@ def apply_thresholds(
         # must be true to return it.
         condlist += [True]
 
-    assert len(condlist) == len(choices), \
-        " ".join([
+    assert len(condlist) == len(choices), " ".join(
+        [
             "'apply_thresholds' must be called with the same number of",
             "thresholds than choices, or one more choice.",
-            ])
+        ]
+    )
 
     return numpy.select(condlist, choices)
 
@@ -76,23 +77,19 @@ def concat(this: ArrayLike[str], that: ArrayLike[str]) -> Array[str]:
 
     """
 
-    if isinstance(this, numpy.ndarray) and \
-       not numpy.issubdtype(this.dtype, numpy.str_):
+    if isinstance(this, numpy.ndarray) and not numpy.issubdtype(this.dtype, numpy.str_):
+        this = this.astype("str")
 
-        this = this.astype('str')
-
-    if isinstance(that, numpy.ndarray) and \
-       not numpy.issubdtype(that.dtype, numpy.str_):
-
-        that = that.astype('str')
+    if isinstance(that, numpy.ndarray) and not numpy.issubdtype(that.dtype, numpy.str_):
+        that = that.astype("str")
 
     return numpy.char.add(this, that)
 
 
 def switch(
-        conditions: Array[Any],
-        value_by_condition: Dict[float, T],
-        ) -> Array[T]:
+    conditions: Array[Any],
+    value_by_condition: Dict[float, T],
+) -> Array[T]:
     """Mimicks a switch statement.
 
     Given an array of conditions, returns an array of the same size,
@@ -117,12 +114,10 @@ def switch(
 
     """
 
-    assert len(value_by_condition) > 0, \
-        "'switch' must be called with at least one value."
+    assert (
+        len(value_by_condition) > 0
+    ), "'switch' must be called with at least one value."
 
-    condlist = [
-        conditions == condition
-        for condition in value_by_condition.keys()
-        ]
+    condlist = [conditions == condition for condition in value_by_condition.keys()]
 
     return numpy.select(condlist, value_by_condition.values())

@@ -6,12 +6,14 @@ class Projector:
     parent = None
 
     def __getattr__(self, attribute):
-        projector = helpers.get_projector_from_shortcut(self.reference_entity, attribute, parent = self)
+        projector = helpers.get_projector_from_shortcut(
+            self.reference_entity, attribute, parent=self
+        )
         if projector:
             return projector
 
         reference_attr = getattr(self.reference_entity, attribute)
-        if not hasattr(reference_attr, 'projectable'):
+        if not hasattr(reference_attr, "projectable"):
             return reference_attr
 
         def projector_function(*args, **kwargs):

@@ -27,4 +27,6 @@ from .full_tracer import FullTracer  # noqa: F401
 from .performance_log import PerformanceLog  # noqa: F401
 from .simple_tracer import SimpleTracer  # noqa: F401
 from .trace_node import TraceNode  # noqa: F401
-from .tracing_parameter_node_at_instant import TracingParameterNodeAtInstant  # noqa: F401
+from .tracing_parameter_node_at_instant import (
+    TracingParameterNodeAtInstant,
+)  # noqa: F401

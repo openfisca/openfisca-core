@@ -8,7 +8,7 @@ class InMemoryStorage:
     Low-level class responsible for storing and retrieving calculated vectors in memory
     """
 
-    def __init__(self, is_eternal = False):
+    def __init__(self, is_eternal=False):
         self._arrays = {}
         self.is_eternal = is_eternal
 
@@ -29,7 +29,7 @@ class InMemoryStorage:
 
         self._arrays[period] = value
 
-    def delete(self, period = None):
+    def delete(self, period=None):
         if period is None:
             self._arrays = {}
             return
@@ -42,7 +42,7 @@ class InMemoryStorage:
             period_item: value
             for period_item, value in self._arrays.items()
             if not period.contains(period_item)
-            }
+        }
 
     def get_known_periods(self):
         return self._arrays.keys()
@@ -50,15 +50,15 @@ class InMemoryStorage:
     def get_memory_usage(self):
         if not self._arrays:
             return dict(
-                nb_arrays = 0,
-                total_nb_bytes = 0,
-                cell_size = numpy.nan,
-                )
+                nb_arrays=0,
+                total_nb_bytes=0,
+                cell_size=numpy.nan,
+            )
 
         nb_arrays = len(self._arrays)
         array = next(iter(self._arrays.values()))
         return dict(
-            nb_arrays = nb_arrays,
-            total_nb_bytes = array.nbytes * nb_arrays,
-            cell_size = array.itemsize,
-            )
+            nb_arrays=nb_arrays,
+            total_nb_bytes=array.nbytes * nb_arrays,
+            cell_size=array.itemsize,
+        )

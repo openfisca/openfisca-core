@@ -3,7 +3,7 @@ from typing_extensions import TypedDict
 import numpy
 
 
-class MemoryUsage(TypedDict, total = False):
+class MemoryUsage(TypedDict, total=False):
     """Virtual memory usage of a Holder.
 
     Attributes:
