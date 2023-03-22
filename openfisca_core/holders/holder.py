@@ -241,7 +241,7 @@ class Holder:
             warning_message = "You cannot set a value for the variable {}, as it has been neutralized. The value you provided ({}) will be ignored.".format(
                 self.variable.name, array
             )
-            return warnings.warn(warning_message, Warning)
+            return warnings.warn(warning_message, Warning, stacklevel=2)
         if self.variable.value_type in (float, int) and isinstance(array, str):
             array = tools.eval_expression(array)
         if self.variable.set_input:

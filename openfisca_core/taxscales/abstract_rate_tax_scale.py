@@ -28,7 +28,7 @@ class AbstractRateTaxScale(RateTaxScaleLike):
             "version 34.7.0, and will be removed in the future.",
         ]
 
-        warnings.warn(" ".join(message), DeprecationWarning)
+        warnings.warn(" ".join(message), DeprecationWarning, stacklevel=2)
         super().__init__(name, option, unit)
 
     def calc(

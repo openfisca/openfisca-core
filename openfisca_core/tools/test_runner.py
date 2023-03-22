@@ -86,7 +86,7 @@ def import_yaml():
             "run 'pip uninstall pyyaml && pip install pyyaml --no-cache-dir'",
             "so that it is used in your Python environment.",
         ]
-        warnings.warn(" ".join(message), LibYAMLWarning)
+        warnings.warn(" ".join(message), LibYAMLWarning, stacklevel=2)
         from yaml import SafeLoader as Loader
     return yaml, Loader
 

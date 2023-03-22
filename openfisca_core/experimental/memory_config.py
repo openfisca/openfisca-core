@@ -12,7 +12,7 @@ class MemoryConfig:
             "You are very welcome to use it and send us precious feedback,",
             "but keep in mind that the way it is used might change without any major version bump.",
         ]
-        warnings.warn(" ".join(message), MemoryConfigWarning)
+        warnings.warn(" ".join(message), MemoryConfigWarning, stacklevel=2)
 
         self.max_memory_occupation = float(max_memory_occupation)
         if self.max_memory_occupation > 1:
