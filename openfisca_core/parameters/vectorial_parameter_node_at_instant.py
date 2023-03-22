@@ -197,7 +197,9 @@ class VectorialParameterNodeAtInstant:
                 )
 
             # If the result is not a leaf, wrap the result in a vectorial node.
-            if numpy.issubdtype(result.dtype, numpy.record):
+            if numpy.issubdtype(result.dtype, numpy.record) or numpy.issubdtype(
+                result.dtype, numpy.void
+            ):
                 return VectorialParameterNodeAtInstant(
                     self._name, result.view(numpy.recarray), self._instant_str
                 )
