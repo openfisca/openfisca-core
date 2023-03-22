@@ -26,7 +26,7 @@ def prev() -> NoReturn:
         sys.exit(os.EX_DATAERR)
 
     minor -= 1
-    print(f"{major}.{minor}.0")  # noqa: T001
+    print(f"{major}.{minor}.0")  # noqa: T201
     sys.exit(os.EX_OK)
 
 

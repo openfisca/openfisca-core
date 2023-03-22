@@ -21,17 +21,17 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
-from openfisca_core.errors import (
+from openfisca_core.errors import (  # noqa: F401
     CycleError,
     NaNCreationError,
     SpiralError,
-)  # noqa: F401
+)
 
-from .helpers import (
+from .helpers import (  # noqa: F401
     calculate_output_add,
     calculate_output_divide,
     check_type,
     transform_to_strict_syntax,
-)  # noqa: F401
+)
 from .simulation import Simulation  # noqa: F401
 from .simulation_builder import SimulationBuilder  # noqa: F401
