@@ -162,19 +162,19 @@ def run_tests(
 
 
 class YamlFile(pytest.File):
-    def __init__(self, path, fspath, parent, tax_benefit_system, options):
+    def __init__(self, path, parent, tax_benefit_system, options):
         super(YamlFile, self).__init__(path, parent)
         self.tax_benefit_system = tax_benefit_system
         self.options = options
 
     def collect(self):
         try:
-            tests = yaml.load(self.fspath.open(), Loader=Loader)
+            tests = yaml.load(open(self.path), Loader=Loader)
         except (yaml.scanner.ScannerError, yaml.parser.ParserError, TypeError):
             message = os.linesep.join(
                 [
                     traceback.format_exc(),
-                    f"'{self.fspath}' is not a valid YAML file. Check the stack trace above for more details.",
+                    f"'{self.path}' is not a valid YAML file. Check the stack trace above for more details.",
                 ]
             )
             raise ValueError(message)
@@ -196,7 +196,7 @@ class YamlFile(pytest.File):
         name_filter = self.options.get("name_filter")
         return (
             name_filter is not None
-            and name_filter not in os.path.splitext(self.fspath.basename)[0]
+            and name_filter not in os.path.splitext(os.path.basename(self.path))[0]
             and name_filter not in test.get("name", "")
             and name_filter not in test.get("keywords", [])
         )
@@ -219,7 +219,7 @@ class YamlItem(pytest.Item):
         self.name = self.test.name
 
         if self.test.output is None:
-            msg = f"Missing key 'output' in test '{self.name}' in file '{self.fspath}'"
+            msg = f"Missing key 'output' in test '{self.name}' in file '{self.path}'"
             raise ValueError(msg)
 
         self.tax_benefit_system = _get_tax_benefit_system(
@@ -245,7 +245,7 @@ class YamlItem(pytest.Item):
             raise
         except Exception as e:
             error_message = os.linesep.join(
-                [str(e), "", f"Unexpected error raised while parsing '{self.fspath}'"]
+                [str(e), "", f"Unexpected error raised while parsing '{self.path}'"]
             )
             raise ValueError(error_message).with_traceback(
                 sys.exc_info()[2]
@@ -353,7 +353,7 @@ class YamlItem(pytest.Item):
 
         return os.linesep.join(
             [
-                f"{str(self.fspath)}:",
+                f"{str(self.path)}:",
                 f"  Test '{str(self.name)}':",
                 textwrap.indent(message, "    "),
             ]
@@ -374,7 +374,6 @@ class OpenFiscaPlugin(object):
             return YamlFile.from_parent(
                 parent,
                 path=path,
-                fspath=path,
                 tax_benefit_system=self.tax_benefit_system,
                 options=self.options,
             )
