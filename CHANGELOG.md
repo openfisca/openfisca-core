@@ -1,36 +1,42 @@
 # Changelog
 
+# 39.0.0 [#1181](https://github.com/openfisca/openfisca-core/pull/1181)
+
+#### Breaking changes
+
+- Upgrade every dependencies to their latest versions.
+- Upgrade to Python >= 3.9
+
 ### 38.0.4 [#1182](https://github.com/openfisca/openfisca-core/pull/1182)
 
 #### Technical changes
 
 - Method `_get_tax_benefit_system()` of class `YamlItem` in file  `openfisca_core/tools/test_runner.py` will now clone the TBS when applying reforms to avoid running tests with previously reformed TBS.
 
-
 ### 38.0.3 [#1179](https://github.com/openfisca/openfisca-core/pull/1179)
 
 #### Bug fix
 
 - Do not install dependencies outside the `setup.py`
-  - Dependencies installed outside the `setup.py` are not taken into account by 
+  - Dependencies installed outside the `setup.py` are not taken into account by
     `pip`'s dependency resolver.
-  - In case of conflicting transient dependencies, the last library installed 
+  - In case of conflicting transient dependencies, the last library installed
     will "impose" its dependency version.
-  - This makes the installation and build of the library non-deterministic and 
-    prone to unforeseen bugs caused by external changes in dependencies' 
+  - This makes the installation and build of the library non-deterministic and
+    prone to unforeseen bugs caused by external changes in dependencies'
     versions.
 
 #### Note
 
-A definite way to solve this issue is to clearly separate library dependencies 
-(with a `virtualenv`) and a universal dependency installer for CI requirements 
+A definite way to solve this issue is to clearly separate library dependencies
+(with a `virtualenv`) and a universal dependency installer for CI requirements
 (like `pipx`), taking care of:
 
 - Always running tests inside the `virtualenv` (for example with `nox`).
-- Always building outside of the `virtualenv` (for example with `poetry` 
+- Always building outside of the `virtualenv` (for example with `poetry`
   installed by `pipx`).
 
-Moreover, it is indeed even better to have a lock file for dependencies, 
+Moreover, it is indeed even better to have a lock file for dependencies,
 using `pip freeze`) or with tools providing such features (`pipenv`, etc.).
 
 ### 38.0.2 [#1178](https://github.com/openfisca/openfisca-core/pull/1178)
@@ -47,8 +53,8 @@ using `pip freeze`) or with tools providing such features (`pipenv`, etc.).
 
 # 38.0.0 [#989](https://github.com/openfisca/openfisca-core/pull/989)
 
-> Note: Version `38.0.0` has been unpublished as `35.11.1` introduced a bug 
-> preventing users to load a tax-benefit system. Please use versions `38.0.2` 
+> Note: Version `38.0.0` has been unpublished as `35.11.1` introduced a bug
+> preventing users to load a tax-benefit system. Please use versions `38.0.2`
 > and subsequents.
 
 #### New Features
@@ -63,8 +69,8 @@ using `pip freeze`) or with tools providing such features (`pipenv`, etc.).
 
 ### 37.0.2 [#1170](https://github.com/openfisca/openfisca-core/pull/1170)
 
-> Note: Version `37.0.2` has been unpublished as `35.11.1` introduced a bug 
-> preventing users to load a tax-benefit system. Please use versions `38.0.2` 
+> Note: Version `37.0.2` has been unpublished as `35.11.1` introduced a bug
+> preventing users to load a tax-benefit system. Please use versions `38.0.2`
 > and subsequents.
 
 #### Technical changes
@@ -73,8 +79,8 @@ using `pip freeze`) or with tools providing such features (`pipenv`, etc.).
 
 ### 37.0.1 [#1169](https://github.com/openfisca/openfisca-core/pull/1169)
 
-> Note: Version `37.0.1` has been unpublished as `35.11.1` introduced a bug 
-> preventing users to load a tax-benefit system. Please use versions `38.0.2` 
+> Note: Version `37.0.1` has been unpublished as `35.11.1` introduced a bug
+> preventing users to load a tax-benefit system. Please use versions `38.0.2`
 > and subsequents.
 
 #### Technical changes
@@ -83,8 +89,8 @@ using `pip freeze`) or with tools providing such features (`pipenv`, etc.).
 
 # 37.0.0 [#1142](https://github.com/openfisca/openfisca-core/pull/1142)
 
-> Note: Version `37.0.0` has been unpublished as `35.11.1` introduced a bug 
-> preventing users to load a tax-benefit system. Please use versions `38.0.2` 
+> Note: Version `37.0.0` has been unpublished as `35.11.1` introduced a bug
+> preventing users to load a tax-benefit system. Please use versions `38.0.2`
 > and subsequents.
 
 #### Deprecations
@@ -100,8 +106,8 @@ using `pip freeze`) or with tools providing such features (`pipenv`, etc.).
 
 # 36.0.0 [#1149](https://github.com/openfisca/openfisca-core/pull/1162)
 
-> Note: Version `36.0.0` has been unpublished as `35.11.1` introduced a bug 
-> preventing users to load a tax-benefit system. Please use versions `38.0.2` 
+> Note: Version `36.0.0` has been unpublished as `35.11.1` introduced a bug
+> preventing users to load a tax-benefit system. Please use versions `38.0.2`
 > and subsequents.
 
 #### Breaking changes
@@ -112,8 +118,8 @@ using `pip freeze`) or with tools providing such features (`pipenv`, etc.).
 
 ## 35.12.0 [#1160](https://github.com/openfisca/openfisca-core/pull/1160)
 
-> Note: Version `35.12.0` has been unpublished as `35.11.1` introduced a bug 
-> preventing users to load a tax-benefit system. Please use versions `38.0.2` 
+> Note: Version `35.12.0` has been unpublished as `35.11.1` introduced a bug
+> preventing users to load a tax-benefit system. Please use versions `38.0.2`
 > and subsequents.
 
 #### New Features
@@ -122,8 +128,8 @@ using `pip freeze`) or with tools providing such features (`pipenv`, etc.).
 
 ### 35.11.2 [#1166](https://github.com/openfisca/openfisca-core/pull/1166)
 
-> Note: Version `35.11.2` has been unpublished as `35.11.1` introduced a bug 
-> preventing users to load a tax-benefit system. Please use versions `38.0.2` 
+> Note: Version `35.11.2` has been unpublished as `35.11.1` introduced a bug
+> preventing users to load a tax-benefit system. Please use versions `38.0.2`
 > and subsequents.
 
 #### Technical changes
@@ -132,8 +138,8 @@ using `pip freeze`) or with tools providing such features (`pipenv`, etc.).
 
 ### 35.11.1 [#1165](https://github.com/openfisca/openfisca-core/pull/1165)
 
-> Note: Version `35.11.1` has been unpublished as it introduced a bug 
-> preventing users to load a tax-benefit system. Please use versions `38.0.2` 
+> Note: Version `35.11.1` has been unpublished as it introduced a bug
+> preventing users to load a tax-benefit system. Please use versions `38.0.2`
 > and subsequents.
 
 #### Bug fix
