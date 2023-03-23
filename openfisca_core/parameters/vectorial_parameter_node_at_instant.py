@@ -15,7 +15,7 @@ class VectorialParameterNodeAtInstant:
     @staticmethod
     def build_from_node(node):
         VectorialParameterNodeAtInstant.check_node_vectorisable(node)
-        subnodes_name = node._children.keys()
+        subnodes_name = sorted(node._children.keys())
         # Recursively vectorize the children of the node
         vectorial_subnodes = tuple(
             [
