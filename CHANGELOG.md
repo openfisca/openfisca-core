@@ -7,6 +7,11 @@
 - Upgrade every dependencies to their latest versions.
 - Upgrade to Python >= 3.9
 
+Main changes, that may require some code changes in country packages:
+- numpy
+- pytest
+- Flask
+
 ### 38.0.4 [#1182](https://github.com/openfisca/openfisca-core/pull/1182)
 
 #### Technical changes
