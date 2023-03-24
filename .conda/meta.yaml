@@ -1,19 +1,18 @@
 ###############################################################################
 ## File for Anaconda.org
-## WARNING : strings PYPI VERSION, PYPI URL and PYPI SHA256 will be replaced
-## by CI script get_pypi_info.py, leave them as is.
+## It use Jinja2 templating code to retreive information from setup.py
 ###############################################################################
 
 {% set name = "OpenFisca-Core" %}
-{% set version = "PYPI_VERSION" %}
+{% set version = data.get('version') %}
+{% set data = load_setup_py_data() %}
 
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  url: PYPI_URL
-  sha256: PYPI_SHA256
+  path_url: ../
 
 build:
   noarch: python
@@ -28,23 +27,25 @@ requirements:
     - python
     - pip
   run:
-    - python >=3.6,<4.0
-    - dpath >=1.5.0,<3.0.0
-    - nptyping ==1.4.4
-    - numexpr >=2.7.0,<=3.0
-    - numpy >=1.11,<1.21
-    - psutil >=5.4.7,<6.0.0
-    - pytest >=4.4.1,<6.0.0
-    - PyYAML >=3.10
-    - sortedcontainers ==2.2.2
-    - typing-extensions ==3.10.0.2
+    {% for req in data.get('install_requires', []) %}
+    - {{ req }}
+    {% endfor %}
+    # - python >=3.9,<4.0
+    # - PyYAML >=6.0,<7.0
+    # - dpath >=2.1.4,<3.0.0
+    # - importlib-metadata >=6.1.0,<7.0
+    # - numexpr >=2.8.4,<=3.0
+    # - numpy >=1.24.2,<2.0
+    # - psutil >=5.9.4,<6.0.0
+    # - pytest >=7.2.2,<8.0.0
+    # - sortedcontainers >=2.4.0
+    # - typing-extensions >=4.5.0,<5.0
 
 test:
   imports:
     - openfisca_core
     - openfisca_core.commons
   requires:
-    - pytest >=4.4.1,<6.0.0
     - pip
   commands:
     - pip check
@@ -61,11 +62,15 @@ outputs:
       host:
         - python
       run:
-        - python >=3.6,<4.0
-        - flask ==1.1.2
-        - flask-cors ==3.0.10
-        - gunicorn >=20.0.0,<21.0.0
-        - werkzeug >=1.0.0,<2.0.0
+        - python >=3.9,<4.0
+        {% for req in data.get('api_requirements', []) %}
+        - {{ req }}
+        {% endfor %}
+        # 
+        # - flask >=2.2.3,<3.0
+        # - flask-cors >=3.0.10,<4.0
+        # - gunicorn >=20.1.0,<21.0.0
+        # - werkzeug >=2.2.3,<3.0.0
         - {{ pin_subpackage('openfisca-core', exact=True) }}
 
   - name: openfisca-core-dev
@@ -75,18 +80,10 @@ outputs:
       host:
         - python
       run:
-        - autopep8 >=1.4.0,<1.6.0
-        - coverage ==6.0.2
-        - darglint ==1.8.0
-        - flake8 >=3.9.0,<4.0.0
-        - flake8-bugbear >=19.3.0,<20.0.0
-        - flake8-docstrings ==1.6.0
-        - flake8-print >=3.1.0,<4.0.0
-        - flake8-rst-docstrings ==0.2.3
-        - mypy ==0.910
-        - openfisca-country-template >=3.10.0,<4.0.0
-        - openfisca-extension-template >=1.2.0rc0,<2.0.0
-        - pylint ==2.10.2
+        - python >=3.9,<4.0
+        {% for req in data.get('dev_requirements', []) %}
+        - {{ req }}
+        {% endfor %}
         - {{ pin_subpackage('openfisca-core-api', exact=True) }}
 
 about:
