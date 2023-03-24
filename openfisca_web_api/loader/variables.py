@@ -73,6 +73,7 @@ def build_variable(variable, country_package_metadata, tax_benefit_system):
         'defaultValue': get_default_value(variable),
         'definitionPeriod': variable.definition_period.upper(),
         'entity': variable.entity.key,
+        'metadata': variable.metadata
         }
 
     if source_code:

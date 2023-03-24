@@ -132,6 +132,7 @@ class Variable:
         self.set_input = self.set_set_input(attr.pop('set_input', None))
         self.calculate_output = self.set_calculate_output(attr.pop('calculate_output', None))
         self.is_period_size_independent = self.set(attr, 'is_period_size_independent', allowed_type = bool, default = config.VALUE_TYPES[self.value_type]['is_period_size_independent'])
+        self.metadata = self.set(attr, 'metadata', allowed_type = dict, setter = self.set_metadata, default = {})
 
         formulas_attr, unexpected_attrs = helpers._partition(attr, lambda name, value: name.startswith(config.FORMULA_NAME_PREFIX))
         self.formulas = self.set_formulas(formulas_attr)
@@ -210,6 +211,10 @@ class Variable:
     def set_documentation(self, documentation):
         if documentation:
             return textwrap.dedent(documentation)
+
+    def set_metadata(self, metadata):
+        if metadata:
+            return metadata
 
     def set_set_input(self, set_input):
         if not set_input and self.baseline_variable:

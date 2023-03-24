@@ -473,3 +473,69 @@ def test_unexpected_attr():
 
     with raises(ValueError):
         tax_benefit_system.add_variable(variable_with_strange_attr)
+
+
+# variable with `metadata` attribute
+
+
+def test_variable_metadata_defaults_to_empty_dict():
+
+    class variable_with_no_metadata(Variable):
+        value_type = int
+        entity = Person
+        definition_period = MONTH
+        label = "Variable with metadata attribute. Metadata is a dict of integers, strings, dicts and lists."
+
+    tax_benefit_system.add_variable(variable_with_no_metadata)
+    variable = tax_benefit_system.variables['variable_with_no_metadata']
+    assert variable.metadata == {}
+
+
+# `example_variable_metadata` must be a dictionary, but can contain any
+# keys and can be nested to any depth.
+example_variable_metadata = {"Part": 5,
+                             "Schedule": "A",
+                             "Labels": [5, "test_label", {"foo": "bar"}],
+                             "Dates": {"commmencement": "01-01-2000", "expiry": "01-01-2000"}
+                             }
+
+
+def test_variable_metadata_returns_dictionary():
+
+    class variable_with_valid_metadata(Variable):
+        value_type = int
+        entity = Person
+        definition_period = MONTH
+        label = "Variable with metadata attribute. Metadata is a dict of integers, strings, dicts and lists."
+        metadata = example_variable_metadata
+
+    tax_benefit_system.add_variable(variable_with_valid_metadata)
+    variable = tax_benefit_system.variables['variable_with_valid_metadata']
+
+    assert variable.metadata == example_variable_metadata
+    assert isinstance(variable.metadata, dict)
+    assert variable.metadata["Part"] == 5
+    assert variable.metadata["Dates"]["commmencement"] == "01-01-2000"
+
+
+def test_variable_with_invalid_metadata_raises_valueerror():
+
+    class variable_with_invalid_metadata_string(Variable):
+        value_type = int
+        entity = Person
+        definition_period = MONTH
+        label = "Variable with invalid metadata attribute."
+        metadata = "ABCDEFG"
+
+    class variable_with_invalid_metadata_array(Variable):
+        value_type = int
+        entity = Person
+        definition_period = MONTH
+        label = "Variable with invalid metadata attribute."
+        metadata = [1, 5, {"foo": "bar"}]
+
+    with raises(ValueError):
+        tax_benefit_system.add_variable(variable_with_invalid_metadata_string)
+
+    with raises(ValueError):
+        tax_benefit_system.add_variable(variable_with_invalid_metadata_array)
