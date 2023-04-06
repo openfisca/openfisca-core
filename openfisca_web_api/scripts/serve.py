@@ -21,7 +21,7 @@ except ImportError as error:
 DEFAULT_PORT = "5000"
 HOST = "127.0.0.1"
 DEFAULT_WORKERS_NUMBER = "3"
-DEFAULT_TIMEOUT = 120
+DEFAULT_TIMEOUT = 1200
 
 
 log = logging.getLogger(__name__)
