@@ -4,8 +4,8 @@
 ###############################################################################
 
 {% set name = "OpenFisca-Core" %}
-{% set version = data.get('version') %}
 {% set data = load_setup_py_data() %}
+{% set version = data.get('version') %}
 
 package:
   name: {{ name|lower }}
