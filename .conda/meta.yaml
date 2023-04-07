@@ -12,7 +12,7 @@ package:
   version: {{ version }}
 
 source:
-  path_url: ../
+  path: ..
 
 build:
   noarch: python
