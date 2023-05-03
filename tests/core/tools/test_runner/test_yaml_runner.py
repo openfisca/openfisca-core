@@ -92,6 +92,12 @@ def test_variable_not_found():
     assert excinfo.value.variable_name == "unknown_variable"
 
 
+def test_tax_benefit_systems_with_cache():
+    baseline = TaxBenefitSystem()
+    ab_tax_benefit_system = _get_tax_benefit_system(baseline, [], [])
+    assert baseline != ab_tax_benefit_system
+
+
 def test_tax_benefit_systems_with_reform_cache():
     baseline = TaxBenefitSystem()
 
