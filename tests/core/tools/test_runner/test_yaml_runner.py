@@ -22,7 +22,7 @@ class TaxBenefitSystem:
         return {"name": "Test", "version": "Test"}
 
     def apply_reform(self, path):
-        return Reform(self)
+        return self
 
     def load_extension(self, extension):
         pass

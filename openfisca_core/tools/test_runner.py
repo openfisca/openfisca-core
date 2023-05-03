@@ -349,13 +349,12 @@ def _get_tax_benefit_system(baseline, reforms, extensions):
     if _tax_benefit_system_cache.get(key):
         return _tax_benefit_system_cache.get(key)
 
-    current_tax_benefit_system = baseline
+    current_tax_benefit_system = baseline.clone()
 
     for reform_path in reforms:
         current_tax_benefit_system = current_tax_benefit_system.apply_reform(reform_path)
 
     for extension in extensions:
-        current_tax_benefit_system = current_tax_benefit_system.clone()
         current_tax_benefit_system.load_extension(extension)
 
     _tax_benefit_system_cache[key] = current_tax_benefit_system
