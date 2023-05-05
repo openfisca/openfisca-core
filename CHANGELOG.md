@@ -1,5 +1,12 @@
 # Changelog
 
+### 38.0.4 [#1182](https://github.com/openfisca/openfisca-core/pull/1182)
+
+#### Technical changes
+
+- Method `_get_tax_benefit_system()` of class `YamlItem` in file  `openfisca_core/tools/test_runner.py` will now clone the TBS when applying reforms to avoid running tests with previously reformed TBS.
+
+
 ### 38.0.3 [#1179](https://github.com/openfisca/openfisca-core/pull/1179)
 
 #### Bug fix
