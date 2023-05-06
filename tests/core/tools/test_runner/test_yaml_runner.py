@@ -9,7 +9,7 @@ from openfisca_core.errors import VariableNotFound
 from openfisca_core.variables import Variable
 from openfisca_core.populations import Population
 from openfisca_core.entities import Entity
-from openfisca_core.periods import ETERNITY
+from openfisca_core.periods import DateUnit
 
 
 class TaxBenefitSystem:
@@ -73,7 +73,7 @@ class TestItem(YamlItem):
 
 
 class TestVariable(Variable):
-    definition_period = ETERNITY
+    definition_period = DateUnit.ETERNITY
     value_type = float
 
     def __init__(self):
