@@ -35,6 +35,10 @@ general_requirements = [
     "pytest >=7.2.2, < 8.0",
     "sortedcontainers >=2.4.0, < 3.0",
     "typing_extensions >=4.5.0, < 5.0",
+    "Flask >=2.2.3, < 3.0",
+    "Flask-Cors >=3.0.10, < 4.0",
+    "gunicorn >=20.1.0, < 21.0",
+    "Werkzeug >=2.2.3, < 3.0",
 ]
 
 api_requirements = [
