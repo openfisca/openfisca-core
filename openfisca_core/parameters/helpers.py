@@ -2,6 +2,7 @@ import os
 import traceback
 
 import numpy
+import pandas as pd
 
 from openfisca_core import parameters, periods
 from openfisca_core.errors import ParameterParsingError
@@ -9,10 +10,16 @@ from openfisca_core.parameters import config
 
 
 def contains_nan(vector):
+    print(vector)
     if numpy.issubdtype(vector.dtype, numpy.record):
         return any([contains_nan(vector[name]) for name in vector.dtype.names])
     else:
         return numpy.isnan(vector).any()
+        #print(type(vector), type(vector[0]))
+        #vector = vector.astype(float)
+        #return pd.isna(vector).any()
+        #_vector = numpy.array(vector)
+        print(type(vector), vector)
 
 
 def load_parameter_file(file_path, name = ''):

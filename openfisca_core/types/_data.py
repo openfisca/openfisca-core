@@ -1,12 +1,15 @@
 from typing import Sequence, TypeVar, Union
 
-from nptyping import types, NDArray as Array
+# Modified by Emanuele Cannizzaro on 03/06/2023
+#from typing import types, NDArray as Array
+import types
+from numpy import ndarray as Array
 
 import numpy
 
 T = TypeVar("T", bool, bytes, float, int, object, str)
 
-types._ndarray_meta._Type = Union[type, numpy.dtype, TypeVar]
+##types._ndarray_meta._Type = Union[type, numpy.dtype, TypeVar]
 
 ArrayLike = Union[Array[T], Sequence[T]]
 """:obj:`typing.Generic`: Type of any castable to :class:`numpy.ndarray`.
