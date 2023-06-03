@@ -96,7 +96,8 @@ class Simulation:
         """Calculate ``variable_name`` for ``period``."""
 
         if period is not None and not isinstance(period, Period):
-            period = periods.period(period)
+            ##period = periods.period(period)
+            period = Period(period)
 
         self.tracer.record_calculation_start(variable_name, period)
 
@@ -270,23 +271,14 @@ class Simulation:
             return  # For variables which values are constant in time, all periods are accepted
 
         if variable.definition_period == periods.MONTH and period.unit != periods.MONTH:
-            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole month. You can use the ADD option to sum '{0}' over the requested period, or change the requested period to 'period.first_month'.".format(
-                variable.name,
-                period
-                ))
+            raise ValueError(f"Unable to compute variable '{variable.name}' for period {period}: '{variable.name}' must be computed for a whole month. You can use the ADD option to sum '{variable.name}' over the requested period, or change the requested period to 'period.first_month'.")
 
         if variable.definition_period == periods.YEAR and period.unit != periods.YEAR:
-            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.".format(
-                variable.name,
-                period
-                ))
+            raise ValueError(f"Unable to compute variable '{variable.name}' for period {period}: '{variable.name}' must be computed for a whole year. You can use the DIVIDE option to get an estimate of {variable.name} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.")
 
         if period.size != 1:
-            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole {2}. You can use the ADD option to sum '{0}' over the requested period.".format(
-                variable.name,
-                period,
-                'month' if variable.definition_period == periods.MONTH else 'year'
-                ))
+            _period = 'month' if variable.definition_period == periods.MONTH else 'year'
+            raise ValueError(f"Unable to compute variable '{variable.name}' for period {period}: '{variable.name}' must be computed for a whole {_period}. You can use the ADD option to sum '{variable.name}' over the requested period.")
 
     def _cast_formula_result(self, value, variable):
         if variable.value_type == Enum and not isinstance(value, EnumArray):
