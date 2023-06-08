@@ -7,7 +7,7 @@
 - Upgrade every dependencies to its latest version.
 - Upgrade to Python >= 3.9
 
-Note: Checks on mypy typings are disabled, because they cause dozen of errors that we were not able to fix easily.
+Note: Checks on mypy typings are disabled, because they cause generate of errors that we were not able to fix easily.
 
 # 39.0.0 [#1181](https://github.com/openfisca/openfisca-core/pull/1181)
 
