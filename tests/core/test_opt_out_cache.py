@@ -24,47 +24,47 @@ class intermediate(Variable):
     definition_period = MONTH
 
     def formula(person, period):
-        return person('input', period)
+        return person("input", period)
 
 
 class output(Variable):
     value_type = int
     entity = Person
-    label = 'Output variable'
+    label = "Output variable"
     definition_period = MONTH
 
     def formula(person, period):
-        return person('intermediate', period)
+        return person("intermediate", period)
 
 
-@pytest.fixture(scope = "module", autouse = True)
+@pytest.fixture(scope="module", autouse=True)
 def add_variables_to_tax_benefit_system(tax_benefit_system):
     tax_benefit_system.add_variables(input, intermediate, output)
 
 
-@pytest.fixture(scope = "module", autouse = True)
+@pytest.fixture(scope="module", autouse=True)
 def add_variables_to_cache_blakclist(tax_benefit_system):
-    tax_benefit_system.cache_blacklist = set(['intermediate'])
+    tax_benefit_system.cache_blacklist = set(["intermediate"])
 
 
-@pytest.mark.parametrize("simulation", [({'input': 1}, PERIOD)], indirect = True)
+@pytest.mark.parametrize("simulation", [({"input": 1}, PERIOD)], indirect=True)
 def test_without_cache_opt_out(simulation):
-    simulation.calculate('output', period = PERIOD)
-    intermediate_cache = simulation.persons.get_holder('intermediate')
-    assert(intermediate_cache.get_array(PERIOD) is not None)
+    simulation.calculate("output", period=PERIOD)
+    intermediate_cache = simulation.persons.get_holder("intermediate")
+    assert intermediate_cache.get_array(PERIOD) is not None
 
 
-@pytest.mark.parametrize("simulation", [({'input': 1}, PERIOD)], indirect = True)
+@pytest.mark.parametrize("simulation", [({"input": 1}, PERIOD)], indirect=True)
 def test_with_cache_opt_out(simulation):
     simulation.debug = True
     simulation.opt_out_cache = True
-    simulation.calculate('output', period = PERIOD)
-    intermediate_cache = simulation.persons.get_holder('intermediate')
-    assert(intermediate_cache.get_array(PERIOD) is None)
+    simulation.calculate("output", period=PERIOD)
+    intermediate_cache = simulation.persons.get_holder("intermediate")
+    assert intermediate_cache.get_array(PERIOD) is None
 
 
-@pytest.mark.parametrize("simulation", [({'input': 1}, PERIOD)], indirect = True)
+@pytest.mark.parametrize("simulation", [({"input": 1}, PERIOD)], indirect=True)
 def test_with_no_blacklist(simulation):
-    simulation.calculate('output', period = PERIOD)
-    intermediate_cache = simulation.persons.get_holder('intermediate')
-    assert(intermediate_cache.get_array(PERIOD) is not None)
+    simulation.calculate("output", period=PERIOD)
+    intermediate_cache = simulation.persons.get_holder("intermediate")
+    assert intermediate_cache.get_array(PERIOD) is not None

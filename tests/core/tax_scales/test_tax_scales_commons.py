@@ -9,21 +9,21 @@ import pytest
 def node():
     return parameters.ParameterNode(
         "baremes",
-        data = {
+        data={
             "health": {
                 "brackets": [
                     {"rate": {"2015-01-01": 0.05}, "threshold": {"2015-01-01": 0}},
                     {"rate": {"2015-01-01": 0.10}, "threshold": {"2015-01-01": 2000}},
-                    ]
-                },
+                ]
+            },
             "retirement": {
                 "brackets": [
                     {"rate": {"2015-01-01": 0.02}, "threshold": {"2015-01-01": 0}},
                     {"rate": {"2015-01-01": 0.04}, "threshold": {"2015-01-01": 3000}},
-                    ]
-                },
+                ]
             },
-        )(2015)
+        },
+    )(2015)
 
 
 def test_combine_tax_scales(node):

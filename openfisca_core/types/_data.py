@@ -1,14 +1,17 @@
-from typing import Sequence, TypeVar, Union
+# from typing import Sequence, TypeVar, Union
+from typing import Sequence, TypeVar
 
-from nptyping import types, NDArray as Array
+# from nptyping import types, NDArray as Array
+from numpy.typing import NDArray as Array  # noqa: F401
+# import numpy
 
-import numpy
-
+# NumpyT = TypeVar("NumpyT", numpy.bytes_, numpy.number, numpy.object_, numpy.str_)
 T = TypeVar("T", bool, bytes, float, int, object, str)
 
-types._ndarray_meta._Type = Union[type, numpy.dtype, TypeVar]
+# types._ndarray_meta._Type = Union[type, numpy.dtype, TypeVar]
 
-ArrayLike = Union[Array[T], Sequence[T]]
+# ArrayLike = Union[Array[T], Sequence[T]]
+ArrayLike = Sequence[T]
 """:obj:`typing.Generic`: Type of any castable to :class:`numpy.ndarray`.
 
 These include any :obj:`numpy.ndarray` and sequences (like

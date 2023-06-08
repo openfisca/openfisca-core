@@ -35,7 +35,7 @@ class ParameterNodeAtInstant:
         setattr(self, child_name, child_at_instant)
 
     def __getattr__(self, key):
-        param_name = helpers._compose_name(self._name, item_name = key)
+        param_name = helpers._compose_name(self._name, item_name=key)
         raise ParameterNotFoundError(param_name, self._instant_str)
 
     def __getitem__(self, key):
@@ -49,10 +49,11 @@ class ParameterNodeAtInstant:
 
     def __repr__(self):
         result = os.linesep.join(
-            [os.linesep.join(
-                ["{}:", "{}"]).format(name, tools.indent(repr(value)))
-                for name, value in self._children.items()]
-            )
+            [
+                os.linesep.join(["{}:", "{}"]).format(name, tools.indent(repr(value)))
+                for name, value in self._children.items()
+            ]
+        )
         if sys.version_info < (3, 0):
             return result
         return result

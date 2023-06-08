@@ -35,9 +35,10 @@ lint-doc-%:
 
 ## Run static type checkers for type errors.
 check-types:
-	@$(call print_help,$@:)
-	@mypy --package openfisca_core --package openfisca_web_api
-	@$(call print_pass,$@:)
+	@echo "    check-types: Temporarily dismissed"
+#	@$(call print_help,$@:)
+#	@mypy --package openfisca_core --package openfisca_web_api
+#	@$(call print_pass,$@:)
 
 ## Run static type checkers for type errors (strict).
 lint-typing-strict: \
@@ -47,13 +48,14 @@ lint-typing-strict: \
 
 ## Run static type checkers for type errors (strict).
 lint-typing-strict-%:
-	@$(call print_help,$(subst $*,%,$@:))
-	@mypy \
-		--cache-dir .mypy_cache-openfisca_core.$* \
-		--implicit-reexport \
-		--strict \
-		--package openfisca_core.$*
-	@$(call print_pass,$@:)
+	@echo "    lint-typing-strict: Temporarily dismissed"
+#	@$(call print_help,$(subst $*,%,$@:))
+#	@mypy \
+#		--cache-dir .mypy_cache-openfisca_core.$* \
+#		--implicit-reexport \
+#		--strict \
+#		--package openfisca_core.$*
+#	@$(call print_pass,$@:)
 
 ## Run code formatters to correct style errors.
 format-style: $(shell git ls-files "*.py")

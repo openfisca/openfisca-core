@@ -16,7 +16,7 @@ from openfisca_core import (
     periods,
     tools,
     types,
-    )
+)
 
 from .memory_usage import MemoryUsage
 
@@ -30,14 +30,19 @@ class Holder:
         self.population = population
         self.variable = variable
         self.simulation = population.simulation
-        self._memory_storage = storage.InMemoryStorage(is_eternal = (self.variable.definition_period == periods.ETERNITY))
+        self._memory_storage = storage.InMemoryStorage(
+            is_eternal=(self.variable.definition_period == periods.ETERNITY)
+        )
 
         # By default, do not activate on-disk storage, or variable dropping
         self._disk_storage = None
         self._on_disk_storable = False
         self._do_not_store = False
         if self.simulation and self.simulation.memory_config:
-            if self.variable.name not in self.simulation.memory_config.priority_variables:
+            if (
+                self.variable.name
+                not in self.simulation.memory_config.priority_variables
+            ):
                 self._disk_storage = self.create_disk_storage()
                 self._on_disk_storable = True
             if self.variable.name in self.simulation.memory_config.variables_to_drop:
@@ -51,15 +56,15 @@ class Holder:
         new_dict = new.__dict__
 
         for key, value in self.__dict__.items():
-            if key not in ('population', 'formula', 'simulation'):
+            if key not in ("population", "formula", "simulation"):
                 new_dict[key] = value
 
-        new_dict['population'] = population
-        new_dict['simulation'] = population.simulation
+        new_dict["population"] = population
+        new_dict["simulation"] = population.simulation
 
         return new
 
-    def create_disk_storage(self, directory = None, preserve = False):
+    def create_disk_storage(self, directory=None, preserve=False):
         if directory is None:
             directory = self.simulation.data_storage_dir
         storage_dir = os.path.join(directory, self.variable.name)
@@ -67,11 +72,11 @@ class Holder:
             os.mkdir(storage_dir)
         return storage.OnDiskStorage(
             storage_dir,
-            is_eternal = (self.variable.definition_period == periods.ETERNITY),
-            preserve_storage_dir = preserve
-            )
+            is_eternal=(self.variable.definition_period == periods.ETERNITY),
+            preserve_storage_dir=preserve,
+        )
 
-    def delete_arrays(self, period = None):
+    def delete_arrays(self, period=None):
         """
         If ``period`` is ``None``, remove all known values of the variable.
 
@@ -139,18 +144,22 @@ class Holder:
         """
 
         usage = MemoryUsage(
-            nb_cells_by_array = self.population.count,
-            dtype = self.variable.dtype,
-            )
+            nb_cells_by_array=self.population.count,
+            dtype=self.variable.dtype,
+        )
 
         usage.update(self._memory_storage.get_memory_usage())
 
         if self.simulation.trace:
             nb_requests = self.simulation.tracer.get_nb_requests(self.variable.name)
-            usage.update(dict(
-                nb_requests = nb_requests,
-                nb_requests_by_array = nb_requests / float(usage['nb_arrays']) if usage['nb_arrays'] > 0 else numpy.nan
-                ))
+            usage.update(
+                dict(
+                    nb_requests=nb_requests,
+                    nb_requests_by_array=nb_requests / float(usage["nb_arrays"])
+                    if usage["nb_arrays"] > 0
+                    else numpy.nan,
+                )
+            )
 
         return usage
 
@@ -159,14 +168,15 @@ class Holder:
         Get the list of periods the variable value is known for.
         """
 
-        return list(self._memory_storage.get_known_periods()) + list((
-            self._disk_storage.get_known_periods() if self._disk_storage else []))
+        return list(self._memory_storage.get_known_periods()) + list(
+            (self._disk_storage.get_known_periods() if self._disk_storage else [])
+        )
 
     def set_input(
-            self,
-            period: types.Period,
-            array: Union[numpy.ndarray, Sequence[Any]],
-            ) -> Optional[numpy.ndarray]:
+        self,
+        period: types.Period,
+        array: Union[numpy.ndarray, Sequence[Any]],
+    ) -> Optional[numpy.ndarray]:
         """Set a Variable's array of values of a given Period.
 
         Args:
@@ -211,26 +221,27 @@ class Holder:
         """
 
         period = periods.period(period)
-        if period.unit == periods.ETERNITY and self.variable.definition_period != periods.ETERNITY:
-            error_message = os.linesep.join([
-                'Unable to set a value for variable {0} for periods.ETERNITY.',
-                '{0} is only defined for {1}s. Please adapt your input.',
-                ]).format(
-                    self.variable.name,
-                    self.variable.definition_period
-                )
+        if (
+            period.unit == periods.ETERNITY
+            and self.variable.definition_period != periods.ETERNITY
+        ):
+            error_message = os.linesep.join(
+                [
+                    "Unable to set a value for variable {0} for periods.ETERNITY.",
+                    "{0} is only defined for {1}s. Please adapt your input.",
+                ]
+            ).format(self.variable.name, self.variable.definition_period)
             raise errors.PeriodMismatchError(
                 self.variable.name,
                 period,
                 self.variable.definition_period,
-                error_message
-                )
+                error_message,
+            )
         if self.variable.is_neutralized:
-            warning_message = "You cannot set a value for the variable {}, as it has been neutralized. The value you provided ({}) will be ignored.".format(self.variable.name, array)
-            return warnings.warn(
-                warning_message,
-                Warning
-                )
+            warning_message = "You cannot set a value for the variable {}, as it has been neutralized. The value you provided ({}) will be ignored.".format(
+                self.variable.name, array
+            )
+            return warnings.warn(warning_message, Warning, stacklevel=2)
         if self.variable.value_type in (float, int) and isinstance(array, str):
             array = tools.eval_expression(array)
         if self.variable.set_input:
@@ -245,8 +256,14 @@ class Holder:
             value = value.reshape(1)
         if len(value) != self.population.count:
             raise ValueError(
-                'Unable to set value "{}" for variable "{}", as its length is {} while there are {} {} in the simulation.'
-                .format(value, self.variable.name, len(value), self.population.count, self.population.entity.plural))
+                'Unable to set value "{}" for variable "{}", as its length is {} while there are {} {} in the simulation.'.format(
+                    value,
+                    self.variable.name,
+                    len(value),
+                    self.population.count,
+                    self.population.entity.plural,
+                )
+            )
         if self.variable.value_type == enums.Enum:
             value = self.variable.possible_values.encode(value)
         if value.dtype != self.variable.dtype:
@@ -254,36 +271,47 @@ class Holder:
                 value = value.astype(self.variable.dtype)
             except ValueError:
                 raise ValueError(
-                    'Unable to set value "{}" for variable "{}", as the variable dtype "{}" does not match the value dtype "{}".'
-                    .format(value, self.variable.name, self.variable.dtype, value.dtype))
+                    'Unable to set value "{}" for variable "{}", as the variable dtype "{}" does not match the value dtype "{}".'.format(
+                        value, self.variable.name, self.variable.dtype, value.dtype
+                    )
+                )
         return value
 
     def _set(self, period, value):
         value = self._to_array(value)
         if self.variable.definition_period != periods.ETERNITY:
             if period is None:
-                raise ValueError('A period must be specified to set values, except for variables with periods.ETERNITY as as period_definition.')
-            if (self.variable.definition_period != period.unit or period.size > 1):
+                raise ValueError(
+                    "A period must be specified to set values, except for variables with periods.ETERNITY as as period_definition."
+                )
+            if self.variable.definition_period != period.unit or period.size > 1:
                 name = self.variable.name
-                period_size_adj = f'{period.unit}' if (period.size == 1) else f'{period.size}-{period.unit}s'
-                error_message = os.linesep.join([
-                    f'Unable to set a value for variable "{name}" for {period_size_adj}-long period "{period}".',
-                    f'"{name}" can only be set for one {self.variable.definition_period} at a time. Please adapt your input.',
-                    f'If you are the maintainer of "{name}", you can consider adding it a set_input attribute to enable automatic period casting.'
-                    ])
+                period_size_adj = (
+                    f"{period.unit}"
+                    if (period.size == 1)
+                    else f"{period.size}-{period.unit}s"
+                )
+                error_message = os.linesep.join(
+                    [
+                        f'Unable to set a value for variable "{name}" for {period_size_adj}-long period "{period}".',
+                        f'"{name}" can only be set for one {self.variable.definition_period} at a time. Please adapt your input.',
+                        f'If you are the maintainer of "{name}", you can consider adding it a set_input attribute to enable automatic period casting.',
+                    ]
+                )
 
                 raise errors.PeriodMismatchError(
                     self.variable.name,
                     period,
                     self.variable.definition_period,
-                    error_message
-                    )
+                    error_message,
+                )
 
         should_store_on_disk = (
-            self._on_disk_storable and
-            self._memory_storage.get(period) is None and  # If there is already a value in memory, replace it and don't put a new value in the disk storage
-            psutil.virtual_memory().percent >= self.simulation.memory_config.max_memory_occupation_pc
-            )
+            self._on_disk_storable
+            and self._memory_storage.get(period) is None
+            and psutil.virtual_memory().percent  # If there is already a value in memory, replace it and don't put a new value in the disk storage
+            >= self.simulation.memory_config.max_memory_occupation_pc
+        )
 
         if should_store_on_disk:
             self._disk_storage.put(value, period)
@@ -294,9 +322,11 @@ class Holder:
         if self._do_not_store:
             return
 
-        if (self.simulation.opt_out_cache and
-                self.simulation.tax_benefit_system.cache_blacklist and
-                self.variable.name in self.simulation.tax_benefit_system.cache_blacklist):
+        if (
+            self.simulation.opt_out_cache
+            and self.simulation.tax_benefit_system.cache_blacklist
+            and self.variable.name in self.simulation.tax_benefit_system.cache_blacklist
+        ):
             return
 
         self._set(period, value)

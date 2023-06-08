@@ -5,7 +5,6 @@ from . import config
 
 
 class Instant(tuple):
-
     def __repr__(self):
         """
         Transform instant to to its Python representation as a string.
@@ -17,7 +16,7 @@ class Instant(tuple):
         >>> repr(instant('2014-2-3'))
         'Instant((2014, 2, 3))'
         """
-        return '{}({})'.format(self.__class__.__name__, super(Instant, self).__repr__())
+        return "{}({})".format(self.__class__.__name__, super(Instant, self).__repr__())
 
     def __str__(self):
         """
@@ -163,21 +162,27 @@ class Instant(tuple):
         Instant((2014, 12, 31))
         """
         year, month, day = self
-        assert unit in (config.DAY, config.MONTH, config.YEAR), 'Invalid unit: {} of type {}'.format(unit, type(unit))
-        if offset == 'first-of':
+        assert unit in (
+            config.DAY,
+            config.MONTH,
+            config.YEAR,
+        ), "Invalid unit: {} of type {}".format(unit, type(unit))
+        if offset == "first-of":
             if unit == config.MONTH:
                 day = 1
             elif unit == config.YEAR:
                 month = 1
                 day = 1
-        elif offset == 'last-of':
+        elif offset == "last-of":
             if unit == config.MONTH:
                 day = calendar.monthrange(year, month)[1]
             elif unit == config.YEAR:
                 month = 12
                 day = 31
         else:
-            assert isinstance(offset, int), 'Invalid offset: {} of type {}'.format(offset, type(offset))
+            assert isinstance(offset, int), "Invalid offset: {} of type {}".format(
+                offset, type(offset)
+            )
             if unit == config.DAY:
                 day += offset
                 if offset < 0:
