@@ -30,7 +30,7 @@ general_requirements = [
     "dpath >=2.1.4, <3.0",
     "importlib-metadata >=6.1.0, <7.0",
     "numexpr >=2.8.4, < 3.0",
-    "numpy >=1.24.2, < 2.0",
+    "numpy >=1.24.2, <1.25",
     "psutil >=5.9.4, < 6.0",
     "pytest >=7.2.2, < 8.0",
     "sortedcontainers >=2.4.0, < 3.0",
@@ -64,7 +64,7 @@ dev_requirements = [
 
 setup(
     name="OpenFisca-Core",
-    version="40.0.0",
+    version="40.0.1",
     author="OpenFisca Team",
     author_email="contact@openfisca.org",
     classifiers=[
