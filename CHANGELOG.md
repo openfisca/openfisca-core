@@ -1,5 +1,11 @@
 # Changelog
 
+###  40.0.1 [#1184](https://github.com/openfisca/openfisca-core/pull/1184)
+
+#### Technical changes
+
+- Require numpy < 1.25 because of memory leak detected in OpenFisca-France.
+
 # 40.0.0 [#1181](https://github.com/openfisca/openfisca-core/pull/1181)
 
 #### Breaking changes
