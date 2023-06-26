@@ -19,7 +19,7 @@ class AbstractTaxScale(TaxScaleLike):
 
     def __init__(
         self,
-        name: typing.Optional[str] = None,
+        name: str | None = None,
         option: typing.Any = None,
         unit: numpy.int_ = None,
     ) -> None:

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import importlib
 import traceback
 import logging
@@ -15,7 +13,7 @@ def build_tax_benefit_system(country_package_name):
         message = linesep.join(
             [
                 traceback.format_exc(),
-                "Could not import module `{}`.".format(country_package_name),
+                f"Could not import module `{country_package_name}`.",
                 "Are you sure it is installed in your environment? If so, look at the stack trace above to determine the origin of this error.",
                 "See more at <https://github.com/openfisca/country-template#installing>.",
                 linesep,

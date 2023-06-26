@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Optional, Sequence, Union
+from typing import Any
+from collections.abc import Sequence
 
 import os
 import warnings
@@ -169,14 +170,14 @@ class Holder:
         """
 
         return list(self._memory_storage.get_known_periods()) + list(
-            (self._disk_storage.get_known_periods() if self._disk_storage else [])
+            self._disk_storage.get_known_periods() if self._disk_storage else []
         )
 
     def set_input(
         self,
         period: types.Period,
-        array: Union[numpy.ndarray, Sequence[Any]],
-    ) -> Optional[numpy.ndarray]:
+        array: numpy.ndarray | Sequence[Any],
+    ) -> numpy.ndarray | None:
         """Set a Variable's array of values of a given Period.
 
         Args:

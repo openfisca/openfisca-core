@@ -13,9 +13,9 @@ class ParameterNode(AtInstantLike):
     A node in the legislation `parameter tree <https://openfisca.org/doc/coding-the-legislation/legislation_parameters.html>`_.
     """
 
-    _allowed_keys: typing.Optional[
+    _allowed_keys: None | (
         typing.Iterable[str]
-    ] = None  # By default, no restriction on the keys
+    ) = None  # By default, no restriction on the keys
 
     def __init__(self, name="", directory_path=None, data=None, file_path=None):
         """
@@ -49,13 +49,13 @@ class ParameterNode(AtInstantLike):
         >>> node = ParameterNode('benefits', directory_path = '/path/to/country_package/parameters/benefits')
         """
         self.name: str = name
-        self.children: typing.Dict[
-            str, typing.Union[ParameterNode, Parameter, parameters.ParameterScale]
+        self.children: dict[
+            str, ParameterNode | Parameter | parameters.ParameterScale
         ] = {}
         self.description: str = None
         self.documentation: str = None
         self.file_path: str = None
-        self.metadata: typing.Dict = {}
+        self.metadata: dict = {}
 
         if directory_path:
             self.file_path = directory_path
@@ -127,7 +127,7 @@ class ParameterNode(AtInstantLike):
         :param child: The new child, an instance of :class:`.ParameterScale` or :class:`.Parameter` or :class:`.ParameterNode`.
         """
         if name in self.children:
-            raise ValueError("{} has already a child named {}".format(self.name, name))
+            raise ValueError(f"{self.name} has already a child named {name}")
         if not (
             isinstance(child, ParameterNode)
             or isinstance(child, Parameter)

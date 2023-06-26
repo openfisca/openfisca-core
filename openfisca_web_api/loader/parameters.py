@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from openfisca_core.parameters import Parameter, ParameterNode, Scale
 
 

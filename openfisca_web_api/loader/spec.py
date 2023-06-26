@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 import yaml
 from copy import deepcopy
@@ -17,7 +15,7 @@ OPEN_API_CONFIG_FILE = os.path.join(
 
 def build_openAPI_specification(api_data):
     tax_benefit_system = api_data["tax_benefit_system"]
-    file = open(OPEN_API_CONFIG_FILE, "r")
+    file = open(OPEN_API_CONFIG_FILE)
     spec = yaml.safe_load(file)
     country_package_name = api_data["country_package_metadata"]["name"].title()
     country_package_version = api_data["country_package_metadata"]["version"]
@@ -159,7 +157,7 @@ def get_situation_json_schema(tax_benefit_system):
             entity.plural: {
                 "type": "object",
                 "additionalProperties": {
-                    "$ref": "#/components/schemas/{}".format(entity.key.title())
+                    "$ref": f"#/components/schemas/{entity.key.title()}"
                 },
             }
             for entity in tax_benefit_system.entities

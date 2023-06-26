@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional, Union
-
 import datetime
 import inspect
 import re
@@ -122,7 +120,7 @@ class Variable:
         if self.value_type == str:
             self.max_length = self.set(attr, "max_length", allowed_type=int)
             if self.max_length:
-                self.dtype = "|S{}".format(self.max_length)
+                self.dtype = f"|S{self.max_length}"
         if self.value_type == Enum:
             self.default_value = self.set(
                 attr, "default_value", allowed_type=self.possible_values, required=True
@@ -385,15 +383,15 @@ class Variable:
         try:
             source_lines, start_line_number = inspect.getsourcelines(cls)
             source_code = textwrap.dedent("".join(source_lines))
-        except (IOError, TypeError):
+        except (OSError, TypeError):
             source_code, start_line_number = None, None
 
         return comments, source_file_path, source_code, start_line_number
 
     def get_formula(
         self,
-        period: Union[Instant, Period, str, int] = None,
-    ) -> Optional[Formula]:
+        period: Instant | Period | str | int = None,
+    ) -> Formula | None:
         """Returns the formula to compute the variable at the given period.
 
         If no period is given and the variable has several formulas, the method
@@ -463,7 +461,7 @@ class Variable:
             value = numpy.array([value], dtype=self.dtype)[0]
         except (TypeError, ValueError):
             if self.value_type == datetime.date:
-                error_message = "Can't deal with date: '{}'.".format(value)
+                error_message = f"Can't deal with date: '{value}'."
             else:
                 error_message = (
                     "Can't deal with value: expected type {}, received '{}'.".format(

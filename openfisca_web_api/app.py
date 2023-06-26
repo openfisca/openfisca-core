@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import logging
 import os
 import traceback
@@ -95,7 +93,7 @@ def create_app(
         parameters = {
             parameter["id"]: {
                 "description": parameter["description"],
-                "href": "{}parameter/{}".format(request.host_url, name),
+                "href": f"{request.host_url}parameter/{name}",
             }
             for name, parameter in data["parameters"].items()
             if parameter.get("subparams")
@@ -120,7 +118,7 @@ def create_app(
         variables = {
             name: {
                 "description": variable["description"],
-                "href": "{}variable/{}".format(request.host_url, name),
+                "href": f"{request.host_url}variable/{name}",
             }
             for name, variable in data["variables"].items()
         }
@@ -153,7 +151,7 @@ def create_app(
     def handle_invalid_json(error):
         json_response = jsonify(
             {
-                "error": "Invalid JSON: {}".format(error.args[0]),
+                "error": f"Invalid JSON: {error.args[0]}",
             }
         )
 

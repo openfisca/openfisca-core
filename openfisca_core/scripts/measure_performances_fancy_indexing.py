@@ -86,8 +86,6 @@ if __name__ == "__main__":
         "formula_without()", setup="from __main__ import formula_without", number=50
     )
 
-    print("Computing with dynamic legislation computing took {}".format(time_with))
-    print(
-        "Computing without dynamic legislation computing took {}".format(time_without)
-    )
-    print("Ratio: {}".format(time_with / time_without))
+    print(f"Computing with dynamic legislation computing took {time_with}")
+    print(f"Computing without dynamic legislation computing took {time_without}")
+    print(f"Ratio: {time_with / time_without}")

@@ -71,28 +71,26 @@ class Period(tuple):
                 return str(year)
             else:
                 # rolling year
-                return "{}:{}-{:02d}".format(config.YEAR, year, month)
+                return f"{config.YEAR}:{year}-{month:02d}"
         # simple month
         if unit == config.MONTH and size == 1:
-            return "{}-{:02d}".format(year, month)
+            return f"{year}-{month:02d}"
         # several civil years
         if unit == config.YEAR and month == 1:
-            return "{}:{}:{}".format(unit, year, size)
+            return f"{unit}:{year}:{size}"
 
         if unit == config.DAY:
             if size == 1:
-                return "{}-{:02d}-{:02d}".format(year, month, day)
+                return f"{year}-{month:02d}-{day:02d}"
             else:
-                return "{}:{}-{:02d}-{:02d}:{}".format(unit, year, month, day, size)
+                return f"{unit}:{year}-{month:02d}-{day:02d}:{size}"
 
         # complex period
-        return "{}:{}-{:02d}:{}".format(unit, year, month, size)
+        return f"{unit}:{year}-{month:02d}:{size}"
 
     @property
     def date(self):
-        assert (
-            self.size == 1
-        ), '"date" is undefined for a period of size > 1: {}'.format(self)
+        assert self.size == 1, f'"date" is undefined for a period of size > 1: {self}'
         return self.start.date
 
     @property
@@ -189,7 +187,7 @@ class Period(tuple):
         >>> [period('2014'), period('2015')]
         """
         if helpers.unit_weight(self.unit) < helpers.unit_weight(unit):
-            raise ValueError("Cannot subdivide {0} into {1}".format(self.unit, unit))
+            raise ValueError(f"Cannot subdivide {self.unit} into {unit}")
 
         if unit == config.YEAR:
             return [self.this_year.offset(i, config.YEAR) for i in range(self.size)]
@@ -378,7 +376,7 @@ class Period(tuple):
             return self[2]
         if self[0] == config.YEAR:
             return self[2] * 12
-        raise ValueError("Cannot calculate number of months in {0}".format(self[0]))
+        raise ValueError(f"Cannot calculate number of months in {self[0]}")
 
     @property
     def size_in_days(self):
@@ -398,7 +396,7 @@ class Period(tuple):
             last_day = self.start.offset(length, unit).offset(-1, config.DAY)
             return (last_day.date - self.start.date).days + 1
 
-        raise ValueError("Cannot calculate number of days in {0}".format(unit))
+        raise ValueError(f"Cannot calculate number of days in {unit}")
 
     @property
     def start(self) -> Instant:

@@ -49,9 +49,7 @@ class Reform(TaxBenefitSystem):
         self.decomposition_file_path = baseline.decomposition_file_path
         self.key = self.__class__.__name__
         if not hasattr(self, "apply"):
-            raise Exception(
-                "Reform {} must define an `apply` function".format(self.key)
-            )
+            raise Exception(f"Reform {self.key} must define an `apply` function")
         self.apply()
 
     def __getattr__(self, attribute):

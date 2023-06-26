@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import typing
-from typing import List, Optional, Union
+from typing import Union
 
 import numpy
 
@@ -22,7 +22,7 @@ class ComputationLog:
 
     def display(
         self,
-        value: Optional[Array],
+        value: Array | None,
     ) -> str:
         if isinstance(value, EnumArray):
             value = value.decode_to_str()
@@ -32,8 +32,8 @@ class ComputationLog:
     def lines(
         self,
         aggregate: bool = False,
-        max_depth: Optional[int] = None,
-    ) -> List[str]:
+        max_depth: int | None = None,
+    ) -> list[str]:
         depth = 1
 
         lines_by_tree = [
@@ -68,8 +68,8 @@ class ComputationLog:
         node: tracers.TraceNode,
         depth: int,
         aggregate: bool,
-        max_depth: Optional[int],
-    ) -> List[str]:
+        max_depth: int | None,
+    ) -> list[str]:
         if max_depth is not None and depth > max_depth:
             return []
 
@@ -87,7 +87,7 @@ class ComputationLog:
         depth: int,
         node: tracers.TraceNode,
         aggregate: bool,
-        max_depth: Optional[int],
+        max_depth: int | None,
     ) -> str:
         indent = "  " * depth
         value = node.value
@@ -115,6 +115,6 @@ class ComputationLog:
 
     def _flatten(
         self,
-        lists: List[List[str]],
-    ) -> List[str]:
+        lists: list[list[str]],
+    ) -> list[str]:
         return [item for list_ in lists for item in list_]

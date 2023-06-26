@@ -1,8 +1,10 @@
 # from typing import Sequence, TypeVar, Union
-from typing import Sequence, TypeVar
+from typing import TypeVar
+from collections.abc import Sequence
 
 # from nptyping import types, NDArray as Array
 from numpy.typing import NDArray as Array  # noqa: F401
+
 # import numpy
 
 # NumpyT = TypeVar("NumpyT", numpy.bytes_, numpy.number, numpy.object_, numpy.str_)

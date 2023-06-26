@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import dpath.util
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.indexed_enums import Enum

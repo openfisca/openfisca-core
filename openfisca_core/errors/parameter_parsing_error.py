@@ -14,8 +14,8 @@ class ParameterParsingError(Exception):
         """
         if file is not None:
             message = os.linesep.join(
-                ["Error parsing parameter file '{}':".format(file), message]
+                [f"Error parsing parameter file '{file}':", message]
             )
         if traceback is not None:
             message = os.linesep.join([traceback, message])
-        super(ParameterParsingError, self).__init__(message)
+        super().__init__(message)

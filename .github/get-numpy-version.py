@@ -6,7 +6,7 @@ import os
 import sys
 import typing
 from packaging import version
-from typing import NoReturn, Union
+from typing import NoReturn
 
 import numpy
 
@@ -30,7 +30,7 @@ def prev() -> NoReturn:
     sys.exit(os.EX_OK)
 
 
-def _installed() -> Union[LegacyVersion, Version]:
+def _installed() -> LegacyVersion | Version:
     return version.parse(numpy.__version__)
 
 

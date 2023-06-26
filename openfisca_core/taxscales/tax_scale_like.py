@@ -18,15 +18,15 @@ class TaxScaleLike(abc.ABC):
     rate-based tax scales...
     """
 
-    name: typing.Optional[str]
+    name: str | None
     option: typing.Any
     unit: typing.Any
-    thresholds: typing.List
+    thresholds: list
 
     @abc.abstractmethod
     def __init__(
         self,
-        name: typing.Optional[str] = None,
+        name: str | None = None,
         option: typing.Any = None,
         unit: typing.Any = None,
     ) -> None:
