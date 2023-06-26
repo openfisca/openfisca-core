@@ -10,12 +10,12 @@ import pytest
 GITHUB_URL_REGEX = r"^https://github\.com/openfisca/country-template/blob/\d+\.\d+\.\d+((.dev|rc)\d+)?/openfisca_country_template/parameters/(.)+\.yaml$"
 
 
-def test_return_code(test_client):
+def test_return_code(test_client) -> None:
     parameters_response = test_client.get("/parameters")
     assert parameters_response.status_code == client.OK
 
 
-def test_response_data(test_client):
+def test_response_data(test_client) -> None:
     parameters_response = test_client.get("/parameters")
     parameters = json.loads(parameters_response.data.decode("utf-8"))
 
@@ -29,25 +29,25 @@ def test_response_data(test_client):
 # /parameter/<id>
 
 
-def test_error_code_non_existing_parameter(test_client):
+def test_error_code_non_existing_parameter(test_client) -> None:
     response = test_client.get("/parameter/non/existing.parameter")
     assert response.status_code == client.NOT_FOUND
 
 
-def test_return_code_existing_parameter(test_client):
+def test_return_code_existing_parameter(test_client) -> None:
     response = test_client.get("/parameter/taxes/income_tax_rate")
     assert response.status_code == client.OK
 
 
-def test_legacy_parameter_route(test_client):
+def test_legacy_parameter_route(test_client) -> None:
     response = test_client.get("/parameter/taxes.income_tax_rate")
     assert response.status_code == client.OK
 
 
-def test_parameter_values(test_client):
+def test_parameter_values(test_client) -> None:
     response = test_client.get("/parameter/taxes/income_tax_rate")
     parameter = json.loads(response.data)
-    assert sorted(list(parameter.keys())), [
+    assert sorted(parameter.keys()), [
         "description",
         "id",
         "metadata",
@@ -69,7 +69,7 @@ def test_parameter_values(test_client):
     # 'documentation' attribute exists only when a value is defined
     response = test_client.get("/parameter/benefits/housing_allowance")
     parameter = json.loads(response.data)
-    assert sorted(list(parameter.keys())), [
+    assert sorted(parameter.keys()), [
         "description",
         "documentation",
         "id",
@@ -82,11 +82,11 @@ def test_parameter_values(test_client):
     )
 
 
-def test_parameter_node(tax_benefit_system, test_client):
+def test_parameter_node(tax_benefit_system, test_client) -> None:
     response = test_client.get("/parameter/benefits")
     assert response.status_code == client.OK
     parameter = json.loads(response.data)
-    assert sorted(list(parameter.keys())), [
+    assert sorted(parameter.keys()), [
         "description",
         "documentation",
         "id",
@@ -107,20 +107,22 @@ def test_parameter_node(tax_benefit_system, test_client):
 
     assert "description" in parameter["subparams"]["basic_income"]
     assert parameter["subparams"]["basic_income"]["description"] == getattr(
-        model_benefits.basic_income, "description", None
+        model_benefits.basic_income,
+        "description",
+        None,
     ), parameter["subparams"]["basic_income"]["description"]
 
 
-def test_stopped_parameter_values(test_client):
+def test_stopped_parameter_values(test_client) -> None:
     response = test_client.get("/parameter/benefits/housing_allowance")
     parameter = json.loads(response.data)
     assert parameter["values"] == {"2016-12-01": None, "2010-01-01": 0.25}
 
 
-def test_scale(test_client):
+def test_scale(test_client) -> None:
     response = test_client.get("/parameter/taxes/social_security_contribution")
     parameter = json.loads(response.data)
-    assert sorted(list(parameter.keys())), [
+    assert sorted(parameter.keys()), [
         "brackets",
         "description",
         "id",
@@ -135,7 +137,7 @@ def test_scale(test_client):
     }
 
 
-def check_code(client, route, code):
+def check_code(client, route, code) -> None:
     response = client.get(route)
     assert response.status_code == code
 
@@ -153,10 +155,10 @@ def check_code(client, route, code):
         ("/parameter//taxes/income_tax_rate/", client.FOUND),
     ],
 )
-def test_routes_robustness(test_client, expected_code):
+def test_routes_robustness(test_client, expected_code) -> None:
     check_code(test_client, *expected_code)
 
 
-def test_parameter_encoding(test_client):
+def test_parameter_encoding(test_client) -> None:
     parameter_response = test_client.get("/parameter/general/age_of_retirement")
     assert parameter_response.status_code == client.OK

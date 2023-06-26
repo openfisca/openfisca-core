@@ -1,5 +1,4 @@
 import os
-import sys
 
 import numpy
 
@@ -9,17 +8,13 @@ from openfisca_core.parameters import helpers
 
 
 class ParameterNodeAtInstant:
-    """
-    Parameter node of the legislation, at a given instant.
-    """
+    """Parameter node of the legislation, at a given instant."""
 
-    def __init__(self, name, node, instant_str):
-        """
-        :param name: Name of the node.
+    def __init__(self, name, node, instant_str) -> None:
+        """:param name: Name of the node.
         :param node: Original :any:`ParameterNode` instance.
         :param instant_str: A date in the format `YYYY-MM-DD`.
         """
-
         # The "technical" attributes are hidden, so that the node children can be easily browsed with auto-completion without pollution
         self._name = name
         self._instant_str = instant_str
@@ -30,7 +25,7 @@ class ParameterNodeAtInstant:
             if child_at_instant is not None:
                 self.add_child(child_name, child_at_instant)
 
-    def add_child(self, child_name, child_at_instant):
+    def add_child(self, child_name, child_at_instant) -> None:
         self._children[child_name] = child_at_instant
         setattr(self, child_name, child_at_instant)
 
@@ -45,7 +40,7 @@ class ParameterNodeAtInstant:
             if numpy.issubdtype(key.dtype, numpy.datetime64):
                 return (
                     parameters.VectorialAsofDateParameterNodeAtInstant.build_from_node(
-                        self
+                        self,
                     )[key]
                 )
 
@@ -55,13 +50,10 @@ class ParameterNodeAtInstant:
     def __iter__(self):
         return iter(self._children)
 
-    def __repr__(self):
-        result = os.linesep.join(
+    def __repr__(self) -> str:
+        return os.linesep.join(
             [
                 os.linesep.join(["{}:", "{}"]).format(name, tools.indent(repr(value)))
                 for name, value in self._children.items()
-            ]
+            ],
         )
-        if sys.version_info < (3, 0):
-            return result
-        return result

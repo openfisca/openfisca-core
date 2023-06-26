@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
-from typing import NewType, Protocol
+from typing import TYPE_CHECKING, NewType, Protocol
 from typing_extensions import Required, TypedDict
 
 from openfisca_core import types as t
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 # Entities
 
@@ -26,12 +28,10 @@ class CoreEntity(t.CoreEntity, Protocol):
     plural: EntityPlural | None
 
 
-class SingleEntity(t.SingleEntity, Protocol):
-    ...
+class SingleEntity(t.SingleEntity, Protocol): ...
 
 
-class GroupEntity(t.GroupEntity, Protocol):
-    ...
+class GroupEntity(t.GroupEntity, Protocol): ...
 
 
 class Role(t.Role, Protocol):
@@ -50,12 +50,10 @@ class RoleParams(TypedDict, total=False):
 # Tax-Benefit systems
 
 
-class TaxBenefitSystem(t.TaxBenefitSystem, Protocol):
-    ...
+class TaxBenefitSystem(t.TaxBenefitSystem, Protocol): ...
 
 
 # Variables
 
 
-class Variable(t.Variable, Protocol):
-    ...
+class Variable(t.Variable, Protocol): ...

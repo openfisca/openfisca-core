@@ -1,4 +1,4 @@
-import numpy as np
+import numpy
 
 from openfisca_core.entities import build_entity
 from openfisca_core.indexed_enums import Enum
@@ -8,9 +8,8 @@ from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_core.variables import Variable
 
 
-def test_shortcut_to_containing_entity_provided():
-    """
-    Tests that, when an entity provides a containing entity,
+def test_shortcut_to_containing_entity_provided() -> None:
+    """Tests that, when an entity provides a containing entity,
     the shortcut to that containing entity is provided.
     """
     person_entity = build_entity(
@@ -29,7 +28,7 @@ def test_shortcut_to_containing_entity_provided():
                 "key": "member",
                 "plural": "members",
                 "label": "Member",
-            }
+            },
         ],
     )
     household_entity = build_entity(
@@ -41,7 +40,7 @@ def test_shortcut_to_containing_entity_provided():
                 "key": "member",
                 "plural": "members",
                 "label": "Member",
-            }
+            },
         ],
     )
 
@@ -52,9 +51,8 @@ def test_shortcut_to_containing_entity_provided():
     assert simulation.populations["family"].household.entity.key == "household"
 
 
-def test_shortcut_to_containing_entity_not_provided():
-    """
-    Tests that, when an entity doesn't provide a containing
+def test_shortcut_to_containing_entity_not_provided() -> None:
+    """Tests that, when an entity doesn't provide a containing
     entity, the shortcut to that containing entity is not provided.
     """
     person_entity = build_entity(
@@ -73,7 +71,7 @@ def test_shortcut_to_containing_entity_not_provided():
                 "key": "member",
                 "plural": "members",
                 "label": "Member",
-            }
+            },
         ],
     )
     household_entity = build_entity(
@@ -85,7 +83,7 @@ def test_shortcut_to_containing_entity_not_provided():
                 "key": "member",
                 "plural": "members",
                 "label": "Member",
-            }
+            },
         ],
     )
 
@@ -95,17 +93,15 @@ def test_shortcut_to_containing_entity_not_provided():
     simulation = SimulationBuilder().build_from_dict(system, {})
     try:
         simulation.populations["family"].household
-        raise AssertionError()
+        raise AssertionError
     except AttributeError:
         pass
 
 
-def test_enum_projects_downwards():
-    """
-    Test that an Enum-type household-level variable projects
+def test_enum_projects_downwards() -> None:
+    """Test that an Enum-type household-level variable projects
     values onto its members correctly.
     """
-
     person = build_entity(
         key="person",
         plural="people",
@@ -121,7 +117,7 @@ def test_enum_projects_downwards():
                 "key": "member",
                 "plural": "members",
                 "label": "Member",
-            }
+            },
         ],
     )
 
@@ -147,8 +143,8 @@ def test_enum_projects_downwards():
         entity = person
         definition_period = DateUnit.ETERNITY
 
-        def formula(person, period):
-            return person.household("household_enum_variable", period)
+        def formula(self, period):
+            return self.household("household_enum_variable", period)
 
     system.add_variables(household_enum_variable, projected_enum_variable)
 
@@ -160,23 +156,21 @@ def test_enum_projects_downwards():
                 "household1": {
                     "members": ["person1", "person2", "person3"],
                     "household_enum_variable": {"eternity": "SECOND_OPTION"},
-                }
+                },
             },
         },
     )
 
     assert (
         simulation.calculate("projected_enum_variable", "2021-01-01").decode_to_str()
-        == np.array(["SECOND_OPTION"] * 3)
+        == numpy.array(["SECOND_OPTION"] * 3)
     ).all()
 
 
-def test_enum_projects_upwards():
-    """
-    Test that an Enum-type person-level variable projects
+def test_enum_projects_upwards() -> None:
+    """Test that an Enum-type person-level variable projects
     values onto its household (from the first person) correctly.
     """
-
     person = build_entity(
         key="person",
         plural="people",
@@ -192,7 +186,7 @@ def test_enum_projects_upwards():
                 "key": "member",
                 "plural": "members",
                 "label": "Member",
-            }
+            },
         ],
     )
 
@@ -211,9 +205,9 @@ def test_enum_projects_upwards():
         entity = household
         definition_period = DateUnit.ETERNITY
 
-        def formula(household, period):
-            return household.value_from_first_person(
-                household.members("person_enum_variable", period)
+        def formula(self, period):
+            return self.value_from_first_person(
+                self.members("person_enum_variable", period),
             )
 
     class person_enum_variable(Variable):
@@ -236,25 +230,24 @@ def test_enum_projects_upwards():
             "households": {
                 "household1": {
                     "members": ["person1", "person2", "person3"],
-                }
+                },
             },
         },
     )
 
     assert (
         simulation.calculate(
-            "household_projected_variable", "2021-01-01"
+            "household_projected_variable",
+            "2021-01-01",
         ).decode_to_str()
-        == np.array(["SECOND_OPTION"])
+        == numpy.array(["SECOND_OPTION"])
     ).all()
 
 
-def test_enum_projects_between_containing_groups():
-    """
-    Test that an Enum-type person-level variable projects
+def test_enum_projects_between_containing_groups() -> None:
+    """Test that an Enum-type person-level variable projects
     values onto its household (from the first person) correctly.
     """
-
     person_entity = build_entity(
         key="person",
         plural="people",
@@ -271,7 +264,7 @@ def test_enum_projects_between_containing_groups():
                 "key": "member",
                 "plural": "members",
                 "label": "Member",
-            }
+            },
         ],
     )
     household_entity = build_entity(
@@ -283,7 +276,7 @@ def test_enum_projects_between_containing_groups():
                 "key": "member",
                 "plural": "members",
                 "label": "Member",
-            }
+            },
         ],
     )
 
@@ -309,16 +302,16 @@ def test_enum_projects_between_containing_groups():
         entity = family_entity
         definition_period = DateUnit.ETERNITY
 
-        def formula(family, period):
-            return family.household("household_level_variable", period)
+        def formula(self, period):
+            return self.household("household_level_variable", period)
 
     class decoded_projected_family_level_variable(Variable):
         value_type = str
         entity = family_entity
         definition_period = DateUnit.ETERNITY
 
-        def formula(family, period):
-            return family.household("household_level_variable", period).decode_to_str()
+        def formula(self, period):
+            return self.household("household_level_variable", period).decode_to_str()
 
     system.add_variables(
         household_level_variable,
@@ -338,18 +331,19 @@ def test_enum_projects_between_containing_groups():
                 "household1": {
                     "members": ["person1", "person2", "person3"],
                     "household_level_variable": {"eternity": "SECOND_OPTION"},
-                }
+                },
             },
         },
     )
 
     assert (
         simulation.calculate(
-            "projected_family_level_variable", "2021-01-01"
+            "projected_family_level_variable",
+            "2021-01-01",
         ).decode_to_str()
-        == np.array(["SECOND_OPTION"])
+        == numpy.array(["SECOND_OPTION"])
     ).all()
     assert (
         simulation.calculate("decoded_projected_family_level_variable", "2021-01-01")
-        == np.array(["SECOND_OPTION"])
+        == numpy.array(["SECOND_OPTION"])
     ).all()

@@ -16,7 +16,7 @@ class EmptyArgumentError(IndexError):
         class_name: str,
         method_name: str,
         arg_name: str,
-        arg_value: typing.Union[typing.List, numpy.ndarray],
+        arg_value: typing.Union[list, numpy.ndarray],
     ) -> None:
         message = [
             f"'{class_name}.{method_name}' can't be run with an empty '{arg_name}':\n",

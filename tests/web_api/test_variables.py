@@ -5,7 +5,7 @@ from http import client
 import pytest
 
 
-def assert_items_equal(x, y):
+def assert_items_equal(x, y) -> None:
     assert set(x) == set(y)
 
 
@@ -17,15 +17,14 @@ GITHUB_URL_REGEX = r"^https://github\.com/openfisca/country-template/blob/\d+\.\
 
 @pytest.fixture(scope="module")
 def variables_response(test_client):
-    variables_response = test_client.get("/variables")
-    return variables_response
+    return test_client.get("/variables")
 
 
-def test_return_code(variables_response):
+def test_return_code(variables_response) -> None:
     assert variables_response.status_code == client.OK
 
 
-def test_response_data(variables_response):
+def test_response_data(variables_response) -> None:
     variables = json.loads(variables_response.data.decode("utf-8"))
     assert variables["birth"] == {
         "description": "Birth date",
@@ -36,22 +35,21 @@ def test_response_data(variables_response):
 # /variable/<id>
 
 
-def test_error_code_non_existing_variable(test_client):
+def test_error_code_non_existing_variable(test_client) -> None:
     response = test_client.get("/variable/non_existing_variable")
     assert response.status_code == client.NOT_FOUND
 
 
 @pytest.fixture(scope="module")
 def input_variable_response(test_client):
-    input_variable_response = test_client.get("/variable/birth")
-    return input_variable_response
+    return test_client.get("/variable/birth")
 
 
-def test_return_code_existing_input_variable(input_variable_response):
+def test_return_code_existing_input_variable(input_variable_response) -> None:
     assert input_variable_response.status_code == client.OK
 
 
-def check_input_variable_value(key, expected_value, input_variable=None):
+def check_input_variable_value(key, expected_value, input_variable=None) -> None:
     assert input_variable[key] == expected_value
 
 
@@ -66,25 +64,25 @@ def check_input_variable_value(key, expected_value, input_variable=None):
         ("references", ["https://en.wiktionary.org/wiki/birthdate"]),
     ],
 )
-def test_input_variable_value(expected_values, input_variable_response):
+def test_input_variable_value(expected_values, input_variable_response) -> None:
     input_variable = json.loads(input_variable_response.data.decode("utf-8"))
 
     check_input_variable_value(*expected_values, input_variable=input_variable)
 
 
-def test_input_variable_github_url(test_client):
+def test_input_variable_github_url(test_client) -> None:
     input_variable_response = test_client.get("/variable/income_tax")
     input_variable = json.loads(input_variable_response.data.decode("utf-8"))
 
     assert re.match(GITHUB_URL_REGEX, input_variable["source"])
 
 
-def test_return_code_existing_variable(test_client):
+def test_return_code_existing_variable(test_client) -> None:
     variable_response = test_client.get("/variable/income_tax")
     assert variable_response.status_code == client.OK
 
 
-def check_variable_value(key, expected_value, variable=None):
+def check_variable_value(key, expected_value, variable=None) -> None:
     assert variable[key] == expected_value
 
 
@@ -98,19 +96,19 @@ def check_variable_value(key, expected_value, variable=None):
         ("entity", "person"),
     ],
 )
-def test_variable_value(expected_values, test_client):
+def test_variable_value(expected_values, test_client) -> None:
     variable_response = test_client.get("/variable/income_tax")
     variable = json.loads(variable_response.data.decode("utf-8"))
     check_variable_value(*expected_values, variable=variable)
 
 
-def test_variable_formula_github_link(test_client):
+def test_variable_formula_github_link(test_client) -> None:
     variable_response = test_client.get("/variable/income_tax")
     variable = json.loads(variable_response.data.decode("utf-8"))
     assert re.match(GITHUB_URL_REGEX, variable["formulas"]["0001-01-01"]["source"])
 
 
-def test_variable_formula_content(test_client):
+def test_variable_formula_content(test_client) -> None:
     variable_response = test_client.get("/variable/income_tax")
     variable = json.loads(variable_response.data.decode("utf-8"))
     content = variable["formulas"]["0001-01-01"]["content"]
@@ -121,13 +119,13 @@ def test_variable_formula_content(test_client):
     )
 
 
-def test_null_values_are_dropped(test_client):
+def test_null_values_are_dropped(test_client) -> None:
     variable_response = test_client.get("/variable/age")
     variable = json.loads(variable_response.data.decode("utf-8"))
-    assert "references" not in variable.keys()
+    assert "references" not in variable
 
 
-def test_variable_with_start_and_stop_date(test_client):
+def test_variable_with_start_and_stop_date(test_client) -> None:
     response = test_client.get("/variable/housing_allowance")
     variable = json.loads(response.data.decode("utf-8"))
     assert_items_equal(variable["formulas"], ["1980-01-01", "2016-12-01"])
@@ -135,12 +133,12 @@ def test_variable_with_start_and_stop_date(test_client):
     assert "formula" in variable["formulas"]["1980-01-01"]["content"]
 
 
-def test_variable_with_enum(test_client):
+def test_variable_with_enum(test_client) -> None:
     response = test_client.get("/variable/housing_occupancy_status")
     variable = json.loads(response.data.decode("utf-8"))
     assert variable["valueType"] == "String"
     assert variable["defaultValue"] == "tenant"
-    assert "possibleValues" in variable.keys()
+    assert "possibleValues" in variable
     assert variable["possibleValues"] == {
         "free_lodger": "Free lodger",
         "homeless": "Homeless",
@@ -151,20 +149,19 @@ def test_variable_with_enum(test_client):
 
 @pytest.fixture(scope="module")
 def dated_variable_response(test_client):
-    dated_variable_response = test_client.get("/variable/basic_income")
-    return dated_variable_response
+    return test_client.get("/variable/basic_income")
 
 
-def test_return_code_existing_dated_variable(dated_variable_response):
+def test_return_code_existing_dated_variable(dated_variable_response) -> None:
     assert dated_variable_response.status_code == client.OK
 
 
-def test_dated_variable_formulas_dates(dated_variable_response):
+def test_dated_variable_formulas_dates(dated_variable_response) -> None:
     dated_variable = json.loads(dated_variable_response.data.decode("utf-8"))
     assert_items_equal(dated_variable["formulas"], ["2016-12-01", "2015-12-01"])
 
 
-def test_dated_variable_formulas_content(dated_variable_response):
+def test_dated_variable_formulas_content(dated_variable_response) -> None:
     dated_variable = json.loads(dated_variable_response.data.decode("utf-8"))
     formula_code_2016 = dated_variable["formulas"]["2016-12-01"]["content"]
     formula_code_2015 = dated_variable["formulas"]["2015-12-01"]["content"]
@@ -175,12 +172,12 @@ def test_dated_variable_formulas_content(dated_variable_response):
     assert "return" in formula_code_2015
 
 
-def test_variable_encoding(test_client):
+def test_variable_encoding(test_client) -> None:
     variable_response = test_client.get("/variable/pension")
     assert variable_response.status_code == client.OK
 
 
-def test_variable_documentation(test_client):
+def test_variable_documentation(test_client) -> None:
     response = test_client.get("/variable/housing_allowance")
     variable = json.loads(response.data.decode("utf-8"))
     assert (

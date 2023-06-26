@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 
 import pytest
@@ -14,7 +12,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 year = 2016
 
 
-def check_fails_with_message(file_name, keywords):
+def check_fails_with_message(file_name, keywords) -> None:
     path = os.path.join(BASE_DIR, file_name) + ".yaml"
     try:
         load_parameter_file(path, file_name)
@@ -65,24 +63,24 @@ def check_fails_with_message(file_name, keywords):
         ("duplicate_key", {"duplicate"}),
     ],
 )
-def test_parsing_errors(test):
+def test_parsing_errors(test) -> None:
     with pytest.raises(ParameterParsingError):
         check_fails_with_message(*test)
 
 
-def test_array_type():
+def test_array_type() -> None:
     path = os.path.join(BASE_DIR, "array_type.yaml")
     load_parameter_file(path, "array_type")
 
 
-def test_filesystem_hierarchy():
+def test_filesystem_hierarchy() -> None:
     path = os.path.join(BASE_DIR, "filesystem_hierarchy")
     parameters = ParameterNode("", directory_path=path)
     parameters_at_instant = parameters("2016-01-01")
     assert parameters_at_instant.node1.param == 1.0
 
 
-def test_yaml_hierarchy():
+def test_yaml_hierarchy() -> None:
     path = os.path.join(BASE_DIR, "yaml_hierarchy")
     parameters = ParameterNode("", directory_path=path)
     parameters_at_instant = parameters("2016-01-01")

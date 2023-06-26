@@ -15,7 +15,9 @@ def test_client(tax_benefit_system):
             from openfisca_country_template import entities
             from openfisca_core import periods
             from openfisca_core.variables import Variable
+
             ...
+
 
             class new_variable(Variable):
                 value_type = float
@@ -24,11 +26,11 @@ def test_client(tax_benefit_system):
                 label = "New variable"
                 reference = "https://law.gov.example/new_variable"  # Always use the most official source
 
+
             tax_benefit_system.add_variable(new_variable)
             flask_app = app.create_app(tax_benefit_system)
 
     """
-
     # Create the test API client
     flask_app = app.create_app(tax_benefit_system)
     return flask_app.test_client()

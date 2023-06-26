@@ -9,18 +9,17 @@ from .tax_scale_like import TaxScaleLike
 if typing.TYPE_CHECKING:
     import numpy
 
-    NumericalArray = typing.Union[numpy.int_, numpy.float_]
+    NumericalArray = typing.Union[numpy.int_, numpy.float64]
 
 
 class AbstractTaxScale(TaxScaleLike):
-    """
-    Base class for various types of tax scales: amount-based tax scales,
+    """Base class for various types of tax scales: amount-based tax scales,
     rate-based tax scales...
     """
 
     def __init__(
         self,
-        name: typing.Optional[str] = None,
+        name: str | None = None,
         option: typing.Any = None,
         unit: numpy.int_ = None,
     ) -> None:
@@ -33,8 +32,9 @@ class AbstractTaxScale(TaxScaleLike):
         super().__init__(name, option, unit)
 
     def __repr__(self) -> typing.NoReturn:
+        msg = "Method '__repr__' is not implemented for " f"{self.__class__.__name__}"
         raise NotImplementedError(
-            "Method '__repr__' is not implemented for " f"{self.__class__.__name__}",
+            msg,
         )
 
     def calc(
@@ -42,11 +42,13 @@ class AbstractTaxScale(TaxScaleLike):
         tax_base: NumericalArray,
         right: bool,
     ) -> typing.NoReturn:
+        msg = "Method 'calc' is not implemented for " f"{self.__class__.__name__}"
         raise NotImplementedError(
-            "Method 'calc' is not implemented for " f"{self.__class__.__name__}",
+            msg,
         )
 
     def to_dict(self) -> typing.NoReturn:
+        msg = f"Method 'to_dict' is not implemented for {self.__class__.__name__}"
         raise NotImplementedError(
-            f"Method 'to_dict' is not implemented for " f"{self.__class__.__name__}",
+            msg,
         )

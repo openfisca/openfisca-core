@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import logging
 import os
 import traceback
@@ -31,7 +29,7 @@ def init_tracker(url, idsite, tracker_token):
                 "You chose to activate the `tracker` module. ",
                 "Tracking data will be sent to: " + url,
                 "For more information, see <https://github.com/openfisca/openfisca-core#tracker-configuration>.",
-            ]
+            ],
         )
         log.info(info)
         return tracker
@@ -42,9 +40,9 @@ def init_tracker(url, idsite, tracker_token):
                 traceback.format_exc(),
                 "You chose to activate the `tracker` module, but it is not installed.",
                 "For more information, see <https://github.com/openfisca/openfisca-core#tracker-installation>.",
-            ]
+            ],
         )
-        log.warn(message)
+        log.warning(message)
 
 
 def create_app(
@@ -77,6 +75,7 @@ def create_app(
     def before_request():
         if request.path != "/" and request.path.endswith("/"):
             return redirect(request.path[:-1])
+        return None
 
     @app.route("/")
     def get_root():
@@ -84,8 +83,8 @@ def create_app(
             jsonify(
                 {
                     "welcome": welcome_message
-                    or DEFAULT_WELCOME_MESSAGE.format(request.host_url)
-                }
+                    or DEFAULT_WELCOME_MESSAGE.format(request.host_url),
+                },
             ),
             300,
         )
@@ -95,7 +94,7 @@ def create_app(
         parameters = {
             parameter["id"]: {
                 "description": parameter["description"],
-                "href": "{}parameter/{}".format(request.host_url, name),
+                "href": f"{request.host_url}parameter/{name}",
             }
             for name, parameter in data["parameters"].items()
             if parameter.get("subparams")
@@ -120,7 +119,7 @@ def create_app(
         variables = {
             name: {
                 "description": variable["description"],
-                "href": "{}variable/{}".format(request.host_url, name),
+                "href": f"{request.host_url}variable/{name}",
             }
             for name, variable in data["variables"].items()
         }
@@ -146,15 +145,15 @@ def create_app(
         return jsonify(
             {
                 **data["openAPI_spec"],
-                **{"servers": [{"url": url}]},
-            }
+                "servers": [{"url": url}],
+            },
         )
 
-    def handle_invalid_json(error):
+    def handle_invalid_json(error) -> None:
         json_response = jsonify(
             {
-                "error": "Invalid JSON: {}".format(error.args[0]),
-            }
+                "error": f"Invalid JSON: {error.args[0]}",
+            },
         )
 
         abort(make_response(json_response, 400))
@@ -173,7 +172,7 @@ def create_app(
                 make_response(
                     jsonify({"error": "'" + e[1] + "' is not a valid ASCII value."}),
                     400,
-                )
+                ),
             )
         return jsonify(result)
 
@@ -194,7 +193,7 @@ def create_app(
             {
                 "Country-Package": data["country_package_metadata"]["name"],
                 "Country-Package-Version": data["country_package_metadata"]["version"],
-            }
+            },
         )
         return response
 

@@ -14,20 +14,19 @@ from openfisca_core.errors import EmptyArgumentError
 from .tax_scale_like import TaxScaleLike
 
 if typing.TYPE_CHECKING:
-    NumericalArray = typing.Union[numpy.int_, numpy.float_]
+    NumericalArray = typing.Union[numpy.int_, numpy.float64]
 
 
 class RateTaxScaleLike(TaxScaleLike, abc.ABC):
-    """
-    Base class for various types of rate-based tax scales: marginal rate,
+    """Base class for various types of rate-based tax scales: marginal rate,
     linear average rate...
     """
 
-    rates: typing.List
+    rates: list
 
     def __init__(
         self,
-        name: typing.Optional[str] = None,
+        name: str | None = None,
         option: typing.Any = None,
         unit: typing.Any = None,
     ) -> None:
@@ -40,14 +39,14 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
                 [
                     f"- threshold: {threshold}{os.linesep}  rate: {rate}"
                     for (threshold, rate) in zip(self.thresholds, self.rates)
-                ]
-            )
+                ],
+            ),
         )
 
     def add_bracket(
         self,
-        threshold: typing.Union[int, float],
-        rate: typing.Union[int, float],
+        threshold: int | float,
+        rate: int | float,
     ) -> None:
         if threshold in self.thresholds:
             i = self.thresholds.index(threshold)
@@ -62,7 +61,7 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
         self,
         factor: float,
         inplace: bool = True,
-        new_name: typing.Optional[str] = None,
+        new_name: str | None = None,
     ) -> RateTaxScaleLike:
         if inplace:
             assert new_name is None
@@ -87,9 +86,9 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
     def multiply_thresholds(
         self,
         factor: float,
-        decimals: typing.Optional[int] = None,
+        decimals: int | None = None,
         inplace: bool = True,
-        new_name: typing.Optional[str] = None,
+        new_name: str | None = None,
     ) -> RateTaxScaleLike:
         if inplace:
             assert new_name is None
@@ -128,10 +127,9 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
         self,
         tax_base: NumericalArray,
         factor: float = 1.0,
-        round_decimals: typing.Optional[int] = None,
+        round_decimals: int | None = None,
     ) -> numpy.int_:
-        """
-        Compute the relevant bracket indices for the given tax bases.
+        """Compute the relevant bracket indices for the given tax bases.
 
         :param ndarray tax_base: Array of the tax bases.
         :param float factor: Factor to apply to the thresholds.
@@ -149,7 +147,6 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
         >>> tax_scale.bracket_indices(tax_base)
         [0, 1]
         """
-
         if not numpy.size(numpy.array(self.thresholds)):
             raise EmptyArgumentError(
                 self.__class__.__name__,
@@ -177,11 +174,12 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
         #
         #   numpy.finfo(float_).eps
         thresholds1 = numpy.outer(
-            +factor + numpy.finfo(numpy.float_).eps, numpy.array(self.thresholds)
+            +factor + numpy.finfo(numpy.float64).eps,
+            numpy.array(self.thresholds),
         )
 
         if round_decimals is not None:
-            thresholds1 = numpy.round_(thresholds1, round_decimals)
+            thresholds1 = numpy.round(thresholds1, round_decimals)
 
         return (base1 - thresholds1 >= 0).sum(axis=1) - 1
 
@@ -189,8 +187,7 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
         self,
         tax_base: NumericalArray,
     ) -> NumericalArray:
-        """
-        Compute the relevant thresholds for the given tax bases.
+        """Compute the relevant thresholds for the given tax bases.
 
         :param: ndarray tax_base: Array of the tax bases.
 
@@ -209,7 +206,6 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
         >>> tax_scale.threshold_from_tax_base(tax_base)
         array([200, 500,   0])
         """
-
         return numpy.array(self.thresholds)[self.bracket_indices(tax_base)]
 
     def to_dict(self) -> dict:

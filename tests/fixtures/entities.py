@@ -7,25 +7,29 @@ from .variables import TestVariable
 
 class TestEntity(Entity):
     def get_variable(
-        self, variable_name: str, check_existence: bool = False
+        self,
+        variable_name: str,
+        check_existence: bool = False,
     ) -> TestVariable:
         result = TestVariable(self)
         result.name = variable_name
         return result
 
-    def check_variable_defined_for_entity(self, variable_name: str):
+    def check_variable_defined_for_entity(self, variable_name: str) -> bool:
         return True
 
 
 class TestGroupEntity(GroupEntity):
     def get_variable(
-        self, variable_name: str, check_existence: bool = False
+        self,
+        variable_name: str,
+        check_existence: bool = False,
     ) -> TestVariable:
         result = TestVariable(self)
         result.name = variable_name
         return result
 
-    def check_variable_defined_for_entity(self, variable_name: str):
+    def check_variable_defined_for_entity(self, variable_name: str) -> bool:
         return True
 
 

@@ -1,19 +1,23 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
 import os
 
 import dpath.util
 
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
 
 class SituationParsingError(Exception):
-    """
-    Exception raised when the situation provided as an input for a simulation cannot be parsed
-    """
+    """Exception raised when the situation provided as an input for a simulation cannot be parsed."""
 
     def __init__(
-        self, path: Iterable[str], message: str, code: int | None = None
+        self,
+        path: Iterable[str],
+        message: str,
+        code: int | None = None,
     ) -> None:
         self.error = {}
         dpath_path = "/".join([str(item) for item in path])

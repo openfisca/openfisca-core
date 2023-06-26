@@ -3,19 +3,23 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
-from numpy.typing import NDArray as Array
-from typing import Protocol, TypeVar, TypedDict, Union
+from typing import TYPE_CHECKING, Protocol, TypeVar, TypedDict, Union
 from typing_extensions import NotRequired, Required, TypeAlias
 
 import datetime
 from abc import abstractmethod
 
-from numpy import bool_ as Bool
-from numpy import datetime64 as Date
-from numpy import float32 as Float
-from numpy import int16 as Enum
-from numpy import int32 as Int
-from numpy import str_ as String
+from numpy import (
+    bool_ as Bool,
+    datetime64 as Date,
+    float32 as Float,
+    int16 as Enum,
+    int32 as Int,
+    str_ as String,
+)
+
+if TYPE_CHECKING:
+    from numpy.typing import NDArray as Array
 
 #: Generic type variables.
 E = TypeVar("E")
@@ -54,7 +58,9 @@ Axes: TypeAlias = dict[str, Iterable[Iterable["Axis"]]]
 
 #: Type alias for a simulation dictionary without axes parameters.
 ParamsWithoutAxes: TypeAlias = Union[
-    Variables, ImplicitGroupEntities, FullySpecifiedEntities
+    Variables,
+    ImplicitGroupEntities,
+    FullySpecifiedEntities,
 ]
 
 #: Type alias for a simulation dictionary with axes parameters.

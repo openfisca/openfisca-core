@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 import typing
-from typing import List, Optional, Union
+from typing import Union
 
 import numpy
 
 from openfisca_core.indexed_enums import EnumArray
 
-from .. import tracers
-
 if typing.TYPE_CHECKING:
     from numpy.typing import ArrayLike
+
+    from openfisca_core import tracers
 
     Array = Union[EnumArray, ArrayLike]
 
@@ -23,7 +23,7 @@ class ComputationLog:
 
     def display(
         self,
-        value: Optional[Array],
+        value: Array | None,
     ) -> str:
         if isinstance(value, EnumArray):
             value = value.decode_to_str()
@@ -33,8 +33,8 @@ class ComputationLog:
     def lines(
         self,
         aggregate: bool = False,
-        max_depth: Optional[int] = None,
-    ) -> List[str]:
+        max_depth: int | None = None,
+    ) -> list[str]:
         depth = 1
 
         lines_by_tree = [
@@ -45,8 +45,7 @@ class ComputationLog:
         return self._flatten(lines_by_tree)
 
     def print_log(self, aggregate=False, max_depth=None) -> None:
-        """
-        Print the computation log of a simulation.
+        """Print the computation log of a simulation.
 
         If ``aggregate`` is ``False`` (default), print the value of each
         computed vector.
@@ -61,16 +60,16 @@ class ComputationLog:
         If ``max_depth`` is set, for example to ``3``, only print computed
         vectors up to a depth of ``max_depth``.
         """
-        for line in self.lines(aggregate, max_depth):
-            print(line)  # noqa T001
+        for _line in self.lines(aggregate, max_depth):
+            pass
 
     def _get_node_log(
         self,
         node: tracers.TraceNode,
         depth: int,
         aggregate: bool,
-        max_depth: Optional[int],
-    ) -> List[str]:
+        max_depth: int | None,
+    ) -> list[str]:
         if max_depth is not None and depth > max_depth:
             return []
 
@@ -88,7 +87,7 @@ class ComputationLog:
         depth: int,
         node: tracers.TraceNode,
         aggregate: bool,
-        max_depth: Optional[int],
+        max_depth: int | None,
     ) -> str:
         indent = "  " * depth
         value = node.value
@@ -103,7 +102,7 @@ class ComputationLog:
                         "avg": numpy.mean(value),
                         "max": numpy.max(value),
                         "min": numpy.min(value),
-                    }
+                    },
                 )
 
             except TypeError:
@@ -116,6 +115,6 @@ class ComputationLog:
 
     def _flatten(
         self,
-        lists: List[List[str]],
-    ) -> List[str]:
+        lists: list[list[str]],
+    ) -> list[str]:
         return [item for list_ in lists for item in list_]

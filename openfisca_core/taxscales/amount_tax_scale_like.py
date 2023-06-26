@@ -10,12 +10,11 @@ from .tax_scale_like import TaxScaleLike
 
 
 class AmountTaxScaleLike(TaxScaleLike, abc.ABC):
-    """
-    Base class for various types of amount-based tax scales: single amount,
+    """Base class for various types of amount-based tax scales: single amount,
     marginal amount...
     """
 
-    amounts: typing.List
+    amounts: list
 
     def __init__(
         self,
@@ -32,8 +31,8 @@ class AmountTaxScaleLike(TaxScaleLike, abc.ABC):
                 [
                     f"- threshold: {threshold}{os.linesep}  amount: {amount}"
                     for (threshold, amount) in zip(self.thresholds, self.amounts)
-                ]
-            )
+                ],
+            ),
         )
 
     def add_bracket(

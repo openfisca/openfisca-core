@@ -29,7 +29,6 @@ def _parse_period(value: str) -> Optional[Period]:
         Period((<DateUnit.WEEKDAY: 'weekday'>, Instant((2022, 1, 16)), 1))
 
     """
-
     # If it's a complex period, next!
     if len(value.split(":")) != 1:
         return None
@@ -77,26 +76,22 @@ def _parse_unit(value: str) -> DateUnit:
         <DateUnit.WEEKDAY: 'weekday'>
 
     """
-
     length = len(value.split("-"))
     isweek = value.find("W") != -1
 
     if length == 1:
         return DateUnit.YEAR
 
-    elif length == 2:
+    if length == 2:
         if isweek:
             return DateUnit.WEEK
 
-        else:
-            return DateUnit.MONTH
+        return DateUnit.MONTH
 
-    elif length == 3:
+    if length == 3:
         if isweek:
             return DateUnit.WEEKDAY
 
-        else:
-            return DateUnit.DAY
+        return DateUnit.DAY
 
-    else:
-        raise ValueError
+    raise ValueError

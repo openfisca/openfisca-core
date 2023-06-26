@@ -1,16 +1,15 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
 # flake8: noqa T001
 
 
-"""
-Measure and compare different vectorial condition notations:
+"""Measure and compare different vectorial condition notations:
 - using multiplication notation: (choice == 1) * choice_1_value + (choice == 2) * choice_2_value
 - using numpy.select: the same than multiplication but more idiomatic like a "switch" control-flow statement
-- using numpy.fromiter: iterates in Python over the array and calculates lazily only the required values
+- using numpy.fromiter: iterates in Python over the array and calculates lazily only the required values.
 
 The aim of this script is to compare the time taken by the calculation of the values
 """
+
 import argparse
 import sys
 import time
@@ -23,10 +22,9 @@ args = None
 
 @contextmanager
 def measure_time(title):
-    t1 = time.time()
+    time.time()
     yield
-    t2 = time.time()
-    print("{}\t: {:.8f} seconds elapsed".format(title, t2 - t1))
+    time.time()
 
 
 def switch_fromiter(conditions, function_by_condition, dtype):
@@ -45,21 +43,21 @@ def switch_fromiter(conditions, function_by_condition, dtype):
 
 
 def switch_select(conditions, value_by_condition):
-    condlist = [conditions == condition for condition in value_by_condition.keys()]
+    condlist = [conditions == condition for condition in value_by_condition]
     return numpy.select(condlist, value_by_condition.values())
 
 
-def calculate_choice_1_value():
+def calculate_choice_1_value() -> int:
     time.sleep(args.calculate_time)
     return 80
 
 
-def calculate_choice_2_value():
+def calculate_choice_2_value() -> int:
     time.sleep(args.calculate_time)
     return 90
 
 
-def calculate_choice_3_value():
+def calculate_choice_3_value() -> int:
     time.sleep(args.calculate_time)
     return 95
 
@@ -68,32 +66,30 @@ def test_multiplication(choice):
     choice_1_value = calculate_choice_1_value()
     choice_2_value = calculate_choice_2_value()
     choice_3_value = calculate_choice_3_value()
-    result = (
+    return (
         (choice == 1) * choice_1_value
         + (choice == 2) * choice_2_value
         + (choice == 3) * choice_3_value
     )
-    return result
 
 
 def test_switch_fromiter(choice):
-    result = switch_fromiter(
+    return switch_fromiter(
         choice,
         {
             1: calculate_choice_1_value,
             2: calculate_choice_2_value,
             3: calculate_choice_3_value,
         },
-        dtype=numpy.int,
+        dtype=int,
     )
-    return result
 
 
 def test_switch_select(choice):
     choice_1_value = calculate_choice_1_value()
     choice_2_value = calculate_choice_2_value()
     choice_3_value = calculate_choice_2_value()
-    result = switch_select(
+    return switch_select(
         choice,
         {
             1: choice_1_value,
@@ -101,10 +97,9 @@ def test_switch_select(choice):
             3: choice_3_value,
         },
     )
-    return result
 
 
-def test_all_notations():
+def test_all_notations() -> None:
     # choice is an array with 1 and 2 items like [2, 1, ..., 1, 2]
     choice = numpy.random.randint(2, size=args.array_length) + 1
 
@@ -118,10 +113,13 @@ def test_all_notations():
         test_switch_fromiter(choice)
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--array-length", default=1000, type=int, help="length of the array"
+        "--array-length",
+        default=1000,
+        type=int,
+        help="length of the array",
     )
     parser.add_argument(
         "--calculate-time",
@@ -132,7 +130,6 @@ def main():
     global args
     args = parser.parse_args()
 
-    print(args)
     test_all_notations()
 
 

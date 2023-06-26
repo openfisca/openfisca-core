@@ -36,10 +36,11 @@ from .parameter import Parameter
 from .parameter_at_instant import ParameterAtInstant
 from .parameter_node import ParameterNode
 from .parameter_node_at_instant import ParameterNodeAtInstant
-from .parameter_scale import ParameterScale
-from .parameter_scale import ParameterScale as Scale
-from .parameter_scale_bracket import ParameterScaleBracket
-from .parameter_scale_bracket import ParameterScaleBracket as Bracket
+from .parameter_scale import ParameterScale, ParameterScale as Scale
+from .parameter_scale_bracket import (
+    ParameterScaleBracket,
+    ParameterScaleBracket as Bracket,
+)
 from .values_history import ValuesHistory
 from .vectorial_asof_date_parameter_node_at_instant import (
     VectorialAsofDateParameterNodeAtInstant,

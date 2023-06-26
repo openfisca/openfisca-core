@@ -1,5 +1,3 @@
-import typing
-
 import os
 import warnings
 
@@ -23,7 +21,7 @@ except ImportError:
 
 # 'unit' and 'reference' are only listed here for backward compatibility.
 #  It is now recommended to include them in metadata, until a common consensus emerges.
-ALLOWED_PARAM_TYPES = (float, int, bool, type(None), typing.List)
+ALLOWED_PARAM_TYPES = (float, int, bool, type(None), list)
 COMMON_KEYS = {"description", "metadata", "unit", "reference", "documentation"}
 FILE_EXTENSIONS = {".yaml", ".yml"}
 
@@ -39,9 +37,12 @@ def dict_no_duplicate_constructor(loader, node, deep=False):
     keys = [key.value for key, value in node.value]
 
     if len(keys) != len(set(keys)):
-        duplicate = next((key for key in keys if keys.count(key) > 1))
+        duplicate = next(key for key in keys if keys.count(key) > 1)
+        msg = ""
         raise yaml.parser.ParserError(
-            "", node.start_mark, f"Found duplicate key '{duplicate}'"
+            msg,
+            node.start_mark,
+            f"Found duplicate key '{duplicate}'",
         )
 
     return loader.construct_mapping(node, deep)

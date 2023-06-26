@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 import os
 
 import numexpr
@@ -15,9 +12,7 @@ def assert_near(
     message="",
     relative_error_margin=None,
 ):
-    """
-
-    :param value: Value returned by the test
+    """:param value: Value returned by the test
     :param target_value: Value that the test should return to pass
     :param absolute_error_margin: Absolute error margin authorized
     :param message: Error message to be displayed if the test fails
@@ -26,7 +21,6 @@ def assert_near(
     Limit : This function cannot be used to assert near periods.
 
     """
-
     import numpy
 
     if absolute_error_margin is None and relative_error_margin is None:
@@ -48,36 +42,30 @@ def assert_near(
     if absolute_error_margin is not None:
         assert (
             diff <= absolute_error_margin
-        ).all(), "{}{} differs from {} with an absolute margin {} > {}".format(
-            message, value, target_value, diff, absolute_error_margin
-        )
+        ).all(), f"{message}{value} differs from {target_value} with an absolute margin {diff} > {absolute_error_margin}"
     if relative_error_margin is not None:
         assert (
             diff <= abs(relative_error_margin * target_value)
-        ).all(), "{}{} differs from {} with a relative margin {} > {}".format(
-            message,
-            value,
-            target_value,
-            diff,
-            abs(relative_error_margin * target_value),
-        )
+        ).all(), f"{message}{value} differs from {target_value} with a relative margin {diff} > {abs(relative_error_margin * target_value)}"
+        return None
+    return None
 
 
-def assert_datetime_equals(value, target_value, message=""):
-    assert (value == target_value).all(), "{}{} differs from {}.".format(
-        message, value, target_value
-    )
+def assert_datetime_equals(value, target_value, message="") -> None:
+    assert (
+        value == target_value
+    ).all(), f"{message}{value} differs from {target_value}."
 
 
-def assert_enum_equals(value, target_value, message=""):
+def assert_enum_equals(value, target_value, message="") -> None:
     value = value.decode_to_str()
-    assert (value == target_value).all(), "{}{} differs from {}.".format(
-        message, value, target_value
-    )
+    assert (
+        value == target_value
+    ).all(), f"{message}{value} differs from {target_value}."
 
 
 def indent(text):
-    return "  {}".format(text.replace(os.linesep, "{}  ".format(os.linesep)))
+    return "  {}".format(text.replace(os.linesep, f"{os.linesep}  "))
 
 
 def get_trace_tool_link(scenario, variables, api_url, trace_tool_url):
@@ -89,17 +77,16 @@ def get_trace_tool_link(scenario, variables, api_url, trace_tool_url):
         "scenarios": [scenario_json],
         "variables": variables,
     }
-    url = (
+    return (
         trace_tool_url
         + "?"
         + urllib.urlencode(
             {
                 "simulation": json.dumps(simulation_json),
                 "api_url": api_url,
-            }
+            },
         )
     )
-    return url
 
 
 def eval_expression(expression):

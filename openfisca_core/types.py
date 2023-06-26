@@ -35,28 +35,23 @@ class CoreEntity(Protocol):
     plural: Any
 
     @abc.abstractmethod
-    def check_role_validity(self, role: Any) -> None:
-        ...
+    def check_role_validity(self, role: Any) -> None: ...
 
     @abc.abstractmethod
-    def check_variable_defined_for_entity(self, variable_name: Any) -> None:
-        ...
+    def check_variable_defined_for_entity(self, variable_name: Any) -> None: ...
 
     @abc.abstractmethod
     def get_variable(
         self,
         variable_name: Any,
         check_existence: Any = ...,
-    ) -> Any | None:
-        ...
+    ) -> Any | None: ...
 
 
-class SingleEntity(CoreEntity, Protocol):
-    ...
+class SingleEntity(CoreEntity, Protocol): ...
 
 
-class GroupEntity(CoreEntity, Protocol):
-    ...
+class GroupEntity(CoreEntity, Protocol): ...
 
 
 class Role(Protocol):
@@ -65,8 +60,7 @@ class Role(Protocol):
     subroles: Any
 
     @property
-    def key(self) -> str:
-        ...
+    def key(self) -> str: ...
 
 
 # Holders
@@ -74,40 +68,34 @@ class Role(Protocol):
 
 class Holder(Protocol):
     @abc.abstractmethod
-    def clone(self, population: Any) -> Holder:
-        ...
+    def clone(self, population: Any) -> Holder: ...
 
     @abc.abstractmethod
-    def get_memory_usage(self) -> Any:
-        ...
+    def get_memory_usage(self) -> Any: ...
 
 
 # Parameters
 
 
 @typing_extensions.runtime_checkable
-class ParameterNodeAtInstant(Protocol):
-    ...
+class ParameterNodeAtInstant(Protocol): ...
 
 
 # Periods
 
 
-class Instant(Protocol):
-    ...
+class Instant(Protocol): ...
 
 
 @typing_extensions.runtime_checkable
 class Period(Protocol):
     @property
     @abc.abstractmethod
-    def start(self) -> Any:
-        ...
+    def start(self) -> Any: ...
 
     @property
     @abc.abstractmethod
-    def unit(self) -> Any:
-        ...
+    def unit(self) -> Any: ...
 
 
 # Populations
@@ -117,8 +105,7 @@ class Population(Protocol):
     entity: Any
 
     @abc.abstractmethod
-    def get_holder(self, variable_name: Any) -> Any:
-        ...
+    def get_holder(self, variable_name: Any) -> Any: ...
 
 
 # Simulations
@@ -126,20 +113,16 @@ class Population(Protocol):
 
 class Simulation(Protocol):
     @abc.abstractmethod
-    def calculate(self, variable_name: Any, period: Any) -> Any:
-        ...
+    def calculate(self, variable_name: Any, period: Any) -> Any: ...
 
     @abc.abstractmethod
-    def calculate_add(self, variable_name: Any, period: Any) -> Any:
-        ...
+    def calculate_add(self, variable_name: Any, period: Any) -> Any: ...
 
     @abc.abstractmethod
-    def calculate_divide(self, variable_name: Any, period: Any) -> Any:
-        ...
+    def calculate_divide(self, variable_name: Any, period: Any) -> Any: ...
 
     @abc.abstractmethod
-    def get_population(self, plural: Any | None) -> Any:
-        ...
+    def get_population(self, plural: Any | None) -> Any: ...
 
 
 # Tax-Benefit systems
@@ -171,11 +154,9 @@ class Formula(Protocol):
         population: Population,
         instant: Instant,
         params: Params,
-    ) -> Array[Any]:
-        ...
+    ) -> Array[Any]: ...
 
 
 class Params(Protocol):
     @abc.abstractmethod
-    def __call__(self, instant: Instant) -> ParameterNodeAtInstant:
-        ...
+    def __call__(self, instant: Instant) -> ParameterNodeAtInstant: ...

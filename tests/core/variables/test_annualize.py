@@ -1,4 +1,4 @@
-import numpy as np
+import numpy
 from pytest import fixture
 
 from openfisca_country_template.entities import Person
@@ -17,9 +17,9 @@ def monthly_variable():
         entity = Person
         definition_period = DateUnit.MONTH
 
-        def formula(person, period, parameters):
+        def formula(self, period, parameters):
             variable.calculation_count += 1
-            return np.asarray([100])
+            return numpy.asarray([100])
 
     variable = monthly_variable()
     variable.calculation_count = calculation_count
@@ -30,17 +30,16 @@ def monthly_variable():
 class PopulationMock:
     # Simulate a population for whom a variable has already been put in cache for January.
 
-    def __init__(self, variable):
+    def __init__(self, variable) -> None:
         self.variable = variable
 
     def __call__(self, variable_name: str, period):
         if period.start.month == 1:
-            return np.asarray([100])
-        else:
-            return self.variable.get_formula(period)(self, period, None)
+            return numpy.asarray([100])
+        return self.variable.get_formula(period)(self, period, None)
 
 
-def test_without_annualize(monthly_variable):
+def test_without_annualize(monthly_variable) -> None:
     period = periods.period(2019)
 
     person = PopulationMock(monthly_variable)
@@ -54,7 +53,7 @@ def test_without_annualize(monthly_variable):
     assert yearly_sum == 1200
 
 
-def test_with_annualize(monthly_variable):
+def test_with_annualize(monthly_variable) -> None:
     period = periods.period(2019)
     annualized_variable = get_annualized_variable(monthly_variable)
 
@@ -69,10 +68,11 @@ def test_with_annualize(monthly_variable):
     assert yearly_sum == 100 * 12
 
 
-def test_with_partial_annualize(monthly_variable):
+def test_with_partial_annualize(monthly_variable) -> None:
     period = periods.period("year:2018:2")
     annualized_variable = get_annualized_variable(
-        monthly_variable, periods.period(2018)
+        monthly_variable,
+        periods.period(2018),
     )
 
     person = PopulationMock(annualized_variable)

@@ -78,10 +78,10 @@ class Instant(tuple):
 
     """
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}({super().__repr__()})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         instant_str = config.str_by_instant_cache.get(self)
 
         if instant_str is None:
@@ -135,7 +135,6 @@ class Instant(tuple):
             Instant((2019, 12, 29))
 
         """
-
         year, month, day = self
 
         assert unit in (
@@ -146,52 +145,55 @@ class Instant(tuple):
             if unit == DateUnit.YEAR:
                 return self.__class__((year, 1, 1))
 
-            elif unit == DateUnit.MONTH:
+            if unit == DateUnit.MONTH:
                 return self.__class__((year, month, 1))
 
-            elif unit == DateUnit.WEEK:
+            if unit == DateUnit.WEEK:
                 date = self.date
                 date = date.start_of("week")
                 return self.__class__((date.year, date.month, date.day))
+            return None
 
-        elif offset == "last-of":
+        if offset == "last-of":
             if unit == DateUnit.YEAR:
                 return self.__class__((year, 12, 31))
 
-            elif unit == DateUnit.MONTH:
+            if unit == DateUnit.MONTH:
                 date = self.date
                 date = date.end_of("month")
                 return self.__class__((date.year, date.month, date.day))
 
-            elif unit == DateUnit.WEEK:
+            if unit == DateUnit.WEEK:
                 date = self.date
                 date = date.end_of("week")
                 return self.__class__((date.year, date.month, date.day))
+            return None
 
-        else:
-            assert isinstance(
-                offset, int
-            ), f"Invalid offset: {offset} of type {type(offset)}"
+        assert isinstance(
+            offset,
+            int,
+        ), f"Invalid offset: {offset} of type {type(offset)}"
 
-            if unit == DateUnit.YEAR:
-                date = self.date
-                date = date.add(years=offset)
-                return self.__class__((date.year, date.month, date.day))
+        if unit == DateUnit.YEAR:
+            date = self.date
+            date = date.add(years=offset)
+            return self.__class__((date.year, date.month, date.day))
 
-            elif unit == DateUnit.MONTH:
-                date = self.date
-                date = date.add(months=offset)
-                return self.__class__((date.year, date.month, date.day))
+        if unit == DateUnit.MONTH:
+            date = self.date
+            date = date.add(months=offset)
+            return self.__class__((date.year, date.month, date.day))
 
-            elif unit == DateUnit.WEEK:
-                date = self.date
-                date = date.add(weeks=offset)
-                return self.__class__((date.year, date.month, date.day))
+        if unit == DateUnit.WEEK:
+            date = self.date
+            date = date.add(weeks=offset)
+            return self.__class__((date.year, date.month, date.day))
 
-            elif unit in (DateUnit.DAY, DateUnit.WEEKDAY):
-                date = self.date
-                date = date.add(days=offset)
-                return self.__class__((date.year, date.month, date.day))
+        if unit in (DateUnit.DAY, DateUnit.WEEKDAY):
+            date = self.date
+            date = date.add(days=offset)
+            return self.__class__((date.year, date.month, date.day))
+        return None
 
     @property
     def year(self):

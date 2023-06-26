@@ -21,16 +21,16 @@ class goes_to_school(Variable):
 
 
 class WithBasicIncomeNeutralized(Reform):
-    def apply(self):
+    def apply(self) -> None:
         self.neutralize_variable("basic_income")
 
 
 @pytest.fixture(scope="module", autouse=True)
-def add_variables_to_tax_benefit_system(tax_benefit_system):
+def add_variables_to_tax_benefit_system(tax_benefit_system) -> None:
     tax_benefit_system.add_variables(goes_to_school)
 
 
-def test_formula_neutralization(make_simulation, tax_benefit_system):
+def test_formula_neutralization(make_simulation, tax_benefit_system) -> None:
     reform = WithBasicIncomeNeutralized(tax_benefit_system)
 
     period = "2017-01"
@@ -48,16 +48,18 @@ def test_formula_neutralization(make_simulation, tax_benefit_system):
     basic_income_reform = reform_simulation.calculate("basic_income", period="2013-01")
     assert_near(basic_income_reform, 0, absolute_error_margin=0)
     disposable_income_reform = reform_simulation.calculate(
-        "disposable_income", period=period
+        "disposable_income",
+        period=period,
     )
     assert_near(disposable_income_reform, 0)
 
 
 def test_neutralization_variable_with_default_value(
-    make_simulation, tax_benefit_system
-):
+    make_simulation,
+    tax_benefit_system,
+) -> None:
     class test_goes_to_school_neutralization(Reform):
-        def apply(self):
+        def apply(self) -> None:
             self.neutralize_variable("goes_to_school")
 
     reform = test_goes_to_school_neutralization(tax_benefit_system)
@@ -69,7 +71,7 @@ def test_neutralization_variable_with_default_value(
     assert_near(goes_to_school, [True], absolute_error_margin=0)
 
 
-def test_neutralization_optimization(make_simulation, tax_benefit_system):
+def test_neutralization_optimization(make_simulation, tax_benefit_system) -> None:
     reform = WithBasicIncomeNeutralized(tax_benefit_system)
 
     period = "2017-01"
@@ -84,9 +86,9 @@ def test_neutralization_optimization(make_simulation, tax_benefit_system):
     assert basic_income_holder.get_known_periods() == []
 
 
-def test_input_variable_neutralization(make_simulation, tax_benefit_system):
+def test_input_variable_neutralization(make_simulation, tax_benefit_system) -> None:
     class test_salary_neutralization(Reform):
-        def apply(self):
+        def apply(self) -> None:
             self.neutralize_variable("salary")
 
     reform = test_salary_neutralization(tax_benefit_system)
@@ -107,21 +109,24 @@ def test_input_variable_neutralization(make_simulation, tax_benefit_system):
         [0, 0],
     )
     disposable_income_reform = reform_simulation.calculate(
-        "disposable_income", period=period
+        "disposable_income",
+        period=period,
     )
     assert_near(disposable_income_reform, [600, 600])
 
 
-def test_permanent_variable_neutralization(make_simulation, tax_benefit_system):
+def test_permanent_variable_neutralization(make_simulation, tax_benefit_system) -> None:
     class test_date_naissance_neutralization(Reform):
-        def apply(self):
+        def apply(self) -> None:
             self.neutralize_variable("birth")
 
     reform = test_date_naissance_neutralization(tax_benefit_system)
 
     period = "2017-01"
     simulation = make_simulation(
-        reform.base_tax_benefit_system, {"birth": "1980-01-01"}, period
+        reform.base_tax_benefit_system,
+        {"birth": "1980-01-01"},
+        period,
     )
     with warnings.catch_warnings(record=True) as raised_warnings:
         reform_simulation = make_simulation(reform, {"birth": "1980-01-01"}, period)
@@ -133,25 +138,35 @@ def test_permanent_variable_neutralization(make_simulation, tax_benefit_system):
     assert str(reform_simulation.calculate("birth", None)[0]) == "1970-01-01"
 
 
-def test_update_items():
+def test_update_items() -> None:
     def check_update_items(
-        description, value_history, start_instant, stop_instant, value, expected_items
-    ):
+        description,
+        value_history,
+        start_instant,
+        stop_instant,
+        value,
+        expected_items,
+    ) -> None:
         value_history.update(
-            period=None, start=start_instant, stop=stop_instant, value=value
+            period=None,
+            start=start_instant,
+            stop=stop_instant,
+            value=value,
         )
         assert value_history == expected_items
 
     check_update_items(
         "Replace an item by a new item",
         ValuesHistory(
-            "dummy_name", {"2013-01-01": {"value": 0.0}, "2014-01-01": {"value": None}}
+            "dummy_name",
+            {"2013-01-01": {"value": 0.0}, "2014-01-01": {"value": None}},
         ),
         periods.period(2013).start,
         periods.period(2013).stop,
         1.0,
         ValuesHistory(
-            "dummy_name", {"2013-01-01": {"value": 1.0}, "2014-01-01": {"value": None}}
+            "dummy_name",
+            {"2013-01-01": {"value": 1.0}, "2014-01-01": {"value": None}},
         ),
     )
     check_update_items(
@@ -179,7 +194,8 @@ def test_update_items():
     check_update_items(
         "Open the stop instant to the future",
         ValuesHistory(
-            "dummy_name", {"2013-01-01": {"value": 0.0}, "2014-01-01": {"value": None}}
+            "dummy_name",
+            {"2013-01-01": {"value": 0.0}, "2014-01-01": {"value": None}},
         ),
         periods.period(2013).start,
         None,  # stop instant
@@ -189,7 +205,8 @@ def test_update_items():
     check_update_items(
         "Insert a new item in the middle of an existing item",
         ValuesHistory(
-            "dummy_name", {"2010-01-01": {"value": 0.0}, "2014-01-01": {"value": None}}
+            "dummy_name",
+            {"2010-01-01": {"value": 0.0}, "2014-01-01": {"value": None}},
         ),
         periods.period(2011).start,
         periods.period(2011).stop,
@@ -250,7 +267,8 @@ def test_update_items():
         None,  # stop instant
         1.0,
         ValuesHistory(
-            "dummy_name", {"2006-01-01": {"value": 0.055}, "2014-01-01": {"value": 1.0}}
+            "dummy_name",
+            {"2006-01-01": {"value": 0.055}, "2014-01-01": {"value": 1.0}},
         ),
     )
     check_update_items(
@@ -314,18 +332,18 @@ def test_update_items():
     )
 
 
-def test_add_variable(make_simulation, tax_benefit_system):
+def test_add_variable(make_simulation, tax_benefit_system) -> None:
     class new_variable(Variable):
         value_type = int
         label = "Nouvelle variable introduite par la réforme"
         entity = Household
         definition_period = DateUnit.MONTH
 
-        def formula(household, period):
-            return household.empty_array() + 10
+        def formula(self, period):
+            return self.empty_array() + 10
 
     class test_add_variable(Reform):
-        def apply(self):
+        def apply(self) -> None:
             self.add_variable(new_variable)
 
     reform = test_add_variable(tax_benefit_system)
@@ -337,21 +355,21 @@ def test_add_variable(make_simulation, tax_benefit_system):
     assert_near(new_variable1, 10, absolute_error_margin=0)
 
 
-def test_add_dated_variable(make_simulation, tax_benefit_system):
+def test_add_dated_variable(make_simulation, tax_benefit_system) -> None:
     class new_dated_variable(Variable):
         value_type = int
         label = "Nouvelle variable introduite par la réforme"
         entity = Household
         definition_period = DateUnit.MONTH
 
-        def formula_2010_01_01(household, period):
-            return household.empty_array() + 10
+        def formula_2010_01_01(self, period):
+            return self.empty_array() + 10
 
-        def formula_2011_01_01(household, period):
-            return household.empty_array() + 15
+        def formula_2011_01_01(self, period):
+            return self.empty_array() + 15
 
     class test_add_variable(Reform):
-        def apply(self):
+        def apply(self) -> None:
             self.add_variable(new_dated_variable)
 
     reform = test_add_variable(tax_benefit_system)
@@ -359,20 +377,21 @@ def test_add_dated_variable(make_simulation, tax_benefit_system):
     reform_simulation = make_simulation(reform, {}, "2013-01")
     reform_simulation.debug = True
     new_dated_variable1 = reform_simulation.calculate(
-        "new_dated_variable", period="2013-01"
+        "new_dated_variable",
+        period="2013-01",
     )
     assert_near(new_dated_variable1, 15, absolute_error_margin=0)
 
 
-def test_update_variable(make_simulation, tax_benefit_system):
+def test_update_variable(make_simulation, tax_benefit_system) -> None:
     class disposable_income(Variable):
         definition_period = DateUnit.MONTH
 
-        def formula_2018(household, period):
-            return household.empty_array() + 10
+        def formula_2018(self, period):
+            return self.empty_array() + 10
 
     class test_update_variable(Reform):
-        def apply(self):
+        def apply(self) -> None:
             self.update_variable(disposable_income)
 
     reform = test_update_variable(tax_benefit_system)
@@ -390,29 +409,31 @@ def test_update_variable(make_simulation, tax_benefit_system):
 
     reform_simulation = make_simulation(reform, {}, 2018)
     disposable_income1 = reform_simulation.calculate(
-        "disposable_income", period="2018-01"
+        "disposable_income",
+        period="2018-01",
     )
     assert_near(disposable_income1, 10, absolute_error_margin=0)
 
     disposable_income2 = reform_simulation.calculate(
-        "disposable_income", period="2017-01"
+        "disposable_income",
+        period="2017-01",
     )
     # Before 2018, the former formula is used
     assert disposable_income2 > 100
 
 
-def test_replace_variable(tax_benefit_system):
+def test_replace_variable(tax_benefit_system) -> None:
     class disposable_income(Variable):
         definition_period = DateUnit.MONTH
         entity = Person
         label = "Disposable income"
         value_type = float
 
-        def formula_2018(household, period):
-            return household.empty_array() + 10
+        def formula_2018(self, period):
+            return self.empty_array() + 10
 
     class test_update_variable(Reform):
-        def apply(self):
+        def apply(self) -> None:
             self.replace_variable(disposable_income)
 
     reform = test_update_variable(tax_benefit_system)
@@ -421,7 +442,7 @@ def test_replace_variable(tax_benefit_system):
     assert disposable_income_reform.get_formula("2017") is None
 
 
-def test_wrong_reform(tax_benefit_system):
+def test_wrong_reform(tax_benefit_system) -> None:
     class wrong_reform(Reform):
         # A Reform must implement an `apply` method
         pass
@@ -430,7 +451,7 @@ def test_wrong_reform(tax_benefit_system):
         wrong_reform(tax_benefit_system)
 
 
-def test_modify_parameters(tax_benefit_system):
+def test_modify_parameters(tax_benefit_system) -> None:
     def modify_parameters(reference_parameters):
         reform_parameters_subtree = ParameterNode(
             "new_node",
@@ -439,7 +460,7 @@ def test_modify_parameters(tax_benefit_system):
                     "values": {
                         "2000-01-01": {"value": True},
                         "2015-01-01": {"value": None},
-                    }
+                    },
                 },
             },
         )
@@ -447,7 +468,7 @@ def test_modify_parameters(tax_benefit_system):
         return reference_parameters
 
     class test_modify_parameters(Reform):
-        def apply(self):
+        def apply(self) -> None:
             self.modify_parameters(modifier_function=modify_parameters)
 
     reform = test_modify_parameters(tax_benefit_system)
@@ -460,7 +481,7 @@ def test_modify_parameters(tax_benefit_system):
     assert parameters_at_instant.new_node.new_param is True
 
 
-def test_attributes_conservation(tax_benefit_system):
+def test_attributes_conservation(tax_benefit_system) -> None:
     class some_variable(Variable):
         value_type = int
         entity = Person
@@ -475,7 +496,7 @@ def test_attributes_conservation(tax_benefit_system):
         class some_variable(Variable):
             default_value = 10
 
-        def apply(self):
+        def apply(self) -> None:
             self.update_variable(some_variable)
 
     reformed_tbs = reform(tax_benefit_system)
@@ -489,9 +510,9 @@ def test_attributes_conservation(tax_benefit_system):
     assert reform_variable.calculate_output == baseline_variable.calculate_output
 
 
-def test_formulas_removal(tax_benefit_system):
+def test_formulas_removal(tax_benefit_system) -> None:
     class reform(Reform):
-        def apply(self):
+        def apply(self) -> None:
             class basic_income(Variable):
                 pass
 

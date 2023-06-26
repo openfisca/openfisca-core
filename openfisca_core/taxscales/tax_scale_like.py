@@ -5,29 +5,28 @@ import typing
 import abc
 import copy
 
-import numpy
-
 from openfisca_core import commons
 
 if typing.TYPE_CHECKING:
-    NumericalArray = typing.Union[numpy.int_, numpy.float_]
+    import numpy
+
+    NumericalArray = typing.Union[numpy.int_, numpy.float64]
 
 
 class TaxScaleLike(abc.ABC):
-    """
-    Base class for various types of tax scales: amount-based tax scales,
+    """Base class for various types of tax scales: amount-based tax scales,
     rate-based tax scales...
     """
 
-    name: typing.Optional[str]
+    name: str | None
     option: typing.Any
     unit: typing.Any
-    thresholds: typing.List
+    thresholds: list
 
     @abc.abstractmethod
     def __init__(
         self,
-        name: typing.Optional[str] = None,
+        name: str | None = None,
         option: typing.Any = None,
         unit: typing.Any = None,
     ) -> None:
@@ -37,30 +36,29 @@ class TaxScaleLike(abc.ABC):
         self.thresholds = []
 
     def __eq__(self, _other: object) -> typing.NoReturn:
+        msg = "Method '__eq__' is not implemented for " f"{self.__class__.__name__}"
         raise NotImplementedError(
-            "Method '__eq__' is not implemented for " f"{self.__class__.__name__}",
+            msg,
         )
 
     def __ne__(self, _other: object) -> typing.NoReturn:
+        msg = "Method '__ne__' is not implemented for " f"{self.__class__.__name__}"
         raise NotImplementedError(
-            "Method '__ne__' is not implemented for " f"{self.__class__.__name__}",
+            msg,
         )
 
     @abc.abstractmethod
-    def __repr__(self) -> str:
-        ...
+    def __repr__(self) -> str: ...
 
     @abc.abstractmethod
     def calc(
         self,
         tax_base: NumericalArray,
         right: bool,
-    ) -> numpy.float_:
-        ...
+    ) -> numpy.float64: ...
 
     @abc.abstractmethod
-    def to_dict(self) -> dict:
-        ...
+    def to_dict(self) -> dict: ...
 
     def copy(self) -> typing.Any:
         new = commons.empty_clone(self)

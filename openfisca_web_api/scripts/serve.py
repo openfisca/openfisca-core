@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import logging
 import sys
 
@@ -33,7 +31,7 @@ def read_user_configuration(default_configuration, command_line_parser):
 
     if args.configuration_file:
         file_configuration = {}
-        with open(args.configuration_file, "r") as file:
+        with open(args.configuration_file) as file:
             exec(file.read(), {}, file_configuration)
 
         # Configuration file overloads default configuration
@@ -43,7 +41,8 @@ def read_user_configuration(default_configuration, command_line_parser):
     gunicorn_parser = config.Config().parser()
     configuration = update(configuration, vars(args))
     configuration = update(
-        configuration, vars(gunicorn_parser.parse_args(unknown_args))
+        configuration,
+        vars(gunicorn_parser.parse_args(unknown_args)),
     )
     if configuration["args"]:
         command_line_parser.print_help()
@@ -59,17 +58,17 @@ def update(configuration, new_options):
             configuration[key] = value
             if key == "port":
                 configuration["bind"] = configuration["bind"][:-4] + str(
-                    configuration["port"]
+                    configuration["port"],
                 )
     return configuration
 
 
 class OpenFiscaWebAPIApplication(BaseApplication):
-    def __init__(self, options):
+    def __init__(self, options) -> None:
         self.options = options
-        super(OpenFiscaWebAPIApplication, self).__init__()
+        super().__init__()
 
-    def load_config(self):
+    def load_config(self) -> None:
         for key, value in self.options.items():
             if key in self.cfg.settings:
                 self.cfg.set(key.lower(), value)
@@ -89,10 +88,10 @@ class OpenFiscaWebAPIApplication(BaseApplication):
         )
 
 
-def main(parser):
+def main(parser) -> None:
     configuration = {
         "port": DEFAULT_PORT,
-        "bind": "{}:{}".format(HOST, DEFAULT_PORT),
+        "bind": f"{HOST}:{DEFAULT_PORT}",
         "workers": DEFAULT_WORKERS_NUMBER,
         "timeout": DEFAULT_TIMEOUT,
     }

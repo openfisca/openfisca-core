@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 from openfisca_web_api.loader.entities import build_entities
 from openfisca_web_api.loader.parameters import build_parameters
 from openfisca_web_api.loader.spec import build_openAPI_specification

@@ -4,7 +4,7 @@ import pytest
 from openfisca_core import taxscales, tools
 
 
-def test_bracket_indices():
+def test_bracket_indices() -> None:
     tax_base = numpy.array([0, 1, 2, 3, 4, 5])
     tax_scale = taxscales.LinearAverageRateTaxScale()
     tax_scale.add_bracket(0, 0)
@@ -16,7 +16,7 @@ def test_bracket_indices():
     tools.assert_near(result, [0, 0, 0, 1, 1, 2])
 
 
-def test_bracket_indices_with_factor():
+def test_bracket_indices_with_factor() -> None:
     tax_base = numpy.array([0, 1, 2, 3, 4, 5])
     tax_scale = taxscales.LinearAverageRateTaxScale()
     tax_scale.add_bracket(0, 0)
@@ -28,7 +28,7 @@ def test_bracket_indices_with_factor():
     tools.assert_near(result, [0, 0, 0, 0, 1, 1])
 
 
-def test_bracket_indices_with_round_decimals():
+def test_bracket_indices_with_round_decimals() -> None:
     tax_base = numpy.array([0, 1, 2, 3, 4, 5])
     tax_scale = taxscales.LinearAverageRateTaxScale()
     tax_scale.add_bracket(0, 0)
@@ -40,7 +40,7 @@ def test_bracket_indices_with_round_decimals():
     tools.assert_near(result, [0, 0, 1, 1, 2, 2])
 
 
-def test_bracket_indices_without_tax_base():
+def test_bracket_indices_without_tax_base() -> None:
     tax_base = numpy.array([])
     tax_scale = taxscales.LinearAverageRateTaxScale()
     tax_scale.add_bracket(0, 0)
@@ -51,7 +51,7 @@ def test_bracket_indices_without_tax_base():
         tax_scale.bracket_indices(tax_base)
 
 
-def test_bracket_indices_without_brackets():
+def test_bracket_indices_without_brackets() -> None:
     tax_base = numpy.array([0, 1, 2, 3, 4, 5])
     tax_scale = taxscales.LinearAverageRateTaxScale()
 
@@ -59,7 +59,7 @@ def test_bracket_indices_without_brackets():
         tax_scale.bracket_indices(tax_base)
 
 
-def test_to_dict():
+def test_to_dict() -> None:
     tax_scale = taxscales.LinearAverageRateTaxScale()
     tax_scale.add_bracket(0, 0)
     tax_scale.add_bracket(100, 0.1)
@@ -69,7 +69,7 @@ def test_to_dict():
     assert result == {"0": 0.0, "100": 0.1}
 
 
-def test_to_marginal():
+def test_to_marginal() -> None:
     tax_base = numpy.array([1, 1.5, 2, 2.5])
     tax_scale = taxscales.LinearAverageRateTaxScale()
     tax_scale.add_bracket(0, 0)

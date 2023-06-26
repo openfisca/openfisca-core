@@ -7,10 +7,10 @@ from openfisca_core import types as t
 
 
 def apply_thresholds(
-    input: t.Array[numpy.float_],
+    input: t.Array[numpy.float64],
     thresholds: t.ArrayLike[float],
     choices: t.ArrayLike[float],
-) -> t.Array[numpy.float_]:
+) -> t.Array[numpy.float64]:
     """Makes a choice based on an input and thresholds.
 
     From a list of ``choices``, this function selects one of these values
@@ -38,7 +38,6 @@ def apply_thresholds(
         array([10, 10, 15, 15, 20])
 
     """
-
     condlist: list[Union[t.Array[numpy.bool_], bool]]
     condlist = [input <= threshold for threshold in thresholds]
 
@@ -47,12 +46,9 @@ def apply_thresholds(
         # must be true to return it.
         condlist += [True]
 
-    assert len(condlist) == len(choices), " ".join(
-        [
-            "'apply_thresholds' must be called with the same number of",
-            "thresholds than choices, or one more choice.",
-        ]
-    )
+    assert len(condlist) == len(
+        choices
+    ), "'apply_thresholds' must be called with the same number of thresholds than choices, or one more choice."
 
     return numpy.select(condlist, choices)
 
@@ -78,7 +74,6 @@ def concat(
         array(['this1.0', 'that2.5']...)
 
     """
-
     if isinstance(this, numpy.ndarray) and not numpy.issubdtype(this.dtype, numpy.str_):
         this = this.astype("str")
 
@@ -89,9 +84,9 @@ def concat(
 
 
 def switch(
-    conditions: t.Array[numpy.float_],
+    conditions: t.Array[numpy.float64],
     value_by_condition: Mapping[float, float],
-) -> t.Array[numpy.float_]:
+) -> t.Array[numpy.float64]:
     """Mimicks a switch statement.
 
     Given an array of conditions, returns an array of the same size,
@@ -115,11 +110,10 @@ def switch(
         array([80, 80, 80, 90])
 
     """
-
     assert (
         len(value_by_condition) > 0
     ), "'switch' must be called with at least one value."
 
-    condlist = [conditions == condition for condition in value_by_condition.keys()]
+    condlist = [conditions == condition for condition in value_by_condition]
 
     return numpy.select(condlist, tuple(value_by_condition.values()))

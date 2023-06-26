@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional
-
 import copy
 import os
 
@@ -46,20 +44,22 @@ class Parameter(AtInstantLike):
 
     """
 
-    def __init__(self, name: str, data: dict, file_path: Optional[str] = None) -> None:
+    def __init__(self, name: str, data: dict, file_path: str | None = None) -> None:
         self.name: str = name
-        self.file_path: Optional[str] = file_path
+        self.file_path: str | None = file_path
         helpers._validate_parameter(self, data, data_type=dict)
-        self.description: Optional[str] = None
-        self.metadata: Dict = {}
-        self.documentation: Optional[str] = None
+        self.description: str | None = None
+        self.metadata: dict = {}
+        self.documentation: str | None = None
         self.values_history = self  # Only for backward compatibility
 
         # Normal parameter declaration: the values are declared under the 'values' key: parse the description and metadata.
         if data.get("values"):
             # 'unit' and 'reference' are only listed here for backward compatibility
             helpers._validate_parameter(
-                self, data, allowed_keys=config.COMMON_KEYS.union({"values"})
+                self,
+                data,
+                allowed_keys=config.COMMON_KEYS.union({"values"}),
             )
             self.description = data.get("description")
 
@@ -75,16 +75,16 @@ class Parameter(AtInstantLike):
             values = data
 
         instants = sorted(
-            values.keys(), reverse=True
+            values.keys(),
+            reverse=True,
         )  # sort in reverse chronological order
 
         values_list = []
         for instant_str in instants:
             if not periods.INSTANT_PATTERN.match(instant_str):
+                msg = f"Invalid property '{instant_str}' in '{self.name}'. Properties must be valid YYYY-MM-DD instants, such as 2017-01-15."
                 raise ParameterParsingError(
-                    "Invalid property '{}' in '{}'. Properties must be valid YYYY-MM-DD instants, such as 2017-01-15.".format(
-                        instant_str, self.name
-                    ),
+                    msg,
                     file_path,
                 )
 
@@ -108,9 +108,9 @@ class Parameter(AtInstantLike):
             )
             values_list.append(value_at_instant)
 
-        self.values_list: List[ParameterAtInstant] = values_list
+        self.values_list: list[ParameterAtInstant] = values_list
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return os.linesep.join(
             [
                 "{}: {}".format(
@@ -118,7 +118,7 @@ class Parameter(AtInstantLike):
                     value.value if value.value is not None else "null",
                 )
                 for value in self.values_list
-            ]
+            ],
         )
 
     def __eq__(self, other):
@@ -134,9 +134,8 @@ class Parameter(AtInstantLike):
         ]
         return clone
 
-    def update(self, period=None, start=None, stop=None, value=None):
-        """
-        Change the value for a given period.
+    def update(self, period=None, start=None, stop=None, value=None) -> None:
+        """Change the value for a given period.
 
         :param period: Period where the value is modified. If set, `start` and `stop` should be `None`.
         :param start: Start of the period. Instance of `openfisca_core.periods.Instant`. If set, `period` should be `None`.
@@ -145,15 +144,17 @@ class Parameter(AtInstantLike):
         """
         if period is not None:
             if start is not None or stop is not None:
+                msg = "Wrong input for 'update' method: use either 'update(period, value = value)' or 'update(start = start, stop = stop, value = value)'. You cannot both use 'period' and 'start' or 'stop'."
                 raise TypeError(
-                    "Wrong input for 'update' method: use either 'update(period, value = value)' or 'update(start = start, stop = stop, value = value)'. You cannot both use 'period' and 'start' or 'stop'."
+                    msg,
                 )
             if isinstance(period, str):
                 period = periods.period(period)
             start = period.start
             stop = period.stop
         if start is None:
-            raise ValueError("You must provide either a start or a period")
+            msg = "You must provide either a start or a period"
+            raise ValueError(msg)
         start_str = str(start)
         stop_str = str(stop.offset(1, "day")) if stop else None
 
@@ -172,20 +173,23 @@ class Parameter(AtInstantLike):
         if stop_str:
             if new_values and (stop_str == new_values[-1].instant_str):
                 pass  # such interval is empty
+            elif i < n:
+                overlapped_value = old_values[i].value
+                value_name = helpers._compose_name(self.name, item_name=stop_str)
+                new_interval = ParameterAtInstant(
+                    value_name,
+                    stop_str,
+                    data={"value": overlapped_value},
+                )
+                new_values.append(new_interval)
             else:
-                if i < n:
-                    overlapped_value = old_values[i].value
-                    value_name = helpers._compose_name(self.name, item_name=stop_str)
-                    new_interval = ParameterAtInstant(
-                        value_name, stop_str, data={"value": overlapped_value}
-                    )
-                    new_values.append(new_interval)
-                else:
-                    value_name = helpers._compose_name(self.name, item_name=stop_str)
-                    new_interval = ParameterAtInstant(
-                        value_name, stop_str, data={"value": None}
-                    )
-                    new_values.append(new_interval)
+                value_name = helpers._compose_name(self.name, item_name=stop_str)
+                new_interval = ParameterAtInstant(
+                    value_name,
+                    stop_str,
+                    data={"value": None},
+                )
+                new_values.append(new_interval)
 
         # Insert new interval
         value_name = helpers._compose_name(self.name, item_name=start_str)

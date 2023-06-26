@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from typing_extensions import Self
 
 from openfisca_core import errors
 
 from ._build_default_simulation import _BuildDefaultSimulation
 from ._type_guards import is_variable_dated
-from .simulation import Simulation
-from .typing import Entity, Population, TaxBenefitSystem, Variables
+
+if TYPE_CHECKING:
+    from .simulation import Simulation
+    from .typing import Entity, Population, TaxBenefitSystem, Variables
 
 
 class _BuildFromVariables:
@@ -139,7 +142,6 @@ class _BuildFromVariables:
             >>> pack.get_array(period)
 
         """
-
         for variable, value in self.variables.items():
             if is_variable_dated(dated_variable := value):
                 for period, dated_value in dated_variable.items():
@@ -197,7 +199,6 @@ class _BuildFromVariables:
             array([5000], dtype=int32)
 
         """
-
         for variable, value in self.variables.items():
             if not is_variable_dated(undated_value := value):
                 if (period := self.default_period) is None:

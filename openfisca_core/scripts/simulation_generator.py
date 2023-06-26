@@ -6,21 +6,22 @@ from openfisca_core.simulations import Simulation
 
 
 def make_simulation(tax_benefit_system, nb_persons, nb_groups, **kwargs):
-    """
-    Generate a simulation containing nb_persons persons spread in nb_groups groups.
+    """Generate a simulation containing nb_persons persons spread in nb_groups groups.
 
     Example:
-
     >>> from openfisca_core.scripts.simulation_generator import make_simulation
     >>> from openfisca_france import CountryTaxBenefitSystem
     >>> tbs = CountryTaxBenefitSystem()
-    >>> simulation = make_simulation(tbs, 400, 100)  # Create a simulation with 400 persons, spread among 100 families
-    >>> simulation.calculate('revenu_disponible', 2017)
+    >>> simulation = make_simulation(
+    ...     tbs, 400, 100
+    ... )  # Create a simulation with 400 persons, spread among 100 families
+    >>> simulation.calculate("revenu_disponible", 2017)
+
     """
     simulation = Simulation(tax_benefit_system=tax_benefit_system, **kwargs)
     simulation.persons.ids = numpy.arange(nb_persons)
     simulation.persons.count = nb_persons
-    adults = [0] + sorted(random.sample(range(1, nb_persons), nb_groups - 1))
+    adults = [0, *sorted(random.sample(range(1, nb_persons), nb_groups - 1))]
 
     members_entity_id = numpy.empty(nb_persons, dtype=int)
 
@@ -50,26 +51,40 @@ def make_simulation(tax_benefit_system, nb_persons, nb_groups, **kwargs):
 
 
 def randomly_init_variable(
-    simulation, variable_name: str, period, max_value, condition=None
-):
-    """
-    Initialise a variable with random values (from 0 to max_value) for the given period.
+    simulation,
+    variable_name: str,
+    period,
+    max_value,
+    condition=None,
+) -> None:
+    """Initialise a variable with random values (from 0 to max_value) for the given period.
     If a condition vector is provided, only set the value of persons or groups for which condition is True.
 
     Example:
-
-    >>> from openfisca_core.scripts.simulation_generator import make_simulation, randomly_init_variable
+    >>> from openfisca_core.scripts.simulation_generator import (
+    ...     make_simulation,
+    ...     randomly_init_variable,
+    ... )
     >>> from openfisca_france import CountryTaxBenefitSystem
     >>> tbs = CountryTaxBenefitSystem()
-    >>> simulation = make_simulation(tbs, 400, 100)  # Create a simulation with 400 persons, spread among 100 families
-    >>> randomly_init_variable(simulation, 'salaire_net', 2017, max_value = 50000, condition = simulation.persons.has_role(simulation.famille.DEMANDEUR))  # Randomly set a salaire_net for all persons between 0 and 50000?
-    >>> simulation.calculate('revenu_disponible', 2017)
+    >>> simulation = make_simulation(
+    ...     tbs, 400, 100
+    ... )  # Create a simulation with 400 persons, spread among 100 families
+    >>> randomly_init_variable(
+    ...     simulation,
+    ...     "salaire_net",
+    ...     2017,
+    ...     max_value=50000,
+    ...     condition=simulation.persons.has_role(simulation.famille.DEMANDEUR),
+    ... )  # Randomly set a salaire_net for all persons between 0 and 50000?
+    >>> simulation.calculate("revenu_disponible", 2017)
+
     """
     if condition is None:
         condition = True
     variable = simulation.tax_benefit_system.get_variable(variable_name)
     population = simulation.get_variable_population(variable_name)
     value = (numpy.random.rand(population.count) * max_value * condition).astype(
-        variable.dtype
+        variable.dtype,
     )
     simulation.set_input(variable_name, period, value)

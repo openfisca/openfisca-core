@@ -9,18 +9,17 @@ from .rate_tax_scale_like import RateTaxScaleLike
 if typing.TYPE_CHECKING:
     import numpy
 
-    NumericalArray = typing.Union[numpy.int_, numpy.float_]
+    NumericalArray = typing.Union[numpy.int_, numpy.float64]
 
 
 class AbstractRateTaxScale(RateTaxScaleLike):
-    """
-    Base class for various types of rate-based tax scales: marginal rate,
+    """Base class for various types of rate-based tax scales: marginal rate,
     linear average rate...
     """
 
     def __init__(
         self,
-        name: typing.Optional[str] = None,
+        name: str | None = None,
         option: typing.Any = None,
         unit: typing.Any = None,
     ) -> None:
@@ -37,6 +36,7 @@ class AbstractRateTaxScale(RateTaxScaleLike):
         tax_base: NumericalArray,
         right: bool,
     ) -> typing.NoReturn:
+        msg = "Method 'calc' is not implemented for " f"{self.__class__.__name__}"
         raise NotImplementedError(
-            "Method 'calc' is not implemented for " f"{self.__class__.__name__}",
+            msg,
         )

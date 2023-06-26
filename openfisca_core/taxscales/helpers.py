@@ -18,11 +18,9 @@ def combine_tax_scales(
     node: ParameterNodeAtInstant,
     combined_tax_scales: TaxScales = None,
 ) -> TaxScales:
-    """
-    Combine all the MarginalRateTaxScales in the node into a single
+    """Combine all the MarginalRateTaxScales in the node into a single
     MarginalRateTaxScale.
     """
-
     name = next(iter(node or []), None)
 
     if name is None:

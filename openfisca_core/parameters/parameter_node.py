@@ -14,17 +14,14 @@ from .parameter_node_at_instant import ParameterNodeAtInstant
 
 
 class ParameterNode(AtInstantLike):
-    """
-    A node in the legislation `parameter tree <https://openfisca.org/doc/coding-the-legislation/legislation_parameters.html>`_.
-    """
+    """A node in the legislation `parameter tree <https://openfisca.org/doc/coding-the-legislation/legislation_parameters.html>`_."""
 
-    _allowed_keys: typing.Optional[
-        typing.Iterable[str]
-    ] = None  # By default, no restriction on the keys
+    _allowed_keys: None | (typing.Iterable[str]) = (
+        None  # By default, no restriction on the keys
+    )
 
-    def __init__(self, name="", directory_path=None, data=None, file_path=None):
-        """
-        Instantiate a ParameterNode either from a dict, (using `data`), or from a directory containing YAML files (using `directory_path`).
+    def __init__(self, name="", directory_path=None, data=None, file_path=None) -> None:
+        """Instantiate a ParameterNode either from a dict, (using `data`), or from a directory containing YAML files (using `directory_path`).
 
         :param str name: Name of the node, eg "taxes.some_tax".
         :param str directory_path: Directory containing YAML files describing the node.
@@ -51,16 +48,20 @@ class ParameterNode(AtInstantLike):
 
         Instantiate a ParameterNode from a directory containing YAML parameter files:
 
-        >>> node = ParameterNode('benefits', directory_path = '/path/to/country_package/parameters/benefits')
+        >>> node = ParameterNode(
+        ...     "benefits",
+        ...     directory_path="/path/to/country_package/parameters/benefits",
+        ... )
         """
         self.name: str = name
-        self.children: typing.Dict[
-            str, typing.Union[ParameterNode, Parameter, parameters.ParameterScale]
+        self.children: dict[
+            str,
+            ParameterNode | Parameter | parameters.ParameterScale,
         ] = {}
         self.description: str = None
         self.documentation: str = None
         self.file_path: str = None
-        self.metadata: typing.Dict = {}
+        self.metadata: dict = {}
 
         if directory_path:
             self.file_path = directory_path
@@ -76,7 +77,9 @@ class ParameterNode(AtInstantLike):
                     if child_name == "index":
                         data = helpers._load_yaml_file(child_path) or {}
                         helpers._validate_parameter(
-                            self, data, allowed_keys=config.COMMON_KEYS
+                            self,
+                            data,
+                            allowed_keys=config.COMMON_KEYS,
                         )
                         self.description = data.get("description")
                         self.documentation = data.get("documentation")
@@ -85,7 +88,8 @@ class ParameterNode(AtInstantLike):
                     else:
                         child_name_expanded = helpers._compose_name(name, child_name)
                         child = helpers.load_parameter_file(
-                            child_path, child_name_expanded
+                            child_path,
+                            child_name_expanded,
                         )
                         self.add_child(child_name, child)
 
@@ -93,14 +97,18 @@ class ParameterNode(AtInstantLike):
                     child_name = os.path.basename(child_path)
                     child_name_expanded = helpers._compose_name(name, child_name)
                     child = ParameterNode(
-                        child_name_expanded, directory_path=child_path
+                        child_name_expanded,
+                        directory_path=child_path,
                     )
                     self.add_child(child_name, child)
 
         else:
             self.file_path = file_path
             helpers._validate_parameter(
-                self, data, data_type=dict, allowed_keys=self._allowed_keys
+                self,
+                data,
+                data_type=dict,
+                allowed_keys=self._allowed_keys,
             )
             self.description = data.get("description")
             self.documentation = data.get("documentation")
@@ -115,50 +123,43 @@ class ParameterNode(AtInstantLike):
                 child = helpers._parse_child(child_name_expanded, child, file_path)
                 self.add_child(child_name, child)
 
-    def merge(self, other):
-        """
-        Merges another ParameterNode into the current node.
+    def merge(self, other) -> None:
+        """Merges another ParameterNode into the current node.
 
         In case of child name conflict, the other node child will replace the current node child.
         """
         for child_name, child in other.children.items():
             self.add_child(child_name, child)
 
-    def add_child(self, name, child):
-        """
-        Add a new child to the node.
+    def add_child(self, name, child) -> None:
+        """Add a new child to the node.
 
         :param name: Name of the child that must be used to access that child. Should not contain anything that could interfere with the operator `.` (dot).
         :param child: The new child, an instance of :class:`.ParameterScale` or :class:`.Parameter` or :class:`.ParameterNode`.
         """
         if name in self.children:
-            raise ValueError("{} has already a child named {}".format(self.name, name))
+            msg = f"{self.name} has already a child named {name}"
+            raise ValueError(msg)
         if not (
-            isinstance(child, ParameterNode)
-            or isinstance(child, Parameter)
-            or isinstance(child, parameters.ParameterScale)
+            isinstance(child, (ParameterNode, Parameter, parameters.ParameterScale))
         ):
+            msg = f"child must be of type ParameterNode, Parameter, or Scale. Instead got {type(child)}"
             raise TypeError(
-                "child must be of type ParameterNode, Parameter, or Scale. Instead got {}".format(
-                    type(child)
-                )
+                msg,
             )
         self.children[name] = child
         setattr(self, name, child)
 
-    def __repr__(self):
-        result = os.linesep.join(
+    def __repr__(self) -> str:
+        return os.linesep.join(
             [
                 os.linesep.join(["{}:", "{}"]).format(name, tools.indent(repr(value)))
                 for name, value in sorted(self.children.items())
-            ]
+            ],
         )
-        return result
 
     def get_descendants(self):
-        """
-        Return a generator containing all the parameters and nodes recursively contained in this `ParameterNode`
-        """
+        """Return a generator containing all the parameters and nodes recursively contained in this `ParameterNode`."""
         for child in self.children.values():
             yield child
             yield from child.get_descendants()

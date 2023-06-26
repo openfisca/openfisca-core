@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import dataclasses
 import textwrap
 
-from .types import SingleEntity
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
+
+    from .types import SingleEntity
 
 
 class Role:
@@ -85,7 +87,7 @@ class Role:
                 key: value
                 for key, value in description.items()
                 if key in {"key", "plural", "label", "doc"}
-            }
+            },
         )
         self.entity = entity
         self.max = description.get("max")
@@ -96,7 +98,7 @@ class Role:
 
 @dataclasses.dataclass(frozen=True)
 class _Description:
-    """A Role's description.
+    r"""A Role's description.
 
     Examples:
         >>> data = {

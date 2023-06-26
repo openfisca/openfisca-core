@@ -1,10 +1,13 @@
 from datetime import date
 
-from numpy import logical_not as not_
-from numpy import maximum as max_
-from numpy import minimum as min_
-from numpy import round as round_
-from numpy import select, where
+from numpy import (
+    logical_not as not_,
+    maximum as max_,
+    minimum as min_,
+    round as round_,
+    select,
+    where,
+)
 
 from openfisca_core.commons import apply_thresholds, concat, switch
 from openfisca_core.holders import (
