@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, NewType, Protocol
+from collections.abc import Iterable
+from typing import NewType, Protocol
 from typing_extensions import Required, TypedDict
 
 from openfisca_core import types as t
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable
 
 # Entities
 

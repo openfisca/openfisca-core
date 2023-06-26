@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, NamedTuple
+from collections.abc import Mapping
+from typing import NamedTuple
+
+from openfisca_core.types import Population, TaxBenefitSystem, Variable
 
 import tempfile
 import warnings
@@ -15,11 +18,6 @@ from openfisca_core import (
     tracers,
     warnings as core_warnings,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
-
-    from openfisca_core.types import Population, TaxBenefitSystem, Variable
 
 
 class Simulation:

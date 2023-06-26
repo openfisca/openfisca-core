@@ -1,14 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import os
 from abc import abstractmethod
 
+from . import types as t
 from .role import Role
-
-if TYPE_CHECKING:
-    from . import types as t
 
 
 class _CoreEntity:

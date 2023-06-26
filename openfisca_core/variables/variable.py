@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, NoReturn
+from typing import NoReturn
+
+from openfisca_core.types import Formula, Instant
 
 import datetime
 import re
@@ -15,9 +17,6 @@ from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import DateUnit, Period
 
 from . import config, helpers
-
-if TYPE_CHECKING:
-    from openfisca_core.types import Formula, Instant
 
 
 class Variable:

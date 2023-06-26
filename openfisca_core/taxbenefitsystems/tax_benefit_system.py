@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from collections.abc import Sequence
+from typing import Any
+
+from openfisca_core.types import ParameterNodeAtInstant
 
 import ast
 import copy
@@ -17,19 +20,13 @@ import sys
 import traceback
 
 from openfisca_core import commons, periods, variables
+from openfisca_core.entities import Entity
 from openfisca_core.errors import VariableNameConflictError, VariableNotFoundError
 from openfisca_core.parameters import ParameterNode
 from openfisca_core.periods import Instant, Period
 from openfisca_core.populations import GroupPopulation, Population
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.variables import Variable
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
-
-    from openfisca_core.types import ParameterNodeAtInstant
-
-    from openfisca_core.entities import Entity
 
 log = logging.getLogger(__name__)
 

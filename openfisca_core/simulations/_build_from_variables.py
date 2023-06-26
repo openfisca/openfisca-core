@@ -2,17 +2,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 from typing_extensions import Self
 
 from openfisca_core import errors
 
 from ._build_default_simulation import _BuildDefaultSimulation
 from ._type_guards import is_variable_dated
-
-if TYPE_CHECKING:
-    from .simulation import Simulation
-    from .typing import Entity, Population, TaxBenefitSystem, Variables
+from .simulation import Simulation
+from .typing import Entity, Population, TaxBenefitSystem, Variables
 
 
 class _BuildFromVariables:

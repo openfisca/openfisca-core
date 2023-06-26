@@ -1,14 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Iterable, Sequence
 
+from . import types as t
 from .entity import Entity
 from .group_entity import GroupEntity
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable, Sequence
-
-    from . import types as t
 
 
 def build_entity(

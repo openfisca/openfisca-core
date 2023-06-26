@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from collections.abc import Sequence
+from typing import Any
 
 import os
 import warnings
@@ -19,9 +20,6 @@ from openfisca_core import (
 )
 
 from .memory_usage import MemoryUsage
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
 
 
 class Holder:

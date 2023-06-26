@@ -1,7 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from collections.abc import Sequence
+from typing import Any
 from typing_extensions import Literal, TypedDict
+
+from openfisca_core.types import TaxBenefitSystem
 
 import dataclasses
 import os
@@ -17,11 +20,6 @@ from openfisca_core.errors import SituationParsingError, VariableNotFound
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.tools import assert_near
 from openfisca_core.warnings import LibYAMLWarning
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
-
-    from openfisca_core.types import TaxBenefitSystem
 
 
 class Options(TypedDict, total=False):

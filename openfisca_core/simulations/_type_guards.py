@@ -2,21 +2,18 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Iterable
 from typing_extensions import TypeGuard
 
-if TYPE_CHECKING:
-    from collections.abc import Iterable
-
-    from .typing import (
-        Axes,
-        DatedVariable,
-        FullySpecifiedEntities,
-        ImplicitGroupEntities,
-        Params,
-        UndatedVariable,
-        Variables,
-    )
+from .typing import (
+    Axes,
+    DatedVariable,
+    FullySpecifiedEntities,
+    ImplicitGroupEntities,
+    Params,
+    UndatedVariable,
+    Variables,
+)
 
 
 def are_entities_fully_specified(

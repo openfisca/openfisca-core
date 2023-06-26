@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
-from typing import TYPE_CHECKING, Protocol, TypeVar, TypedDict, Union
+from numpy.typing import NDArray as Array
+from typing import Protocol, TypeVar, TypedDict, Union
 from typing_extensions import NotRequired, Required, TypeAlias
 
 import datetime
@@ -17,9 +18,6 @@ from numpy import (
     int32 as Int,
     str_ as String,
 )
-
-if TYPE_CHECKING:
-    from numpy.typing import NDArray as Array
 
 #: Generic type variables.
 E = TypeVar("E")

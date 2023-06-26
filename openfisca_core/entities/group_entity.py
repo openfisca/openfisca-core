@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Iterable, Sequence
 
 import textwrap
 from itertools import chain
@@ -8,9 +8,6 @@ from itertools import chain
 from . import types as t
 from ._core_entity import _CoreEntity
 from .role import Role
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable, Sequence
 
 
 class GroupEntity(_CoreEntity):

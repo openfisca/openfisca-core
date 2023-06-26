@@ -1,15 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Mapping
+
+from openfisca_core.types import GroupEntity, Role, SingleEntity
 
 from openfisca_core import entities, projectors
 
-if TYPE_CHECKING:
-    from collections.abc import Mapping
-
-    from openfisca_core.types import GroupEntity, Role, SingleEntity
-
-    from .typing import GroupPopulation, Population
+from .typing import GroupPopulation, Population
 
 
 def projectable(function):

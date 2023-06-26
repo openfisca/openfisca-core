@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, NoReturn
+from collections.abc import Iterable, Sequence
+from numpy.typing import NDArray as Array
+from typing import NoReturn
 
 import copy
 
@@ -19,26 +21,21 @@ from ._type_guards import (
     has_axes,
 )
 from .simulation import Simulation
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable, Sequence
-    from numpy.typing import NDArray as Array
-
-    from .typing import (
-        Axis,
-        Entity,
-        FullySpecifiedEntities,
-        GroupEntities,
-        GroupEntity,
-        ImplicitGroupEntities,
-        Params,
-        ParamsWithoutAxes,
-        Population,
-        Role,
-        SingleEntity,
-        TaxBenefitSystem,
-        Variables,
-    )
+from .typing import (
+    Axis,
+    Entity,
+    FullySpecifiedEntities,
+    GroupEntities,
+    GroupEntity,
+    ImplicitGroupEntities,
+    Params,
+    ParamsWithoutAxes,
+    Population,
+    Role,
+    SingleEntity,
+    TaxBenefitSystem,
+    Variables,
+)
 
 
 class SimulationBuilder:

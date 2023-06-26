@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from collections.abc import Iterable
 
 import datetime
 
@@ -14,9 +14,6 @@ from openfisca_core.populations import Population
 from openfisca_core.simulations import Simulation, SimulationBuilder
 from openfisca_core.tools import test_runner
 from openfisca_core.variables import Variable
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable
 
 
 @pytest.fixture

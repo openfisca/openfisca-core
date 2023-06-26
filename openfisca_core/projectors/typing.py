@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol
+from collections.abc import Mapping
+from typing import Protocol
 
-if TYPE_CHECKING:
-    from collections.abc import Mapping
-
-    from openfisca_core.types import GroupEntity, SingleEntity
+from openfisca_core.types import GroupEntity, SingleEntity
 
 
 class Population(Protocol):

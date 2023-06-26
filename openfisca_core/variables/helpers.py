@@ -1,12 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import sortedcontainers
 
-if TYPE_CHECKING:
-    from openfisca_core import variables
-    from openfisca_core.periods import Period
+from openfisca_core import variables
+from openfisca_core.periods import Period
 
 
 def get_annualized_variable(
