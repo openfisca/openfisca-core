@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, NamedTuple, Optional, Set
+from typing import NamedTuple
 
 import tempfile
 import warnings
@@ -26,13 +26,13 @@ class Simulation:
     """
 
     tax_benefit_system: TaxBenefitSystem
-    populations: Dict[str, Population]
-    invalidated_caches: Set[Cache]
+    populations: dict[str, Population]
+    invalidated_caches: set[Cache]
 
     def __init__(
         self,
         tax_benefit_system: TaxBenefitSystem,
-        populations: Dict[str, Population],
+        populations: dict[str, Population],
     ):
         """
         This constructor is reserved for internal use; see :any:`SimulationBuilder`,
@@ -121,7 +121,7 @@ class Simulation:
 
         :returns: A numpy array containing the result of the calculation
         """
-        variable: Optional[Variable]
+        variable: Variable | None
 
         population = self.get_variable_population(variable_name)
         holder = population.get_holder(variable_name)
@@ -168,7 +168,7 @@ class Simulation:
         self.invalidated_caches = set()
 
     def calculate_add(self, variable_name: str, period):
-        variable: Optional[Variable]
+        variable: Variable | None
 
         variable = self.tax_benefit_system.get_variable(
             variable_name, check_existence=True
@@ -203,7 +203,7 @@ class Simulation:
         )
 
     def calculate_divide(self, variable_name: str, period):
-        variable: Optional[Variable]
+        variable: Variable | None
 
         variable = self.tax_benefit_system.get_variable(
             variable_name, check_existence=True
@@ -245,7 +245,7 @@ class Simulation:
         Calculate the value of a variable using the ``calculate_output`` attribute of the variable.
         """
 
-        variable: Optional[Variable]
+        variable: Variable | None
 
         variable = self.tax_benefit_system.get_variable(
             variable_name, check_existence=True
@@ -346,7 +346,7 @@ class Simulation:
         ]
         if period in previous_periods:
             raise CycleError(
-                "Circular definition detected on formula {}@{}".format(variable, period)
+                f"Circular definition detected on formula {variable}@{period}"
             )
         spiral = len(previous_periods) >= self.max_spiral_loops
         if spiral:
@@ -464,7 +464,7 @@ class Simulation:
 
         If a ``set_input`` property has been set for the variable, this method may accept inputs for periods not matching the ``definition_period`` of the variable. To read more about this, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#automatically-process-variable-inputs-defined-for-periods-not-matching-the-definitionperiod>`_.
         """
-        variable: Optional[Variable]
+        variable: Variable | None
 
         variable = self.tax_benefit_system.get_variable(
             variable_name, check_existence=True
@@ -479,7 +479,7 @@ class Simulation:
         self.get_holder(variable_name).set_input(period, value)
 
     def get_variable_population(self, variable_name: str) -> Population:
-        variable: Optional[Variable]
+        variable: Variable | None
 
         variable = self.tax_benefit_system.get_variable(
             variable_name, check_existence=True
@@ -490,7 +490,7 @@ class Simulation:
 
         return self.populations[variable.entity.key]
 
-    def get_population(self, plural: Optional[str] = None) -> Optional[Population]:
+    def get_population(self, plural: str | None = None) -> Population | None:
         return next(
             (
                 population
@@ -502,8 +502,8 @@ class Simulation:
 
     def get_entity(
         self,
-        plural: Optional[str] = None,
-    ) -> Optional[Population]:
+        plural: str | None = None,
+    ) -> Population | None:
         population = self.get_population(plural)
         return population and population.entity
 

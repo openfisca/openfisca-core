@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import typing
-from typing import Dict, Optional, Union
+from typing import Union
 
 import numpy
 
@@ -12,7 +12,7 @@ if typing.TYPE_CHECKING:
     from numpy.typing import ArrayLike
 
     Array = Union[EnumArray, ArrayLike]
-    Trace = Dict[str, dict]
+    Trace = dict[str, dict]
 
 
 class FlatTrace:
@@ -52,8 +52,8 @@ class FlatTrace:
 
     def serialize(
         self,
-        value: Optional[Array],
-    ) -> Union[Optional[Array], list]:
+        value: Array | None,
+    ) -> Array | None | list:
         if isinstance(value, EnumArray):
             value = value.decode_to_str()
 

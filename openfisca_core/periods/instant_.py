@@ -16,7 +16,7 @@ class Instant(tuple):
         >>> repr(instant('2014-2-3'))
         'Instant((2014, 2, 3))'
         """
-        return "{}({})".format(self.__class__.__name__, super(Instant, self).__repr__())
+        return f"{self.__class__.__name__}({super().__repr__()})"
 
     def __str__(self):
         """
@@ -166,7 +166,7 @@ class Instant(tuple):
             config.DAY,
             config.MONTH,
             config.YEAR,
-        ), "Invalid unit: {} of type {}".format(unit, type(unit))
+        ), f"Invalid unit: {unit} of type {type(unit)}"
         if offset == "first-of":
             if unit == config.MONTH:
                 day = 1

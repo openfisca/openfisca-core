@@ -19,7 +19,7 @@ class AbstractRateTaxScale(RateTaxScaleLike):
 
     def __init__(
         self,
-        name: typing.Optional[str] = None,
+        name: str | None = None,
         option: typing.Any = None,
         unit: typing.Any = None,
     ) -> None:

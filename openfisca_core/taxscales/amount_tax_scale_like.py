@@ -13,7 +13,7 @@ class AmountTaxScaleLike(TaxScaleLike, abc.ABC):
     marginal amount...
     """
 
-    amounts: typing.List
+    amounts: list
 
     def __init__(
         self,

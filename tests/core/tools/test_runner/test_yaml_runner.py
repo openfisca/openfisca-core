@@ -1,10 +1,10 @@
 import os
-from typing import List
 
 # import pytest
 import numpy
 
 from openfisca_core.tools.test_runner import _get_tax_benefit_system, YamlItem, YamlFile
+
 # from openfisca_core.errors import VariableNotFound
 from openfisca_core.variables import Variable
 from openfisca_core.populations import Population
@@ -193,7 +193,7 @@ def test_extensions_order():
 #     clean_performance_files(paths)
 
 
-def clean_performance_files(paths: List[str]):
+def clean_performance_files(paths: list[str]):
     for path in paths:
         if os.path.isfile(path):
             os.remove(path)

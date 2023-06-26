@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Sequence, Union
+from typing import Any
+from collections.abc import Sequence
 
 import copy
 import functools
@@ -12,7 +13,6 @@ import logging
 import os
 import sys
 import traceback
-import typing
 
 from openfisca_core import commons, periods, variables
 from openfisca_core.entities import Entity
@@ -44,7 +44,7 @@ class TaxBenefitSystem:
     person_entity: Entity
 
     _base_tax_benefit_system = None
-    _parameters_at_instant_cache: Dict[Instant, ParameterNodeAtInstant] = {}
+    _parameters_at_instant_cache: dict[Instant, ParameterNodeAtInstant] = {}
     person_key_plural = None
     preprocess_parameters = None
     baseline = None  # Baseline tax-benefit system. Used only by reforms. Note: Reforms can be chained.
@@ -53,9 +53,9 @@ class TaxBenefitSystem:
 
     def __init__(self, entities: Sequence[Entity]) -> None:
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
-        self.parameters: Optional[ParameterNode] = None
-        self.variables: Dict[Any, Any] = {}
-        self.open_api_config: Dict[Any, Any] = {}
+        self.parameters: ParameterNode | None = None
+        self.variables: dict[Any, Any] = {}
+        self.open_api_config: dict[Any, Any] = {}
         # Tax benefit systems are mutable, so entities (which need to know about our variables) can't be shared among them
         if entities is None or len(entities) == 0:
             raise Exception("A tax and benefit sytem must have at least an entity.")
@@ -82,7 +82,7 @@ class TaxBenefitSystem:
     def instantiate_entities(self):
         person = self.person_entity
         members = Population(person)
-        entities: typing.Dict[Entity.key, Entity] = {person.key: members}
+        entities: dict[Entity.key, Entity] = {person.key: members}
 
         for entity in self.group_entities:
             entities[entity.key] = GroupPopulation(entity, members)
@@ -91,7 +91,7 @@ class TaxBenefitSystem:
 
     # Deprecated method of constructing simulations, to be phased out in favor of SimulationBuilder
     def new_scenario(self):
-        class ScenarioAdapter(object):
+        class ScenarioAdapter:
             def __init__(self, tax_benefit_system):
                 self.tax_benefit_system = tax_benefit_system
 
@@ -249,9 +249,7 @@ class TaxBenefitSystem:
                 ):
                     self.add_variable(pot_variable)
         except Exception:
-            log.error(
-                'Unable to load OpenFisca variables from file "{}"'.format(file_path)
-            )
+            log.error(f'Unable to load OpenFisca variables from file "{file_path}"')
             raise
 
     def add_variables_from_directory(self, directory):
@@ -304,7 +302,7 @@ class TaxBenefitSystem:
             extension_parameters = ParameterNode(directory_path=param_dir)
             self.parameters.merge(extension_parameters)
 
-    def apply_reform(self, reform_path: str) -> "TaxBenefitSystem":
+    def apply_reform(self, reform_path: str) -> TaxBenefitSystem:
         """Generates a new tax and benefit system applying a reform to the tax and benefit system.
 
         The current tax and benefit system is **not** mutated.
@@ -336,19 +334,17 @@ class TaxBenefitSystem:
             message = os.linesep.join(
                 [
                     traceback.format_exc(),
-                    "Could not import `{}`.".format(reform_package),
+                    f"Could not import `{reform_package}`.",
                     "Are you sure of this reform module name? If so, look at the stack trace above to determine the origin of this error.",
                 ]
             )
             raise ValueError(message)
         reform = getattr(reform_module, reform_name, None)
         if reform is None:
-            raise ValueError(
-                "{} has no attribute {}".format(reform_package, reform_name)
-            )
+            raise ValueError(f"{reform_package} has no attribute {reform_name}")
         if not issubclass(reform, Reform):
             raise ValueError(
-                "`{}` does not seem to be a valid Openfisca reform.".format(reform_path)
+                f"`{reform_path}` does not seem to be a valid Openfisca reform."
             )
 
         return reform(self)
@@ -357,15 +353,15 @@ class TaxBenefitSystem:
         self,
         variable_name: str,
         check_existence: bool = False,
-    ) -> Optional[Variable]:
+    ) -> Variable | None:
         """
         Get a variable from the tax and benefit system.
 
         :param variable_name: Name of the requested variable.
         :param check_existence: If True, raise an error if the requested variable does not exist.
         """
-        variables: Dict[str, Optional[Variable]] = self.variables
-        variable: Optional[Variable] = variables.get(variable_name)
+        variables: dict[str, Variable | None] = self.variables
+        variable: Variable | None = variables.get(variable_name)
 
         if isinstance(variable, Variable):
             return variable
@@ -390,10 +386,10 @@ class TaxBenefitSystem:
     def annualize_variable(
         self,
         variable_name: str,
-        period: Optional[Period] = None,
+        period: Period | None = None,
     ) -> None:
         check: bool
-        variable: Optional[Variable]
+        variable: Variable | None
         annualised_variable: Variable
 
         check = bool(period)
@@ -430,11 +426,11 @@ class TaxBenefitSystem:
             return self.get_parameters_at_instant(instant)
         return baseline._get_baseline_parameters_at_instant(instant)
 
-    @functools.lru_cache()  # noqa BO19
+    @functools.lru_cache  # noqa BO19
     def get_parameters_at_instant(
         self,
-        instant: Union[str, int, Period, Instant],
-    ) -> Optional[ParameterNodeAtInstant]:
+        instant: str | int | Period | Instant,
+    ) -> ParameterNodeAtInstant | None:
         """Get the parameters of the legislation at a given instant
 
         Args:
@@ -466,7 +462,7 @@ class TaxBenefitSystem:
 
         return self.parameters.get_at_instant(key)
 
-    def get_package_metadata(self) -> Dict[str, str]:
+    def get_package_metadata(self) -> dict[str, str]:
         """Gets metadata relative to the country package.
 
         Returns:
@@ -529,8 +525,8 @@ class TaxBenefitSystem:
 
     def get_variables(
         self,
-        entity: Optional[Entity] = None,
-    ) -> Dict[str, Variable]:
+        entity: Entity | None = None,
+    ) -> dict[str, Variable]:
         """Gets all variables contained in a tax and benefit system.
 
         Args:

@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 import os
 
 import numexpr
@@ -77,7 +74,7 @@ def assert_enum_equals(value, target_value, message=""):
 
 
 def indent(text):
-    return "  {}".format(text.replace(os.linesep, "{}  ".format(os.linesep)))
+    return "  {}".format(text.replace(os.linesep, f"{os.linesep}  "))
 
 
 def get_trace_tool_link(scenario, variables, api_url, trace_tool_url):

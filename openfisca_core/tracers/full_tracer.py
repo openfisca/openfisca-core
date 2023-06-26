@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import time
 import typing
-from typing import Dict, Iterator, List, Optional, Union
+from typing import Union
+from collections.abc import Iterator
 
 from .. import tracers
 
@@ -11,13 +12,13 @@ if typing.TYPE_CHECKING:
 
     from openfisca_core.periods import Period
 
-    Stack = List[Dict[str, Union[str, Period]]]
+    Stack = list[dict[str, Union[str, Period]]]
 
 
 class FullTracer:
     _simple_tracer: tracers.SimpleTracer
     _trees: list
-    _current_node: Optional[tracers.TraceNode]
+    _current_node: tracers.TraceNode | None
 
     def __init__(self) -> None:
         self._simple_tracer = tracers.SimpleTracer()
@@ -65,7 +66,7 @@ class FullTracer:
 
     def _record_start_time(
         self,
-        time_in_s: Optional[float] = None,
+        time_in_s: float | None = None,
     ) -> None:
         if time_in_s is None:
             time_in_s = self._get_time_in_sec()
@@ -84,7 +85,7 @@ class FullTracer:
 
     def _record_end_time(
         self,
-        time_in_s: Optional[float] = None,
+        time_in_s: float | None = None,
     ) -> None:
         if time_in_s is None:
             time_in_s = self._get_time_in_sec()
@@ -101,7 +102,7 @@ class FullTracer:
         return self._simple_tracer.stack
 
     @property
-    def trees(self) -> List[tracers.TraceNode]:
+    def trees(self) -> list[tracers.TraceNode]:
         return self._trees
 
     @property

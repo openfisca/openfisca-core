@@ -10,9 +10,9 @@ import typing
 from .. import tracers
 
 if typing.TYPE_CHECKING:
-    Trace = typing.Dict[str, dict]
-    Calculation = typing.Tuple[str, dict]
-    SortedTrace = typing.List[Calculation]
+    Trace = dict[str, dict]
+    Calculation = tuple[str, dict]
+    SortedTrace = list[Calculation]
 
 
 class PerformanceLog:
@@ -65,7 +65,7 @@ class PerformanceLog:
     def aggregate_calculation_times(
         self,
         flat_trace: Trace,
-    ) -> typing.Dict[str, dict]:
+    ) -> dict[str, dict]:
         def _aggregate_calculations(calculations: list) -> dict:
             calculation_count = len(calculations)
 
@@ -121,7 +121,7 @@ class PerformanceLog:
             "children": children,
         }
 
-    def _write_csv(self, path: str, rows: typing.List[dict]) -> None:
+    def _write_csv(self, path: str, rows: list[dict]) -> None:
         fieldnames = list(rows[0].keys())
 
         with open(path, "w") as csv_file:

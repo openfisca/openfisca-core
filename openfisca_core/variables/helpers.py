@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import sortedcontainers
-from typing import Optional
 
 from openfisca_core.periods import Period
 
@@ -9,7 +8,7 @@ from .. import variables
 
 
 def get_annualized_variable(
-    variable: variables.Variable, annualization_period: Optional[Period] = None
+    variable: variables.Variable, annualization_period: Period | None = None
 ) -> variables.Variable:
     """
     Returns a clone of ``variable`` that is annualized for the period ``annualization_period``.
@@ -49,7 +48,7 @@ def get_neutralized_variable(variable):
     result.label = (
         "[Neutralized]"
         if variable.label is None
-        else "[Neutralized] {}".format(variable.label),
+        else f"[Neutralized] {variable.label}",
     )
 
     return result

@@ -1,5 +1,4 @@
 import copy
-import typing
 
 from openfisca_core import commons
 from openfisca_core.errors import ParameterParsingError
@@ -12,7 +11,7 @@ class ParameterAtInstant:
     """
 
     # 'unit' and 'reference' are only listed here for backward compatibility
-    _allowed_keys = set(["value", "metadata", "unit", "reference"])
+    _allowed_keys = {"value", "metadata", "unit", "reference"}
 
     def __init__(self, name, instant_str, data=None, file_path=None, metadata=None):
         """
@@ -23,7 +22,7 @@ class ParameterAtInstant:
         self.name: str = name
         self.instant_str: str = instant_str
         self.file_path: str = file_path
-        self.metadata: typing.Dict = {}
+        self.metadata: dict = {}
 
         # Accept { 2015-01-01: 4000 }
         if not isinstance(data, dict) and isinstance(data, config.ALLOWED_PARAM_TYPES):
@@ -46,7 +45,7 @@ class ParameterAtInstant:
             value = data["value"]
         except KeyError:
             raise ParameterParsingError(
-                "Missing 'value' property for {}".format(self.name), self.file_path
+                f"Missing 'value' property for {self.name}", self.file_path
             )
         if not isinstance(value, config.ALLOWED_PARAM_TYPES):
             raise ParameterParsingError(
@@ -64,7 +63,7 @@ class ParameterAtInstant:
         )
 
     def __repr__(self):
-        return "ParameterAtInstant({})".format({self.instant_str: self.value})
+        return f"ParameterAtInstant({self.instant_str: self.value})"
 
     def clone(self):
         clone = commons.empty_clone(self)

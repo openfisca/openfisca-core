@@ -34,7 +34,7 @@ class MarginalRateTaxScale(RateTaxScaleLike):
         self,
         tax_base: NumericalArray,
         factor: float = 1.0,
-        round_base_decimals: typing.Optional[int] = None,
+        round_base_decimals: int | None = None,
     ) -> numpy.float_:
         """
         Compute the tax amount for the given tax bases by applying a taxscale.
@@ -87,9 +87,9 @@ class MarginalRateTaxScale(RateTaxScaleLike):
 
     def combine_bracket(
         self,
-        rate: typing.Union[int, float],
+        rate: int | float,
         threshold_low: int = 0,
-        threshold_high: typing.Union[int, bool] = False,
+        threshold_high: int | bool = False,
     ) -> None:
         # Insert threshold_low and threshold_high without modifying rates
         if threshold_low not in self.thresholds:
@@ -117,7 +117,7 @@ class MarginalRateTaxScale(RateTaxScaleLike):
         self,
         tax_base: NumericalArray,
         factor: float = 1.0,
-        round_base_decimals: typing.Optional[int] = None,
+        round_base_decimals: int | None = None,
     ) -> numpy.float_:
         """
         Compute the marginal tax rates relevant for the given tax bases.

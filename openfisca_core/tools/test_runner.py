@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Sequence, Union
+from typing import Any
+from collections.abc import Sequence
 from typing_extensions import Literal, TypedDict
 
 import dataclasses
@@ -22,10 +23,10 @@ from openfisca_core.warnings import LibYAMLWarning
 
 class Options(TypedDict, total=False):
     aggregate: bool
-    ignore_variables: Optional[Sequence[str]]
-    max_depth: Optional[int]
-    name_filter: Optional[str]
-    only_variables: Optional[Sequence[str]]
+    ignore_variables: Sequence[str] | None
+    max_depth: int | None
+    name_filter: str | None
+    only_variables: Sequence[str] | None
     pdb: bool
     performance_graph: bool
     performance_tables: bool
@@ -34,9 +35,9 @@ class Options(TypedDict, total=False):
 
 @dataclasses.dataclass(frozen=True)
 class ErrorMargin:
-    __root__: Dict[Union[str, Literal["default"]], Optional[float]]
+    __root__: dict[str | Literal["default"], float | None]
 
-    def __getitem__(self, key: str) -> Optional[float]:
+    def __getitem__(self, key: str) -> float | None:
         if key in self.__root__:
             return self.__root__[key]
 
@@ -48,19 +49,17 @@ class Test:
     absolute_error_margin: ErrorMargin
     relative_error_margin: ErrorMargin
     name: str = ""
-    input: Dict[str, Union[float, Dict[str, float]]] = dataclasses.field(
-        default_factory=dict
-    )
-    output: Optional[Dict[str, Union[float, Dict[str, float]]]] = None
-    period: Optional[str] = None
+    input: dict[str, float | dict[str, float]] = dataclasses.field(default_factory=dict)
+    output: dict[str, float | dict[str, float]] | None = None
+    period: str | None = None
     reforms: Sequence[str] = dataclasses.field(default_factory=list)
-    keywords: Optional[Sequence[str]] = None
+    keywords: Sequence[str] | None = None
     extensions: Sequence[str] = dataclasses.field(default_factory=list)
-    description: Optional[str] = None
-    max_spiral_loops: Optional[int] = None
+    description: str | None = None
+    max_spiral_loops: int | None = None
 
 
-def build_test(params: Dict[str, Any]) -> Test:
+def build_test(params: dict[str, Any]) -> Test:
     for key in ["absolute_error_margin", "relative_error_margin"]:
         value = params.get(key)
 
@@ -110,14 +109,14 @@ TEST_KEYWORDS = {
 
 yaml, Loader = import_yaml()
 
-_tax_benefit_system_cache: Dict = {}
+_tax_benefit_system_cache: dict = {}
 
 options: Options = Options()
 
 
 def run_tests(
     tax_benefit_system: TaxBenefitSystem,
-    paths: Union[str, Sequence[str]],
+    paths: str | Sequence[str],
     options: Options = options,
 ) -> int:
     """Runs all the YAML tests contained in a file or a directory.
@@ -164,7 +163,7 @@ def run_tests(
 
 class YamlFile(pytest.File):
     def __init__(self, *, tax_benefit_system, options, **kwargs):
-        super(YamlFile, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.tax_benefit_system = tax_benefit_system
         self.options = options
 
@@ -181,7 +180,7 @@ class YamlFile(pytest.File):
             raise ValueError(message)
 
         if not isinstance(tests, list):
-            tests: Sequence[Dict] = [tests]
+            tests: Sequence[dict] = [tests]
 
         for test in tests:
             if not self.should_ignore(test):
@@ -209,7 +208,7 @@ class YamlItem(pytest.Item):
     """
 
     def __init__(self, *, baseline_tax_benefit_system, test, options, **kwargs):
-        super(YamlItem, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.baseline_tax_benefit_system = baseline_tax_benefit_system
         self.options = options
         self.test = build_test(test)
@@ -306,7 +305,7 @@ class YamlItem(pytest.Item):
         if self.should_ignore_variable(variable_name):
             return
 
-        if isinstance(expected_value, Dict):
+        if isinstance(expected_value, dict):
             for requested_period, expected_value_at_period in expected_value.items():
                 self.check_variable(
                     variable_name,
@@ -346,7 +345,7 @@ class YamlItem(pytest.Item):
         if not isinstance(
             excinfo.value, (AssertionError, VariableNotFound, SituationParsingError)
         ):
-            return super(YamlItem, self).repr_failure(excinfo)
+            return super().repr_failure(excinfo)
 
         message = excinfo.value.args[0]
         if isinstance(excinfo.value, SituationParsingError):
@@ -361,7 +360,7 @@ class YamlItem(pytest.Item):
         )
 
 
-class OpenFiscaPlugin(object):
+class OpenFiscaPlugin:
     def __init__(self, tax_benefit_system, options):
         self.tax_benefit_system = tax_benefit_system
         self.options = options

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional
-
 import copy
 import os
 
@@ -43,13 +41,13 @@ class Parameter(AtInstantLike):
 
     """
 
-    def __init__(self, name: str, data: dict, file_path: Optional[str] = None) -> None:
+    def __init__(self, name: str, data: dict, file_path: str | None = None) -> None:
         self.name: str = name
-        self.file_path: Optional[str] = file_path
+        self.file_path: str | None = file_path
         helpers._validate_parameter(self, data, data_type=dict)
-        self.description: Optional[str] = None
-        self.metadata: Dict = {}
-        self.documentation: Optional[str] = None
+        self.description: str | None = None
+        self.metadata: dict = {}
+        self.documentation: str | None = None
         self.values_history = self  # Only for backward compatibility
 
         # Normal parameter declaration: the values are declared under the 'values' key: parse the description and metadata.
@@ -105,7 +103,7 @@ class Parameter(AtInstantLike):
             )
             values_list.append(value_at_instant)
 
-        self.values_list: List[ParameterAtInstant] = values_list
+        self.values_list: list[ParameterAtInstant] = values_list
 
     def __repr__(self):
         return os.linesep.join(

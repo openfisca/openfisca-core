@@ -1,5 +1,3 @@
-from typing import Dict
-
 import datetime
 import os
 
@@ -193,10 +191,10 @@ def key_period_size(period):
 
     unit, start, size = period
 
-    return "{}_{}".format(unit_weight(unit), size)
+    return f"{unit_weight(unit)}_{size}"
 
 
-def unit_weights() -> Dict[str, int]:
+def unit_weights() -> dict[str, int]:
     return {
         config.DAY: 100,
         config.MONTH: 200,

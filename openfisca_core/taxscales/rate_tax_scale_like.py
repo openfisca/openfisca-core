@@ -21,11 +21,11 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
     linear average rate...
     """
 
-    rates: typing.List
+    rates: list
 
     def __init__(
         self,
-        name: typing.Optional[str] = None,
+        name: str | None = None,
         option: typing.Any = None,
         unit: typing.Any = None,
     ) -> None:
@@ -44,8 +44,8 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
 
     def add_bracket(
         self,
-        threshold: typing.Union[int, float],
-        rate: typing.Union[int, float],
+        threshold: int | float,
+        rate: int | float,
     ) -> None:
         if threshold in self.thresholds:
             i = self.thresholds.index(threshold)
@@ -60,7 +60,7 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
         self,
         factor: float,
         inplace: bool = True,
-        new_name: typing.Optional[str] = None,
+        new_name: str | None = None,
     ) -> RateTaxScaleLike:
         if inplace:
             assert new_name is None
@@ -85,9 +85,9 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
     def multiply_thresholds(
         self,
         factor: float,
-        decimals: typing.Optional[int] = None,
+        decimals: int | None = None,
         inplace: bool = True,
-        new_name: typing.Optional[str] = None,
+        new_name: str | None = None,
     ) -> RateTaxScaleLike:
         if inplace:
             assert new_name is None
@@ -126,7 +126,7 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
         self,
         tax_base: NumericalArray,
         factor: float = 1.0,
-        round_decimals: typing.Optional[int] = None,
+        round_decimals: int | None = None,
     ) -> numpy.int_:
         """
         Compute the relevant bracket indices for the given tax bases.

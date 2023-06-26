@@ -1,6 +1,5 @@
 import copy
 import os
-import typing
 
 from openfisca_core import commons, parameters, tools
 from openfisca_core.errors import ParameterParsingError
@@ -33,7 +32,7 @@ class ParameterScale(AtInstantLike):
             self, data, data_type=dict, allowed_keys=self._allowed_keys
         )
         self.description: str = data.get("description")
-        self.metadata: typing.Dict = {}
+        self.metadata: dict = {}
         helpers._set_backward_compatibility_metadata(self, data)
         self.metadata.update(data.get("metadata", {}))
 
@@ -52,7 +51,7 @@ class ParameterScale(AtInstantLike):
                 name=bracket_name, data=bracket_data, file_path=file_path
             )
             brackets.append(bracket)
-        self.brackets: typing.List[parameters.ParameterScaleBracket] = brackets
+        self.brackets: list[parameters.ParameterScaleBracket] = brackets
 
     def __getitem__(self, key):
         if isinstance(key, int) and key < len(self.brackets):

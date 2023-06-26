@@ -1,4 +1,5 @@
-from typing import Any, Dict, Sequence, TypeVar
+from typing import Any, TypeVar
+from collections.abc import Sequence
 
 import numpy
 
@@ -88,7 +89,7 @@ def concat(this: ArrayLike[str], that: ArrayLike[str]) -> Array[str]:
 
 def switch(
     conditions: Array[Any],
-    value_by_condition: Dict[float, T],
+    value_by_condition: dict[float, T],
 ) -> Array[T]:
     """Mimicks a switch statement.
 

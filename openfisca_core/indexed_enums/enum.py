@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import enum
-from typing import Union
 
 import numpy
 
@@ -31,12 +30,7 @@ class Enum(enum.Enum):
     @classmethod
     def encode(
         cls,
-        array: Union[
-            EnumArray,
-            numpy.int_,
-            numpy.float_,
-            numpy.object_,
-        ],
+        array: (EnumArray | numpy.int_ | numpy.float_ | numpy.object_),
     ) -> EnumArray:
         """
         Encode a string numpy array, an enum item numpy array, or an int numpy

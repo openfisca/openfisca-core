@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import typing
-from typing import Any, NoReturn, Optional, Type
+from typing import Any, NoReturn
 
 import numpy
 
@@ -22,14 +22,14 @@ class EnumArray(numpy.ndarray):
     def __new__(
         cls,
         input_array: numpy.int_,
-        possible_values: Optional[Type[Enum]] = None,
+        possible_values: type[Enum] | None = None,
     ) -> EnumArray:
         obj = numpy.asarray(input_array).view(cls)
         obj.possible_values = possible_values
         return obj
 
     # See previous comment
-    def __array_finalize__(self, obj: Optional[numpy.int_]) -> None:
+    def __array_finalize__(self, obj: numpy.int_ | None) -> None:
         if obj is None:
             return
 

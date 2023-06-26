@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Dict, NamedTuple, Optional, Sequence, Union
+from typing import NamedTuple
+from collections.abc import Sequence
 from typing_extensions import TypedDict
 
 import traceback
@@ -16,9 +17,9 @@ from . import config
 
 
 class Population:
-    simulation: Optional[Simulation]
+    simulation: Simulation | None
     entity: Entity
-    _holders: Dict[str, Holder]
+    _holders: dict[str, Holder]
     count: int
     ids: Array[str]
 
@@ -45,13 +46,13 @@ class Population:
 
     def filled_array(
         self,
-        value: Union[float, bool],
-        dtype: Optional[numpy.dtype] = None,
-    ) -> Union[Array[float], Array[bool]]:
+        value: float | bool,
+        dtype: numpy.dtype | None = None,
+    ) -> Array[float] | Array[bool]:
         return numpy.full(self.count, value, dtype)
 
     def __getattr__(self, attribute: str) -> Projector:
-        projector: Optional[Projector]
+        projector: Projector | None
         projector = projectors.get_projector_from_shortcut(self, attribute)
 
         if isinstance(projector, Projector):
@@ -84,7 +85,7 @@ class Population:
     def check_period_validity(
         self,
         variable_name: str,
-        period: Optional[Union[int, str, Period]],
+        period: int | str | Period | None,
     ) -> None:
         if isinstance(period, (int, str, Period)):
             return None
@@ -106,9 +107,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     def __call__(
         self,
         variable_name: str,
-        period: Optional[Union[int, str, Period]] = None,
-        options: Optional[Sequence[str]] = None,
-    ) -> Optional[Array[float]]:
+        period: int | str | Period | None = None,
+        options: Sequence[str] | None = None,
+    ) -> Array[float] | None:
         """
         Calculate the variable ``variable_name`` for the entity and the period ``period``, using the variable formula if it exists.
 
@@ -170,7 +171,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
     def get_memory_usage(
         self,
-        variables: Optional[Sequence[str]] = None,
+        variables: Sequence[str] | None = None,
     ) -> MemoryUsageByVariable:
         holders_memory_usage = {
             variable_name: holder.get_memory_usage()
@@ -191,7 +192,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         )
 
     @projectors.projectable
-    def has_role(self, role: Role) -> Optional[Array[bool]]:
+    def has_role(self, role: Role) -> Array[bool] | None:
         """
         Check if a person has a given role within its `GroupEntity`
 
@@ -222,7 +223,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         array: Array[float],
         entity: Projector,
         role: Role,
-    ) -> Optional[Array[float]]:
+    ) -> Array[float] | None:
         self.check_array_compatible_with_entity(array)
         self.entity.check_role_validity(role)
 
@@ -296,9 +297,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 class Calculate(NamedTuple):
     variable: str
     period: Period
-    option: Optional[Sequence[str]]
+    option: Sequence[str] | None
 
 
 class MemoryUsageByVariable(TypedDict, total=False):
-    by_variable: Dict[str, MemoryUsage]
+    by_variable: dict[str, MemoryUsage]
     total_nb_bytes: int
