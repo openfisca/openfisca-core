@@ -1,5 +1,11 @@
 # Changelog
 
+###  40.0.2 [#1185](https://github.com/openfisca/openfisca-core/pull/1185)
+
+#### Technical changes
+
+- Remove pre Python 3.9 syntax.
+
 ###  40.0.1 [#1184](https://github.com/openfisca/openfisca-core/pull/1184)
 
 #### Technical changes
