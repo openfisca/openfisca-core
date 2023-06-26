@@ -1,5 +1,5 @@
 ## Lint the codebase.
-lint: check-syntax-errors check-style lint-doc check-types lint-typing-strict
+lint: check-syntax-errors check-style lint-doc
 	@$(call print_pass,$@:)
 
 ## Compile python files to check for syntax errors.
@@ -35,10 +35,9 @@ lint-doc-%:
 
 ## Run static type checkers for type errors.
 check-types:
-	@echo "    check-types: Temporarily dismissed"
-#	@$(call print_help,$@:)
-#	@mypy --package openfisca_core --package openfisca_web_api
-#	@$(call print_pass,$@:)
+	@$(call print_help,$@:)
+	@mypy --package openfisca_core --package openfisca_web_api
+	@$(call print_pass,$@:)
 
 ## Run static type checkers for type errors (strict).
 lint-typing-strict: \
@@ -48,14 +47,13 @@ lint-typing-strict: \
 
 ## Run static type checkers for type errors (strict).
 lint-typing-strict-%:
-	@echo "    lint-typing-strict: Temporarily dismissed"
-#	@$(call print_help,$(subst $*,%,$@:))
-#	@mypy \
-#		--cache-dir .mypy_cache-openfisca_core.$* \
-#		--implicit-reexport \
-#		--strict \
-#		--package openfisca_core.$*
-#	@$(call print_pass,$@:)
+	@$(call print_help,$(subst $*,%,$@:))
+	@mypy \
+		--cache-dir .mypy_cache-openfisca_core.$* \
+		--implicit-reexport \
+		--strict \
+		--package openfisca_core.$*
+	@$(call print_pass,$@:)
 
 ## Run code formatters to correct style errors.
 format-style: $(shell git ls-files "*.py")
