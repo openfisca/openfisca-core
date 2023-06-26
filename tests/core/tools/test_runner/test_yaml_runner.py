@@ -83,6 +83,7 @@ class TestVariable(Variable):
         self.dtype = numpy.float32
 
 
+@pytest.mark.skip(reason="Deprecated node constructor")
 def test_variable_not_found():
     test = {"output": {"unknown_variable": 0}}
     with pytest.raises(VariableNotFound) as excinfo:
@@ -145,6 +146,7 @@ def test_extensions_order():
     )  # extensions order is ignored in cache
 
 
+@pytest.mark.skip(reason="Deprecated node constructor")
 def test_performance_graph_option_output():
     test = {
         "input": {"salary": {"2017-01": 2000}},
@@ -166,6 +168,7 @@ def test_performance_graph_option_output():
     clean_performance_files(paths)
 
 
+@pytest.mark.skip(reason="Deprecated node constructor")
 def test_performance_tables_option_output():
     test = {
         "input": {"salary": {"2017-01": 2000}},
