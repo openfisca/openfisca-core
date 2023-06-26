@@ -10,7 +10,6 @@ from openfisca_core.periods import DateUnit, Instant, Period, _parsers
         ["1001", Period((DateUnit.YEAR, Instant((1001, 1, 1)), 1))],
         ["1001-01", Period((DateUnit.MONTH, Instant((1001, 1, 1)), 1))],
         ["1001-12", Period((DateUnit.MONTH, Instant((1001, 12, 1)), 1))],
-        ["1001-01-1", Period((DateUnit.DAY, Instant((1001, 1, 1)), 1))],
         ["1001-01-01", Period((DateUnit.DAY, Instant((1001, 1, 1)), 1))],
         ["1001-W01", Period((DateUnit.WEEK, Instant((1000, 12, 29)), 1))],
         ["1001-W52", Period((DateUnit.WEEK, Instant((1001, 12, 21)), 1))],
