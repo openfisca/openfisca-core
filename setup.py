@@ -29,14 +29,14 @@ general_requirements = [
     "PyYAML >=6.0, <7.0",
     "dpath >=2.1.4, <3.0",
     "importlib-metadata >=6.1.0, <7.0",
-    "numexpr >=2.8.4, < 3.0",
+    "numexpr >=2.8.4, <3.0",
     "numpy >=1.24.2, <1.25",
-    "pendulum >= 2.1.2, < 3.0.0",
-    "psutil >=5.9.4, < 6.0",
-    "pytest >=7.2.2, < 8.0",
-    "sortedcontainers >=2.4.0, < 3.0",
-    "typing_extensions >=4.5.0, < 5.0",
-    "StrEnum >= 0.4.8, < 0.5.0",  # 3.11.x backport
+    "pendulum >=2.1.2, <3.0.0",
+    "psutil >=5.9.4, <6.0",
+    "pytest >=7.2.2, <8.0",
+    "sortedcontainers >=2.4.0, <3.0",
+    "typing_extensions >=4.5.0, <5.0",
+    "StrEnum >=0.4.8, <0.5.0",  # 3.11.x backport
 ]
 
 api_requirements = [
