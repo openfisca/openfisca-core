@@ -18,8 +18,12 @@ class Role:
 
     Attributes:
         entity (Entity): The Entity to which the Role belongs.
+        key (str): A key to identify the Role.
+        plural (str): The ``key``, pluralised.
+        label (str): A summary description.
+        doc (str): A full description, dedented.
+        max (int): Max number of members.
         subroles (list[Role]): A list of subroles.
-        description (RoleDescription): A description of the Role.
 
     Args:
         description (dict): A description of the Role.
@@ -46,18 +50,17 @@ class Role:
     """
 
     def __init__(self, description: dict[str, Any], entity: Entity) -> None:
+        description: RoleDescription = RoleDescription(**description)
         self.entity: Entity = entity
+        self.key: str = description.key
+        self.plural: str | None = description.plural
+        self.label: str | None = description.label
+        self.doc: str = description.doc
+        self.max: int | None = description.max
         self.subroles: list[Role] | None = None
-        self.description: RoleDescription = RoleDescription(**description)
 
     def __repr__(self) -> str:
         return "Role({})".format(self.key)
-
-    def __getattr__(self, attr: str) -> Any:
-        if hasattr(self.description, attr):
-            return getattr(self.description, attr)
-
-        raise AttributeError
 
 
 @dataclasses.dataclass(frozen=True)
