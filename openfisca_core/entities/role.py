@@ -59,6 +59,12 @@ class Role:
         self.max: int | None = description.max
         self.subroles: list[Role] | None = None
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Role):
+            return NotImplemented
+
+        return self.entity == other.entity and self.key == other.key
+
     def __repr__(self) -> str:
         return "Role({})".format(self.key)
 
