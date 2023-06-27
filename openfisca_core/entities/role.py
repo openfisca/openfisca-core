@@ -44,13 +44,13 @@ class Role:
         >>> role.key
         'parent'
 
-    .. versionchanged:: 40.1.0
+    .. versionchanged:: 40.1.1
         Added documentation, doctests, and typing.
 
     """
 
     def __init__(self, description: dict[str, Any], entity: Entity) -> None:
-        description: RoleDescription = RoleDescription(**description)
+        description: _RoleDescription = _RoleDescription(**description)
         self.entity: Entity = entity
         self.key: str = description.key
         self.plural: str | None = description.plural
@@ -70,7 +70,7 @@ class Role:
 
 
 @dataclasses.dataclass(frozen=True)
-class RoleDescription:
+class _RoleDescription:
     """A Role's description.
 
     Examples:
@@ -82,21 +82,21 @@ class RoleDescription:
         ...     "max": 2,
         ... }
 
-        >>> role_description = RoleDescription(**description)
+        >>> role_description = _RoleDescription(**description)
 
-        >>> repr(RoleDescription)
-        "<class 'openfisca_core.entities.role.RoleDescription'>"
+        >>> repr(_RoleDescription)
+        "<class 'openfisca_core.entities.role._RoleDescription'>"
 
         >>> repr(role_description)
-        "RoleDescription(key='parent', plural='parents', label='Parents', ...)"
+        "_RoleDescription(key='parent', plural='parents', label='Parents', ...)"
 
         >>> str(role_description)
-        "RoleDescription(key='parent', plural='parents', label='Parents', ...)"
+        "_RoleDescription(key='parent', plural='parents', label='Parents', ...)"
 
         >>> role_description.key
         'parent'
 
-    .. versionadded:: 40.1.0
+    .. versionadded:: 40.1.1
 
     """
 
