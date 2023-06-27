@@ -13,7 +13,7 @@ import sortedcontainers
 from openfisca_core import periods, tools
 from openfisca_core.entities import Entity
 from openfisca_core.indexed_enums import Enum, EnumArray
-from openfisca_core.periods import Period
+from openfisca_core.periods import DateUnit, Period
 from openfisca_core.types import Formula, Instant
 
 from . import config, helpers
@@ -39,7 +39,7 @@ class Variable:
 
        .. attribute:: definition_period
 
-           `Period <https://openfisca.org/doc/coding-the-legislation/35_periods.html>`_ the variable is defined for. Possible value: ``MONTH``, ``YEAR``, ``ETERNITY``.
+           `Period <https://openfisca.org/doc/coding-the-legislation/35_periods.html>`_ the variable is defined for. Possible value: ``DateUnit.DAY``, ``DateUnit.MONTH``, ``DateUnit.YEAR``, ``DateUnit.ETERNITY``.
 
        .. attribute:: formulas
 
@@ -65,7 +65,7 @@ class Variable:
 
        .. attribute:: dtype
 
-           NumPy `dtype <https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.dtype.html>`_ used under the hood for the variable.
+           Numpy `dtype <https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.dtype.html>`_ used under the hood for the variable.
 
        .. attribute:: end
 
@@ -136,10 +136,7 @@ class Variable:
             )
         self.entity = self.set(attr, "entity", required=True, setter=self.set_entity)
         self.definition_period = self.set(
-            attr,
-            "definition_period",
-            required=True,
-            allowed_values=(periods.DAY, periods.MONTH, periods.YEAR, periods.ETERNITY),
+            attr, "definition_period", required=True, allowed_values=DateUnit
         )
         self.label = self.set(attr, "label", allowed_type=str, setter=self.set_label)
         self.end = self.set(attr, "end", allowed_type=str, setter=self.set_end)
@@ -407,6 +404,8 @@ class Variable:
 
         """
 
+        instant: Optional[Instant]
+
         if not self.formulas:
             return None
 
@@ -422,6 +421,9 @@ class Variable:
                 instant = periods.period(period).start
             except ValueError:
                 instant = periods.instant(period)
+
+        if instant is None:
+            return None
 
         if self.end and instant.date > self.end:
             return None

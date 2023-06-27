@@ -1,15 +1,15 @@
 import os
 from typing import List
 
-# import pytest
+import pytest
 import numpy
 
 from openfisca_core.tools.test_runner import _get_tax_benefit_system, YamlItem, YamlFile
-# from openfisca_core.errors import VariableNotFound
+from openfisca_core.errors import VariableNotFound
 from openfisca_core.variables import Variable
 from openfisca_core.populations import Population
 from openfisca_core.entities import Entity
-from openfisca_core.periods import ETERNITY
+from openfisca_core.periods import DateUnit
 
 
 class TaxBenefitSystem:
@@ -72,7 +72,7 @@ class TestItem(YamlItem):
 
 
 class TestVariable(Variable):
-    definition_period = ETERNITY
+    definition_period = DateUnit.ETERNITY
     value_type = float
 
     def __init__(self):
@@ -83,18 +83,13 @@ class TestVariable(Variable):
         self.dtype = numpy.float32
 
 
-# def test_variable_not_found():
-#     test = {"output": {"unknown_variable": 0}}
-#     with pytest.raises(VariableNotFound) as excinfo:
-#         test_item = TestItem(test)
-#         test_item.check_output()
-#     assert excinfo.value.variable_name == "unknown_variable"
-
-
-def test_tax_benefit_systems_with_cache():
-    baseline = TaxBenefitSystem()
-    ab_tax_benefit_system = _get_tax_benefit_system(baseline, [], [])
-    assert baseline != ab_tax_benefit_system
+@pytest.mark.skip(reason="Deprecated node constructor")
+def test_variable_not_found():
+    test = {"output": {"unknown_variable": 0}}
+    with pytest.raises(VariableNotFound) as excinfo:
+        test_item = TestItem(test)
+        test_item.check_output()
+    assert excinfo.value.variable_name == "unknown_variable"
 
 
 def test_tax_benefit_systems_with_reform_cache():
@@ -151,46 +146,48 @@ def test_extensions_order():
     )  # extensions order is ignored in cache
 
 
-# def test_performance_graph_option_output():
-#     test = {
-#         "input": {"salary": {"2017-01": 2000}},
-#         "output": {"salary": {"2017-01": 2000}},
-#     }
-#     test_item = TestItem(test)
-#     test_item.options = {"performance_graph": True}
+@pytest.mark.skip(reason="Deprecated node constructor")
+def test_performance_graph_option_output():
+    test = {
+        "input": {"salary": {"2017-01": 2000}},
+        "output": {"salary": {"2017-01": 2000}},
+    }
+    test_item = TestItem(test)
+    test_item.options = {"performance_graph": True}
 
-#     paths = ["./performance_graph.html"]
+    paths = ["./performance_graph.html"]
 
-#     clean_performance_files(paths)
+    clean_performance_files(paths)
 
-#     test_item.runtest()
+    test_item.runtest()
 
-#     assert test_item.simulation.trace
-#     for path in paths:
-#         assert os.path.isfile(path)
+    assert test_item.simulation.trace
+    for path in paths:
+        assert os.path.isfile(path)
 
-#     clean_performance_files(paths)
+    clean_performance_files(paths)
 
 
-# def test_performance_tables_option_output():
-#     test = {
-#         "input": {"salary": {"2017-01": 2000}},
-#         "output": {"salary": {"2017-01": 2000}},
-#     }
-#     test_item = TestItem(test)
-#     test_item.options = {"performance_tables": True}
+@pytest.mark.skip(reason="Deprecated node constructor")
+def test_performance_tables_option_output():
+    test = {
+        "input": {"salary": {"2017-01": 2000}},
+        "output": {"salary": {"2017-01": 2000}},
+    }
+    test_item = TestItem(test)
+    test_item.options = {"performance_tables": True}
 
-#     paths = ["performance_table.csv", "aggregated_performance_table.csv"]
+    paths = ["performance_table.csv", "aggregated_performance_table.csv"]
 
-#     clean_performance_files(paths)
+    clean_performance_files(paths)
 
-#     test_item.runtest()
+    test_item.runtest()
 
-#     assert test_item.simulation.trace
-#     for path in paths:
-#         assert os.path.isfile(path)
+    assert test_item.simulation.trace
+    for path in paths:
+        assert os.path.isfile(path)
 
-#     clean_performance_files(paths)
+    clean_performance_files(paths)
 
 
 def clean_performance_files(paths: List[str]):

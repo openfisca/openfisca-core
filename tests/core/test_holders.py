@@ -8,6 +8,7 @@ from openfisca_country_template.variables import housing
 from openfisca_core import holders, periods, tools
 from openfisca_core.errors import PeriodMismatchError
 from openfisca_core.memory_config import MemoryConfig
+from openfisca_core.periods import DateUnit
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.holders import Holder
 
@@ -106,9 +107,9 @@ def test_permanent_variable_filled(single):
     simulation = single
     holder = simulation.person.get_holder("birth")
     value = numpy.asarray(["1980-01-01"], dtype=holder.variable.dtype)
-    holder.set_input(periods.period(periods.ETERNITY), value)
+    holder.set_input(periods.period(DateUnit.ETERNITY), value)
     assert holder.get_array(None) == value
-    assert holder.get_array(periods.ETERNITY) == value
+    assert holder.get_array(DateUnit.ETERNITY) == value
     assert holder.get_array("2016-01") == value
 
 

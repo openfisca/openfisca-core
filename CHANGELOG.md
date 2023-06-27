@@ -1,5 +1,12 @@
 # Changelog
 
+##  40.1.0 [#1174](https://github.com/openfisca/openfisca-core/pull/1174)
+
+#### New Features
+
+* Allows for dispatching and dividing inputs over a broader range.
+  * For example, divide a monthly variable by week.
+
 ###  40.0.1 [#1184](https://github.com/openfisca/openfisca-core/pull/1184)
 
 #### Technical changes

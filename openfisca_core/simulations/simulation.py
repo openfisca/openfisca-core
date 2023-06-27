@@ -10,7 +10,7 @@ import numpy
 from openfisca_core import commons, periods
 from openfisca_core.errors import CycleError, SpiralError, VariableNotFoundError
 from openfisca_core.indexed_enums import Enum, EnumArray
-from openfisca_core.periods import Period
+from openfisca_core.periods import DateUnit, Period
 from openfisca_core.tracers import (
     FullTracer,
     SimpleTracer,
@@ -185,16 +185,19 @@ class Simulation:
             period.unit
         ):
             raise ValueError(
-                "Unable to compute variable '{0}' for period {1}: '{0}' can only be computed for {2}-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.".format(
-                    variable.name, period, variable.definition_period
-                )
+                f"Unable to compute variable '{variable.name}' for period "
+                f"{period}: '{variable.name}' can only be computed for "
+                f"{variable.definition_period}-long periods. You can use the "
+                f"DIVIDE option to get an estimate of {variable.name}."
             )
 
-        if variable.definition_period not in [periods.DAY, periods.MONTH, periods.YEAR]:
+        if variable.definition_period not in (
+            DateUnit.isoformat + DateUnit.isocalendar
+        ):
             raise ValueError(
-                "Unable to sum constant variable '{}' over period {}: only variables defined daily, monthly, or yearly can be summed over time.".format(
-                    variable.name, period
-                )
+                f"Unable to ADD constant variable '{variable.name}' over "
+                f"the period {period}: eternal variables can't be summed "
+                "over time."
             )
 
         return sum(
@@ -215,30 +218,68 @@ class Simulation:
         if period is not None and not isinstance(period, Period):
             period = periods.period(period)
 
-        # Check that the requested period matches definition_period
-        if variable.definition_period != periods.YEAR:
+        if (
+            periods.unit_weight(variable.definition_period)
+            < periods.unit_weight(period.unit)
+            or period.size > 1
+        ):
             raise ValueError(
-                "Unable to divide the value of '{}' over time on period {}: only variables defined yearly can be divided over time.".format(
-                    variable_name, period
-                )
+                f"Can't calculate variable '{variable.name}' for period "
+                f"{period}: '{variable.name}' can only be computed for "
+                f"{variable.definition_period}-long periods. You can use the "
+                f"ADD option to get an estimate of {variable.name}."
             )
 
-        if period.size != 1:
+        if variable.definition_period not in (
+            DateUnit.isoformat + DateUnit.isocalendar
+        ):
             raise ValueError(
-                "DIVIDE option can only be used for a one-year or a one-month requested period"
+                f"Unable to DIVIDE constant variable '{variable.name}' over "
+                f"the period {period}: eternal variables can't be divided "
+                "over time."
             )
 
-        if period.unit == periods.MONTH:
-            computation_period = period.this_year
-            return self.calculate(variable_name, period=computation_period) / 12.0
-        elif period.unit == periods.YEAR:
-            return self.calculate(variable_name, period)
-
-        raise ValueError(
-            "Unable to divide the value of '{}' to match period {}.".format(
-                variable_name, period
+        if (
+            period.unit not in (DateUnit.isoformat + DateUnit.isocalendar)
+            or period.size != 1
+        ):
+            raise ValueError(
+                f"Unable to DIVIDE constant variable '{variable.name}' over "
+                f"the period {period}: eternal variables can't be used "
+                "as a denominator to divide a variable over time."
             )
-        )
+
+        if variable.definition_period == DateUnit.YEAR:
+            calculation_period = period.this_year
+
+        elif variable.definition_period == DateUnit.MONTH:
+            calculation_period = period.first_month
+
+        elif variable.definition_period == DateUnit.DAY:
+            calculation_period = period.first_day
+
+        elif variable.definition_period == DateUnit.WEEK:
+            calculation_period = period.first_week
+
+        else:
+            calculation_period = period.first_weekday
+
+        if period.unit == DateUnit.YEAR:
+            denominator = calculation_period.size_in_years
+
+        elif period.unit == DateUnit.MONTH:
+            denominator = calculation_period.size_in_months
+
+        elif period.unit == DateUnit.DAY:
+            denominator = calculation_period.size_in_days
+
+        elif period.unit == DateUnit.WEEK:
+            denominator = calculation_period.size_in_weeks
+
+        else:
+            denominator = calculation_period.size_in_weekdays
+
+        return self.calculate(variable_name, calculation_period) / denominator
 
     def calculate_output(self, variable_name: str, period):
         """
@@ -290,19 +331,29 @@ class Simulation:
         """
         Check that a period matches the variable definition_period
         """
-        if variable.definition_period == periods.ETERNITY:
+        if variable.definition_period == DateUnit.ETERNITY:
             return  # For variables which values are constant in time, all periods are accepted
 
-        if variable.definition_period == periods.MONTH and period.unit != periods.MONTH:
+        if variable.definition_period == DateUnit.YEAR and period.unit != DateUnit.YEAR:
+            raise ValueError(
+                "Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.".format(
+                    variable.name, period
+                )
+            )
+
+        if (
+            variable.definition_period == DateUnit.MONTH
+            and period.unit != DateUnit.MONTH
+        ):
             raise ValueError(
                 "Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole month. You can use the ADD option to sum '{0}' over the requested period, or change the requested period to 'period.first_month'.".format(
                     variable.name, period
                 )
             )
 
-        if variable.definition_period == periods.YEAR and period.unit != periods.YEAR:
+        if variable.definition_period == DateUnit.WEEK and period.unit != DateUnit.WEEK:
             raise ValueError(
-                "Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.".format(
+                "Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole week. You can use the ADD option to sum '{0}' over the requested period, or change the requested period to 'period.first_week'.".format(
                     variable.name, period
                 )
             )
@@ -310,9 +361,7 @@ class Simulation:
         if period.size != 1:
             raise ValueError(
                 "Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole {2}. You can use the ADD option to sum '{0}' over the requested period.".format(
-                    variable.name,
-                    period,
-                    "month" if variable.definition_period == periods.MONTH else "year",
+                    variable.name, period, variable.definition_period
                 )
             )
 

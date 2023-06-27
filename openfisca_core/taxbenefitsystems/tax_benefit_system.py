@@ -445,7 +445,7 @@ class TaxBenefitSystem:
 
         """
 
-        key: Instant
+        key: Optional[Instant]
         msg: str
 
         if isinstance(instant, Instant):

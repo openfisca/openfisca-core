@@ -2,16 +2,17 @@
 
 import datetime
 
-from openfisca_core.model_api import Variable
-from openfisca_core.periods import MONTH, ETERNITY
-from openfisca_core.simulation_builder import SimulationBuilder
-from openfisca_core.tools import assert_near
+from pytest import fixture, raises, mark
 
 import openfisca_country_template as country_template
 import openfisca_country_template.situation_examples
 from openfisca_country_template.entities import Person
 
-from pytest import fixture, raises, mark
+from openfisca_core.periods import DateUnit
+from openfisca_core.simulation_builder import SimulationBuilder
+from openfisca_core.tools import assert_near
+from openfisca_core.variables import Variable
+
 
 # Check which date is applied whether it comes from Variable attribute (end)
 # or formula(s) dates.
@@ -67,7 +68,7 @@ def get_message(error):
 class variable__no_date(Variable):
     value_type = int
     entity = Person
-    definition_period = MONTH
+    definition_period = DateUnit.MONTH
     label = "Variable without date."
 
 
@@ -88,7 +89,7 @@ def test_variable__no_date():
 class variable__strange_end_attribute(Variable):
     value_type = int
     entity = Person
-    definition_period = MONTH
+    definition_period = DateUnit.MONTH
     label = "Variable with dubious end attribute, no formula."
     end = "1989-00-00"
 
@@ -113,7 +114,7 @@ def test_variable__strange_end_attribute():
 class variable__end_attribute(Variable):
     value_type = int
     entity = Person
-    definition_period = MONTH
+    definition_period = DateUnit.MONTH
     label = "Variable with end attribute, no formula."
     end = "1989-12-31"
 
@@ -141,7 +142,7 @@ def test_variable__end_attribute_set_input(simulation):
 class end_attribute__one_simple_formula(Variable):
     value_type = int
     entity = Person
-    definition_period = MONTH
+    definition_period = DateUnit.MONTH
     label = "Variable with end attribute, one formula without date."
     end = "1989-12-31"
 
@@ -187,7 +188,7 @@ def test_dates__end_attribute__one_simple_formula():
 class no_end_attribute__one_formula__strange_name(Variable):
     value_type = int
     entity = Person
-    definition_period = MONTH
+    definition_period = DateUnit.MONTH
     label = "Variable without end attribute, one stangely named formula."
 
     def formula_2015_toto(individu, period):
@@ -208,7 +209,7 @@ def test_add__no_end_attribute__one_formula__strange_name():
 class no_end_attribute__one_formula__start(Variable):
     value_type = int
     entity = Person
-    definition_period = MONTH
+    definition_period = DateUnit.MONTH
     label = "Variable without end attribute, one dated formula."
 
     def formula_2000_01_01(individu, period):
@@ -241,8 +242,8 @@ class no_end_attribute__one_formula__eternity(Variable):
     value_type = int
     entity = Person
     definition_period = (
-        ETERNITY  # For this entity, this variable shouldn't evolve through time
-    )
+        DateUnit.ETERNITY
+    )  # For this entity, this variable shouldn't evolve through time
     label = "Variable without end attribute, one dated formula."
 
     def formula_2000_01_01(individu, period):
@@ -278,7 +279,7 @@ def test_call__no_end_attribute__one_formula__eternity_after(simulation):
 class no_end_attribute__formulas__start_formats(Variable):
     value_type = int
     entity = Person
-    definition_period = MONTH
+    definition_period = DateUnit.MONTH
     label = "Variable without end attribute, multiple dated formulas."
 
     def formula_2000(individu, period):
@@ -339,7 +340,7 @@ def test_call__no_end_attribute__formulas__start_formats(simulation):
 class no_attribute__formulas__different_names__dates_overlap(Variable):
     value_type = int
     entity = Person
-    definition_period = MONTH
+    definition_period = DateUnit.MONTH
     label = "Variable, no end attribute, multiple dated formulas with different names but same dates."
 
     def formula_2000(individu, period):
@@ -364,7 +365,7 @@ def test_add__no_attribute__formulas__different_names__dates_overlap():
 class no_attribute__formulas__different_names__no_overlap(Variable):
     value_type = int
     entity = Person
-    definition_period = MONTH
+    definition_period = DateUnit.MONTH
     label = "Variable, no end attribute, multiple dated formulas with different names and no date overlap."
 
     def formula_2000_01_01(individu, period):
@@ -404,7 +405,7 @@ def test_call__no_attribute__formulas__different_names__no_overlap(simulation):
 class end_attribute__one_formula__start(Variable):
     value_type = int
     entity = Person
-    definition_period = MONTH
+    definition_period = DateUnit.MONTH
     label = "Variable with end attribute, one dated formula."
     end = "2001-12-31"
 
@@ -432,7 +433,7 @@ def test_call__end_attribute__one_formula__start(simulation):
 class stop_attribute_before__one_formula__start(Variable):
     value_type = int
     entity = Person
-    definition_period = MONTH
+    definition_period = DateUnit.MONTH
     label = "Variable with stop attribute only coming before formula start."
     end = "1990-01-01"
 
@@ -454,7 +455,7 @@ def test_add__stop_attribute_before__one_formula__start():
 class end_attribute_restrictive__one_formula(Variable):
     value_type = int
     entity = Person
-    definition_period = MONTH
+    definition_period = DateUnit.MONTH
     label = (
         "Variable with end attribute, one dated formula and dates intervals overlap."
     )
@@ -484,7 +485,7 @@ def test_call__end_attribute_restrictive__one_formula(simulation):
 class end_attribute__formulas__different_names(Variable):
     value_type = int
     entity = Person
-    definition_period = MONTH
+    definition_period = DateUnit.MONTH
     label = "Variable with end attribute, multiple dated formulas with different names."
     end = "2010-12-31"
 
@@ -535,7 +536,7 @@ def test_unexpected_attr():
     class variable_with_strange_attr(Variable):
         value_type = int
         entity = Person
-        definition_period = MONTH
+        definition_period = DateUnit.MONTH
         unexpected = "???"
 
     with raises(ValueError):

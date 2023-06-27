@@ -2,7 +2,8 @@ import numpy
 
 from openfisca_country_template import entities
 
-from openfisca_core import commons, periods
+from openfisca_core import commons
+from openfisca_core.periods import DateUnit
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.variables import Variable
 
@@ -12,14 +13,14 @@ from pytest import fixture, approx
 class choice(Variable):
     value_type = int
     entity = entities.Person
-    definition_period = periods.MONTH
+    definition_period = DateUnit.MONTH
 
 
 class uses_multiplication(Variable):
     value_type = int
     entity = entities.Person
     label = "Variable with formula that uses multiplication"
-    definition_period = periods.MONTH
+    definition_period = DateUnit.MONTH
 
     def formula(person, period):
         choice = person("choice", period)
@@ -31,7 +32,7 @@ class returns_scalar(Variable):
     value_type = int
     entity = entities.Person
     label = "Variable with formula that returns a scalar value"
-    definition_period = periods.MONTH
+    definition_period = DateUnit.MONTH
 
     def formula(person, period):
         return 666
@@ -41,7 +42,7 @@ class uses_switch(Variable):
     value_type = int
     entity = entities.Person
     label = "Variable with formula that uses switch"
-    definition_period = periods.MONTH
+    definition_period = DateUnit.MONTH
 
     def formula(person, period):
         choice = person("choice", period)
@@ -110,7 +111,7 @@ def test_group_encapsulation():
     """
     from openfisca_core.taxbenefitsystems import TaxBenefitSystem
     from openfisca_core.entities import build_entity
-    from openfisca_core.periods import ETERNITY
+    from openfisca_core.periods import DateUnit
 
     person_entity = build_entity(
         key="person",
@@ -151,12 +152,12 @@ def test_group_encapsulation():
     class household_level_variable(Variable):
         value_type = int
         entity = household_entity
-        definition_period = ETERNITY
+        definition_period = DateUnit.ETERNITY
 
     class projected_family_level_variable(Variable):
         value_type = int
         entity = family_entity
-        definition_period = ETERNITY
+        definition_period = DateUnit.ETERNITY
 
         def formula(family, period):
             return family.household("household_level_variable", period)
