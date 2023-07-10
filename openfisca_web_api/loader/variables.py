@@ -39,7 +39,7 @@ def build_source_url(
 
 
 def build_formula(
-    formula, country_package_metadata, source_file_path, tax_benefit_system
+    formula, country_package_metadata, source_file_path
 ):
     source_code, start_line_number = inspect.getsourcelines(formula)
 
@@ -59,22 +59,22 @@ def build_formula(
 
 
 def build_formulas(
-    formulas, country_package_metadata, source_file_path, tax_benefit_system
+    formulas, country_package_metadata, source_file_path
 ):
     return {
         start_date: build_formula(
-            formula, country_package_metadata, source_file_path, tax_benefit_system
+            formula, country_package_metadata, source_file_path
         )
         for start_date, formula in formulas.items()
     }
 
 
-def build_variable(variable, country_package_metadata, tax_benefit_system):
+def build_variable(variable, country_package_metadata, ):
     (
         source_file_path,
         source_code,
         start_line_number,
-    ) = variable.get_introspection_data(tax_benefit_system)
+    ) = variable.get_introspection_data()
     result = {
         "id": variable.name,
         "description": variable.label,
@@ -99,8 +99,7 @@ def build_variable(variable, country_package_metadata, tax_benefit_system):
         result["formulas"] = build_formulas(
             variable.formulas,
             country_package_metadata,
-            source_file_path,
-            tax_benefit_system,
+            source_file_path
         )
 
         if variable.end:
@@ -116,6 +115,6 @@ def build_variable(variable, country_package_metadata, tax_benefit_system):
 
 def build_variables(tax_benefit_system, country_package_metadata):
     return {
-        name: build_variable(variable, country_package_metadata, tax_benefit_system)
+        name: build_variable(variable, country_package_metadata)
         for name, variable in tax_benefit_system.variables.items()
     }

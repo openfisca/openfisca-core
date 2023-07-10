@@ -219,6 +219,10 @@ class TaxBenefitSystem:
         Adds all OpenFisca variables contained in a given file to the tax and benefit system.
         """
         try:
+            source_file_path = file_path.replace(
+                self.get_package_metadata()["location"], ""
+            )
+
             file_name = os.path.splitext(os.path.basename(file_path))[0]
 
             #  As Python remembers loaded modules by name, in order to prevent collisions, we need to make sure that:
@@ -226,27 +230,16 @@ class TaxBenefitSystem:
             #  - The same file, loaded by different tax and benefit systems, has distinct module names. Hence the `id(self)` in the module name.
             module_name = f"{id(self)}_{hash(os.path.abspath(file_path))}_{file_name}"
 
-            def findsource(tree, qualname):
-                class_finder = inspect._ClassFinder(qualname)
-                try:
-                    class_finder.visit(tree)
-                except inspect.ClassFoundException as e:
-                    line_number = e.args[0]
-                    return lines, line_number
-                else:
-                    raise OSError('could not find class definition')
-
             try:
                 spec = importlib.util.spec_from_file_location(module_name, file_path)
                 module = importlib.util.module_from_spec(spec)
                 sys.modules[module_name] = module
-                # print(file_path)
-                # import pdb; pdb.set_trace()
+
                 lines = linecache.getlines(file_path, module.__dict__)
                 source = ''.join(lines)
                 tree = ast.parse(source)
+                defs = {i.name: i for i in tree.body if isinstance(i, ast.ClassDef)}
                 spec.loader.exec_module(module)
-
 
             except NameError as e:
                 logging.error(
@@ -266,7 +259,12 @@ class TaxBenefitSystem:
                     and issubclass(pot_variable, Variable)
                     and pot_variable.__module__ == module_name
                 ):
-                    pot_variable.introspection_data = findsource(tree, pot_variable.__qualname__)
+                    class_def = defs[pot_variable.__name__]
+                    pot_variable.introspection_data = (
+                        source_file_path,
+                        ''.join(lines[class_def.lineno-1:class_def.end_lineno]),
+                        class_def.lineno-1
+                        )
                     self.add_variable(pot_variable)
         except Exception:
             log.error(
