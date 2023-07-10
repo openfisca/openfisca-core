@@ -365,7 +365,10 @@ class Variable:
 
     @classmethod
     def get_introspection_data(cls):
-        return cls.introspection_data
+        try:
+            return cls.introspection_data
+        except AttributeError:
+            return '', None, 0
 
     def get_formula(
         self,
