@@ -71,7 +71,6 @@ def build_formulas(
 
 def build_variable(variable, country_package_metadata, tax_benefit_system):
     (
-        comments,
         source_file_path,
         source_code,
         start_line_number,

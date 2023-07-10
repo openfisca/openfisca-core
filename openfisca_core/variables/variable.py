@@ -364,12 +364,10 @@ class Variable:
         """
         Get instrospection data about the code of the variable.
 
-        :returns: (comments, source file path, source code, start line number)
+        :returns: (source file path, source code, start line number)
         :rtype: tuple
 
         """
-        comments = inspect.getcomments(cls)
-
         # Handle dynamically generated variable classes or Jupyter Notebooks, which have no source.
         try:
             absolute_file_path = inspect.getsourcefile(cls)
@@ -385,7 +383,7 @@ class Variable:
         except (IOError, TypeError):
             source_code, start_line_number = None, None
 
-        return comments, source_file_path, source_code, start_line_number
+        return source_file_path, source_code, start_line_number
 
     def get_formula(
         self,
