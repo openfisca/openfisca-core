@@ -85,12 +85,12 @@ def build_openAPI_specification(api_data):
         dpath.util.new(
             spec,
             "components/schemas/SituationOutput/example",
-            {}, #handlers.calculate(tax_benefit_system, deepcopy(simulation_example)),
+            handlers.calculate(tax_benefit_system, deepcopy(simulation_example)),
         )  # calculate has side-effects
         dpath.util.new(
             spec,
             "components/schemas/Trace/example",
-            {}, #handlers.trace(tax_benefit_system, simulation_example),
+            handlers.trace(tax_benefit_system, simulation_example),
         )
     else:
         message = "No simulation example has been defined for this tax and benefit system. If you are the maintainer of {}, you can define an example by following this documentation: https://openfisca.org/doc/openfisca-web-api/config-openapi.html".format(
