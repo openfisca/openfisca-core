@@ -157,6 +157,12 @@ class Variable:
             default=config.VALUE_TYPES[self.value_type]["is_period_size_independent"],
         )
 
+        self.introspection_data = self.set(
+            attr,
+            "introspection_data",
+            default={},
+        )
+
         formulas_attr, unexpected_attrs = helpers._partition(
             attr, lambda name, value: name.startswith(config.FORMULA_NAME_PREFIX)
         )
@@ -378,7 +384,7 @@ class Variable:
                 tax_benefit_system.get_package_metadata()["location"], ""
             )
         try:
-            source_lines, start_line_number = inspect.getsourcelines(cls)
+            source_lines, start_line_number = [], 0
             source_code = textwrap.dedent("".join(source_lines))
         except (IOError, TypeError):
             source_code, start_line_number = None, None
