@@ -69,7 +69,7 @@ def build_formulas(
     }
 
 
-def build_variable(variable, country_package_metadata, ):
+def build_variable(variable, country_package_metadata):
     (
         source_file_path,
         source_code,
