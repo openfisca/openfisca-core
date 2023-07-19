@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional, Sequence, Union
 
+import ast
 import copy
 import functools
 import glob
@@ -13,6 +14,7 @@ import os
 import sys
 import traceback
 import typing
+import linecache
 
 from openfisca_core import commons, periods, variables
 from openfisca_core.entities import Entity
@@ -217,6 +219,10 @@ class TaxBenefitSystem:
         Adds all OpenFisca variables contained in a given file to the tax and benefit system.
         """
         try:
+            source_file_path = file_path.replace(
+                self.get_package_metadata()["location"], ""
+            )
+
             file_name = os.path.splitext(os.path.basename(file_path))[0]
 
             #  As Python remembers loaded modules by name, in order to prevent collisions, we need to make sure that:
@@ -228,7 +234,13 @@ class TaxBenefitSystem:
                 spec = importlib.util.spec_from_file_location(module_name, file_path)
                 module = importlib.util.module_from_spec(spec)
                 sys.modules[module_name] = module
+
+                lines = linecache.getlines(file_path, module.__dict__)
+                source = ''.join(lines)
+                tree = ast.parse(source)
+                defs = {i.name: i for i in tree.body if isinstance(i, ast.ClassDef)}
                 spec.loader.exec_module(module)
+
             except NameError as e:
                 logging.error(
                     str(e)
@@ -247,6 +259,12 @@ class TaxBenefitSystem:
                     and issubclass(pot_variable, Variable)
                     and pot_variable.__module__ == module_name
                 ):
+                    class_def = defs[pot_variable.__name__]
+                    pot_variable.introspection_data = (
+                        source_file_path,
+                        ''.join(lines[class_def.lineno-1:class_def.end_lineno]),
+                        class_def.lineno-1
+                        )
                     self.add_variable(pot_variable)
         except Exception:
             log.error(

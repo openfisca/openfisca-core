@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Optional, Union
 
 import datetime
-import inspect
 import re
 import textwrap
 
@@ -155,6 +154,11 @@ class Variable:
             "is_period_size_independent",
             allowed_type=bool,
             default=config.VALUE_TYPES[self.value_type]["is_period_size_independent"],
+        )
+
+        self.introspection_data = self.set(
+            attr,
+            "introspection_data",
         )
 
         formulas_attr, unexpected_attrs = helpers._partition(
@@ -360,32 +364,11 @@ class Variable:
         return len(self.formulas) == 0
 
     @classmethod
-    def get_introspection_data(cls, tax_benefit_system):
-        """
-        Get instrospection data about the code of the variable.
-
-        :returns: (comments, source file path, source code, start line number)
-        :rtype: tuple
-
-        """
-        comments = inspect.getcomments(cls)
-
-        # Handle dynamically generated variable classes or Jupyter Notebooks, which have no source.
+    def get_introspection_data(cls):
         try:
-            absolute_file_path = inspect.getsourcefile(cls)
-        except TypeError:
-            source_file_path = None
-        else:
-            source_file_path = absolute_file_path.replace(
-                tax_benefit_system.get_package_metadata()["location"], ""
-            )
-        try:
-            source_lines, start_line_number = inspect.getsourcelines(cls)
-            source_code = textwrap.dedent("".join(source_lines))
-        except (IOError, TypeError):
-            source_code, start_line_number = None, None
-
-        return comments, source_file_path, source_code, start_line_number
+            return cls.introspection_data
+        except AttributeError:
+            return '', None, 0
 
     def get_formula(
         self,

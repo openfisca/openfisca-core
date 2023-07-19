@@ -1,5 +1,13 @@
 # Changelog
 
+# 41.0.0 [#1189](https://github.com/openfisca/openfisca-core/pull/1189)
+
+#### Breaking changes
+
+- `Variable.get_introspection_data` no longer has parameters nor calling functions
+
+The Web API was very prone to crashing, timeouting at startup because of the time consuming python file parsing to generate documentation displayed for instance in the Legislation Explorer.
+
 ##  40.1.0 [#1174](https://github.com/openfisca/openfisca-core/pull/1174)
 
 #### New Features
