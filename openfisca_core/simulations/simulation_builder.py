@@ -1,8 +1,8 @@
-from typing import Dict, List, Iterable
+from typing import Dict, Iterable, List
 
 import copy
-import dpath.util
 
+import dpath.util
 import numpy
 
 from openfisca_core import periods
@@ -13,7 +13,7 @@ from openfisca_core.errors import (
     VariableNotFoundError,
 )
 from openfisca_core.populations import Population
-from openfisca_core.simulations import helpers, Simulation
+from openfisca_core.simulations import Simulation, helpers
 from openfisca_core.variables import Variable
 
 

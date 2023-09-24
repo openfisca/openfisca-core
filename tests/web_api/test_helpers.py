@@ -1,9 +1,7 @@
 import os
 
-from openfisca_web_api.loader import parameters
-
 from openfisca_core.parameters import load_parameter_file
-
+from openfisca_web_api.loader import parameters
 
 dir_path = os.path.join(os.path.dirname(__file__), "assets")
 

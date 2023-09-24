@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from openfisca_core.types import Formula, Instant
 from typing import Optional, Union
 
 import datetime
@@ -13,7 +14,6 @@ from openfisca_core import periods, tools
 from openfisca_core.entities import Entity
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import DateUnit, Period
-from openfisca_core.types import Formula, Instant
 
 from . import config, helpers
 

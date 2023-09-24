@@ -1,9 +1,11 @@
-import warnings
-import os
-import yaml
 import typing
-from openfisca_core.warnings import LibYAMLWarning
 
+import os
+import warnings
+
+import yaml
+
+from openfisca_core.warnings import LibYAMLWarning
 
 try:
     from yaml import CLoader as Loader
@@ -15,7 +17,9 @@ except ImportError:
         "so that it is used in your Python environment." + os.linesep,
     ]
     warnings.warn(" ".join(message), LibYAMLWarning, stacklevel=2)
-    from yaml import Loader  # type: ignore # (see https://github.com/python/mypy/issues/1153#issuecomment-455802270)
+    from yaml import (
+        Loader,  # type: ignore # (see https://github.com/python/mypy/issues/1153#issuecomment-455802270)
+    )
 
 # 'unit' and 'reference' are only listed here for backward compatibility.
 #  It is now recommended to include them in metadata, until a common consensus emerges.

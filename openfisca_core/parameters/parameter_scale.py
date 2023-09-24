@@ -1,10 +1,11 @@
+import typing
+
 import copy
 import os
-import typing
 
 from openfisca_core import commons, parameters, tools
 from openfisca_core.errors import ParameterParsingError
-from openfisca_core.parameters import config, helpers, AtInstantLike
+from openfisca_core.parameters import AtInstantLike, config, helpers
 from openfisca_core.taxscales import (
     LinearAverageRateTaxScale,
     MarginalAmountTaxScale,

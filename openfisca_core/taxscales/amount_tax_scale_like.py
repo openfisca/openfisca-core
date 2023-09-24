@@ -1,10 +1,12 @@
 import abc
-import bisect
-import os
 import typing
 
+import bisect
+import os
+
 from openfisca_core import tools
-from openfisca_core.taxscales import TaxScaleLike
+
+from .tax_scale_like import TaxScaleLike
 
 
 class AmountTaxScaleLike(TaxScaleLike, abc.ABC):

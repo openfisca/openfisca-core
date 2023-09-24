@@ -8,15 +8,11 @@ import warnings
 import numpy
 import psutil
 
-from openfisca_core import (
-    errors,
-    commons,
-    data_storage as storage,
-    indexed_enums as enums,
-    periods,
-    tools,
-    types,
-)
+from openfisca_core import commons
+from openfisca_core import data_storage as storage
+from openfisca_core import errors
+from openfisca_core import indexed_enums as enums
+from openfisca_core import periods, tools, types
 
 from .memory_usage import MemoryUsage
 

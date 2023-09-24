@@ -1,11 +1,16 @@
 from __future__ import annotations
 
-import copy
-import os
 import typing
 
+import copy
+import os
+
 from openfisca_core import commons, parameters, tools
-from . import config, helpers, AtInstantLike, Parameter, ParameterNodeAtInstant
+
+from . import config, helpers
+from .at_instant_like import AtInstantLike
+from .parameter import Parameter
+from .parameter_node_at_instant import ParameterNodeAtInstant
 
 
 class ParameterNode(AtInstantLike):

@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-import logging
 import typing
+
+import logging
 
 import numpy
 
 from openfisca_core import taxscales
-from openfisca_core.taxscales import RateTaxScaleLike
+
+from .rate_tax_scale_like import RateTaxScaleLike
 
 log = logging.getLogger(__name__)
 

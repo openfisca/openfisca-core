@@ -1,10 +1,10 @@
+from openfisca_core.types import TaxBenefitSystem, Variable
 from typing import Any, Optional
 
 import os
 import textwrap
 
-from openfisca_core.types import TaxBenefitSystem, Variable
-from openfisca_core.entities import Role
+from .role import Role
 
 
 class Entity:

@@ -3,9 +3,7 @@
 import timeit
 
 import numpy as np
-
 from openfisca_france import CountryTaxBenefitSystem
-
 
 tbs = CountryTaxBenefitSystem()
 N = 200000

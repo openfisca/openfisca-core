@@ -4,16 +4,16 @@ import logging
 import os
 import traceback
 
-from openfisca_core.errors import SituationParsingError, PeriodMismatchError
-from openfisca_web_api.loader import build_data
-from openfisca_web_api.errors import handle_import_error
+from openfisca_core.errors import PeriodMismatchError, SituationParsingError
 from openfisca_web_api import handlers
+from openfisca_web_api.errors import handle_import_error
+from openfisca_web_api.loader import build_data
 
 try:
-    from flask import Flask, jsonify, abort, request, make_response, redirect
+    import werkzeug.exceptions
+    from flask import Flask, abort, jsonify, make_response, redirect, request
     from flask_cors import CORS
     from werkzeug.middleware.proxy_fix import ProxyFix
-    import werkzeug.exceptions
 except ImportError as error:
     handle_import_error(error)
 

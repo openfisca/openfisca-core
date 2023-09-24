@@ -6,7 +6,6 @@ from openfisca_core import periods
 from openfisca_core.periods import DateUnit
 from openfisca_core.variables import Variable
 
-
 PERIOD = periods.period("2016-01")
 
 

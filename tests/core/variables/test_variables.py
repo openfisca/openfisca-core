@@ -2,7 +2,7 @@
 
 import datetime
 
-from pytest import fixture, raises, mark
+from pytest import fixture, mark, raises
 
 import openfisca_country_template as country_template
 import openfisca_country_template.situation_examples
@@ -12,7 +12,6 @@ from openfisca_core.periods import DateUnit
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.tools import assert_near
 from openfisca_core.variables import Variable
-
 
 # Check which date is applied whether it comes from Variable attribute (end)
 # or formula(s) dates.

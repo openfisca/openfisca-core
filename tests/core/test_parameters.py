@@ -3,9 +3,9 @@ import tempfile
 import pytest
 
 from openfisca_core.parameters import (
-    ParameterNotFound,
     ParameterNode,
     ParameterNodeAtInstant,
+    ParameterNotFound,
     load_parameter_file,
 )
 

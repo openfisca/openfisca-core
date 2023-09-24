@@ -1,6 +1,6 @@
 import argparse
-import warnings
 import sys
+import warnings
 
 from openfisca_core.scripts import add_tax_benefit_system_arguments
 

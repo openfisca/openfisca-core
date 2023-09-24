@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import os
+
 import pytest
+
 from openfisca_core.parameters import (
-    load_parameter_file,
     ParameterNode,
     ParameterParsingError,
+    load_parameter_file,
 )
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

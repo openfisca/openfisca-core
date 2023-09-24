@@ -1,4 +1,5 @@
 import numpy
+from pytest import approx, fixture
 
 from openfisca_country_template import entities
 
@@ -6,8 +7,6 @@ from openfisca_core import commons
 from openfisca_core.periods import DateUnit
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.variables import Variable
-
-from pytest import fixture, approx
 
 
 class choice(Variable):
@@ -109,9 +108,9 @@ def test_group_encapsulation():
     And calculations are projected to all the member families.
 
     """
-    from openfisca_core.taxbenefitsystems import TaxBenefitSystem
     from openfisca_core.entities import build_entity
     from openfisca_core.periods import DateUnit
+    from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 
     person_entity = build_entity(
         key="person",

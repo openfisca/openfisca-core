@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import abc
-
 import typing_extensions
 from typing import Any, Optional
 from typing_extensions import Protocol

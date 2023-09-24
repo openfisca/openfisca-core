@@ -4,8 +4,8 @@ import shutil
 import numpy
 
 from openfisca_core import periods
-from openfisca_core.periods import DateUnit
 from openfisca_core.indexed_enums import EnumArray
+from openfisca_core.periods import DateUnit
 
 
 class OnDiskStorage:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from openfisca_core.types import TaxBenefitSystem
 from typing import Any, Dict, Optional, Sequence, Union
 from typing_extensions import Literal, TypedDict
 
@@ -16,7 +17,6 @@ import pytest
 from openfisca_core.errors import SituationParsingError, VariableNotFound
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.tools import assert_near
-from openfisca_core.types import TaxBenefitSystem
 from openfisca_core.warnings import LibYAMLWarning
 
 

@@ -5,7 +5,8 @@ import numpy
 from openfisca_core import projectors
 from openfisca_core.entities import Role
 from openfisca_core.indexed_enums import EnumArray
-from openfisca_core.populations import Population
+
+from .population import Population
 
 
 class GroupPopulation(Population):

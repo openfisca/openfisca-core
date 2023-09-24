@@ -49,11 +49,7 @@ Note:
 
 # Official Public API
 
-from ._data import (  # noqa: F401
-    Array,
-    ArrayLike,
-)
-
+from ._data import Array, ArrayLike  # noqa: F401
 from ._domain import (  # noqa: F401
     Entity,
     Formula,
