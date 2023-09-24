@@ -8,20 +8,27 @@ log = logging.getLogger(__name__)
 
 
 def set_input_dispatch_by_period(holder, period, array):
-    """
-    This function can be declared as a ``set_input`` attribute of a variable.
+    """Can be declared as a ``set_input`` attribute of a variable.
 
-    In this case, the variable will accept inputs on larger periods that its definition period, and the value for the larger period will be applied to all its subperiods.
+    In this case, the variable will accept inputs on larger periods that its
+    definition period, and the value for the larger period will be applied to
+    all its subperiods.
 
     To read more about ``set_input`` attributes, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#set-input-automatically-process-variable-inputs-defined-for-periods-not-matching-the-definition-period>`_.
+
     """
+
     array = holder._to_array(array)
 
     period_size = period.size
     period_unit = period.unit
 
-    if holder.variable.definition_period not in (periods.DateUnit.isoformat + periods.DateUnit.isocalendar):
-        raise ValueError("set_input_dispatch_by_period can't be used for eternal variables.")
+    if holder.variable.definition_period not in (
+        periods.DateUnit.isoformat + periods.DateUnit.isocalendar
+    ):
+        raise ValueError(
+            "set_input_dispatch_by_period can't be used for eternal variables."
+        )
 
     cached_period_unit = holder.variable.definition_period
     after_instant = period.start.offset(period_size, period_unit)
@@ -40,25 +47,33 @@ def set_input_dispatch_by_period(holder, period, array):
 
 
 def set_input_divide_by_period(holder, period, array):
-    """
-    This function can be declared as a ``set_input`` attribute of a variable.
+    """Can be declared as a ``set_input`` attribute of a variable.
 
-    In this case, the variable will accept inputs on larger periods that its definition period, and the value for the larger period will be divided between its subperiods.
+    In this case, the variable will accept inputs on larger periods that its
+    definition period, and the value for the larger period will be divided
+    between its subperiods.
 
     To read more about ``set_input`` attributes, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#set-input-automatically-process-variable-inputs-defined-for-periods-not-matching-the-definition-period>`_.
+
     """
+
     if not isinstance(array, numpy.ndarray):
         array = numpy.array(array)
     period_size = period.size
     period_unit = period.unit
 
-    if holder.variable.definition_period not in (periods.DateUnit.isoformat + periods.DateUnit.isocalendar):
-        raise ValueError("set_input_divide_by_period can't be used for eternal variables.")
+    if holder.variable.definition_period not in (
+        periods.DateUnit.isoformat + periods.DateUnit.isocalendar
+    ):
+        raise ValueError(
+            "set_input_divide_by_period can't be used for eternal variables."
+        )
 
     cached_period_unit = holder.variable.definition_period
     after_instant = period.start.offset(period_size, period_unit)
 
-    # Count the number of elementary periods to change, and the difference with what is already known.
+    # Count the number of elementary periods to change, and the difference with
+    # what is already known.
     remaining_array = array.copy()
     sub_period = periods.Period((cached_period_unit, period.start, 1))
     sub_periods_count = 0
@@ -79,4 +94,11 @@ def set_input_divide_by_period(holder, period, array):
                 holder._set(sub_period, divided_array)
             sub_period = sub_period.offset(1)
     elif not (remaining_array == 0).all():
-        raise ValueError("Inconsistent input: variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} doesn't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period.".format(holder.variable.name, period, array, array - remaining_array))
+        raise ValueError(
+            f"Inconsistent input: variable {holder.variable.name} has already "
+            f"been set for all months contained in period {period}, and value "
+            f"{array} provided for {period} doesn't match the total "
+            f"({array - remaining_array}). This error may also be thrown if "
+            "you try to call 'set_input' twice for the same variable and "
+            "period."
+        )
