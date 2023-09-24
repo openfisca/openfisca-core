@@ -44,7 +44,7 @@ class Role:
         >>> role.key
         'parent'
 
-    .. versionchanged:: 40.1.1
+    .. versionchanged:: 41.0.1
         Added documentation, doctests, and typing.
 
     """
