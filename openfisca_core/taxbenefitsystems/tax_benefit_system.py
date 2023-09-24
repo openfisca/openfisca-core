@@ -236,7 +236,7 @@ class TaxBenefitSystem:
                 sys.modules[module_name] = module
 
                 lines = linecache.getlines(file_path, module.__dict__)
-                source = ''.join(lines)
+                source = "".join(lines)
                 tree = ast.parse(source)
                 defs = {i.name: i for i in tree.body if isinstance(i, ast.ClassDef)}
                 spec.loader.exec_module(module)
@@ -262,9 +262,9 @@ class TaxBenefitSystem:
                     class_def = defs[pot_variable.__name__]
                     pot_variable.introspection_data = (
                         source_file_path,
-                        ''.join(lines[class_def.lineno-1:class_def.end_lineno]),
-                        class_def.lineno-1
-                        )
+                        "".join(lines[class_def.lineno - 1 : class_def.end_lineno]),
+                        class_def.lineno - 1,
+                    )
                     self.add_variable(pot_variable)
         except Exception:
             log.error(
