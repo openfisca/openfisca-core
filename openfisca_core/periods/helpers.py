@@ -1,4 +1,4 @@
-from typing import Dict, NoReturn, Optional
+from typing import NoReturn, Optional
 
 import datetime
 import os
@@ -55,11 +55,10 @@ def instant(instant) -> Optional[Instant]:
         return instant
     if isinstance(instant, str):
         if not config.INSTANT_PATTERN.match(instant):
-            raise ValueError(f"'{instant}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'.")
-        instant = Instant(
-            int(fragment)
-            for fragment in instant.split('-', 2)[:3]
+            raise ValueError(
+                f"'{instant}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'."
             )
+        instant = Instant(int(fragment) for fragment in instant.split("-", 2)[:3])
     elif isinstance(instant, datetime.date):
         instant = Instant((instant.year, instant.month, instant.day))
     elif isinstance(instant, int):
@@ -167,11 +166,13 @@ def period(value) -> Period:
     # We return an "eternity-period", for example
     # ``<Period(('eternity', <Instant(1, 1, 1)>, inf))>``.
     if str(value).lower() == DateUnit.ETERNITY:
-        return Period((
-            DateUnit.ETERNITY,
-            instant(datetime.date.min),
-            float("inf"),
-            ))
+        return Period(
+            (
+                DateUnit.ETERNITY,
+                instant(datetime.date.min),
+                float("inf"),
+            )
+        )
 
     # For example ``2021`` gives
     # ``<Period(('year', <Instant(2021, 1, 1)>, 1))>``.
@@ -200,7 +201,7 @@ def period(value) -> Period:
     if ":" not in value:
         _raise_error(value)
 
-    components = value.split(':')
+    components = value.split(":")
 
     # left-most component must be a valid unit
     unit = components[0]
@@ -256,11 +257,13 @@ def _raise_error(value: str) -> NoReturn:
 
     """
 
-    message = os.linesep.join([
-        f"Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: '{value}'.",
-        "Learn more about legal period formats in OpenFisca:",
-        "<https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-simulations>."
-        ])
+    message = os.linesep.join(
+        [
+            f"Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: '{value}'.",
+            "Learn more about legal period formats in OpenFisca:",
+            "<https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-simulations>.",
+        ]
+    )
     raise ValueError(message)
 
 
@@ -290,10 +293,10 @@ def key_period_size(period: Period) -> str:
 
     unit, start, size = period
 
-    return f'{unit_weight(unit)}_{size}'
+    return f"{unit_weight(unit)}_{size}"
 
 
-def unit_weights() -> Dict[str, int]:
+def unit_weights() -> dict[str, int]:
     """Assign weights to date units.
 
     Examples:
@@ -309,7 +312,7 @@ def unit_weights() -> Dict[str, int]:
         DateUnit.MONTH: 200,
         DateUnit.YEAR: 300,
         DateUnit.ETERNITY: 400,
-        }
+    }
 
 
 def unit_weight(unit: str) -> int:
