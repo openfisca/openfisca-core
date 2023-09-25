@@ -113,7 +113,6 @@ using `pip freeze`) or with tools providing such features (`pipenv`, etc.).
 
 - Drop support for OpenAPI specification v2 and prior.
   - Users relying on OpenAPI v2 can use [Swagger Converter](https://converter.swagger.io/api/convert?url=OAS2_YAML_OR_JSON_URL) to migrate ([example](https://web.archive.org/web/20221103230822/https://converter.swagger.io/api/convert?url=https://api.demo.openfisca.org/latest/spec)).
->>>>>>> master
 
 ### 37.0.2 [#1170](https://github.com/openfisca/openfisca-core/pull/1170)
 
