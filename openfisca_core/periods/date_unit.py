@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 from enum import EnumMeta
 
 from strenum import StrEnum
@@ -9,7 +7,7 @@ from strenum import StrEnum
 
 class DateUnitMeta(EnumMeta):
     @property
-    def isoformat(self) -> Tuple[DateUnit, ...]:
+    def isoformat(self) -> tuple[DateUnit, ...]:
         """Creates a :obj:`tuple` of ``key`` with isoformat items.
 
         Returns:
@@ -30,7 +28,7 @@ class DateUnitMeta(EnumMeta):
         return DateUnit.DAY, DateUnit.MONTH, DateUnit.YEAR
 
     @property
-    def isocalendar(self) -> Tuple[DateUnit, ...]:
+    def isocalendar(self) -> tuple[DateUnit, ...]:
         """Creates a :obj:`tuple` of ``key`` with isocalendar items.
 
         Returns:
@@ -51,7 +49,7 @@ class DateUnitMeta(EnumMeta):
         return DateUnit.WEEKDAY, DateUnit.WEEK, DateUnit.YEAR
 
 
-class DateUnit(StrEnum, metaclass = DateUnitMeta):
+class DateUnit(StrEnum, metaclass=DateUnitMeta):
     """The date units of a rule system.
 
     Examples:

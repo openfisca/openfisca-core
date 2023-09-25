@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import typing
-from typing import Any, NoReturn, Optional, Type
+from typing import Any, NoReturn
 
 import numpy
 
@@ -20,16 +20,16 @@ class EnumArray(numpy.ndarray):
     # To read more about the two following methods, see:
     # https://docs.scipy.org/doc/numpy-1.13.0/user/basics.subclassing.html#slightly-more-realistic-example-attribute-added-to-existing-array.
     def __new__(
-            cls,
-            input_array: numpy.int_,
-            possible_values: Optional[Type[Enum]] = None,
-            ) -> EnumArray:
+        cls,
+        input_array: numpy.int_,
+        possible_values: type[Enum] | None = None,
+    ) -> EnumArray:
         obj = numpy.asarray(input_array).view(cls)
         obj.possible_values = possible_values
         return obj
 
     # See previous comment
-    def __array_finalize__(self, obj: Optional[numpy.int_]) -> None:
+    def __array_finalize__(self, obj: numpy.int_ | None) -> None:
         if obj is None:
             return
 
@@ -52,7 +52,7 @@ class EnumArray(numpy.ndarray):
         raise TypeError(
             "Forbidden operation. The only operations allowed on EnumArrays "
             "are '==' and '!='.",
-            )
+        )
 
     __add__ = _forbidden_operation
     __mul__ = _forbidden_operation
@@ -80,7 +80,7 @@ class EnumArray(numpy.ndarray):
         return numpy.select(
             [self == item.index for item in self.possible_values],
             list(self.possible_values),
-            )
+        )
 
     def decode_to_str(self) -> numpy.str_:
         """
@@ -97,7 +97,7 @@ class EnumArray(numpy.ndarray):
         return numpy.select(
             [self == item.index for item in self.possible_values],
             [item.name for item in self.possible_values],
-            )
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({str(self.decode())})"

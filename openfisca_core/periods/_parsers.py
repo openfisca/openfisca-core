@@ -47,7 +47,7 @@ def _parse_period(value: str) -> Optional[Period]:
         raise ParserError
 
     unit = _parse_unit(value)
-    date = pendulum.parse(value, exact = True)
+    date = pendulum.parse(value, exact=True)
 
     if not isinstance(date, Date):
         raise ValueError

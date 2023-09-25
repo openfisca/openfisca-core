@@ -79,7 +79,7 @@ class Instant(tuple):
     """
 
     def __repr__(self):
-        return f'{self.__class__.__name__}({super().__repr__()})'
+        return f"{self.__class__.__name__}({super().__repr__()})"
 
     def __str__(self):
         instant_str = config.str_by_instant_cache.get(self)
@@ -138,7 +138,9 @@ class Instant(tuple):
 
         year, month, day = self
 
-        assert unit in (DateUnit.isoformat + DateUnit.isocalendar), f'Invalid unit: {unit} of type {type(unit)}'
+        assert unit in (
+            DateUnit.isoformat + DateUnit.isocalendar
+        ), f"Invalid unit: {unit} of type {type(unit)}"
 
         if offset == "first-of":
             if unit == DateUnit.YEAR:
@@ -167,26 +169,28 @@ class Instant(tuple):
                 return self.__class__((date.year, date.month, date.day))
 
         else:
-            assert isinstance(offset, int), f'Invalid offset: {offset} of type {type(offset)}'
+            assert isinstance(
+                offset, int
+            ), f"Invalid offset: {offset} of type {type(offset)}"
 
             if unit == DateUnit.YEAR:
                 date = self.date
-                date = date.add(years = offset)
+                date = date.add(years=offset)
                 return self.__class__((date.year, date.month, date.day))
 
             elif unit == DateUnit.MONTH:
                 date = self.date
-                date = date.add(months = offset)
+                date = date.add(months=offset)
                 return self.__class__((date.year, date.month, date.day))
 
             elif unit == DateUnit.WEEK:
                 date = self.date
-                date = date.add(weeks = offset)
+                date = date.add(weeks=offset)
                 return self.__class__((date.year, date.month, date.day))
 
             elif unit in (DateUnit.DAY, DateUnit.WEEKDAY):
                 date = self.date
-                date = date.add(days = offset)
+                date = date.add(days=offset)
                 return self.__class__((date.year, date.month, date.day))
 
     @property

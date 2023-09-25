@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import typing
-from typing import Dict, Optional, Union
+from typing import Union
 
 import numpy
 
@@ -12,11 +12,10 @@ if typing.TYPE_CHECKING:
     from numpy.typing import ArrayLike
 
     Array = Union[EnumArray, ArrayLike]
-    Trace = Dict[str, dict]
+    Trace = dict[str, dict]
 
 
 class FlatTrace:
-
     _full_tracer: tracers.FullTracer
 
     def __init__(self, full_tracer: tracers.FullTracer) -> None:
@@ -35,32 +34,32 @@ class FlatTrace:
             # calculation.
             #
             # We therefore use a non-overwriting update.
-            trace.update({
-                key: node_trace
-                for key, node_trace in self._get_flat_trace(node).items()
-                if key not in trace
-                })
+            trace.update(
+                {
+                    key: node_trace
+                    for key, node_trace in self._get_flat_trace(node).items()
+                    if key not in trace
+                }
+            )
 
         return trace
 
     def get_serialized_trace(self) -> dict:
         return {
-            key: {
-                **flat_trace,
-                'value': self.serialize(flat_trace['value'])
-                }
+            key: {**flat_trace, "value": self.serialize(flat_trace["value"])}
             for key, flat_trace in self.get_trace().items()
-            }
+        }
 
     def serialize(
-            self,
-            value: Optional[Array],
-            ) -> Union[Optional[Array], list]:
+        self,
+        value: Array | None,
+    ) -> Array | None | list:
         if isinstance(value, EnumArray):
             value = value.decode_to_str()
 
-        if isinstance(value, numpy.ndarray) and \
-           numpy.issubdtype(value.dtype, numpy.dtype(bytes)):
+        if isinstance(value, numpy.ndarray) and numpy.issubdtype(
+            value.dtype, numpy.dtype(bytes)
+        ):
             value = value.astype(numpy.dtype(str))
 
         if isinstance(value, numpy.ndarray):
@@ -69,26 +68,22 @@ class FlatTrace:
         return value
 
     def _get_flat_trace(
-            self,
-            node: tracers.TraceNode,
-            ) -> Trace:
+        self,
+        node: tracers.TraceNode,
+    ) -> Trace:
         key = self.key(node)
 
         node_trace = {
             key: {
-                'dependencies': [
-                    self.key(child) for child in node.children
-                    ],
-                'parameters': {
-                    self.key(parameter):
-                        self.serialize(parameter.value)
-                        for parameter
-                        in node.parameters
-                    },
-                'value': node.value,
-                'calculation_time': node.calculation_time(),
-                'formula_time': node.formula_time(),
+                "dependencies": [self.key(child) for child in node.children],
+                "parameters": {
+                    self.key(parameter): self.serialize(parameter.value)
+                    for parameter in node.parameters
                 },
-            }
+                "value": node.value,
+                "calculation_time": node.calculation_time(),
+                "formula_time": node.formula_time(),
+            },
+        }
 
         return node_trace

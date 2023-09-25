@@ -1,6 +1,6 @@
-from openfisca_core import taxscales
-
 import pytest
+
+from openfisca_core import taxscales
 
 
 def test_abstract_tax_scale():

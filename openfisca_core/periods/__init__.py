@@ -32,7 +32,7 @@ from .config import (  # noqa: F401
     date_by_instant_cache,
     str_by_instant_cache,
     year_or_month_or_day_re,
-    )
+)
 from .date_unit import DateUnit  # noqa: F401
 from .helpers import (  # noqa: F401
     instant,
@@ -41,6 +41,6 @@ from .helpers import (  # noqa: F401
     period,
     unit_weight,
     unit_weights,
-    )
+)
 from .instant_ import Instant  # noqa: F401
 from .period_ import Period  # noqa: F401

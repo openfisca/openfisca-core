@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Sequence, Union
+from typing import Any
 from typing_extensions import Literal, TypedDict
 
 import dataclasses
@@ -9,6 +9,7 @@ import sys
 import textwrap
 import traceback
 import warnings
+from collections.abc import Sequence
 
 import pytest
 
@@ -19,23 +20,23 @@ from openfisca_core.types import TaxBenefitSystem
 from openfisca_core.warnings import LibYAMLWarning
 
 
-class Options(TypedDict, total = False):
+class Options(TypedDict, total=False):
     aggregate: bool
-    ignore_variables: Optional[Sequence[str]]
-    max_depth: Optional[int]
-    name_filter: Optional[str]
-    only_variables: Optional[Sequence[str]]
+    ignore_variables: Sequence[str] | None
+    max_depth: int | None
+    name_filter: str | None
+    only_variables: Sequence[str] | None
     pdb: bool
     performance_graph: bool
     performance_tables: bool
     verbose: bool
 
 
-@dataclasses.dataclass(frozen = True)
+@dataclasses.dataclass(frozen=True)
 class ErrorMargin:
-    __root__: Dict[Union[str, Literal["default"]], Optional[float]]
+    __root__: dict[str | Literal["default"], float | None]
 
-    def __getitem__(self, key: str) -> Optional[float]:
+    def __getitem__(self, key: str) -> float | None:
         if key in self.__root__:
             return self.__root__[key]
 
@@ -47,17 +48,17 @@ class Test:
     absolute_error_margin: ErrorMargin
     relative_error_margin: ErrorMargin
     name: str = ""
-    input: Dict[str, Union[float, Dict[str, float]]] = dataclasses.field(default_factory = dict)
-    output: Optional[Dict[str, Union[float, Dict[str, float]]]] = None
-    period: Optional[str] = None
-    reforms: Sequence[str] = dataclasses.field(default_factory = list)
-    keywords: Optional[Sequence[str]] = None
-    extensions: Sequence[str] = dataclasses.field(default_factory = list)
-    description: Optional[str] = None
-    max_spiral_loops: Optional[int] = None
+    input: dict[str, float | dict[str, float]] = dataclasses.field(default_factory=dict)
+    output: dict[str, float | dict[str, float]] | None = None
+    period: str | None = None
+    reforms: Sequence[str] = dataclasses.field(default_factory=list)
+    keywords: Sequence[str] | None = None
+    extensions: Sequence[str] = dataclasses.field(default_factory=list)
+    description: str | None = None
+    max_spiral_loops: int | None = None
 
 
-def build_test(params: Dict[str, Any]) -> Test:
+def build_test(params: dict[str, Any]) -> Test:
     for key in ["absolute_error_margin", "relative_error_margin"]:
         value = params.get(key)
 
@@ -74,6 +75,7 @@ def build_test(params: Dict[str, Any]) -> Test:
 
 def import_yaml():
     import yaml
+
     try:
         from yaml import CLoader as Loader
     except ImportError:
@@ -81,27 +83,41 @@ def import_yaml():
             "libyaml is not installed in your environment.",
             "This can make your test suite slower to run. Once you have installed libyaml, ",
             "run 'pip uninstall pyyaml && pip install pyyaml --no-cache-dir'",
-            "so that it is used in your Python environment."
-            ]
+            "so that it is used in your Python environment.",
+        ]
         warnings.warn(" ".join(message), LibYAMLWarning)
         from yaml import SafeLoader as Loader
     return yaml, Loader
 
 
-TEST_KEYWORDS = {'absolute_error_margin', 'description', 'extensions', 'ignore_variables', 'input', 'keywords', 'max_spiral_loops', 'name', 'only_variables', 'output', 'period', 'reforms', 'relative_error_margin'}
+TEST_KEYWORDS = {
+    "absolute_error_margin",
+    "description",
+    "extensions",
+    "ignore_variables",
+    "input",
+    "keywords",
+    "max_spiral_loops",
+    "name",
+    "only_variables",
+    "output",
+    "period",
+    "reforms",
+    "relative_error_margin",
+}
 
 yaml, Loader = import_yaml()
 
-_tax_benefit_system_cache: Dict = {}
+_tax_benefit_system_cache: dict = {}
 
 options: Options = Options()
 
 
 def run_tests(
-        tax_benefit_system: TaxBenefitSystem,
-        paths: Union[str, Sequence[str]],
-        options: Options = options,
-        ) -> int:
+    tax_benefit_system: TaxBenefitSystem,
+    paths: str | Sequence[str],
+    options: Options = options,
+) -> int:
     """Runs all the YAML tests contained in a file or a directory.
 
     If ``path`` is a directory, subdirectories will be recursively explored.
@@ -132,56 +148,57 @@ def run_tests(
     argv = []
     plugins = [OpenFiscaPlugin(tax_benefit_system, options)]
 
-    if options.get('pdb'):
-        argv.append('--pdb')
+    if options.get("pdb"):
+        argv.append("--pdb")
 
-    if options.get('verbose'):
-        argv.append('--verbose')
+    if options.get("verbose"):
+        argv.append("--verbose")
 
     if isinstance(paths, str):
         paths = [paths]
 
-    return pytest.main([*argv, *paths], plugins = plugins)
+    return pytest.main([*argv, *paths], plugins=plugins)
 
 
 class YamlFile(pytest.File):
-
     def __init__(self, path, fspath, parent, tax_benefit_system, options):
-        super(YamlFile, self).__init__(path, parent)
+        super().__init__(path, parent)
         self.tax_benefit_system = tax_benefit_system
         self.options = options
 
     def collect(self):
         try:
-            tests = yaml.load(self.fspath.open(), Loader = Loader)
+            tests = yaml.load(self.fspath.open(), Loader=Loader)
         except (yaml.scanner.ScannerError, yaml.parser.ParserError, TypeError):
-            message = os.linesep.join([
-                traceback.format_exc(),
-                f"'{self.fspath}' is not a valid YAML file. Check the stack trace above for more details.",
-                ])
+            message = os.linesep.join(
+                [
+                    traceback.format_exc(),
+                    f"'{self.fspath}' is not a valid YAML file. Check the stack trace above for more details.",
+                ]
+            )
             raise ValueError(message)
 
         if not isinstance(tests, list):
-            tests: Sequence[Dict] = [tests]
+            tests: Sequence[dict] = [tests]
 
         for test in tests:
             if not self.should_ignore(test):
                 yield YamlItem.from_parent(
                     self,
-                    name = '',
-                    baseline_tax_benefit_system = self.tax_benefit_system,
-                    test = test,
-                    options = self.options,
-                    )
+                    name="",
+                    baseline_tax_benefit_system=self.tax_benefit_system,
+                    test=test,
+                    options=self.options,
+                )
 
     def should_ignore(self, test):
-        name_filter = self.options.get('name_filter')
+        name_filter = self.options.get("name_filter")
         return (
             name_filter is not None
             and name_filter not in os.path.splitext(self.fspath.basename)[0]
-            and name_filter not in test.get('name', '')
-            and name_filter not in test.get('keywords', [])
-            )
+            and name_filter not in test.get("name", "")
+            and name_filter not in test.get("keywords", [])
+        )
 
 
 class YamlItem(pytest.Item):
@@ -190,7 +207,7 @@ class YamlItem(pytest.Item):
     """
 
     def __init__(self, name, parent, baseline_tax_benefit_system, test, options):
-        super(YamlItem, self).__init__(name, parent)
+        super().__init__(name, parent)
         self.baseline_tax_benefit_system = baseline_tax_benefit_system
         self.options = options
         self.test = build_test(test)
@@ -208,17 +225,17 @@ class YamlItem(pytest.Item):
             self.baseline_tax_benefit_system,
             self.test.reforms,
             self.test.extensions,
-            )
+        )
 
         builder = SimulationBuilder()
         input = self.test.input
         period = self.test.period
         max_spiral_loops = self.test.max_spiral_loops
-        verbose = self.options.get('verbose')
-        aggregate = self.options.get('aggregate')
-        max_depth = self.options.get('max_depth')
-        performance_graph = self.options.get('performance_graph')
-        performance_tables = self.options.get('performance_tables')
+        verbose = self.options.get("verbose")
+        aggregate = self.options.get("aggregate")
+        max_depth = self.options.get("max_depth")
+        performance_graph = self.options.get("performance_graph")
+        performance_tables = self.options.get("performance_tables")
 
         try:
             builder.set_default_period(period)
@@ -226,8 +243,12 @@ class YamlItem(pytest.Item):
         except (VariableNotFound, SituationParsingError):
             raise
         except Exception as e:
-            error_message = os.linesep.join([str(e), '', f"Unexpected error raised while parsing '{self.fspath}'"])
-            raise ValueError(error_message).with_traceback(sys.exc_info()[2]) from e  # Keep the stack trace from the root error
+            error_message = os.linesep.join(
+                [str(e), "", f"Unexpected error raised while parsing '{self.fspath}'"]
+            )
+            raise ValueError(error_message).with_traceback(
+                sys.exc_info()[2]
+            ) from e  # Keep the stack trace from the root error
 
         if max_spiral_loops:
             self.simulation.max_spiral_loops = max_spiral_loops
@@ -249,10 +270,10 @@ class YamlItem(pytest.Item):
         tracer.print_computation_log(aggregate, max_depth)
 
     def generate_performance_graph(self, tracer):
-        tracer.generate_performance_graph('.')
+        tracer.generate_performance_graph(".")
 
     def generate_performance_tables(self, tracer):
-        tracer.generate_performance_tables('.')
+        tracer.generate_performance_tables(".")
 
     def check_output(self):
         output = self.test.output
@@ -266,22 +287,31 @@ class YamlItem(pytest.Item):
                 for variable_name, value in expected_value.items():
                     self.check_variable(variable_name, value, self.test.period)
             else:
-                population = self.simulation.get_population(plural = key)
+                population = self.simulation.get_population(plural=key)
                 if population is not None:  # If key is an entity plural
                     for instance_id, instance_values in expected_value.items():
                         for variable_name, value in instance_values.items():
                             entity_index = population.get_index(instance_id)
-                            self.check_variable(variable_name, value, self.test.period, entity_index)
+                            self.check_variable(
+                                variable_name, value, self.test.period, entity_index
+                            )
                 else:
                     raise VariableNotFound(key, self.tax_benefit_system)
 
-    def check_variable(self, variable_name: str, expected_value, period, entity_index = None):
+    def check_variable(
+        self, variable_name: str, expected_value, period, entity_index=None
+    ):
         if self.should_ignore_variable(variable_name):
             return
 
-        if isinstance(expected_value, Dict):
+        if isinstance(expected_value, dict):
             for requested_period, expected_value_at_period in expected_value.items():
-                self.check_variable(variable_name, expected_value_at_period, requested_period, entity_index)
+                self.check_variable(
+                    variable_name,
+                    expected_value_at_period,
+                    requested_period,
+                    entity_index,
+                )
 
             return None
 
@@ -296,33 +326,40 @@ class YamlItem(pytest.Item):
             self.test.absolute_error_margin[variable_name],
             f"{variable_name}@{period}: ",
             self.test.relative_error_margin[variable_name],
-            )
+        )
 
     def should_ignore_variable(self, variable_name: str):
-        only_variables = self.options.get('only_variables')
-        ignore_variables = self.options.get('ignore_variables')
-        variable_ignored = ignore_variables is not None and variable_name in ignore_variables
-        variable_not_tested = only_variables is not None and variable_name not in only_variables
+        only_variables = self.options.get("only_variables")
+        ignore_variables = self.options.get("ignore_variables")
+        variable_ignored = (
+            ignore_variables is not None and variable_name in ignore_variables
+        )
+        variable_not_tested = (
+            only_variables is not None and variable_name not in only_variables
+        )
 
         return variable_ignored or variable_not_tested
 
     def repr_failure(self, excinfo):
-        if not isinstance(excinfo.value, (AssertionError, VariableNotFound, SituationParsingError)):
-            return super(YamlItem, self).repr_failure(excinfo)
+        if not isinstance(
+            excinfo.value, (AssertionError, VariableNotFound, SituationParsingError)
+        ):
+            return super().repr_failure(excinfo)
 
         message = excinfo.value.args[0]
         if isinstance(excinfo.value, SituationParsingError):
             message = f"Could not parse situation described: {message}"
 
-        return os.linesep.join([
-            f"{str(self.fspath)}:",
-            f"  Test '{str(self.name)}':",
-            textwrap.indent(message, '    ')
-            ])
+        return os.linesep.join(
+            [
+                f"{str(self.fspath)}:",
+                f"  Test '{str(self.name)}':",
+                textwrap.indent(message, "    "),
+            ]
+        )
 
 
-class OpenFiscaPlugin(object):
-
+class OpenFiscaPlugin:
     def __init__(self, tax_benefit_system, options):
         self.tax_benefit_system = tax_benefit_system
         self.options = options
@@ -333,9 +370,13 @@ class OpenFiscaPlugin(object):
         :return: The collector for test methods.
         """
         if path.ext in [".yaml", ".yml"]:
-            return YamlFile.from_parent(parent, path = path, fspath = path,
-                tax_benefit_system = self.tax_benefit_system,
-                options = self.options)
+            return YamlFile.from_parent(
+                parent,
+                path=path,
+                fspath=path,
+                tax_benefit_system=self.tax_benefit_system,
+                options=self.options,
+            )
 
 
 def _get_tax_benefit_system(baseline, reforms, extensions):
@@ -345,14 +386,16 @@ def _get_tax_benefit_system(baseline, reforms, extensions):
         extensions = [extensions]
 
     # keep reforms order in cache, ignore extensions order
-    key = hash((id(baseline), ':'.join(reforms), frozenset(extensions)))
+    key = hash((id(baseline), ":".join(reforms), frozenset(extensions)))
     if _tax_benefit_system_cache.get(key):
         return _tax_benefit_system_cache.get(key)
 
     current_tax_benefit_system = baseline
 
     for reform_path in reforms:
-        current_tax_benefit_system = current_tax_benefit_system.apply_reform(reform_path)
+        current_tax_benefit_system = current_tax_benefit_system.apply_reform(
+            reform_path
+        )
 
     for extension in extensions:
         current_tax_benefit_system = current_tax_benefit_system.clone()

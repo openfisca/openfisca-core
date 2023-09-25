@@ -12,7 +12,7 @@ def test_average_rate_when_varying_is_zero():
 
     result = commons.average_rate(target, varying)
 
-    assert_array_equal(result, [- numpy.inf, - numpy.inf, - numpy.inf])
+    assert_array_equal(result, [-numpy.inf, -numpy.inf, -numpy.inf])
 
 
 def test_marginal_rate_when_varying_is_zero():

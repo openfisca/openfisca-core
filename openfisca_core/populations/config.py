@@ -1,2 +1,2 @@
-ADD = 'add'
-DIVIDE = 'divide'
+ADD = "add"
+DIVIDE = "divide"

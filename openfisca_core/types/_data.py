@@ -1,6 +1,8 @@
-from typing import Sequence, TypeVar, Union
+from nptyping import NDArray as Array
+from nptyping import types
+from typing import TypeVar, Union
 
-from nptyping import types, NDArray as Array
+from collections.abc import Sequence
 
 import numpy
 

@@ -49,11 +49,7 @@ Note:
 
 # Official Public API
 
-from ._data import (  # noqa: F401
-    Array,
-    ArrayLike,
-    )
-
+from ._data import Array, ArrayLike  # noqa: F401
 from ._domain import (  # noqa: F401
     Entity,
     Formula,
@@ -67,7 +63,7 @@ from ._domain import (  # noqa: F401
     Simulation,
     TaxBenefitSystem,
     Variable,
-    )
+)
 
 __all__ = [
     "Array",
@@ -84,4 +80,4 @@ __all__ = [
     "Simulation",
     "TaxBenefitSystem",
     "Variable",
-    ]
+]

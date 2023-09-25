@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import dataclasses
 import typing
+
+import dataclasses
 
 if typing.TYPE_CHECKING:
     import numpy
@@ -17,10 +18,10 @@ if typing.TYPE_CHECKING:
 class TraceNode:
     name: str
     period: Period
-    parent: typing.Optional[TraceNode] = None
-    children: typing.List[TraceNode] = dataclasses.field(default_factory = list)
-    parameters: typing.List[TraceNode] = dataclasses.field(default_factory = list)
-    value: typing.Optional[Array] = None
+    parent: TraceNode | None = None
+    children: list[TraceNode] = dataclasses.field(default_factory=list)
+    parameters: list[TraceNode] = dataclasses.field(default_factory=list)
+    value: Array | None = None
     start: float = 0
     end: float = 0
 
@@ -34,15 +35,10 @@ class TraceNode:
 
     def formula_time(self) -> float:
         children_calculation_time = sum(
-            child.calculation_time(round_ = False)
-            for child
-            in self.children
-            )
+            child.calculation_time(round_=False) for child in self.children
+        )
 
-        result = (
-            + self.calculation_time(round_ = False)
-            - children_calculation_time
-            )
+        result = +self.calculation_time(round_=False) - children_calculation_time
 
         return self.round(result)
 
@@ -51,4 +47,4 @@ class TraceNode:
 
     @staticmethod
     def round(time: Time) -> float:
-        return float(f'{time:.4g}')  # Keep only 4 significant figures
+        return float(f"{time:.4g}")  # Keep only 4 significant figures

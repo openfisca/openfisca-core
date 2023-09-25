@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import typing
-from typing import Sequence
 
 import calendar
 import datetime
+from collections.abc import Sequence
 
 import pendulum
 
@@ -122,7 +122,7 @@ class Period(tuple):
     """
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}({super().__repr__()})'
+        return f"{self.__class__.__name__}({super().__repr__()})"
 
     def __str__(self) -> str:
         unit, start_instant, size = self
@@ -137,58 +137,58 @@ class Period(tuple):
         c_year, week, weekday = datetime.date(f_year, month, day).isocalendar()
 
         # 1 year long period
-        if (unit == DateUnit.MONTH and size == 12 or unit == DateUnit.YEAR and size == 1):
+        if unit == DateUnit.MONTH and size == 12 or unit == DateUnit.YEAR and size == 1:
             if month == 1:
                 # civil year starting from january
                 return str(f_year)
             else:
                 # rolling year
-                return f'{DateUnit.YEAR}:{f_year}-{month:02d}'
+                return f"{DateUnit.YEAR}:{f_year}-{month:02d}"
 
         # simple month
         if unit == DateUnit.MONTH and size == 1:
-            return f'{f_year}-{month:02d}'
+            return f"{f_year}-{month:02d}"
 
         # several civil years
         if unit == DateUnit.YEAR and month == 1:
-            return f'{unit}:{f_year}:{size}'
+            return f"{unit}:{f_year}:{size}"
 
         if unit == DateUnit.DAY:
             if size == 1:
-                return f'{f_year}-{month:02d}-{day:02d}'
+                return f"{f_year}-{month:02d}-{day:02d}"
             else:
-                return f'{unit}:{f_year}-{month:02d}-{day:02d}:{size}'
+                return f"{unit}:{f_year}-{month:02d}-{day:02d}:{size}"
 
         # 1 week
-        if (unit == DateUnit.WEEK and size == 1):
+        if unit == DateUnit.WEEK and size == 1:
             if week < 10:
                 return f"{c_year}-W0{week}"
 
             return f"{c_year}-W{week}"
 
         # several weeks
-        if (unit == DateUnit.WEEK and size > 1):
+        if unit == DateUnit.WEEK and size > 1:
             if week < 10:
                 return f"{unit}:{c_year}-W0{week}:{size}"
 
             return f"{unit}:{c_year}-W{week}:{size}"
 
         # 1 weekday
-        if (unit == DateUnit.WEEKDAY and size == 1):
+        if unit == DateUnit.WEEKDAY and size == 1:
             if week < 10:
                 return f"{c_year}-W0{week}-{weekday}"
 
             return f"{c_year}-W{week}-{weekday}"
 
         # several weekdays
-        if (unit == DateUnit.WEEKDAY and size > 1):
+        if unit == DateUnit.WEEKDAY and size > 1:
             if week < 10:
                 return f"{unit}:{c_year}-W0{week}-{weekday}:{size}"
 
             return f"{unit}:{c_year}-W{week}-{weekday}:{size}"
 
         # complex period
-        return f'{unit}:{f_year}-{month:02d}:{size}'
+        return f"{unit}:{f_year}-{month:02d}:{size}"
 
     @property
     def unit(self) -> str:
@@ -205,7 +205,7 @@ class Period(tuple):
         return self[0]
 
     @property
-    def start(self) -> "Instant":
+    def start(self) -> Instant:
         """The ``Instant`` at which the ``Period`` starts.
 
         Example:
@@ -233,7 +233,7 @@ class Period(tuple):
         return self[2]
 
     @property
-    def date(self) -> "Date":
+    def date(self) -> Date:
         """The date representation of the ``Period`` start date.
 
         Examples:
@@ -322,12 +322,7 @@ class Period(tuple):
         """
 
         if self.unit in (DateUnit.YEAR, DateUnit.MONTH):
-            last_day = (
-                self
-                .start
-                .offset(self.size, self.unit)
-                .offset(-1, DateUnit.DAY)
-                )
+            last_day = self.start.offset(self.size, self.unit).offset(-1, DateUnit.DAY)
             return (last_day.date - self.start.date).days + 1
 
         if self.unit == DateUnit.WEEK:
@@ -357,7 +352,7 @@ class Period(tuple):
 
         if self.unit == DateUnit.YEAR:
             start = self.start.date
-            cease = start.add(years = self.size)
+            cease = start.add(years=self.size)
             delta = pendulum.period(start, cease)
             return delta.as_interval().weeks
 
@@ -414,32 +409,45 @@ class Period(tuple):
         intersection_stop = min(period_stop, stop)
         if intersection_start == period_start and intersection_stop == period_stop:
             return self
-        if intersection_start.day == 1 and intersection_start.month == 1 \
-                and intersection_stop.day == 31 and intersection_stop.month == 12:
-            return self.__class__((
-                DateUnit.YEAR,
-                intersection_start,
-                intersection_stop.year - intersection_start.year + 1,
-                ))
-        if intersection_start.day == 1 and intersection_stop.day == calendar.monthrange(intersection_stop.year,
-                intersection_stop.month)[1]:
-            return self.__class__((
-                DateUnit.MONTH,
-                intersection_start,
+        if (
+            intersection_start.day == 1
+            and intersection_start.month == 1
+            and intersection_stop.day == 31
+            and intersection_stop.month == 12
+        ):
+            return self.__class__(
                 (
-                    (intersection_stop.year - intersection_start.year) * 12
-                    + intersection_stop.month
-                    - intersection_start.month
-                    + 1
+                    DateUnit.YEAR,
+                    intersection_start,
+                    intersection_stop.year - intersection_start.year + 1,
+                )
+            )
+        if (
+            intersection_start.day == 1
+            and intersection_stop.day
+            == calendar.monthrange(intersection_stop.year, intersection_stop.month)[1]
+        ):
+            return self.__class__(
+                (
+                    DateUnit.MONTH,
+                    intersection_start,
+                    (
+                        (intersection_stop.year - intersection_start.year) * 12
+                        + intersection_stop.month
+                        - intersection_start.month
+                        + 1
                     ),
-                ))
-        return self.__class__((
-            DateUnit.DAY,
-            intersection_start,
-            (intersection_stop.date - intersection_start.date).days + 1,
-            ))
+                )
+            )
+        return self.__class__(
+            (
+                DateUnit.DAY,
+                intersection_start,
+                (intersection_stop.date - intersection_start.date).days + 1,
+            )
+        )
 
-    def get_subperiods(self, unit: "DateUnit") -> Sequence["Period"]:
+    def get_subperiods(self, unit: DateUnit) -> Sequence[Period]:
         """Return the list of periods of unit ``unit`` contained in self.
 
         Examples:
@@ -454,26 +462,37 @@ class Period(tuple):
         """
 
         if helpers.unit_weight(self.unit) < helpers.unit_weight(unit):
-            raise ValueError(f'Cannot subdivide {self.unit} into {unit}')
+            raise ValueError(f"Cannot subdivide {self.unit} into {unit}")
 
         if unit == DateUnit.YEAR:
             return [self.this_year.offset(i, DateUnit.YEAR) for i in range(self.size)]
 
         if unit == DateUnit.MONTH:
-            return [self.first_month.offset(i, DateUnit.MONTH) for i in range(self.size_in_months)]
+            return [
+                self.first_month.offset(i, DateUnit.MONTH)
+                for i in range(self.size_in_months)
+            ]
 
         if unit == DateUnit.DAY:
-            return [self.first_day.offset(i, DateUnit.DAY) for i in range(self.size_in_days)]
+            return [
+                self.first_day.offset(i, DateUnit.DAY) for i in range(self.size_in_days)
+            ]
 
         if unit == DateUnit.WEEK:
-            return [self.first_week.offset(i, DateUnit.WEEK) for i in range(self.size_in_weeks)]
+            return [
+                self.first_week.offset(i, DateUnit.WEEK)
+                for i in range(self.size_in_weeks)
+            ]
 
         if unit == DateUnit.WEEKDAY:
-            return [self.first_weekday.offset(i, DateUnit.WEEKDAY) for i in range(self.size_in_weekdays)]
+            return [
+                self.first_weekday.offset(i, DateUnit.WEEKDAY)
+                for i in range(self.size_in_weekdays)
+            ]
 
-        raise ValueError(f'Cannot subdivide {self.unit} into {unit}')
+        raise ValueError(f"Cannot subdivide {self.unit} into {unit}")
 
-    def offset(self, offset, unit = None):
+    def offset(self, offset, unit=None):
         """Increment (or decrement) the given period with offset units.
 
         Examples:
@@ -647,7 +666,13 @@ class Period(tuple):
 
         """
 
-        return self.__class__((self[0], self[1].offset(offset, self[0] if unit is None else unit), self[2]))
+        return self.__class__(
+            (
+                self[0],
+                self[1].offset(offset, self[0] if unit is None else unit),
+                self[2],
+            )
+        )
 
     def contains(self, other: Period) -> bool:
         """Returns ``True`` if the period contains ``other``.
@@ -699,19 +724,19 @@ class Period(tuple):
             return Instant((float("inf"), float("inf"), float("inf")))
 
         elif unit == DateUnit.YEAR:
-            date = start_instant.date.add(years = size, days = - 1)
+            date = start_instant.date.add(years=size, days=-1)
             return Instant((date.year, date.month, date.day))
 
         elif unit == DateUnit.MONTH:
-            date = start_instant.date.add(months = size, days = - 1)
+            date = start_instant.date.add(months=size, days=-1)
             return Instant((date.year, date.month, date.day))
 
         elif unit == DateUnit.WEEK:
-            date = start_instant.date.add(weeks = size, days = - 1)
+            date = start_instant.date.add(weeks=size, days=-1)
             return Instant((date.year, date.month, date.day))
 
         elif unit in (DateUnit.DAY, DateUnit.WEEKDAY):
-            date = start_instant.date.add(days = size - 1)
+            date = start_instant.date.add(days=size - 1)
             return Instant((date.year, date.month, date.day))
 
         else:

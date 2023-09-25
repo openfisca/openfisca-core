@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import typing
+
 import abc
 import copy
-import typing
 
 import numpy
 
@@ -18,18 +19,18 @@ class TaxScaleLike(abc.ABC):
     rate-based tax scales...
     """
 
-    name: typing.Optional[str]
+    name: str | None
     option: typing.Any
     unit: typing.Any
-    thresholds: typing.List
+    thresholds: list
 
     @abc.abstractmethod
     def __init__(
-            self,
-            name: typing.Optional[str] = None,
-            option: typing.Any = None,
-            unit: typing.Any = None,
-            ) -> None:
+        self,
+        name: str | None = None,
+        option: typing.Any = None,
+        unit: typing.Any = None,
+    ) -> None:
         self.name = name or "Untitled TaxScale"
         self.option = option
         self.unit = unit
@@ -37,15 +38,13 @@ class TaxScaleLike(abc.ABC):
 
     def __eq__(self, _other: object) -> typing.NoReturn:
         raise NotImplementedError(
-            "Method '__eq__' is not implemented for "
-            f"{self.__class__.__name__}",
-            )
+            "Method '__eq__' is not implemented for " f"{self.__class__.__name__}",
+        )
 
     def __ne__(self, _other: object) -> typing.NoReturn:
         raise NotImplementedError(
-            "Method '__ne__' is not implemented for "
-            f"{self.__class__.__name__}",
-            )
+            "Method '__ne__' is not implemented for " f"{self.__class__.__name__}",
+        )
 
     @abc.abstractmethod
     def __repr__(self) -> str:
@@ -53,10 +52,10 @@ class TaxScaleLike(abc.ABC):
 
     @abc.abstractmethod
     def calc(
-            self,
-            tax_base: NumericalArray,
-            right: bool,
-            ) -> numpy.float_:
+        self,
+        tax_base: NumericalArray,
+        right: bool,
+    ) -> numpy.float_:
         ...
 
     @abc.abstractmethod

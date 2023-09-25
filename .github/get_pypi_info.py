@@ -34,7 +34,7 @@ def get_info(package_name: str = "") -> dict:
                 "last_version": version,
                 "url": v["url"],
                 "sha256": v["digests"]["sha256"],
-                }
+            }
     return {}
 
 
@@ -44,13 +44,13 @@ def replace_in_file(filepath: str, info: dict):
     ::filepath:: Path to meta.yaml, with filename.
     ::info:: Dict with information to populate.
     """
-    with open(filepath, "rt", encoding="utf-8") as fin:
+    with open(filepath, encoding="utf-8") as fin:
         meta = fin.read()
     # Replace with info from PyPi
     meta = meta.replace("PYPI_VERSION", info["last_version"])
     meta = meta.replace("PYPI_URL", info["url"])
     meta = meta.replace("PYPI_SHA256", info["sha256"])
-    with open(filepath, "wt", encoding="utf-8") as fout:
+    with open(filepath, "w", encoding="utf-8") as fout:
         fout.write(meta)
     print(f"File {filepath} has been updated with info from PyPi.")  # noqa: T001
 
@@ -64,15 +64,17 @@ if __name__ == "__main__":
         default="",
         required=True,
         help="The name of the package",
-        )
+    )
     parser.add_argument(
         "-f",
         "--filename",
         type=str,
         default=".conda/meta.yaml",
         help="Path to meta.yaml, with filename",
-        )
+    )
     args = parser.parse_args()
     info = get_info(args.package)
-    print("Information of the last published PyPi package :", info["last_version"])  # noqa: T001
+    print(  # noqa: T001
+        "Information of the last published PyPi package :", info["last_version"]
+    )
     replace_in_file(args.filename, info)

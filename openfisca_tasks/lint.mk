@@ -58,6 +58,6 @@ lint-typing-strict-%:
 ## Run code formatters to correct style errors.
 format-style: $(shell git ls-files "*.py")
 	@$(call print_help,$@:)
-	@isort openfisca_core/periods
-	@autopep8 $?
+	@isort $?
+	@black --target-version py39 --target-version py310 --target-version py311 $?
 	@$(call print_pass,$@:)
