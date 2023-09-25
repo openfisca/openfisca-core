@@ -1,13 +1,9 @@
-# -*- coding: utf-8 -*-
-
-
 import os
 
 import numpy as np
 
+from openfisca_core import holders
 from openfisca_core.simulations import Simulation
-from openfisca_core.data_storage import OnDiskStorage
-from openfisca_core.periods import DateUnit
 
 
 def dump_simulation(simulation, directory):
@@ -65,7 +61,8 @@ def restore_simulation(directory, tax_benefit_system, **kwargs):
 
 
 def _dump_holder(holder, directory):
-    disk_storage = holder.create_disk_storage(directory, preserve=True)
+    disk_storage = holder.create_disk_repo(directory, preserve=True)
+
     for period in holder.get_known_periods():
         value = holder.get_array(period)
         disk_storage.put(value, period)
@@ -120,17 +117,11 @@ def _restore_entity(population, directory):
 
 def _restore_holder(simulation, variable, directory):
     storage_dir = os.path.join(directory, variable)
-    is_variable_eternal = (
-        simulation.tax_benefit_system.get_variable(variable).definition_period
-        == DateUnit.ETERNITY
-    )
-    disk_storage = OnDiskStorage(
-        storage_dir, is_eternal=is_variable_eternal, preserve_storage_dir=True
-    )
+    disk_storage = holders.DiskRepo(storage_dir, keep=True)
     disk_storage.restore()
 
     holder = simulation.get_holder(variable)
 
-    for period in disk_storage.get_known_periods():
+    for period in disk_storage.periods():
         value = disk_storage.get(period)
         holder.put_in_cache(value, period)

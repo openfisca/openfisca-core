@@ -50,18 +50,7 @@ Note:
 
 """
 
-# Official Public API
-
-from .formulas import apply_thresholds, concat, switch  # noqa: F401
-from .misc import empty_clone, stringify_array  # noqa: F401
-from .rates import average_rate, marginal_rate  # noqa: F401
-
-__all__ = ["apply_thresholds", "concat", "switch"]
-__all__ = ["empty_clone", "stringify_array", *__all__]
-__all__ = ["average_rate", "marginal_rate", *__all__]
-
-# Deprecated
-
-from .dummy import Dummy  # noqa: F401
-
-__all__ = ["Dummy", *__all__]
+from .dummy import Dummy
+from .formulas import apply_thresholds, concat, switch
+from .misc import empty_clone, stringify_array
+from .rates import average_rate, marginal_rate

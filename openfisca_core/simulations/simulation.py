@@ -148,13 +148,14 @@ class Simulation:
 
             # If no result, use the default value and cache it
             if array is None:
-                array = holder.default_array()
+                array = variable.default_array(population.count)
 
             array = self._cast_formula_result(array, variable)
+
             holder.put_in_cache(array, period)
 
         except SpiralError:
-            array = holder.default_array()
+            array = variable.default_array(population.count)
 
         return array
 

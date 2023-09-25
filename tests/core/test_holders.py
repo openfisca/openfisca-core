@@ -1,31 +1,9 @@
+import numpy
 import pytest
 
-import numpy
-
-from openfisca_country_template import situation_examples
 from openfisca_country_template.variables import housing
 
-from openfisca_core import holders, periods, tools
-from openfisca_core.errors import PeriodMismatchError
-from openfisca_core.memory_config import MemoryConfig
-from openfisca_core.periods import DateUnit
-from openfisca_core.simulations import SimulationBuilder
-from openfisca_core.holders import Holder
-
-
-@pytest.fixture
-def single(tax_benefit_system):
-    return SimulationBuilder().build_from_entities(
-        tax_benefit_system, situation_examples.single
-    )
-
-
-@pytest.fixture
-def couple(tax_benefit_system):
-    return SimulationBuilder().build_from_entities(
-        tax_benefit_system, situation_examples.couple
-    )
-
+from openfisca_core import errors, holders, periods, tools
 
 period = periods.period("2017-12")
 
@@ -61,7 +39,7 @@ def test_set_input_enum_item(couple):
 
 
 def test_yearly_input_month_variable(couple):
-    with pytest.raises(PeriodMismatchError) as error:
+    with pytest.raises(errors.PeriodMismatchError) as error:
         couple.set_input("rent", 2019, 3000)
     assert (
         'Unable to set a value for variable "rent" for year-long period'
@@ -70,7 +48,7 @@ def test_yearly_input_month_variable(couple):
 
 
 def test_3_months_input_month_variable(couple):
-    with pytest.raises(PeriodMismatchError) as error:
+    with pytest.raises(errors.PeriodMismatchError) as error:
         couple.set_input("rent", "month:2019-01:3", 3000)
     assert (
         'Unable to set a value for variable "rent" for 3-months-long period'
@@ -79,7 +57,7 @@ def test_3_months_input_month_variable(couple):
 
 
 def test_month_input_year_variable(couple):
-    with pytest.raises(PeriodMismatchError) as error:
+    with pytest.raises(errors.PeriodMismatchError) as error:
         couple.set_input("housing_tax", "2019-01", 3000)
     assert (
         'Unable to set a value for variable "housing_tax" for month-long period'
@@ -107,9 +85,9 @@ def test_permanent_variable_filled(single):
     simulation = single
     holder = simulation.person.get_holder("birth")
     value = numpy.asarray(["1980-01-01"], dtype=holder.variable.dtype)
-    holder.set_input(periods.period(DateUnit.ETERNITY), value)
+    holder.set_input(periods.period(periods.DateUnit.ETERNITY), value)
     assert holder.get_array(None) == value
-    assert holder.get_array(DateUnit.ETERNITY) == value
+    assert holder.get_array(periods.DateUnit.ETERNITY) == value
     assert holder.get_array("2016-01") == value
 
 
@@ -164,7 +142,7 @@ def test_set_input_dispatch_by_period(single):
     simulation = single
     variable = simulation.tax_benefit_system.get_variable("housing_occupancy_status")
     entity = simulation.household
-    holder = Holder(variable, entity)
+    holder = holders.Holder(variable, entity)
     holders.set_input_dispatch_by_period(holder, periods.period(2019), "owner")
     assert holder.get_array("2019-01") == holder.get_array(
         "2019-12"
@@ -174,12 +152,9 @@ def test_set_input_dispatch_by_period(single):
     )  # Check that the vectors are the same in memory, to avoid duplication
 
 
-force_storage_on_disk = MemoryConfig(max_memory_occupation=0)
-
-
-def test_delete_arrays_on_disk(single):
+def test_delete_arrays_on_disk(single, memory_config):
     simulation = single
-    simulation.memory_config = force_storage_on_disk
+    simulation.memory_config = memory_config
     salary_holder = simulation.person.get_holder("salary")
     salary_holder.set_input(periods.period(2017), numpy.asarray([30000]))
     salary_holder.set_input(periods.period(2018), numpy.asarray([60000]))
@@ -191,9 +166,9 @@ def test_delete_arrays_on_disk(single):
     assert simulation.person("salary", "2018-01") == 1250
 
 
-def test_cache_disk(couple):
+def test_cache_disk(couple, memory_config):
     simulation = couple
-    simulation.memory_config = force_storage_on_disk
+    simulation.memory_config = memory_config
     month = periods.period("2017-01")
     holder = simulation.person.get_holder("disposable_income")
     data = numpy.asarray([2000, 3000])
@@ -202,22 +177,21 @@ def test_cache_disk(couple):
     tools.assert_near(data, stored_data)
 
 
-def test_known_periods(couple):
+def test_known_periods(couple, memory_config):
     simulation = couple
-    simulation.memory_config = force_storage_on_disk
+    simulation.memory_config = memory_config
     month = periods.period("2017-01")
     month_2 = periods.period("2017-02")
     holder = simulation.person.get_holder("disposable_income")
     data = numpy.asarray([2000, 3000])
     holder.put_in_cache(data, month)
-    holder._memory_storage.put(data, month_2)
-
+    holder.stores["memory"].put(data, month_2)
     assert sorted(holder.get_known_periods()), [month == month_2]
 
 
-def test_cache_enum_on_disk(single):
+def test_cache_enum_on_disk(single, memory_config):
     simulation = single
-    simulation.memory_config = force_storage_on_disk
+    simulation.memory_config = memory_config
     month = periods.period("2017-01")
     simulation.calculate("housing_occupancy_status", month)  # First calculation
     housing_occupancy_status = simulation.calculate(
@@ -226,12 +200,11 @@ def test_cache_enum_on_disk(single):
     assert housing_occupancy_status == housing.HousingOccupancyStatus.tenant
 
 
-def test_set_not_cached_variable(single):
-    dont_cache_variable = MemoryConfig(
-        max_memory_occupation=1, variables_to_drop=["salary"]
-    )
+def test_set_not_cached_variable(single, memory_config):
+    memory_config.max_memory_occupation = 1
+    memory_config.variables_to_drop = ["salary"]
     simulation = single
-    simulation.memory_config = dont_cache_variable
+    simulation.memory_config = memory_config
     holder = simulation.person.get_holder("salary")
     array = numpy.asarray([2000])
     holder.set_input("2015-01", array)

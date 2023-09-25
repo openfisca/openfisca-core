@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-import typing
-from typing import Any, NoReturn, Optional, Type
+from numpy.typing import NDArray
+from typing import Any, Iterable, NoReturn
 
 import numpy
 
-if typing.TYPE_CHECKING:
-    from openfisca_core.indexed_enums import Enum
+from .typing import HasIndex
 
 
-class EnumArray(numpy.ndarray):
+class EnumArray(NDArray[numpy.int_]):
     """
     NumPy array subclass representing an array of enum items.
 
@@ -21,24 +20,25 @@ class EnumArray(numpy.ndarray):
     # https://docs.scipy.org/doc/numpy-1.13.0/user/basics.subclassing.html#slightly-more-realistic-example-attribute-added-to-existing-array.
     def __new__(
         cls,
-        input_array: numpy.int_,
-        possible_values: Optional[Type[Enum]] = None,
+        input_array: NDArray[numpy.int_],
+        possible_values: Iterable[HasIndex] | None = None,
     ) -> EnumArray:
         obj = numpy.asarray(input_array).view(cls)
         obj.possible_values = possible_values
         return obj
 
     # See previous comment
-    def __array_finalize__(self, obj: Optional[numpy.int_]) -> None:
+    def __array_finalize__(self, obj: NDArray[numpy.int_] | EnumArray | None) -> None:
         if obj is None:
             return
 
         self.possible_values = getattr(obj, "possible_values", None)
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: HasIndex | Any) -> bool:
         # When comparing to an item of self.possible_values, use the item index
         # to speed up the comparison.
-        if other.__class__.__name__ is self.possible_values.__name__:
+
+        if hasattr(other, "index"):
             # Use view(ndarray) so that the result is a classic ndarray, not an
             # EnumArray.
             return self.view(numpy.ndarray) == other.index
@@ -82,7 +82,7 @@ class EnumArray(numpy.ndarray):
             list(self.possible_values),
         )
 
-    def decode_to_str(self) -> numpy.str_:
+    def decode_to_str(self) -> NDArray[numpy.str_]:
         """
         Return the array of string identifiers corresponding to self.
 

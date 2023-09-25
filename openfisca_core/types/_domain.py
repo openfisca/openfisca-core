@@ -1,9 +1,43 @@
+"""Domain-model.
+
+The domain-model is composed of structures meant to encapsulate data in a way
+that is unique to the context. Therefore, their identity is not equivalent to
+the sum of their properties. If two data objects hold the same identifier, even
+if the data they hold is different, they are equal but not fungible.
+
+Examples:
+    If we take entities, they are equal as long as they share the same ``key``.
+    Let's take the following example:
+
+    >>> from openfisca_core import entities
+
+    >>> this = entities.Entity(1, "a", "b", "c")
+    >>> that = entities.Entity(1, "d", "f", "g")
+    >>> this == that
+    True
+
+    As you can see, ``this`` and ``that`` are equal because they share the same
+    ``key``:
+
+    >>> this.key == that.key
+    True
+
+    The opposite is also true:
+
+    >>> that = entities.Entity(2, "a", "b", "c")
+    >>> this == that
+    False
+
+    >>> this.key == that.key
+    False
+
+"""
+
 from __future__ import annotations
 
 import abc
-
 import typing_extensions
-from typing import Any, Optional
+from typing import Any
 from typing_extensions import Protocol
 
 import numpy
@@ -28,7 +62,7 @@ class Entity(Protocol):
         self,
         variable_name: Any,
         check_existence: Any = ...,
-    ) -> Optional[Any]:
+    ) -> Any | None:
         """Abstract method."""
 
 
@@ -39,26 +73,10 @@ class Formula(Protocol):
     def __call__(
         self,
         population: Population,
-        instant: Instant,
+        instant: Any,
         params: Params,
     ) -> numpy.ndarray:
         """Abstract method."""
-
-
-class Holder(Protocol):
-    """Holder protocol."""
-
-    @abc.abstractmethod
-    def clone(self, population: Any) -> Holder:
-        """Abstract method."""
-
-    @abc.abstractmethod
-    def get_memory_usage(self) -> Any:
-        """Abstract method."""
-
-
-class Instant(Protocol):
-    """Instant protocol."""
 
 
 @typing_extensions.runtime_checkable
@@ -70,7 +88,7 @@ class Params(Protocol):
     """Params protocol."""
 
     @abc.abstractmethod
-    def __call__(self, instant: Instant) -> ParameterNodeAtInstant:
+    def __call__(self, instant: Any) -> ParameterNodeAtInstant:
         """Abstract method."""
 
 
@@ -92,7 +110,9 @@ class Period(Protocol):
 class Population(Protocol):
     """Population protocol."""
 
+    count: Any
     entity: Any
+    simulation: Any
 
     @abc.abstractmethod
     def get_holder(self, variable_name: Any) -> Any:
@@ -109,6 +129,13 @@ class Role(Protocol):
 class Simulation(Protocol):
     """Simulation protocol."""
 
+    trace: Any
+    tracer: Any
+    memory_config: Any
+    opt_out_cache: Any
+    data_storage_dir: Any
+    tax_benefit_system: Any
+
     @abc.abstractmethod
     def calculate(self, variable_name: Any, period: Any) -> Any:
         """Abstract method."""
@@ -122,7 +149,7 @@ class Simulation(Protocol):
         """Abstract method."""
 
     @abc.abstractmethod
-    def get_population(self, plural: Optional[Any]) -> Any:
+    def get_population(self, plural: Any | None) -> Any:
         """Abstract method."""
 
 
@@ -136,11 +163,23 @@ class TaxBenefitSystem(Protocol):
         self,
         variable_name: Any,
         check_existence: Any = ...,
-    ) -> Optional[Any]:
+    ) -> Any | None:
         """Abstract method."""
 
 
+@typing_extensions.runtime_checkable
 class Variable(Protocol):
     """Variable protocol."""
 
+    name: Any
+    dtype: Any
     entity: Any
+    set_input: Any
+    value_type: Any
+    is_neutralized: Any
+    possible_values: Any
+    definition_period: Any
+
+    @abc.abstractmethod
+    def default_array(self, array_size: Any) -> Any:
+        """Abstract method."""

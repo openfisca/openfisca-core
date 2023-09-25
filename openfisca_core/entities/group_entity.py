@@ -1,4 +1,5 @@
-from openfisca_core.entities import Entity, Role
+from .entity import Entity
+from .role import Role
 
 
 class GroupEntity(Entity):
@@ -21,7 +22,7 @@ class GroupEntity(Entity):
         Added ``containing_entities``, that allows the defining of group
         entities which entirely contain other group entities.
 
-    """  # noqa RST301
+    """
 
     def __init__(self, key, plural, label, doc, roles, containing_entities=()):
         super().__init__(key, plural, label, doc)

@@ -1,5 +1,15 @@
 from __future__ import annotations
 
+from openfisca_core.holders.typing import MemoryUsage
+from openfisca_core.types import (
+    Array,
+    Entity,
+    Period,
+    Role,
+    Simulation,
+    TaxBenefitSystem,
+    Variable,
+)
 from typing import Dict, NamedTuple, Optional, Sequence, Union
 from typing_extensions import TypedDict
 
@@ -7,10 +17,9 @@ import traceback
 
 import numpy
 
-from openfisca_core import periods, projectors
-from openfisca_core.holders import Holder, MemoryUsage
+from openfisca_core import errors, periods, projectors
+from openfisca_core.holders import Holder
 from openfisca_core.projectors import Projector
-from openfisca_core.types import Array, Entity, Period, Role, Simulation
 
 from . import config
 
@@ -160,13 +169,35 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     # Helpers
 
     def get_holder(self, variable_name: str) -> Holder:
+        holder: Optional[Holder]
+        variable: Optional[Variable]
+        simulation: Optional[Simulation]
+        tax_benefit_system: Optional[TaxBenefitSystem]
+
         self.entity.check_variable_defined_for_entity(variable_name)
         holder = self._holders.get(variable_name)
-        if holder:
+
+        if holder is not None:
             return holder
+
         variable = self.entity.get_variable(variable_name)
-        self._holders[variable_name] = holder = Holder(variable, self)
-        return holder
+
+        if variable is not None:
+            holder = Holder(variable, self)
+            self._holders[variable_name] = holder
+            return holder
+
+        simulation = self.simulation
+
+        if simulation is None:
+            raise TypeError("Simulation can't be None.")
+
+        tax_benefit_system = simulation.tax_benefit_system
+
+        if tax_benefit_system is None:
+            raise TypeError("TaxBenefitSystem can't be None.")
+
+        raise errors.VariableNotFoundError(variable_name, tax_benefit_system)
 
     def get_memory_usage(
         self,

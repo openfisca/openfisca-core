@@ -35,10 +35,9 @@ lint-doc-%:
 
 ## Run static type checkers for type errors.
 check-types:
-	@echo "    check-types: Temporarily dismissed"
-#	@$(call print_help,$@:)
-#	@mypy --package openfisca_core --package openfisca_web_api
-#	@$(call print_pass,$@:)
+	@$(call print_help,$@:)
+	@mypy --package openfisca_core --package openfisca_web_api
+	@$(call print_pass,$@:)
 
 ## Run static type checkers for type errors (strict).
 lint-typing-strict: \
@@ -48,18 +47,17 @@ lint-typing-strict: \
 
 ## Run static type checkers for type errors (strict).
 lint-typing-strict-%:
-	@echo "    lint-typing-strict: Temporarily dismissed"
-#	@$(call print_help,$(subst $*,%,$@:))
-#	@mypy \
-#		--cache-dir .mypy_cache-openfisca_core.$* \
-#		--implicit-reexport \
-#		--strict \
-#		--package openfisca_core.$*
-#	@$(call print_pass,$@:)
+	@$(call print_help,$(subst $*,%,$@:))
+	@mypy \
+		--cache-dir .mypy_cache-openfisca_core.$* \
+		--implicit-reexport \
+		--strict \
+		--package openfisca_core.$*
+	@$(call print_pass,$@:)
 
 ## Run code formatters to correct style errors.
 format-style: $(shell git ls-files "*.py")
 	@$(call print_help,$@:)
-	@isort openfisca_core/periods
+	@isort openfisca_core/commons openfisca_core/entities openfisca_core/holders openfisca_core/indexed_enums openfisca_core/periods openfisca_core/types
 	@black $?
 	@$(call print_pass,$@:)

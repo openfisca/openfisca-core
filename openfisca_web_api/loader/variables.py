@@ -38,9 +38,7 @@ def build_source_url(
     )
 
 
-def build_formula(
-    formula, country_package_metadata, source_file_path
-):
+def build_formula(formula, country_package_metadata, source_file_path):
     source_code, start_line_number = inspect.getsourcelines(formula)
 
     source_code = textwrap.dedent("".join(source_code))
@@ -58,13 +56,9 @@ def build_formula(
     return api_formula
 
 
-def build_formulas(
-    formulas, country_package_metadata, source_file_path
-):
+def build_formulas(formulas, country_package_metadata, source_file_path):
     return {
-        start_date: build_formula(
-            formula, country_package_metadata, source_file_path
-        )
+        start_date: build_formula(formula, country_package_metadata, source_file_path)
         for start_date, formula in formulas.items()
     }
 
@@ -97,9 +91,7 @@ def build_variable(variable, country_package_metadata):
 
     if len(variable.formulas) > 0:
         result["formulas"] = build_formulas(
-            variable.formulas,
-            country_package_metadata,
-            source_file_path
+            variable.formulas, country_package_metadata, source_file_path
         )
 
         if variable.end:

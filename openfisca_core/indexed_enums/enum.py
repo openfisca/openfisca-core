@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-import enum
 from typing import Union
+
+import enum
 
 import numpy
 
-from . import ENUM_ARRAY_DTYPE, EnumArray
+from .config import ENUM_ARRAY_DTYPE
+from .enum_array import EnumArray
 
 
 class Enum(enum.Enum):
@@ -14,12 +16,18 @@ class Enum(enum.Enum):
     have an index.
     """
 
+    #: Index of the enum.
+    index: int
+
     # Tweak enums to add an index attribute to each enum item
-    def __init__(self, name: str) -> None:
-        # When the enum item is initialized, self._member_names_ contains the
+    def __new__(cls, name: str) -> Enum:
+        # When the enum item is initialized, cls._member_names_ contains the
         # names of the previously initialized items, so its length is the index
         # of this item.
-        self.index = len(self._member_names_)
+        new = object.__new__(cls)
+        new._value_ = name
+        new.index = len(cls._member_names_)
+        return new
 
     # Bypass the slow Enum.__eq__
     __eq__ = object.__eq__

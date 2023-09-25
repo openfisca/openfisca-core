@@ -8,16 +8,17 @@ Official Public API:
     * :attr:`.Array`
     * ``ArrayLike``
     * :attr:`.Cache`
+    * :attr:`.Enum`
+    * :attr:`.EnumArray`
     * :attr:`.Entity`
     * :attr:`.Formula`
-    * :attr:`.Holder`
     * :attr:`.Instant`
     * :attr:`.ParameterNodeAtInstant`
     * :attr:`.Params`
     * :attr:`.Period`
     * :attr:`.Population`
-    * :attr:`.Role`,
-    * :attr:`.Simulation`,
+    * :attr:`.Role`
+    * :attr:`.Simulation`
     * :attr:`.TaxBenefitSystem`
     * :attr:`.Variable`
 
@@ -49,39 +50,15 @@ Note:
 
 # Official Public API
 
-from ._data import (  # noqa: F401
-    Array,
-    ArrayLike,
-)
-
+from ._data import Array, Enum, EnumArray, Instant, Period  # noqa: F401
 from ._domain import (  # noqa: F401
     Entity,
     Formula,
-    Holder,
-    Instant,
     ParameterNodeAtInstant,
     Params,
-    Period,
     Population,
     Role,
     Simulation,
     TaxBenefitSystem,
     Variable,
 )
-
-__all__ = [
-    "Array",
-    "ArrayLike",
-    "Entity",
-    "Formula",
-    "Holder",
-    "Instant",
-    "ParameterNodeAtInstant",
-    "Params",
-    "Period",
-    "Population",
-    "Role",
-    "Simulation",
-    "TaxBenefitSystem",
-    "Variable",
-]

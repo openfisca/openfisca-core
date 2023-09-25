@@ -368,7 +368,7 @@ class Variable:
         try:
             return cls.introspection_data
         except AttributeError:
-            return '', None, 0
+            return "", None, 0
 
     def get_formula(
         self,

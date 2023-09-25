@@ -1,38 +1,47 @@
-# Transitional imports to ensure non-breaking changes.
-# Could be deprecated in the next major release.
-#
-# How imports are being used today:
-#
-#   >>> from openfisca_core.module import symbol
-#
-# The previous example provokes cyclic dependency problems
-# that prevent us from modularizing the different components
-# of the library so to make them easier to test and to maintain.
-#
-# How could them be used after the next major release:
-#
-#   >>> from openfisca_core import module
-#   >>> module.symbol()
-#
-# And for classes:
-#
-#   >>> from openfisca_core.module import Symbol
-#   >>> Symbol()
-#
-# See: https://www.python.org/dev/peps/pep-0008/#imports
+"""Transitional imports to ensure non-breaking changes.
 
-from openfisca_core.projectors import (  # noqa: F401
+These imports could be deprecated in the next major release.
+
+Currently, imports are used in the following way::
+
+    from openfisca_core.module import symbol
+
+This example causes cyclic dependency problems, which prevent us from
+modularising the different components of the library and make them easier to
+test and maintain.
+
+After the next major release, imports could be used in the following way::
+
+    from openfisca_core import module
+    module.symbol()
+
+And for classes::
+
+    from openfisca_core.module import Symbol
+    Symbol()
+
+.. seealso:: `PEP8#Imports`_ and `OpenFisca's Styleguide`_.
+
+.. _PEP8#Imports:
+    https://www.python.org/dev/peps/pep-0008/#imports
+
+.. _OpenFisca's Styleguide:
+    https://github.com/openfisca/openfisca-core/blob/master/STYLEGUIDE.md
+
+"""
+
+from openfisca_core.projectors import (
     Projector,
     EntityToPersonProjector,
     FirstPersonToEntityProjector,
     UniqueRoleToEntityProjector,
 )
 
-from openfisca_core.projectors.helpers import (  # noqa: F401
+from openfisca_core.projectors.helpers import (
     projectable,
     get_projector_from_shortcut,
 )
 
-from .config import ADD, DIVIDE  # noqa: F401
-from .population import Population  # noqa: F401
-from .group_population import GroupPopulation  # noqa: F401
+from .config import ADD, DIVIDE
+from .population import Population
+from .group_population import GroupPopulation

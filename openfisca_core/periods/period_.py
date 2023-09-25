@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import typing
+from collections.abc import Sequence
 
 import calendar
 import datetime
-from collections.abc import Sequence
 
 import pendulum
 
@@ -684,14 +684,15 @@ class Period(tuple):
             )
         )
 
-    def contains(self, other: Period) -> bool:
-        """Returns ``True`` if the period contains ``other``.
-
-        For instance, ``period(2015)`` contains ``period(2015-01)``.
-
+    def contains(self, other: object) -> bool:
+        """
+        Returns ``True`` if the period contains ``other``. For instance, ``period(2015)`` contains ``period(2015-01)``
         """
 
-        return self.start <= other.start and self.stop >= other.stop
+        if isinstance(other, Period):
+            return self.start <= other.start and self.stop >= other.stop
+
+        return NotImplemented
 
     @property
     def stop(self) -> Instant:
