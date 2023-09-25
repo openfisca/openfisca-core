@@ -7,7 +7,10 @@ import os
 
 from openfisca_core import commons, parameters, tools
 
-from . import AtInstantLike, Parameter, ParameterNodeAtInstant, config, helpers
+from . import config, helpers
+from .at_instant_like import AtInstantLike
+from .parameter import Parameter
+from .parameter_node_at_instant import ParameterNodeAtInstant
 
 
 class ParameterNode(AtInstantLike):

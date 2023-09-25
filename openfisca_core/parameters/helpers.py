@@ -5,11 +5,14 @@ import numpy
 
 from openfisca_core import parameters, periods
 from openfisca_core.errors import ParameterParsingError
-from openfisca_core.parameters import config
+
+from . import config
 
 
 def contains_nan(vector):
-    if numpy.issubdtype(vector.dtype, numpy.record):
+    if numpy.issubdtype(vector.dtype, numpy.record) or numpy.issubdtype(
+        vector.dtype, numpy.void
+    ):
         return any([contains_nan(vector[name]) for name in vector.dtype.names])
     else:
         return numpy.isnan(vector).any()

@@ -4,7 +4,7 @@ import typing
 
 import warnings
 
-from openfisca_core.taxscales import TaxScaleLike
+from .tax_scale_like import TaxScaleLike
 
 if typing.TYPE_CHECKING:
     import numpy

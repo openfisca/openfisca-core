@@ -3,7 +3,8 @@ import numpy
 from openfisca_core import parameters
 from openfisca_core.errors import ParameterNotFoundError
 from openfisca_core.indexed_enums import Enum, EnumArray
-from openfisca_core.parameters import helpers
+
+from . import helpers
 
 
 class VectorialParameterNodeAtInstant:
@@ -197,7 +198,9 @@ class VectorialParameterNodeAtInstant:
                 )
 
             # If the result is not a leaf, wrap the result in a vectorial node.
-            if numpy.issubdtype(result.dtype, numpy.record):
+            if numpy.issubdtype(result.dtype, numpy.record) or numpy.issubdtype(
+                result.dtype, numpy.void
+            ):
                 return VectorialParameterNodeAtInstant(
                     self._name, result.view(numpy.recarray), self._instant_str
                 )

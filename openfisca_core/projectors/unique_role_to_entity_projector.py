@@ -1,4 +1,4 @@
-from openfisca_core.projectors import Projector
+from .projector import Projector
 
 
 class UniqueRoleToEntityProjector(Projector):
