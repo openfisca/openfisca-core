@@ -35,11 +35,10 @@ Examples:
 
 from __future__ import annotations
 
+import abc
 import typing_extensions
 from typing import Any
 from typing_extensions import Protocol
-
-import abc
 
 import numpy
 
@@ -60,9 +59,10 @@ class Entity(Protocol):
 
     @abc.abstractmethod
     def get_variable(
-            self, variable_name: Any,
-            check_existence: Any = ...,
-            ) -> Any | None:
+        self,
+        variable_name: Any,
+        check_existence: Any = ...,
+    ) -> Any | None:
         """Abstract method."""
 
 
@@ -71,11 +71,11 @@ class Formula(Protocol):
 
     @abc.abstractmethod
     def __call__(
-            self,
-            population: Population,
-            instant: Any,
-            params: Params,
-            ) -> numpy.ndarray:
+        self,
+        population: Population,
+        instant: Any,
+        params: Params,
+    ) -> numpy.ndarray:
         """Abstract method."""
 
 
@@ -89,6 +89,21 @@ class Params(Protocol):
 
     @abc.abstractmethod
     def __call__(self, instant: Any) -> ParameterNodeAtInstant:
+        """Abstract method."""
+
+
+@typing_extensions.runtime_checkable
+class Period(Protocol):
+    """Period protocol."""
+
+    @property
+    @abc.abstractmethod
+    def start(self) -> Any:
+        """Abstract method."""
+
+    @property
+    @abc.abstractmethod
+    def unit(self) -> Any:
         """Abstract method."""
 
 
@@ -145,9 +160,10 @@ class TaxBenefitSystem(Protocol):
 
     @abc.abstractmethod
     def get_variable(
-            self, variable_name: Any,
-            check_existence: Any = ...,
-            ) -> Any | None:
+        self,
+        variable_name: Any,
+        check_existence: Any = ...,
+    ) -> Any | None:
         """Abstract method."""
 
 

@@ -11,12 +11,12 @@ class EmptyArgumentError(IndexError):
     message: str
 
     def __init__(
-            self,
-            class_name: str,
-            method_name: str,
-            arg_name: str,
-            arg_value: typing.Union[typing.List, numpy.ndarray]
-            ) -> None:
+        self,
+        class_name: str,
+        method_name: str,
+        arg_name: str,
+        arg_value: typing.Union[typing.List, numpy.ndarray],
+    ) -> None:
         message = [
             f"'{class_name}.{method_name}' can't be run with an empty '{arg_name}':\n",
             f">>> {arg_name}",
@@ -31,7 +31,7 @@ class EmptyArgumentError(IndexError):
             "- Mention us via https://twitter.com/openfisca",
             "- Drop us a line to contact@openfisca.org\n",
             "😃",
-            ]
+        ]
         stacktrace = os.linesep.join(traceback.format_stack())
         self.message = os.linesep.join([f"  {line}" for line in message])
         self.message = os.linesep.join([stacktrace, self.message])

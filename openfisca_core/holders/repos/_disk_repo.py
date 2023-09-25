@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from openfisca_core.types import Enum, Period
-from typing import Any, NoReturn, Sequence
+from typing import Any, NoReturn
 
 import os
 import pathlib
@@ -37,9 +38,9 @@ class DiskRepo:
         self.keep = keep
 
     def get(
-            self,
-            period: Period,
-            ) -> numpy.ndarray | enums.EnumArray | None:
+        self,
+        period: Period,
+    ) -> numpy.ndarray | enums.EnumArray | None:
         """Retrieve the data for the specified period from disk.
 
         Args:
@@ -145,7 +146,7 @@ class DiskRepo:
             key: value
             for key, value in self.__files__.items()
             if not period.contains(key)
-            }
+        }
 
     def periods(self) -> Sequence[Period]:
         """List of storage's known periods.
@@ -200,10 +201,10 @@ class DiskRepo:
         self.__files__ = {}
         # Restore self.__files__ from content of directory.
         for filename in os.listdir(self.directory):
-            if not filename.endswith('.npy'):
+            if not filename.endswith(".npy"):
                 continue
             path = os.path.join(self.directory, filename)
-            filename_core = filename.rsplit('.', 1)[0]
+            filename_core = filename.rsplit(".", 1)[0]
             period = periods.period(filename_core)
             self.__files__ = {period: path, **self.__files__}
 

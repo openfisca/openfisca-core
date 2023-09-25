@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from openfisca_core.holders.typing import MemoryUsage
 from openfisca_core.types import Period
-from typing import Sequence
 
 import numpy
 
@@ -104,7 +104,7 @@ class MemoryRepo:
             key: value
             for key, value in self.__arrays__.items()
             if not period.contains(key)
-            }
+        }
 
     def periods(self) -> Sequence[Period]:
         """List of storage's known periods.
@@ -144,17 +144,17 @@ class MemoryRepo:
 
         if not self.__arrays__:
             return MemoryUsage(
-                cell_size = numpy.nan,
-                nb_arrays = 0,
-                total_nb_bytes = 0,
-                )
+                cell_size=numpy.nan,
+                nb_arrays=0,
+                total_nb_bytes=0,
+            )
 
         nb_arrays = len(self.__arrays__)
         array = next(iter(self.__arrays__.values()))
         total = array.nbytes * nb_arrays
 
         return MemoryUsage(
-            cell_size = array.itemsize,
-            nb_arrays = nb_arrays,
-            total_nb_bytes = total,
-            )
+            cell_size=array.itemsize,
+            nb_arrays=nb_arrays,
+            total_nb_bytes=total,
+        )

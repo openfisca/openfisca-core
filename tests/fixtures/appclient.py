@@ -5,7 +5,7 @@ from openfisca_web_api import app
 
 @pytest.fixture(scope="module")
 def test_client(tax_benefit_system):
-    """ This module-scoped fixture creates an API client for the TBS defined in the `tax_benefit_system`
+    """This module-scoped fixture creates an API client for the TBS defined in the `tax_benefit_system`
         fixture. This `tax_benefit_system` is mutable, so you can add/update variables.
 
     Example:
@@ -20,7 +20,7 @@ def test_client(tax_benefit_system):
             class new_variable(Variable):
                 value_type = float
                 entity = entities.Person
-                definition_period = periods.MONTH
+                definition_period = DateUnit.MONTH
                 label = "New variable"
                 reference = "https://law.gov.example/new_variable"  # Always use the most official source
 

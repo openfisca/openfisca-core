@@ -27,7 +27,7 @@ def measure_time(title):
     t1 = time.time()
     yield
     t2 = time.time()
-    print('{}\t: {:.8f} seconds elapsed'.format(title, t2 - t1))
+    print("{}\t: {:.8f} seconds elapsed".format(title, t2 - t1))
 
 
 def switch_fromiter(conditions, function_by_condition, dtype):
@@ -40,19 +40,13 @@ def switch_fromiter(conditions, function_by_condition, dtype):
         return value_by_condition[condition]
 
     return numpy.fromiter(
-        (
-            get_or_store_value(condition)
-            for condition in conditions
-            ),
+        (get_or_store_value(condition) for condition in conditions),
         dtype,
-        )
+    )
 
 
 def switch_select(conditions, value_by_condition):
-    condlist = [
-        conditions == condition
-        for condition in value_by_condition.keys()
-        ]
+    condlist = [conditions == condition for condition in value_by_condition.keys()]
     return numpy.select(condlist, value_by_condition.values())
 
 
@@ -75,7 +69,11 @@ def test_multiplication(choice):
     choice_1_value = calculate_choice_1_value()
     choice_2_value = calculate_choice_2_value()
     choice_3_value = calculate_choice_3_value()
-    result = (choice == 1) * choice_1_value + (choice == 2) * choice_2_value + (choice == 3) * choice_3_value
+    result = (
+        (choice == 1) * choice_1_value
+        + (choice == 2) * choice_2_value
+        + (choice == 3) * choice_3_value
+    )
     return result
 
 
@@ -86,9 +84,9 @@ def test_switch_fromiter(choice):
             1: calculate_choice_1_value,
             2: calculate_choice_2_value,
             3: calculate_choice_3_value,
-            },
-        dtype = numpy.int,
-        )
+        },
+        dtype=numpy.int,
+    )
     return result
 
 
@@ -102,30 +100,36 @@ def test_switch_select(choice):
             1: choice_1_value,
             2: choice_2_value,
             3: choice_3_value,
-            },
-        )
+        },
+    )
     return result
 
 
 def test_all_notations():
     # choice is an array with 1 and 2 items like [2, 1, ..., 1, 2]
-    choice = numpy.random.randint(2, size = args.array_length) + 1
+    choice = numpy.random.randint(2, size=args.array_length) + 1
 
-    with measure_time('multiplication'):
+    with measure_time("multiplication"):
         test_multiplication(choice)
 
-    with measure_time('switch_select'):
+    with measure_time("switch_select"):
         test_switch_select(choice)
 
-    with measure_time('switch_fromiter'):
+    with measure_time("switch_fromiter"):
         test_switch_fromiter(choice)
 
 
 def main():
-    parser = argparse.ArgumentParser(description = __doc__)
-    parser.add_argument('--array-length', default = 1000, type = int, help = "length of the array")
-    parser.add_argument('--calculate-time', default = 0.1, type = float,
-        help = "time taken by the calculation in seconds")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--array-length", default=1000, type=int, help="length of the array"
+    )
+    parser.add_argument(
+        "--calculate-time",
+        default=0.1,
+        type=float,
+        help="time taken by the calculation in seconds",
+    )
     global args
     args = parser.parse_args()
 

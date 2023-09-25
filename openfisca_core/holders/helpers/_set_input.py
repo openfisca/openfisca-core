@@ -26,7 +26,9 @@ def set_input_dispatch_by_period(holder: Holder, period: Period, array: Any) -> 
     period_unit = period.unit
 
     if holder.eternal:
-        raise ValueError("set_input_dispatch_by_period can't be used for eternal variables.")
+        raise ValueError(
+            "set_input_dispatch_by_period can't be used for eternal variables."
+        )
 
     cached_period_unit = holder.period
     after_instant = period.start.offset(period_size, period_unit)
@@ -58,7 +60,9 @@ def set_input_divide_by_period(holder: Holder, period: Period, array: Any) -> No
     period_unit = period.unit
 
     if holder.eternal:
-        raise ValueError("set_input_divide_by_period can't be used for eternal variables.")
+        raise ValueError(
+            "set_input_divide_by_period can't be used for eternal variables."
+        )
 
     cached_period_unit = holder.period
     after_instant = period.start.offset(period_size, period_unit)
@@ -84,4 +88,8 @@ def set_input_divide_by_period(holder: Holder, period: Period, array: Any) -> No
                 holder._set(sub_period, divided_array)
             sub_period = sub_period.offset(1)
     elif not (remaining_array == 0).all():
-        raise ValueError("Inconsistent input: variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} doesn't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period.".format(holder.variable.name, period, array, array - remaining_array))
+        raise ValueError(
+            "Inconsistent input: variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} doesn't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period.".format(
+                holder.variable.name, period, array, array - remaining_array
+            )
+        )

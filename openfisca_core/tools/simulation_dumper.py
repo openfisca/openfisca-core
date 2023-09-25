@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
-
-
 import os
 
-import numpy
+import numpy as np
 
 from openfisca_core import holders
 from openfisca_core.simulations import Simulation
@@ -11,7 +8,7 @@ from openfisca_core.simulations import Simulation
 
 def dump_simulation(simulation, directory):
     """
-        Write simulation data to directory, so that it can be restored later.
+    Write simulation data to directory, so that it can be restored later.
     """
     parent_directory = os.path.abspath(os.path.join(directory, os.pardir))
     if not os.path.isdir(parent_directory):  # To deal with reforms
@@ -36,9 +33,11 @@ def dump_simulation(simulation, directory):
 
 def restore_simulation(directory, tax_benefit_system, **kwargs):
     """
-        Restore simulation from directory
+    Restore simulation from directory
     """
-    simulation = Simulation(tax_benefit_system, tax_benefit_system.instantiate_entities())
+    simulation = Simulation(
+        tax_benefit_system, tax_benefit_system.instantiate_entities()
+    )
 
     entities_dump_dir = os.path.join(directory, "__entities__")
     for population in simulation.populations.values():
@@ -52,7 +51,9 @@ def restore_simulation(directory, tax_benefit_system, **kwargs):
         _restore_entity(population, entities_dump_dir)
         population.count = person_count
 
-    variables_to_restore = (variable for variable in os.listdir(directory) if variable != "__entities__")
+    variables_to_restore = (
+        variable for variable in os.listdir(directory) if variable != "__entities__"
+    )
     for variable in variables_to_restore:
         _restore_holder(simulation, variable, directory)
 
@@ -60,7 +61,8 @@ def restore_simulation(directory, tax_benefit_system, **kwargs):
 
 
 def _dump_holder(holder, directory):
-    disk_storage = holder.create_disk_repo(directory, preserve = True)
+    disk_storage = holder.create_disk_repo(directory, preserve=True)
+
     for period in holder.get_known_periods():
         value = holder.get_array(period)
         disk_storage.put(value, period)
@@ -69,45 +71,45 @@ def _dump_holder(holder, directory):
 def _dump_entity(population, directory):
     path = os.path.join(directory, population.entity.key)
     os.mkdir(path)
-    numpy.save(os.path.join(path, "id.npy"), population.ids)
+    np.save(os.path.join(path, "id.npy"), population.ids)
 
     if population.entity.is_person:
         return
 
-    numpy.save(os.path.join(path, "members_position.npy"), population.members_position)
-    numpy.save(os.path.join(path, "members_entity_id.npy"), population.members_entity_id)
+    np.save(os.path.join(path, "members_position.npy"), population.members_position)
+    np.save(os.path.join(path, "members_entity_id.npy"), population.members_entity_id)
 
     flattened_roles = population.entity.flattened_roles
     if len(flattened_roles) == 0:
-        encoded_roles = numpy.int64(0)
+        encoded_roles = np.int64(0)
     else:
-        encoded_roles = numpy.select(
+        encoded_roles = np.select(
             [population.members_role == role for role in flattened_roles],
             [role.key for role in flattened_roles],
-            )
-    numpy.save(os.path.join(path, "members_role.npy"), encoded_roles)
+        )
+    np.save(os.path.join(path, "members_role.npy"), encoded_roles)
 
 
 def _restore_entity(population, directory):
     path = os.path.join(directory, population.entity.key)
 
-    population.ids = numpy.load(os.path.join(path, "id.npy"))
+    population.ids = np.load(os.path.join(path, "id.npy"))
 
     if population.entity.is_person:
         return
 
-    population.members_position = numpy.load(os.path.join(path, "members_position.npy"))
-    population.members_entity_id = numpy.load(os.path.join(path, "members_entity_id.npy"))
-    encoded_roles = numpy.load(os.path.join(path, "members_role.npy"))
+    population.members_position = np.load(os.path.join(path, "members_position.npy"))
+    population.members_entity_id = np.load(os.path.join(path, "members_entity_id.npy"))
+    encoded_roles = np.load(os.path.join(path, "members_role.npy"))
 
     flattened_roles = population.entity.flattened_roles
     if len(flattened_roles) == 0:
-        population.members_role = numpy.int64(0)
+        population.members_role = np.int64(0)
     else:
-        population.members_role = numpy.select(
+        population.members_role = np.select(
             [encoded_roles == role.key for role in flattened_roles],
             [role for role in flattened_roles],
-            )
+        )
     person_count = len(population.members_entity_id)
     population.count = max(population.members_entity_id) + 1
     return person_count
@@ -115,7 +117,7 @@ def _restore_entity(population, directory):
 
 def _restore_holder(simulation, variable, directory):
     storage_dir = os.path.join(directory, variable)
-    disk_storage = holders.DiskRepo(storage_dir, keep = True)
+    disk_storage = holders.DiskRepo(storage_dir, keep=True)
     disk_storage.restore()
 
     holder = simulation.get_holder(variable)

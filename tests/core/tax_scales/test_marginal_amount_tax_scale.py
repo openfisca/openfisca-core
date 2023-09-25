@@ -16,10 +16,12 @@ def data():
         "brackets": [
             {
                 "threshold": {"2017-10-01": {"value": 0.23}},
-                "amount": {"2017-10-01": {"value": 6}, },
-                }
-            ],
-        }
+                "amount": {
+                    "2017-10-01": {"value": 6},
+                },
+            }
+        ],
+    }
 
 
 def test_calc():
