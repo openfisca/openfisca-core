@@ -1,5 +1,11 @@
 # Changelog
 
+###  41.0.1 [#1187](https://github.com/openfisca/openfisca-core/pull/1187)
+
+#### Technical changes
+
+- Document `Role`.
+
 # 41.0.0 [#1189](https://github.com/openfisca/openfisca-core/pull/1189)
 
 #### Breaking changes
@@ -12,8 +18,8 @@ The Web API was very prone to crashing, timeouting at startup because of the tim
 
 #### New Features
 
-* Allows for dispatching and dividing inputs over a broader range.
-  * For example, divide a monthly variable by week.
+- Allows for dispatching and dividing inputs over a broader range.
+  - For example, divide a monthly variable by week.
 
 ###  40.0.1 [#1184](https://github.com/openfisca/openfisca-core/pull/1184)
 
