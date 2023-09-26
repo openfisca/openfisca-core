@@ -1,6 +1,14 @@
 # Changelog
 
-###  40.0.2 [#1186](https://github.com/openfisca/openfisca-core/pull/1186)
+### 41.1.2 [#1191](https://github.com/openfisca/openfisca-core/pull/1191)
+
+#### Non-technical changes
+
+- Add `black` config
+- Fix `flake8` config
+- Fix `isort` config
+
+###  41.1.1 [#1186](https://github.com/openfisca/openfisca-core/pull/1186)
 
 #### Technical changes
 
