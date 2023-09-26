@@ -7,3 +7,11 @@ class Entity(Protocol):
     .. versionadded:: 41.0.1
 
     """
+
+
+class Role(Protocol):
+    """Role protocol.
+
+    .. versionadded:: 41.1.0
+
+    """

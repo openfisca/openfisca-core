@@ -1,3 +1,5 @@
+from typing import Sequence
+
 from .entity import Entity
 from .role import Role
 
@@ -24,7 +26,15 @@ class GroupEntity(Entity):
 
     """  # noqa RST301
 
-    def __init__(self, key, plural, label, doc, roles, containing_entities=()):
+    def __init__(
+        self,
+        key: str,
+        plural: str,
+        label: str,
+        doc: str,
+        roles: Sequence[Role],
+        containing_entities: Sequence[str] = (),
+    ) -> object:
         super().__init__(key, plural, label, doc)
         self.roles_description = roles
         self.roles = []
