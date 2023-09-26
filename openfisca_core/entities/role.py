@@ -5,7 +5,7 @@ from typing import Any
 import dataclasses
 import textwrap
 
-from openfisca_core.types import Entity
+from .typing import Entity
 
 
 class Role:
@@ -66,7 +66,7 @@ class Role:
         return self.entity == other.entity and self.key == other.key
 
     def __repr__(self) -> str:
-        return "Role({})".format(self.key)
+        return f"Role({self.key})"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -88,15 +88,15 @@ class _RoleDescription:
         "<class 'openfisca_core.entities.role._RoleDescription'>"
 
         >>> repr(role_description)
-        "_RoleDescription(key='parent', plural='parents', label='Parents', ...)"
+        "_RoleDescription(key='parent', plural='parents', label='Parents',...)"
 
         >>> str(role_description)
-        "_RoleDescription(key='parent', plural='parents', label='Parents', ...)"
+        "_RoleDescription(key='parent', plural='parents', label='Parents',...)"
 
         >>> role_description.key
         'parent'
 
-    .. versionadded:: 40.1.1
+    .. versionadded:: 41.0.1
 
     """
 
@@ -109,7 +109,7 @@ class _RoleDescription:
     #: A summary description.
     label: str | None = None
 
-    #: A full description, dedented.
+    #: A full description, non-indented.
     doc: str = ""
 
     #: Max number of members.
