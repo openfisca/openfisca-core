@@ -50,13 +50,13 @@ class Role:
     """
 
     def __init__(self, description: dict[str, Any], entity: Entity) -> None:
-        description: _RoleDescription = _RoleDescription(**description)
+        role_description: _RoleDescription = _RoleDescription(**description)
         self.entity: Entity = entity
-        self.key: str = description.key
-        self.plural: str | None = description.plural
-        self.label: str | None = description.label
-        self.doc: str = description.doc
-        self.max: int | None = description.max
+        self.key: str = role_description.key
+        self.plural: str | None = role_description.plural
+        self.label: str | None = role_description.label
+        self.doc: str = role_description.doc
+        self.max: int | None = role_description.max
         self.subroles: list[Role] | None = None
 
     def __eq__(self, other: object) -> bool:
