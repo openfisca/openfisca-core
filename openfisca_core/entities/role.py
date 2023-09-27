@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from typing import Any
 
 import dataclasses
@@ -49,7 +50,7 @@ class Role:
 
     """
 
-    def __init__(self, description: dict[str, Any], entity: HasKey) -> None:
+    def __init__(self, description: Mapping[str, Any], entity: HasKey) -> None:
         role_description: _RoleDescription = _RoleDescription(**description)
         self.entity: HasKey = entity
         self.key: str = role_description.key
@@ -57,7 +58,7 @@ class Role:
         self.label: str | None = role_description.label
         self.doc: str = role_description.doc
         self.max: int | None = role_description.max
-        self.subroles: list[Role] | None = None
+        self.subroles: Iterable[Role] | None = None
 
     def __repr__(self) -> str:
         return f"Role({self.key})"
@@ -113,7 +114,7 @@ class _RoleDescription:
     max: int | None = None
 
     #: A list of subroles.
-    subroles: list[str] | None = None
+    subroles: Iterable[str] | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "doc", textwrap.dedent(self.doc))

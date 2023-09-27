@@ -1,8 +1,10 @@
-from collections.abc import Sequence
+from collections.abc import Iterable, Mapping
+from typing import Any
+
+from itertools import chain
 
 from .entity import Entity
 from .role import Role
-from .typing import HasKey
 
 
 class GroupEntity(Entity):
@@ -21,10 +23,6 @@ class GroupEntity(Entity):
         containing_entities: The list of keys of group entities whose members
             are guaranteed to be a superset of this group's entities.
 
-    .. versionchanged:: 35.7.0
-        Added ``containing_entities``, that allows the defining of group
-        entities which entirely contain other group entities.
-
     """  # noqa RST301
 
     def __init__(
@@ -33,8 +31,8 @@ class GroupEntity(Entity):
         plural: str,
         label: str,
         doc: str,
-        roles: Sequence[HasKey],
-        containing_entities: Sequence[str] = (),
+        roles: Iterable[Mapping[str, Any]],
+        containing_entities: Iterable[str] = (),
     ) -> None:
         super().__init__(key, plural, label, doc)
         self.roles_description = roles
@@ -50,8 +48,9 @@ class GroupEntity(Entity):
                     setattr(self, subrole.key.upper(), subrole)
                     role.subroles.append(subrole)
                 role.max = len(role.subroles)
-        self.flattened_roles = sum(
-            [role2.subroles or [role2] for role2 in self.roles], []
+        self.flattened_roles = tuple(
+            chain.from_iterable(role.subroles or [role] for role in self.roles)
         )
+
         self.is_person = False
         self.containing_entities = containing_entities

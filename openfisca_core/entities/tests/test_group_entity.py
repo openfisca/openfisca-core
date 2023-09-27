@@ -1,10 +1,9 @@
+from collections.abc import Mapping
 from typing import Any
 
 import pytest
 
 from openfisca_core import entities
-
-from ..typing import HasKey
 
 
 @pytest.fixture
@@ -46,14 +45,14 @@ def third_parent() -> str:
 def role(parent: str, first_parent: str, third_parent: str) -> Any:
     """A role."""
 
-    return {"key": parent, "subroles": [first_parent, third_parent]}
+    return {"key": parent, "subroles": {first_parent, third_parent}}
 
 
 @pytest.fixture
-def group_entity(role: HasKey) -> entities.GroupEntity:
+def group_entity(role: Mapping[str, Any]) -> entities.GroupEntity:
     """A group entity."""
 
-    return entities.GroupEntity("key", "label", "plural", "doc", [role])
+    return entities.GroupEntity("key", "label", "plural", "doc", (role,))
 
 
 def test_init_when_doc_indented() -> None:
@@ -61,7 +60,7 @@ def test_init_when_doc_indented() -> None:
 
     key = "\tkey"
     doc = "\tdoc"
-    group_entity = entities.GroupEntity(key, "label", "plural", doc, [])
+    group_entity = entities.GroupEntity(key, "label", "plural", doc, ())
     assert group_entity.key == key
     assert group_entity.doc != doc
 
