@@ -4,7 +4,7 @@ import pytest
 
 from openfisca_core import entities
 
-from ..typing import HasKey
+from openfisca_core.entities.typing import Entity
 
 
 @pytest.fixture
@@ -14,7 +14,7 @@ def entity() -> Any:
     return object()
 
 
-def test_init_when_doc_indented(entity: HasKey) -> None:
+def test_init_when_doc_indented(entity: Entity) -> None:
     """De-indent the ``doc`` attribute if it is passed at initialisation."""
 
     key = "\tkey"

@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Sequence, Mapping
 from typing import Any
 
 import dataclasses
 import textwrap
 
-from .typing import HasKey
+from .typing import Entity
 
 
 class Role:
@@ -18,11 +18,8 @@ class Role:
     several dependents, and the like.
 
     Attributes:
-        entity (Entity): The Entity to which the Role belongs.
-        key (str): A key to identify the Role.
-        plural (str): The ``key``, pluralised.
-        label (str): A summary description.
-        doc (str): A full description, dedented.
+        entity (Entity): The Entity the Role belongs to.
+        description (_Description): A description of the Role.
         max (int): Max number of members.
         subroles (list[Role]): A list of subroles.
 
@@ -50,48 +47,80 @@ class Role:
 
     """
 
-    def __init__(self, description: Mapping[str, Any], entity: HasKey) -> None:
-        role_description: _RoleDescription = _RoleDescription(**description)
-        self.entity: HasKey = entity
-        self.key: str = role_description.key
-        self.plural: str | None = role_description.plural
-        self.label: str | None = role_description.label
-        self.doc: str = role_description.doc
-        self.max: int | None = role_description.max
-        self.subroles: Iterable[Role] | None = None
+    #: The Entity the Role belongs to.
+    entity: Entity
+
+    #: A description of the Role.
+    description: _Description
+
+    #: Max number of members.
+    max: int | None = None
+
+    #: A list of subroles.
+    subroles: Sequence[Role] | None = None
+
+    @property
+    def key(self) -> str:
+        """A key to identify the Role."""
+        return self.description.key
+
+    @property
+    def plural(self) -> str | None:
+        """The ``key``, pluralised."""
+        return self.description.plural
+
+    @property
+    def label(self) -> str | None:
+        """A summary description."""
+        return self.description.label
+
+    @property
+    def doc(self) -> str | None:
+        """A full description, non-indented."""
+        return self.description.doc
+
+    def __init__(self, description: Mapping[str, Any], entity: Entity) -> None:
+        self.description = _Description(
+            **{
+                key: value
+                for key, value in description.items()
+                if key in {"key", "plural", "label", "doc"}
+            }
+        )
+        self.entity = entity
+        self.max = description.get("max")
 
     def __repr__(self) -> str:
         return f"Role({self.key})"
 
 
 @dataclasses.dataclass(frozen=True)
-class _RoleDescription:
+class _Description:
     """A Role's description.
 
     Examples:
-        >>> description = {
+        >>> data = {
         ...     "key": "parent",
         ...     "label": "Parents",
         ...     "plural": "parents",
         ...     "doc": "\t\t\tThe one/two adults in charge of the household.",
-        ...     "max": 2,
         ... }
 
-        >>> role_description = _RoleDescription(**description)
+        >>> description = _Description(**data)
 
-        >>> repr(_RoleDescription)
-        "<class 'openfisca_core.entities.role._RoleDescription'>"
+        >>> repr(_Description)
+        "<class 'openfisca_core.entities.role._Description'>"
 
-        >>> repr(role_description)
-        "_RoleDescription(key='parent', plural='parents', label='Parents',...)"
+        >>> repr(description)
+        "_Description(key='parent', plural='parents', label='Parents', ...)"
 
-        >>> str(role_description)
-        "_RoleDescription(key='parent', plural='parents', label='Parents',...)"
+        >>> str(description)
+        "_Description(key='parent', plural='parents', label='Parents', ...)"
 
-        >>> {role_description}
-        {...}
+        >>> {description}
+        {_Description(key='parent', plural='parents', label='Parents', doc=...}
 
-        >>> role_description.key
+        >>> description.key
         'parent'
 
     .. versionadded:: 41.0.1
@@ -108,13 +137,8 @@ class _RoleDescription:
     label: str | None = None
 
     #: A full description, non-indented.
-    doc: str = ""
-
-    #: Max number of members.
-    max: int | None = None
-
-    #: A list of subroles.
-    subroles: Iterable[str] | None = None
+    doc: str | None = None
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "doc", textwrap.dedent(self.doc))
+        if self.doc is not None:
+            object.__setattr__(self, "doc", textwrap.dedent(self.doc))

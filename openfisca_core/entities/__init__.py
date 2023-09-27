@@ -21,9 +21,11 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
+import typing
+
 from .entity import Entity
 from .group_entity import GroupEntity
 from .helpers import build_entity
 from .role import Role
 
-__all__ = ["Entity", "GroupEntity", "Role", "build_entity"]
+__all__ = ["Entity", "GroupEntity", "Role", "build_entity", "typing"]
