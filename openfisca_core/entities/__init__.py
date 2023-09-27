@@ -21,8 +21,7 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
-import typing
-
+from . import typing
 from .entity import Entity
 from .group_entity import GroupEntity
 from .helpers import build_entity
