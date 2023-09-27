@@ -1,7 +1,8 @@
-from typing import Sequence
+from collections.abc import Sequence
 
 from .entity import Entity
 from .role import Role
+from .typing import HasKey
 
 
 class GroupEntity(Entity):
@@ -32,7 +33,7 @@ class GroupEntity(Entity):
         plural: str,
         label: str,
         doc: str,
-        roles: Sequence[Role],
+        roles: Sequence[HasKey],
         containing_entities: Sequence[str] = (),
     ) -> object:
         super().__init__(key, plural, label, doc)

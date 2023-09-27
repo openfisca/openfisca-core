@@ -1,8 +1,10 @@
-import typing
+from typing import Any
 
 import pytest
 
 from openfisca_core import entities
+
+from ..typing import HasKey
 
 
 @pytest.fixture
@@ -41,16 +43,14 @@ def third_parent() -> str:
 
 
 @pytest.fixture
-def role(parent: str, first_parent: str, third_parent: str) -> entities.Role:
+def role(parent: str, first_parent: str, third_parent: str) -> Any:
     """A role."""
 
-    return typing.cast(
-        entities.Role, {"key": parent, "subroles": [first_parent, third_parent]}
-    )
+    return {"key": parent, "subroles": [first_parent, third_parent]}
 
 
 @pytest.fixture
-def group_entity(role: entities.Role) -> entities.GroupEntity:
+def group_entity(role: HasKey) -> entities.GroupEntity:
     """A group entity."""
 
     return entities.GroupEntity("key", "label", "plural", "doc", [role])

@@ -25,7 +25,7 @@ class Entity:
 
     def check_role_validity(self, role: Any) -> None:
         if role is not None and not isinstance(role, Role):
-            raise ValueError("{} is not a valid role".format(role))
+            raise ValueError(f"{role} is not a valid role")
 
     def get_variable(
         self,
@@ -46,10 +46,10 @@ class Entity:
         if entity.key != self.key:
             message = os.linesep.join(
                 [
-                    "You tried to compute the variable '{0}' for the entity '{1}';".format(
+                    "You tried to compute the variable '{}' for the entity '{}';".format(
                         variable_name, self.plural
                     ),
-                    "however the variable '{0}' is defined for '{1}'.".format(
+                    "however the variable '{}' is defined for '{}'.".format(
                         variable_name, entity.plural
                     ),
                     "Learn more about entities in our documentation:",

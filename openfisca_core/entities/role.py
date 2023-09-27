@@ -5,7 +5,7 @@ from typing import Any
 import dataclasses
 import textwrap
 
-from .typing import Entity
+from .typing import HasKey
 
 
 class Role:
@@ -49,9 +49,9 @@ class Role:
 
     """
 
-    def __init__(self, description: dict[str, Any], entity: Entity) -> None:
+    def __init__(self, description: dict[str, Any], entity: HasKey) -> None:
         role_description: _RoleDescription = _RoleDescription(**description)
-        self.entity: Entity = entity
+        self.entity: HasKey = entity
         self.key: str = role_description.key
         self.plural: str | None = role_description.plural
         self.label: str | None = role_description.label
