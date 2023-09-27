@@ -35,7 +35,7 @@ class GroupEntity(Entity):
         doc: str,
         roles: Sequence[HasKey],
         containing_entities: Sequence[str] = (),
-    ) -> object:
+    ) -> None:
         super().__init__(key, plural, label, doc)
         self.roles_description = roles
         self.roles = []
