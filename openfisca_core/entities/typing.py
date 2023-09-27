@@ -7,9 +7,6 @@ class HasKey(Protocol):
 
     .. versionadded:: 41.0.1
 
-    .. versionchanged:: 41.0.2
-        Renamed from ``Entity`` to make it generic.
-
     """
 
     @property
