@@ -21,4 +21,4 @@ def test_init_when_doc_indented(entity: Entity) -> None:
     doc = "\tdoc"
     role = entities.Role({"key": key, "doc": doc}, entity)
     assert role.key == key
-    assert role.doc != doc
+    assert role.doc == doc.lstrip()

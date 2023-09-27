@@ -62,7 +62,7 @@ def test_init_when_doc_indented() -> None:
     doc = "\tdoc"
     group_entity = entities.GroupEntity(key, "label", "plural", doc, ())
     assert group_entity.key == key
-    assert group_entity.doc != doc
+    assert group_entity.doc == doc.lstrip()
 
 
 def test_group_entity_with_roles(

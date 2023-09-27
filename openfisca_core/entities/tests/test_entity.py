@@ -8,4 +8,4 @@ def test_init_when_doc_indented() -> None:
     doc = "\tdoc"
     entity = entities.Entity(key, "label", "plural", doc)
     assert entity.key == key
-    assert entity.doc != doc
+    assert entity.doc == doc.lstrip()
