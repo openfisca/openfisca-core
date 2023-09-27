@@ -1,6 +1,12 @@
 # Changelog
 
-###  40.0.2 [#1186](https://github.com/openfisca/openfisca-core/pull/1186)
+### 41.1.2 [#1192](https://github.com/openfisca/openfisca-core/pull/1192)
+
+#### Technical changes
+
+- Add tests to `entities`.
+
+###  41.1.1 [#1186](https://github.com/openfisca/openfisca-core/pull/1186)
 
 #### Technical changes
 
