@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from openfisca_core.types import Formula, Instant
 from typing import Optional, Union
 
 import datetime
@@ -13,9 +14,9 @@ from openfisca_core import periods, tools
 from openfisca_core.entities import Entity
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import DateUnit, Period
-from openfisca_core.types import Formula, Instant
 
 from . import config, helpers
+from .errors import FormulaNameError
 
 
 class Variable:
@@ -338,21 +339,10 @@ class Variable:
                 )
             )
 
-        if attribute_name == config.FORMULA_NAME_PREFIX:
-            return datetime.date.min
-
-        FORMULA_REGEX = r"formula_(\d{4})(?:_(\d{2}))?(?:_(\d{2}))?$"  # YYYY or YYYY_MM or YYYY_MM_DD
-
-        match = re.match(FORMULA_REGEX, attribute_name)
-        if not match:
-            raise_error()
-        date_str = "-".join(
-            [match.group(1), match.group(2) or "01", match.group(3) or "01"]
-        )
-
         try:
-            return datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
-        except ValueError:  # formula_2005_99_99 for instance
+            return _FormulaStartingDate.from_name(attribute_name)
+
+        except FormulaNameError:
             raise_error()
 
     # ----- Methods ----- #
@@ -473,3 +463,51 @@ class Variable:
             return EnumArray(array, self.possible_values)
         array.fill(self.default_value)
         return array
+
+
+class _FormulaStartingDate(datetime.date):
+    #: Prefix of the formula's name.
+    prefix: str = config.FORMULA_NAME_PREFIX
+
+    #: Regex used to parse the formula's name.
+    regex: str = config.FORMULA_NAME_REGEX
+
+    @classmethod
+    def from_name(cls, name: str) -> _FormulaStartingDate:
+        """Return the starting date of a formula based on its name.
+
+        Valid dated name formats are : "formula", "formula_YYYY",
+        "formula_YYYY_MM" and "formula_YYYY_MM_DD", where YYYY, MM and DD are
+        year, month and day.
+
+        By convention, the starting date of:
+            - `formula` is `0001-01-01` (minimal date in Python)
+            - `formula_YYYY` is `YYYY-01-01`
+            - `formula_YYYY_MM` is `YYYY-MM-01`
+
+        """
+
+        year: int
+        month: int
+        day: int
+        match: re.Match[str] | None
+
+        if name == cls.prefix:
+            year, month, day, *_ = datetime.date.min.timetuple()
+            return cls.__new__(cls, year, month, day)
+
+        match = re.match(cls.regex, name)
+
+        if match is None:
+            raise FormulaNameError(name)
+
+        else:
+            year = int(match.group(1))
+            month = int(match.group(2) or 1)
+            day = int(match.group(3) or 1)
+
+        try:
+            return cls.__new__(cls, year, month, day)
+
+        except ValueError:  # formula_2005_99_99 for instance
+            raise FormulaNameError(name)
