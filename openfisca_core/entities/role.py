@@ -65,6 +65,9 @@ class Role:
 
         return self.entity == other.entity and self.key == other.key
 
+    def __hash__(self):
+        return hash(f"{self.entity.key}_{self.key}")
+
     def __repr__(self) -> str:
         return f"Role({self.key})"
 
