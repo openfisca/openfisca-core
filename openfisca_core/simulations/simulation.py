@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from openfisca_core.types import Population, TaxBenefitSystem, Variable
 from typing import Dict, NamedTuple, Optional, Set
 
 import tempfile
@@ -16,8 +17,10 @@ from openfisca_core.tracers import (
     SimpleTracer,
     TracingParameterNodeAtInstant,
 )
-from openfisca_core.types import Population, TaxBenefitSystem, Variable
 from openfisca_core.warnings import TempfileWarning
+
+from .actions import RunFormula
+from .typing import Params
 
 
 class Simulation:
@@ -28,6 +31,13 @@ class Simulation:
     tax_benefit_system: TaxBenefitSystem
     populations: Dict[str, Population]
     invalidated_caches: Set[Cache]
+
+    @property
+    def params(self) -> Params:
+        if self.trace:
+            return self.trace_parameters_at_instant
+
+        return self.tax_benefit_system.get_parameters_at_instant
 
     def __init__(
         self,
@@ -144,7 +154,8 @@ class Simulation:
         # First, try to run a formula
         try:
             self._check_for_cycle(variable.name, period)
-            array = self._run_formula(variable, population, period)
+            run_formula = RunFormula(variable.get_formula(period))
+            array = run_formula(population, period, self.params)
 
             # If no result, use the default value and cache it
             if array is None:
@@ -305,27 +316,6 @@ class Simulation:
             self.tax_benefit_system.get_parameters_at_instant(formula_period),
             self.tracer,
         )
-
-    def _run_formula(self, variable, population, period):
-        """
-        Find the ``variable`` formula for the given ``period`` if it exists, and apply it to ``population``.
-        """
-
-        formula = variable.get_formula(period)
-        if formula is None:
-            return None
-
-        if self.trace:
-            parameters_at = self.trace_parameters_at_instant
-        else:
-            parameters_at = self.tax_benefit_system.get_parameters_at_instant
-
-        if formula.__code__.co_argcount == 2:
-            array = formula(population, period)
-        else:
-            array = formula(population, period, parameters_at)
-
-        return array
 
     def _check_period_consistency(self, period, variable):
         """
