@@ -41,11 +41,11 @@ class Role:
         >>> str(role)
         'Role(parent)'
 
+        >>> {role}
+        {Role(parent)}
+
         >>> role.key
         'parent'
-
-    .. versionchanged:: 41.0.1
-        Added documentation, doctests, and typing.
 
     """
 
@@ -58,15 +58,6 @@ class Role:
         self.doc: str = role_description.doc
         self.max: int | None = role_description.max
         self.subroles: list[Role] | None = None
-
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Role):
-            return NotImplemented
-
-        return self.entity == other.entity and self.key == other.key
-
-    def __hash__(self):
-        return hash(f"{self.entity.key}_{self.key}")
 
     def __repr__(self) -> str:
         return f"Role({self.key})"
@@ -95,6 +86,9 @@ class _RoleDescription:
 
         >>> str(role_description)
         "_RoleDescription(key='parent', plural='parents', label='Parents',...)"
+
+        >>> {role_description}
+        {...}
 
         >>> role_description.key
         'parent'
