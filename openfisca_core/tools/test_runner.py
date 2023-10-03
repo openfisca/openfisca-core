@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, Optional, Sequence, Union
 from typing_extensions import Literal, TypedDict
 
+import collections
 import dataclasses
 import os
 import pathlib
@@ -328,7 +329,7 @@ class YamlItem(pytest.Item):
             self.test.absolute_error_margin[variable_name],
             f"{variable_name}@{period}: ",
             self.test.relative_error_margin[variable_name],
-        )
+            )
 
     def should_ignore_variable(self, variable_name: str):
         only_variables = self.options.get("only_variables")
