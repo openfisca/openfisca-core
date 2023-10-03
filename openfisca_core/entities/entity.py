@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 from openfisca_core.types import TaxBenefitSystem, Variable
 from typing import Any, Optional
 
 import os
-import textwrap
 
+from ._description import Description
 from .role import Role
 
 
@@ -12,11 +14,31 @@ class Entity:
     Represents an entity (e.g. a person, a household, etc.) on which calculations can be run.
     """
 
+    #: A description of the Entity.
+    description: Description
+
+    @property
+    def key(self) -> str:
+        """A key to identify the Entity."""
+        return self.description.key
+
+    @property
+    def plural(self) -> str | None:
+        """The ``key``, pluralised."""
+        return self.description.plural
+
+    @property
+    def label(self) -> str | None:
+        """A summary description."""
+        return self.description.label
+
+    @property
+    def doc(self) -> str | None:
+        """A full description, non-indented."""
+        return self.description.doc
+
     def __init__(self, key: str, plural: str, label: str, doc: str) -> None:
-        self.key = key
-        self.label = label
-        self.plural = plural
-        self.doc = textwrap.dedent(doc)
+        self.description = Description(key, plural, label, doc)
         self.is_person = True
         self._tax_benefit_system = None
 

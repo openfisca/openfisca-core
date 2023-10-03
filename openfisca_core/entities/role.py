@@ -3,9 +3,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-import dataclasses
-import textwrap
-
+from ._description import Description
 from .typing import Entity
 
 
@@ -19,7 +17,7 @@ class Role:
 
     Attributes:
         entity (Entity): The Entity the Role belongs to.
-        description (_Description): A description of the Role.
+        description (Description): A description of the Role.
         max (int): Max number of members.
         subroles (list[Role]): A list of subroles.
 
@@ -51,7 +49,7 @@ class Role:
     entity: Entity
 
     #: A description of the Role.
-    description: _Description
+    description: Description
 
     #: Max number of members.
     max: int | None = None
@@ -80,7 +78,7 @@ class Role:
         return self.description.doc
 
     def __init__(self, description: Mapping[str, Any], entity: Entity) -> None:
-        self.description = _Description(
+        self.description = Description(
             **{
                 key: value
                 for key, value in description.items()
@@ -92,53 +90,3 @@ class Role:
 
     def __repr__(self) -> str:
         return f"Role({self.key})"
-
-
-@dataclasses.dataclass(frozen=True)
-class _Description:
-    """A Role's description.
-
-    Examples:
-        >>> data = {
-        ...     "key": "parent",
-        ...     "label": "Parents",
-        ...     "plural": "parents",
-        ...     "doc": "\t\t\tThe one/two adults in charge of the household.",
-        ... }
-
-        >>> description = _Description(**data)
-
-        >>> repr(_Description)
-        "<class 'openfisca_core.entities.role._Description'>"
-
-        >>> repr(description)
-        "_Description(key='parent', plural='parents', label='Parents', ...)"
-
-        >>> str(description)
-        "_Description(key='parent', plural='parents', label='Parents', ...)"
-
-        >>> {description}
-        {_Description(key='parent', plural='parents', label='Parents', doc=...}
-
-        >>> description.key
-        'parent'
-
-    .. versionadded:: 41.0.1
-
-    """
-
-    #: A key to identify the Role.
-    key: str
-
-    #: The ``key``, pluralised.
-    plural: str | None = None
-
-    #: A summary description.
-    label: str | None = None
-
-    #: A full description, non-indented.
-    doc: str | None = None
-
-    def __post_init__(self) -> None:
-        if self.doc is not None:
-            object.__setattr__(self, "doc", textwrap.dedent(self.doc))
