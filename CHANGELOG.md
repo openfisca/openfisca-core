@@ -1,5 +1,11 @@
 # Changelog
 
+###  41.0.2 [#1194](https://github.com/openfisca/openfisca-core/pull/1194)
+
+#### Technical changes
+
+- Add `__hash__` method to `Role`.
+
 ###  41.0.1 [#1187](https://github.com/openfisca/openfisca-core/pull/1187)
 
 #### Technical changes
