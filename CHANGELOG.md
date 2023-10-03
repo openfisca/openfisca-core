@@ -1,5 +1,18 @@
 # Changelog
 
+##  41.1.0 [#1195](https://github.com/openfisca/openfisca-core/pull/1195)
+
+#### Technical changes
+
+- Make `Role` explicitly hashable.
+- Details:
+    - By introducing `__eq__`, naturally `Role` became unhashable, because
+      equality was calculated based on a property of `Role`
+      (`role.key == another_role.key`), and no longer structurally
+      (`"1" == "1"`).
+    - This changeset removes `__eq__`, as `Role` is being used downstream as a
+      hashable object, and adds a test to ensure `Role`'s hashability.
+
 ###  41.0.2 [#1194](https://github.com/openfisca/openfisca-core/pull/1194)
 
 #### Technical changes
