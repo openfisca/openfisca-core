@@ -6,16 +6,54 @@ from typing import Any, Optional
 import os
 
 from ._description import Description
+from ._subrole import SubRole
 from .role import Role
 
 
 class Entity:
-    """
-    Represents an entity (e.g. a person, a household, etc.) on which calculations can be run.
+    """Represents an entity on which calculations can be run.
+
+    For example an individual, a company, etc. An :class:`.Entity`
+    represents an "abstract" atomic unit of the legislation, as in
+    "any individual", or "any company".
+
+    Attributes:
+        description (Description): A description of the Entity.
+        is_person (bool): Represents an individual? Defaults to True.
+
+    Args:
+        key (str): Key to identify the Entity.
+        plural (str): ``key``, pluralised.
+        label (str): A summary description.
+        doc (str): A full description.
+
+    Examples:
+        >>> entity = Entity(
+        ...     "individual",
+        ...     "individuals",
+        ...     "An individual",
+        ...     "\t\t\tThe minimal legal entity on which a rule might be a...",
+        ...    )
+
+        >>> repr(Entity)
+        "<class 'openfisca_core.entities.entity.Entity'>"
+
+        >>> repr(entity)
+        'Entity(individual)'
+
+        >>> str(entity)
+        'individuals'
+
+        >>> {entity}
+        {Entity(individual)}
+
     """
 
     #: A description of the Entity.
     description: Description
+
+    #: Whether it represents an individual or not.
+    is_person: bool = True
 
     @property
     def key(self) -> str:
@@ -42,11 +80,15 @@ class Entity:
         self.is_person = True
         self._tax_benefit_system = None
 
-    def set_tax_benefit_system(self, tax_benefit_system: TaxBenefitSystem):
+    def set_tax_benefit_system(self, tax_benefit_system: TaxBenefitSystem) -> None:
         self._tax_benefit_system = tax_benefit_system
 
-    def check_role_validity(self, role: Any) -> None:
-        if role is not None and not isinstance(role, Role):
+    @staticmethod
+    def check_role_validity(role: Any) -> None:
+        if role is None:
+            return None
+
+        if not isinstance(role, (Role, SubRole)):
             raise ValueError(f"{role} is not a valid role")
 
     def get_variable(
@@ -74,3 +116,9 @@ class Entity:
                 "<https://openfisca.org/doc/coding-the-legislation/50_entities.html>.",
             )
             raise ValueError(os.linesep.join(message))
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.key})"
+
+    def __str__(self) -> str:
+        return self.plural

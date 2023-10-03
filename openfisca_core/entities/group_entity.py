@@ -6,6 +6,7 @@ from typing import Any
 from itertools import chain
 
 from ._description import Description
+from ._subrole import SubRole
 from .entity import Entity
 from .role import Role
 
@@ -74,7 +75,7 @@ class GroupEntity(Entity):
 
         try:
             role.subroles = [
-                self._build_subrole(key) for key in description["subroles"]
+                self._build_subrole(role, key) for key in description["subroles"]
             ]
             role.max = len(role.subroles)
 
@@ -86,7 +87,7 @@ class GroupEntity(Entity):
 
         return role
 
-    def _build_subrole(self, key: str) -> Role:
-        subrole = Role(entity=self, description={"key": key, "max": 1})
+    def _build_subrole(self, role: Role, key: str) -> SubRole:
+        subrole = SubRole(role, key)
         setattr(self, subrole.key.upper(), subrole)
         return subrole

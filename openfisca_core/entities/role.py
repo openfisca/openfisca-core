@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping
 from typing import Any
 
 from ._description import Description
-from .typing import Entity
+from .typing import Entity, GroupEntity, SubRole
 
 
 class Role:
@@ -35,7 +35,7 @@ class Role:
         'Role(parent)'
 
         >>> str(role)
-        'Role(parent)'
+        'parent'
 
         >>> {role}
         {Role(parent)}
@@ -46,7 +46,7 @@ class Role:
     """
 
     #: The Entity the Role belongs to.
-    entity: Entity
+    entity: Entity | GroupEntity
 
     #: A description of the Role.
     description: Description
@@ -55,7 +55,7 @@ class Role:
     max: int | None = None
 
     #: A list of subroles.
-    subroles: Sequence[Role] | None = None
+    subroles: Iterable[SubRole] | None = None
 
     @property
     def key(self) -> str:
@@ -77,7 +77,9 @@ class Role:
         """A full description, non-indented."""
         return self.description.doc
 
-    def __init__(self, description: Mapping[str, Any], entity: Entity) -> None:
+    def __init__(
+        self, description: Mapping[str, Any], entity: Entity | GroupEntity
+    ) -> None:
         self.description = Description(
             **{
                 key: value
@@ -89,4 +91,7 @@ class Role:
         self.max = description.get("max")
 
     def __repr__(self) -> str:
-        return f"Role({self.key})"
+        return f"{self.__class__.__name__}({self.key})"
+
+    def __str__(self) -> str:
+        return self.key

@@ -1,23 +1,16 @@
-from openfisca_core.entities.typing import Entity
-from typing import Any
-
-import pytest
-
 from openfisca_core import entities
 
 
-@pytest.fixture
-def entity() -> Any:
-    """An entity."""
+class TestEntity:
+    @property
+    def key(self) -> str:
+        return "key"
 
-    return object()
 
-
-def test_init_when_doc_indented(entity: Entity) -> None:
+def test_init_when_doc_indented() -> None:
     """De-indent the ``doc`` attribute if it is passed at initialisation."""
-
     key = "\tkey"
     doc = "\tdoc"
-    role = entities.Role({"key": key, "doc": doc}, entity)
+    role = entities.Role({"key": key, "doc": doc}, TestEntity())
     assert role.key == key
     assert role.doc == doc.lstrip()

@@ -2,8 +2,7 @@ import typing
 
 import numpy
 
-from openfisca_core import projectors
-from openfisca_core.entities import Role
+from openfisca_core import entities, projectors
 from openfisca_core.indexed_enums import EnumArray
 
 from .population import Population
@@ -67,7 +66,7 @@ class GroupPopulation(Population):
         return self._members_role
 
     @members_role.setter
-    def members_role(self, members_role: typing.Iterable[Role]):
+    def members_role(self, members_role: typing.Iterable[entities.Role]):
         if members_role is not None:
             self._members_role = numpy.array(list(members_role))
 
@@ -222,8 +221,8 @@ class GroupPopulation(Population):
 
         If ``role`` is provided, only the entity member with the given role are taken into account.
         """
-        if role:
-            if role.subroles:
+        if isinstance(role, (entities.Role, entities.SubRole)):
+            if isinstance(role, entities.Role) and role.subroles:
                 role_condition = numpy.logical_or.reduce(
                     [self.members_role == subrole for subrole in role.subroles]
                 )
