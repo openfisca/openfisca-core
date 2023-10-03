@@ -12,7 +12,7 @@ class Entity:
     Represents an entity (e.g. a person, a household, etc.) on which calculations can be run.
     """
 
-    def __init__(self, key, plural, label, doc):
+    def __init__(self, key: str, plural: str, label: str, doc: str) -> None:
         self.key = key
         self.label = label
         self.plural = plural
@@ -25,7 +25,7 @@ class Entity:
 
     def check_role_validity(self, role: Any) -> None:
         if role is not None and not isinstance(role, Role):
-            raise ValueError("{} is not a valid role".format(role))
+            raise ValueError(f"{role} is not a valid role")
 
     def get_variable(
         self,
@@ -44,16 +44,11 @@ class Entity:
             entity = variable.entity
 
         if entity.key != self.key:
-            message = os.linesep.join(
-                [
-                    "You tried to compute the variable '{0}' for the entity '{1}';".format(
-                        variable_name, self.plural
-                    ),
-                    "however the variable '{0}' is defined for '{1}'.".format(
-                        variable_name, entity.plural
-                    ),
-                    "Learn more about entities in our documentation:",
-                    "<https://openfisca.org/doc/coding-the-legislation/50_entities.html>.",
-                ]
+            message = (
+                f"You tried to compute the variable '{variable_name}' for",
+                f"the entity '{self.plural}'; however the variable",
+                f"'{variable_name}' is defined for '{entity.plural}'.",
+                "Learn more about entities in our documentation:",
+                "<https://openfisca.org/doc/coding-the-legislation/50_entities.html>.",
             )
-            raise ValueError(message)
+            raise ValueError(os.linesep.join(message))

@@ -1,4 +1,5 @@
-from openfisca_core import entities
+from .entity import Entity
+from .group_entity import GroupEntity
 
 
 def build_entity(
@@ -12,8 +13,8 @@ def build_entity(
     containing_entities=(),
 ):
     if is_person:
-        return entities.Entity(key, plural, label, doc)
+        return Entity(key, plural, label, doc)
     else:
-        return entities.GroupEntity(
+        return GroupEntity(
             key, plural, label, doc, roles, containing_entities=containing_entities
         )
