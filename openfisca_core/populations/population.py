@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from openfisca_core.types import Array, Entity, Period, Role, Simulation
 from typing import Dict, NamedTuple, Optional, Sequence, Union
 from typing_extensions import TypedDict
 
@@ -10,7 +11,6 @@ import numpy
 from openfisca_core import periods, projectors
 from openfisca_core.holders import Holder, MemoryUsage
 from openfisca_core.projectors import Projector
-from openfisca_core.types import Array, Entity, Period, Role, Simulation
 
 from . import config
 

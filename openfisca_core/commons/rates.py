@@ -1,8 +1,7 @@
+from openfisca_core.types import Array, ArrayLike
 from typing import Optional
 
 import numpy
-
-from openfisca_core.types import ArrayLike, Array
 
 
 def average_rate(

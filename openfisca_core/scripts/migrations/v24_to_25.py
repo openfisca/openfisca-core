@@ -2,17 +2,16 @@
 # flake8: noqa T001
 
 import argparse
-import os
 import glob
+import os
 
+from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedSeq
 
 from openfisca_core.scripts import (
     add_tax_benefit_system_arguments,
     build_tax_benefit_system,
 )
-
-from ruamel.yaml import YAML
 
 yaml = YAML()
 yaml.default_flow_style = False

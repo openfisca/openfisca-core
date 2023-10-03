@@ -1,15 +1,16 @@
-import os
 from typing import List
 
-import pytest
-import numpy
+import os
 
-from openfisca_core.tools.test_runner import _get_tax_benefit_system, YamlItem, YamlFile
-from openfisca_core.errors import VariableNotFound
-from openfisca_core.variables import Variable
-from openfisca_core.populations import Population
+import numpy
+import pytest
+
+from openfisca_core import errors
 from openfisca_core.entities import Entity
 from openfisca_core.periods import DateUnit
+from openfisca_core.populations import Population
+from openfisca_core.tools.test_runner import YamlFile, YamlItem, _get_tax_benefit_system
+from openfisca_core.variables import Variable
 
 
 class TaxBenefitSystem:
@@ -86,7 +87,7 @@ class TestVariable(Variable):
 @pytest.mark.skip(reason="Deprecated node constructor")
 def test_variable_not_found():
     test = {"output": {"unknown_variable": 0}}
-    with pytest.raises(VariableNotFound) as excinfo:
+    with pytest.raises(errors.VariableNotFoundError) as excinfo:
         test_item = TestItem(test)
         test_item.check_output()
     assert excinfo.value.variable_name == "unknown_variable"

@@ -5,9 +5,8 @@ import pytest
 from openfisca_country_template.entities import Household, Person
 
 from openfisca_core import holders, periods, simulations
-from openfisca_core.parameters import ValuesHistory, ParameterNode
-from openfisca_core.periods import DateUnit
-from openfisca_core.periods import Instant
+from openfisca_core.parameters import ParameterNode, ValuesHistory
+from openfisca_core.periods import DateUnit, Instant
 from openfisca_core.reforms import Reform
 from openfisca_core.tools import assert_near
 from openfisca_core.variables import Variable

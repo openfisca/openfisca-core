@@ -1,9 +1,9 @@
-import dpath.util
 import json
 from http import client
 
-from openapi_spec_validator import openapi_v3_spec_validator
+import dpath.util
 import pytest
+from openapi_spec_validator import openapi_v3_spec_validator
 
 
 def assert_items_equal(x, y):

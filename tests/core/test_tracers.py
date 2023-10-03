@@ -1,19 +1,22 @@
 # -*- coding: utf-8 -*-
 
+import csv
 import json
 import os
-import csv
-import numpy
-from pytest import fixture, mark, raises, approx
 
-from openfisca_core.simulations import Simulation, CycleError, SpiralError
-from openfisca_core.tracers import (
-    SimpleTracer,
-    FullTracer,
-    TracingParameterNodeAtInstant,
-    TraceNode,
-)
+import numpy
+from pytest import approx, fixture, mark, raises
+
 from openfisca_country_template.variables.housing import HousingOccupancyStatus
+
+from openfisca_core.simulations import CycleError, Simulation, SpiralError
+from openfisca_core.tracers import (
+    FullTracer,
+    SimpleTracer,
+    TraceNode,
+    TracingParameterNodeAtInstant,
+)
+
 from .parameters_fancy_indexing.test_fancy_indexing import parameters
 
 

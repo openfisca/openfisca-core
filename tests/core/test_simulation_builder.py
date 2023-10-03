@@ -1,5 +1,6 @@
-import datetime
 from typing import Iterable
+
+import datetime
 
 import pytest
 

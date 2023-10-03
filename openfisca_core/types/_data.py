@@ -1,8 +1,7 @@
 # from typing import Sequence, TypeVar, Union
-from typing import Sequence, TypeVar
-
 # from nptyping import types, NDArray as Array
 from numpy.typing import NDArray as Array  # noqa: F401
+from typing import Sequence, TypeVar
 
 # import numpy
 

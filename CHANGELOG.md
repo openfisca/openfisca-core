@@ -1,5 +1,14 @@
 # Changelog
 
+###  40.0.2 [#1186](https://github.com/openfisca/openfisca-core/pull/1186)
+
+#### Technical changes
+
+- Skip type-checking tasks
+  - Before their definition was commented out but still run with `make test`
+  - Now they're skipped but not commented, which is needed to fix the 
+    underlying issues
+
 ##  41.1.0 [#1195](https://github.com/openfisca/openfisca-core/pull/1195)
 
 #### Technical changes

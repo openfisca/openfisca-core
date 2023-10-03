@@ -1,6 +1,7 @@
+import random
+
 import numpy
 
-import random
 from openfisca_core.simulations import Simulation
 
 

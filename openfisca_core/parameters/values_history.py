@@ -1,9 +1,5 @@
-from openfisca_core.parameters import Parameter
+from .parameter import Parameter
 
 
 class ValuesHistory(Parameter):
-    """
-    Only for backward compatibility.
-    """
-
-    pass
+    """Only for backward compatibility."""

@@ -15,8 +15,9 @@ Note:
 
 """
 
-from setuptools import setup, find_packages
 from pathlib import Path
+
+from setuptools import find_packages, setup
 
 # Read the contents of our README file for PyPi
 this_directory = Path(__file__).parent
@@ -66,7 +67,7 @@ dev_requirements = [
 
 setup(
     name="OpenFisca-Core",
-    version="41.1.0",
+    version="41.1.1",
     author="OpenFisca Team",
     author_email="contact@openfisca.org",
     classifiers=[

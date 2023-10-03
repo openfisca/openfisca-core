@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import importlib
-import traceback
 import logging
+import traceback
 from os import linesep
 
 log = logging.getLogger(__name__)

@@ -1,8 +1,7 @@
+from openfisca_core.types import Array, ArrayLike
 from typing import Any, Dict, Sequence, TypeVar
 
 import numpy
-
-from openfisca_core.types import ArrayLike, Array
 
 T = TypeVar("T")
 

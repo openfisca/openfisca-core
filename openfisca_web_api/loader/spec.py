@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import os
-import yaml
 from copy import deepcopy
 
 import dpath.util
+import yaml
 
 from openfisca_core.indexed_enums import Enum
 from openfisca_web_api import handlers
-
 
 OPEN_API_CONFIG_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), os.path.pardir, "openAPI.yml"

@@ -8,11 +8,12 @@ or just (output is written in a directory called `yaml_parameters`):
   `python xml_to_yaml_extension_template.py`
 """
 
-import sys
 import os
+import sys
+
+import openfisca_extension_template
 
 from . import xml_to_yaml
-import openfisca_extension_template
 
 if len(sys.argv) > 1:
     target_path = sys.argv[1]

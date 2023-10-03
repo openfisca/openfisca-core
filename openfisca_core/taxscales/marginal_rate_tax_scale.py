@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+import typing
+
 import bisect
 import itertools
-import typing
 
 import numpy
 
 from openfisca_core import taxscales
-from openfisca_core.taxscales import RateTaxScaleLike
+
+from .rate_tax_scale_like import RateTaxScaleLike
 
 if typing.TYPE_CHECKING:
     NumericalArray = typing.Union[numpy.int_, numpy.float_]

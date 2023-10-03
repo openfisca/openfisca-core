@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from openfisca_core.types import Population, TaxBenefitSystem, Variable
 from typing import Dict, NamedTuple, Optional, Set
 
 import tempfile
@@ -16,7 +17,6 @@ from openfisca_core.tracers import (
     SimpleTracer,
     TracingParameterNodeAtInstant,
 )
-from openfisca_core.types import Population, TaxBenefitSystem, Variable
 from openfisca_core.warnings import TempfileWarning
 
 
