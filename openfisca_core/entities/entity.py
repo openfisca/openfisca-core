@@ -42,7 +42,7 @@ class Entity:
         'Entity(individual)'
 
         >>> str(entity)
-        'individuals'
+        'Entity(individual)'
 
         >>> {entity}
         {Entity(individual)}
@@ -119,6 +119,3 @@ class Entity:
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.key})"
-
-    def __str__(self) -> str:
-        return self.plural

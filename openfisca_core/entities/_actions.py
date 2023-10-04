@@ -68,7 +68,7 @@ def build_entity(
         ...     roles = role,
         ...     )
         Traceback (most recent call last):
-        ValueError: Invalid value 'key' for 'roles', must be an iterable.
+        ValueError: Invalid value 'Role(key)' for 'roles', must be an iterable.
 
     """
 

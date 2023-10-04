@@ -35,7 +35,7 @@ class Role:
         'Role(parent)'
 
         >>> str(role)
-        'parent'
+        'Role(parent)'
 
         >>> {role}
         {Role(parent)}
@@ -92,6 +92,3 @@ class Role:
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.key})"
-
-    def __str__(self) -> str:
-        return self.key
