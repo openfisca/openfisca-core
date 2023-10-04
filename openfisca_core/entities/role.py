@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
-from typing import Any
+from collections.abc import Iterable
 
 from ._description import Description
-from .typing import Entity, GroupEntity, SubRole
+from .typing import DescriptionParams, Entity, GroupEntity, SubRole
 
 
 class Role:
@@ -26,7 +25,10 @@ class Role:
         entity (Entity): The Entity to which the Role belongs.
 
     Examples:
-        >>> role = Role({"key": "parent"}, object())
+        >>> from openfisca_core import entities
+
+        >>> entity = entities.GroupEntity("person", "", "", "", {})
+        >>> role = Role({"key": "parent"}, entity)
 
         >>> repr(Role)
         "<class 'openfisca_core.entities.role.Role'>"
@@ -78,17 +80,15 @@ class Role:
         return self.description.doc
 
     def __init__(
-        self, description: Mapping[str, Any], entity: Entity | GroupEntity
+        self, description: DescriptionParams, entity: Entity | GroupEntity
     ) -> None:
         self.description = Description(
-            **{
-                key: value
-                for key, value in description.items()
-                if key in {"key", "plural", "label", "doc"}
-            }
+            description["key"],
+            description.get("plural"),
+            description.get("label"),
+            description.get("doc"),
         )
         self.entity = entity
-        self.max = description.get("max")
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.key})"

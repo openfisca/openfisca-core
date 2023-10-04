@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
-from typing import Any
+from collections.abc import Iterable
 
 from itertools import chain
 
@@ -9,6 +8,7 @@ from ._description import Description
 from ._subrole import SubRole
 from .entity import Entity
 from .role import Role
+from .typing import DescriptionParams
 
 
 class GroupEntity(Entity):
@@ -58,7 +58,7 @@ class GroupEntity(Entity):
         plural: str,
         label: str,
         doc: str,
-        roles: Iterable[Mapping[str, Any]],
+        roles: Iterable[DescriptionParams],
         containing_entities: Iterable[str] = (),
     ) -> None:
         self.description = Description(key, plural, label, doc)
@@ -70,20 +70,17 @@ class GroupEntity(Entity):
         self.is_person = False
         self.containing_entities = containing_entities
 
-    def _build_role(self, description: Mapping[str, Any]) -> Role:
+    def _build_role(self, description: DescriptionParams) -> Role:
         role = Role(entity=self, description=description)
+        subroles = description.get("subroles")
 
-        try:
-            role.subroles = [
-                self._build_subrole(role, key) for key in description["subroles"]
-            ]
-            role.max = len(role.subroles)
+        if subroles is not None:
+            role.subroles = [self._build_subrole(role, key) for key in subroles]
 
-        except KeyError:
-            pass
+            if len(subroles) > 0:
+                role.max = len(role.subroles)
 
-        finally:
-            setattr(self, role.key.upper(), role)
+        setattr(self, role.key.upper(), role)
 
         return role
 

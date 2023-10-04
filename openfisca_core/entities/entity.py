@@ -55,6 +55,9 @@ class Entity:
     #: Whether it represents an individual or not.
     is_person: bool = True
 
+    #: The TaxBenefitSystem of the Entity, if defined.
+    _tax_benefit_system: TaxBenefitSystem | None = None
+
     @property
     def key(self) -> str:
         """A key to identify the Entity."""
@@ -78,7 +81,6 @@ class Entity:
     def __init__(self, key: str, plural: str, label: str, doc: str) -> None:
         self.description = Description(key, plural, label, doc)
         self.is_person = True
-        self._tax_benefit_system = None
 
     def set_tax_benefit_system(self, tax_benefit_system: TaxBenefitSystem) -> None:
         self._tax_benefit_system = tax_benefit_system
@@ -96,6 +98,13 @@ class Entity:
         variable_name: str,
         check_existence: bool = False,
     ) -> Optional[Variable]:
+        if self._tax_benefit_system is None:
+            message = (
+                f"The entity '{self}' has no TaxBenefitSystem defined yet.",
+                "You should call 'set_tax_benefit_system()' first.",
+            )
+            raise ValueError(os.linesep.join(message))
+
         return self._tax_benefit_system.get_variable(variable_name, check_existence)
 
     def check_variable_defined_for_entity(self, variable_name: str) -> None:

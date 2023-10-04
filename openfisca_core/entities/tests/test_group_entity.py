@@ -1,6 +1,4 @@
-from collections.abc import Mapping
-from openfisca_core.entities.typing import GroupEntity
-from typing import Any
+from openfisca_core.entities.typing import GroupEntity, DescriptionParams
 
 import pytest
 
@@ -33,13 +31,13 @@ def third_parent() -> str:
 
 
 @pytest.fixture
-def role(parent: str, first_parent: str, third_parent: str) -> Mapping[str, Any]:
-    return {"key": parent, "subroles": {first_parent, third_parent}}
+def role(parent: str, first_parent: str, third_parent: str) -> DescriptionParams:
+    return {"key": parent, "subroles": [first_parent, third_parent]}
 
 
 @pytest.fixture
-def group_entity(role: Mapping[str, Any]) -> GroupEntity:
-    return entities.GroupEntity("key", "label", "plural", "doc", (role,))
+def group_entity(role: DescriptionParams) -> GroupEntity:
+    return entities.GroupEntity("key", "label", "plural", "doc", [role])
 
 
 def test_init_when_doc_indented() -> None:

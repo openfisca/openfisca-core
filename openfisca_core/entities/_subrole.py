@@ -24,7 +24,7 @@ class SubRole:
     Examples:
         >>> from openfisca_core import entities
 
-        >>> entity = entities.GroupEntity("person", "", "", "", [])
+        >>> entity = entities.GroupEntity("person", "", "", "", {})
         >>> role = entities.Role({"key": "sorority"}, entity)
         >>> subrole = SubRole(role, "sister")
 
