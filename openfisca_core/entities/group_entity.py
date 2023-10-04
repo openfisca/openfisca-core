@@ -1,10 +1,14 @@
-from collections.abc import Iterable, Mapping
-from typing import Any
+from __future__ import annotations
+
+from collections.abc import Iterable
 
 from itertools import chain
 
+from ._description import Description
+from ._subrole import SubRole
 from .entity import Entity
 from .role import Role
+from .typing import DescriptionParams
 
 
 class GroupEntity(Entity):
@@ -25,32 +29,62 @@ class GroupEntity(Entity):
 
     """  # noqa RST301
 
+    #: A description of the GroupEntity.
+    description: Description
+
+    @property
+    def key(self) -> str:
+        """A key to identify the GroupEntity."""
+        return self.description.key
+
+    @property
+    def plural(self) -> str | None:
+        """The ``key``, pluralised."""
+        return self.description.plural
+
+    @property
+    def label(self) -> str | None:
+        """A summary description."""
+        return self.description.label
+
+    @property
+    def doc(self) -> str | None:
+        """A full description, non-indented."""
+        return self.description.doc
+
     def __init__(
         self,
         key: str,
         plural: str,
         label: str,
         doc: str,
-        roles: Iterable[Mapping[str, Any]],
+        roles: Iterable[DescriptionParams],
         containing_entities: Iterable[str] = (),
     ) -> None:
-        super().__init__(key, plural, label, doc)
+        self.description = Description(key, plural, label, doc)
         self.roles_description = roles
-        self.roles = []
-        for role_description in roles:
-            role = Role(role_description, self)
-            setattr(self, role.key.upper(), role)
-            self.roles.append(role)
-            if role_description.get("subroles"):
-                role.subroles = []
-                for subrole_key in role_description["subroles"]:
-                    subrole = Role({"key": subrole_key, "max": 1}, self)
-                    setattr(self, subrole.key.upper(), subrole)
-                    role.subroles.append(subrole)
-                role.max = len(role.subroles)
+        self.roles = [self._build_role(description) for description in roles]
         self.flattened_roles = tuple(
             chain.from_iterable(role.subroles or [role] for role in self.roles)
         )
-
         self.is_person = False
         self.containing_entities = containing_entities
+
+    def _build_role(self, description: DescriptionParams) -> Role:
+        role = Role(entity=self, description=description)
+        subroles = description.get("subroles")
+
+        if subroles is not None:
+            role.subroles = [self._build_subrole(role, key) for key in subroles]
+
+            if len(subroles) > 0:
+                role.max = len(role.subroles)
+
+        setattr(self, role.key.upper(), role)
+
+        return role
+
+    def _build_subrole(self, role: Role, key: str) -> SubRole:
+        subrole = SubRole(role, key)
+        setattr(self, subrole.key.upper(), subrole)
+        return subrole

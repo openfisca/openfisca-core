@@ -22,9 +22,10 @@
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
 from . import typing
+from ._actions import build_entity
+from ._subrole import SubRole
 from .entity import Entity
 from .group_entity import GroupEntity
-from .helpers import build_entity
 from .role import Role
 
-__all__ = ["Entity", "GroupEntity", "Role", "build_entity", "typing"]
+__all__ = ["Entity", "GroupEntity", "Role", "SubRole", "build_entity", "typing"]

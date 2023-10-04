@@ -16,7 +16,6 @@ Official Public API:
     * :attr:`.Params`
     * :attr:`.Period`
     * :attr:`.Population`
-    * :attr:`.Role`,
     * :attr:`.Simulation`,
     * :attr:`.TaxBenefitSystem`
     * :attr:`.Variable`
@@ -59,7 +58,6 @@ from ._domain import (  # noqa: F401
     Params,
     Period,
     Population,
-    Role,
     Simulation,
     TaxBenefitSystem,
     Variable,
@@ -76,7 +74,6 @@ __all__ = [
     "Params",
     "Period",
     "Population",
-    "Role",
     "Simulation",
     "TaxBenefitSystem",
     "Variable",

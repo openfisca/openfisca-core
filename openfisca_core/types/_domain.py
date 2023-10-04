@@ -98,13 +98,6 @@ class Population(Protocol):
         """Abstract method."""
 
 
-class Role(Protocol):
-    """Role protocol."""
-
-    entity: Any
-    subroles: Any
-
-
 class Simulation(Protocol):
     """Simulation protocol."""
 

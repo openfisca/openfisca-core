@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from openfisca_core.types import Array, Entity, Period, Role, Simulation
+from openfisca_core.entities.typing import Role, SubRole
+from openfisca_core.types import Array, Entity, Period, Simulation
 from typing import Dict, NamedTuple, Optional, Sequence, Union
 from typing_extensions import TypedDict
 
@@ -8,7 +9,7 @@ import traceback
 
 import numpy
 
-from openfisca_core import periods, projectors
+from openfisca_core import entities, periods, projectors
 from openfisca_core.holders import Holder, MemoryUsage
 from openfisca_core.projectors import Projector
 
@@ -191,7 +192,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         )
 
     @projectors.projectable
-    def has_role(self, role: Role) -> Optional[Array[bool]]:
+    def has_role(self, role: Role | SubRole) -> Optional[Array[bool]]:
         """
         Check if a person has a given role within its `GroupEntity`
 
@@ -204,11 +205,12 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         if self.simulation is None:
             return None
 
-        self.entity.check_role_validity(role)
+        if not isinstance(role, (entities.Role, entities.SubRole)):
+            raise ValueError(f"{role} is not a valid role")
 
         group_population = self.simulation.get_population(role.entity.plural)
 
-        if role.subroles:
+        if isinstance(role, entities.Role) and role.subroles:
             return numpy.logical_or.reduce(
                 [group_population.members_role == subrole for subrole in role.subroles]
             )

@@ -1,5 +1,21 @@
 # Changelog
 
+## 41.2.0 [#1196](https://github.com/openfisca/openfisca-core/pull/1196)
+
+#### New features
+
+- Introduce `SubRole`.
+  - Allows for building subroles in an explicit manner.
+
+#### Discussion
+
+Currently, roles and subroles coexist and are used interchangeably, as
+instances of the `Role` data model. This is very confusing, as the only thing
+they have in common is the `key` attribute, shared with every other data model
+in the `entities` module. By declaring `SubRole` as an independent data model
+from `Role`, we can make the distinction between the two clearer, improving
+readability, maintenance, debugging, and eventual extensibility of both.
+
 ### 41.1.2 [#1192](https://github.com/openfisca/openfisca-core/pull/1192)
 
 #### Technical changes
@@ -21,12 +37,12 @@
 
 - Make `Role` explicitly hashable.
 - Details:
-    - By introducing `__eq__`, naturally `Role` became unhashable, because
-      equality was calculated based on a property of `Role`
-      (`role.key == another_role.key`), and no longer structurally
-      (`"1" == "1"`).
-    - This changeset removes `__eq__`, as `Role` is being used downstream as a
-      hashable object, and adds a test to ensure `Role`'s hashability.
+  - By introducing `__eq__`, naturally `Role` became unhashable, because
+    equality was calculated based on a property of `Role`
+    (`role.key == another_role.key`), and no longer structurally
+    (`"1" == "1"`).
+  - This changeset removes `__eq__`, as `Role` is being used downstream as a
+    hashable object, and adds a test to ensure `Role`'s hashability.
 
 ###  41.0.2 [#1194](https://github.com/openfisca/openfisca-core/pull/1194)
 
