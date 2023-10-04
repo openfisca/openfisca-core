@@ -1,4 +1,10 @@
-from openfisca_core import projectors
+from __future__ import annotations
+
+from collections.abc import Mapping
+
+from openfisca_core import entities, projectors
+
+from .typing import Entity, GroupEntity, GroupPopulation, Population, Role, Simulation
 
 
 def projectable(function):
@@ -10,25 +16,123 @@ def projectable(function):
     return function
 
 
-def get_projector_from_shortcut(population, shortcut, parent=None):
-    if population.entity.is_person:
-        if shortcut in population.simulation.populations:
-            entity_2 = population.simulation.populations[shortcut]
-            return projectors.EntityToPersonProjector(entity_2, parent)
-    else:
-        if shortcut == "first_person":
-            return projectors.FirstPersonToEntityProjector(population, parent)
-        role = next(
+def get_projector_from_shortcut(
+    population: Population | GroupPopulation,
+    shortcut: str,
+    parent: projectors.Projector | None = None,
+) -> projectors.Projector | None:
+    """???.
+
+        Args:
+            population: ???
+            shortcut: ???
+            parent: ???
+
+    Examples:
+        >>> from openfisca_core import (
+        ...     entities,
+        ...     populations,
+        ...     simulations,
+        ...     taxbenefitsystems,
+        ... )
+
+        >>> entity_1 = entities.Entity("person", "", "", "")
+
+        >>> entity_2 = entities.Entity("martian", "", "", "")
+
+        >>> group_entity_1 = entities.GroupEntity("family", "", "", "", [])
+
+        >>> roles = [
+        ...     {"key": "person"},
+        ...     {"key": "martian", "subroles": ["cat", "dog"]},
+        ... ]
+
+        >>> group_entity_2 = entities.GroupEntity("family", "", "", "", roles)
+
+        >>> population = populations.Population(entity_1)
+
+        >>> group_population_1 = populations.GroupPopulation(entity_2, [])
+
+        >>> group_population_2 = populations.GroupPopulation(group_entity_1, [])
+
+        >>> group_population_3 = populations.GroupPopulation(group_entity_2, [])
+
+        >>> populations = {
+        ...     entity_1.key: population,
+        ...     entity_2.key: group_population_1,
+        ...     group_entity_1.key: group_population_2,
+        ...     group_entity_2.key: group_population_3,
+        ... }
+
+        >>> tax_benefit_system = taxbenefitsystems.TaxBenefitSystem(
+        ...     [entity_1, entity_2, group_entity_1, group_entity_2]
+        ... )
+
+        >>> simulation = simulations.Simulation(tax_benefit_system, populations)
+
+        >>> get_projector_from_shortcut(population, "person")
+        <...EntityToPersonProjector object at ...>
+
+        >>> get_projector_from_shortcut(population, "martian")
+        <...EntityToPersonProjector object at ...>
+
+        >>> get_projector_from_shortcut(population, "family")
+        <...EntityToPersonProjector object at ...>
+
+        >>> get_projector_from_shortcut(group_population_1, "person")
+        <...EntityToPersonProjector object at ...>
+
+        >>> get_projector_from_shortcut(group_population_1, "martian")
+        <...EntityToPersonProjector object at ...>
+
+        >>> get_projector_from_shortcut(group_population_1, "family")
+        <...EntityToPersonProjector object at ...>
+
+        >>> get_projector_from_shortcut(group_population_2, "first_person")
+        <...FirstPersonToEntityProjector object at ...>
+
+        >>> get_projector_from_shortcut(group_population_3, "first_person")
+        <...FirstPersonToEntityProjector object at ...>
+
+        >>> get_projector_from_shortcut(group_population_3, "cat")
+        <...UniqueRoleToEntityProjector object at ...>
+
+        >>> get_projector_from_shortcut(group_population_3, "dog")
+        <...UniqueRoleToEntityProjector object at ...>
+
+    """
+
+    entity: Entity | GroupEntity = population.entity
+
+    if isinstance(entity, entities.GroupEntity):
+        role: Role | None = next(
             (
                 role
-                for role in population.entity.flattened_roles
+                for role in entity.flattened_roles
                 if (role.max == 1) and (role.key == shortcut)
             ),
             None,
         )
-        if role:
+
+        if role is not None:
             return projectors.UniqueRoleToEntityProjector(population, role, parent)
-        if shortcut in population.entity.containing_entities:
-            return getattr(
+
+        if shortcut in entity.containing_entities:
+            projector: projectors.Projector = getattr(
                 projectors.FirstPersonToEntityProjector(population, parent), shortcut
             )
+            return projector
+
+    if isinstance(entity, entities.Entity):
+        simulation: Simulation = population.simulation
+        populations: Mapping[str, Population | GroupPopulation] = simulation.populations
+
+        if shortcut in populations.keys():
+            return projectors.EntityToPersonProjector(populations[shortcut], parent)
+
+        return None
+
+    if shortcut == "first_person":
+        return projectors.FirstPersonToEntityProjector(population, parent)
+
+    return None

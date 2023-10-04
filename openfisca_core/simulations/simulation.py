@@ -8,16 +8,8 @@ import warnings
 
 import numpy
 
-from openfisca_core import commons, periods
-from openfisca_core.errors import CycleError, SpiralError, VariableNotFoundError
-from openfisca_core.indexed_enums import Enum, EnumArray
-from openfisca_core.periods import DateUnit, Period
-from openfisca_core.tracers import (
-    FullTracer,
-    SimpleTracer,
-    TracingParameterNodeAtInstant,
-)
-from openfisca_core.warnings import TempfileWarning
+from openfisca_core import commons, errors, indexed_enums, periods, tracers
+from openfisca_core import warnings as core_warnings
 
 
 class Simulation:
@@ -51,7 +43,7 @@ class Simulation:
 
         self.debug = False
         self.trace = False
-        self.tracer = SimpleTracer()
+        self.tracer = tracers.SimpleTracer()
         self.opt_out_cache = False
 
         # controls the spirals detection; check for performance impact if > 1
@@ -67,9 +59,9 @@ class Simulation:
     def trace(self, trace):
         self._trace = trace
         if trace:
-            self.tracer = FullTracer()
+            self.tracer = tracers.FullTracer()
         else:
-            self.tracer = SimpleTracer()
+            self.tracer = tracers.SimpleTracer()
 
     def link_to_entities_instances(self):
         for _key, entity_instance in self.populations.items():
@@ -93,7 +85,9 @@ class Simulation:
                 ).format(self._data_storage_dir),
                 "You should remove this directory once you're done with your simulation.",
             ]
-            warnings.warn(" ".join(message), TempfileWarning, stacklevel=2)
+            warnings.warn(
+                " ".join(message), core_warnings.TempfileWarning, stacklevel=2
+            )
         return self._data_storage_dir
 
     # ----- Calculation methods ----- #
@@ -101,7 +95,7 @@ class Simulation:
     def calculate(self, variable_name: str, period):
         """Calculate ``variable_name`` for ``period``."""
 
-        if period is not None and not isinstance(period, Period):
+        if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
 
         self.tracer.record_calculation_start(variable_name, period)
@@ -115,7 +109,7 @@ class Simulation:
             self.tracer.record_calculation_end()
             self.purge_cache_of_invalid_values()
 
-    def _calculate(self, variable_name: str, period: Period):
+    def _calculate(self, variable_name: str, period: periods.Period):
         """
         Calculate the variable ``variable_name`` for the period ``period``, using the variable formula if it exists.
 
@@ -130,7 +124,7 @@ class Simulation:
         )
 
         if variable is None:
-            raise VariableNotFoundError(variable_name, self.tax_benefit_system)
+            raise errors.VariableNotFoundError(variable_name, self.tax_benefit_system)
 
         self._check_period_consistency(period, variable)
 
@@ -153,7 +147,7 @@ class Simulation:
             array = self._cast_formula_result(array, variable)
             holder.put_in_cache(array, period)
 
-        except SpiralError:
+        except errors.SpiralError:
             array = holder.default_array()
 
         return array
@@ -175,9 +169,9 @@ class Simulation:
         )
 
         if variable is None:
-            raise VariableNotFoundError(variable_name, self.tax_benefit_system)
+            raise errors.VariableNotFoundError(variable_name, self.tax_benefit_system)
 
-        if period is not None and not isinstance(period, Period):
+        if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
 
         # Check that the requested period matches definition_period
@@ -192,7 +186,7 @@ class Simulation:
             )
 
         if variable.definition_period not in (
-            DateUnit.isoformat + DateUnit.isocalendar
+            periods.DateUnit.isoformat + periods.DateUnit.isocalendar
         ):
             raise ValueError(
                 f"Unable to ADD constant variable '{variable.name}' over "
@@ -213,9 +207,9 @@ class Simulation:
         )
 
         if variable is None:
-            raise VariableNotFoundError(variable_name, self.tax_benefit_system)
+            raise errors.VariableNotFoundError(variable_name, self.tax_benefit_system)
 
-        if period is not None and not isinstance(period, Period):
+        if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
 
         if (
@@ -231,7 +225,7 @@ class Simulation:
             )
 
         if variable.definition_period not in (
-            DateUnit.isoformat + DateUnit.isocalendar
+            periods.DateUnit.isoformat + periods.DateUnit.isocalendar
         ):
             raise ValueError(
                 f"Unable to DIVIDE constant variable '{variable.name}' over "
@@ -240,7 +234,8 @@ class Simulation:
             )
 
         if (
-            period.unit not in (DateUnit.isoformat + DateUnit.isocalendar)
+            period.unit
+            not in (periods.DateUnit.isoformat + periods.DateUnit.isocalendar)
             or period.size != 1
         ):
             raise ValueError(
@@ -249,31 +244,31 @@ class Simulation:
                 "as a denominator to divide a variable over time."
             )
 
-        if variable.definition_period == DateUnit.YEAR:
+        if variable.definition_period == periods.DateUnit.YEAR:
             calculation_period = period.this_year
 
-        elif variable.definition_period == DateUnit.MONTH:
+        elif variable.definition_period == periods.DateUnit.MONTH:
             calculation_period = period.first_month
 
-        elif variable.definition_period == DateUnit.DAY:
+        elif variable.definition_period == periods.DateUnit.DAY:
             calculation_period = period.first_day
 
-        elif variable.definition_period == DateUnit.WEEK:
+        elif variable.definition_period == periods.DateUnit.WEEK:
             calculation_period = period.first_week
 
         else:
             calculation_period = period.first_weekday
 
-        if period.unit == DateUnit.YEAR:
+        if period.unit == periods.DateUnit.YEAR:
             denominator = calculation_period.size_in_years
 
-        elif period.unit == DateUnit.MONTH:
+        elif period.unit == periods.DateUnit.MONTH:
             denominator = calculation_period.size_in_months
 
-        elif period.unit == DateUnit.DAY:
+        elif period.unit == periods.DateUnit.DAY:
             denominator = calculation_period.size_in_days
 
-        elif period.unit == DateUnit.WEEK:
+        elif period.unit == periods.DateUnit.WEEK:
             denominator = calculation_period.size_in_weeks
 
         else:
@@ -293,7 +288,7 @@ class Simulation:
         )
 
         if variable is None:
-            raise VariableNotFoundError(variable_name, self.tax_benefit_system)
+            raise errors.VariableNotFoundError(variable_name, self.tax_benefit_system)
 
         if variable.calculate_output is None:
             return self.calculate(variable_name, period)
@@ -301,7 +296,7 @@ class Simulation:
         return variable.calculate_output(self, variable_name, period)
 
     def trace_parameters_at_instant(self, formula_period):
-        return TracingParameterNodeAtInstant(
+        return tracers.TracingParameterNodeAtInstant(
             self.tax_benefit_system.get_parameters_at_instant(formula_period),
             self.tracer,
         )
@@ -331,10 +326,13 @@ class Simulation:
         """
         Check that a period matches the variable definition_period
         """
-        if variable.definition_period == DateUnit.ETERNITY:
+        if variable.definition_period == periods.DateUnit.ETERNITY:
             return  # For variables which values are constant in time, all periods are accepted
 
-        if variable.definition_period == DateUnit.YEAR and period.unit != DateUnit.YEAR:
+        if (
+            variable.definition_period == periods.DateUnit.YEAR
+            and period.unit != periods.DateUnit.YEAR
+        ):
             raise ValueError(
                 "Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.".format(
                     variable.name, period
@@ -342,8 +340,8 @@ class Simulation:
             )
 
         if (
-            variable.definition_period == DateUnit.MONTH
-            and period.unit != DateUnit.MONTH
+            variable.definition_period == periods.DateUnit.MONTH
+            and period.unit != periods.DateUnit.MONTH
         ):
             raise ValueError(
                 "Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole month. You can use the ADD option to sum '{0}' over the requested period, or change the requested period to 'period.first_month'.".format(
@@ -351,7 +349,10 @@ class Simulation:
                 )
             )
 
-        if variable.definition_period == DateUnit.WEEK and period.unit != DateUnit.WEEK:
+        if (
+            variable.definition_period == periods.DateUnit.WEEK
+            and period.unit != periods.DateUnit.WEEK
+        ):
             raise ValueError(
                 "Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole week. You can use the ADD option to sum '{0}' over the requested period, or change the requested period to 'period.first_week'.".format(
                     variable.name, period
@@ -366,7 +367,9 @@ class Simulation:
             )
 
     def _cast_formula_result(self, value, variable):
-        if variable.value_type == Enum and not isinstance(value, EnumArray):
+        if variable.value_type == indexed_enums.Enum and not isinstance(
+            value, indexed_enums.EnumArray
+        ):
             return variable.possible_values.encode(value)
 
         if not isinstance(value, numpy.ndarray):
@@ -394,7 +397,7 @@ class Simulation:
             if frame["name"] == variable
         ]
         if period in previous_periods:
-            raise CycleError(
+            raise errors.CycleError(
                 "Circular definition detected on formula {}@{}".format(variable, period)
             )
         spiral = len(previous_periods) >= self.max_spiral_loops
@@ -403,7 +406,7 @@ class Simulation:
             message = "Quasicircular definition detected on formula {}@{} involving {}".format(
                 variable, period, self.tracer.stack
             )
-            raise SpiralError(message, variable)
+            raise errors.SpiralError(message, variable)
 
     def invalidate_cache_entry(self, variable: str, period):
         self.invalidated_caches.add(Cache(variable, period))
@@ -429,7 +432,7 @@ class Simulation:
 
         Unlike :meth:`.calculate`, this method *does not* trigger calculations and *does not* use any formula.
         """
-        if period is not None and not isinstance(period, Period):
+        if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
         return self.get_holder(variable_name).get_array(period)
 
@@ -520,7 +523,7 @@ class Simulation:
         )
 
         if variable is None:
-            raise VariableNotFoundError(variable_name, self.tax_benefit_system)
+            raise errors.VariableNotFoundError(variable_name, self.tax_benefit_system)
 
         period = periods.period(period)
         if (variable.end is not None) and (period.start.date > variable.end):
@@ -535,7 +538,7 @@ class Simulation:
         )
 
         if variable is None:
-            raise VariableNotFoundError(variable_name, self.tax_benefit_system)
+            raise errors.VariableNotFoundError(variable_name, self.tax_benefit_system)
 
         return self.populations[variable.entity.key]
 
@@ -592,4 +595,4 @@ class Simulation:
 
 class Cache(NamedTuple):
     variable: str
-    period: Period
+    period: periods.Period

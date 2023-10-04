@@ -8,9 +8,7 @@ import traceback
 
 import numpy
 
-from openfisca_core import periods, projectors
-from openfisca_core.holders import Holder, MemoryUsage
-from openfisca_core.projectors import Projector
+from openfisca_core import holders, periods, projectors
 
 from . import config
 
@@ -18,7 +16,7 @@ from . import config
 class Population:
     simulation: Optional[Simulation]
     entity: Entity
-    _holders: Dict[str, Holder]
+    _holders: Dict[str, holders.Holder]
     count: int
     ids: Array[str]
 
@@ -50,11 +48,11 @@ class Population:
     ) -> Union[Array[float], Array[bool]]:
         return numpy.full(self.count, value, dtype)
 
-    def __getattr__(self, attribute: str) -> Projector:
-        projector: Optional[Projector]
+    def __getattr__(self, attribute: str) -> projectors.Projector:
+        projector: Optional[projectors.Projector]
         projector = projectors.get_projector_from_shortcut(self, attribute)
 
-        if isinstance(projector, Projector):
+        if isinstance(projector, projectors.Projector):
             return projector
 
         raise AttributeError(
@@ -159,13 +157,13 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
     # Helpers
 
-    def get_holder(self, variable_name: str) -> Holder:
+    def get_holder(self, variable_name: str) -> holders.Holder:
         self.entity.check_variable_defined_for_entity(variable_name)
         holder = self._holders.get(variable_name)
         if holder:
             return holder
         variable = self.entity.get_variable(variable_name)
-        self._holders[variable_name] = holder = Holder(variable, self)
+        self._holders[variable_name] = holder = holders.Holder(variable, self)
         return holder
 
     def get_memory_usage(
@@ -220,7 +218,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     def value_from_partner(
         self,
         array: Array[float],
-        entity: Projector,
+        entity: projectors.Projector,
         role: Role,
     ) -> Optional[Array[float]]:
         self.check_array_compatible_with_entity(array)
@@ -265,7 +263,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
         # If entity is for instance 'person.household', we get the reference entity 'household' behind the projector
         entity = (
-            entity if not isinstance(entity, Projector) else entity.reference_entity
+            entity
+            if not isinstance(entity, projectors.Projector)
+            else entity.reference_entity
         )
 
         positions = entity.members_position
@@ -300,5 +300,5 @@ class Calculate(NamedTuple):
 
 
 class MemoryUsageByVariable(TypedDict, total=False):
-    by_variable: Dict[str, MemoryUsage]
+    by_variable: Dict[str, holders.MemoryUsage]
     total_nb_bytes: int
