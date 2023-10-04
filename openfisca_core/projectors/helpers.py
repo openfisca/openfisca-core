@@ -47,7 +47,7 @@ def get_projector_from_shortcut(
         ...     {"key": "martian", "subroles": ["cat", "dog"]},
         ... ]
 
-        >>> group_entity_2 = entities.GroupEntity("family", "", "", "", roles)
+        >>> group_entity_2 = entities.GroupEntity("household", "", "", "", roles)
 
         >>> population = populations.Population(entity_1)
 
@@ -79,6 +79,9 @@ def get_projector_from_shortcut(
         >>> get_projector_from_shortcut(population, "family")
         <...EntityToPersonProjector object at ...>
 
+        >>> get_projector_from_shortcut(population, "household")
+        <...EntityToPersonProjector object at ...>
+
         >>> get_projector_from_shortcut(group_population_1, "person")
         <...EntityToPersonProjector object at ...>
 
@@ -86,6 +89,9 @@ def get_projector_from_shortcut(
         <...EntityToPersonProjector object at ...>
 
         >>> get_projector_from_shortcut(group_population_1, "family")
+        <...EntityToPersonProjector object at ...>
+
+        >>> get_projector_from_shortcut(group_population_1, "household")
         <...EntityToPersonProjector object at ...>
 
         >>> get_projector_from_shortcut(group_population_2, "first_person")
@@ -103,6 +109,18 @@ def get_projector_from_shortcut(
     """
 
     entity: Entity | GroupEntity = population.entity
+
+    if not isinstance(entity, entities.GroupEntity):
+        simulation: Simulation = population.simulation
+        populations: Mapping[str, Population | GroupPopulation] = simulation.populations
+
+        if shortcut in populations.keys():
+            return projectors.EntityToPersonProjector(populations[shortcut], parent)
+
+        return None
+
+    if shortcut == "first_person":
+        return projectors.FirstPersonToEntityProjector(population, parent)
 
     if isinstance(entity, entities.GroupEntity):
         role: Role | None = next(
@@ -122,17 +140,5 @@ def get_projector_from_shortcut(
                 projectors.FirstPersonToEntityProjector(population, parent), shortcut
             )
             return projector
-
-    if isinstance(entity, entities.Entity):
-        simulation: Simulation = population.simulation
-        populations: Mapping[str, Population | GroupPopulation] = simulation.populations
-
-        if shortcut in populations.keys():
-            return projectors.EntityToPersonProjector(populations[shortcut], parent)
-
-        return None
-
-    if shortcut == "first_person":
-        return projectors.FirstPersonToEntityProjector(population, parent)
 
     return None
