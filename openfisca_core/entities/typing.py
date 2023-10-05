@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from typing import Protocol, TypedDict
 
 
@@ -12,7 +13,12 @@ class GroupEntity(Protocol):
 
 
 class Role(Protocol):
-    ...
+    max: int | None
+    subroles: Iterable[Role] | None
+
+    @property
+    def key(self) -> str:
+        ...
 
 
 class RoleParams(TypedDict, total=False):

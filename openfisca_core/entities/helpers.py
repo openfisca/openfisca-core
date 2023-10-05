@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from typing import Iterable
+
 from .entity import Entity
 from .group_entity import GroupEntity
-from .typing import Role
+from .role import Role
 
 
 def build_entity(
@@ -24,7 +26,7 @@ def build_entity(
 
 
 def find_role(
-    group_entity: GroupEntity, key: str, *, total: int | None = None
+    roles: Iterable[Role], key: str, *, total: int | None = None
 ) -> Role | None:
     """Find a role in an entity.
 
@@ -69,21 +71,21 @@ def find_role(
         ...     roles=[principal, partner, parent],
         ... )
 
-        >>> find_role(group_entity, "principal", total=1)
+        >>> find_role(group_entity.roles, "principal", total=1)
         Role(principal)
 
-        >>> find_role(group_entity, "partner")
+        >>> find_role(group_entity.roles, "partner")
         Role(partner)
 
-        >>> find_role(group_entity, "parent", total=2)
+        >>> find_role(group_entity.roles, "parent", total=2)
         Role(parent)
 
-        >>> find_role(group_entity, "first_parent", total=1)
+        >>> find_role(group_entity.roles, "first_parent", total=1)
         Role(first_parent)
 
     """
 
-    for role in group_entity.roles:
+    for role in roles:
         if role.subroles:
             for subrole in role.subroles:
                 if (subrole.max == total) and (subrole.key == key):

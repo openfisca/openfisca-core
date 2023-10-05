@@ -23,6 +23,10 @@ class GroupEntity(Protocol):
     def flattened_roles(self) -> Iterable[Role]:
         ...
 
+    @property
+    def roles(self) -> Iterable[Role]:
+        ...
+
 
 class Role(Protocol):
     ...
@@ -30,7 +34,7 @@ class Role(Protocol):
 
 class Population(Protocol):
     @property
-    def entity(self) -> Entity | GroupEntity:
+    def entity(self) -> Entity:
         ...
 
     @property
@@ -40,7 +44,7 @@ class Population(Protocol):
 
 class GroupPopulation(Protocol):
     @property
-    def entity(self) -> Entity | GroupEntity:
+    def entity(self) -> GroupEntity:
         ...
 
     @property

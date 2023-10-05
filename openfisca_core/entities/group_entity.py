@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Iterable, Mapping
 from typing import Any
 
@@ -36,17 +38,17 @@ class GroupEntity(Entity):
     ) -> None:
         super().__init__(key, plural, label, doc)
         self.roles_description = roles
-        self.roles = []
+        self.roles: Iterable[Role] = ()
         for role_description in roles:
             role = Role(role_description, self)
             setattr(self, role.key.upper(), role)
-            self.roles.append(role)
+            self.roles = (*self.roles, role)
             if role_description.get("subroles"):
-                role.subroles = []
+                role.subroles = ()
                 for subrole_key in role_description["subroles"]:
                     subrole = Role({"key": subrole_key, "max": 1}, self)
                     setattr(self, subrole.key.upper(), subrole)
-                    role.subroles.append(subrole)
+                    role.subroles = (*role.subroles, subrole)
                 role.max = len(role.subroles)
         self.flattened_roles = tuple(
             chain.from_iterable(role.subroles or [role] for role in self.roles)
