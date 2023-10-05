@@ -3,13 +3,14 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 from typing import Any
 
+import textwrap
 from itertools import chain
 
-from .entity import Entity
+from ._core_entity import _CoreEntity
 from .role import Role
 
 
-class GroupEntity(Entity):
+class GroupEntity(_CoreEntity):
     """Represents an entity containing several others with different roles.
 
     A :class:`.GroupEntity` represents an :class:`.Entity` containing
@@ -36,7 +37,11 @@ class GroupEntity(Entity):
         roles: Iterable[Mapping[str, Any]],
         containing_entities: Iterable[str] = (),
     ) -> None:
-        super().__init__(key, plural, label, doc)
+        self.key = key
+        self.label = label
+        self.plural = plural
+        self.doc = textwrap.dedent(doc)
+        self.is_person = False
         self.roles_description = roles
         self.roles: Iterable[Role] = ()
         for role_description in roles:

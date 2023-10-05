@@ -36,9 +36,7 @@ def get_projector_from_shortcut(
         ...     taxbenefitsystems,
         ... )
 
-        >>> entity_1 = entities.Entity("person", "", "", "")
-
-        >>> entity_2 = entities.Entity("martian", "", "", "")
+        >>> entity = entities.Entity("person", "", "", "")
 
         >>> group_entity_1 = entities.GroupEntity("family", "", "", "", [])
 
@@ -49,31 +47,25 @@ def get_projector_from_shortcut(
 
         >>> group_entity_2 = entities.GroupEntity("household", "", "", "", roles)
 
-        >>> population = populations.Population(entity_1)
+        >>> population = populations.Population(entity)
 
-        >>> group_population_1 = populations.GroupPopulation(entity_2, [])
+        >>> group_population_1 = populations.GroupPopulation(group_entity_1, [])
 
-        >>> group_population_2 = populations.GroupPopulation(group_entity_1, [])
-
-        >>> group_population_3 = populations.GroupPopulation(group_entity_2, [])
+        >>> group_population_2 = populations.GroupPopulation(group_entity_2, [])
 
         >>> populations = {
-        ...     entity_1.key: population,
-        ...     entity_2.key: group_population_1,
-        ...     group_entity_1.key: group_population_2,
-        ...     group_entity_2.key: group_population_3,
+        ...     entity.key: population,
+        ...     group_entity_1.key: group_population_1,
+        ...     group_entity_2.key: group_population_2,
         ... }
 
         >>> tax_benefit_system = taxbenefitsystems.TaxBenefitSystem(
-        ...     [entity_1, entity_2, group_entity_1, group_entity_2]
+        ...     [entity, group_entity_1, group_entity_2]
         ... )
 
         >>> simulation = simulations.Simulation(tax_benefit_system, populations)
 
         >>> get_projector_from_shortcut(population, "person")
-        <...EntityToPersonProjector object at ...>
-
-        >>> get_projector_from_shortcut(population, "martian")
         <...EntityToPersonProjector object at ...>
 
         >>> get_projector_from_shortcut(population, "family")
@@ -82,38 +74,23 @@ def get_projector_from_shortcut(
         >>> get_projector_from_shortcut(population, "household")
         <...EntityToPersonProjector object at ...>
 
-        >>> get_projector_from_shortcut(group_population_1, "person")
-        <...EntityToPersonProjector object at ...>
-
-        >>> get_projector_from_shortcut(group_population_1, "martian")
-        <...EntityToPersonProjector object at ...>
-
-        >>> get_projector_from_shortcut(group_population_1, "family")
-        <...EntityToPersonProjector object at ...>
-
-        >>> get_projector_from_shortcut(group_population_1, "household")
-        <...EntityToPersonProjector object at ...>
-
         >>> get_projector_from_shortcut(group_population_2, "first_person")
         <...FirstPersonToEntityProjector object at ...>
 
-        >>> get_projector_from_shortcut(group_population_3, "first_person")
-        <...FirstPersonToEntityProjector object at ...>
-
-        >>> get_projector_from_shortcut(group_population_3, "person")
+        >>> get_projector_from_shortcut(group_population_2, "person")
         <...UniqueRoleToEntityProjector object at ...>
 
-        >>> get_projector_from_shortcut(group_population_3, "cat")
+        >>> get_projector_from_shortcut(group_population_2, "cat")
         <...UniqueRoleToEntityProjector object at ...>
 
-        >>> get_projector_from_shortcut(group_population_3, "dog")
+        >>> get_projector_from_shortcut(group_population_2, "dog")
         <...UniqueRoleToEntityProjector object at ...>
 
     """
 
     entity: Entity | GroupEntity = population.entity
 
-    if isinstance(entity, entities.Entity) and entity.is_person:
+    if isinstance(entity, entities.Entity):
         populations: Mapping[
             str, Population | GroupPopulation
         ] = population.simulation.populations
