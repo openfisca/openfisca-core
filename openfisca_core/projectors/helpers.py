@@ -21,12 +21,32 @@ def get_projector_from_shortcut(
     shortcut: str,
     parent: projectors.Projector | None = None,
 ) -> projectors.Projector | None:
-    """???.
+    """Get a projector from a shortcut.
 
-        Args:
-            population: ???
-            shortcut: ???
-            parent: ???
+    Projectors are used to project an invidividual Population's or a
+    collective GroupPopulation's on to other populations.
+
+    The currently available cases are projecting:
+    - from an invidivual to a group
+    - from a group to an individual
+    - from a group to an individual with a unique role
+
+    For example, if there are two entities, person (Entity) and household
+    (GroupEntity), on which calculations can be run (Population and
+    GroupPopulation respectively), and there is a Variable "rent" defined for
+    the household entity, then `person.household("rent")` will assign a rent to
+    every person within that household.
+
+    Behind the scenes, this is done thanks to a Projector, and this function is
+    used to find the appropriate one for each case. In the above example, the
+    `shortcut` argument would be "household", and the `population` argument
+    whould be the Population linked to the "person" Entity in the context
+    of a specific Simulation and TaxBenefitSystem.
+
+    Args:
+        population (Population | GroupPopulation): Where to project from.
+        shortcut (str): Where to project to.
+        parent: ???
 
     Examples:
         >>> from openfisca_core import (
