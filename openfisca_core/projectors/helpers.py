@@ -43,7 +43,7 @@ def get_projector_from_shortcut(
         >>> group_entity_1 = entities.GroupEntity("family", "", "", "", [])
 
         >>> roles = [
-        ...     {"key": "person"},
+        ...     {"key": "person", "max": 1},
         ...     {"key": "martian", "subroles": ["cat", "dog"]},
         ... ]
 
@@ -100,6 +100,9 @@ def get_projector_from_shortcut(
         >>> get_projector_from_shortcut(group_population_3, "first_person")
         <...FirstPersonToEntityProjector object at ...>
 
+        >>> get_projector_from_shortcut(group_population_3, "person")
+        <...UniqueRoleToEntityProjector object at ...>
+
         >>> get_projector_from_shortcut(group_population_3, "cat")
         <...UniqueRoleToEntityProjector object at ...>
 
@@ -110,27 +113,21 @@ def get_projector_from_shortcut(
 
     entity: Entity | GroupEntity = population.entity
 
-    if not isinstance(entity, entities.GroupEntity):
-        simulation: Simulation = population.simulation
-        populations: Mapping[str, Population | GroupPopulation] = simulation.populations
+    if isinstance(entity, entities.Entity) and entity.is_person:
+        populations: Mapping[
+            str, Population | GroupPopulation
+        ] = population.simulation.populations
 
-        if shortcut in populations.keys():
-            return projectors.EntityToPersonProjector(populations[shortcut], parent)
+        if shortcut not in populations.keys():
+            return None
 
-        return None
+        return projectors.EntityToPersonProjector(populations[shortcut], parent)
 
     if shortcut == "first_person":
         return projectors.FirstPersonToEntityProjector(population, parent)
 
     if isinstance(entity, entities.GroupEntity):
-        role: Role | None = next(
-            (
-                role
-                for role in entity.flattened_roles
-                if (role.max == 1) and (role.key == shortcut)
-            ),
-            None,
-        )
+        role: Role | None = entities.find_role(entity, shortcut, total=1)
 
         if role is not None:
             return projectors.UniqueRoleToEntityProjector(population, role, parent)

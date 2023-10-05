@@ -25,13 +25,7 @@ class GroupEntity(Protocol):
 
 
 class Role(Protocol):
-    @property
-    def key(self) -> str:
-        ...
-
-    @property
-    def max(self) -> int | None:
-        ...
+    ...
 
 
 class Population(Protocol):
