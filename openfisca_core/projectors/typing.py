@@ -1,35 +1,8 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from openfisca_core.entities.typing import Entity, GroupEntity, Role
 from typing import Iterable, Protocol
-
-
-class Entity(Protocol):
-    @property
-    def is_person(self) -> bool:
-        ...
-
-
-class GroupEntity(Protocol):
-    @property
-    def containing_entities(self) -> Iterable[str]:
-        ...
-
-    @property
-    def is_person(self) -> bool:
-        ...
-
-    @property
-    def flattened_roles(self) -> Iterable[Role]:
-        ...
-
-    @property
-    def roles(self) -> Iterable[Role]:
-        ...
-
-
-class Role(Protocol):
-    ...
 
 
 class Population(Protocol):

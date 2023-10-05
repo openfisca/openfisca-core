@@ -1,5 +1,15 @@
 # Changelog
 
+## 41.4.0 [#1197](https://github.com/openfisca/openfisca-core/pull/1197)
+
+#### New features
+
+- Add `entities.find_role()` to find roles by key and `max`.
+
+#### Technical changes
+
+- Document `projectors.get_projector_from_shortcut()`.
+
 ## 41.3.0 [#1200](https://github.com/openfisca/openfisca-core/pull/1200)
 
 > As `TracingParameterNodeAtInstant` is a wrapper for `ParameterNodeAtInstant`

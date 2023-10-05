@@ -4,7 +4,7 @@ from typing import Iterable
 
 from .entity import Entity
 from .group_entity import GroupEntity
-from .role import Role
+from .typing import Role
 
 
 def build_entity(
@@ -28,7 +28,7 @@ def build_entity(
 def find_role(
     roles: Iterable[Role], key: str, *, total: int | None = None
 ) -> Role | None:
-    """Find a role in an entity.
+    """Find a Role in a GrupEntity.
 
     Args:
         group_entity (GroupEntity): The entity to search in.
