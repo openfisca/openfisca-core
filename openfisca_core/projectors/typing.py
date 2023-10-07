@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from openfisca_core.entities.typing import Entity, GroupEntity, Role
-from typing import Iterable, Protocol
+from openfisca_core.entities.typing import Entity, GroupEntity
+from typing import Protocol
 
 
 class Population(Protocol):
