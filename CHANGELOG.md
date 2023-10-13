@@ -1,5 +1,13 @@
 # Changelog
 
+## 41.2.0 [#1199](https://github.com/openfisca/openfisca-core/pull/1199)
+
+#### Technical changes
+
+- Fix `openfisca-core` Web API error triggered by `Gunicorn` < 22.0.
+  - Bump `Gunicorn` major revision to fix error on Web API.
+    Source: https://github.com/benoitc/gunicorn/issues/2564
+
 ### 41.1.2 [#1192](https://github.com/openfisca/openfisca-core/pull/1192)
 
 #### Technical changes
@@ -12,7 +20,7 @@
 
 - Skip type-checking tasks
   - Before their definition was commented out but still run with `make test`
-  - Now they're skipped but not commented, which is needed to fix the 
+  - Now they're skipped but not commented, which is needed to fix the
     underlying issues
 
 ##  41.1.0 [#1195](https://github.com/openfisca/openfisca-core/pull/1195)
