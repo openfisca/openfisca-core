@@ -43,7 +43,7 @@ general_requirements = [
 api_requirements = [
     "Flask >=2.2.3, < 3.0",
     "Flask-Cors >=3.0.10, < 4.0",
-    "gunicorn >=20.1.0, < 21.0",
+    "gunicorn >=21.0, < 22.0",
     "Werkzeug >=2.2.3, < 3.0",
 ]
 
@@ -67,7 +67,7 @@ dev_requirements = [
 
 setup(
     name="OpenFisca-Core",
-    version="41.1.2",
+    version="41.2.0",
     author="OpenFisca Team",
     author_email="contact@openfisca.org",
     classifiers=[
