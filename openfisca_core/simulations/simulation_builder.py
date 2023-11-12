@@ -288,12 +288,12 @@ class SimulationBuilder:
         persons_count = len(persons_ids)
         self.entity_ids[entity.plural] = persons_ids
         self.entity_counts[entity.plural] = persons_count
-        self.memberships[entity.plural] = numpy.arange(
+        self.memberships[entity.plural] = list(numpy.arange(
             0, persons_count, dtype=numpy.int32
-        )
-        self.roles[entity.plural] = numpy.repeat(
+        ))
+        self.roles[entity.plural] = list(numpy.repeat(
             entity.flattened_roles[0], persons_count
-        )
+        ))
 
     def add_group_entity(self, persons_plural, persons_ids, entity, instances_json):
         """
