@@ -1,5 +1,16 @@
 # Changelog
 
+## 41.3.0 [#1200](https://github.com/openfisca/openfisca-core/pull/1200)
+
+> As `TracingParameterNodeAtInstant` is a wrapper for `ParameterNodeAtInstant`
+> which allows iteration and the use of `contains`, it was not possible
+> to use those on a `TracingParameterNodeAtInstant`
+
+#### New features
+
+- Allows iterations on `TracingParameterNodeAtInstant`
+- Allows keyword `contains` on `TracingParameterNodeAtInstant`
+
 ## 41.2.0 [#1199](https://github.com/openfisca/openfisca-core/pull/1199)
 
 #### Technical changes

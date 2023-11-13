@@ -36,6 +36,12 @@ class TracingParameterNodeAtInstant:
         child = getattr(self.parameter_node_at_instant, key)
         return self.get_traced_child(child, key)
 
+    def __contains__(self, key) -> bool:
+        return key in self.parameter_node_at_instant
+
+    def __iter__(self):
+        return iter(self.parameter_node_at_instant)
+
     def __getitem__(
         self,
         key: Union[str, ArrayLike],
