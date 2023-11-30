@@ -28,7 +28,7 @@ def build_entity(
 def find_role(
     roles: Iterable[Role], key: str, *, total: int | None = None
 ) -> Role | None:
-    """Find a Role in a GrupEntity.
+    """Find a Role in a GroupEntity.
 
     Args:
         group_entity (GroupEntity): The entity to search in.
