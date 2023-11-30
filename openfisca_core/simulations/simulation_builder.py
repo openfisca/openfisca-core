@@ -1,4 +1,4 @@
-from typing import Dict, Iterable, List
+from collections.abc import Iterable
 
 import copy
 
@@ -21,26 +21,26 @@ class SimulationBuilder:
         )
 
         # JSON input - Memory of known input values. Indexed by variable or axis name.
-        self.input_buffer: Dict[
-            variables.Variable.name, Dict[str(periods.period), numpy.array]
+        self.input_buffer: dict[
+            variables.Variable.name, dict[str(periods.period), numpy.array]
         ] = {}
-        self.populations: Dict[entities.Entity.key, populations.Population] = {}
+        self.populations: dict[entities.Entity.key, populations.Population] = {}
         # JSON input - Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
-        self.entity_counts: Dict[entities.Entity.plural, int] = {}
+        self.entity_counts: dict[entities.Entity.plural, int] = {}
         # JSON input - List of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_counts``.
-        self.entity_ids: Dict[entities.Entity.plural, List[int]] = {}
+        self.entity_ids: dict[entities.Entity.plural, list[int]] = {}
 
         # Links entities with persons. For each person index in persons ids list, set entity index in entity ids id. E.g.: self.memberships[entity.plural][person_index] = entity_ids.index(instance_id)
-        self.memberships: Dict[entities.Entity.plural, List[int]] = {}
-        self.roles: Dict[entities.Entity.plural, List[int]] = {}
+        self.memberships: dict[entities.Entity.plural, list[int]] = {}
+        self.roles: dict[entities.Entity.plural, list[int]] = {}
 
-        self.variable_entities: Dict[variables.Variable.name, entities.Entity] = {}
+        self.variable_entities: dict[variables.Variable.name, entities.Entity] = {}
 
         self.axes = [[]]
-        self.axes_entity_counts: Dict[entities.Entity.plural, int] = {}
-        self.axes_entity_ids: Dict[entities.Entity.plural, List[int]] = {}
-        self.axes_memberships: Dict[entities.Entity.plural, List[int]] = {}
-        self.axes_roles: Dict[entities.Entity.plural, List[int]] = {}
+        self.axes_entity_counts: dict[entities.Entity.plural, int] = {}
+        self.axes_entity_ids: dict[entities.Entity.plural, list[int]] = {}
+        self.axes_memberships: dict[entities.Entity.plural, list[int]] = {}
+        self.axes_roles: dict[entities.Entity.plural, list[int]] = {}
 
     def build_from_dict(self, tax_benefit_system, input_dict):
         """
@@ -288,12 +288,12 @@ class SimulationBuilder:
         persons_count = len(persons_ids)
         self.entity_ids[entity.plural] = persons_ids
         self.entity_counts[entity.plural] = persons_count
-        self.memberships[entity.plural] = list(numpy.arange(
-            0, persons_count, dtype=numpy.int32
-        ))
-        self.roles[entity.plural] = list(numpy.repeat(
-            entity.flattened_roles[0], persons_count
-        ))
+        self.memberships[entity.plural] = list(
+            numpy.arange(0, persons_count, dtype=numpy.int32)
+        )
+        self.roles[entity.plural] = list(
+            numpy.repeat(entity.flattened_roles[0], persons_count)
+        )
 
     def add_group_entity(self, persons_plural, persons_ids, entity, instances_json):
         """
@@ -513,7 +513,7 @@ class SimulationBuilder:
         # We do a basic research to find the culprit path
         culprit_path = next(
             dpath.util.search(
-                json, "*/{}/{}".format(e.variable_name, str(e.period)), yielded=True
+                json, f"*/{e.variable_name}/{str(e.period)}", yielded=True
             ),
             None,
         )
@@ -620,7 +620,7 @@ class SimulationBuilder:
                 # Set input
                 self.input_buffer[axis_name][str(axis_period)] = array
         else:
-            first_axes_count: List[int] = (
+            first_axes_count: list[int] = (
                 parallel_axes[0]["count"] for parallel_axes in self.axes
             )
             axes_linspaces = [
