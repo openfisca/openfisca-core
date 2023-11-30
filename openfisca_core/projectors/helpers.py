@@ -63,7 +63,7 @@ def get_projector_from_shortcut(
 
         >>> roles = [
         ...     {"key": "person", "max": 1},
-        ...     {"key": "martian", "subroles": ["cat", "dog"]},
+        ...     {"key": "animal", "subroles": ["cat", "dog"]},
         ... ]
 
         >>> group_entity_2 = entities.GroupEntity("household", "", "", "", roles)
