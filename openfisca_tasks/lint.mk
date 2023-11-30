@@ -36,7 +36,7 @@ lint-doc-%:
 ## Run static type checkers for type errors.
 check-types:
 	@$(call print_help,$@:)
-	@mypy openfisca_core/entities
+	@mypy openfisca_core/entities openfisca_core/projectors
 	@$(call print_pass,$@:)
 
 ## Run code formatters to correct style errors.

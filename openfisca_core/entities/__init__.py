@@ -24,7 +24,7 @@
 from . import typing
 from .entity import Entity
 from .group_entity import GroupEntity
-from .helpers import build_entity
+from .helpers import build_entity, find_role
 from .role import Role
 
-__all__ = ["Entity", "GroupEntity", "Role", "build_entity", "typing"]
+__all__ = ["Entity", "GroupEntity", "Role", "build_entity", "find_role", "typing"]

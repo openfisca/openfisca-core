@@ -2,9 +2,7 @@ import typing
 
 import numpy
 
-from openfisca_core import projectors
-from openfisca_core.entities import Role
-from openfisca_core.indexed_enums import EnumArray
+from openfisca_core import entities, indexed_enums, projectors
 
 from .population import Population
 
@@ -67,7 +65,7 @@ class GroupPopulation(Population):
         return self._members_role
 
     @members_role.setter
-    def members_role(self, members_role: typing.Iterable[Role]):
+    def members_role(self, members_role: typing.Iterable[entities.Role]):
         if members_role is not None:
             self._members_role = numpy.array(list(members_role))
 
@@ -256,8 +254,8 @@ class GroupPopulation(Population):
         self.members.check_array_compatible_with_entity(array)
         members_map = self.ordered_members_map
         result = self.filled_array(default, dtype=array.dtype)
-        if isinstance(array, EnumArray):
-            result = EnumArray(result, array.possible_values)
+        if isinstance(array, indexed_enums.EnumArray):
+            result = indexed_enums.EnumArray(result, array.possible_values)
         role_filter = self.members.has_role(role)
         entity_filter = self.any(role_filter)
 
@@ -287,8 +285,8 @@ class GroupPopulation(Population):
             positions[members_map] == n
         ]
 
-        if isinstance(array, EnumArray):
-            result = EnumArray(result, array.possible_values)
+        if isinstance(array, indexed_enums.EnumArray):
+            result = indexed_enums.EnumArray(result, array.possible_values)
 
         return result
 

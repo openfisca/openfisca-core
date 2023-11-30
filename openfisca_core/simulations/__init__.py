@@ -35,3 +35,15 @@ from .helpers import (  # noqa: F401
 )
 from .simulation import Simulation  # noqa: F401
 from .simulation_builder import SimulationBuilder  # noqa: F401
+
+__all__ = [
+    "CycleError",
+    "NaNCreationError",
+    "Simulation",
+    "SimulationBuilder",
+    "SpiralError",
+    "calculate_output_add",
+    "calculate_output_divide",
+    "check_type",
+    "transform_to_strict_syntax",
+]

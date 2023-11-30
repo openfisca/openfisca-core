@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping
 from typing import Any
 
 import dataclasses
@@ -57,7 +57,7 @@ class Role:
     max: int | None = None
 
     #: A list of subroles.
-    subroles: Sequence[Role] | None = None
+    subroles: Iterable[Role] | None = None
 
     @property
     def key(self) -> str:

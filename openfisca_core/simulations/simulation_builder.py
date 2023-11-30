@@ -5,16 +5,10 @@ import copy
 import dpath.util
 import numpy
 
-from openfisca_core import periods
-from openfisca_core.entities import Entity
-from openfisca_core.errors import (
-    PeriodMismatchError,
-    SituationParsingError,
-    VariableNotFoundError,
-)
-from openfisca_core.populations import Population
-from openfisca_core.simulations import Simulation, helpers
-from openfisca_core.variables import Variable
+from openfisca_core import entities, errors, periods, populations, variables
+
+from . import helpers
+from .simulation import Simulation
 
 
 class SimulationBuilder:
@@ -28,25 +22,25 @@ class SimulationBuilder:
 
         # JSON input - Memory of known input values. Indexed by variable or axis name.
         self.input_buffer: Dict[
-            Variable.name, Dict[str(periods.period), numpy.array]
+            variables.Variable.name, Dict[str(periods.period), numpy.array]
         ] = {}
-        self.populations: Dict[Entity.key, Population] = {}
+        self.populations: Dict[entities.Entity.key, populations.Population] = {}
         # JSON input - Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
-        self.entity_counts: Dict[Entity.plural, int] = {}
+        self.entity_counts: Dict[entities.Entity.plural, int] = {}
         # JSON input - List of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_counts``.
-        self.entity_ids: Dict[Entity.plural, List[int]] = {}
+        self.entity_ids: Dict[entities.Entity.plural, List[int]] = {}
 
         # Links entities with persons. For each person index in persons ids list, set entity index in entity ids id. E.g.: self.memberships[entity.plural][person_index] = entity_ids.index(instance_id)
-        self.memberships: Dict[Entity.plural, List[int]] = {}
-        self.roles: Dict[Entity.plural, List[int]] = {}
+        self.memberships: Dict[entities.Entity.plural, List[int]] = {}
+        self.roles: Dict[entities.Entity.plural, List[int]] = {}
 
-        self.variable_entities: Dict[Variable.name, Entity] = {}
+        self.variable_entities: Dict[variables.Variable.name, entities.Entity] = {}
 
         self.axes = [[]]
-        self.axes_entity_counts: Dict[Entity.plural, int] = {}
-        self.axes_entity_ids: Dict[Entity.plural, List[int]] = {}
-        self.axes_memberships: Dict[Entity.plural, List[int]] = {}
-        self.axes_roles: Dict[Entity.plural, List[int]] = {}
+        self.axes_entity_counts: Dict[entities.Entity.plural, int] = {}
+        self.axes_entity_ids: Dict[entities.Entity.plural, List[int]] = {}
+        self.axes_memberships: Dict[entities.Entity.plural, List[int]] = {}
+        self.axes_roles: Dict[entities.Entity.plural, List[int]] = {}
 
     def build_from_dict(self, tax_benefit_system, input_dict):
         """
@@ -99,7 +93,7 @@ class SimulationBuilder:
         ]
         if unexpected_entities:
             unexpected_entity = unexpected_entities[0]
-            raise SituationParsingError(
+            raise errors.SituationParsingError(
                 [unexpected_entity],
                 "".join(
                     [
@@ -115,7 +109,7 @@ class SimulationBuilder:
         persons_json = input_dict.get(tax_benefit_system.person_entity.plural, None)
 
         if not persons_json:
-            raise SituationParsingError(
+            raise errors.SituationParsingError(
                 [tax_benefit_system.person_entity.plural],
                 "No {0} found. At least one {0} must be defined to run a simulation.".format(
                     tax_benefit_system.person_entity.key
@@ -139,14 +133,14 @@ class SimulationBuilder:
 
         try:
             self.finalize_variables_init(simulation.persons)
-        except PeriodMismatchError as e:
+        except errors.PeriodMismatchError as e:
             self.raise_period_mismatch(simulation.persons.entity, persons_json, e)
 
         for entity_class in tax_benefit_system.group_entities:
             try:
                 population = simulation.populations[entity_class.key]
                 self.finalize_variables_init(population)
-            except PeriodMismatchError as e:
+            except errors.PeriodMismatchError as e:
                 self.raise_period_mismatch(population.entity, instances_json, e)
 
         return simulation
@@ -168,7 +162,7 @@ class SimulationBuilder:
         for variable, value in input_dict.items():
             if not isinstance(value, dict):
                 if self.default_period is None:
-                    raise SituationParsingError(
+                    raise errors.SituationParsingError(
                         [variable],
                         "Can't deal with type: expected object. Input variables should be set for specific periods. For instance: {'salary': {'2017-01': 2000, '2017-02': 2500}}, or {'birth_date': {'ETERNITY': '1980-01-01'}}.",
                     )
@@ -358,7 +352,7 @@ class SimulationBuilder:
                 role = role_by_plural[role_plural]
 
                 if role.max is not None and len(persons_with_role) > role.max:
-                    raise SituationParsingError(
+                    raise errors.SituationParsingError(
                         [entity.plural, instance_id, role_plural],
                         f"There can be at most {role.max} {role_plural} in a {entity.key}. {len(persons_with_role)} were declared in '{instance_id}'.",
                     )
@@ -413,14 +407,14 @@ class SimulationBuilder:
             person_id, str, [entity_plural, entity_id, role_id, str(index)]
         )
         if person_id not in persons_ids:
-            raise SituationParsingError(
+            raise errors.SituationParsingError(
                 [entity_plural, entity_id, role_id],
                 "Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(
                     person_id, entity_id, role_id, persons_plural
                 ),
             )
         if person_id not in persons_to_allocate:
-            raise SituationParsingError(
+            raise errors.SituationParsingError(
                 [entity_plural, entity_id, role_id],
                 "{} has been declared more than once in {}".format(
                     person_id, entity_plural
@@ -433,15 +427,15 @@ class SimulationBuilder:
             try:
                 entity.check_variable_defined_for_entity(variable_name)
             except ValueError as e:  # The variable is defined for another entity
-                raise SituationParsingError(path_in_json, e.args[0])
-            except VariableNotFoundError as e:  # The variable doesn't exist
-                raise SituationParsingError(path_in_json, str(e), code=404)
+                raise errors.SituationParsingError(path_in_json, e.args[0])
+            except errors.VariableNotFoundError as e:  # The variable doesn't exist
+                raise errors.SituationParsingError(path_in_json, str(e), code=404)
 
             instance_index = self.get_ids(entity.plural).index(instance_id)
 
             if not isinstance(variable_values, dict):
                 if self.default_period is None:
-                    raise SituationParsingError(
+                    raise errors.SituationParsingError(
                         path_in_json,
                         "Can't deal with type: expected object. Input variables should be set for specific periods. For instance: {'salary': {'2017-01': 2000, '2017-02': 2500}}, or {'birth_date': {'ETERNITY': '1980-01-01'}}.",
                     )
@@ -451,7 +445,7 @@ class SimulationBuilder:
                 try:
                     periods.period(period_str)
                 except ValueError as e:
-                    raise SituationParsingError(path_in_json, e.args[0])
+                    raise errors.SituationParsingError(path_in_json, e.args[0])
                 variable = entity.get_variable(variable_name)
                 self.add_variable_value(
                     entity, variable, instance_index, instance_id, period_str, value
@@ -474,7 +468,7 @@ class SimulationBuilder:
         try:
             value = variable.check_set_value(value)
         except ValueError as error:
-            raise SituationParsingError(path_in_json, *error.args)
+            raise errors.SituationParsingError(path_in_json, *error.args)
 
         array[instance_index] = value
 
@@ -530,7 +524,7 @@ class SimulationBuilder:
                 entity.plural
             ]  # Fallback: if we can't find the culprit, just set the error at the entities level
 
-        raise SituationParsingError(path, e.message)
+        raise errors.SituationParsingError(path, e.message)
 
     # Returns the total number of instances of this entity, including when there is replication along axes
     def get_count(self, entity_name):
