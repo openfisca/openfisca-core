@@ -8,7 +8,9 @@ import numpy
 from openfisca_core import entities, errors, periods, populations, variables
 
 from . import helpers
+from ._axis import _Axis
 from .simulation import Simulation
+from .typing import AxisParams
 
 
 class SimulationBuilder:
@@ -128,7 +130,13 @@ class SimulationBuilder:
                 self.add_default_group_entity(persons_ids, entity_class)
 
         if axes:
-            self.axes = axes
+            for axis in axes[0]:
+                self.add_parallel_axis(axis)
+
+            if len(axes) >= 1:
+                for axis in axes[1:]:
+                    self.add_perpendicular_axis(axis[0])
+
             self.expand_axes()
 
         try:
@@ -546,14 +554,14 @@ class SimulationBuilder:
         # Return empty array for the "persons" entity
         return self.axes_roles.get(entity_name, self.roles.get(entity_name, []))
 
-    def add_parallel_axis(self, axis):
+    def add_parallel_axis(self, axis: AxisParams) -> None:
         # All parallel axes have the same count and entity.
         # Search for a compatible axis, if none exists, error out
-        self.axes[0].append(axis)
+        self.axes[0].append(_Axis(**axis))
 
-    def add_perpendicular_axis(self, axis):
+    def add_perpendicular_axis(self, axis: AxisParams) -> None:
         # This adds an axis perpendicular to all previous dimensions
-        self.axes.append([axis])
+        self.axes.append([_Axis(**axis)])
 
     def expand_axes(self):
         # This method should be idempotent & allow change in axes
@@ -562,7 +570,7 @@ class SimulationBuilder:
         cell_count = 1
         for parallel_axes in perpendicular_dimensions:
             first_axis = parallel_axes[0]
-            axis_count = first_axis["count"]
+            axis_count = first_axis.count
             cell_count *= axis_count
 
         # Scale the "prototype" situation, repeating it cell_count times
@@ -598,14 +606,14 @@ class SimulationBuilder:
         if len(self.axes) == 1 and len(self.axes[0]):
             parallel_axes = self.axes[0]
             first_axis = parallel_axes[0]
-            axis_count: int = first_axis["count"]
-            axis_entity = self.get_variable_entity(first_axis["name"])
+            axis_count: int = first_axis.count
+            axis_entity = self.get_variable_entity(first_axis.name)
             axis_entity_step_size = self.entity_counts[axis_entity.plural]
             # Distribute values along axes
             for axis in parallel_axes:
-                axis_index = axis.get("index", 0)
-                axis_period = axis.get("period", self.default_period)
-                axis_name = axis["name"]
+                axis_index = axis.index
+                axis_period = axis.period or self.default_period
+                axis_name = axis.name
                 variable = axis_entity.get_variable(axis_name)
                 array = self.get_input(axis_name, str(axis_period))
                 if array is None:
@@ -613,15 +621,15 @@ class SimulationBuilder:
                 elif array.size == axis_entity_step_size:
                     array = numpy.tile(array, axis_count)
                 array[axis_index::axis_entity_step_size] = numpy.linspace(
-                    axis["min"],
-                    axis["max"],
+                    axis.min,
+                    axis.max,
                     num=axis_count,
                 )
                 # Set input
                 self.input_buffer[axis_name][str(axis_period)] = array
         else:
             first_axes_count: list[int] = (
-                parallel_axes[0]["count"] for parallel_axes in self.axes
+                parallel_axes[0].count for parallel_axes in self.axes
             )
             axes_linspaces = [
                 numpy.linspace(0, axis_count - 1, num=axis_count)
@@ -630,14 +638,14 @@ class SimulationBuilder:
             axes_meshes = numpy.meshgrid(*axes_linspaces)
             for parallel_axes, mesh in zip(self.axes, axes_meshes):
                 first_axis = parallel_axes[0]
-                axis_count = first_axis["count"]
-                axis_entity = self.get_variable_entity(first_axis["name"])
+                axis_count = first_axis.count
+                axis_entity = self.get_variable_entity(first_axis.name)
                 axis_entity_step_size = self.entity_counts[axis_entity.plural]
                 # Distribute values along the grid
                 for axis in parallel_axes:
-                    axis_index = axis.get("index", 0)
-                    axis_period = axis["period"] or self.default_period
-                    axis_name = axis["name"]
+                    axis_index = axis.index
+                    axis_period = axis.period or self.default_period
+                    axis_name = axis.name
                     variable = axis_entity.get_variable(axis_name)
                     array = self.get_input(axis_name, str(axis_period))
                     if array is None:
@@ -646,11 +654,9 @@ class SimulationBuilder:
                         )
                     elif array.size == axis_entity_step_size:
                         array = numpy.tile(array, cell_count)
-                    array[axis_index::axis_entity_step_size] = axis[
-                        "min"
-                    ] + mesh.reshape(cell_count) * (axis["max"] - axis["min"]) / (
-                        axis_count - 1
-                    )
+                    array[axis_index::axis_entity_step_size] = axis.min + mesh.reshape(
+                        cell_count
+                    ) * (axis.max - axis.min) / (axis_count - 1)
                     self.input_buffer[axis_name][str(axis_period)] = array
 
     def get_variable_entity(self, variable_name: str):
