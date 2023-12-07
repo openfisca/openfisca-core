@@ -13,37 +13,65 @@ from openfisca_core import errors, periods
 from . import helpers
 from ._axis import _Axis
 from .simulation import Simulation
-from .typing import AxisParams, Entity, Population, Role
+from .typing import AxisParams, Entity, GroupPopulation, Role
 
 
 class SimulationBuilder:
+    #: Simulation period used for variables when no period is defined
+    default_period: str | None = None
+
+    #: Plural name for person entity in current tax and benefits system
+    persons_plural: str | None = None
+
+    #: JSON input - Memory of known input values. Indexed by variable or
+    #: axis name.
+    input_buffer: dict[str, dict[str, Array]] = {}
+
+    #: ?
+    populations: dict[str, GroupPopulation] = {}
+
+    #: JSON input - Number of items of each entity type. Indexed by entities
+    # plural names. Should be consistent with ``entity_ids``, including axes.
+    entity_counts: dict[str, int]
+
+    #: JSON input - List of items of each entity type. Indexed by entities
+    #: plural names. Should be consistent with ``entity_counts``.
+    entity_ids: dict[str, list[str]] = {}
+
+    #: Links entities with persons. For each person index in persons ids list,
+    #: set entity index in entity ids id.
+    memberships: dict[str, list[int]] = {}
+
+    #: ?
+    roles: dict[str, list[Role]] = {}
+
+    #: ?
+    variable_entities: dict[str, Entity] = {}
+
+    #: Axes use for axes expansion.
+    axes: list[list[_Axis]]
+
+    #: ?
+    axes_entity_counts: dict[str, int]
+
+    #: ?
+    axes_entity_ids: dict[str, list[str]]
+
+    #: ?
+    axes_memberships: dict[str, list[int]]
+
+    #: ?
+    axes_roles: dict[str, list[Role]]
+
     def __init__(self):
-        self.default_period = (
-            None  # Simulation period used for variables when no period is defined
-        )
-        self.persons_plural = (
-            None  # Plural name for person entity in current tax and benefits system
-        )
-
-        # JSON input - Memory of known input values. Indexed by variable or axis name.
         self.input_buffer: dict[str, dict[str, Array]] = {}
-        self.populations: dict[str, Population] = {}
-        # JSON input - Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
         self.entity_counts: dict[str, int] = {}
-        # JSON input - List of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_counts``.
-        self.entity_ids: dict[str, list[int]] = {}
-
-        # Links entities with persons. For each person index in persons ids list, set entity index in entity ids id. E.g.: self.memberships[entity.plural][person_index] = entity_ids.index(instance_id)
-        self.memberships: dict[str, list[int]] = {}
-        self.roles: dict[str, list[int]] = {}
-
-        self.variable_entities: dict[str, Entity] = {}
-
         self.axes = [[]]
         self.axes_entity_counts: dict[str, int] = {}
         self.axes_entity_ids: dict[str, list[str]] = {}
         self.axes_memberships: dict[str, list[int]] = {}
         self.axes_roles: dict[str, list[int]] = {}
+
 
     def build_from_dict(self, tax_benefit_system, input_dict):
         """
