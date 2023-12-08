@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from numpy.typing import NDArray as Array
 from openfisca_core.types import Formula, Instant
 from typing import Optional, Union
 
@@ -468,7 +467,7 @@ class Variable:
 
         return value
 
-    def default_array(self, array_size: int) -> Array:
+    def default_array(self, array_size):
         array = numpy.empty(array_size, dtype=self.dtype)
         if self.value_type == Enum:
             array.fill(self.default_value.index)

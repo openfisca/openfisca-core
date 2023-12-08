@@ -20,6 +20,10 @@ from openfisca_core.tracers import (
 from .parameters_fancy_indexing.test_fancy_indexing import parameters
 
 
+class TestException(Exception):
+    ...
+
+
 class StubSimulation(Simulation):
     def __init__(self):
         self.exception = None
@@ -91,9 +95,9 @@ def test_tracer_contract(tracer):
 def test_exception_robustness():
     simulation = StubSimulation()
     simulation.tracer = MockTracer()
-    simulation.exception = Exception(":-o")
+    simulation.exception = TestException(":-o")
 
-    with raises(Exception):
+    with raises(TestException):
         simulation.calculate("a", 2017)
 
     assert simulation.tracer.calculation_start_recorded

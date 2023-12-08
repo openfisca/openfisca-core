@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Dict, NamedTuple, Optional, Set, Union
+from openfisca_core.types import Population, TaxBenefitSystem, Variable
+from typing import Dict, NamedTuple, Optional, Set
 
 import tempfile
 import warnings
@@ -10,8 +11,6 @@ import numpy
 from openfisca_core import commons, errors, indexed_enums, periods, tracers
 from openfisca_core import warnings as core_warnings
 
-from .typing import GroupPopulation, SinglePopulation, TaxBenefitSystem, Variable
-
 
 class Simulation:
     """
@@ -19,13 +18,13 @@ class Simulation:
     """
 
     tax_benefit_system: TaxBenefitSystem
-    populations: Dict[str, Union[SinglePopulation, GroupPopulation]]
+    populations: Dict[str, Population]
     invalidated_caches: Set[Cache]
 
     def __init__(
         self,
         tax_benefit_system: TaxBenefitSystem,
-        populations: Dict[str, Union[SinglePopulation, GroupPopulation]],
+        populations: Dict[str, Population],
     ):
         """
         This constructor is reserved for internal use; see :any:`SimulationBuilder`,
@@ -531,7 +530,7 @@ class Simulation:
             return
         self.get_holder(variable_name).set_input(period, value)
 
-    def get_variable_population(self, variable_name: str) -> GroupPopulation:
+    def get_variable_population(self, variable_name: str) -> Population:
         variable: Optional[Variable]
 
         variable = self.tax_benefit_system.get_variable(
@@ -543,7 +542,7 @@ class Simulation:
 
         return self.populations[variable.entity.key]
 
-    def get_population(self, plural: Optional[str] = None) -> Optional[GroupPopulation]:
+    def get_population(self, plural: Optional[str] = None) -> Optional[Population]:
         return next(
             (
                 population
@@ -556,7 +555,7 @@ class Simulation:
     def get_entity(
         self,
         plural: Optional[str] = None,
-    ) -> Optional[GroupPopulation]:
+    ) -> Optional[Population]:
         population = self.get_population(plural)
         return population and population.entity
 
