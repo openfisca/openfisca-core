@@ -102,22 +102,21 @@ class SimulationBuilder:
         :return: A :any:`Simulation`
         """
 
-        if is_impl_spec(
-            params := input_dict, tax_benefit_system.entities_by_singular()
-        ):
-            expl = self.explicit_singular_entities(tax_benefit_system, params)
+        variables = tax_benefit_system.variables.keys()
+
+        singular = tax_benefit_system.entities_by_singular()
+
+        plural = tax_benefit_system.entities_plural()
+
+        if is_impl_spec(input_dict, singular):
+            expl = self.explicit_singular_entities(tax_benefit_system, input_dict)
             return self.build_from_entities(tax_benefit_system, expl)
 
-        if is_expl_spec(input_dict, tax_benefit_system.entities_plural()):
+        if is_expl_spec(input_dict, plural):
             return self.build_from_entities(tax_benefit_system, input_dict)
 
-        if is_axes_spec(input_dict):
-            raise ValueError("#TODO")
-
-        if is_abbr_spec(params := input_dict, tax_benefit_system.variables.keys()):
-            return self.build_from_variables(tax_benefit_system, params)
-
-        raise ValueError("#TODO")
+        if is_abbr_spec(input_dict, variables):
+            return self.build_from_variables(tax_benefit_system, input_dict)
 
     def build_from_entities(
         self,
@@ -178,9 +177,6 @@ class SimulationBuilder:
 
         person_entity: SingleEntity = tax_benefit_system.person_entity
 
-        if person_entity.plural is None:
-            raise ValueError("#TODO")
-
         persons_json = params.get(person_entity.plural, None)
 
         if not persons_json:
@@ -200,6 +196,17 @@ class SimulationBuilder:
                 self.add_group_entity(
                     self.persons_plural, persons_ids, entity_class, instances_json
                 )
+
+            elif axes:
+                raise errors.SituationParsingError(
+                    [entity_class.plural],
+                    f"We could not find any specified {entity_class.plural}. "
+                    "In order to expand over axes, all group entities and roles "
+                    "must be fully specified. For further support, please do "
+                    "not hesitate to take a look at the official documentation: "
+                    "https://openfisca.org/doc/simulate/replicate-simulation-inputs.html.",
+                )
+
             else:
                 self.add_default_group_entity(persons_ids, entity_class)
 
@@ -354,9 +361,6 @@ class SimulationBuilder:
         """
         Add the simulation's instances of the persons entity as described in ``instances_json``.
         """
-        if entity.plural is None:
-            raise ValueError("#TODO")
-
         helpers.check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
         self.persons_plural = entity.plural
@@ -372,9 +376,6 @@ class SimulationBuilder:
     def add_default_group_entity(
         self, persons_ids: list[str], entity: GroupEntity
     ) -> None:
-        if entity.plural is None:
-            raise ValueError("#TODO")
-
         persons_count = len(persons_ids)
         roles = list(entity.flattened_roles)
         self.entity_ids[entity.plural] = persons_ids
@@ -394,9 +395,6 @@ class SimulationBuilder:
         """
         Add all instances of one of the model's entities as described in ``instances_json``.
         """
-        if entity.plural is None:
-            raise ValueError("#TODO")
-
         helpers.check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
 
