@@ -14,7 +14,6 @@ import sortedcontainers
 from openfisca_core import periods, tools
 from openfisca_core.entities import Entity, GroupEntity
 from openfisca_core.indexed_enums import Enum, EnumArray
-from openfisca_core.periods import DateUnit, Period
 
 from . import config, helpers
 
@@ -136,7 +135,7 @@ class Variable:
             )
         self.entity = self.set(attr, "entity", required=True, setter=self.set_entity)
         self.definition_period = self.set(
-            attr, "definition_period", required=True, allowed_values=DateUnit
+            attr, "definition_period", required=True, allowed_values=periods.DateUnit
         )
         self.label = self.set(attr, "label", allowed_type=str, setter=self.set_label)
         self.end = self.set(attr, "end", allowed_type=str, setter=self.set_end)
@@ -374,7 +373,7 @@ class Variable:
 
     def get_formula(
         self,
-        period: Union[Instant, Period, str, int] = None,
+        period: Union[Instant, periods.Period, str, int] = None,
     ) -> Optional[Formula]:
         """Returns the formula to compute the variable at the given period.
 
@@ -399,7 +398,7 @@ class Variable:
                 1
             ]  # peekitem gets the 1st key-value tuple (the oldest start_date and formula). Return the formula.
 
-        if isinstance(period, Period):
+        if isinstance(period, periods.Period):
             instant = period.start
         else:
             try:

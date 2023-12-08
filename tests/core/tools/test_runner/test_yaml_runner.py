@@ -5,9 +5,8 @@ import os
 import numpy
 import pytest
 
-from openfisca_core import errors
+from openfisca_core import errors, periods
 from openfisca_core.entities import Entity
-from openfisca_core.periods import DateUnit
 from openfisca_core.populations import Population
 from openfisca_core.tools.test_runner import YamlFile, YamlItem, _get_tax_benefit_system
 from openfisca_core.variables import Variable
@@ -73,7 +72,7 @@ class TestItem(YamlItem):
 
 
 class TestVariable(Variable):
-    definition_period = DateUnit.ETERNITY
+    definition_period = periods.ETERNITY
     value_type = float
 
     def __init__(self):

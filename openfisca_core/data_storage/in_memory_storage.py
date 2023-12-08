@@ -1,7 +1,6 @@
 import numpy
 
 from openfisca_core import periods
-from openfisca_core.periods import DateUnit
 
 
 class InMemoryStorage:
@@ -15,7 +14,7 @@ class InMemoryStorage:
 
     def get(self, period):
         if self.is_eternal:
-            period = periods.period(DateUnit.ETERNITY)
+            period = periods.period(periods.ETERNITY)
         period = periods.period(period)
 
         values = self._arrays.get(period)
@@ -25,7 +24,7 @@ class InMemoryStorage:
 
     def put(self, value, period):
         if self.is_eternal:
-            period = periods.period(DateUnit.ETERNITY)
+            period = periods.period(periods.ETERNITY)
         period = periods.period(period)
 
         self._arrays[period] = value
@@ -36,7 +35,7 @@ class InMemoryStorage:
             return
 
         if self.is_eternal:
-            period = periods.period(DateUnit.ETERNITY)
+            period = periods.period(periods.ETERNITY)
         period = periods.period(period)
 
         self._arrays = {

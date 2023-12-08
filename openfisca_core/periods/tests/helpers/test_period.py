@@ -9,14 +9,26 @@ from openfisca_core.periods import DateUnit, Instant, Period
 @pytest.mark.parametrize(
     "arg, expected",
     [
-        ["eternity", Period((DateUnit.ETERNITY, Instant((1, 1, 1)), float("inf")))],
-        ["ETERNITY", Period((DateUnit.ETERNITY, Instant((1, 1, 1)), float("inf")))],
+        [
+            "eternity",
+            Period((DateUnit.ETERNITY, Instant((1, 1, 1)), float("inf"))),
+        ],
+        [
+            "ETERNITY",
+            Period((DateUnit.ETERNITY, Instant((1, 1, 1)), float("inf"))),
+        ],
         [
             DateUnit.ETERNITY,
             Period((DateUnit.ETERNITY, Instant((1, 1, 1)), float("inf"))),
         ],
-        [datetime.date(1, 1, 1), Period((DateUnit.DAY, Instant((1, 1, 1)), 1))],
-        [Instant((1, 1, 1)), Period((DateUnit.DAY, Instant((1, 1, 1)), 1))],
+        [
+            datetime.date(1, 1, 1),
+            Period((DateUnit.DAY, Instant((1, 1, 1)), 1)),
+        ],
+        [
+            Instant((1, 1, 1)),
+            Period((DateUnit.DAY, Instant((1, 1, 1)), 1)),
+        ],
         [
             Period((DateUnit.DAY, Instant((1, 1, 1)), 365)),
             Period((DateUnit.DAY, Instant((1, 1, 1)), 365)),
@@ -29,37 +41,127 @@ from openfisca_core.periods import DateUnit, Instant, Period
         ["1001", Period((DateUnit.YEAR, Instant((1001, 1, 1)), 1))],
         ["1001-01", Period((DateUnit.MONTH, Instant((1001, 1, 1)), 1))],
         ["1001-01-01", Period((DateUnit.DAY, Instant((1001, 1, 1)), 1))],
-        ["1004-02-29", Period((DateUnit.DAY, Instant((1004, 2, 29)), 1))],
-        ["1001-W01", Period((DateUnit.WEEK, Instant((1000, 12, 29)), 1))],
-        ["1001-W01-1", Period((DateUnit.WEEKDAY, Instant((1000, 12, 29)), 1))],
+        [
+            "1004-02-29",
+            Period((DateUnit.DAY, Instant((1004, 2, 29)), 1)),
+        ],
+        [
+            "1001-W01",
+            Period((DateUnit.WEEK, Instant((1000, 12, 29)), 1)),
+        ],
+        [
+            "1001-W01-1",
+            Period((DateUnit.WEEKDAY, Instant((1000, 12, 29)), 1)),
+        ],
         ["year:1001", Period((DateUnit.YEAR, Instant((1001, 1, 1)), 1))],
-        ["year:1001-01", Period((DateUnit.YEAR, Instant((1001, 1, 1)), 1))],
-        ["year:1001-01-01", Period((DateUnit.YEAR, Instant((1001, 1, 1)), 1))],
-        ["year:1001-W01", Period((DateUnit.YEAR, Instant((1000, 12, 29)), 1))],
-        ["year:1001-W01-1", Period((DateUnit.YEAR, Instant((1000, 12, 29)), 1))],
-        ["year:1001:1", Period((DateUnit.YEAR, Instant((1001, 1, 1)), 1))],
-        ["year:1001-01:1", Period((DateUnit.YEAR, Instant((1001, 1, 1)), 1))],
-        ["year:1001-01-01:1", Period((DateUnit.YEAR, Instant((1001, 1, 1)), 1))],
-        ["year:1001-W01:1", Period((DateUnit.YEAR, Instant((1000, 12, 29)), 1))],
-        ["year:1001-W01-1:1", Period((DateUnit.YEAR, Instant((1000, 12, 29)), 1))],
-        ["year:1001:3", Period((DateUnit.YEAR, Instant((1001, 1, 1)), 3))],
-        ["year:1001-01:3", Period((DateUnit.YEAR, Instant((1001, 1, 1)), 3))],
-        ["year:1001-01-01:3", Period((DateUnit.YEAR, Instant((1001, 1, 1)), 3))],
-        ["year:1001-W01:3", Period((DateUnit.YEAR, Instant((1000, 12, 29)), 3))],
-        ["year:1001-W01-1:3", Period((DateUnit.YEAR, Instant((1000, 12, 29)), 3))],
-        ["month:1001-01", Period((DateUnit.MONTH, Instant((1001, 1, 1)), 1))],
-        ["month:1001-01-01", Period((DateUnit.MONTH, Instant((1001, 1, 1)), 1))],
-        ["week:1001-W01", Period((DateUnit.WEEK, Instant((1000, 12, 29)), 1))],
-        ["week:1001-W01-1", Period((DateUnit.WEEK, Instant((1000, 12, 29)), 1))],
-        ["month:1001-01:1", Period((DateUnit.MONTH, Instant((1001, 1, 1)), 1))],
-        ["month:1001-01:3", Period((DateUnit.MONTH, Instant((1001, 1, 1)), 3))],
-        ["month:1001-01-01:3", Period((DateUnit.MONTH, Instant((1001, 1, 1)), 3))],
-        ["week:1001-W01:1", Period((DateUnit.WEEK, Instant((1000, 12, 29)), 1))],
-        ["week:1001-W01:3", Period((DateUnit.WEEK, Instant((1000, 12, 29)), 3))],
-        ["week:1001-W01-1:3", Period((DateUnit.WEEK, Instant((1000, 12, 29)), 3))],
-        ["day:1001-01-01", Period((DateUnit.DAY, Instant((1001, 1, 1)), 1))],
-        ["day:1001-01-01:3", Period((DateUnit.DAY, Instant((1001, 1, 1)), 3))],
-        ["weekday:1001-W01-1", Period((DateUnit.WEEKDAY, Instant((1000, 12, 29)), 1))],
+        [
+            "year:1001-01",
+            Period((DateUnit.YEAR, Instant((1001, 1, 1)), 1)),
+        ],
+        [
+            "year:1001-01-01",
+            Period((DateUnit.YEAR, Instant((1001, 1, 1)), 1)),
+        ],
+        [
+            "year:1001-W01",
+            Period((DateUnit.YEAR, Instant((1000, 12, 29)), 1)),
+        ],
+        [
+            "year:1001-W01-1",
+            Period((DateUnit.YEAR, Instant((1000, 12, 29)), 1)),
+        ],
+        [
+            "year:1001:1",
+            Period((DateUnit.YEAR, Instant((1001, 1, 1)), 1)),
+        ],
+        [
+            "year:1001-01:1",
+            Period((DateUnit.YEAR, Instant((1001, 1, 1)), 1)),
+        ],
+        [
+            "year:1001-01-01:1",
+            Period((DateUnit.YEAR, Instant((1001, 1, 1)), 1)),
+        ],
+        [
+            "year:1001-W01:1",
+            Period((DateUnit.YEAR, Instant((1000, 12, 29)), 1)),
+        ],
+        [
+            "year:1001-W01-1:1",
+            Period((DateUnit.YEAR, Instant((1000, 12, 29)), 1)),
+        ],
+        [
+            "year:1001:3",
+            Period((DateUnit.YEAR, Instant((1001, 1, 1)), 3)),
+        ],
+        [
+            "year:1001-01:3",
+            Period((DateUnit.YEAR, Instant((1001, 1, 1)), 3)),
+        ],
+        [
+            "year:1001-01-01:3",
+            Period((DateUnit.YEAR, Instant((1001, 1, 1)), 3)),
+        ],
+        [
+            "year:1001-W01:3",
+            Period((DateUnit.YEAR, Instant((1000, 12, 29)), 3)),
+        ],
+        [
+            "year:1001-W01-1:3",
+            Period((DateUnit.YEAR, Instant((1000, 12, 29)), 3)),
+        ],
+        [
+            "month:1001-01",
+            Period((DateUnit.MONTH, Instant((1001, 1, 1)), 1)),
+        ],
+        [
+            "month:1001-01-01",
+            Period((DateUnit.MONTH, Instant((1001, 1, 1)), 1)),
+        ],
+        [
+            "week:1001-W01",
+            Period((DateUnit.WEEK, Instant((1000, 12, 29)), 1)),
+        ],
+        [
+            "week:1001-W01-1",
+            Period((DateUnit.WEEK, Instant((1000, 12, 29)), 1)),
+        ],
+        [
+            "month:1001-01:1",
+            Period((DateUnit.MONTH, Instant((1001, 1, 1)), 1)),
+        ],
+        [
+            "month:1001-01:3",
+            Period((DateUnit.MONTH, Instant((1001, 1, 1)), 3)),
+        ],
+        [
+            "month:1001-01-01:3",
+            Period((DateUnit.MONTH, Instant((1001, 1, 1)), 3)),
+        ],
+        [
+            "week:1001-W01:1",
+            Period((DateUnit.WEEK, Instant((1000, 12, 29)), 1)),
+        ],
+        [
+            "week:1001-W01:3",
+            Period((DateUnit.WEEK, Instant((1000, 12, 29)), 3)),
+        ],
+        [
+            "week:1001-W01-1:3",
+            Period((DateUnit.WEEK, Instant((1000, 12, 29)), 3)),
+        ],
+        [
+            "day:1001-01-01",
+            Period((DateUnit.DAY, Instant((1001, 1, 1)), 1)),
+        ],
+        [
+            "day:1001-01-01:3",
+            Period((DateUnit.DAY, Instant((1001, 1, 1)), 3)),
+        ],
+        [
+            "weekday:1001-W01-1",
+            Period((DateUnit.WEEKDAY, Instant((1000, 12, 29)), 1)),
+        ],
         [
             "weekday:1001-W01-1:3",
             Period((DateUnit.WEEKDAY, Instant((1000, 12, 29)), 3)),

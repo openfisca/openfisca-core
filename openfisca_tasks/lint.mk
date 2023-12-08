@@ -1,5 +1,5 @@
 ## Lint the codebase.
-lint: check-syntax-errors check-style lint-doc
+lint: check-syntax-errors check-style lint-doc check-types
 	@$(call print_pass,$@:)
 
 ## Compile python files to check for syntax errors.
@@ -20,8 +20,12 @@ check-style: $(shell git ls-files "*.py")
 lint-doc: \
 	lint-doc-commons \
 	lint-doc-entities \
-	lint-doc-types \
 	;
+	@flake8 --select=D101,D102,D103,DAR \
+		openfisca_core/simulations/_build_default_simulation.py \
+		openfisca_core/simulations/_build_from_variables.py \
+		openfisca_core/simulations/_guards.py \
+		openfisca_core/simulations/_rules.py
 
 ## Run linters to check for syntax and style errors in the doc.
 lint-doc-%:
@@ -29,7 +33,7 @@ lint-doc-%:
 	@##
 	@## They can be integrated into setup.cfg once all checks pass.
 	@## The reason they're here is because otherwise we wouldn't be
-	@## able to integrate documentation improvements progresively.
+	@## able to integrate documentation improvements progressively.
 	@##
 	@$(call print_help,$(subst $*,%,$@:))
 	@flake8 --select=D101,D102,D103,DAR openfisca_core/$*
@@ -46,7 +50,9 @@ check-types:
 		openfisca_core/simulations/_build_default_simulation.py \
 		openfisca_core/simulations/_build_from_variables.py \
 		openfisca_core/simulations/_guards.py \
+		openfisca_core/simulations/_rules.py \
 		openfisca_core/simulations/helpers.py \
+		openfisca_core/simulations/types.py \
 		openfisca_core/types.py
 	@$(call print_pass,$@:)
 

@@ -26,8 +26,25 @@ T = TypeVar("T", Bool, Date, Enum, Float, Int, String, covariant=True)
 U = TypeVar("U", bool, datetime.date, float, str)
 V = TypeVar("V", covariant=True)
 
+#: Type variable representing an error.
+F = TypeVar("F", covariant=True)
+
+#: Type variable representing a value.
+A = TypeVar("A", covariant=True)
+
 #: Type alias for numpy arrays values.
 Item: TypeAlias = Union[Bool, Date, Enum, Float, Int, String]
+
+
+# Commons
+
+
+class Failure(t.Failure[F], Protocol[F]):
+    ...
+
+
+class Success(t.Success[A], Protocol[A]):
+    ...
 
 
 # Entities

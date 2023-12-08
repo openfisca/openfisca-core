@@ -1,9 +1,8 @@
 import pytest
 
-from openfisca_core import holders, tools
+from openfisca_core import holders, periods, tools
 from openfisca_core.entities import Entity
 from openfisca_core.holders import Holder
-from openfisca_core.periods import DateUnit, Instant, Period
 from openfisca_core.populations import Population
 from openfisca_core.variables import Variable
 
@@ -37,36 +36,36 @@ def population(people):
 @pytest.mark.parametrize(
     "dispatch_unit, definition_unit, values, expected",
     [
-        [DateUnit.YEAR, DateUnit.YEAR, [1.0], [3.0]],
-        [DateUnit.YEAR, DateUnit.MONTH, [1.0], [36.0]],
-        [DateUnit.YEAR, DateUnit.DAY, [1.0], [1096.0]],
-        [DateUnit.YEAR, DateUnit.WEEK, [1.0], [157.0]],
-        [DateUnit.YEAR, DateUnit.WEEKDAY, [1.0], [1096.0]],
-        [DateUnit.MONTH, DateUnit.YEAR, [1.0], [1.0]],
-        [DateUnit.MONTH, DateUnit.MONTH, [1.0], [3.0]],
-        [DateUnit.MONTH, DateUnit.DAY, [1.0], [90.0]],
-        [DateUnit.MONTH, DateUnit.WEEK, [1.0], [13.0]],
-        [DateUnit.MONTH, DateUnit.WEEKDAY, [1.0], [90.0]],
-        [DateUnit.DAY, DateUnit.YEAR, [1.0], [1.0]],
-        [DateUnit.DAY, DateUnit.MONTH, [1.0], [1.0]],
-        [DateUnit.DAY, DateUnit.DAY, [1.0], [3.0]],
-        [DateUnit.DAY, DateUnit.WEEK, [1.0], [1.0]],
-        [DateUnit.DAY, DateUnit.WEEKDAY, [1.0], [3.0]],
-        [DateUnit.WEEK, DateUnit.YEAR, [1.0], [1.0]],
-        [DateUnit.WEEK, DateUnit.MONTH, [1.0], [1.0]],
-        [DateUnit.WEEK, DateUnit.DAY, [1.0], [21.0]],
-        [DateUnit.WEEK, DateUnit.WEEK, [1.0], [3.0]],
-        [DateUnit.WEEK, DateUnit.WEEKDAY, [1.0], [21.0]],
-        [DateUnit.WEEK, DateUnit.YEAR, [1.0], [1.0]],
-        [DateUnit.WEEK, DateUnit.MONTH, [1.0], [1.0]],
-        [DateUnit.WEEK, DateUnit.DAY, [1.0], [21.0]],
-        [DateUnit.WEEK, DateUnit.WEEK, [1.0], [3.0]],
-        [DateUnit.WEEK, DateUnit.WEEKDAY, [1.0], [21.0]],
-        [DateUnit.WEEKDAY, DateUnit.YEAR, [1.0], [1.0]],
-        [DateUnit.WEEKDAY, DateUnit.MONTH, [1.0], [1.0]],
-        [DateUnit.WEEKDAY, DateUnit.DAY, [1.0], [3.0]],
-        [DateUnit.WEEKDAY, DateUnit.WEEK, [1.0], [1.0]],
-        [DateUnit.WEEKDAY, DateUnit.WEEKDAY, [1.0], [3.0]],
+        [periods.YEAR, periods.YEAR, [1.0], [3.0]],
+        [periods.YEAR, periods.MONTH, [1.0], [36.0]],
+        [periods.YEAR, periods.DAY, [1.0], [1096.0]],
+        [periods.YEAR, periods.WEEK, [1.0], [157.0]],
+        [periods.YEAR, periods.WEEKDAY, [1.0], [1096.0]],
+        [periods.MONTH, periods.YEAR, [1.0], [1.0]],
+        [periods.MONTH, periods.MONTH, [1.0], [3.0]],
+        [periods.MONTH, periods.DAY, [1.0], [90.0]],
+        [periods.MONTH, periods.WEEK, [1.0], [13.0]],
+        [periods.MONTH, periods.WEEKDAY, [1.0], [90.0]],
+        [periods.DAY, periods.YEAR, [1.0], [1.0]],
+        [periods.DAY, periods.MONTH, [1.0], [1.0]],
+        [periods.DAY, periods.DAY, [1.0], [3.0]],
+        [periods.DAY, periods.WEEK, [1.0], [1.0]],
+        [periods.DAY, periods.WEEKDAY, [1.0], [3.0]],
+        [periods.WEEK, periods.YEAR, [1.0], [1.0]],
+        [periods.WEEK, periods.MONTH, [1.0], [1.0]],
+        [periods.WEEK, periods.DAY, [1.0], [21.0]],
+        [periods.WEEK, periods.WEEK, [1.0], [3.0]],
+        [periods.WEEK, periods.WEEKDAY, [1.0], [21.0]],
+        [periods.WEEK, periods.YEAR, [1.0], [1.0]],
+        [periods.WEEK, periods.MONTH, [1.0], [1.0]],
+        [periods.WEEK, periods.DAY, [1.0], [21.0]],
+        [periods.WEEK, periods.WEEK, [1.0], [3.0]],
+        [periods.WEEK, periods.WEEKDAY, [1.0], [21.0]],
+        [periods.WEEKDAY, periods.YEAR, [1.0], [1.0]],
+        [periods.WEEKDAY, periods.MONTH, [1.0], [1.0]],
+        [periods.WEEKDAY, periods.DAY, [1.0], [3.0]],
+        [periods.WEEKDAY, periods.WEEK, [1.0], [1.0]],
+        [periods.WEEKDAY, periods.WEEKDAY, [1.0], [3.0]],
     ],
 )
 def test_set_input_dispatch_by_period(
@@ -80,8 +79,8 @@ def test_set_input_dispatch_by_period(
     Income.definition_period = definition_unit
     income = Income()
     holder = Holder(income, population)
-    instant = Instant((2022, 1, 1))
-    dispatch_period = Period((dispatch_unit, instant, 3))
+    instant = periods.Instant((2022, 1, 1))
+    dispatch_period = periods.Period((dispatch_unit, instant, 3))
 
     holders.set_input_dispatch_by_period(holder, dispatch_period, values)
     total = sum(map(holder.get_array, holder.get_known_periods()))
@@ -92,31 +91,31 @@ def test_set_input_dispatch_by_period(
 @pytest.mark.parametrize(
     "divide_unit, definition_unit, values, expected",
     [
-        [DateUnit.YEAR, DateUnit.YEAR, [3.0], [1.0]],
-        [DateUnit.YEAR, DateUnit.MONTH, [36.0], [1.0]],
-        [DateUnit.YEAR, DateUnit.DAY, [1095.0], [1.0]],
-        [DateUnit.YEAR, DateUnit.WEEK, [157.0], [1.0]],
-        [DateUnit.YEAR, DateUnit.WEEKDAY, [1095.0], [1.0]],
-        [DateUnit.MONTH, DateUnit.YEAR, [1.0], [1.0]],
-        [DateUnit.MONTH, DateUnit.MONTH, [3.0], [1.0]],
-        [DateUnit.MONTH, DateUnit.DAY, [90.0], [1.0]],
-        [DateUnit.MONTH, DateUnit.WEEK, [13.0], [1.0]],
-        [DateUnit.MONTH, DateUnit.WEEKDAY, [90.0], [1.0]],
-        [DateUnit.DAY, DateUnit.YEAR, [1.0], [1.0]],
-        [DateUnit.DAY, DateUnit.MONTH, [1.0], [1.0]],
-        [DateUnit.DAY, DateUnit.DAY, [3.0], [1.0]],
-        [DateUnit.DAY, DateUnit.WEEK, [1.0], [1.0]],
-        [DateUnit.DAY, DateUnit.WEEKDAY, [3.0], [1.0]],
-        [DateUnit.WEEK, DateUnit.YEAR, [1.0], [1.0]],
-        [DateUnit.WEEK, DateUnit.MONTH, [1.0], [1.0]],
-        [DateUnit.WEEK, DateUnit.DAY, [21.0], [1.0]],
-        [DateUnit.WEEK, DateUnit.WEEK, [3.0], [1.0]],
-        [DateUnit.WEEK, DateUnit.WEEKDAY, [21.0], [1.0]],
-        [DateUnit.WEEKDAY, DateUnit.YEAR, [1.0], [1.0]],
-        [DateUnit.WEEKDAY, DateUnit.MONTH, [1.0], [1.0]],
-        [DateUnit.WEEKDAY, DateUnit.DAY, [3.0], [1.0]],
-        [DateUnit.WEEKDAY, DateUnit.WEEK, [1.0], [1.0]],
-        [DateUnit.WEEKDAY, DateUnit.WEEKDAY, [3.0], [1.0]],
+        [periods.YEAR, periods.YEAR, [3.0], [1.0]],
+        [periods.YEAR, periods.MONTH, [36.0], [1.0]],
+        [periods.YEAR, periods.DAY, [1095.0], [1.0]],
+        [periods.YEAR, periods.WEEK, [157.0], [1.0]],
+        [periods.YEAR, periods.WEEKDAY, [1095.0], [1.0]],
+        [periods.MONTH, periods.YEAR, [1.0], [1.0]],
+        [periods.MONTH, periods.MONTH, [3.0], [1.0]],
+        [periods.MONTH, periods.DAY, [90.0], [1.0]],
+        [periods.MONTH, periods.WEEK, [13.0], [1.0]],
+        [periods.MONTH, periods.WEEKDAY, [90.0], [1.0]],
+        [periods.DAY, periods.YEAR, [1.0], [1.0]],
+        [periods.DAY, periods.MONTH, [1.0], [1.0]],
+        [periods.DAY, periods.DAY, [3.0], [1.0]],
+        [periods.DAY, periods.WEEK, [1.0], [1.0]],
+        [periods.DAY, periods.WEEKDAY, [3.0], [1.0]],
+        [periods.WEEK, periods.YEAR, [1.0], [1.0]],
+        [periods.WEEK, periods.MONTH, [1.0], [1.0]],
+        [periods.WEEK, periods.DAY, [21.0], [1.0]],
+        [periods.WEEK, periods.WEEK, [3.0], [1.0]],
+        [periods.WEEK, periods.WEEKDAY, [21.0], [1.0]],
+        [periods.WEEKDAY, periods.YEAR, [1.0], [1.0]],
+        [periods.WEEKDAY, periods.MONTH, [1.0], [1.0]],
+        [periods.WEEKDAY, periods.DAY, [3.0], [1.0]],
+        [periods.WEEKDAY, periods.WEEK, [1.0], [1.0]],
+        [periods.WEEKDAY, periods.WEEKDAY, [3.0], [1.0]],
     ],
 )
 def test_set_input_divide_by_period(
@@ -130,8 +129,8 @@ def test_set_input_divide_by_period(
     Income.definition_period = definition_unit
     income = Income()
     holder = Holder(income, population)
-    instant = Instant((2022, 1, 1))
-    divide_period = Period((divide_unit, instant, 3))
+    instant = periods.Instant((2022, 1, 1))
+    divide_period = periods.Period((divide_unit, instant, 3))
 
     holders.set_input_divide_by_period(holder, divide_period, values)
     last = holder.get_array(holder.get_known_periods()[-1])

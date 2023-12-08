@@ -3,7 +3,6 @@ import pytest
 from openfisca_country_template.entities import Person
 
 from openfisca_core import periods
-from openfisca_core.periods import DateUnit
 from openfisca_core.variables import Variable
 
 PERIOD = periods.period("2016-01")
@@ -13,14 +12,14 @@ class input(Variable):
     value_type = int
     entity = Person
     label = "Input variable"
-    definition_period = DateUnit.MONTH
+    definition_period = periods.MONTH
 
 
 class intermediate(Variable):
     value_type = int
     entity = Person
     label = "Intermediate result that don't need to be cached"
-    definition_period = DateUnit.MONTH
+    definition_period = periods.MONTH
 
     def formula(person, period):
         return person("input", period)
@@ -30,7 +29,7 @@ class output(Variable):
     value_type = int
     entity = Person
     label = "Output variable"
-    definition_period = DateUnit.MONTH
+    definition_period = periods.MONTH
 
     def formula(person, period):
         return person("intermediate", period)

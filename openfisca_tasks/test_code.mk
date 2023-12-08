@@ -36,7 +36,8 @@ test-core: $(shell pytest --quiet --quiet --collect-only 2> /dev/null | cut -f 1
 		openfisca_core/entities \
 		openfisca_core/holders \
 		openfisca_core/periods \
-		openfisca_core/projectors
+		openfisca_core/projectors \
+		openfisca_core/simulations
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
 		coverage run -m \
 		${openfisca} test $? \

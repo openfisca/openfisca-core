@@ -12,7 +12,10 @@ from openfisca_core.periods import DateUnit, Instant, Period
         [None, None],
         [datetime.date(1, 1, 1), Instant((1, 1, 1))],
         [Instant((1, 1, 1)), Instant((1, 1, 1))],
-        [Period((DateUnit.DAY, Instant((1, 1, 1)), 365)), Instant((1, 1, 1))],
+        [
+            Period((DateUnit.DAY, Instant((1, 1, 1)), 365)),
+            Instant((1, 1, 1)),
+        ],
         [-1, Instant((-1, 1, 1))],
         [0, Instant((0, 1, 1))],
         [1, Instant((1, 1, 1))],
@@ -25,7 +28,10 @@ from openfisca_core.periods import DateUnit, Instant, Period
         [(None, None), Instant((None, None, 1))],
         [(None, None, None), Instant((None, None, None))],
         [(datetime.date(1, 1, 1),), Instant((datetime.date(1, 1, 1), 1, 1))],
-        [(Instant((1, 1, 1)),), Instant((Instant((1, 1, 1)), 1, 1))],
+        [
+            (Instant((1, 1, 1)),),
+            Instant((Instant((1, 1, 1)), 1, 1)),
+        ],
         [
             (Period((DateUnit.DAY, Instant((1, 1, 1)), 365)),),
             Instant((Period((DateUnit.DAY, Instant((1, 1, 1)), 365)), 1, 1)),
