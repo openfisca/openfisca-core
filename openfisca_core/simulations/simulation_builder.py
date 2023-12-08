@@ -3,7 +3,7 @@ from __future__ import annotations
 import typing
 from collections.abc import Iterable, Sequence
 from numpy.typing import NDArray as Array
-from typing import Any, Optional
+from typing import Any
 
 import copy
 
@@ -14,22 +14,21 @@ from openfisca_core import errors, periods
 
 from . import helpers
 from ._axis import _Axis
+from ._type_guards import is_abbr_spec, is_axes_spec, is_expl_spec, is_impl_spec
 from .simulation import Simulation
 from .typing import (
-    AxesParams,
+    AbbrParams,
     AxisParams,
     Entity,
-    FullyDefinedParams,
-    FullyDefinedParamsWithoutAxes,
-    FullyDefinedParamsWithoutShortcut,
+    ExplParams,
     GroupEntity,
-    GroupEntityParams,
     GroupPopulation,
+    ImplParams,
+    NoAxParams,
+    Params,
     Role,
     SingleEntity,
-    SingleEntityParams,
     TaxBenefitSystem,
-    VariableParams,
 )
 
 
@@ -92,7 +91,7 @@ class SimulationBuilder:
     def build_from_dict(
         self,
         tax_benefit_system: TaxBenefitSystem,
-        input_dict: FullyDefinedParams | VariableParams,
+        input_dict: Params,
     ) -> Simulation:
         """
         Build a simulation from ``input_dict``
@@ -103,24 +102,27 @@ class SimulationBuilder:
         :return: A :any:`Simulation`
         """
 
-        if any(
-            key in tax_benefit_system.entities_plural() for key in input_dict.keys()
+        if is_impl_spec(
+            params := input_dict, tax_benefit_system.entities_by_singular()
         ):
-            fully_defined_params = typing.cast(FullyDefinedParams, input_dict)
-            fully_defined_params_without_shortcut = self.explicit_singular_entities(
-                tax_benefit_system, fully_defined_params
-            )
-            return self.build_from_entities(
-                tax_benefit_system, fully_defined_params_without_shortcut
-            )
-        else:
-            variable_params = typing.cast(VariableParams, input_dict)
-            return self.build_from_variables(tax_benefit_system, variable_params)
+            expl = self.explicit_singular_entities(tax_benefit_system, params)
+            return self.build_from_entities(tax_benefit_system, expl)
+
+        if is_expl_spec(input_dict, tax_benefit_system.entities_plural()):
+            return self.build_from_entities(tax_benefit_system, input_dict)
+
+        if is_axes_spec(input_dict):
+            raise ValueError("#TODO")
+
+        if is_abbr_spec(params := input_dict, tax_benefit_system.variables.keys()):
+            return self.build_from_variables(tax_benefit_system, params)
+
+        raise ValueError("#TODO")
 
     def build_from_entities(
         self,
         tax_benefit_system: TaxBenefitSystem,
-        input_dict: FullyDefinedParamsWithoutShortcut,
+        input_dict: ExplParams,
     ) -> Simulation:
         """
         Build a simulation from a Python dict ``input_dict`` fully specifying entities.
@@ -132,7 +134,7 @@ class SimulationBuilder:
             ...     'households': {'household': {'parents': ['Javier']}}
             ... }
         """
-        fully_defined_params = copy.deepcopy(input_dict)
+        input_dict = copy.deepcopy(input_dict)
 
         simulation = Simulation(
             tax_benefit_system, tax_benefit_system.instantiate_entities()
@@ -144,20 +146,18 @@ class SimulationBuilder:
                 variable_name, simulation.get_variable_population(variable_name).entity
             )
 
-        helpers.check_type(fully_defined_params, dict, ["error"])
-        axes = typing.cast(Optional[AxesParams], fully_defined_params.get("axes", None))
-        full_defined_params_without_axes = typing.cast(
-            FullyDefinedParamsWithoutAxes,
-            {
-                key: value
-                for key, value in fully_defined_params.items()
-                if key != "axes"
-            },
-        )
+        helpers.check_type(input_dict, dict, ["error"])
+
+        axes: list[list[AxisParams]] | None = None
+
+        if is_axes_spec(input_dict):
+            axes = input_dict.pop("axes")
+
+        params: NoAxParams = typing.cast(NoAxParams, input_dict)
 
         unexpected_entities = [
             entity
-            for entity in full_defined_params_without_axes
+            for entity in params
             if entity not in tax_benefit_system.entities_plural()
         ]
         if unexpected_entities:
@@ -181,10 +181,7 @@ class SimulationBuilder:
         if person_entity.plural is None:
             raise ValueError("#TODO")
 
-        persons_json = typing.cast(
-            Optional[SingleEntityParams],
-            full_defined_params_without_axes.get(person_entity.plural, None),
-        )
+        persons_json = params.get(person_entity.plural, None)
 
         if not persons_json:
             raise errors.SituationParsingError(
@@ -197,9 +194,7 @@ class SimulationBuilder:
         persons_ids = self.add_person_entity(simulation.persons.entity, persons_json)
 
         for entity_class in tax_benefit_system.group_entities:
-            instances_json: GroupEntityParams | None = (
-                full_defined_params_without_axes.get(entity_class.plural)
-            )
+            instances_json = params.get(entity_class.plural)
 
             if instances_json is not None:
                 self.add_group_entity(
@@ -233,7 +228,7 @@ class SimulationBuilder:
         return simulation
 
     def build_from_variables(
-        self, tax_benefit_system: TaxBenefitSystem, input_dict: VariableParams
+        self, tax_benefit_system: TaxBenefitSystem, input_dict: AbbrParams
     ) -> Simulation:
         """
         Build a simulation from a Python dict ``input_dict`` describing variables values without expliciting entities.
@@ -326,8 +321,8 @@ class SimulationBuilder:
         return Simulation(tax_benefit_system, self.populations)
 
     def explicit_singular_entities(
-        self, tax_benefit_system: TaxBenefitSystem, input_dict: FullyDefinedParams
-    ) -> FullyDefinedParamsWithoutShortcut:
+        self, tax_benefit_system: TaxBenefitSystem, input_dict: ImplParams
+    ) -> ExplParams:
         """
         Preprocess ``input_dict`` to explicit entities defined using the single-entity shortcut
 
@@ -342,8 +337,6 @@ class SimulationBuilder:
         singular_keys = set(input_dict).intersection(
             tax_benefit_system.entities_by_singular()
         )
-        if not singular_keys:
-            return input_dict
 
         result = {
             entity_id: entity_description

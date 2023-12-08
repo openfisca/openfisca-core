@@ -4,7 +4,7 @@ from typing import Type, Union
 
 from openfisca_core.errors import SituationParsingError
 
-from .typing import FullyDefinedParamsWithoutShortcut
+from .typing import ExplParams
 
 
 def calculate_output_add(simulation, variable_name: str, period):
@@ -16,7 +16,7 @@ def calculate_output_divide(simulation, variable_name: str, period):
 
 
 def check_type(
-    input: FullyDefinedParamsWithoutShortcut,
+    input: ExplParams,
     input_type: Type[Union[dict, list, str]],
     path: list[str] | None = None,
 ) -> None:

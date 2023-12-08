@@ -8,28 +8,21 @@ from typing_extensions import TypeAlias
 
 import numpy
 
-VariableParams: TypeAlias = dict[str, dict[str, object]]
+AbbrParams: TypeAlias = dict[str, dict[str, object]]
 
-SingleEntityParams: TypeAlias = dict[str, VariableParams]
+FullParams: TypeAlias = dict[str, dict[str, AbbrParams]]
 
-GroupEntityShortcutParams: TypeAlias = dict[str, Union[str, list[str]]]
+AxesParams: TypeAlias = dict[str, list[list["AxisParams"]]]
 
-GroupEntityParams: TypeAlias = dict[str, GroupEntityShortcutParams]
+EntsParams: TypeAlias = dict[str, Union[str, list[str]]]
 
-AxesParams: TypeAlias = list[list["AxisParams"]]
+ImplParams: TypeAlias = Union[EntsParams, FullParams, AxesParams]
 
-FullyDefinedParamsWithoutAxes: TypeAlias = dict[
-    str, Union[SingleEntityParams, GroupEntityParams]
-]
+ExplParams: TypeAlias = Union[dict[str, EntsParams], FullParams, AxesParams]
 
-FullyDefinedParamsWithoutShortcut: TypeAlias = dict[
-    str, Union[SingleEntityParams, GroupEntityParams, AxesParams]
-]
+NoAxParams: TypeAlias = Union[dict[str, EntsParams], FullParams]
 
-FullyDefinedParams: TypeAlias = dict[
-    str,
-    Union[SingleEntityParams, GroupEntityParams, GroupEntityShortcutParams, AxesParams],
-]
+Params: TypeAlias = Union[dict[str, EntsParams], FullParams, AxesParams, AbbrParams]
 
 
 class AxisParams(TypedDict, total=False):
@@ -117,6 +110,9 @@ class GroupPopulation(Population):
 class TaxBenefitSystem(Protocol):
     person_entity: SingleEntity
     variables: dict[str, Variable]
+
+    def entities_by_singular(self) -> Iterable[str]:
+        ...
 
     def entities_plural(self) -> Iterable[str]:
         ...
