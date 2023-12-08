@@ -6,7 +6,9 @@ from .variables import TestVariable
 
 
 class TestEntity(Entity):
-    def get_variable(self, variable_name: str):
+    def get_variable(
+        self, variable_name: str, check_existence: bool = False
+    ) -> TestVariable:
         result = TestVariable(self)
         result.name = variable_name
         return result
@@ -16,7 +18,9 @@ class TestEntity(Entity):
 
 
 class TestGroupEntity(GroupEntity):
-    def get_variable(self, variable_name: str):
+    def get_variable(
+        self, variable_name: str, check_existence: bool = False
+    ) -> TestVariable:
         result = TestVariable(self)
         result.name = variable_name
         return result

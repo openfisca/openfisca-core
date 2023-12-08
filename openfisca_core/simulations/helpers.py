@@ -1,4 +1,10 @@
+from __future__ import annotations
+
+from typing import Type, Union
+
 from openfisca_core.errors import SituationParsingError
+
+from .typing import FullyDefinedParamsWithoutShortcut
 
 
 def calculate_output_add(simulation, variable_name: str, period):
@@ -9,7 +15,11 @@ def calculate_output_divide(simulation, variable_name: str, period):
     return simulation.calculate_divide(variable_name, period)
 
 
-def check_type(input, input_type, path=None):
+def check_type(
+    input: FullyDefinedParamsWithoutShortcut,
+    input_type: Type[Union[dict, list, str]],
+    path: list[str] | None = None,
+) -> None:
     json_type_map = {
         dict: "Object",
         list: "Array",
