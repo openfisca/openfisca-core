@@ -1,130 +1,190 @@
+"""Type aliases of OpenFisca models to use in the context of simulations."""
+
 from __future__ import annotations
 
-import typing
+from abc import abstractmethod
 from collections.abc import Sequence
 from numpy.typing import NDArray as Array
-from typing import Any, Iterable, Protocol, TypedDict, Union
-from typing_extensions import TypeAlias
+from typing import Iterable, Protocol, TypeVar, TypedDict, Union
+from typing_extensions import NotRequired, Required, TypeAlias
 
-import numpy
+import datetime
 
-AbbrParams: TypeAlias = dict[str, dict[str, object]]
+from numpy import bool_ as Bool
+from numpy import datetime64 as Date
+from numpy import float32 as Float
+from numpy import int16 as Enum
+from numpy import int32 as Int
+from numpy import str_ as String
 
-FullParams: TypeAlias = dict[str, dict[str, AbbrParams]]
-
-AxesParams: TypeAlias = dict[str, list[list["AxisParams"]]]
-
-EntsParams: TypeAlias = dict[str, Union[str, list[str]]]
-
-ImplParams: TypeAlias = Union[EntsParams, FullParams, AxesParams]
-
-ExplParams: TypeAlias = Union[dict[str, EntsParams], FullParams, AxesParams]
-
-NoAxParams: TypeAlias = Union[dict[str, EntsParams], FullParams]
-
-Params: TypeAlias = Union[dict[str, EntsParams], FullParams, AxesParams, AbbrParams]
+#: Generic type variables.
+E = TypeVar("E")
+G = TypeVar("G", covariant=True)
+T = TypeVar("T", Bool, Date, Enum, Float, Int, String, covariant=True)
+U = TypeVar("U", bool, datetime.date, float, str)
+V = TypeVar("V", covariant=True)
 
 
-class AxisParams(TypedDict, total=False):
-    name: str
-    count: int
-    min: float
-    max: float
-    period: str | int
-    index: int
+#: Type alias for a simulation dictionary defining the roles.
+Roles: TypeAlias = dict[str, Union[str, Iterable[str]]]
+
+#: Type alias for a simulation dictionary with abbreviated entities.
+Variables: TypeAlias = dict[str, dict[str, object]]
+
+#: Type alias for a simulation with fully specified single entities.
+SingleEntities: TypeAlias = dict[str, dict[str, Variables]]
+
+#: Type alias for a simulation dictionary with implicit group entities.
+ImplicitGroupEntities: TypeAlias = dict[str, Union[Roles, Variables]]
+
+#: Type alias for a simulation dictionary with explicit group entities.
+GroupEntities: TypeAlias = dict[str, ImplicitGroupEntities]
+
+#: Type alias for a simulation dictionary with fully specified entities.
+FullySpecifiedEntities: TypeAlias = Union[SingleEntities, GroupEntities]
+
+#: Type alias for a simulation dictionary with axes parameters.
+Axes: TypeAlias = dict[str, Iterable[Iterable["Axis"]]]
+
+#: Type alias for a simulation dictionary without axes parameters.
+ParamsWithoutAxes: TypeAlias = Union[
+    Variables, ImplicitGroupEntities, FullySpecifiedEntities
+]
+
+#: Type alias for a simulation dictionary with axes parameters.
+ParamsWithAxes: TypeAlias = Union[Axes, ParamsWithoutAxes]
+
+#: Type alias for a simulation dictionary with all the possible scenarios.
+Params: TypeAlias = ParamsWithAxes
+
+
+class Axis(TypedDict, total=False):
+    """Interface representing an axis of a simulation."""
+
+    count: Required[int]
+    index: NotRequired[int]
+    max: Required[float]
+    min: Required[float]
+    name: Required[str]
+    period: NotRequired[str | int]
 
 
 class Entity(Protocol):
+    """Interface representing an entity of a simulation."""
+
     key: str
     plural: str | None
 
-    @typing.overload
     def get_variable(
         self,
-        variable_name: str,
-        check_existence: bool = True,
-    ) -> Variable:
-        ...
-
-    @typing.overload
-    def get_variable(
-        self,
-        variable_name: str,
-        check_existence: bool = False,
-    ) -> Variable | None:
-        ...
-
-    def get_variable(
-        self,
-        variable_name: str,
-        check_existence: bool = ...,
-    ) -> Variable | None:
-        ...
+        __variable_name: str,
+        __check_existence: bool = ...,
+    ) -> Variable[T] | None:
+        """Get a variable."""
 
 
-class SingleEntity(Entity):
-    ...
+class SingleEntity(Entity, Protocol):
+    """Interface representing a single entity of a simulation."""
 
 
-class GroupEntity(Entity):
-    flattened_roles: Iterable[Role]
+class GroupEntity(Entity, Protocol):
+    """Interface representing a group entity of a simulation."""
+
+    @property
+    @abstractmethod
+    def flattened_roles(self) -> Iterable[Role[G]]:
+        """Get the flattened roles of the GroupEntity."""
 
 
-class Holder(Protocol):
-    variable: Variable
+class Holder(Protocol[V]):
+    """Interface representing a holder of a simulation's computed values."""
+
+    @property
+    @abstractmethod
+    def variable(self) -> Variable[T]:
+        """Get the Variable of the Holder."""
 
     def set_input(
         self,
-        period: Period,
-        array: Array[Any] | Sequence[object],
-    ) -> Array[Any] | None:
-        ...
+        __period: Period,
+        __array: Array[T] | Sequence[U],
+    ) -> Array[T] | None:
+        """Set values for a Variable for a given Period."""
 
 
 class Period(Protocol):
-    ...
+    """Interface representing a period of a simulation."""
 
 
-class Role(Protocol):
-    ...
+class Population(Protocol[E]):
+    """Interface representing a data vector of an Entity."""
 
-
-class Population(Protocol):
     count: int
-    entity: Entity
-    ids: Array[numpy.str_]
+    entity: E
+    ids: Array[String]
 
-    def get_holder(self, variable_name: str) -> Holder:
-        ...
-
-
-class SinglePopulation(Population):
-    ...
+    def get_holder(self, __variable_name: str) -> Holder[V]:
+        """Get the holder of a Variable."""
 
 
-class GroupPopulation(Population):
-    def nb_persons(self, role: Role | None = ...) -> int:
-        ...
+class SinglePopulation(Population[E], Protocol):
+    """Interface representing a data vector of a SingleEntity."""
+
+
+class GroupPopulation(Population[E], Protocol):
+    """Interface representing a data vector of a GroupEntity."""
+
+    members_entity_id: Array[String]
+
+    def nb_persons(self, __role: Role[G] | None = ...) -> int:
+        """Get the number of persons for a given Role."""
+
+
+class Role(Protocol[G]):
+    """Interface representing a role of the group entities of a simulation."""
 
 
 class TaxBenefitSystem(Protocol):
-    person_entity: SingleEntity
-    variables: dict[str, Variable]
+    """Interface representing a tax-benefit system."""
 
-    def entities_by_singular(self) -> Iterable[str]:
-        ...
+    @property
+    @abstractmethod
+    def person_entity(self) -> SingleEntity:
+        """Get the person entity of the tax-benefit system."""
+
+    @person_entity.setter
+    @abstractmethod
+    def person_entity(self, person_entity: SingleEntity) -> None:
+        """Set the person entity of the tax-benefit system."""
+
+    @property
+    @abstractmethod
+    def variables(self) -> dict[str, V]:
+        """Get the variables of the tax-benefit system."""
+
+    def entities_by_singular(self) -> dict[str, E]:
+        """Get the singular form of the entities' keys."""
 
     def entities_plural(self) -> Iterable[str]:
-        ...
+        """Get the plural form of the entities' keys."""
+
+    def get_variable(
+        self,
+        __variable_name: str,
+        __check_existence: bool = ...,
+    ) -> V | None:
+        """Get a variable."""
 
     def instantiate_entities(
         self,
-    ) -> dict[str, Union[SinglePopulation, GroupPopulation]]:
-        ...
+    ) -> dict[str, Population[E]]:
+        """Instantiate the populations of each Entity."""
 
 
-class Variable(Protocol):
+class Variable(Protocol[T]):
+    """Interface representing a variable of a tax-benefit system."""
+
     end: str
 
-    def default_array(self, array_size: int) -> Array[Any]:
-        ...
+    def default_array(self, __array_size: int) -> Array[T]:
+        """Fill an array with the default value of the Variable."""
