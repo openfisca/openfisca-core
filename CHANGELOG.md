@@ -1,5 +1,11 @@
 # Changelog
 
+### 41.4.1 [#1202](https://github.com/openfisca/openfisca-core/pull/1202)
+
+#### Technical changes
+
+- Check that entities are fully specified when expanding over axes.
+
 ## 41.4.0 [#1197](https://github.com/openfisca/openfisca-core/pull/1197)
 
 #### New features

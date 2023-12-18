@@ -1,5 +1,6 @@
 import pytest
 
+from openfisca_core import errors
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.tools import test_runner
 
@@ -322,7 +323,7 @@ def test_add_perpendicular_axis_on_an_existing_variable_with_input(persons):
     )
 
 
-# Integration test
+# Integration tests
 
 
 def test_simulation_with_axes(tax_benefit_system):
@@ -350,3 +351,27 @@ def test_simulation_with_axes(tax_benefit_system):
         [0, 0, 0, 0, 0, 0]
     )
     assert simulation.get_array("rent", "2018-11") == pytest.approx([0, 0, 3000, 0])
+
+
+# Test for missing group entities with build_from_entities()
+
+
+def test_simulation_with_axes_missing_entities(tax_benefit_system):
+    input_yaml = """
+        persons:
+          Alicia: {salary: {2018-11: 0}}
+          Javier: {}
+          Tom: {}
+        axes:
+            -
+                - count: 2
+                  name: rent
+                  min: 0
+                  max: 3000
+                  period: 2018-11
+    """
+    data = test_runner.yaml.safe_load(input_yaml)
+    with pytest.raises(errors.SituationParsingError) as error:
+        SimulationBuilder().build_from_dict(tax_benefit_system, data)
+        assert "In order to expand over axes" in error.value()
+        assert "all group entities and roles must be fully specified" in error.value()
