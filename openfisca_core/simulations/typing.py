@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from numpy.typing import NDArray as Array
-from typing import Iterable, Protocol, TypeVar, TypedDict, Union
+from typing import Protocol, TypeVar, TypedDict, Union
 from typing_extensions import NotRequired, Required, TypeAlias
 
 import datetime
@@ -28,8 +28,14 @@ V = TypeVar("V", covariant=True)
 #: Type alias for a simulation dictionary defining the roles.
 Roles: TypeAlias = dict[str, Union[str, Iterable[str]]]
 
+#: Type alias for a simulation dictionary with undated variables.
+UndatedVariable: TypeAlias = dict[str, object]
+
+#: Type alias for a simulation dictionary with dated variables.
+DatedVariable: TypeAlias = dict[str, UndatedVariable]
+
 #: Type alias for a simulation dictionary with abbreviated entities.
-Variables: TypeAlias = dict[str, dict[str, object]]
+Variables: TypeAlias = dict[str, Union[UndatedVariable, DatedVariable]]
 
 #: Type alias for a simulation with fully specified single entities.
 SingleEntities: TypeAlias = dict[str, dict[str, Variables]]
@@ -103,6 +109,9 @@ class Holder(Protocol[V]):
     @abstractmethod
     def variable(self) -> Variable[T]:
         """Get the Variable of the Holder."""
+
+    def get_array(self, __period: str) -> Array[T] | None:
+        """Get the values of the Variable for a given Period."""
 
     def set_input(
         self,

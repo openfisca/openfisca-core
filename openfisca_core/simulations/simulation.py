@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from openfisca_core.types import Population, TaxBenefitSystem, Variable
-from typing import Dict, NamedTuple, Optional, Set
+from typing import Dict, Mapping, NamedTuple, Optional, Set
 
 import tempfile
 import warnings
@@ -24,7 +24,7 @@ class Simulation:
     def __init__(
         self,
         tax_benefit_system: TaxBenefitSystem,
-        populations: Dict[str, Population],
+        populations: Mapping[str, Population],
     ):
         """
         This constructor is reserved for internal use; see :any:`SimulationBuilder`,

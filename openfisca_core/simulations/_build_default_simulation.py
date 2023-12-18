@@ -17,15 +17,13 @@ class _BuildDefaultSimulation:
         count(int): The number of periods.
 
     Examples:
-        >>> from openfisca_core.entities import Entity as SingleEntity
-        >>> from openfisca_core.entities import GroupEntity
-        >>> from openfisca_core.taxbenefitsystems import TaxBenefitSystem
+        >>> from openfisca_core import entities, taxbenefitsystems
 
         >>> role = {"key": "stray", "plural": "stray", "label": "", "doc": ""}
-        >>> single_entity = SingleEntity("dog", "dogs", "", "")
-        >>> group_entity = GroupEntity("pack", "packs", "", "", [role])
-        >>> entities = {single_entity, group_entity}
-        >>> tax_benefit_system = TaxBenefitSystem(entities)
+        >>> single_entity = entities.Entity("dog", "dogs", "", "")
+        >>> group_entity = entities.GroupEntity("pack", "packs", "", "", [role])
+        >>> test_entities = [single_entity, group_entity]
+        >>> tax_benefit_system = taxbenefitsystems.TaxBenefitSystem(test_entities)
         >>> count = 1
         >>> builder = (
         ...     _BuildDefaultSimulation(tax_benefit_system, count)
@@ -43,9 +41,6 @@ class _BuildDefaultSimulation:
         >>> sorted(builder.simulation.populations.keys())
         ['dog', 'pack']
 
-        >>> sorted(builder.tax_benefit_system.entities_by_singular().keys())
-        ['dog', 'pack']
-
     """
 
     #: The number of Population.
@@ -57,14 +52,8 @@ class _BuildDefaultSimulation:
     #: The built simulation.
     simulation: Simulation
 
-    #: The tax-benefit system.
-    tax_benefit_system: TaxBenefitSystem
-
-    def __init__(
-        self, tax_benefit_system: TaxBenefitSystem, count: int
-    ) -> None:
+    def __init__(self, tax_benefit_system: TaxBenefitSystem, count: int) -> None:
         self.count = count
-        self.tax_benefit_system = tax_benefit_system
         self.populations = tax_benefit_system.instantiate_entities()
         self.simulation = Simulation(tax_benefit_system, self.populations)
 
@@ -75,15 +64,13 @@ class _BuildDefaultSimulation:
             _BuildDefaultSimulation: The builder.
 
         Examples:
-            >>> from openfisca_core.entities import Entity as SingleEntity
-            >>> from openfisca_core.entities import GroupEntity
-            >>> from openfisca_core.taxbenefitsystems import TaxBenefitSystem
+            >>> from openfisca_core import entities, taxbenefitsystems
 
             >>> role = {"key": "stray", "plural": "stray", "label": "", "doc": ""}
-            >>> single_entity = SingleEntity("dog", "dogs", "", "")
-            >>> group_entity = GroupEntity("pack", "packs", "", "", [role])
-            >>> entities = {single_entity, group_entity}
-            >>> tax_benefit_system = TaxBenefitSystem(entities)
+            >>> single_entity = entities.Entity("dog", "dogs", "", "")
+            >>> group_entity = entities.GroupEntity("pack", "packs", "", "", [role])
+            >>> test_entities = [single_entity, group_entity]
+            >>> tax_benefit_system = taxbenefitsystems.TaxBenefitSystem(test_entities)
             >>> count = 2
             >>> builder = _BuildDefaultSimulation(tax_benefit_system, count)
 
@@ -110,15 +97,13 @@ class _BuildDefaultSimulation:
             _BuildDefaultSimulation: The builder.
 
         Examples:
-            >>> from openfisca_core.entities import Entity as SingleEntity
-            >>> from openfisca_core.entities import GroupEntity
-            >>> from openfisca_core.taxbenefitsystems import TaxBenefitSystem
+            >>> from openfisca_core import entities, taxbenefitsystems
 
             >>> role = {"key": "stray", "plural": "stray", "label": "", "doc": ""}
-            >>> single_entity = SingleEntity("dog", "dogs", "", "")
-            >>> group_entity = GroupEntity("pack", "packs", "", "", [role])
-            >>> entities = {single_entity, group_entity}
-            >>> tax_benefit_system = TaxBenefitSystem(entities)
+            >>> single_entity = entities.Entity("dog", "dogs", "", "")
+            >>> group_entity = entities.GroupEntity("pack", "packs", "", "", [role])
+            >>> test_entities = [single_entity, group_entity]
+            >>> tax_benefit_system = taxbenefitsystems.TaxBenefitSystem(test_entities)
             >>> count = 2
             >>> builder = _BuildDefaultSimulation(tax_benefit_system, count)
 
@@ -147,15 +132,13 @@ class _BuildDefaultSimulation:
             _BuildDefaultSimulation: The builder.
 
         Examples:
-            >>> from openfisca_core.entities import Entity as SingleEntity
-            >>> from openfisca_core.entities import GroupEntity
-            >>> from openfisca_core.taxbenefitsystems import TaxBenefitSystem
+            >>> from openfisca_core import entities, taxbenefitsystems
 
             >>> role = {"key": "stray", "plural": "stray", "label": "", "doc": ""}
-            >>> single_entity = SingleEntity("dog", "dogs", "", "")
-            >>> group_entity = GroupEntity("pack", "packs", "", "", [role])
-            >>> entities = {single_entity, group_entity}
-            >>> tax_benefit_system = TaxBenefitSystem(entities)
+            >>> single_entity = entities.Entity("dog", "dogs", "", "")
+            >>> group_entity = entities.GroupEntity("pack", "packs", "", "", [role])
+            >>> test_entities = [single_entity, group_entity]
+            >>> tax_benefit_system = taxbenefitsystems.TaxBenefitSystem(test_entities)
             >>> count = 2
             >>> builder = _BuildDefaultSimulation(tax_benefit_system, count)
 

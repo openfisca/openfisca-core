@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import typing
 from collections.abc import Iterable, Sequence
 from numpy.typing import NDArray as Array
 from typing import Dict, List
@@ -13,20 +12,29 @@ import numpy
 from openfisca_core import entities, errors, periods, populations, variables
 
 from . import helpers
-from ._type_guards import is_abbr_spec, is_axes_spec, is_expl_spec, is_impl_spec
+from ._build_default_simulation import _BuildDefaultSimulation
+from ._build_from_variables import _BuildFromVariables
+from ._type_guards import (
+    are_entities_fully_specified,
+    are_entities_short_form,
+    are_entities_specified,
+    has_axes,
+)
 from .simulation import Simulation
 from .typing import (
-    AbbrParams,
-    AxisParams,
+    Axis,
     Entity,
-    ExplParams,
+    FullySpecifiedEntities,
+    GroupEntities,
     GroupEntity,
-    ImplParams,
-    NoAxParams,
+    ImplicitGroupEntities,
     Params,
+    ParamsWithoutAxes,
+    Population,
     Role,
     SingleEntity,
     TaxBenefitSystem,
+    Variables,
 )
 
 
@@ -66,87 +74,127 @@ class SimulationBuilder:
         tax_benefit_system: TaxBenefitSystem,
         input_dict: Params,
     ) -> Simulation:
+        """Build a simulation from an input dictionary.
+
+        This method uses :meth:`.SimulationBuilder.build_from_entities` if
+        entities are fully specified, or
+        :meth:`.SimulationBuilder.build_from_variables` if they are not.
+
+        Args:
+            tax_benefit_system(TaxBenefitSystem): The system to use.
+            input_dict(Params): The input of the simulation.
+
+        Returns:
+            Simulation: The built simulation.
+
+        Examples:
+            >>> entities = {"person", "household"}
+
+            >>> params = {
+            ...     "persons": {"Javier": { "salary": { "2018-11": 2000}}},
+            ...     "household": {"parents": ["Javier"]},
+            ...     "axes": [[{"count": 1, "max": 1, "min": 1, "name": "household"}]]
+            ... }
+
+            >>> are_entities_short_form(params, entities)
+            True
+
+            >>> entities = {"persons", "households"}
+
+            >>> params = {
+            ...     "axes": [
+            ...         [{"count": 2, "max": 3000, "min": 0, "name": "rent", "period": "2018-11"}]
+            ...     ],
+            ...     "households": {
+            ...         "housea": {"parents": ["Alicia", "Javier"]},
+            ...         "houseb": {"parents": ["Tom"]},
+            ...    },
+            ...     "persons": {"Alicia": {"salary": {"2018-11": 0}}, "Javier": {}, "Tom": {}},
+            ... }
+
+            >>> are_entities_short_form(params, entities)
+            True
+
+            >>> params = {"salary": [12000, 13000]}
+
+            >>> not are_entities_specified(params, {"salary"})
+            True
+
         """
-        Build a simulation from ``input_dict``
 
-        This method uses :any:`build_from_entities` if entities are fully specified, or :any:`build_from_variables` if not.
+        #: The plural names of the entities in the tax and benefits system.
+        plural: Iterable[str] = tax_benefit_system.entities_plural()
 
-        :param dict input_dict: A dict represeting the input of the simulation
-        :return: A :any:`Simulation`
-        """
+        #: The singular names of the entities in the tax and benefits system.
+        singular: Iterable[str] = tax_benefit_system.entities_by_singular()
 
-        variables = tax_benefit_system.variables.keys()
+        #: The names of the variables in the tax and benefits system.
+        variables: Iterable[str] = tax_benefit_system.variables.keys()
 
-        singular = tax_benefit_system.entities_by_singular()
+        if are_entities_short_form(input_dict, singular):
+            params = self.explicit_singular_entities(tax_benefit_system, input_dict)
+            return self.build_from_entities(tax_benefit_system, params)
 
-        plural = tax_benefit_system.entities_plural()
+        if are_entities_fully_specified(params := input_dict, plural):
+            return self.build_from_entities(tax_benefit_system, params)
 
-        if is_impl_spec(input_dict, singular):
-            expl = self.explicit_singular_entities(tax_benefit_system, input_dict)
-            return self.build_from_entities(tax_benefit_system, expl)
-
-        if is_expl_spec(input_dict, plural):
-            return self.build_from_entities(tax_benefit_system, input_dict)
-
-        if is_abbr_spec(input_dict, variables):
-            return self.build_from_variables(tax_benefit_system, input_dict)
+        if not are_entities_specified(params := input_dict, variables):
+            return self.build_from_variables(tax_benefit_system, params)
 
     def build_from_entities(
         self,
         tax_benefit_system: TaxBenefitSystem,
-        input_dict: ExplParams,
+        input_dict: FullySpecifiedEntities,
     ) -> Simulation:
-        """
-        Build a simulation from a Python dict ``input_dict`` fully specifying entities.
+        """Build a simulation from a Python dict ``input_dict`` fully specifying
+        entities.
 
         Examples:
+            >>> entities = {"person", "household"}
 
-            >>> {
-            ...     'persons': {'Javier': { 'salary': {'2018-11': 2000}}},
-            ...     'households': {'household': {'parents': ['Javier']}}
+            >>> params = {
+            ...     "persons": {"Javier": { "salary": { "2018-11": 2000}}},
+            ...     "household": {"parents": ["Javier"]},
+            ...     "axes": [[{"count": 1, "max": 1, "min": 1, "name": "household"}]]
             ... }
+
+            >>> are_entities_short_form(params, entities)
+            True
+
         """
+
+        # Create the populations
+        populations = tax_benefit_system.instantiate_entities()
+
+        # Create the simulation
+        simulation = Simulation(tax_benefit_system, populations)
+
+        # Why?
         input_dict = copy.deepcopy(input_dict)
 
-        simulation = Simulation(
-            tax_benefit_system, tax_benefit_system.instantiate_entities()
-        )
+        # The plural names of the entities in the tax and benefits system.
+        plural: Iterable[str] = tax_benefit_system.entities_plural()
 
         # Register variables so get_variable_entity can find them
-        for variable_name, _variable in tax_benefit_system.variables.items():
-            self.register_variable(
-                variable_name, simulation.get_variable_population(variable_name).entity
-            )
+        self.register_variables(simulation)
 
+        # Declare axes
+        axes: list[list[Axis]] | None = None
+
+        # ?
         helpers.check_type(input_dict, dict, ["error"])
 
-        axes: list[list[AxisParams]] | None = None
+        # Remove axes from input_dict
+        params: ParamsWithoutAxes = {
+            key: value for key, value in input_dict.items() if key != "axes"
+        }
 
-        if is_axes_spec(input_dict):
-            axes = input_dict.pop("axes")
+        # Save axes for later
+        if has_axes(axes_params := input_dict):
+            axes = copy.deepcopy(axes_params.get("axes", None))
 
-        params: NoAxParams = typing.cast(NoAxParams, input_dict)
-
-        unexpected_entities = [
-            entity
-            for entity in params
-            if entity not in tax_benefit_system.entities_plural()
-        ]
-        if unexpected_entities:
-            unexpected_entity = unexpected_entities[0]
-            raise errors.SituationParsingError(
-                [unexpected_entity],
-                "".join(
-                    [
-                        "Some entities in the situation are not defined in the loaded tax and benefit system.",
-                        "These entities are not found: {0}.",
-                        "The defined entities are: {1}.",
-                    ]
-                ).format(
-                    ", ".join(unexpected_entities),
-                    ", ".join(tax_benefit_system.entities_plural()),
-                ),
-            )
+        # Check for unexpected entities
+        helpers.check_unexpected_entities(params, plural)
 
         person_entity: SingleEntity = tax_benefit_system.person_entity
 
@@ -170,20 +218,21 @@ class SimulationBuilder:
                     self.persons_plural, persons_ids, entity_class, instances_json
                 )
 
-            elif axes:
-                raise errors.SituationParsingError(
-                    [entity_class.plural],
+            elif axes is not None:
+                message = (
                     f"We could not find any specified {entity_class.plural}. "
                     "In order to expand over axes, all group entities and roles "
                     "must be fully specified. For further support, please do "
                     "not hesitate to take a look at the official documentation: "
-                    "https://openfisca.org/doc/simulate/replicate-simulation-inputs.html.",
+                    "https://openfisca.org/doc/simulate/replicate-simulation-inputs.html."
                 )
+
+                raise errors.SituationParsingError([entity_class.plural], message)
 
             else:
                 self.add_default_group_entity(persons_ids, entity_class)
 
-        if axes:
+        if axes is not None:
             for axis in axes[0]:
                 self.add_parallel_axis(axis)
 
@@ -208,51 +257,64 @@ class SimulationBuilder:
         return simulation
 
     def build_from_variables(
-        self, tax_benefit_system: TaxBenefitSystem, input_dict: AbbrParams
+        self, tax_benefit_system: TaxBenefitSystem, input_dict: Variables
     ) -> Simulation:
-        """
-        Build a simulation from a Python dict ``input_dict`` describing variables values without expliciting entities.
+        """Build a simulation from a Python dict ``input_dict`` describing
+        variables values without expliciting entities.
 
-        This method uses :any:`build_default_simulation` to infer an entity structure
+        This method uses :meth:`.SimulationBuilder.build_default_simulation` to
+        infer an entity structure.
 
-        Example:
-            >>> {'salary': {'2016-10': 12000}}
+        Args:
+            tax_benefit_system(TaxBenefitSystem): The system to use.
+            input_dict(Variables): The input of the simulation.
 
-        """
-        count = helpers._get_person_count(input_dict)
-        simulation = self.build_default_simulation(tax_benefit_system, count)
-        for variable, value in input_dict.items():
-            if not isinstance(value, dict):
-                if self.default_period is None:
-                    raise errors.SituationParsingError(
-                        [variable],
-                        "Can't deal with type: expected object. Input variables should be set for specific periods. For instance: {'salary': {'2017-01': 2000, '2017-02': 2500}}, or {'birth_date': {'ETERNITY': '1980-01-01'}}.",
-                    )
-                simulation.set_input(variable, self.default_period, value)
-            else:
-                for period_str, dated_value in value.items():
-                    simulation.set_input(variable, period_str, dated_value)
-        return simulation
+        Returns:
+            Simulation: The built simulation.
 
-    def build_default_simulation(self, tax_benefit_system, count=1):
-        """
-        Build a simulation where:
-            - There are ``count`` persons
-            - There are ``count`` instances of each group entity, containing one person
-            - Every person has, in each entity, the first role
+        Raises:
+            SituationParsingError: If the input is not valid.
+
+        Examples:
+            >>> params = {'salary': {'2016-10': 12000}}
+
+            >>> are_entities_specified(params, {"salary"})
+            False
+
+            >>> params = {'salary': 12000}
+
+            >>> are_entities_specified(params, {"salary"})
+            False
+
         """
 
-        simulation = Simulation(
-            tax_benefit_system, tax_benefit_system.instantiate_entities()
+        return (
+            _BuildFromVariables(tax_benefit_system, input_dict, self.default_period)
+            .add_dated_values()
+            .add_undated_values()
+            .simulation
         )
-        for population in simulation.populations.values():
-            population.count = count
-            population.ids = numpy.array(range(count))
-            if not population.entity.is_person:
-                population.members_entity_id = (
-                    population.ids
-                )  # Each person is its own group entity
-        return simulation
+
+    @staticmethod
+    def build_default_simulation(
+        tax_benefit_system: TaxBenefitSystem, count: int = 1
+    ) -> Simulation:
+        """Build a default simulation.
+
+        Where:
+            - There are ``count`` persons
+            - There are ``count`` of each group entity, containing one person
+            - Every person has, in each entity, the first role
+
+        """
+
+        return (
+            _BuildDefaultSimulation(tax_benefit_system, count)
+            .add_count()
+            .add_ids()
+            .add_members_entity_id()
+            .simulation
+        )
 
     def create_entities(self, tax_benefit_system):
         self.populations = tax_benefit_system.instantiate_entities()
@@ -301,17 +363,29 @@ class SimulationBuilder:
         return Simulation(tax_benefit_system, self.populations)
 
     def explicit_singular_entities(
-        self, tax_benefit_system: TaxBenefitSystem, input_dict: ImplParams
-    ) -> ExplParams:
-        """
-        Preprocess ``input_dict`` to explicit entities defined using the single-entity shortcut
+        self, tax_benefit_system: TaxBenefitSystem, input_dict: ImplicitGroupEntities
+    ) -> GroupEntities:
+        """Preprocess ``input_dict`` to explicit entities defined using the
+        single-entity shortcut
 
-        Example:
+        Examples:
 
-        >>> simulation_builder.explicit_singular_entities(
-            {'persons': {'Javier': {}, }, 'household': {'parents': ['Javier']}}
-            )
-        >>> {'persons': {'Javier': {}}, 'households': {'household': {'parents': ['Javier']}}
+            >>> params = {'persons': {'Javier': {}, }, 'household': {'parents': ['Javier']}}
+
+            >>> are_entities_fully_specified(params, {"persons", "households"})
+            False
+
+            >>> are_entities_short_form(params, {"person", "household"})
+            True
+
+            >>> params = {'persons': {'Javier': {}}, 'households': {'household': {'parents': ['Javier']}}}
+
+            >>> are_entities_fully_specified(params, {"persons", "households"})
+            True
+
+            >>> are_entities_short_form(params, {"person", "household"})
+            False
+
         """
 
         singular_keys = set(input_dict).intersection(
@@ -616,22 +690,22 @@ class SimulationBuilder:
         # Return empty array for the "persons" entity
         return self.axes_roles.get(entity_name, self.roles.get(entity_name, []))
 
-    def add_parallel_axis(self, axis: AxisParams) -> None:
+    def add_parallel_axis(self, axis: Axis) -> None:
         # All parallel axes have the same count and entity.
         # Search for a compatible axis, if none exists, error out
         self.axes[0].append(axis)
 
-    def add_perpendicular_axis(self, axis: AxisParams) -> None:
+    def add_perpendicular_axis(self, axis: Axis) -> None:
         # This adds an axis perpendicular to all previous dimensions
         self.axes.append([axis])
 
     def expand_axes(self) -> None:
         # This method should be idempotent & allow change in axes
-        perpendicular_dimensions: list[list[AxisParams]] = self.axes
+        perpendicular_dimensions: list[list[Axis]] = self.axes
         cell_count: int = 1
 
         for parallel_axes in perpendicular_dimensions:
-            first_axis: AxisParams = parallel_axes[0]
+            first_axis: Axis = parallel_axes[0]
             axis_count: int = first_axis["count"]
             cell_count *= axis_count
 
@@ -734,3 +808,12 @@ class SimulationBuilder:
 
     def register_variable(self, variable_name: str, entity: Entity) -> None:
         self.variable_entities[variable_name] = entity
+
+    def register_variables(self, simulation: Simulation) -> None:
+        tax_benefit_system: TaxBenefitSystem = simulation.tax_benefit_system
+        variables: Iterable[str] = tax_benefit_system.variables.keys()
+
+        for name in variables:
+            population: Population = simulation.get_variable_population(name)
+            entity: Entity = population.entity
+            self.register_variable(name, entity)
