@@ -1,5 +1,11 @@
 # Changelog
 
+### 41.4.2 [#1203](https://github.com/openfisca/openfisca-core/pull/1203)
+
+#### Technical changes
+
+- Changes the Pypi's deployment authentication way to use token API following Pypi's 2FA enforcement starting 2024/01/01.
+
 ### 41.4.1 [#1202](https://github.com/openfisca/openfisca-core/pull/1202)
 
 #### Technical changes
