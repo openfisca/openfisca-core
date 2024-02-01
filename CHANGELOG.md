@@ -1,5 +1,21 @@
 # Changelog
 
+## 41.6.0 [#1204](https://github.com/openfisca/openfisca-core/pull/1204)
+
+#### New feature
+
+- Introduce `simulation_configurator`
+  - Allow simulation customization in web API
+
+```python
+def simulation_configurator(simulation):
+    simulation.max_spiral_loops = 4
+    simulation.max_spiral_lookback_months = 4
+
+application = create_app(tax_benefit_system,
+    simulation_configurator=simulation_configurator)
+```
+
 ## 41.5.0 [#1205](https://github.com/openfisca/openfisca-core/pull/1205)
 
 #### New feature

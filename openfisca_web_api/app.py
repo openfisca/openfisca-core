@@ -5,7 +5,7 @@ import os
 import traceback
 
 from openfisca_core.errors import PeriodMismatchError, SituationParsingError
-from openfisca_web_api import handlers
+from openfisca_web_api.handlers import Handler
 from openfisca_web_api.errors import handle_import_error
 from openfisca_web_api.loader import build_data
 
@@ -49,6 +49,7 @@ def init_tracker(url, idsite, tracker_token):
 
 def create_app(
     tax_benefit_system,
+    simulation_configurator=None,
     tracker_url=None,
     tracker_idsite=None,
     tracker_token=None,
@@ -60,6 +61,8 @@ def create_app(
         tracker = init_tracker(tracker_url, tracker_idsite, tracker_token)
 
     app = Flask(__name__)
+    handlers = Handler(simulation_configurator)
+
     # Fix request.remote_addr to get the real client IP address
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1)
     CORS(app, origins="*")
