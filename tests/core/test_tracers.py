@@ -10,6 +10,7 @@ from pytest import approx, fixture, mark, raises
 from openfisca_country_template.variables.housing import HousingOccupancyStatus
 
 from openfisca_core.simulations import CycleError, Simulation, SpiralError
+from openfisca_core.periods import period
 from openfisca_core.tracers import (
     FullTracer,
     SimpleTracer,
@@ -129,7 +130,7 @@ def test_spiral_error(tracer):
     with raises(SpiralError):
         simulation._check_for_cycle("a", 2015)
 
-    assert len(simulation.invalidated_cache_items) == 3
+    assert len(simulation.invalidated_cache_items) == 2
     assert len(tracer.stack) == 3
 
 
