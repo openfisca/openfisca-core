@@ -120,7 +120,6 @@ def test_cycle_error(tracer):
         simulation._check_for_cycle("a", 2017)
 
 
-
 @mark.parametrize("tracer", [SimpleTracer(), FullTracer()])
 def test_spiral_error(tracer):
     simulation = StubSimulation()
