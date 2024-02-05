@@ -1,5 +1,11 @@
 # Changelog
 
+## 41.5.0 [#1205](https://github.com/openfisca/openfisca-core/pull/1205)
+
+#### New feature
+
+- Add a look back constraint on spiral errors
+
 ### 41.4.2 [#1203](https://github.com/openfisca/openfisca-core/pull/1203)
 
 #### Technical changes
