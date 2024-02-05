@@ -412,17 +412,12 @@ class Simulation:
         self.invalidated_caches.add(Cache(variable, period))
 
     def invalidate_spiral_variables(self, variable: str):
-        # Visit the stack, from the bottom (most recent) up; we know that we'll find
-        # the variable implicated in the spiral (max_spiral_loops+1) times; we keep the
-        # intermediate values computed (to avoid impacting performance) but we mark them
-        # for deletion from the cache once the calculation ends.
-        count = 0
-        for frame in reversed(self.tracer.stack):
-            self.invalidate_cache_entry(str(frame["name"]), frame["period"])
-            if frame["name"] == variable:
-                count += 1
-                if count > self.max_spiral_loops:
-                    break
+        invalidate_entries = False
+        for frame in self.tracer.stack:
+            if invalidate_entries:
+                self.invalidate_cache_entry(str(frame["name"]), frame["period"])
+            elif frame["name"] == variable:
+                invalidate_entries = True
 
     # ----- Methods to access stored values ----- #
 
