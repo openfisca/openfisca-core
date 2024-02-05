@@ -18,6 +18,7 @@ from openfisca_core.tracers import (
     TracingParameterNodeAtInstant,
 )
 
+
 from .parameters_fancy_indexing.test_fancy_indexing import parameters
 
 
