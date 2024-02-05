@@ -412,12 +412,19 @@ class Simulation:
         self.invalidated_caches.add(Cache(variable, period))
 
     def invalidate_spiral_variables(self, variable: str):
+        initial_call_found = False
         invalidate_entries = False
+        # 1. find the initial variable call
+        # 2. find the next variable call
+        # 3. invalidate all frame items from there
         for frame in self.tracer.stack:
-            if invalidate_entries:
-                self.invalidate_cache_entry(str(frame["name"]), frame["period"])
+            if initial_call_found:
+                if not invalidate_entries and frame["name"] == variable:
+                    invalidate_entries = True
+                if invalidate_entries:
+                    self.invalidate_cache_entry(str(frame["name"]), frame["period"])
             elif frame["name"] == variable:
-                invalidate_entries = True
+                initial_call_found = True
 
     # ----- Methods to access stored values ----- #
 
