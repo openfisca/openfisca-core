@@ -18,6 +18,7 @@ from openfisca_core.tracers import (
     TracingParameterNodeAtInstant,
 )
 
+
 from .parameters_fancy_indexing.test_fancy_indexing import parameters
 
 
@@ -119,6 +120,7 @@ def test_cycle_error(tracer):
         simulation._check_for_cycle("a", 2017)
 
 
+
 @mark.parametrize("tracer", [SimpleTracer(), FullTracer()])
 def test_spiral_error(tracer):
     simulation = StubSimulation()
@@ -130,7 +132,7 @@ def test_spiral_error(tracer):
     tracer.record_calculation_start("a", period(2015))
 
     with raises(SpiralError):
-        simulation._check_for_cycle("a", 2015)
+        simulation._check_for_cycle("a", period(2015))
 
     assert len(simulation.invalidated_cache_items) == 3
     assert len(tracer.stack) == 5
