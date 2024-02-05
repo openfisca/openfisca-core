@@ -403,9 +403,9 @@ class Simulation:
                 "Circular definition detected on formula {}@{}".format(variable, period)
             )
 
-        spiral = len(previous_periods) >= self.max_spiral_loops
+        too_many_spirals = len(previous_periods) >= self.max_spiral_loops
         too_backward = (previous_periods[0].date - period.date).in_months() > self.max_spiral_lookback_months if previous_periods and self.max_spiral_lookback_months > 0 else False
-        if spiral or too_backward:
+        if too_many_spirals or too_backward:
             self.invalidate_spiral_variables(variable)
             message = "Quasicircular definition detected on formula {}@{} involving {}".format(
                 variable, period, self.tracer.stack
