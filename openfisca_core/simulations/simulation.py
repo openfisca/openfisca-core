@@ -48,6 +48,8 @@ class Simulation:
 
         # controls the spirals detection; check for performance impact if > 1
         self.max_spiral_loops: int = 1
+        self.max_spiral_lookback_months: int = 24
+
         self.memory_config = None
         self._data_storage_dir = None
 
@@ -400,8 +402,10 @@ class Simulation:
             raise errors.CycleError(
                 "Circular definition detected on formula {}@{}".format(variable, period)
             )
+
         spiral = len(previous_periods) >= self.max_spiral_loops
-        if spiral:
+        too_backward = (previous_periods[0].date - period.date).in_months() > self.max_spiral_lookback_months if previous_periods else False
+        if spiral or too_backward:
             self.invalidate_spiral_variables(variable)
             message = "Quasicircular definition detected on formula {}@{} involving {}".format(
                 variable, period, self.tracer.stack
