@@ -124,14 +124,16 @@ def test_spiral_error(tracer):
     simulation = StubSimulation()
     simulation.tracer = tracer
     tracer.record_calculation_start("a", period(2017))
+    tracer.record_calculation_start("b", period(2016))
     tracer.record_calculation_start("a", period(2016))
+    tracer.record_calculation_start("b", period(2015))
     tracer.record_calculation_start("a", period(2015))
 
     with raises(SpiralError):
         simulation._check_for_cycle("a", 2015)
 
-    assert len(simulation.invalidated_cache_items) == 2
-    assert len(tracer.stack) == 3
+    assert len(simulation.invalidated_cache_items) == 3
+    assert len(tracer.stack) == 5
 
 
 def test_full_tracer_one_calculation(tracer):
