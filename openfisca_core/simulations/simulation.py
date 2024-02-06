@@ -409,9 +409,12 @@ class Simulation:
             raise errors.SpiralError(message, variable)
 
     def invalidate_cache_entry(self, variable: str, period):
+        print((variable, period))
         self.invalidated_caches.add(Cache(variable, period))
 
     def invalidate_spiral_variables(self, variable: str):
+        print((variable))
+        print(self.tracer.stack)
         initial_call_found = False
         invalidate_entries = False
         # 1. find the initial variable call

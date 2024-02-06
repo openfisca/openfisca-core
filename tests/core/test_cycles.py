@@ -128,12 +128,14 @@ def test_spirals_result_in_default_value(simulation, reference_period):
 
 def test_spiral_heuristic(simulation, reference_period):
     variable5 = simulation.calculate("variable5", period=reference_period)
+    tools.assert_near(variable5, [11])
+
     variable6 = simulation.calculate("variable6", period=reference_period)
+    tools.assert_near(variable6, [11])
+
     variable6_last_month = simulation.calculate(
         "variable6", reference_period.last_month
     )
-    tools.assert_near(variable5, [11])
-    tools.assert_near(variable6, [11])
     tools.assert_near(variable6_last_month, [11])
 
 

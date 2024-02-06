@@ -29,7 +29,6 @@ class StubSimulation(Simulation):
     def __init__(self):
         self.exception = None
         self.max_spiral_loops = 1
-        self.max_spiral_lookback_months = 24
         self.invalidated_cache_items = []
 
     def _calculate(self, variable, period):
@@ -126,11 +125,9 @@ def test_spiral_error(tracer):
     tracer.record_calculation_start("a", period(2017))
     tracer.record_calculation_start("b", period(2016))
     tracer.record_calculation_start("a", period(2016))
-    tracer.record_calculation_start("b", period(2015))
-    tracer.record_calculation_start("a", period(2015))
 
     with raises(SpiralError):
-        simulation._check_for_cycle("a", 2015)
+        simulation._check_for_cycle("a", 2016)
 
     assert len(simulation.invalidated_cache_items) == 3
     assert len(tracer.stack) == 5
