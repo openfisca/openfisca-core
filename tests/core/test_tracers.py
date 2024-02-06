@@ -127,10 +127,10 @@ def test_spiral_error(tracer):
     tracer.record_calculation_start("a", period(2016))
 
     with raises(SpiralError):
-        simulation._check_for_cycle("a", 2016)
+        simulation._check_for_cycle("a", period(2016))
 
     assert len(simulation.invalidated_cache_items) == 3
-    assert len(tracer.stack) == 5
+    assert len(tracer.stack) == 3
 
 
 def test_full_tracer_one_calculation(tracer):

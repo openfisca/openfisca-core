@@ -409,25 +409,20 @@ class Simulation:
             raise errors.SpiralError(message, variable)
 
     def invalidate_cache_entry(self, variable: str, period):
-        print((variable, period))
         self.invalidated_caches.add(Cache(variable, period))
 
     def invalidate_spiral_variables(self, variable: str):
-        print((variable))
-        print(self.tracer.stack)
-        initial_call_found = False
-        invalidate_entries = False
-        # 1. find the initial variable call
-        # 2. find the next variable call
-        # 3. invalidate all frame items from there
-        for frame in self.tracer.stack:
-            if initial_call_found:
-                if not invalidate_entries and frame["name"] == variable:
-                    invalidate_entries = True
-                if invalidate_entries:
-                    self.invalidate_cache_entry(str(frame["name"]), frame["period"])
-            elif frame["name"] == variable:
-                initial_call_found = True
+        # Visit the stack, from the bottom (most recent) up; we know that we'll find
+        # the variable implicated in the spiral (max_spiral_loops+1) times; we keep the
+        # intermediate values computed (to avoid impacting performance) but we mark them
+        # for deletion from the cache once the calculation ends.
+        count = 0
+        for frame in reversed(self.tracer.stack):
+            self.invalidate_cache_entry(str(frame["name"]), frame["period"])
+            if frame["name"] == variable:
+                count += 1
+                if count > self.max_spiral_loops:
+                    break
 
     # ----- Methods to access stored values ----- #
 
