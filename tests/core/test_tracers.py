@@ -18,7 +18,6 @@ from openfisca_core.tracers import (
     TracingParameterNodeAtInstant,
 )
 
-
 from .parameters_fancy_indexing.test_fancy_indexing import parameters
 
 
@@ -30,6 +29,7 @@ class StubSimulation(Simulation):
     def __init__(self):
         self.exception = None
         self.max_spiral_loops = 1
+        self.max_spiral_lookback_months = 0
         self.invalidated_cache_items = []
 
     def _calculate(self, variable, period):

@@ -418,10 +418,10 @@ class Simulation:
     def invalidate_spiral_variables(self, variable: str):
         invalidate_entries = False
         for frame in self.tracer.stack:
+            if not invalidate_entries and frame["name"] == variable:
+                invalidate_entries = True
             if invalidate_entries:
                 self.invalidate_cache_entry(str(frame["name"]), frame["period"])
-            elif frame["name"] == variable:
-                invalidate_entries = True
 
     # ----- Methods to access stored values ----- #
 
