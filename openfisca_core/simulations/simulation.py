@@ -48,6 +48,8 @@ class Simulation:
 
         # controls the spirals detection; check for performance impact if > 1
         self.max_spiral_loops: int = 1
+        self.max_spiral_lookback_months: int = 0
+
         self.memory_config = None
         self._data_storage_dir = None
 
@@ -400,8 +402,10 @@ class Simulation:
             raise errors.CycleError(
                 "Circular definition detected on formula {}@{}".format(variable, period)
             )
-        spiral = len(previous_periods) >= self.max_spiral_loops
-        if spiral:
+
+        too_many_spirals = len(previous_periods) >= self.max_spiral_loops
+        too_backward = (previous_periods[0].date - period.date).in_months() > self.max_spiral_lookback_months if previous_periods and self.max_spiral_lookback_months > 0 else False
+        if too_many_spirals or too_backward:
             self.invalidate_spiral_variables(variable)
             message = "Quasicircular definition detected on formula {}@{} involving {}".format(
                 variable, period, self.tracer.stack
@@ -412,17 +416,9 @@ class Simulation:
         self.invalidated_caches.add(Cache(variable, period))
 
     def invalidate_spiral_variables(self, variable: str):
-        # Visit the stack, from the bottom (most recent) up; we know that we'll find
-        # the variable implicated in the spiral (max_spiral_loops+1) times; we keep the
-        # intermediate values computed (to avoid impacting performance) but we mark them
-        # for deletion from the cache once the calculation ends.
-        count = 0
-        for frame in reversed(self.tracer.stack):
+        first_variable_occurrence = next(index for (index, frame) in enumerate(self.tracer.stack) if frame["name"] == variable)
+        for frame in self.tracer.stack[first_variable_occurrence:]:
             self.invalidate_cache_entry(str(frame["name"]), frame["period"])
-            if frame["name"] == variable:
-                count += 1
-                if count > self.max_spiral_loops:
-                    break
 
     # ----- Methods to access stored values ----- #
 
