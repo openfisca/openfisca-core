@@ -2,8 +2,8 @@ import pytest
 
 from openfisca_country_template.situation_examples import single
 
+from openfisca_core import errors, periods
 from openfisca_core.simulations import SimulationBuilder
-from openfisca_core import periods, errors
 
 
 def test_calculate_full_tracer(tax_benefit_system):

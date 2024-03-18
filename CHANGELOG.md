@@ -1,5 +1,13 @@
 # Changelog
 
+### 41.4.3 [#1206](https://github.com/openfisca/openfisca-core/pull/1206)
+
+#### Technical changes
+
+- Increase spiral and cycle tests robustness.
+  - The current test is ambiguous, as it hides a failure at the first spiral
+    occurrence (from 2017 to 2016).
+
 ### 41.4.2 [#1203](https://github.com/openfisca/openfisca-core/pull/1203)
 
 #### Technical changes
