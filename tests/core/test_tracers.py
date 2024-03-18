@@ -9,6 +9,7 @@ from pytest import approx, fixture, mark, raises
 
 from openfisca_country_template.variables.housing import HousingOccupancyStatus
 
+from openfisca_core import periods
 from openfisca_core.simulations import CycleError, Simulation, SpiralError
 from openfisca_core.tracers import (
     FullTracer,
@@ -59,10 +60,12 @@ def tracer():
 @mark.parametrize("tracer", [SimpleTracer(), FullTracer()])
 def test_stack_one_level(tracer):
     tracer.record_calculation_start("a", 2017)
+
     assert len(tracer.stack) == 1
     assert tracer.stack == [{"name": "a", "period": 2017}]
 
     tracer.record_calculation_end()
+
     assert tracer.stack == []
 
 
@@ -70,6 +73,7 @@ def test_stack_one_level(tracer):
 def test_stack_two_levels(tracer):
     tracer.record_calculation_start("a", 2017)
     tracer.record_calculation_start("b", 2017)
+
     assert len(tracer.stack) == 2
     assert tracer.stack == [
         {"name": "a", "period": 2017},
@@ -77,6 +81,7 @@ def test_stack_two_levels(tracer):
     ]
 
     tracer.record_calculation_end()
+
     assert len(tracer.stack) == 1
     assert tracer.stack == [{"name": "a", "period": 2017}]
 
@@ -108,29 +113,47 @@ def test_exception_robustness():
 def test_cycle_error(tracer):
     simulation = StubSimulation()
     simulation.tracer = tracer
-    tracer.record_calculation_start("a", 2017)
-    simulation._check_for_cycle("a", 2017)
 
     tracer.record_calculation_start("a", 2017)
+
+    assert not simulation._check_for_cycle("a", 2017)
+
+    tracer.record_calculation_start("a", 2017)
+
     with raises(CycleError):
         simulation._check_for_cycle("a", 2017)
+
+    assert len(tracer.stack) == 2
+    assert tracer.stack == [
+        {"name": "a", "period": 2017},
+        {"name": "a", "period": 2017},
+    ]
 
 
 @mark.parametrize("tracer", [SimpleTracer(), FullTracer()])
 def test_spiral_error(tracer):
     simulation = StubSimulation()
     simulation.tracer = tracer
-    tracer.record_calculation_start("a", 2017)
-    tracer.record_calculation_start("a", 2016)
-    tracer.record_calculation_start("a", 2015)
+
+    tracer.record_calculation_start("a", periods.period(2017))
+    tracer.record_calculation_start("b", periods.period(2016))
+    tracer.record_calculation_start("a", periods.period(2016))
 
     with raises(SpiralError):
-        simulation._check_for_cycle("a", 2015)
+        simulation._check_for_cycle("a", periods.period(2016))
+
+    assert len(tracer.stack) == 3
+    assert tracer.stack == [
+        {"name": "a", "period": periods.period(2017)},
+        {"name": "b", "period": periods.period(2016)},
+        {"name": "a", "period": periods.period(2016)},
+    ]
 
 
 def test_full_tracer_one_calculation(tracer):
     tracer._enter_calculation("a", 2017)
     tracer._exit_calculation()
+
     assert tracer.stack == []
     assert len(tracer.trees) == 1
     assert tracer.trees[0].name == "a"
@@ -140,13 +163,10 @@ def test_full_tracer_one_calculation(tracer):
 
 def test_full_tracer_2_branches(tracer):
     tracer._enter_calculation("a", 2017)
-
     tracer._enter_calculation("b", 2017)
     tracer._exit_calculation()
-
     tracer._enter_calculation("c", 2017)
     tracer._exit_calculation()
-
     tracer._exit_calculation()
 
     assert len(tracer.trees) == 1
@@ -156,7 +176,6 @@ def test_full_tracer_2_branches(tracer):
 def test_full_tracer_2_trees(tracer):
     tracer._enter_calculation("b", 2017)
     tracer._exit_calculation()
-
     tracer._enter_calculation("c", 2017)
     tracer._exit_calculation()
 
@@ -258,12 +277,13 @@ def test_calculation_time():
     tracer._record_start_time(1500)
     tracer._record_end_time(2500)
     tracer._exit_calculation()
-
     performance_json = tracer.performance_log._json()
+
     assert performance_json["name"] == "All calculations"
     assert performance_json["value"] == 1000
 
     simulation_children = performance_json["children"]
+
     assert simulation_children[0]["name"] == "a<2019>"
     assert simulation_children[0]["value"] == 1000
 
@@ -326,11 +346,15 @@ def test_flat_trace_calc_time(tracer_calc_time):
 def test_generate_performance_table(tracer_calc_time, tmpdir):
     tracer = tracer_calc_time
     tracer.generate_performance_tables(tmpdir)
+
     with open(os.path.join(tmpdir, "performance_table.csv"), "r") as csv_file:
         csv_reader = csv.DictReader(csv_file)
         csv_rows = list(csv_reader)
+
     assert len(csv_rows) == 4
+
     a_row = next(row for row in csv_rows if row["name"] == "a<2019>")
+
     assert float(a_row["calculation_time"]) == 1000
     assert float(a_row["formula_time"]) == 190
 
@@ -339,8 +363,11 @@ def test_generate_performance_table(tracer_calc_time, tmpdir):
     ) as csv_file:
         aggregated_csv_reader = csv.DictReader(csv_file)
         aggregated_csv_rows = list(aggregated_csv_reader)
+
     assert len(aggregated_csv_rows) == 3
+
     a_row = next(row for row in aggregated_csv_rows if row["name"] == "a")
+
     assert float(a_row["calculation_time"]) == 1000 + 200
     assert float(a_row["formula_time"]) == 190 + 200
 
@@ -392,8 +419,8 @@ def test_log_format(tracer):
     tracer._exit_calculation()
     tracer.record_calculation_result(numpy.asarray([2]))
     tracer._exit_calculation()
-
     lines = tracer.computation_log.lines()
+
     assert lines[0] == "  A<2017> >> [2]"
     assert lines[1] == "    B<2017> >> [1]"
 
@@ -402,12 +429,11 @@ def test_log_format_forest(tracer):
     tracer._enter_calculation("A", 2017)
     tracer.record_calculation_result(numpy.asarray([1]))
     tracer._exit_calculation()
-
     tracer._enter_calculation("B", 2017)
     tracer.record_calculation_result(numpy.asarray([2]))
     tracer._exit_calculation()
-
     lines = tracer.computation_log.lines()
+
     assert lines[0] == "  A<2017> >> [1]"
     assert lines[1] == "  B<2017> >> [2]"
 
@@ -416,8 +442,8 @@ def test_log_aggregate(tracer):
     tracer._enter_calculation("A", 2017)
     tracer.record_calculation_result(numpy.asarray([1]))
     tracer._exit_calculation()
-
     lines = tracer.computation_log.lines(aggregate=True)
+
     assert lines[0] == "  A<2017> >> {'avg': 1.0, 'max': 1, 'min': 1}"
 
 
@@ -427,8 +453,8 @@ def test_log_aggregate_with_enum(tracer):
         HousingOccupancyStatus.encode(numpy.repeat("tenant", 100))
     )
     tracer._exit_calculation()
-
     lines = tracer.computation_log.lines(aggregate=True)
+
     assert (
         lines[0]
         == "  A<2017> >> {'avg': EnumArray(HousingOccupancyStatus.tenant), 'max': EnumArray(HousingOccupancyStatus.tenant), 'min': EnumArray(HousingOccupancyStatus.tenant)}"
@@ -439,8 +465,8 @@ def test_log_aggregate_with_strings(tracer):
     tracer._enter_calculation("A", 2017)
     tracer.record_calculation_result(numpy.repeat("foo", 100))
     tracer._exit_calculation()
-
     lines = tracer.computation_log.lines(aggregate=True)
+
     assert lines[0] == "  A<2017> >> {'avg': '?', 'max': '?', 'min': '?'}"
 
 
@@ -469,8 +495,8 @@ def test_no_wrapping(tracer):
         HousingOccupancyStatus.encode(numpy.repeat("tenant", 100))
     )
     tracer._exit_calculation()
-
     lines = tracer.computation_log.lines()
+
     assert "'tenant'" in lines[0]
     assert "\n" not in lines[0]
 
@@ -481,8 +507,8 @@ def test_trace_enums(tracer):
         HousingOccupancyStatus.encode(numpy.array(["tenant"]))
     )
     tracer._exit_calculation()
-
     lines = tracer.computation_log.lines()
+
     assert lines[0] == "  A<2017> >> ['tenant']"
 
 
@@ -494,9 +520,12 @@ family_status = numpy.asarray(["single", "couple", "single", "couple"])
 
 def check_tracing_params(accessor, param_key):
     tracer = FullTracer()
+
     tracer._enter_calculation("A", "2015-01")
+
     tracingParams = TracingParameterNodeAtInstant(parameters("2015-01-01"), tracer)
     param = accessor(tracingParams)
+
     assert tracer.trees[0].parameters[0].name == param_key
     assert tracer.trees[0].parameters[0].value == approx(param)
 
@@ -544,6 +573,6 @@ def test_browse_trace():
     tracer._enter_calculation("F", 2017)
     tracer._exit_calculation()
     tracer._exit_calculation()
-
     browsed_nodes = [node.name for node in tracer.browse_trace()]
+
     assert browsed_nodes == ["B", "C", "D", "E", "F"]

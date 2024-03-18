@@ -28,7 +28,7 @@ class FullTracer:
     def record_calculation_start(
         self,
         variable: str,
-        period: Period,
+        period: Period | int,
     ) -> None:
         self._simple_tracer.record_calculation_start(variable, period)
         self._enter_calculation(variable, period)
