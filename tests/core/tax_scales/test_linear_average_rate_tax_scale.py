@@ -69,6 +69,47 @@ def test_to_dict():
     assert result == {"0": 0.0, "100": 0.1}
 
 
+def test_calc():
+    tax_base = numpy.array([0, 3.5, 6, 7, 9])
+    tax_scale = taxscales.LinearAverageRateTaxScale()
+    tax_scale.add_bracket(0, 0)
+    tax_scale.add_bracket(2, 0.1)
+    tax_scale.add_bracket(4, 0.3)
+    tax_scale.add_bracket(6, 0.7)
+    tax_scale.add_bracket(8, 0.5)
+
+    result = tax_scale.calc(tax_base)
+    tools.assert_near(result, [0, 3.5 * 0.25, 6 * 0.7, 7 * (0.7 - (0.7 - 0.5) / 2), 0], absolute_error_margin = 0)
+
+def test_calc_interpolate():
+    """ Test interpolation between points on a continuous, non-smooth line
+
+        thresholds = [0, 2, 4, 6, 8, 10]
+        amounts = [0, 10, 30, 60, 100, 40]
+
+        First) Test amounts on threshold values (requires no interpolation)
+        Second) Test amounts between threshold values (requires interpolation)
+    """
+
+    tax_base_on_thresholds = numpy.array([0, 2, 4, 6, 8, 10])
+    tax_base_between_thresholds = numpy.array([1, 3, 5, 6.0005, 7, 9.5])
+    
+    tax_scale = taxscales.LinearAverageRateTaxScale()
+    tax_scale.add_bracket(0, 0)
+    tax_scale.add_bracket(2, 5)
+    tax_scale.add_bracket(4, 7.5)
+    tax_scale.add_bracket(6, 10)
+    tax_scale.add_bracket(8, 12.5)
+    tax_scale.add_bracket(10, 4)
+    tax_scale.add_bracket(10.0000000001, 0)
+
+    on_thresholds_result = tax_scale.calc(tax_base_on_thresholds)
+    tools.assert_near(on_thresholds_result, [0,10,30,60,100,40], absolute_error_margin = 1e-10)
+
+    between_thresholds_result = tax_scale.calc(tax_base_between_thresholds)
+    tools.assert_near(between_thresholds_result, [5,20,45,61,80,55], absolute_error_margin = 1e-10)
+
+
 def test_to_marginal():
     tax_base = numpy.array([1, 1.5, 2, 2.5])
     tax_scale = taxscales.LinearAverageRateTaxScale()
