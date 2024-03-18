@@ -29,7 +29,6 @@ long_description = (this_directory / "README.md").read_text()
 general_requirements = [
     "PyYAML >=6.0, <7.0",
     "dpath >=2.1.4, <3.0",
-    "importlib-metadata >=6.1.0, <7.0",
     "numexpr >=2.8.4, <3.0",
     "numpy >=1.24.2, <1.25",
     "pendulum >=2.1.2, <3.0.0",

@@ -9,14 +9,14 @@ import copy
 import functools
 import glob
 import importlib
+import importlib.metadata
+import importlib.util
 import inspect
 import linecache
 import logging
 import os
 import sys
 import traceback
-
-import importlib_metadata
 
 from openfisca_core import commons, periods, variables
 from openfisca_core.entities import Entity
@@ -524,9 +524,9 @@ class TaxBenefitSystem:
         package_name = module.__package__.split(".")[0]
 
         try:
-            distribution = importlib_metadata.distribution(package_name)
+            distribution = importlib.metadata.distribution(package_name)
 
-        except importlib_metadata.PackageNotFoundError:
+        except importlib.metadata.PackageNotFoundError:
             return fallback_metadata
 
         source_file = inspect.getsourcefile(module)
@@ -540,9 +540,14 @@ class TaxBenefitSystem:
         metadata = distribution.metadata
 
         return {
-            "name": metadata["Name"].lower(),
-            "version": distribution.version,
-            "repository_url": metadata["Home-page"],
+            "name": metadata.get("Name").lower(),
+            "version": metadata.get("version"),
+            "repository_url": next(
+                filter(
+                    lambda url: url.startswith("Repository"),
+                    metadata.get_all("Project-URL"),
+                )
+            ).split("Repository, ")[-1],
             "location": location,
         }
 
