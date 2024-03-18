@@ -541,7 +541,7 @@ class TaxBenefitSystem:
 
         return {
             "name": metadata.get("Name").lower(),
-            "version": metadata.get("version"),
+            "version": metadata.get("Version"),
             "repository_url": next(
                 filter(
                     lambda url: url.startswith("Repository"),
