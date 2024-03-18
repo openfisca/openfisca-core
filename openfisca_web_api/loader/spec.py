@@ -7,11 +7,13 @@ import dpath.util
 import yaml
 
 from openfisca_core.indexed_enums import Enum
-from openfisca_web_api import handlers
+from openfisca_web_api.handlers import Handler
 
 OPEN_API_CONFIG_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), os.path.pardir, "openAPI.yml"
 )
+
+handlers = Handler()
 
 
 def build_openAPI_specification(api_data):
