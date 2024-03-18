@@ -29,14 +29,13 @@ class StubSimulation(Simulation):
     def __init__(self):
         self.exception = None
         self.max_spiral_loops = 1
-        self.invalidated_cache_items = []
 
     def _calculate(self, variable, period):
         if self.exception:
             raise self.exception
 
     def invalidate_cache_entry(self, variable, period):
-        self.invalidated_cache_items.append((variable, period))
+        pass
 
     def purge_cache_of_invalid_values(self):
         pass
@@ -144,7 +143,11 @@ def test_spiral_error(tracer):
         simulation._check_for_cycle("a", periods.period(2016))
 
     assert len(tracer.stack) == 3
-    assert len(simulation.invalidated_cache_items) == 3
+    assert tracer.stack == [
+        {"name": "a", "period": periods.period(2017)},
+        {"name": "b", "period": periods.period(2016)},
+        {"name": "a", "period": periods.period(2016)},
+    ]
 
 
 def test_full_tracer_one_calculation(tracer):
