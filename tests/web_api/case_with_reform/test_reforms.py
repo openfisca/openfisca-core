@@ -5,23 +5,25 @@ import pytest
 from openfisca_core import scripts
 from openfisca_web_api import app
 
-TEST_COUNTRY_PACKAGE_NAME = "openfisca_country_template"
-TEST_REFORMS_PATHS = [
-    f"{TEST_COUNTRY_PACKAGE_NAME}.reforms.add_dynamic_variable.add_dynamic_variable",
-    f"{TEST_COUNTRY_PACKAGE_NAME}.reforms.add_new_tax.add_new_tax",
-    f"{TEST_COUNTRY_PACKAGE_NAME}.reforms.flat_social_security_contribution.flat_social_security_contribution",
-    f"{TEST_COUNTRY_PACKAGE_NAME}.reforms.modify_social_security_taxation.modify_social_security_taxation",
-    f"{TEST_COUNTRY_PACKAGE_NAME}.reforms.removal_basic_income.removal_basic_income",
-]
+
+@pytest.fixture()
+def test_reforms_path(test_country_package_name):
+    return [
+        f"{test_country_package_name}.reforms.add_dynamic_variable.add_dynamic_variable",
+        f"{test_country_package_name}.reforms.add_new_tax.add_new_tax",
+        f"{test_country_package_name}.reforms.flat_social_security_contribution.flat_social_security_contribution",
+        f"{test_country_package_name}.reforms.modify_social_security_taxation.modify_social_security_taxation",
+        f"{test_country_package_name}.reforms.removal_basic_income.removal_basic_income",
+    ]
 
 
 # Create app as in 'openfisca serve' script
 @pytest.fixture
-def client():
+def client(test_country_package_name, test_reforms_path):
     tax_benefit_system = scripts.build_tax_benefit_system(
-        TEST_COUNTRY_PACKAGE_NAME,
+        test_country_package_name,
         extensions=None,
-        reforms=TEST_REFORMS_PATHS,
+        reforms=test_reforms_path,
     )
 
     return app.create_app(tax_benefit_system).test_client()
