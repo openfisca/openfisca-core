@@ -11,7 +11,7 @@ install: install-deps install-edit install-test
 install-test:
 	@$(call print_help,$@:)
 	@pip install --upgrade --no-dependencies openfisca-country-template
-	@pip install --upgrade --no-dependencies openfisca-extension-template
+	@pip install git+https://github.com/openfisca/country-template@training-upgrade-fix
 
 ## Run openfisca-core & country/extension template tests.
 test-code: test-core test-country test-extension
