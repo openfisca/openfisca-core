@@ -1,5 +1,11 @@
 # Changelog
 
+### 41.4.4 [#1208](https://github.com/openfisca/openfisca-core/pull/1208)
+
+#### Technical changes
+
+- Adapt testing pipeline to Country Template [v7](https://github.com/openfisca/country-template/pull/139).
+
 ### 41.4.3 [#1206](https://github.com/openfisca/openfisca-core/pull/1206)
 
 #### Technical changes
