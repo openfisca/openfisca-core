@@ -1,16 +1,10 @@
-# -*- coding: utf-8 -*-
-
-from . import distribution
-
-
-def test_package_name_header(test_client):
+def test_package_name_header(test_client, distribution):
+    name = distribution.metadata.get("Name").lower()
     parameters_response = test_client.get("/parameters")
-    assert parameters_response.headers.get("Country-Package") == distribution.key
+    assert parameters_response.headers.get("Country-Package") == name
 
 
-def test_package_version_header(test_client):
+def test_package_version_header(test_client, distribution):
+    version = distribution.metadata.get("Version")
     parameters_response = test_client.get("/parameters")
-    assert (
-        parameters_response.headers.get("Country-Package-Version")
-        == distribution.version
-    )
+    assert parameters_response.headers.get("Country-Package-Version") == version
