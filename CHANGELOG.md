@@ -1,6 +1,14 @@
 # Changelog
 
-### 41.4.4 [#1208](https://github.com/openfisca/openfisca-core/pull/1208)
+### 41.4.5 [#1209](https://github.com/openfisca/openfisca-core/pull/1209)
+
+#### Technical changes
+
+- Support loading metadata from both `setup.py` and `pyproject.toml` package description files.
+
+### ~41.4.4~ [#1208](https://github.com/openfisca/openfisca-core/pull/1208)
+
+_Unpublished due to introduced backwards incompatibilities._
 
 #### Technical changes
 
