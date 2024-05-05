@@ -506,48 +506,43 @@ class TaxBenefitSystem:
         if self.baseline:
             return self.baseline.get_package_metadata()
 
-        fallback_metadata = {
-            "name": self.__class__.__name__,
-            "version": "",
-            "repository_url": "",
-            "location": "",
-        }
-
         module = inspect.getmodule(self)
 
-        if module is None:
-            return fallback_metadata
-
-        if module.__package__ is None:
-            return fallback_metadata
-
-        package_name = module.__package__.split(".")[0]
+        try:
+            source_file = inspect.getsourcefile(module)
+            package_name = module.__package__.split(".")[0]
+            distribution = importlib.metadata.distribution(package_name)
+            source_metadata = distribution.metadata
+        except Exception as e:
+            log.warn("Unable to load package metadata, exposing default metadata", e)
+            source_metadata = {
+                "Name": self.__class__.__name__,
+                "Version": "",
+                "Home-page": "",
+            }
 
         try:
-            distribution = importlib.metadata.distribution(package_name)
-
-        except importlib.metadata.PackageNotFoundError:
-            return fallback_metadata
-
-        source_file = inspect.getsourcefile(module)
-
-        if source_file is not None:
+            source_file = inspect.getsourcefile(module)
             location = source_file.split(package_name)[0].rstrip("/")
-
-        else:
+        except Exception as e:
+            log.warn("Unable to load package source folder", e)
             location = ""
 
-        metadata = distribution.metadata
-
-        return {
-            "name": metadata.get("Name").lower(),
-            "version": metadata.get("Version"),
-            "repository_url": next(
+        repository_url = ""
+        if source_metadata.get("Project-URL"):  # pyproject.toml metadata format
+            repository_url = next(
                 filter(
                     lambda url: url.startswith("Repository"),
-                    metadata.get_all("Project-URL"),
+                    source_metadata.get_all("Project-URL"),
                 )
-            ).split("Repository, ")[-1],
+            ).split("Repository, ")[-1]
+        else:  # setup.py format
+            repository_url = source_metadata.get("Home-page")
+
+        return {
+            "name": source_metadata.get("Name").lower(),
+            "version": source_metadata.get("Version"),
+            "repository_url": repository_url,
             "location": location,
         }
 
