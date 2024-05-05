@@ -517,8 +517,8 @@ class TaxBenefitSystem:
             log.warn("Unable to load package metadata, exposing default metadata", e)
             source_metadata = {
                 "Name": self.__class__.__name__,
-                "Version": "",
-                "Home-page": "",
+                "Version": "0.0.0",
+                "Home-page": "https://openfisca.org",
             }
 
         try:
@@ -526,7 +526,7 @@ class TaxBenefitSystem:
             location = source_file.split(package_name)[0].rstrip("/")
         except Exception as e:
             log.warn("Unable to load package source folder", e)
-            location = ""
+            location = "_unknown_"
 
         repository_url = ""
         if source_metadata.get("Project-URL"):  # pyproject.toml metadata format
