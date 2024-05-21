@@ -3,7 +3,7 @@ from http import client
 
 import dpath.util
 import pytest
-from openapi_spec_validator import openapi_v3_spec_validator
+from openapi_spec_validator import OpenAPIV30SpecValidator
 
 
 def assert_items_equal(x, y):
@@ -62,4 +62,4 @@ def test_situation_definition(body):
 
 
 def test_respects_spec(body):
-    assert not [error for error in openapi_v3_spec_validator.iter_errors(body)]
+    assert not [error for error in OpenAPIV30SpecValidator(body).iter_errors()]

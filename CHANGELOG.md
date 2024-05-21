@@ -1,5 +1,12 @@
 # Changelog
 
+### 41.4.6 [#1210](https://github.com/openfisca/openfisca-core/pull/1210)
+
+#### Technical changes
+
+- Abide by OpenAPI v3.0.0 instead of v3.1.0
+  - Drop support for `propertyNames` in `Values` definition
+
 ### 41.4.5 [#1209](https://github.com/openfisca/openfisca-core/pull/1209)
 
 #### Technical changes
