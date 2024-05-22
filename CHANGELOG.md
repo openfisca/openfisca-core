@@ -1,5 +1,11 @@
 # Changelog
 
+### 41.4.7 [#1212](https://github.com/openfisca/openfisca-core/pull/1212)
+
+#### Technical changes
+
+- Update documentation continuous deployment method to reflect OpenFisca-Doc [process updates](https://github.com/openfisca/openfisca-doc/pull/308)
+
 ### 41.4.6 [#1210](https://github.com/openfisca/openfisca-core/pull/1210)
 
 #### Technical changes
