@@ -11,7 +11,7 @@ class VectorialAsofDateParameterNodeAtInstant(VectorialParameterNodeAtInstant):
 
     @staticmethod
     def build_from_node(node):
-        parameters.VectorialParameterNodeAtInstant.check_node_vectorisable(node)
+        VectorialParameterNodeAtInstant.check_node_vectorisable(node)
         subnodes_name = node._children.keys()
         # Recursively vectorize the children of the node
         vectorial_subnodes = tuple([
@@ -19,7 +19,7 @@ class VectorialAsofDateParameterNodeAtInstant(VectorialParameterNodeAtInstant):
             if isinstance(node[subnode_name], parameters.ParameterNodeAtInstant)
             else node[subnode_name]
             for subnode_name in subnodes_name
-            ])
+        ])
         # A vectorial node is a wrapper around a numpy recarray
         # We first build the recarray
         recarray = numpy.array(
@@ -27,8 +27,8 @@ class VectorialAsofDateParameterNodeAtInstant(VectorialParameterNodeAtInstant):
             dtype=[
                 (subnode_name, subnode.dtype if isinstance(subnode, numpy.recarray) else 'float')
                 for (subnode_name, subnode) in zip(subnodes_name, vectorial_subnodes)
-                ]
-            )
+            ]
+        )
         return VectorialAsofDateParameterNodeAtInstant(node._name, recarray.view(numpy.recarray), node._instant_str)
 
     def __getitem__(self, key):
@@ -45,17 +45,17 @@ class VectorialAsofDateParameterNodeAtInstant(VectorialParameterNodeAtInstant):
                 name
                 for name in names
                 if not name.startswith("before")
-                ]
+            ]
             names = [
                 numpy.datetime64(
                     "-".join(name[len("after_"):].split("_"))
-                    )
+                )
                 for name in names
-                ]
+            ]
             conditions = sum([
                 name <= key
                 for name in names
-                ])
+            ])
             result = values[conditions]
 
             # If the result is not a leaf, wrap the result in a vectorial node.

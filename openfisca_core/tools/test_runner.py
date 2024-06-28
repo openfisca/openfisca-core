@@ -328,7 +328,7 @@ class YamlItem(pytest.Item):
             self.test.absolute_error_margin[variable_name],
             f"{variable_name}@{period}: ",
             self.test.relative_error_margin[variable_name],
-            )
+        )
 
     def should_ignore_variable(self, variable_name: str):
         only_variables = self.options.get("only_variables")
