@@ -4,7 +4,6 @@ from openfisca_core.types import TaxBenefitSystem
 from typing import Any, Dict, Optional, Sequence, Union
 from typing_extensions import Literal, TypedDict
 
-import collections
 import dataclasses
 import os
 import pathlib

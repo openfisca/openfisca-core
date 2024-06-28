@@ -24,7 +24,7 @@ class VectorialAsofDateParameterNodeAtInstant(VectorialParameterNodeAtInstant):
         # We first build the recarray
         recarray = numpy.array(
             [vectorial_subnodes],
-            dtype = [
+            dtype=[
                 (subnode_name, subnode.dtype if isinstance(subnode, numpy.recarray) else 'float')
                 for (subnode_name, subnode) in zip(subnodes_name, vectorial_subnodes)
                 ]
@@ -34,7 +34,7 @@ class VectorialAsofDateParameterNodeAtInstant(VectorialParameterNodeAtInstant):
     def __getitem__(self, key):
         # If the key is a string, just get the subnode
         if isinstance(key, str):
-            key = numpy.array([key], dtype = 'datetime64[D]')
+            key = numpy.array([key], dtype='datetime64[D]')
             return self.__getattr__(key)
         # If the key is a vector, e.g. ['1990-11-25', '1983-04-17', '1969-09-09']
         elif isinstance(key, numpy.ndarray):
