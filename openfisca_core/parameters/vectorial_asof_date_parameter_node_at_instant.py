@@ -1,9 +1,9 @@
 import numpy
 
-from openfisca_core import parameters
+from openfisca_core.parameters.vectorial_parameter_node_at_instant import VectorialParameterNodeAtInstant
 
 
-class VectorialAsofDateParameterNodeAtInstant(parameters.VectorialParameterNodeAtInstant):
+class VectorialAsofDateParameterNodeAtInstant(VectorialParameterNodeAtInstant):
     """
     Parameter node of the legislation at a given instant which has been vectorized along osme date.
     Vectorized parameters allow requests such as parameters.housing_benefit[date], where date is a np.datetime64 type vector
