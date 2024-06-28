@@ -1,5 +1,6 @@
 import numpy
 
+from openfisca_core.parameters.parameter_node_at_instant import ParameterNodeAtInstant
 from openfisca_core.parameters.vectorial_parameter_node_at_instant import VectorialParameterNodeAtInstant
 
 
@@ -16,7 +17,7 @@ class VectorialAsofDateParameterNodeAtInstant(VectorialParameterNodeAtInstant):
         # Recursively vectorize the children of the node
         vectorial_subnodes = tuple([
             VectorialAsofDateParameterNodeAtInstant.build_from_node(node[subnode_name]).vector
-            if isinstance(node[subnode_name], parameters.ParameterNodeAtInstant)
+            if isinstance(node[subnode_name], ParameterNodeAtInstant)
             else node[subnode_name]
             for subnode_name in subnodes_name
         ])
