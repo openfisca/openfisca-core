@@ -8,7 +8,7 @@ from openfisca_core.model_api import *  # noqa
 
 LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
 
-parameters = ParameterNode(directory_path = LOCAL_DIR)
+parameters = ParameterNode(directory_path=LOCAL_DIR)
 
 
 def get_message(error):
@@ -17,12 +17,12 @@ def get_message(error):
 
 def test_on_leaf():
     parameter_at_instant = parameters.full_rate_required_duration('1995-01-01')
-    birthdate = numpy.array(['1930-01-01', '1935-01-01', '1940-01-01', '1945-01-01'], dtype = 'datetime64[D]')
+    birthdate = numpy.array(['1930-01-01', '1935-01-01', '1940-01-01', '1945-01-01'], dtype='datetime64[D]')
     assert_near(parameter_at_instant.contribution_quarters_required_by_birthdate[birthdate], [150, 152, 157, 160])
 
 
 def test_on_node():
-    birthdate = numpy.array(['1950-01-01', '1953-01-01', '1956-01-01', '1959-01-01'], dtype = 'datetime64[D]')
+    birthdate = numpy.array(['1950-01-01', '1953-01-01', '1956-01-01', '1959-01-01'], dtype='datetime64[D]')
     parameter_at_instant = parameters.full_rate_age('2012-03-01')
     node = parameter_at_instant.full_rate_age_by_birthdate[birthdate]
     assert_near(node.year, [65, 66, 67, 67])
