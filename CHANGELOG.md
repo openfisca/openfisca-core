@@ -1,6 +1,14 @@
 # Changelog
 
-### 41.4.7 [#1212](https://github.com/openfisca/openfisca-core/pull/1212)
+## 41.5.0 [#1212](https://github.com/openfisca/openfisca-core/pull/1212)
+
+#### New features
+
+- Introduce `VectorialAsofDateParameterNodeAtInstant`
+  - It is a parameter node of the legislation at a given instant which has been vectorized along some date.
+   - Vectorized parameters allow requests such as parameters.housing_benefit[date], where date is a `numpy.datetime64` vector
+
+### 41.4.7 [#1211](https://github.com/openfisca/openfisca-core/pull/1211)
 
 #### Technical changes
 

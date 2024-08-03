@@ -41,6 +41,7 @@ from .parameter_scale import ParameterScale as Scale
 from .parameter_scale_bracket import ParameterScaleBracket
 from .parameter_scale_bracket import ParameterScaleBracket as Bracket
 from .values_history import ValuesHistory
+from .vectorial_asof_date_parameter_node_at_instant import VectorialAsofDateParameterNodeAtInstant
 from .vectorial_parameter_node_at_instant import VectorialParameterNodeAtInstant
 
 __all__ = [
@@ -63,5 +64,6 @@ __all__ = [
     "ParameterScaleBracket",
     "Bracket",
     "ValuesHistory",
+    "VectorialAsofDateParameterNodeAtInstant",
     "VectorialParameterNodeAtInstant",
 ]
