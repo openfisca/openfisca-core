@@ -104,7 +104,7 @@ setup(
         "ci": [
             "build >=0.10.0, < 0.11.0",
             "coveralls >=3.3.1, < 4.0",
-            "twine >=4.0.2, < 5.0",
+            "twine >=5.1.1, < 6.0",
             "wheel >=0.40.0, < 0.41.0",
         ],
         "tracker": ["OpenFisca-Tracker >=0.4.0, < 0.5.0"],
