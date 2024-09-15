@@ -6,7 +6,7 @@ from typing import Any
 import dataclasses
 import textwrap
 
-from .types import Entity
+from .types import SingleEntity
 
 
 class Role:
@@ -48,7 +48,7 @@ class Role:
     """
 
     #: The Entity the Role belongs to.
-    entity: Entity
+    entity: SingleEntity
 
     #: A description of the Role.
     description: _Description
@@ -79,7 +79,7 @@ class Role:
         """A full description, non-indented."""
         return self.description.doc
 
-    def __init__(self, description: Mapping[str, Any], entity: Entity) -> None:
+    def __init__(self, description: Mapping[str, Any], entity: SingleEntity) -> None:
         self.description = _Description(
             **{
                 key: value

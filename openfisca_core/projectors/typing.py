@@ -3,12 +3,12 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Protocol
 
-from openfisca_core.entities.types import Entity, GroupEntity
+from openfisca_core.types import GroupEntity, SingleEntity
 
 
 class Population(Protocol):
     @property
-    def entity(self) -> Entity:
+    def entity(self) -> SingleEntity:
         ...
 
     @property

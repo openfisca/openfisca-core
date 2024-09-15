@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from openfisca_core.entities.types import Entity, GroupEntity, Role
+from openfisca_core.types import GroupEntity, Role, SingleEntity
 
 from openfisca_core import entities, projectors
 
@@ -110,7 +110,7 @@ def get_projector_from_shortcut(
 
     """
 
-    entity: Entity | GroupEntity = population.entity
+    entity: SingleEntity | GroupEntity = population.entity
 
     if isinstance(entity, entities.Entity):
         populations: Mapping[
