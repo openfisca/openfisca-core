@@ -43,6 +43,7 @@ check-types:
 		openfisca_core/commons \
 		openfisca_core/entities \
 		openfisca_core/projectors \
+		openfisca_core/simulations \
 		openfisca_core/types.py
 	@$(call print_pass,$@:)
 
