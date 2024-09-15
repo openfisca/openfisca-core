@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from openfisca_core.entities.typing import Entity, GroupEntity, Role
+
+from openfisca_core.entities.types import Entity, GroupEntity, Role
 
 from openfisca_core import entities, projectors
 

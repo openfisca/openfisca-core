@@ -4,7 +4,7 @@ from typing import Iterable
 
 from .entity import Entity
 from .group_entity import GroupEntity
-from .typing import Role
+from .types import Role
 
 
 def build_entity(
@@ -93,7 +93,7 @@ def find_role(
         Role | None: The role if found, else `None`.
 
     Examples:
-        >>> from openfisca_core.entities.typing import RoleParams
+        >>> from openfisca_core.entities.types import RoleParams
 
         >>> principal = RoleParams(
         ...     key="principal",
