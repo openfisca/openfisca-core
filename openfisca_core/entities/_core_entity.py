@@ -36,6 +36,9 @@ class _CoreEntity:
     def __init__(self, key: str, plural: str, label: str, doc: str, *args: Any) -> None:
         ...
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.key})"
+
     def set_tax_benefit_system(self, tax_benefit_system: TaxBenefitSystem) -> None:
         self._tax_benefit_system = tax_benefit_system
 
