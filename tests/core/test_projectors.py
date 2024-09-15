@@ -1,8 +1,8 @@
 import numpy as np
 
-from openfisca_core import periods
 from openfisca_core.entities import build_entity
 from openfisca_core.indexed_enums import Enum
+from openfisca_core.periods import DateUnit
 from openfisca_core.simulations.simulation_builder import SimulationBuilder
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_core.variables import Variable
@@ -138,14 +138,14 @@ def test_enum_projects_downwards():
         possible_values = enum
         default_value = enum.FIRST_OPTION
         entity = household
-        definition_period = periods.ETERNITY
+        definition_period = DateUnit.ETERNITY
 
     class projected_enum_variable(Variable):
         value_type = Enum
         possible_values = enum
         default_value = enum.FIRST_OPTION
         entity = person
-        definition_period = periods.ETERNITY
+        definition_period = DateUnit.ETERNITY
 
         def formula(person, period):
             return person.household("household_enum_variable", period)
@@ -209,7 +209,7 @@ def test_enum_projects_upwards():
         possible_values = enum
         default_value = enum.FIRST_OPTION
         entity = household
-        definition_period = periods.ETERNITY
+        definition_period = DateUnit.ETERNITY
 
         def formula(household, period):
             return household.value_from_first_person(
@@ -221,7 +221,7 @@ def test_enum_projects_upwards():
         possible_values = enum
         default_value = enum.FIRST_OPTION
         entity = person
-        definition_period = periods.ETERNITY
+        definition_period = DateUnit.ETERNITY
 
     system.add_variables(household_projected_variable, person_enum_variable)
 
@@ -300,14 +300,14 @@ def test_enum_projects_between_containing_groups():
         possible_values = enum
         default_value = enum.FIRST_OPTION
         entity = household_entity
-        definition_period = periods.ETERNITY
+        definition_period = DateUnit.ETERNITY
 
     class projected_family_level_variable(Variable):
         value_type = Enum
         possible_values = enum
         default_value = enum.FIRST_OPTION
         entity = family_entity
-        definition_period = periods.ETERNITY
+        definition_period = DateUnit.ETERNITY
 
         def formula(family, period):
             return family.household("household_level_variable", period)
@@ -315,7 +315,7 @@ def test_enum_projects_between_containing_groups():
     class decoded_projected_family_level_variable(Variable):
         value_type = str
         entity = family_entity
-        definition_period = periods.ETERNITY
+        definition_period = DateUnit.ETERNITY
 
         def formula(family, period):
             return family.household("household_level_variable", period).decode_to_str()

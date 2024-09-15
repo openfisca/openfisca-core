@@ -5,6 +5,7 @@ import numpy
 
 from openfisca_core import periods
 from openfisca_core.indexed_enums import EnumArray
+from openfisca_core.periods import DateUnit
 
 
 class OnDiskStorage:
@@ -28,7 +29,7 @@ class OnDiskStorage:
 
     def get(self, period):
         if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
+            period = periods.period(DateUnit.ETERNITY)
         period = periods.period(period)
 
         values = self._files.get(period)
@@ -38,7 +39,7 @@ class OnDiskStorage:
 
     def put(self, value, period):
         if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
+            period = periods.period(DateUnit.ETERNITY)
         period = periods.period(period)
 
         filename = str(period)
@@ -55,7 +56,7 @@ class OnDiskStorage:
             return
 
         if self.is_eternal:
-            period = periods.period(periods.ETERNITY)
+            period = periods.period(DateUnit.ETERNITY)
         period = periods.period(period)
 
         if period is not None:
