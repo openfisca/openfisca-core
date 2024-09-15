@@ -1,33 +1,29 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Protocol, TypedDict
+from typing import Protocol
+from typing_extensions import TypedDict
 
-from openfisca_core import types
+from openfisca_core import types as t
 
 # Entities
 
 
-class CoreEntity(types.CoreEntity, Protocol):
+class CoreEntity(t.CoreEntity, Protocol):
     ...
 
 
-class SingleEntity(types.SingleEntity, Protocol):
+class SingleEntity(t.SingleEntity, Protocol):
     key: str
     plural: str | None
 
 
-class GroupEntity(types.GroupEntity, Protocol):
+class GroupEntity(t.GroupEntity, Protocol):
     ...
 
 
-class Role(types.Role, Protocol):
-    max: int | None
+class Role(t.Role, Protocol):
     subroles: Iterable[Role] | None
-
-    @property
-    def key(self) -> str:
-        ...
 
 
 class RoleParams(TypedDict, total=False):

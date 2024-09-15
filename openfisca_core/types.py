@@ -61,7 +61,12 @@ class GroupEntity(CoreEntity, Protocol):
 
 class Role(Protocol):
     entity: Any
+    max: int | None
     subroles: Any
+
+    @property
+    def key(self) -> str:
+        ...
 
 
 # Holders
@@ -108,12 +113,20 @@ class Period(Protocol):
 # Populations
 
 
-class Population(Protocol):
+class CorePopulation(Protocol):
+    ...
+
+
+class SinglePopulation(CorePopulation, Protocol):
     entity: Any
 
     @abc.abstractmethod
     def get_holder(self, variable_name: Any) -> Any:
         ...
+
+
+class GroupPopulation(CorePopulation, Protocol):
+    ...
 
 
 # Simulations
@@ -163,7 +176,7 @@ class Formula(Protocol):
     @abc.abstractmethod
     def __call__(
         self,
-        population: Population,
+        population: GroupPopulation,
         instant: Instant,
         params: Params,
     ) -> Array[Any]:
