@@ -6,12 +6,6 @@ from collections.abc import Iterable, Sequence
 from typing import Protocol, TypeVar, TypedDict, Union
 from typing_extensions import NotRequired, Required, TypeAlias
 
-from openfisca_core.types import Array
-from openfisca_core.types import Failure as FailureType
-from openfisca_core.types import Period as PeriodType
-from openfisca_core.types import Success as SuccessType
-from openfisca_core.types import Variable as VariableType
-
 import datetime
 from abc import abstractmethod
 
@@ -22,31 +16,18 @@ from numpy import int16 as Enum
 from numpy import int32 as Int
 from numpy import str_ as String
 
+from openfisca_core import types as t
+
 # Generic type variables.
-E = TypeVar("E")
+D = TypeVar("D")
+E = TypeVar("E", covariant=True)
 G = TypeVar("G", covariant=True)
+T = TypeVar("T", Bool, Date, Enum, Float, Int, String, covariant=True)
 U = TypeVar("U", bool, datetime.date, float, str)
 V = TypeVar("V", covariant=True)
 
-#: Type variable representing an error.
-F = TypeVar("F", covariant=True)
-
-#: Type variable representing a value.
-A = TypeVar("A", covariant=True)
-
 #: Type alias for numpy arrays values.
 Item: TypeAlias = Union[Bool, Date, Enum, Float, Int, String]
-
-
-# Commons
-
-
-class Failure(FailureType[F], Protocol[F]):
-    ...
-
-
-class Success(SuccessType[A], Protocol[A]):
-    ...
 
 
 # Entities
@@ -56,7 +37,7 @@ class Success(SuccessType[A], Protocol[A]):
 Roles: TypeAlias = dict[str, Union[str, Iterable[str]]]
 
 
-class Entity(Protocol):
+class CoreEntity(t.CoreEntity, Protocol):
     key: str
     plural: str | None
 
@@ -64,70 +45,70 @@ class Entity(Protocol):
         self,
         __variable_name: str,
         __check_existence: bool = ...,
-    ) -> Variable | None:
+    ) -> Variable[T] | None:
         ...
 
 
-class SingleEntity(Entity, Protocol):
+class SingleEntity(t.SingleEntity, Protocol):
     ...
 
 
-class GroupEntity(Entity, Protocol):
+class GroupEntity(t.GroupEntity, Protocol):
     @property
     @abstractmethod
     def flattened_roles(self) -> Iterable[Role[G]]:
         ...
 
 
-class Role(Protocol[G]):
+class Role(t.Role, Protocol[G]):
     ...
 
 
 # Holders
 
 
-class Holder(Protocol[V]):
+class Holder(t.Holder, Protocol[V]):
     @property
     @abstractmethod
-    def variable(self) -> Variable:
+    def variable(self) -> Variable[T]:
         ...
 
-    def get_array(self, __period: str) -> Array[Item] | None:
+    def get_array(self, __period: str) -> t.Array[T] | None:
         ...
 
     def set_input(
         self,
         __period: Period,
-        __array: Array[Item] | Sequence[U],
-    ) -> Array[Item] | None:
+        __array: t.Array[T] | Sequence[U],
+    ) -> t.Array[T] | None:
         ...
 
 
 # Periods
 
 
-class Period(PeriodType, Protocol):
+class Period(t.Period, Protocol):
     ...
 
 
 # Populations
 
 
-class Population(Protocol[E]):
+class CorePopulation(t.CorePopulation, Protocol[D]):
     count: int
-    entity: E
-    ids: Array[String]
+    entity: D
+    ids: t.Array[String]
 
     def get_holder(self, __variable_name: str) -> Holder[V]:
         ...
 
 
-class SinglePopulation(Population[E], Protocol):
+class SinglePopulation(t.SinglePopulation, Protocol[E]):
     ...
 
 
-class GroupPopulation(Population[E], Protocol):
-    members_entity_id: Array[String]
+class GroupPopulation(t.GroupPopulation, Protocol[E]):
+    members_entity_id: t.Array[String]
 
     def nb_persons(self, __role: Role[G] | None = ...) -> int:
         ...
@@ -184,7 +165,7 @@ class Axis(TypedDict, total=False):
 # Tax-Benefit systems
 
 
-class TaxBenefitSystem(Protocol):
+class TaxBenefitSystem(t.TaxBenefitSystem, Protocol):
     @property
     @abstractmethod
     def person_entity(self) -> SingleEntity:
@@ -215,17 +196,17 @@ class TaxBenefitSystem(Protocol):
 
     def instantiate_entities(
         self,
-    ) -> dict[str, Population[E]]:
+    ) -> dict[str, SinglePopulation[E]]:
         ...
 
 
 # Variables
 
 
-class Variable(VariableType, Protocol):
+class Variable(t.Variable, Protocol[T]):
     definition_period: str
     end: str
     name: str
 
-    def default_array(self, __array_size: int) -> Array[Item]:
+    def default_array(self, __array_size: int) -> t.Array[T]:
         ...
