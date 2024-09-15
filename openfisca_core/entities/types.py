@@ -35,7 +35,8 @@ class GroupEntity(types.CoreEntity, Protocol):
     ...
 
 
-class Role(t.Role, Protocol):
+class Role(types.Role, Protocol):
+    max: int | None
     subroles: Iterable[Role] | None
 
 
