@@ -11,6 +11,7 @@ check-syntax-errors: .
 ## Run linters to check for syntax and style errors.
 check-style: $(shell git ls-files "*.py")
 	@$(call print_help,$@:)
+	@isort --check $?
 	@black --check $?
 	@flake8 $?
 	@$(call print_pass,$@:)
