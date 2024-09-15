@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from openfisca_core.types import Population, TaxBenefitSystem, Variable
 from typing import Dict, Mapping, NamedTuple, Optional, Set
+
+from openfisca_core.types import Population, TaxBenefitSystem, Variable
 
 import tempfile
 import warnings

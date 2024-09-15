@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from abc import abstractmethod
-from openfisca_core.types import TaxBenefitSystem, Variable
 from typing import Any
 
+from openfisca_core.types import TaxBenefitSystem, Variable
+
 import os
+from abc import abstractmethod
 
 from .role import Role
 from .typing import Entity

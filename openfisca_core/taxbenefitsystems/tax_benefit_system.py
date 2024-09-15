@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import typing
-from openfisca_core.types import ParameterNodeAtInstant
 from typing import Any, Dict, Optional, Sequence, Union
+
+from openfisca_core.types import ParameterNodeAtInstant
 
 import ast
 import copy
