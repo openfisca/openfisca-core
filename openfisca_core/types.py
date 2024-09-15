@@ -30,7 +30,7 @@ A = TypeVar("A", covariant=True)
 # Entities
 
 
-class Entity(Protocol):
+class CoreEntity(Protocol):
     key: Any
     plural: Any
 
@@ -49,6 +49,14 @@ class Entity(Protocol):
         check_existence: Any = ...,
     ) -> Any | None:
         ...
+
+
+class SingleEntity(CoreEntity, Protocol):
+    ...
+
+
+class GroupEntity(CoreEntity, Protocol):
+    ...
 
 
 class Role(Protocol):

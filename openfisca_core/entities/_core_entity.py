@@ -8,7 +8,7 @@ import os
 from abc import abstractmethod
 
 from .role import Role
-from .types import Entity
+from .types import CoreEntity
 
 
 class _CoreEntity:
@@ -49,12 +49,16 @@ class _CoreEntity:
         check_existence: bool = False,
     ) -> Variable | None:
         """Get a ``variable_name`` from ``variables``."""
+        if self._tax_benefit_system is None:
+            raise ValueError(
+                "You must set 'tax_benefit_system' before calling this method."
+            )
         return self._tax_benefit_system.get_variable(variable_name, check_existence)
 
     def check_variable_defined_for_entity(self, variable_name: str) -> None:
         """Check if ``variable_name`` is defined for ``self``."""
         variable: Variable | None
-        entity: Entity
+        entity: CoreEntity
 
         variable = self.get_variable(variable_name, check_existence=True)
 

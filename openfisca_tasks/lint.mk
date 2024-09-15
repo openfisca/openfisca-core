@@ -41,6 +41,7 @@ check-types:
 	@$(call print_help,$@:)
 	@mypy \
 		openfisca_core/commons \
+		openfisca_core/entities \
 		openfisca_core/types.py
 	@$(call print_pass,$@:)
 
