@@ -6,10 +6,10 @@ import numpy
 
 
 def average_rate(
-    target: Array[float],
+    target: Array[numpy.float_],
     varying: ArrayLike[float],
     trim: Optional[ArrayLike[float]] = None,
-) -> Array[float]:
+) -> Array[numpy.float_]:
     """Computes the average rate of a target net income.
 
     Given a ``target`` net income, and according to the ``varying`` gross
@@ -41,7 +41,7 @@ def average_rate(
 
     """
 
-    average_rate: Array[float]
+    average_rate: Array[numpy.float_]
 
     average_rate = 1 - target / varying
 
@@ -62,10 +62,10 @@ def average_rate(
 
 
 def marginal_rate(
-    target: Array[float],
-    varying: Array[float],
+    target: Array[numpy.float_],
+    varying: Array[numpy.float_],
     trim: Optional[ArrayLike[float]] = None,
-) -> Array[float]:
+) -> Array[numpy.float_]:
     """Computes the marginal rate of a target net income.
 
     Given a ``target`` net income, and according to the ``varying`` gross
@@ -97,7 +97,7 @@ def marginal_rate(
 
     """
 
-    marginal_rate: Array[float]
+    marginal_rate: Array[numpy.float_]
 
     marginal_rate = +1 - (target[:-1] - target[1:]) / (varying[:-1] - varying[1:])
 

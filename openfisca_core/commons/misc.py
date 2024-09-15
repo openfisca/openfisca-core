@@ -1,4 +1,4 @@
-from typing import TypeVar
+from typing import Any, TypeVar, Union
 
 from openfisca_core.types import Array
 
@@ -43,7 +43,7 @@ def empty_clone(original: T) -> T:
     return new
 
 
-def stringify_array(array: Array) -> str:
+def stringify_array(array: Union[Array[Any], None]) -> str:
     """Generates a clean string representation of a numpy array.
 
     Args:
