@@ -45,6 +45,7 @@ check-types:
 		openfisca_core/indexed_enums \
 		openfisca_core/periods \
 		openfisca_core/projectors \
+		openfisca_core/simulations \
 		openfisca_core/types.py
 	@$(call print_pass,$@:)
 
