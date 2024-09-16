@@ -33,6 +33,7 @@ general_requirements = [
     "numpy >=1.24.2, <1.25",
     "pendulum >=3.0.0, <4.0.0",
     "psutil >=5.9.4, <6.0",
+    "pydantic >=2.9.1, <3.0",
     "pytest >=7.2.2, <8.0",
     "sortedcontainers >=2.4.0, <3.0",
     "typing_extensions >=4.5.0, <5.0",

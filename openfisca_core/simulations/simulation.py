@@ -17,6 +17,7 @@ from .types import (
     Populations,
     TaxBenefitSystem,
     Variable,
+    VariableName,
 )
 
 
@@ -100,7 +101,7 @@ class Simulation:
 
     # ----- Calculation methods ----- #
 
-    def calculate(self, variable_name: str, period):
+    def calculate(self, variable_name: VariableName, period):
         """Calculate ``variable_name`` for ``period``."""
 
         if period is not None and not isinstance(period, periods.Period):
@@ -117,7 +118,7 @@ class Simulation:
             self.tracer.record_calculation_end()
             self.purge_cache_of_invalid_values()
 
-    def _calculate(self, variable_name: str, period: periods.Period):
+    def _calculate(self, variable_name: VariableName, period: periods.Period):
         """
         Calculate the variable ``variable_name`` for the period ``period``, using the variable formula if it exists.
 
@@ -169,7 +170,7 @@ class Simulation:
             holder.delete_arrays(_period)
         self.invalidated_caches = set()
 
-    def calculate_add(self, variable_name: str, period):
+    def calculate_add(self, variable_name: VariableName, period):
         variable: Optional[Variable]
 
         variable = self.tax_benefit_system.get_variable(
@@ -207,7 +208,7 @@ class Simulation:
             for sub_period in period.get_subperiods(variable.definition_period)
         )
 
-    def calculate_divide(self, variable_name: str, period):
+    def calculate_divide(self, variable_name: VariableName, period):
         variable: Optional[Variable]
 
         variable = self.tax_benefit_system.get_variable(
@@ -284,7 +285,7 @@ class Simulation:
 
         return self.calculate(variable_name, calculation_period) / denominator
 
-    def calculate_output(self, variable_name: str, period):
+    def calculate_output(self, variable_name: VariableName, period):
         """
         Calculate the value of a variable using the ``calculate_output`` attribute of the variable.
         """
@@ -434,7 +435,7 @@ class Simulation:
 
     # ----- Methods to access stored values ----- #
 
-    def get_array(self, variable_name: str, period):
+    def get_array(self, variable_name: VariableName, period):
         """
         Return the value of ``variable_name`` for ``period``, if this value is alreay in the cache (if it has been set as an input or previously calculated).
 
@@ -444,7 +445,7 @@ class Simulation:
             period = periods.period(period)
         return self.get_holder(variable_name).get_array(period)
 
-    def get_holder(self, variable_name: str):
+    def get_holder(self, variable_name: VariableName):
         """Get the holder associated with the variable."""
         return self.get_variable_population(variable_name).get_holder(variable_name)
 
@@ -507,7 +508,7 @@ class Simulation:
         """
         return self.get_holder(variable).get_known_periods()
 
-    def set_input(self, variable_name: str, period, value):
+    def set_input(self, variable_name: VariableName, period, value):
         """
         Set a variable's value for a given period
 
@@ -538,7 +539,7 @@ class Simulation:
             return
         self.get_holder(variable_name).set_input(period, value)
 
-    def get_variable_population(self, variable_name: str) -> GroupPopulation:
+    def get_variable_population(self, variable_name: VariableName) -> GroupPopulation:
         variable: Optional[Variable]
 
         variable = self.tax_benefit_system.get_variable(

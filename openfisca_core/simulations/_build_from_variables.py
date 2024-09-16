@@ -8,7 +8,7 @@ from typing_extensions import Self
 from openfisca_core import errors
 
 from ._build_default_simulation import _BuildDefaultSimulation
-from ._guards import is_variable_dated
+from ._guards import is_a_dated_value, is_a_pure_value
 from .simulation import Simulation
 from .types import Populations, TaxBenefitSystem, Variables
 
@@ -142,7 +142,7 @@ class _BuildFromVariables:
         """
 
         for variable, value in self.variables.items():
-            if is_variable_dated(dated_variable := value):
+            if is_a_dated_value(dated_variable := value):
                 for period, dated_value in dated_variable.items():
                     self.simulation.set_input(variable, period, dated_value)
 
@@ -200,7 +200,7 @@ class _BuildFromVariables:
         """
 
         for variable, value in self.variables.items():
-            if not is_variable_dated(undated_value := value):
+            if is_a_pure_value(undated_value := value):
                 if (period := self.default_period) is None:
                     message = (
                         "Can't deal with type: expected object. Input "

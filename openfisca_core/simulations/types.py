@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Sequence
-from typing import NewType, Protocol, TypeVar, TypedDict, Union
-from typing_extensions import NotRequired, Required, TypeAlias
+from typing import Literal, NewType, Protocol, TypeVar, Union
+from typing_extensions import NotRequired, TypeAlias, TypedDict
 
 import datetime
 
@@ -24,9 +24,29 @@ U = TypeVar("U", bool, datetime.date, float, str)
 V = TypeVar("V", covariant=True)
 
 # New types.
-PeriodStr = NewType("PeriodStr", str)
+
+#: Literally "axes".
+AxesKey = Literal["axes"]
+
+#: For example "Juan".
+EntityId = NewType("EntityId", int)
+
+#: For example "person".
 EntityKey = NewType("EntityKey", str)
+
+#: For example "persons".
 EntityPlural = NewType("EntityPlural", str)
+
+#: For example "2023-12".
+PeriodStr = NewType("PeriodStr", str)
+
+#: For example "principal".
+RoleKey = NewType("RoleKey", str)
+
+#: For example "parents".
+RolePlural = NewType("RolePlural", str)
+
+#: For example "salary".
 VariableName = NewType("VariableName", str)
 
 # Type aliases.
@@ -36,6 +56,9 @@ Item: TypeAlias = Union[Bool, Date, Enum, Float, Int, String]
 
 #: Type Alias for a numpy Array.
 Array: TypeAlias = t.Array
+
+#: Type alias for a role identifier.
+RoleId: TypeAlias = EntityId
 
 # Entities
 
@@ -88,6 +111,10 @@ class Holder(t.Holder, Protocol[V]):
 # Periods
 
 
+class Instant(t.Instant, Protocol):
+    ...
+
+
 class Period(t.Period, Protocol):
     ...
 
@@ -119,35 +146,38 @@ class GroupPopulation(t.GroupPopulation, Protocol):
 #: Dictionary with axes parameters per variable.
 InputBuffer: TypeAlias = dict[VariableName, dict[PeriodStr, Array]]
 
-#: Dictionary with entity/population key/pais.
+#: Dictionary with entity/population key/pairs.
 Populations: TypeAlias = dict[EntityKey, GroupPopulation]
 
 #: Dictionary with single entity count per group entity.
 EntityCounts: TypeAlias = dict[EntityPlural, int]
 
 #: Dictionary with a list of single entities per group entity.
-EntityIds: TypeAlias = dict[EntityPlural, Iterable[int]]
+EntityIds: TypeAlias = dict[EntityPlural, Iterable[EntityId]]
 
 #: Dictionary with a list of members per group entity.
 Memberships: TypeAlias = dict[EntityPlural, Iterable[int]]
 
 #: Dictionary with a list of roles per group entity.
-EntityRoles: TypeAlias = dict[EntityPlural, Iterable[int]]
+EntityRoles: TypeAlias = dict[EntityPlural, Iterable[RoleKey]]
 
 #: Dictionary with a map between variables and entities.
 VariableEntity: TypeAlias = dict[VariableName, CoreEntity]
 
-#: Type alias for a simulation dictionary defining the roles.
-Roles: TypeAlias = dict[str, Union[str, Iterable[str]]]
+#: Type alias for a simulation dictionary with undated variable values.
+PureValue: TypeAlias = Union[object, Sequence[object]]
 
-#: Type alias for a simulation dictionary with undated variables.
-UndatedVariable: TypeAlias = dict[str, object]
-
-#: Type alias for a simulation dictionary with dated variables.
-DatedVariable: TypeAlias = dict[str, UndatedVariable]
+#: Type alias for a simulation dictionary with dated variable values.
+DatedValue: TypeAlias = dict[PeriodStr, PureValue]
 
 #: Type alias for a simulation dictionary with abbreviated entities.
-Variables: TypeAlias = dict[str, Union[UndatedVariable, DatedVariable]]
+Variables: TypeAlias = dict[VariableName, Union[PureValue, DatedValue]]
+
+#: Type alias for a simulation dictionary defining the roles.
+Roles: TypeAlias = Union[dict[RoleKey, RoleId], dict[RolePlural, Iterable[RoleId]]]
+
+#: Type alias for a simulation dictionary with axes parameters.
+Axes: TypeAlias = Iterable[Iterable["Axis"]]
 
 #: Type alias for a simulation with fully specified single entities.
 SingleEntities: TypeAlias = dict[str, dict[str, Variables]]
@@ -161,28 +191,25 @@ GroupEntities: TypeAlias = dict[str, ImplicitGroupEntities]
 #: Type alias for a simulation dictionary with fully specified entities.
 FullySpecifiedEntities: TypeAlias = Union[SingleEntities, GroupEntities]
 
-#: Type alias for a simulation dictionary with axes parameters.
-Axes: TypeAlias = dict[str, Iterable[Iterable["Axis"]]]
-
 #: Type alias for a simulation dictionary without axes parameters.
 ParamsWithoutAxes: TypeAlias = Union[
     Variables, ImplicitGroupEntities, FullySpecifiedEntities
 ]
 
 #: Type alias for a simulation dictionary with axes parameters.
-ParamsWithAxes: TypeAlias = Union[Axes, ParamsWithoutAxes]
+ParamsWithAxes: TypeAlias = Union[dict[AxesKey, Axes], ParamsWithoutAxes]
 
 #: Type alias for a simulation dictionary with all the possible scenarios.
 Params: TypeAlias = ParamsWithAxes
 
 
-class Axis(TypedDict, total=False):
-    count: Required[int]
+class Axis(TypedDict):
+    count: int
+    max: float
+    min: float
     index: NotRequired[int]
-    max: Required[float]
-    min: Required[float]
-    name: Required[str]
-    period: NotRequired[str | int]
+    name: EntityKey
+    period: NotRequired[Union[str, int]]
 
 
 class Simulation(t.Simulation, Protocol):
@@ -205,15 +232,15 @@ class TaxBenefitSystem(t.TaxBenefitSystem, Protocol):
     def variables(self) -> dict[str, V]:
         ...
 
-    def entities_by_singular(self) -> dict[str, CoreEntity]:
+    def entities_by_singular(self) -> dict[EntityKey, CoreEntity]:
         ...
 
-    def entities_plural(self) -> Iterable[str]:
+    def entities_plural(self) -> Iterable[EntityPlural]:
         ...
 
     def get_variable(
         self,
-        __variable_name: str,
+        __variable_name: VariableName,
         check_existence: bool = ...,
     ) -> Variable[T] | None:
         ...
@@ -235,3 +262,12 @@ class Variable(t.Variable, Protocol[T]):
 
     def default_array(self, __array_size: int) -> t.Array[T]:
         ...
+
+    def get_formula(
+        self, __period: Instant | Period | PeriodStr | Int
+    ) -> Formula | None:
+        ...
+
+
+class Formula(t.Formula, Protocol):
+    ...
