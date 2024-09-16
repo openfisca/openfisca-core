@@ -49,6 +49,7 @@ check-types:
 		openfisca_core/simulations/_build_from_variables.py \
 		openfisca_core/simulations/_guards.py \
 		openfisca_core/simulations/helpers.py \
+		openfisca_core/simulations/types.py \
 		openfisca_core/types.py
 	@$(call print_pass,$@:)
 
