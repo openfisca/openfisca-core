@@ -1,5 +1,12 @@
 # Changelog
 
+### 41.5.1 [#1216](https://github.com/openfisca/openfisca-core/pull/1216)
+
+#### Technical changes
+
+- Fix styles by applying `black`.
+- Add a `black` dry-run check to `make lint`
+
 ## 41.5.0 [#1212](https://github.com/openfisca/openfisca-core/pull/1212)
 
 #### New features
