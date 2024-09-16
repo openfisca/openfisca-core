@@ -14,25 +14,24 @@ from openfisca_core import entities, errors, periods, populations, variables
 from . import helpers
 from ._build_default_simulation import _BuildDefaultSimulation
 from ._build_from_variables import _BuildFromVariables
-from ._type_guards import (
+from ._guards import (
     are_entities_fully_specified,
     are_entities_short_form,
     are_entities_specified,
     has_axes,
 )
 from .simulation import Simulation
-from .typing import (
+from .types import (
     Axis,
-    Entity,
     FullySpecifiedEntities,
     GroupEntities,
     GroupEntity,
     ImplicitGroupEntities,
     Params,
     ParamsWithoutAxes,
-    Population,
     Role,
     SingleEntity,
+    SinglePopulation,
     TaxBenefitSystem,
     Variables,
 )
@@ -748,7 +747,7 @@ class SimulationBuilder:
         if len(self.axes) == 1 and len(self.axes[0]):
             parallel_axes = self.axes[0]
             first_axis = parallel_axes[0]
-            axis_count: int = first_axis["count"]
+            axis_count = first_axis["count"]
             axis_entity = self.get_variable_entity(first_axis["name"])
             axis_entity_step_size = self.entity_counts[axis_entity.plural]
             # Distribute values along axes
@@ -803,10 +802,10 @@ class SimulationBuilder:
                     )
                     self.input_buffer[axis_name][str(axis_period)] = array
 
-    def get_variable_entity(self, variable_name: str) -> Entity:
+    def get_variable_entity(self, variable_name: str) -> SingleEntity:
         return self.variable_entities[variable_name]
 
-    def register_variable(self, variable_name: str, entity: Entity) -> None:
+    def register_variable(self, variable_name: str, entity: SingleEntity) -> None:
         self.variable_entities[variable_name] = entity
 
     def register_variables(self, simulation: Simulation) -> None:
@@ -814,6 +813,6 @@ class SimulationBuilder:
         variables: Iterable[str] = tax_benefit_system.variables.keys()
 
         for name in variables:
-            population: Population = simulation.get_variable_population(name)
-            entity: Entity = population.entity
+            population: SinglePopulation = simulation.get_variable_population(name)
+            entity: SingleEntity = population.entity
             self.register_variable(name, entity)
