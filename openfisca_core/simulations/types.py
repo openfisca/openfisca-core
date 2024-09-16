@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from typing import Protocol, TypeVar, TypedDict, Union
 from typing_extensions import NotRequired, Required, TypeAlias
 
@@ -160,6 +160,10 @@ class Axis(TypedDict, total=False):
     period: NotRequired[str | int]
 
 
+class Simulation(t.Simulation, Protocol):
+    ...
+
+
 # Tax-Benefit systems
 
 
@@ -188,8 +192,8 @@ class TaxBenefitSystem(t.TaxBenefitSystem, Protocol):
     def get_variable(
         self,
         __variable_name: str,
-        __check_existence: bool = ...,
-    ) -> V | None:
+        check_existence: bool = ...,
+    ) -> Variable[T] | None:
         ...
 
     def instantiate_entities(
@@ -202,6 +206,7 @@ class TaxBenefitSystem(t.TaxBenefitSystem, Protocol):
 
 
 class Variable(t.Variable, Protocol[T]):
+    calculate_output: Callable[[Simulation, str, str], t.Array[T]] | None
     definition_period: str
     end: str
     name: str
