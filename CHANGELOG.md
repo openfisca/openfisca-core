@@ -1,5 +1,11 @@
 # Changelog
 
+### 41.5.4 [#1219](https://github.com/openfisca/openfisca-core/pull/1219)
+
+#### Technical changes
+
+- Fix doc & type definitions in the commons module
+
 ### 41.5.3 [#1218](https://github.com/openfisca/openfisca-core/pull/1218)
 
 #### Technical changes
