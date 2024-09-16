@@ -1,5 +1,11 @@
 # Changelog
 
+### 41.5.8 [#1220](https://github.com/openfisca/openfisca-core/pull/1221)
+
+#### Technical changes
+
+- Fix doc & type definitions in the projectors module
+
 ### 41.5.7 [#1224](https://github.com/openfisca/openfisca-core/pull/1224)
 
 #### Technical changes
