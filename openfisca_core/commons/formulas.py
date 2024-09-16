@@ -1,4 +1,4 @@
-from typing import Any, Dict, Union
+from typing import Any, Union
 
 from openfisca_core.types import Array, ArrayLike
 
@@ -88,7 +88,7 @@ def concat(
 
 def switch(
     conditions: Array[Any],
-    value_by_condition: Dict[float, Any],
+    value_by_condition: dict[float, Any],
 ) -> Array[Any]:
     """Mimicks a switch statement.
 
