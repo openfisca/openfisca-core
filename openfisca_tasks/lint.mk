@@ -43,7 +43,10 @@ check-types:
 		openfisca_core/commons \
 		openfisca_core/entities \
 		openfisca_core/projectors \
-		openfisca_core/simulations \
+		openfisca_core/simulations/_build_default_simulation.py \
+		openfisca_core/simulations/_build_from_variables.py \
+		openfisca_core/simulations/_guards.py \
+		openfisca_core/simulations/helpers.py \
 		openfisca_core/types.py
 	@$(call print_pass,$@:)
 

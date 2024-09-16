@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Mapping, NamedTuple, Optional, Set
-
-from openfisca_core.types import SinglePopulation, TaxBenefitSystem, Variable
+from typing import NamedTuple, Optional, Set
 
 import tempfile
 import warnings
@@ -12,6 +10,8 @@ import numpy
 from openfisca_core import commons, errors, indexed_enums, periods, tracers
 from openfisca_core import warnings as core_warnings
 
+from .types import SinglePopulation, TaxBenefitSystem, Variable
+
 
 class Simulation:
     """
@@ -19,13 +19,13 @@ class Simulation:
     """
 
     tax_benefit_system: TaxBenefitSystem
-    populations: Dict[str, SinglePopulation]
+    populations: dict[str, SinglePopulation]
     invalidated_caches: Set[Cache]
 
     def __init__(
         self,
         tax_benefit_system: TaxBenefitSystem,
-        populations: Mapping[str, SinglePopulation],
+        populations: dict[str, SinglePopulation],
     ):
         """
         This constructor is reserved for internal use; see :any:`SimulationBuilder`,

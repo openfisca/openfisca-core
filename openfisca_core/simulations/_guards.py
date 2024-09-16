@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Iterable
 from typing_extensions import TypeGuard
 
-from .typing import (
+from .types import (
     Axes,
     DatedVariable,
     FullySpecifiedEntities,

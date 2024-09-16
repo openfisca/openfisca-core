@@ -1,16 +1,22 @@
 """This module contains the _BuildDefaultSimulation class."""
 
-from typing import Union
-from typing_extensions import Self
+from typing_extensions import Self, TypeAlias
 
 import numpy
 
 from .simulation import Simulation
-from .typing import Entity, Population, TaxBenefitSystem
+from .types import CoreEntity, CorePopulation, TaxBenefitSystem
+
+Populations: TypeAlias = dict[str, CorePopulation[CoreEntity]]
 
 
 class _BuildDefaultSimulation:
     """Build a default simulation.
+
+    Attributes:
+        count(int): The number of periods.
+        populations(Populations): The built populations.
+        simulation(Simulation): The built simulation.
 
     Args:
         tax_benefit_system(TaxBenefitSystem): The tax-benefit system.
@@ -47,7 +53,7 @@ class _BuildDefaultSimulation:
     count: int
 
     #: The built populations.
-    populations: dict[str, Union[Population[Entity]]]
+    populations: Populations
 
     #: The built simulation.
     simulation: Simulation
@@ -61,7 +67,7 @@ class _BuildDefaultSimulation:
         """Add the number of Population to the simulation.
 
         Returns:
-            _BuildDefaultSimulation: The builder.
+            Self: The builder.
 
         Examples:
             >>> from openfisca_core import entities, taxbenefitsystems
@@ -94,7 +100,7 @@ class _BuildDefaultSimulation:
         """Add the populations ids to the simulation.
 
         Returns:
-            _BuildDefaultSimulation: The builder.
+            Self: The builder.
 
         Examples:
             >>> from openfisca_core import entities, taxbenefitsystems
@@ -129,7 +135,7 @@ class _BuildDefaultSimulation:
         Each SingleEntity has its own GroupEntity.
 
         Returns:
-            _BuildDefaultSimulation: The builder.
+            Self: The builder.
 
         Examples:
             >>> from openfisca_core import entities, taxbenefitsystems
