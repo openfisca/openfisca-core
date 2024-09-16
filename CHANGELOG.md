@@ -1,5 +1,14 @@
 # Changelog
 
+### 41.5.3 [#1218](https://github.com/openfisca/openfisca-core/pull/1218)
+
+#### Technical changes
+
+- Fix `flake8` doc linting:
+    - Add format "google"
+    - Fix per-file skips
+- Fix failing lints
+
 ### 41.5.2 [#1217](https://github.com/openfisca/openfisca-core/pull/1217)
 
 #### Technical changes

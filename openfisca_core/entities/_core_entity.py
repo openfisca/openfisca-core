@@ -8,7 +8,7 @@ import os
 from abc import abstractmethod
 
 from .role import Role
-from .typing import Entity
+from .types import Entity
 
 
 class _CoreEntity:
@@ -36,7 +36,11 @@ class _CoreEntity:
     def __init__(self, key: str, plural: str, label: str, doc: str, *args: Any) -> None:
         ...
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.key})"
+
     def set_tax_benefit_system(self, tax_benefit_system: TaxBenefitSystem) -> None:
+        """An Entity belongs to a TaxBenefitSystem."""
         self._tax_benefit_system = tax_benefit_system
 
     def get_variable(
@@ -44,9 +48,11 @@ class _CoreEntity:
         variable_name: str,
         check_existence: bool = False,
     ) -> Variable | None:
+        """Get a ``variable_name`` from ``variables``."""
         return self._tax_benefit_system.get_variable(variable_name, check_existence)
 
     def check_variable_defined_for_entity(self, variable_name: str) -> None:
+        """Check if ``variable_name`` is defined for ``self``."""
         variable: Variable | None
         entity: Entity
 
@@ -66,5 +72,6 @@ class _CoreEntity:
             raise ValueError(os.linesep.join(message))
 
     def check_role_validity(self, role: Any) -> None:
+        """Check if a ``role`` is an instance of Role."""
         if role is not None and not isinstance(role, Role):
             raise ValueError(f"{role} is not a valid role")

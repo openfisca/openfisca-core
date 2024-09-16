@@ -40,33 +40,34 @@ general_requirements = [
 ]
 
 api_requirements = [
-    "Flask >=2.2.3, < 3.0",
-    "Flask-Cors >=3.0.10, < 4.0",
-    "gunicorn >=21.0, < 22.0",
-    "Werkzeug >=2.2.3, < 3.0",
+    "Flask >=2.2.3, <3.0",
+    "Flask-Cors >=3.0.10, <4.0",
+    "gunicorn >=21.0, <22.0",
+    "Werkzeug >=2.2.3, <3.0",
 ]
 
 dev_requirements = [
-    "black >=23.1.0, < 24.0",
-    "coverage >=6.5.0, < 7.0",
-    "darglint >=1.8.1, < 2.0",
-    "flake8 >=6.0.0, < 7.0.0",
-    "flake8-bugbear >=23.3.23, < 24.0",
-    "flake8-docstrings >=1.7.0, < 2.0",
-    "flake8-print >=5.0.0, < 6.0",
-    "flake8-rst-docstrings >=0.3.0, < 0.4.0",
-    "idna >=3.4, < 4.0",
-    "isort >=5.12.0, < 6.0",
-    "mypy >=1.1.1, < 2.0",
-    "openapi-spec-validator >=0.7.1, < 0.8.0",
-    "pycodestyle >=2.10.0, < 3.0",
-    "pylint >=2.17.1, < 3.0",
-    "xdoctest >=1.1.1, < 2.0",
+    "black >=23.1.0, <24.0",
+    "coverage >=6.5.0, <7.0",
+    "darglint >=1.8.1, <2.0",
+    "flake8 >=6.0.0, <7.0.0",
+    "flake8-bugbear >=23.3.23, <24.0",
+    "flake8-docstrings >=1.7.0, <2.0",
+    "flake8-print >=5.0.0, <6.0",
+    "flake8-rst-docstrings >=0.3.0, <0.4.0",
+    "idna >=3.4, <4.0",
+    "isort >=5.12.0, <6.0",
+    "mypy >=1.1.1, <2.0",
+    "openapi-spec-validator >=0.7.1, <0.8.0",
+    "pycodestyle >=2.10.0, <3.0",
+    "pylint >=2.17.1, <3.0",
+    "pylint-per-file-ignores >=1.3.2, <2.0",
+    "xdoctest >=1.1.1, <2.0",
 ] + api_requirements
 
 setup(
     name="OpenFisca-Core",
-    version="41.5.2",
+    version="41.5.3",
     author="OpenFisca Team",
     author_email="contact@openfisca.org",
     classifiers=[
@@ -102,12 +103,12 @@ setup(
         "web-api": api_requirements,
         "dev": dev_requirements,
         "ci": [
-            "build >=0.10.0, < 0.11.0",
-            "coveralls >=3.3.1, < 4.0",
-            "twine >=5.1.1, < 6.0",
-            "wheel >=0.40.0, < 0.41.0",
+            "build >=0.10.0, <0.11.0",
+            "coveralls >=3.3.1, <4.0",
+            "twine >=5.1.1, <6.0",
+            "wheel >=0.40.0, <0.41.0",
         ],
-        "tracker": ["OpenFisca-Tracker >=0.4.0, < 0.5.0"],
+        "tracker": ["OpenFisca-Tracker >=0.4.0, <0.5.0"],
     },
     include_package_data=True,  # Will read MANIFEST.in
     install_requires=general_requirements,

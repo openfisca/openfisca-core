@@ -6,7 +6,7 @@ from typing import Any
 import dataclasses
 import textwrap
 
-from .typing import Entity
+from .types import Entity
 
 
 class Role:

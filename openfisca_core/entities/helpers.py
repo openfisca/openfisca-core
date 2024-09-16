@@ -4,7 +4,7 @@ from typing import Iterable
 
 from .entity import Entity
 from .group_entity import GroupEntity
-from .typing import Role
+from .types import Role
 
 
 def build_entity(
@@ -17,8 +17,62 @@ def build_entity(
     class_override=None,
     containing_entities=(),
 ):
+    """Build a SingleEntity or a GroupEntity.
+
+    Args:
+        key: Key to identify the :class:`.Entity`. or :class:`.GroupEntity`.
+        plural: ``key``, pluralised.
+        label: A summary description.
+        doc: A full description.
+        roles: A list of :class:`.Role`, if it's a :class:`.GroupEntity`.
+        is_person: If is an individual, or not.
+        class_override: ?
+        containing_entities: Keys of contained entities.
+
+    Returns:
+        :obj:`.Entity` or :obj:`.GroupEntity`:
+        :obj:`.Entity`: When ``is_person`` is True.
+        :obj:`.GroupEntity`: When ``is_person`` is False.
+
+    Raises:
+        ValueError if ``roles`` is not a sequence.
+
+    Examples:
+        >>> from openfisca_core import entities
+
+        >>> build_entity(
+        ...     "syndicate",
+        ...     "syndicates",
+        ...     "Banks loaning jointly.",
+        ...     roles = [],
+        ...     containing_entities = (),
+        ...     )
+        GroupEntity(syndicate)
+
+        >>> build_entity(
+        ...     "company",
+        ...     "companies",
+        ...     "A small or medium company.",
+        ...     is_person = True,
+        ...     )
+        Entity(company)
+
+        >>> role = entities.Role({"key": "key"}, object())
+
+        >>> build_entity(
+        ...     "syndicate",
+        ...     "syndicates",
+        ...     "Banks loaning jointly.",
+        ...     roles = role,
+        ...     )
+        Traceback (most recent call last):
+        TypeError: 'Role' object is not iterable
+
+    """
+
     if is_person:
         return Entity(key, plural, label, doc)
+
     else:
         return GroupEntity(
             key, plural, label, doc, roles, containing_entities=containing_entities
@@ -31,7 +85,7 @@ def find_role(
     """Find a Role in a GroupEntity.
 
     Args:
-        group_entity (GroupEntity): The entity to search in.
+        roles (Iterable[Role]): The roles to search.
         key (str): The key of the role to find. Defaults to `None`.
         total (int | None): The `max` attribute of the role to find.
 
@@ -39,7 +93,7 @@ def find_role(
         Role | None: The role if found, else `None`.
 
     Examples:
-        >>> from openfisca_core.entities.typing import RoleParams
+        >>> from openfisca_core.entities.types import RoleParams
 
         >>> principal = RoleParams(
         ...     key="principal",
