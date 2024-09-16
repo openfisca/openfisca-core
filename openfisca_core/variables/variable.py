@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from openfisca_core.types import Formula, Instant
 from typing import Optional, Union
+
+from openfisca_core.types import Formula, Instant
 
 import datetime
 import re

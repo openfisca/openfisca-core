@@ -1,5 +1,6 @@
-from openfisca_core.types import Array, ArrayLike
 from typing import Optional
+
+from openfisca_core.types import Array, ArrayLike
 
 import numpy
 

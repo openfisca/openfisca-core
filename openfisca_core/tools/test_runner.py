@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from openfisca_core.types import TaxBenefitSystem
 from typing import Any, Dict, Optional, Sequence, Union
 from typing_extensions import Literal, TypedDict
+
+from openfisca_core.types import TaxBenefitSystem
 
 import dataclasses
 import os

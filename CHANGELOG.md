@@ -1,5 +1,12 @@
 # Changelog
 
+### 41.5.2 [#1217](https://github.com/openfisca/openfisca-core/pull/1217)
+
+#### Technical changes
+
+- Fix styles by applying `isort`.
+- Add a `isort` dry-run check to `make lint`
+
 ### 41.5.1 [#1216](https://github.com/openfisca/openfisca-core/pull/1216)
 
 #### Technical changes

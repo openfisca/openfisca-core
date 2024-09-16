@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from abc import abstractmethod
 from collections.abc import Iterable, Sequence
 from numpy.typing import NDArray as Array
 from typing import Protocol, TypeVar, TypedDict, Union
 from typing_extensions import NotRequired, Required, TypeAlias
 
 import datetime
+from abc import abstractmethod
 
 from numpy import bool_ as Bool
 from numpy import datetime64 as Date

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from openfisca_core.types import Array, Entity, Period, Role, Simulation
 from typing import Dict, NamedTuple, Optional, Sequence, Union
 from typing_extensions import TypedDict
+
+from openfisca_core.types import Array, Entity, Period, Role, Simulation
 
 import traceback
 
