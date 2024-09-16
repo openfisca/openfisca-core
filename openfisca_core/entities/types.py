@@ -35,12 +35,7 @@ class GroupEntity(t.GroupEntity, Protocol):
 
 
 class Role(t.Role, Protocol):
-    max: int | None
     subroles: Iterable[Role] | None
-
-    @property
-    def key(self) -> str:
-        ...
 
 
 class RoleParams(TypedDict, total=False):

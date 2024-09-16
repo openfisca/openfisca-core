@@ -61,7 +61,12 @@ class GroupEntity(CoreEntity, Protocol):
 
 class Role(Protocol):
     entity: Any
+    max: int | None
     subroles: Any
+
+    @property
+    def key(self) -> str:
+        ...
 
 
 # Holders
