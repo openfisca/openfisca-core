@@ -125,7 +125,9 @@ class Period(Protocol):
 
 
 class CorePopulation(Protocol):
+    count: int
     entity: Any
+    ids: Array[numpy.str_]
 
     @abc.abstractmethod
     def get_holder(self, variable_name: Any) -> Any:

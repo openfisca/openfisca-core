@@ -5,9 +5,9 @@ from typing_extensions import Self, TypeAlias
 import numpy
 
 from .simulation import Simulation
-from .types import CoreEntity, CorePopulation, TaxBenefitSystem
+from .types import CoreEntity, GroupPopulation, TaxBenefitSystem
 
-Populations: TypeAlias = dict[str, CorePopulation[CoreEntity]]
+Populations: TypeAlias = dict[str, GroupPopulation[CoreEntity]]
 
 
 class _BuildDefaultSimulation:
