@@ -10,7 +10,14 @@ import numpy
 from openfisca_core import commons, errors, indexed_enums, periods, tracers
 from openfisca_core import warnings as core_warnings
 
-from .types import GroupPopulation, TaxBenefitSystem, Variable
+from .types import (
+    EntityPlural,
+    GroupEntity,
+    GroupPopulation,
+    Populations,
+    TaxBenefitSystem,
+    Variable,
+)
 
 
 class Simulation:
@@ -19,13 +26,13 @@ class Simulation:
     """
 
     tax_benefit_system: TaxBenefitSystem
-    populations: dict[str, GroupPopulation]
+    populations: Populations
     invalidated_caches: Set[Cache]
 
     def __init__(
         self,
         tax_benefit_system: TaxBenefitSystem,
-        populations: dict[str, GroupPopulation],
+        populations: Populations,
     ):
         """
         This constructor is reserved for internal use; see :any:`SimulationBuilder`,
@@ -555,10 +562,14 @@ class Simulation:
 
     def get_entity(
         self,
-        plural: Optional[str] = None,
-    ) -> Optional[GroupPopulation]:
-        population = self.get_population(plural)
-        return population and population.entity
+        plural: EntityPlural | None = None,
+    ) -> GroupEntity | None:
+        population: GroupPopulation | None = self.get_population(plural)
+
+        if population is None:
+            return None
+
+        return population.entity
 
     def describe_entities(self):
         return {

@@ -3,16 +3,14 @@
 from __future__ import annotations
 
 from collections.abc import Sized
-from typing_extensions import Self, TypeAlias
+from typing_extensions import Self
 
 from openfisca_core import errors
 
 from ._build_default_simulation import _BuildDefaultSimulation
 from ._guards import is_variable_dated
 from .simulation import Simulation
-from .types import CoreEntity, GroupPopulation, TaxBenefitSystem, Variables
-
-Populations: TypeAlias = dict[str, GroupPopulation[CoreEntity]]
+from .types import Populations, TaxBenefitSystem, Variables
 
 
 class _BuildFromVariables:

@@ -1,13 +1,11 @@
 """This module contains the _BuildDefaultSimulation class."""
 
-from typing_extensions import Self, TypeAlias
+from typing_extensions import Self
 
 import numpy
 
 from .simulation import Simulation
-from .types import CoreEntity, GroupPopulation, TaxBenefitSystem
-
-Populations: TypeAlias = dict[str, GroupPopulation[CoreEntity]]
+from .types import Populations, TaxBenefitSystem
 
 
 class _BuildDefaultSimulation:

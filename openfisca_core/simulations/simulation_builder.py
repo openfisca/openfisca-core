@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
-from numpy.typing import NDArray as Array
-from typing import Dict, List
 
 import copy
 
 import dpath.util
 import numpy
 
-from openfisca_core import entities, errors, periods, populations, variables
+from openfisca_core import errors, periods
 
 from . import helpers
 from ._build_default_simulation import _BuildDefaultSimulation
@@ -22,23 +20,31 @@ from ._guards import (
 )
 from .simulation import Simulation
 from .types import (
+    Array,
     Axis,
+    EntityCounts,
+    EntityIds,
+    EntityRoles,
     FullySpecifiedEntities,
     GroupEntities,
     GroupEntity,
     ImplicitGroupEntities,
+    InputBuffer,
+    Memberships,
     Params,
     ParamsWithoutAxes,
+    Populations,
     Role,
     SingleEntity,
     SinglePopulation,
     TaxBenefitSystem,
+    VariableEntity,
     Variables,
 )
 
 
 class SimulationBuilder:
-    def __init__(self):
+    def __init__(self) -> None:
         self.default_period = (
             None  # Simulation period used for variables when no period is defined
         )
@@ -47,26 +53,24 @@ class SimulationBuilder:
         )
 
         # JSON input - Memory of known input values. Indexed by variable or axis name.
-        self.input_buffer: Dict[
-            variables.Variable.name, Dict[str(periods.period), numpy.array]
-        ] = {}
-        self.populations: Dict[entities.Entity.key, populations.Population] = {}
+        self.input_buffer: InputBuffer = {}
+        self.populations: Populations = {}
         # JSON input - Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
-        self.entity_counts: Dict[entities.Entity.plural, int] = {}
+        self.entity_counts: EntityCounts = {}
         # JSON input - List of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_counts``.
-        self.entity_ids: Dict[entities.Entity.plural, List[int]] = {}
+        self.entity_ids: EntityIds = {}
 
         # Links entities with persons. For each person index in persons ids list, set entity index in entity ids id. E.g.: self.memberships[entity.plural][person_index] = entity_ids.index(instance_id)
-        self.memberships: Dict[entities.Entity.plural, List[int]] = {}
-        self.roles: Dict[entities.Entity.plural, List[int]] = {}
+        self.memberships: Memberships = {}
+        self.roles: EntityRoles = {}
 
-        self.variable_entities: Dict[variables.Variable.name, entities.Entity] = {}
+        self.variable_entities: VariableEntity = {}
 
         self.axes = [[]]
-        self.axes_entity_counts: Dict[entities.Entity.plural, int] = {}
-        self.axes_entity_ids: Dict[entities.Entity.plural, List[int]] = {}
-        self.axes_memberships: Dict[entities.Entity.plural, List[int]] = {}
-        self.axes_roles: Dict[entities.Entity.plural, List[int]] = {}
+        self.axes_entity_counts: EntityCounts = {}
+        self.axes_entity_ids: EntityIds = {}
+        self.axes_memberships: Memberships = {}
+        self.axes_roles: EntityRoles = {}
 
     def build_from_dict(
         self,

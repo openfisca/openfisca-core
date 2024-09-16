@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Sequence
-from typing import Protocol, TypeVar, TypedDict, Union
+from typing import NewType, Protocol, TypeVar, TypedDict, Union
 from typing_extensions import NotRequired, Required, TypeAlias
 
 import datetime
-from abc import abstractmethod
 
 from numpy import bool_ as Bool
 from numpy import datetime64 as Date
@@ -19,32 +18,36 @@ from numpy import str_ as String
 from openfisca_core import types as t
 
 # Generic type variables.
-D = TypeVar("D")
-E = TypeVar("E", covariant=True)
 G = TypeVar("G", covariant=True)
 T = TypeVar("T", Bool, Date, Enum, Float, Int, String, covariant=True)
 U = TypeVar("U", bool, datetime.date, float, str)
 V = TypeVar("V", covariant=True)
 
+# New types.
+PeriodStr = NewType("PeriodStr", str)
+EntityKey = NewType("EntityKey", str)
+EntityPlural = NewType("EntityPlural", str)
+VariableName = NewType("VariableName", str)
+
+# Type aliases.
+
 #: Type alias for numpy arrays values.
 Item: TypeAlias = Union[Bool, Date, Enum, Float, Int, String]
 
+#: Type Alias for a numpy Array.
+Array: TypeAlias = t.Array
 
 # Entities
 
 
-#: Type alias for a simulation dictionary defining the roles.
-Roles: TypeAlias = dict[str, Union[str, Iterable[str]]]
-
-
 class CoreEntity(t.CoreEntity, Protocol):
-    key: str
-    plural: str | None
+    key: EntityKey
+    plural: EntityPlural | None
 
     def get_variable(
         self,
-        __variable_name: str,
-        __check_existence: bool = ...,
+        __variable_name: VariableName,
+        check_existence: bool = ...,
     ) -> Variable[T] | None:
         ...
 
@@ -55,7 +58,6 @@ class SingleEntity(t.SingleEntity, Protocol):
 
 class GroupEntity(t.GroupEntity, Protocol):
     @property
-    @abstractmethod
     def flattened_roles(self) -> Iterable[Role[G]]:
         ...
 
@@ -69,11 +71,10 @@ class Role(t.Role, Protocol[G]):
 
 class Holder(t.Holder, Protocol[V]):
     @property
-    @abstractmethod
     def variable(self) -> Variable[T]:
         ...
 
-    def get_array(self, __period: str) -> t.Array[T] | None:
+    def get_array(self, __period: PeriodStr) -> t.Array[T] | None:
         ...
 
     def set_input(
@@ -94,18 +95,19 @@ class Period(t.Period, Protocol):
 # Populations
 
 
-class CorePopulation(t.CorePopulation, Protocol[D]):
-    entity: D
+class CorePopulation(t.CorePopulation, Protocol):
+    entity: CoreEntity
 
-    def get_holder(self, __variable_name: str) -> Holder[V]:
+    def get_holder(self, __variable_name: VariableName) -> Holder[V]:
         ...
 
 
-class SinglePopulation(t.SinglePopulation, Protocol[E]):
-    ...
+class SinglePopulation(t.SinglePopulation, Protocol):
+    entity: SingleEntity
 
 
-class GroupPopulation(t.GroupPopulation, Protocol[E]):
+class GroupPopulation(t.GroupPopulation, Protocol):
+    entity: GroupEntity
     members_entity_id: t.Array[String]
 
     def nb_persons(self, __role: Role[G] | None = ...) -> int:
@@ -114,6 +116,29 @@ class GroupPopulation(t.GroupPopulation, Protocol[E]):
 
 # Simulations
 
+#: Dictionary with axes parameters per variable.
+InputBuffer: TypeAlias = dict[VariableName, dict[PeriodStr, Array]]
+
+#: Dictionary with entity/population key/pais.
+Populations: TypeAlias = dict[EntityKey, GroupPopulation]
+
+#: Dictionary with single entity count per group entity.
+EntityCounts: TypeAlias = dict[EntityPlural, int]
+
+#: Dictionary with a list of single entities per group entity.
+EntityIds: TypeAlias = dict[EntityPlural, Iterable[int]]
+
+#: Dictionary with a list of members per group entity.
+Memberships: TypeAlias = dict[EntityPlural, Iterable[int]]
+
+#: Dictionary with a list of roles per group entity.
+EntityRoles: TypeAlias = dict[EntityPlural, Iterable[int]]
+
+#: Dictionary with a map between variables and entities.
+VariableEntity: TypeAlias = dict[VariableName, CoreEntity]
+
+#: Type alias for a simulation dictionary defining the roles.
+Roles: TypeAlias = dict[str, Union[str, Iterable[str]]]
 
 #: Type alias for a simulation dictionary with undated variables.
 UndatedVariable: TypeAlias = dict[str, object]
@@ -169,21 +194,18 @@ class Simulation(t.Simulation, Protocol):
 
 class TaxBenefitSystem(t.TaxBenefitSystem, Protocol):
     @property
-    @abstractmethod
     def person_entity(self) -> SingleEntity:
         ...
 
     @person_entity.setter
-    @abstractmethod
     def person_entity(self, person_entity: SingleEntity) -> None:
         ...
 
     @property
-    @abstractmethod
     def variables(self) -> dict[str, V]:
         ...
 
-    def entities_by_singular(self) -> dict[str, E]:
+    def entities_by_singular(self) -> dict[str, CoreEntity]:
         ...
 
     def entities_plural(self) -> Iterable[str]:
@@ -198,7 +220,7 @@ class TaxBenefitSystem(t.TaxBenefitSystem, Protocol):
 
     def instantiate_entities(
         self,
-    ) -> dict[str, GroupPopulation[E]]:
+    ) -> Populations:
         ...
 
 
@@ -209,7 +231,7 @@ class Variable(t.Variable, Protocol[T]):
     calculate_output: Callable[[Simulation, str, str], t.Array[T]] | None
     definition_period: str
     end: str
-    name: str
+    name: VariableName
 
     def default_array(self, __array_size: int) -> t.Array[T]:
         ...
