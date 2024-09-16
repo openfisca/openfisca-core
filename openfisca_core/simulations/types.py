@@ -95,9 +95,7 @@ class Period(t.Period, Protocol):
 
 
 class CorePopulation(t.CorePopulation, Protocol[D]):
-    count: int
     entity: D
-    ids: t.Array[String]
 
     def get_holder(self, __variable_name: str) -> Holder[V]:
         ...
@@ -196,7 +194,7 @@ class TaxBenefitSystem(t.TaxBenefitSystem, Protocol):
 
     def instantiate_entities(
         self,
-    ) -> dict[str, SinglePopulation[E]]:
+    ) -> dict[str, GroupPopulation[E]]:
         ...
 
 
