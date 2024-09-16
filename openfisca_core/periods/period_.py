@@ -269,14 +269,14 @@ class Period(tuple):
             >>> period = Period((DateUnit.MONTH, instant, 3))
             >>> period.size_in_years
             Traceback (most recent call last):
-            ValueError: Can't calculate number of years in a month.
+            ValueError: Cannot calculate number of years in month.
 
         """
 
         if self.unit == DateUnit.YEAR:
             return self.size
 
-        raise ValueError(f"Can't calculate number of years in a {self.unit}.")
+        raise ValueError(f"Cannot calculate number of years in {self.unit}.")
 
     @property
     def size_in_months(self) -> int:
@@ -292,7 +292,7 @@ class Period(tuple):
             >>> period = Period((DateUnit.DAY, instant, 3))
             >>> period.size_in_months
             Traceback (most recent call last):
-            ValueError: Can't calculate number of months in a day.
+            ValueError: Cannot calculate number of months in day.
 
         """
 
@@ -302,7 +302,7 @@ class Period(tuple):
         if self.unit == DateUnit.MONTH:
             return self.size
 
-        raise ValueError(f"Can't calculate number of months in a {self.unit}.")
+        raise ValueError(f"Cannot calculate number of months in {self.unit}.")
 
     @property
     def size_in_days(self) -> int:
@@ -331,7 +331,7 @@ class Period(tuple):
         if self.unit in (DateUnit.DAY, DateUnit.WEEKDAY):
             return self.size
 
-        raise ValueError(f"Can't calculate number of days in a {self.unit}.")
+        raise ValueError(f"Cannot calculate number of days in {self.unit}.")
 
     @property
     def size_in_weeks(self):
@@ -365,7 +365,7 @@ class Period(tuple):
         if self.unit == DateUnit.WEEK:
             return self.size
 
-        raise ValueError(f"Can't calculate number of weeks in a {self.unit}.")
+        raise ValueError(f"Cannot calculate number of weeks in {self.unit}.")
 
     @property
     def size_in_weekdays(self):
@@ -397,7 +397,7 @@ class Period(tuple):
         if self.unit in (DateUnit.DAY, DateUnit.WEEKDAY):
             return self.size
 
-        raise ValueError(f"Can't calculate number of weekdays in a {self.unit}.")
+        raise ValueError(f"Cannot calculate number of weekdays in {self.unit}.")
 
     @property
     def days(self):

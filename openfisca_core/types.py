@@ -27,6 +27,17 @@ E = TypeVar("E", covariant=True)
 A = TypeVar("A", covariant=True)
 
 
+# Commons
+
+
+class Failure(Protocol[E]):
+    ...
+
+
+class Success(Protocol[A]):
+    ...
+
+
 # Entities
 
 
@@ -114,15 +125,17 @@ class Period(Protocol):
 
 
 class CorePopulation(Protocol):
-    ...
-
-
-class SinglePopulation(CorePopulation, Protocol):
+    count: int
     entity: Any
+    ids: Array[numpy.str_]
 
     @abc.abstractmethod
     def get_holder(self, variable_name: Any) -> Any:
         ...
+
+
+class SinglePopulation(CorePopulation, Protocol):
+    ...
 
 
 class GroupPopulation(CorePopulation, Protocol):
@@ -176,7 +189,7 @@ class Formula(Protocol):
     @abc.abstractmethod
     def __call__(
         self,
-        population: GroupPopulation,
+        population: CorePopulation,
         instant: Instant,
         params: Params,
     ) -> Array[Any]:

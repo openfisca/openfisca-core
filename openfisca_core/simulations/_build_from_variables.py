@@ -10,9 +10,9 @@ from openfisca_core import errors
 from ._build_default_simulation import _BuildDefaultSimulation
 from ._guards import is_variable_dated
 from .simulation import Simulation
-from .types import CoreEntity, CorePopulation, TaxBenefitSystem, Variables
+from .types import CoreEntity, GroupPopulation, TaxBenefitSystem, Variables
 
-Populations: TypeAlias = dict[str, CorePopulation[CoreEntity]]
+Populations: TypeAlias = dict[str, GroupPopulation[CoreEntity]]
 
 
 class _BuildFromVariables:
