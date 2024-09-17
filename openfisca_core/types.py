@@ -1,12 +1,9 @@
 from __future__ import annotations
 
-import typing_extensions
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence, Sized
 from numpy.typing import NDArray
-from typing import Any, TypeVar
+from typing import Any, TypeVar, Union
 from typing_extensions import Protocol, TypeAlias
-
-import abc
 
 import numpy
 
@@ -26,6 +23,10 @@ E = TypeVar("E", covariant=True)
 #: Type variable representing a value.
 A = TypeVar("A", covariant=True)
 
+#: Generic type vars.
+T_cov = TypeVar("T_cov", covariant=True)
+T_con = TypeVar("T_con", contravariant=True)
+
 
 # Entities
 
@@ -34,13 +35,8 @@ class CoreEntity(Protocol):
     key: Any
     plural: Any
 
-    @abc.abstractmethod
     def check_role_validity(self, role: Any) -> None: ...
-
-    @abc.abstractmethod
     def check_variable_defined_for_entity(self, variable_name: Any) -> None: ...
-
-    @abc.abstractmethod
     def get_variable(
         self,
         variable_name: Any,
@@ -67,35 +63,36 @@ class Role(Protocol):
 
 
 class Holder(Protocol):
-    @abc.abstractmethod
     def clone(self, population: Any) -> Holder: ...
-
-    @abc.abstractmethod
     def get_memory_usage(self) -> Any: ...
 
 
 # Parameters
 
 
-@typing_extensions.runtime_checkable
 class ParameterNodeAtInstant(Protocol): ...
 
 
 # Periods
 
 
-class Instant(Protocol): ...
+class Container(Protocol[T_con]):
+    def __contains__(self, item: T_con, /) -> bool: ...
 
 
-@typing_extensions.runtime_checkable
-class Period(Protocol):
+class Indexable(Protocol[T_cov]):
+    def __getitem__(self, index: int, /) -> T_cov: ...
+
+
+class DateUnit(Container[str], Protocol): ...
+
+
+class Instant(Indexable[int], Iterable[int], Sized, Protocol): ...
+
+
+class Period(Indexable[Union[DateUnit, Instant, int]], Protocol):
     @property
-    @abc.abstractmethod
-    def start(self) -> Any: ...
-
-    @property
-    @abc.abstractmethod
-    def unit(self) -> Any: ...
+    def unit(self) -> DateUnit: ...
 
 
 # Populations
@@ -104,7 +101,6 @@ class Period(Protocol):
 class Population(Protocol):
     entity: Any
 
-    @abc.abstractmethod
     def get_holder(self, variable_name: Any) -> Any: ...
 
 
@@ -112,16 +108,9 @@ class Population(Protocol):
 
 
 class Simulation(Protocol):
-    @abc.abstractmethod
     def calculate(self, variable_name: Any, period: Any) -> Any: ...
-
-    @abc.abstractmethod
     def calculate_add(self, variable_name: Any, period: Any) -> Any: ...
-
-    @abc.abstractmethod
     def calculate_divide(self, variable_name: Any, period: Any) -> Any: ...
-
-    @abc.abstractmethod
     def get_population(self, plural: Any | None) -> Any: ...
 
 
@@ -131,13 +120,11 @@ class Simulation(Protocol):
 class TaxBenefitSystem(Protocol):
     person_entity: Any
 
-    @abc.abstractmethod
     def get_variable(
         self,
         variable_name: Any,
         check_existence: Any = ...,
-    ) -> Any | None:
-        """Abstract method."""
+    ) -> Any | None: ...
 
 
 # Variables
@@ -148,7 +135,6 @@ class Variable(Protocol):
 
 
 class Formula(Protocol):
-    @abc.abstractmethod
     def __call__(
         self,
         population: Population,
@@ -158,5 +144,4 @@ class Formula(Protocol):
 
 
 class Params(Protocol):
-    @abc.abstractmethod
     def __call__(self, instant: Instant) -> ParameterNodeAtInstant: ...
