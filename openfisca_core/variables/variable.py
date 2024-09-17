@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import Optional, Union
 
-from openfisca_core.types import Formula, Instant
-
 import datetime
 import re
 import textwrap
@@ -12,6 +10,7 @@ import numpy
 import sortedcontainers
 
 from openfisca_core import periods, tools
+from openfisca_core import types as t
 from openfisca_core.entities import Entity, GroupEntity
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import DateUnit, Period
@@ -374,8 +373,8 @@ class Variable:
 
     def get_formula(
         self,
-        period: Union[Instant, Period, str, int] = None,
-    ) -> Optional[Formula]:
+        period: Union[t.Instant, t.Period, str, int] = None,
+    ) -> Optional[t.Formula]:
         """Returns the formula to compute the variable at the given period.
 
         If no period is given and the variable has several formulas, the method
@@ -389,7 +388,7 @@ class Variable:
 
         """
 
-        instant: Optional[Instant]
+        instant: Optional[t.Instant]
 
         if not self.formulas:
             return None
