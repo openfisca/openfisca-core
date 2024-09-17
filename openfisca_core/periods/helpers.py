@@ -1,4 +1,6 @@
-from typing import NoReturn, Optional
+from __future__ import annotations
+
+from typing import NoReturn, Optional, overload
 
 import datetime
 import os
@@ -7,12 +9,23 @@ import pendulum
 from pendulum.parsing import ParserError
 
 from . import _parsers, config
+from . import types as t
 from .date_unit import DateUnit
 from .instant_ import Instant
 from .period_ import Period
 
 
-def instant(instant) -> Optional[Instant]:
+@overload
+def instant(instant: None) -> None:
+    ...
+
+
+@overload
+def instant(instant: object) -> Instant:
+    ...
+
+
+def instant(instant: object | None) -> t.Instant | None:
     """Build a new instant, aka a triple of integers (year, month, day).
 
     Args:
@@ -48,6 +61,9 @@ def instant(instant) -> Optional[Instant]:
         Instant((2021, 1, 1))
 
     """
+
+    result: t.Instant | tuple[int, ...]
+
     if instant is None:
         return None
     if isinstance(instant, Instant):
@@ -58,27 +74,28 @@ def instant(instant) -> Optional[Instant]:
             raise ValueError(
                 msg,
             )
-        instant = Instant(int(fragment) for fragment in instant.split("-", 2)[:3])
+        result = Instant(int(fragment) for fragment in instant.split("-", 2)[:3])
     elif isinstance(instant, datetime.date):
-        instant = Instant((instant.year, instant.month, instant.day))
+        result = Instant((instant.year, instant.month, instant.day))
     elif isinstance(instant, int):
-        instant = (instant,)
+        result = (instant,)
     elif isinstance(instant, list):
         assert 1 <= len(instant) <= 3
-        instant = tuple(instant)
+        result = tuple(instant)
     elif isinstance(instant, Period):
-        instant = instant.start
+        result = instant.start
     else:
         assert isinstance(instant, tuple), instant
         assert 1 <= len(instant) <= 3
-    if len(instant) == 1:
-        return Instant((instant[0], 1, 1))
-    if len(instant) == 2:
-        return Instant((instant[0], instant[1], 1))
-    return Instant(instant)
+        result = instant
+    if len(result) == 1:
+        return Instant((result[0], 1, 1))
+    if len(result) == 2:
+        return Instant((result[0], result[1], 1))
+    return Instant(result)
 
 
-def instant_date(instant: Optional[Instant]) -> Optional[datetime.date]:
+def instant_date(instant: Optional[t.Instant]) -> Optional[datetime.date]:
     """Returns the date representation of an :class:`.Instant`.
 
     Args:
@@ -104,7 +121,7 @@ def instant_date(instant: Optional[Instant]) -> Optional[datetime.date]:
     return instant_date
 
 
-def period(value) -> Period:
+def period(value: object) -> t.Period:
     """Build a new period, aka a triple (unit, start_instant, size).
 
     Args:
@@ -124,7 +141,7 @@ def period(value) -> Period:
         Period((<DateUnit.DAY: 'day'>, Instant((2021, 1, 1)), 1))
 
         >>> period(DateUnit.ETERNITY)
-        Period((<DateUnit.ETERNITY: 'eternity'>, Instant((1, 1, 1)), inf))
+        Period((<DateUnit.ETERNITY: 'eternity'>, Instant((1, 1, 1)), 0))
 
         >>> period(2021)
         Period((<DateUnit.YEAR: 'year'>, Instant((2021, 1, 1)), 1))
@@ -162,15 +179,9 @@ def period(value) -> Period:
         return Period((DateUnit.DAY, instant(value), 1))
 
     # We return an "eternity-period", for example
-    # ``<Period(('eternity', <Instant(1, 1, 1)>, inf))>``.
+    # ``<Period(('eternity', <Instant(1, 1, 1)>, 0))>``.
     if str(value).lower() == DateUnit.ETERNITY:
-        return Period(
-            (
-                DateUnit.ETERNITY,
-                instant(datetime.date.min),
-                float("inf"),
-            ),
-        )
+        return Period.eternity()
 
     # For example ``2021`` gives
     # ``<Period(('year', <Instant(2021, 1, 1)>, 1))>``.
@@ -179,7 +190,7 @@ def period(value) -> Period:
 
     # Up to this point, if ``value`` is not a :obj:`str`, we desist.
     if not isinstance(value, str):
-        _raise_error(value)
+        _raise_error(str(value))
 
     # There can't be empty strings.
     if not value:
@@ -264,7 +275,7 @@ def _raise_error(value: str) -> NoReturn:
     raise ValueError(message)
 
 
-def key_period_size(period: Period) -> str:
+def key_period_size(period: t.Period) -> str:
     """Define a key in order to sort periods by length.
 
     It uses two aspects: first, ``unit``, then, ``size``.
@@ -287,12 +298,11 @@ def key_period_size(period: Period) -> str:
         '300_3'
 
     """
-    unit, start, size = period
 
-    return f"{unit_weight(unit)}_{size}"
+    return f"{unit_weight(period.unit)}_{period.size}"
 
 
-def unit_weights() -> dict[str, int]:
+def unit_weights() -> dict[t.DateUnit, int]:
     """Assign weights to date units.
 
     Examples:
@@ -310,7 +320,7 @@ def unit_weights() -> dict[str, int]:
     }
 
 
-def unit_weight(unit: str) -> int:
+def unit_weight(unit: t.DateUnit) -> int:
     """Retrieves a specific date unit weight.
 
     Examples:

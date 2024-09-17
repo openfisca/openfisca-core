@@ -4,10 +4,12 @@ from enum import EnumMeta
 
 from strenum import StrEnum
 
+from . import types as t
+
 
 class DateUnitMeta(EnumMeta):
     @property
-    def isoformat(cls) -> tuple[DateUnit, ...]:
+    def isoformat(self) -> tuple[t.DateUnit, ...]:
         """Creates a :obj:`tuple` of ``key`` with isoformat items.
 
         Returns:
@@ -27,7 +29,7 @@ class DateUnitMeta(EnumMeta):
         return DateUnit.DAY, DateUnit.MONTH, DateUnit.YEAR
 
     @property
-    def isocalendar(cls) -> tuple[DateUnit, ...]:
+    def isocalendar(self) -> tuple[t.DateUnit, ...]:
         """Creates a :obj:`tuple` of ``key`` with isocalendar items.
 
         Returns:

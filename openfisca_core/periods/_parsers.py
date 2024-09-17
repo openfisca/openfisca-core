@@ -6,6 +6,7 @@ import pendulum
 from pendulum.datetime import Date
 from pendulum.parsing import ParserError
 
+from . import types as t
 from .date_unit import DateUnit
 from .instant_ import Instant
 from .period_ import Period
@@ -13,7 +14,7 @@ from .period_ import Period
 invalid_week = re.compile(r".*(W[1-9]|W[1-9]-[0-9]|W[0-5][0-9]-0)$")
 
 
-def _parse_period(value: str) -> Optional[Period]:
+def _parse_period(value: str) -> Optional[t.Period]:
     """Parses ISO format/calendar periods.
 
     Such as "2012" or "2015-03".
@@ -56,7 +57,7 @@ def _parse_period(value: str) -> Optional[Period]:
     return Period((unit, instant, 1))
 
 
-def _parse_unit(value: str) -> DateUnit:
+def _parse_unit(value: str) -> t.DateUnit:
     """Determine the date unit of a date string.
 
     Args:

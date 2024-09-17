@@ -1,10 +1,14 @@
+from __future__ import annotations
+
 import pendulum
+from pendulum.datetime import Date
 
 from . import config
+from . import types as t
 from .date_unit import DateUnit
 
 
-class Instant(tuple):
+class Instant(tuple[int, int, int]):
     """An instant in time (year, month, day).
 
     An :class:`.Instant` represents the most atomic and indivisible
@@ -12,10 +16,6 @@ class Instant(tuple):
 
     Current implementation considers this unit to be a day, so
     :obj:`instants <.Instant>` can be thought of as "day dates".
-
-    Args:
-        (tuple(tuple(int, int, int))):
-            The ``year``, ``month``, and ``day``, accordingly.
 
     Examples:
         >>> instant = Instant((2021, 9, 13))
@@ -81,32 +81,38 @@ class Instant(tuple):
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({super().__repr__()})"
 
-    def __str__(self) -> str:
+    def __str__(self) -> t.InstantStr:
         instant_str = config.str_by_instant_cache.get(self)
 
         if instant_str is None:
-            config.str_by_instant_cache[self] = instant_str = self.date.isoformat()
+            instant_str = t.InstantStr(self.date.isoformat())
+            config.str_by_instant_cache[self] = instant_str
 
         return instant_str
 
     @property
-    def date(self):
+    def date(self) -> Date:
         instant_date = config.date_by_instant_cache.get(self)
 
         if instant_date is None:
-            config.date_by_instant_cache[self] = instant_date = pendulum.date(*self)
+            instant_date = pendulum.date(*self)
+            config.date_by_instant_cache[self] = instant_date
 
         return instant_date
 
     @property
-    def day(self):
+    def day(self) -> int:
         return self[2]
 
     @property
-    def month(self):
+    def month(self) -> int:
         return self[1]
 
-    def offset(self, offset, unit):
+    @property
+    def year(self) -> int:
+        return self[0]
+
+    def offset(self, offset: str | int, unit: t.DateUnit) -> t.Instant | None:
         """Increments/decrements the given instant with offset units.
 
         Args:
@@ -195,6 +201,7 @@ class Instant(tuple):
             return self.__class__((date.year, date.month, date.day))
         return None
 
-    @property
-    def year(self):
-        return self[0]
+    @classmethod
+    def eternity(cls) -> t.Instant:
+        """Return an eternity instant."""
+        return cls((1, 1, 1))
