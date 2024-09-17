@@ -1,4 +1,5 @@
-from typing import Any, Union
+from collections.abc import Mapping
+from typing import Union
 
 from openfisca_core.types import Array, ArrayLike
 
@@ -57,7 +58,8 @@ def apply_thresholds(
 
 
 def concat(
-    this: Union[Array[Any], ArrayLike[str]], that: Union[Array[Any], ArrayLike[str]]
+    this: Union[Array[numpy.str_], ArrayLike[str]],
+    that: Union[Array[numpy.str_], ArrayLike[str]],
 ) -> Array[numpy.str_]:
     """Concatenates the values of two arrays.
 
@@ -66,7 +68,7 @@ def concat(
         that: Another array to concatenate.
 
     Returns:
-        :obj:`numpy.ndarray` of :obj:`float`:
+        :obj:`numpy.ndarray` of :obj:`numpy.str_`:
         An array with the concatenated values.
 
     Examples:
@@ -87,9 +89,9 @@ def concat(
 
 
 def switch(
-    conditions: Array[Any],
-    value_by_condition: dict[float, Any],
-) -> Array[Any]:
+    conditions: Array[numpy.float_],
+    value_by_condition: Mapping[float, float],
+) -> Array[numpy.float_]:
     """Mimicks a switch statement.
 
     Given an array of conditions, returns an array of the same size,
