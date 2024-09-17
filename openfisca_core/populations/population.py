@@ -85,7 +85,7 @@ class Population:
         variable_name: str,
         period: Optional[Union[int, str, Period]],
     ) -> None:
-        if isinstance(period, (int, str, Period)):
+        if isinstance(period, (int, str, periods.Period)):
             return None
 
         stack = traceback.extract_stack()
