@@ -9,11 +9,11 @@ from openfisca_core.periods import DateUnit, Instant, Period
 @pytest.mark.parametrize(
     "arg, expected",
     [
-        ["eternity", Period((DateUnit.ETERNITY, Instant((1, 1, 1)), float("inf")))],
-        ["ETERNITY", Period((DateUnit.ETERNITY, Instant((1, 1, 1)), float("inf")))],
+        ["eternity", Period((DateUnit.ETERNITY, Instant((1, 1, 1)), 0))],
+        ["ETERNITY", Period((DateUnit.ETERNITY, Instant((1, 1, 1)), 0))],
         [
             DateUnit.ETERNITY,
-            Period((DateUnit.ETERNITY, Instant((1, 1, 1)), float("inf"))),
+            Period((DateUnit.ETERNITY, Instant((1, 1, 1)), 0)),
         ],
         [datetime.date(1, 1, 1), Period((DateUnit.DAY, Instant((1, 1, 1)), 1))],
         [Instant((1, 1, 1)), Period((DateUnit.DAY, Instant((1, 1, 1)), 1))],
