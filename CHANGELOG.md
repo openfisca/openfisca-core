@@ -1,5 +1,13 @@
 # Changelog
 
+### 41.5.7 [#1223](https://github.com/openfisca/openfisca-core/pull/1223)
+
+#### Technical changes
+
+- Update `pendulum'
+- Remove run-time type-checks
+- Add typing to the periods module
+
 ###  41.5.6 [#1185](https://github.com/openfisca/openfisca-core/pull/1185)
 
 #### Technical changes
