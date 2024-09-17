@@ -1,14 +1,5 @@
 import re
 
-from .date_unit import DateUnit
-
-WEEKDAY = DateUnit.WEEKDAY
-WEEK = DateUnit.WEEK
-DAY = DateUnit.DAY
-MONTH = DateUnit.MONTH
-YEAR = DateUnit.YEAR
-ETERNITY = DateUnit.ETERNITY
-
 # Matches "2015", "2015-01", "2015-01-01"
 # Does not match "2015-13", "2015-12-32"
 INSTANT_PATTERN = re.compile(
