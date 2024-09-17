@@ -42,6 +42,7 @@ check-types:
 	@mypy \
 		openfisca_core/commons \
 		openfisca_core/entities \
+		openfisca_core/periods \
 		openfisca_core/types.py
 	@$(call print_pass,$@:)
 
