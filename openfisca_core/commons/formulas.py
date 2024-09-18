@@ -1,17 +1,16 @@
-from typing import Any, Dict, Sequence, TypeVar
-
-from openfisca_core.types import Array, ArrayLike
+from collections.abc import Mapping
+from typing import Union
 
 import numpy
 
-T = TypeVar("T")
+from openfisca_core import types as t
 
 
 def apply_thresholds(
-    input: Array[float],
-    thresholds: ArrayLike[float],
-    choices: ArrayLike[float],
-) -> Array[float]:
+    input: t.Array[numpy.float_],
+    thresholds: t.ArrayLike[float],
+    choices: t.ArrayLike[float],
+) -> t.Array[numpy.float_]:
     """Makes a choice based on an input and thresholds.
 
     From a list of ``choices``, this function selects one of these values
@@ -40,7 +39,7 @@ def apply_thresholds(
 
     """
 
-    condlist: Sequence[Array[bool]]
+    condlist: list[Union[t.Array[numpy.bool_], bool]]
     condlist = [input <= threshold for threshold in thresholds]
 
     if len(condlist) == len(choices) - 1:
@@ -58,7 +57,10 @@ def apply_thresholds(
     return numpy.select(condlist, choices)
 
 
-def concat(this: ArrayLike[str], that: ArrayLike[str]) -> Array[str]:
+def concat(
+    this: Union[t.Array[numpy.str_], t.ArrayLike[str]],
+    that: Union[t.Array[numpy.str_], t.ArrayLike[str]],
+) -> t.Array[numpy.str_]:
     """Concatenates the values of two arrays.
 
     Args:
@@ -66,7 +68,7 @@ def concat(this: ArrayLike[str], that: ArrayLike[str]) -> Array[str]:
         that: Another array to concatenate.
 
     Returns:
-        :obj:`numpy.ndarray` of :obj:`float`:
+        :obj:`numpy.ndarray` of :obj:`numpy.str_`:
         An array with the concatenated values.
 
     Examples:
@@ -87,9 +89,9 @@ def concat(this: ArrayLike[str], that: ArrayLike[str]) -> Array[str]:
 
 
 def switch(
-    conditions: Array[Any],
-    value_by_condition: Dict[float, T],
-) -> Array[T]:
+    conditions: t.Array[numpy.float_],
+    value_by_condition: Mapping[float, float],
+) -> t.Array[numpy.float_]:
     """Mimicks a switch statement.
 
     Given an array of conditions, returns an array of the same size,
@@ -120,4 +122,4 @@ def switch(
 
     condlist = [conditions == condition for condition in value_by_condition.keys()]
 
-    return numpy.select(condlist, value_by_condition.values())
+    return numpy.select(condlist, tuple(value_by_condition.values()))
