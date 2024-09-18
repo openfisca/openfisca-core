@@ -2,16 +2,49 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Sequence, Sized
 from numpy.typing import NDArray
-from typing import Any, TypeVar, Union
+from typing import Any, NewType, TypeVar, Union
 from typing_extensions import Protocol, TypeAlias
 
 import numpy
 
+# New types
+
+#: Type for arrays of any type.
+ArrayAny = NewType("ArrayAny", numpy.generic)
+
+#: Type for arrays of booleans.
+ArrayBool = NewType("ArrayBool", numpy.bool_)
+
+#: Type for arrays of bytes.
+ArrayBytes = NewType("ArrayBytes", numpy.bytes_)
+
+#: Type for arrays of dates.
+ArrayDate = NewType("ArrayDate", numpy.datetime64)
+
+#: Type for arrays of enums.
+ArrayEnum = NewType("ArrayEnum", numpy.int16)
+
+#: Type for arrays of floats.
+ArrayFloat = NewType("ArrayFloat", numpy.float32)
+
+#: Type for arrays of integers.
+ArrayInt = NewType("ArrayInt", numpy.int32)
+
+#: Type for arrays of Python objects.
+ArrayObject = NewType("ArrayObject", numpy.object_)
+
+#: Type for arrays of strings.
+ArrayStr = NewType("ArrayStr", numpy.str_)
+
+# TypeAliases
+
+#: Generic numpy type an array can have.
 N = TypeVar("N", bound=numpy.generic, covariant=True)
 
 #: Type representing an numpy array.
 Array: TypeAlias = NDArray[N]
 
+#: Generic type a sequence can have.
 L = TypeVar("L")
 
 #: Type representing an array-like object.
@@ -23,8 +56,10 @@ E = TypeVar("E", covariant=True)
 #: Type variable representing a value.
 A = TypeVar("A", covariant=True)
 
-#: Generic type vars.
+#: Generic covariant type.
 T_cov = TypeVar("T_cov", covariant=True)
+
+#: Generic contravariant type.
 T_con = TypeVar("T_con", contravariant=True)
 
 
