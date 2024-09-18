@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-import typing
-from typing import Any, NoReturn, Optional, Type
+from typing import Any, NoReturn
 
 import numpy
 
-if typing.TYPE_CHECKING:
-    from openfisca_core.indexed_enums import Enum
+from . import types as t
 
 
-class EnumArray(numpy.ndarray):
+class EnumArray(t.Array[t.ArrayEnum]):
     """
     NumPy array subclass representing an array of enum items.
 
@@ -19,23 +17,31 @@ class EnumArray(numpy.ndarray):
     # Subclassing ndarray is a little tricky.
     # To read more about the two following methods, see:
     # https://docs.scipy.org/doc/numpy-1.13.0/user/basics.subclassing.html#slightly-more-realistic-example-attribute-added-to-existing-array.
+
+    #: Enum type of the array items.
+    possible_values: type[t.Enum] | None = None
+
     def __new__(
         cls,
-        input_array: numpy.int_,
-        possible_values: Optional[Type[Enum]] = None,
+        input_array: t.Array[t.ArrayEnum],
+        possible_values: type[t.Enum] | None = None,
     ) -> EnumArray:
         obj = numpy.asarray(input_array).view(cls)
         obj.possible_values = possible_values
         return obj
 
     # See previous comment
-    def __array_finalize__(self, obj: Optional[numpy.int_]) -> None:
+    def __array_finalize__(self, obj: t.Array[t.ArrayAny] | t.EnumArray | None) -> None:
         if obj is None:
-            return
+            return None
+        if isinstance(obj, EnumArray):
+            self.possible_values = obj.possible_values
+        return None
 
-        self.possible_values = getattr(obj, "possible_values", None)
+    def __eq__(self, other: object) -> t.Array[t.ArrayBool] | bool:  # type: ignore[override]
+        if self.possible_values is None:
+            raise NotImplementedError
 
-    def __eq__(self, other: Any) -> bool:
         # When comparing to an item of self.possible_values, use the item index
         # to speed up the comparison.
         if other.__class__.__name__ is self.possible_values.__name__:

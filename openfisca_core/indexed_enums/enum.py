@@ -32,13 +32,13 @@ class Enum(enum.Enum):
     def encode(
         cls,
         array: (
-            EnumArray
+            t.EnumArray
             | t.Array[t.ArrayBytes]
             | t.Array[t.ArrayEnum]
             | t.Array[t.ArrayInt]
             | t.Array[t.ArrayStr]
         ),
-    ) -> EnumArray:
+    ) -> t.EnumArray:
         """
         Encode a string numpy array, an enum item numpy array, or an int numpy
         array into an :any:`EnumArray`. See :any:`EnumArray.decode` for
