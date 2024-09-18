@@ -2,41 +2,39 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Sequence, Sized
 from numpy.typing import NDArray
-from typing import Any, NewType, TypeVar, Union
+from typing import Any, TypeVar, Union
 from typing_extensions import Protocol, TypeAlias
 
 import numpy
 
-# New types
+# Type aliases
 
 #: Type for arrays of any type.
-ArrayAny = NewType("ArrayAny", numpy.generic)
+ArrayAny: TypeAlias = numpy.generic
 
 #: Type for arrays of booleans.
-ArrayBool = NewType("ArrayBool", numpy.bool_)
+ArrayBool: TypeAlias = numpy.bool_
 
 #: Type for arrays of bytes.
-ArrayBytes = NewType("ArrayBytes", numpy.bytes_)
+ArrayBytes: TypeAlias = numpy.bytes_
 
 #: Type for arrays of dates.
-ArrayDate = NewType("ArrayDate", numpy.datetime64)
+ArrayDate: TypeAlias = numpy.datetime64
 
 #: Type for arrays of enums.
-ArrayEnum = NewType("ArrayEnum", numpy.int16)
+ArrayEnum: TypeAlias = numpy.int16
 
 #: Type for arrays of floats.
-ArrayFloat = NewType("ArrayFloat", numpy.float32)
+ArrayFloat: TypeAlias = numpy.float32
 
 #: Type for arrays of integers.
-ArrayInt = NewType("ArrayInt", numpy.int32)
+ArrayInt: TypeAlias = numpy.int32
 
 #: Type for arrays of Python objects.
-ArrayObject = NewType("ArrayObject", numpy.object_)
+ArrayObject: TypeAlias = numpy.object_
 
 #: Type for arrays of strings.
-ArrayStr = NewType("ArrayStr", numpy.str_)
-
-# TypeAliases
+ArrayStr: TypeAlias = numpy.str_
 
 #: Generic numpy type an array can have.
 N = TypeVar("N", bound=numpy.generic, covariant=True)

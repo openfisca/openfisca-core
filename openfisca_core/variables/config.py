@@ -1,27 +1,25 @@
 import datetime
 
-import numpy
-
-from openfisca_core import indexed_enums
-from openfisca_core.indexed_enums import Enum
+from openfisca_core import indexed_enums as enums
+from openfisca_core import types as t
 
 VALUE_TYPES = {
     bool: {
-        "dtype": numpy.bool_,
+        "dtype": t.ArrayBool,
         "default": False,
         "json_type": "boolean",
         "formatted_value_type": "Boolean",
         "is_period_size_independent": True,
     },
     int: {
-        "dtype": numpy.int32,
+        "dtype": t.ArrayInt,
         "default": 0,
         "json_type": "integer",
         "formatted_value_type": "Int",
         "is_period_size_independent": False,
     },
     float: {
-        "dtype": numpy.float32,
+        "dtype": t.ArrayFloat,
         "default": 0,
         "json_type": "number",
         "formatted_value_type": "Float",
@@ -34,8 +32,8 @@ VALUE_TYPES = {
         "formatted_value_type": "String",
         "is_period_size_independent": True,
     },
-    Enum: {
-        "dtype": indexed_enums.ENUM_ARRAY_DTYPE,
+    enums.Enum: {
+        "dtype": t.ArrayEnum,
         "json_type": "string",
         "formatted_value_type": "String",
         "is_period_size_independent": True,

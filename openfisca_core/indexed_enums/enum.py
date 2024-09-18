@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from typing import Union
-
 import enum
 
 import numpy
 
-from .config import ENUM_ARRAY_DTYPE
+from . import types as t
 from .enum_array import EnumArray
 
 
@@ -33,12 +31,13 @@ class Enum(enum.Enum):
     @classmethod
     def encode(
         cls,
-        array: Union[
-            EnumArray,
-            numpy.int_,
-            numpy.float_,
-            numpy.object_,
-        ],
+        array: (
+            EnumArray
+            | t.Array[t.ArrayBytes]
+            | t.Array[t.ArrayEnum]
+            | t.Array[t.ArrayInt]
+            | t.Array[t.ArrayStr]
+        ),
     ) -> EnumArray:
         """
         Encode a string numpy array, an enum item numpy array, or an int numpy
@@ -73,7 +72,7 @@ class Enum(enum.Enum):
             array = numpy.select(
                 [array == item.name for item in cls],
                 [item.index for item in cls],
-            ).astype(ENUM_ARRAY_DTYPE)
+            ).astype(t.ArrayEnum)
 
         # Enum items arrays
         elif isinstance(array, numpy.ndarray) and array.dtype.kind == "O":
@@ -94,6 +93,6 @@ class Enum(enum.Enum):
             array = numpy.select(
                 [array == item for item in cls],
                 [item.index for item in cls],
-            ).astype(ENUM_ARRAY_DTYPE)
+            ).astype(t.ArrayEnum)
 
         return EnumArray(array, cls)
