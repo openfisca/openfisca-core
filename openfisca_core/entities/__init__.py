@@ -27,4 +27,14 @@ from .group_entity import GroupEntity
 from .helpers import build_entity, find_role
 from .role import Role
 
-__all__ = ["Entity", "GroupEntity", "Role", "build_entity", "find_role", "types"]
+SingleEntity = Entity
+
+__all__ = [
+    "Entity",
+    "SingleEntity",
+    "GroupEntity",
+    "Role",
+    "build_entity",
+    "find_role",
+    "types",
+]

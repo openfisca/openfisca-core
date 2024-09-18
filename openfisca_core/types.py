@@ -30,7 +30,7 @@ A = TypeVar("A", covariant=True)
 # Entities
 
 
-class Entity(Protocol):
+class CoreEntity(Protocol):
     key: Any
     plural: Any
 
@@ -51,9 +51,22 @@ class Entity(Protocol):
         ...
 
 
+class SingleEntity(CoreEntity, Protocol):
+    ...
+
+
+class GroupEntity(CoreEntity, Protocol):
+    ...
+
+
 class Role(Protocol):
     entity: Any
+    max: int | None
     subroles: Any
+
+    @property
+    def key(self) -> str:
+        ...
 
 
 # Holders

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Dict, NamedTuple, Optional, Sequence, Union
 from typing_extensions import TypedDict
 
-from openfisca_core.types import Array, Entity, Period, Role, Simulation
+from openfisca_core.types import Array, Period, Role, Simulation, SingleEntity
 
 import traceback
 
@@ -16,12 +16,12 @@ from . import config
 
 class Population:
     simulation: Optional[Simulation]
-    entity: Entity
+    entity: SingleEntity
     _holders: Dict[str, holders.Holder]
     count: int
     ids: Array[str]
 
-    def __init__(self, entity: Entity) -> None:
+    def __init__(self, entity: SingleEntity) -> None:
         self.simulation = None
         self.entity = entity
         self._holders = {}

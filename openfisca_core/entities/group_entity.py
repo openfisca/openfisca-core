@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
-from typing import Any
+from collections.abc import Iterable, Sequence
 
 import textwrap
 from itertools import chain
 
+from . import types as t
 from ._core_entity import _CoreEntity
 from .role import Role
 
@@ -34,12 +34,12 @@ class GroupEntity(_CoreEntity):
         plural: str,
         label: str,
         doc: str,
-        roles: Iterable[Mapping[str, Any]],
+        roles: Sequence[t.RoleParams],
         containing_entities: Iterable[str] = (),
     ) -> None:
-        self.key = key
+        self.key = t.EntityKey(key)
         self.label = label
-        self.plural = plural
+        self.plural = t.EntityPlural(plural)
         self.doc = textwrap.dedent(doc)
         self.is_person = False
         self.roles_description = roles

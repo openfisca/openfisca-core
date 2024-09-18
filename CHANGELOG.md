@@ -1,5 +1,11 @@
 # Changelog
 
+### 41.5.5 [#1220](https://github.com/openfisca/openfisca-core/pull/1220)
+
+#### Technical changes
+
+- Fix doc & type definitions in the entities module
+
 ### 41.5.4 [#1219](https://github.com/openfisca/openfisca-core/pull/1219)
 
 #### Technical changes

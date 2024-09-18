@@ -1,24 +1,19 @@
 from __future__ import annotations
 
-from typing import Any
-
-from openfisca_core.types import TaxBenefitSystem, Variable
-
 import os
 from abc import abstractmethod
 
+from . import types as t
 from .role import Role
-from .types import Entity
 
 
 class _CoreEntity:
     """Base class to build entities from."""
 
     #: A key to identify the entity.
-    key: str
-
+    key: t.EntityKey
     #: The ``key``, pluralised.
-    plural: str | None
+    plural: t.EntityPlural | None
 
     #: A summary description.
     label: str | None
@@ -30,16 +25,18 @@ class _CoreEntity:
     is_person: bool
 
     #: A TaxBenefitSystem instance.
-    _tax_benefit_system: TaxBenefitSystem | None = None
+    _tax_benefit_system: t.TaxBenefitSystem | None = None
 
     @abstractmethod
-    def __init__(self, key: str, plural: str, label: str, doc: str, *args: Any) -> None:
+    def __init__(
+        self, key: str, plural: str, label: str, doc: str, *args: object
+    ) -> None:
         ...
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.key})"
 
-    def set_tax_benefit_system(self, tax_benefit_system: TaxBenefitSystem) -> None:
+    def set_tax_benefit_system(self, tax_benefit_system: t.TaxBenefitSystem) -> None:
         """An Entity belongs to a TaxBenefitSystem."""
         self._tax_benefit_system = tax_benefit_system
 
@@ -47,14 +44,18 @@ class _CoreEntity:
         self,
         variable_name: str,
         check_existence: bool = False,
-    ) -> Variable | None:
+    ) -> t.Variable | None:
         """Get a ``variable_name`` from ``variables``."""
+        if self._tax_benefit_system is None:
+            raise ValueError(
+                "You must set 'tax_benefit_system' before calling this method."
+            )
         return self._tax_benefit_system.get_variable(variable_name, check_existence)
 
     def check_variable_defined_for_entity(self, variable_name: str) -> None:
         """Check if ``variable_name`` is defined for ``self``."""
-        variable: Variable | None
-        entity: Entity
+        variable: t.Variable | None
+        entity: t.CoreEntity
 
         variable = self.get_variable(variable_name, check_existence=True)
 
@@ -71,7 +72,7 @@ class _CoreEntity:
             )
             raise ValueError(os.linesep.join(message))
 
-    def check_role_validity(self, role: Any) -> None:
+    def check_role_validity(self, role: object) -> None:
         """Check if a ``role`` is an instance of Role."""
         if role is not None and not isinstance(role, Role):
             raise ValueError(f"{role} is not a valid role")

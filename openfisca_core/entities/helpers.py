@@ -1,22 +1,23 @@
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable, Sequence
+from typing import Optional
 
+from . import types as t
 from .entity import Entity
 from .group_entity import GroupEntity
-from .types import Role
 
 
 def build_entity(
-    key,
-    plural,
-    label,
-    doc="",
-    roles=None,
-    is_person=False,
-    class_override=None,
-    containing_entities=(),
-):
+    key: str,
+    plural: str,
+    label: str,
+    doc: str = "",
+    roles: Optional[Sequence[t.RoleParams]] = None,
+    is_person: bool = False,
+    class_override: object | None = None,
+    containing_entities: Sequence[str] = (),
+) -> t.SingleEntity | t.GroupEntity:
     """Build a SingleEntity or a GroupEntity.
 
     Args:
@@ -35,7 +36,7 @@ def build_entity(
         :obj:`.GroupEntity`: When ``is_person`` is False.
 
     Raises:
-        ValueError if ``roles`` is not a sequence.
+        NotImplementedError: if ``roles`` is None.
 
     Examples:
         >>> from openfisca_core import entities
@@ -73,15 +74,17 @@ def build_entity(
     if is_person:
         return Entity(key, plural, label, doc)
 
-    else:
+    if roles is not None:
         return GroupEntity(
             key, plural, label, doc, roles, containing_entities=containing_entities
         )
 
+    raise NotImplementedError
+
 
 def find_role(
-    roles: Iterable[Role], key: str, *, total: int | None = None
-) -> Role | None:
+    roles: Iterable[t.Role], key: t.RoleKey, *, total: int | None = None
+) -> t.Role | None:
     """Find a Role in a GroupEntity.
 
     Args:
