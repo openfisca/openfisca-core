@@ -4,7 +4,7 @@ from collections.abc import Iterable, Mapping
 
 from openfisca_core import entities, projectors
 
-from .types import GroupEntity, GroupPopulation, Role, SingleEntity, SinglePopulation
+from . import types as t
 
 
 def projectable(function):
@@ -17,10 +17,10 @@ def projectable(function):
 
 
 def get_projector_from_shortcut(
-    population: SinglePopulation | GroupPopulation,
+    population: t.CorePopulation,
     shortcut: str,
-    parent: projectors.Projector | None = None,
-) -> projectors.Projector | None:
+    parent: t.Projector | None = None,
+) -> t.Projector | None:
     """Get a projector from a shortcut.
 
     Projectors are used to project an invidividual Population's or a
@@ -108,12 +108,10 @@ def get_projector_from_shortcut(
 
     """
 
-    entity: SingleEntity | GroupEntity = population.entity
+    entity: t.CoreEntity = population.entity
 
     if isinstance(entity, entities.Entity):
-        populations: Mapping[
-            str, SinglePopulation | GroupPopulation
-        ] = population.simulation.populations
+        populations: Mapping[str, t.CorePopulation] = population.simulation.populations
 
         if shortcut not in populations.keys():
             return None
@@ -124,8 +122,8 @@ def get_projector_from_shortcut(
         return projectors.FirstPersonToEntityProjector(population, parent)
 
     if isinstance(entity, entities.GroupEntity):
-        roles: Iterable[Role] = entity.roles
-        role: Role | None = entities.find_role(roles, shortcut, total=1)
+        roles: Iterable[t.Role] = entity.roles
+        role: t.Role | None = entities.find_role(roles, shortcut, total=1)
 
         if role is not None:
             return projectors.UniqueRoleToEntityProjector(population, role, parent)

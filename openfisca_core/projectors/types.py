@@ -8,11 +8,7 @@ from openfisca_core import types as t
 # Entities
 
 
-class SingleEntity(t.SingleEntity, Protocol):
-    ...
-
-
-class GroupEntity(t.GroupEntity, Protocol):
+class CoreEntity(t.CoreEntity, Protocol):
     ...
 
 
@@ -20,22 +16,19 @@ class Role(t.Role, Protocol):
     ...
 
 
+# Projectors
+
+
+class Projector(Protocol):
+    ...
+
+
 # Populations
 
 
-class SinglePopulation(t.SinglePopulation, Protocol):
+class CorePopulation(t.CorePopulation, Protocol):
     @property
-    def entity(self) -> t.SingleEntity:
-        ...
-
-    @property
-    def simulation(self) -> Simulation:
-        ...
-
-
-class GroupPopulation(t.GroupPopulation, Protocol):
-    @property
-    def entity(self) -> t.GroupEntity:
+    def entity(self) -> CoreEntity:
         ...
 
     @property
@@ -48,5 +41,5 @@ class GroupPopulation(t.GroupPopulation, Protocol):
 
 class Simulation(t.Simulation, Protocol):
     @property
-    def populations(self) -> Mapping[str, SinglePopulation | GroupPopulation]:
+    def populations(self) -> Mapping[str, CorePopulation]:
         ...
