@@ -1,15 +1,15 @@
 from typing import Optional
 
-from openfisca_core.types import Array, ArrayLike
-
 import numpy
+
+from . import types as t
 
 
 def average_rate(
-    target: Array[numpy.float_],
-    varying: ArrayLike[float],
-    trim: Optional[ArrayLike[float]] = None,
-) -> Array[numpy.float_]:
+    target: t.Array[t.ArrayFloat],
+    varying: t.ArrayLike[float],
+    trim: Optional[t.ArrayLike[float]] = None,
+) -> t.Array[t.ArrayFloat]:
     """Computes the average rate of a target net income.
 
     Given a ``target`` net income, and according to the ``varying`` gross
@@ -41,7 +41,7 @@ def average_rate(
 
     """
 
-    average_rate: Array[numpy.float_]
+    average_rate: t.Array[t.ArrayFloat]
 
     average_rate = 1 - target / varying
 
@@ -62,10 +62,10 @@ def average_rate(
 
 
 def marginal_rate(
-    target: Array[numpy.float_],
-    varying: Array[numpy.float_],
-    trim: Optional[ArrayLike[float]] = None,
-) -> Array[numpy.float_]:
+    target: t.Array[t.ArrayFloat],
+    varying: t.Array[t.ArrayFloat],
+    trim: Optional[t.ArrayLike[float]] = None,
+) -> t.Array[t.ArrayFloat]:
     """Computes the marginal rate of a target net income.
 
     Given a ``target`` net income, and according to the ``varying`` gross
@@ -97,7 +97,7 @@ def marginal_rate(
 
     """
 
-    marginal_rate: Array[numpy.float_]
+    marginal_rate: t.Array[t.ArrayFloat]
 
     marginal_rate = +1 - (target[:-1] - target[1:]) / (varying[:-1] - varying[1:])
 

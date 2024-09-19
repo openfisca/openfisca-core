@@ -3,14 +3,14 @@ from typing import Union
 
 import numpy
 
-from openfisca_core import types as t
+from . import types as t
 
 
 def apply_thresholds(
-    input: t.Array[numpy.float_],
+    input: t.Array[t.ArrayFloat],
     thresholds: t.ArrayLike[float],
     choices: t.ArrayLike[float],
-) -> t.Array[numpy.float_]:
+) -> t.Array[t.ArrayBool]:
     """Makes a choice based on an input and thresholds.
 
     From a list of ``choices``, this function selects one of these values
@@ -39,7 +39,7 @@ def apply_thresholds(
 
     """
 
-    condlist: list[Union[t.Array[numpy.bool_], bool]]
+    condlist: list[Union[t.Array[t.ArrayBool], bool]]
     condlist = [input <= threshold for threshold in thresholds]
 
     if len(condlist) == len(choices) - 1:
@@ -58,8 +58,8 @@ def apply_thresholds(
 
 
 def concat(
-    this: Union[t.Array[numpy.str_], t.ArrayLike[str]],
-    that: Union[t.Array[numpy.str_], t.ArrayLike[str]],
+    this: Union[t.Array[t.ArrayStr], t.ArrayLike[str]],
+    that: Union[t.Array[t.ArrayStr], t.ArrayLike[str]],
 ) -> t.Array[numpy.str_]:
     """Concatenates the values of two arrays.
 
@@ -89,9 +89,9 @@ def concat(
 
 
 def switch(
-    conditions: t.Array[numpy.float_],
+    conditions: t.Array[t.ArrayFloat],
     value_by_condition: Mapping[float, float],
-) -> t.Array[numpy.float_]:
+) -> t.Array[t.ArrayFloat]:
     """Mimicks a switch statement.
 
     Given an array of conditions, returns an array of the same size,
