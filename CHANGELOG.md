@@ -1,5 +1,11 @@
 # Changelog
 
+### 41.5.7 [#1225](https://github.com/openfisca/openfisca-core/pull/1225)
+
+#### Technical changes
+
+- Refactor & test `eval_expression`
+
 ###  41.5.6 [#1185](https://github.com/openfisca/openfisca-core/pull/1185)
 
 #### Technical changes
