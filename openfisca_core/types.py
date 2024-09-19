@@ -145,14 +145,16 @@ class Period(Indexable[Union[DateUnit, Instant, int]], Protocol):
 
 
 class CorePopulation(Protocol):
-    ...
-
-
-class SinglePopulation(CorePopulation, Protocol):
+    count: int
     entity: Any
+    ids: Array[numpy.str_]
 
     def get_holder(self, variable_name: Any) -> Any:
         ...
+
+
+class SinglePopulation(CorePopulation, Protocol):
+    ...
 
 
 class GroupPopulation(CorePopulation, Protocol):

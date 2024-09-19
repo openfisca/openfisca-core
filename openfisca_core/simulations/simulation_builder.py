@@ -1,45 +1,50 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
-from numpy.typing import NDArray as Array
-from typing import Dict, List
 
 import copy
 
 import dpath.util
 import numpy
 
-from openfisca_core import entities, errors, periods, populations, variables
+from openfisca_core import errors, periods
 
 from . import helpers
 from ._build_default_simulation import _BuildDefaultSimulation
 from ._build_from_variables import _BuildFromVariables
-from ._type_guards import (
+from ._guards import (
     are_entities_fully_specified,
     are_entities_short_form,
     are_entities_specified,
     has_axes,
 )
 from .simulation import Simulation
-from .typing import (
+from .types import (
+    Array,
     Axis,
-    Entity,
+    EntityCounts,
+    EntityIds,
+    EntityRoles,
     FullySpecifiedEntities,
     GroupEntities,
     GroupEntity,
     ImplicitGroupEntities,
+    InputBuffer,
+    Memberships,
     Params,
     ParamsWithoutAxes,
-    Population,
+    Populations,
     Role,
     SingleEntity,
+    SinglePopulation,
     TaxBenefitSystem,
+    VariableEntity,
     Variables,
 )
 
 
 class SimulationBuilder:
-    def __init__(self):
+    def __init__(self) -> None:
         self.default_period = (
             None  # Simulation period used for variables when no period is defined
         )
@@ -48,26 +53,24 @@ class SimulationBuilder:
         )
 
         # JSON input - Memory of known input values. Indexed by variable or axis name.
-        self.input_buffer: Dict[
-            variables.Variable.name, Dict[str(periods.period), numpy.array]
-        ] = {}
-        self.populations: Dict[entities.Entity.key, populations.Population] = {}
+        self.input_buffer: InputBuffer = {}
+        self.populations: Populations = {}
         # JSON input - Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
-        self.entity_counts: Dict[entities.Entity.plural, int] = {}
+        self.entity_counts: EntityCounts = {}
         # JSON input - List of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_counts``.
-        self.entity_ids: Dict[entities.Entity.plural, List[int]] = {}
+        self.entity_ids: EntityIds = {}
 
         # Links entities with persons. For each person index in persons ids list, set entity index in entity ids id. E.g.: self.memberships[entity.plural][person_index] = entity_ids.index(instance_id)
-        self.memberships: Dict[entities.Entity.plural, List[int]] = {}
-        self.roles: Dict[entities.Entity.plural, List[int]] = {}
+        self.memberships: Memberships = {}
+        self.roles: EntityRoles = {}
 
-        self.variable_entities: Dict[variables.Variable.name, entities.Entity] = {}
+        self.variable_entities: VariableEntity = {}
 
         self.axes = [[]]
-        self.axes_entity_counts: Dict[entities.Entity.plural, int] = {}
-        self.axes_entity_ids: Dict[entities.Entity.plural, List[int]] = {}
-        self.axes_memberships: Dict[entities.Entity.plural, List[int]] = {}
-        self.axes_roles: Dict[entities.Entity.plural, List[int]] = {}
+        self.axes_entity_counts: EntityCounts = {}
+        self.axes_entity_ids: EntityIds = {}
+        self.axes_memberships: Memberships = {}
+        self.axes_roles: EntityRoles = {}
 
     def build_from_dict(
         self,
@@ -748,7 +751,7 @@ class SimulationBuilder:
         if len(self.axes) == 1 and len(self.axes[0]):
             parallel_axes = self.axes[0]
             first_axis = parallel_axes[0]
-            axis_count: int = first_axis["count"]
+            axis_count = first_axis["count"]
             axis_entity = self.get_variable_entity(first_axis["name"])
             axis_entity_step_size = self.entity_counts[axis_entity.plural]
             # Distribute values along axes
@@ -803,10 +806,10 @@ class SimulationBuilder:
                     )
                     self.input_buffer[axis_name][str(axis_period)] = array
 
-    def get_variable_entity(self, variable_name: str) -> Entity:
+    def get_variable_entity(self, variable_name: str) -> SingleEntity:
         return self.variable_entities[variable_name]
 
-    def register_variable(self, variable_name: str, entity: Entity) -> None:
+    def register_variable(self, variable_name: str, entity: SingleEntity) -> None:
         self.variable_entities[variable_name] = entity
 
     def register_variables(self, simulation: Simulation) -> None:
@@ -814,6 +817,6 @@ class SimulationBuilder:
         variables: Iterable[str] = tax_benefit_system.variables.keys()
 
         for name in variables:
-            population: Population = simulation.get_variable_population(name)
-            entity: Entity = population.entity
+            population: SinglePopulation = simulation.get_variable_population(name)
+            entity: SingleEntity = population.entity
             self.register_variable(name, entity)

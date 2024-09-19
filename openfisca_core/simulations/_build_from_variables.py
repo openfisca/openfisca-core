@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
+from collections.abc import Sized
 from typing_extensions import Self
 
 from openfisca_core import errors
 
 from ._build_default_simulation import _BuildDefaultSimulation
-from ._type_guards import is_variable_dated
+from ._guards import is_a_dated_value, is_a_pure_value
 from .simulation import Simulation
-from .typing import Entity, Population, TaxBenefitSystem, Variables
+from .types import Populations, TaxBenefitSystem, Variables
 
 
 class _BuildFromVariables:
@@ -67,7 +68,7 @@ class _BuildFromVariables:
     default_period: str | None
 
     #: The built populations.
-    populations: dict[str, Population[Entity]]
+    populations: Populations
 
     #: The built simulation.
     simulation: Simulation
@@ -99,7 +100,7 @@ class _BuildFromVariables:
         """Add the dated input values to the Simulation.
 
         Returns:
-            _BuildFromVariables: The builder.
+            Self: The builder.
 
         Examples:
             >>> from openfisca_core import entities, periods, taxbenefitsystems, variables
@@ -141,7 +142,7 @@ class _BuildFromVariables:
         """
 
         for variable, value in self.variables.items():
-            if is_variable_dated(dated_variable := value):
+            if is_a_dated_value(dated_variable := value):
                 for period, dated_value in dated_variable.items():
                     self.simulation.set_input(variable, period, dated_value)
 
@@ -151,7 +152,7 @@ class _BuildFromVariables:
         """Add the undated input values to the Simulation.
 
         Returns:
-            _BuildFromVariables: The builder.
+            Self: The builder.
 
         Raises:
             SituationParsingError: If there is not a default period set.
@@ -184,7 +185,7 @@ class _BuildFromVariables:
             >>> builder = _BuildFromVariables(tax_benefit_system, variables)
             >>> builder.add_undated_values()
             Traceback (most recent call last):
-            openfisca_core.errors.situation_parsing_error.SituationParsingError
+            openfisca_core.errors.situation_parsing_error.SituationParsingEr...
             >>> builder.default_period = period
             >>> builder.add_undated_values()
             <..._BuildFromVariables object at ...>
@@ -199,7 +200,7 @@ class _BuildFromVariables:
         """
 
         for variable, value in self.variables.items():
-            if not is_variable_dated(undated_value := value):
+            if is_a_pure_value(undated_value := value):
                 if (period := self.default_period) is None:
                     message = (
                         "Can't deal with type: expected object. Input "
@@ -218,7 +219,7 @@ class _BuildFromVariables:
 
 def _person_count(params: Variables) -> int:
     try:
-        first_value = next(iter(params.values()))
+        first_value: object = next(iter(params.values()))
 
         if isinstance(first_value, dict):
             first_value = next(iter(first_value.values()))
@@ -226,7 +227,10 @@ def _person_count(params: Variables) -> int:
         if isinstance(first_value, str):
             return 1
 
-        return len(first_value)
+        if isinstance(first_value, Sized):
+            return len(first_value)
+
+        raise NotImplementedError
 
     except Exception:
         return 1

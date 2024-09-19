@@ -2,7 +2,7 @@ from collections.abc import Iterable
 
 from openfisca_core import errors
 
-from .typing import ParamsWithoutAxes
+from .types import ParamsWithoutAxes
 
 
 def calculate_output_add(simulation, variable_name: str, period):
@@ -58,7 +58,7 @@ def check_unexpected_entities(
 
         >>> check_unexpected_entities(params, entities)
         Traceback (most recent call last):
-        openfisca_core.errors.situation_parsing_error.SituationParsingError
+        openfisca_core.errors.situation_parsing_error.SituationParsingError...
 
     """
 
