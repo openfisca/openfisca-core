@@ -11,7 +11,7 @@ T = TypeVar("T")
 
 
 def empty_clone(original: T) -> T:
-    """Creates an empty instance of the same class of the original object.
+    """Create an empty instance of the same class of the original object.
 
     Args:
         original: An object to clone.

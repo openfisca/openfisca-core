@@ -15,8 +15,8 @@ except ImportError:
         "so that it is used in your Python environment." + os.linesep,
     ]
     warnings.warn(" ".join(message), LibYAMLWarning, stacklevel=2)
-    from yaml import (
-        Loader,  # type: ignore # (see https://github.com/python/mypy/issues/1153#issuecomment-455802270)
+    from yaml import (  # type: ignore # (see https://github.com/python/mypy/issues/1153#issuecomment-455802270)
+        Loader,
     )
 
 # 'unit' and 'reference' are only listed here for backward compatibility.
