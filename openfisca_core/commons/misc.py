@@ -103,6 +103,7 @@ def eval_expression(
 
     try:
         return numexpr.evaluate(expression)
+
     except (KeyError, TypeError):
         return expression
 
