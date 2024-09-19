@@ -84,7 +84,7 @@ class Population:
         variable_name: str,
         period: int | str | Period | None,
     ) -> None:
-        if isinstance(period, (int, str, Period)):
+        if isinstance(period, (int, str, periods.Period)):
             return
 
         stack = traceback.extract_stack()

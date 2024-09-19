@@ -13,7 +13,7 @@ from .rate_tax_scale_like import RateTaxScaleLike
 log = logging.getLogger(__name__)
 
 if typing.TYPE_CHECKING:
-    NumericalArray = typing.Union[numpy.int_, numpy.float64]
+    NumericalArray = typing.Union[numpy.int32, numpy.float32]
 
 
 class LinearAverageRateTaxScale(RateTaxScaleLike):
@@ -21,7 +21,7 @@ class LinearAverageRateTaxScale(RateTaxScaleLike):
         self,
         tax_base: NumericalArray,
         right: bool = False,
-    ) -> numpy.float64:
+    ) -> numpy.float32:
         if len(self.rates) == 1:
             return tax_base * self.rates[0]
 

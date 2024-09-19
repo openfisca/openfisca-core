@@ -348,14 +348,14 @@ class Period(tuple):
         if self.unit == DateUnit.YEAR:
             start = self.start.date
             cease = start.add(years=self.size)
-            delta = pendulum.interval(start, cease)
-            return delta.in_weeks()
+            delta = pendulum.period(start, cease)
+            return delta.as_interval().weeks
 
         if self.unit == DateUnit.MONTH:
             start = self.start.date
             cease = start.add(months=self.size)
-            delta = pendulum.interval(start, cease)
-            return delta.in_weeks()
+            delta = pendulum.period(start, cease)
+            return delta.as_interval().weeks
 
         if self.unit == DateUnit.WEEK:
             return self.size

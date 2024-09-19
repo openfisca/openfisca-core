@@ -5,6 +5,8 @@ from typing import Any, NoReturn
 
 import numpy
 
+from . import types as t
+
 if typing.TYPE_CHECKING:
     from openfisca_core.indexed_enums import Enum
 
@@ -20,7 +22,7 @@ class EnumArray(numpy.ndarray):
     # https://docs.scipy.org/doc/numpy-1.13.0/user/basics.subclassing.html#slightly-more-realistic-example-attribute-added-to-existing-array.
     def __new__(
         cls,
-        input_array: numpy.int_,
+        input_array: t.Array[numpy.int16],
         possible_values: type[Enum] | None = None,
     ) -> EnumArray:
         obj = numpy.asarray(input_array).view(cls)
@@ -28,7 +30,7 @@ class EnumArray(numpy.ndarray):
         return obj
 
     # See previous comment
-    def __array_finalize__(self, obj: numpy.int_ | None) -> None:
+    def __array_finalize__(self, obj: numpy.int32 | None) -> None:
         if obj is None:
             return
 

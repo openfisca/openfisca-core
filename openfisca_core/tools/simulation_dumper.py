@@ -81,7 +81,7 @@ def _dump_entity(population, directory) -> None:
 
     flattened_roles = population.entity.flattened_roles
     if len(flattened_roles) == 0:
-        encoded_roles = numpy.int64(0)
+        encoded_roles = numpy.int16(0)
     else:
         encoded_roles = numpy.select(
             [population.members_role == role for role in flattened_roles],
@@ -106,7 +106,7 @@ def _restore_entity(population, directory):
 
     flattened_roles = population.entity.flattened_roles
     if len(flattened_roles) == 0:
-        population.members_role = numpy.int64(0)
+        population.members_role = numpy.int16(0)
     else:
         population.members_role = numpy.select(
             [encoded_roles == role.key for role in flattened_roles],

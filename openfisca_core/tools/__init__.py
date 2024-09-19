@@ -1,7 +1,6 @@
 import os
 
-import numexpr
-
+from openfisca_core import commons
 from openfisca_core.indexed_enums import EnumArray
 
 
@@ -33,7 +32,7 @@ def assert_near(
         target_value = numpy.array(target_value, dtype=value.dtype)
         assert_datetime_equals(value, target_value, message)
     if isinstance(target_value, str):
-        target_value = eval_expression(target_value)
+        target_value = commons.eval_expression(target_value)
 
     target_value = numpy.array(target_value).astype(numpy.float32)
 
@@ -87,10 +86,3 @@ def get_trace_tool_link(scenario, variables, api_url, trace_tool_url):
             },
         )
     )
-
-
-def eval_expression(expression):
-    try:
-        return numexpr.evaluate(expression)
-    except (KeyError, TypeError):
-        return expression

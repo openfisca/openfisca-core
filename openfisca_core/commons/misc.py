@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TypeVar
 
+import numexpr
 import numpy
 
 from openfisca_core import types as t
@@ -80,4 +81,30 @@ def stringify_array(array: None | t.Array[numpy.generic]) -> str:
     return f"[{', '.join(str(cell) for cell in array)}]"
 
 
-__all__ = ["empty_clone", "stringify_array"]
+def eval_expression(
+    expression: str,
+) -> str | t.Array[numpy.bool_] | t.Array[numpy.int32] | t.Array[numpy.float32]:
+    """Evaluate a string expression to a numpy array.
+
+    Args:
+        expression(str): An expression to evaluate.
+
+    Returns:
+        :obj:`object`: The result of the evaluation.
+
+    Examples:
+        >>> eval_expression("1 + 2")
+        array(3, dtype=int32)
+
+        >>> eval_expression("salary")
+        'salary'
+
+    """
+
+    try:
+        return numexpr.evaluate(expression)
+    except (KeyError, TypeError):
+        return expression
+
+
+__all__ = ["empty_clone", "eval_expression", "stringify_array"]
