@@ -90,6 +90,16 @@ class Instant(tuple[int, int, int]):
 
         return instant_str
 
+    def __lt__(self, other: object) -> bool:
+        if isinstance(other, Instant):
+            return super().__lt__(other)
+        return NotImplemented
+
+    def __le__(self, other: object) -> bool:
+        if isinstance(other, Instant):
+            return super().__le__(other)
+        return NotImplemented
+
     @property
     def date(self) -> Date:
         instant_date = config.date_by_instant_cache.get(self)

@@ -383,7 +383,7 @@ class Period(tuple[t.DateUnit, t.Instant, int]):
         if self.unit == DateUnit.YEAR:
             return self.size_in_weeks * 7
 
-        if self.unit in DateUnit.MONTH:
+        if DateUnit.MONTH in self.unit:
             last = self.start.offset(self.size, self.unit)
             if last is None:
                 raise NotImplementedError
@@ -730,10 +730,18 @@ class Period(tuple[t.DateUnit, t.Instant, int]):
             Period((<DateUnit.YEAR: 'year'>, Instant((2014, 12, 31)), 1))
 
         """
+
+        start: None | t.Instant = self[1].offset(
+            offset, self[0] if unit is None else unit
+        )
+
+        if start is None:
+            raise NotImplementedError
+
         return self.__class__(
             (
                 self[0],
-                self[1].offset(offset, self[0] if unit is None else unit),
+                start,
                 self[2],
             ),
         )

@@ -84,18 +84,14 @@ class ParameterNodeAtInstant(Protocol):
 # Periods
 
 
-class Container(Protocol[T_con]):
-    def __contains__(self, item: T_con, /) -> bool:
-        ...
-
-
 class Indexable(Protocol[T_cov]):
     def __getitem__(self, index: int, /) -> T_cov:
         ...
 
 
-class DateUnit(Container[str], Protocol):
-    ...
+class DateUnit(Protocol):
+    def __contains__(self, other: object, /) -> bool:
+        ...
 
 
 class Instant(Indexable[int], Iterable[int], Sized, Protocol):

@@ -96,6 +96,11 @@ class DateUnit(StrEnum, metaclass=DateUnitMeta):
 
     """
 
+    def __contains__(self, other: object) -> bool:
+        if isinstance(other, str):
+            return super().__contains__(other)
+        return NotImplemented
+
     WEEKDAY = "weekday"
     WEEK = "week"
     DAY = "day"
