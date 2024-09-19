@@ -1,5 +1,11 @@
 # Changelog
 
+### 41.5.7 [#1224](https://github.com/openfisca/openfisca-core/pull/1224)
+
+#### Technical changes
+
+- Fix doc & type definitions in the enums module
+
 ### 41.5.6 [#1223](https://github.com/openfisca/openfisca-core/pull/1223)
 
 #### Technical changes
