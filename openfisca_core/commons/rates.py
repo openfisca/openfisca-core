@@ -1,16 +1,16 @@
-from typing import Optional
-
-from openfisca_core.types import Array, ArrayLike
+from __future__ import annotations
 
 import numpy
 
+from . import types as t
+
 
 def average_rate(
-    target: Array[numpy.float64],
-    varying: ArrayLike[float],
-    trim: Optional[ArrayLike[float]] = None,
-) -> Array[numpy.float64]:
-    """Computes the average rate of a target net income.
+    target: t.Array[numpy.float32],
+    varying: t.ArrayLike[float],
+    trim: None | t.ArrayLike[float] = None,
+) -> t.Array[numpy.float32]:
+    """Compute the average rate of a target net income.
 
     Given a ``target`` net income, and according to the ``varying`` gross
     income. Optionally, a ``trim`` can be applied consisting of the lower and
@@ -40,8 +40,8 @@ def average_rate(
         array([ nan,  0. , -0.5])
 
     """
-    average_rate: Array[numpy.float64]
 
+    average_rate: t.Array[numpy.float32]
     average_rate = 1 - target / varying
 
     if trim is not None:
@@ -61,11 +61,11 @@ def average_rate(
 
 
 def marginal_rate(
-    target: Array[numpy.float64],
-    varying: Array[numpy.float64],
-    trim: Optional[ArrayLike[float]] = None,
-) -> Array[numpy.float64]:
-    """Computes the marginal rate of a target net income.
+    target: t.Array[numpy.float32],
+    varying: t.Array[numpy.float32],
+    trim: None | t.ArrayLike[float] = None,
+) -> t.Array[numpy.float32]:
+    """Compute the marginal rate of a target net income.
 
     Given a ``target`` net income, and according to the ``varying`` gross
     income. Optionally, a ``trim`` can be applied consisting of the lower and
@@ -95,8 +95,8 @@ def marginal_rate(
         array([nan, 0.5])
 
     """
-    marginal_rate: Array[numpy.float64]
 
+    marginal_rate: t.Array[numpy.float32]
     marginal_rate = +1 - (target[:-1] - target[1:]) / (varying[:-1] - varying[1:])
 
     if trim is not None:
@@ -113,3 +113,6 @@ def marginal_rate(
         )
 
     return marginal_rate
+
+
+__all__ = ["average_rate", "marginal_rate"]

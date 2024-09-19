@@ -1,4 +1,6 @@
-from typing import Optional, TypeVar
+from __future__ import annotations
+
+from typing import TypeVar
 
 import numpy
 
@@ -44,7 +46,7 @@ def empty_clone(original: T) -> T:
     return new
 
 
-def stringify_array(array: Optional[t.Array[numpy.generic]]) -> str:
+def stringify_array(array: None | t.Array[numpy.generic]) -> str:
     """Generates a clean string representation of a numpy array.
 
     Args:
@@ -76,3 +78,6 @@ def stringify_array(array: Optional[t.Array[numpy.generic]]) -> str:
         return "None"
 
     return f"[{', '.join(str(cell) for cell in array)}]"
+
+
+__all__ = ["empty_clone", "stringify_array"]
