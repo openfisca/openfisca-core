@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-import enum
-
 import numpy
 
 from . import types as t
 from .enum_array import EnumArray
 
 
-class Enum(enum.Enum):
+class Enum(t.Enum):
     """
     Enum based on `enum34 <https://pypi.python.org/pypi/enum34/>`_, whose items
     have an index.
@@ -19,7 +17,7 @@ class Enum(enum.Enum):
         # When the enum item is initialized, self._member_names_ contains the
         # names of the previously initialized items, so its length is the index
         # of this item.
-        self.index = len(self._member_names_)
+        self.index = len(self._member_names_)  # type: ignore[attr-defined]
 
     # Bypass the slow Enum.__eq__
     __eq__ = object.__eq__
@@ -64,6 +62,7 @@ class Enum(enum.Enum):
         >>> encoded_array[0]
         2  # Encoded value
         """
+
         if isinstance(array, EnumArray):
             return array
 
@@ -95,4 +94,5 @@ class Enum(enum.Enum):
                 [item.index for item in cls],
             ).astype(t.ArrayEnum)
 
+        array = numpy.asarray(array, dtype=t.ArrayEnum)
         return EnumArray(array, cls)

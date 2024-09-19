@@ -111,9 +111,13 @@ class EnumArray(t.EnumArray):
 
         Decoded value: enum item
         """
+
+        if self.possible_values is None:
+            raise NotImplementedError
+
         return numpy.select(
             [self == item.index for item in self.possible_values],
-            list(self.possible_values),
+            [item for item in self.possible_values],  # type: ignore[misc]
         )
 
     def decode_to_str(self) -> t.Array[t.ArrayStr]:
@@ -128,6 +132,10 @@ class EnumArray(t.EnumArray):
         >>> enum_array.decode_to_str()[0]
         'free_lodger'  # String identifier
         """
+
+        if self.possible_values is None:
+            raise NotImplementedError
+
         return numpy.select(
             [self == item.index for item in self.possible_values],
             [item.name for item in self.possible_values],
@@ -140,12 +148,18 @@ class EnumArray(t.EnumArray):
         return str(self.decode_to_str())
 
     def _is_an_enum(self, other: object) -> TypeGuard[t.Enum]:
+        if self.possible_values is None:
+            raise NotImplementedError
+
         return (
             not hasattr(other, "__name__")
             and other.__class__.__name__ is self.possible_values.__name__
         )
 
     def _is_an_enum_type(self, other: object) -> TypeGuard[type[t.Enum]]:
+        if self.possible_values is None:
+            raise NotImplementedError
+
         return (
             hasattr(other, "__name__")
             and other.__name__ is self.possible_values.__name__
