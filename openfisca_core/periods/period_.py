@@ -313,7 +313,12 @@ class Period(tuple[t.DateUnit, t.Instant, int]):
 
         """
         if self.unit in (DateUnit.YEAR, DateUnit.MONTH):
-            last_day = self.start.offset(self.size, self.unit).offset(-1, DateUnit.DAY)
+            last = self.start.offset(self.size, self.unit)
+            if last is None:
+                raise NotImplementedError
+            last_day = last.offset(-1, DateUnit.DAY)
+            if last_day is None:
+                raise NotImplementedError
             return (last_day.date - self.start.date).days + 1
 
         if self.unit == DateUnit.WEEK:
@@ -379,7 +384,12 @@ class Period(tuple[t.DateUnit, t.Instant, int]):
             return self.size_in_weeks * 7
 
         if self.unit in DateUnit.MONTH:
-            last_day = self.start.offset(self.size, self.unit).offset(-1, DateUnit.DAY)
+            last = self.start.offset(self.size, self.unit)
+            if last is None:
+                raise NotImplementedError
+            last_day = last.offset(-1, DateUnit.DAY)
+            if last_day is None:
+                raise NotImplementedError
             return (last_day.date - self.start.date).days + 1
 
         if self.unit == DateUnit.WEEK:
@@ -830,22 +840,30 @@ class Period(tuple[t.DateUnit, t.Instant, int]):
 
     @property
     def last_year(self) -> t.Period:
-        start: t.Instant = self.start.offset("first-of", DateUnit.YEAR)
+        start: None | t.Instant = self.start.offset("first-of", DateUnit.YEAR)
+        if start is None:
+            raise NotImplementedError
         return self.__class__((DateUnit.YEAR, start, 1)).offset(-1)
 
     @property
     def n_2(self) -> t.Period:
-        start: t.Instant = self.start.offset("first-of", DateUnit.YEAR)
+        start: None | t.Instant = self.start.offset("first-of", DateUnit.YEAR)
+        if start is None:
+            raise NotImplementedError
         return self.__class__((DateUnit.YEAR, start, 1)).offset(-2)
 
     @property
     def this_year(self) -> t.Period:
-        start: t.Instant = self.start.offset("first-of", DateUnit.YEAR)
+        start: None | t.Instant = self.start.offset("first-of", DateUnit.YEAR)
+        if start is None:
+            raise NotImplementedError
         return self.__class__((DateUnit.YEAR, start, 1))
 
     @property
     def first_month(self) -> t.Period:
-        start: t.Instant = self.start.offset("first-of", DateUnit.MONTH)
+        start: None | t.Instant = self.start.offset("first-of", DateUnit.MONTH)
+        if start is None:
+            raise NotImplementedError
         return self.__class__((DateUnit.MONTH, start, 1))
 
     @property
@@ -854,7 +872,9 @@ class Period(tuple[t.DateUnit, t.Instant, int]):
 
     @property
     def first_week(self) -> t.Period:
-        start: t.Instant = self.start.offset("first-of", DateUnit.WEEK)
+        start: None | t.Instant = self.start.offset("first-of", DateUnit.WEEK)
+        if start is None:
+            raise NotImplementedError
         return self.__class__((DateUnit.WEEK, start, 1))
 
     @property
