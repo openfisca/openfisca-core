@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
-
-from openfisca_core.types import GroupEntity, Role, SingleEntity
+from collections.abc import Iterable, Mapping
 
 from openfisca_core import entities, projectors
 
-from .typing import GroupPopulation, Population
+from . import types as t
 
 
 def projectable(function):
@@ -19,10 +17,10 @@ def projectable(function):
 
 
 def get_projector_from_shortcut(
-    population: Population | GroupPopulation,
+    population: t.CorePopulation,
     shortcut: str,
-    parent: projectors.Projector | None = None,
-) -> projectors.Projector | None:
+    parent: t.Projector | None = None,
+) -> t.Projector | None:
     """Get a projector from a shortcut.
 
     Projectors are used to project an invidividual Population's or a
@@ -46,7 +44,7 @@ def get_projector_from_shortcut(
     of a specific Simulation and TaxBenefitSystem.
 
     Args:
-        population (Population | GroupPopulation): Where to project from.
+        population (SinglePopulation | GroupPopulation): Where to project from.
         shortcut (str): Where to project to.
         parent: ???
 
@@ -110,12 +108,10 @@ def get_projector_from_shortcut(
 
     """
 
-    entity: SingleEntity | GroupEntity = population.entity
+    entity: t.CoreEntity = population.entity
 
     if isinstance(entity, entities.Entity):
-        populations: Mapping[
-            str, Population | GroupPopulation
-        ] = population.simulation.populations
+        populations: Mapping[str, t.CorePopulation] = population.simulation.populations
 
         if shortcut not in populations.keys():
             return None
@@ -126,7 +122,8 @@ def get_projector_from_shortcut(
         return projectors.FirstPersonToEntityProjector(population, parent)
 
     if isinstance(entity, entities.GroupEntity):
-        role: Role | None = entities.find_role(entity.roles, shortcut, total=1)
+        roles: Iterable[t.Role] = entity.roles
+        role: t.Role | None = entities.find_role(roles, shortcut, total=1)
 
         if role is not None:
             return projectors.UniqueRoleToEntityProjector(population, role, parent)

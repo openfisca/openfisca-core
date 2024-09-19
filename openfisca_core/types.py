@@ -144,11 +144,19 @@ class Period(Indexable[Union[DateUnit, Instant, int]], Protocol):
 # Populations
 
 
-class Population(Protocol):
+class CorePopulation(Protocol):
+    ...
+
+
+class SinglePopulation(CorePopulation, Protocol):
     entity: Any
 
     def get_holder(self, variable_name: Any) -> Any:
         ...
+
+
+class GroupPopulation(CorePopulation, Protocol):
+    ...
 
 
 # Simulations
@@ -192,7 +200,7 @@ class Variable(Protocol):
 class Formula(Protocol):
     def __call__(
         self,
-        population: Population,
+        population: GroupPopulation,
         instant: Instant,
         params: Params,
     ) -> Array[Any]:
