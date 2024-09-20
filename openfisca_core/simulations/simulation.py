@@ -108,7 +108,7 @@ class Simulation:
         self.tracer.record_calculation_start(variable_name, period)
 
         try:
-            result = self._calculate(variable_name, period, force_keep_cache)
+            result = self._calculate(variable_name, period)
             self.tracer.record_calculation_result(result)
             return result
 
