@@ -59,7 +59,7 @@ def concat(
     this: t.Array[numpy.str_] | t.ArrayLike[str],
     that: t.Array[numpy.str_] | t.ArrayLike[str],
 ) -> t.Array[numpy.str_]:
-    """Concatenates the values of two arrays.
+    """Concatenate the values of two arrays.
 
     Args:
         this: An array to concatenate.
