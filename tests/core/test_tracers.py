@@ -37,7 +37,7 @@ class StubSimulation(Simulation):
     def invalidate_cache_entry(self, variable, period):
         pass
 
-    def purge_cache_of_invalid_values(self):
+    def purge_cache_of_invalid_values(self, force_keep_cache=None):
         pass
 
 
