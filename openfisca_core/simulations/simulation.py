@@ -93,8 +93,14 @@ class Simulation:
 
     # ----- Calculation methods ----- #
 
-    def calculate(self, variable_name: str, period):
-        """Calculate ``variable_name`` for ``period``."""
+    def calculate(
+        self, variable_name: str, period, force_keep_cache: Optional[Set[Dict]] = None
+    ):
+        """
+        Calculate ``variable_name`` for ``period``.
+
+        force_keep_cache : Set[Dict] = None : A set of dictionaries containing the variable name and period for which the cache should be kept.
+        """
 
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
@@ -102,13 +108,13 @@ class Simulation:
         self.tracer.record_calculation_start(variable_name, period)
 
         try:
-            result = self._calculate(variable_name, period)
+            result = self._calculate(variable_name, period, force_keep_cache)
             self.tracer.record_calculation_result(result)
             return result
 
         finally:
             self.tracer.record_calculation_end()
-            self.purge_cache_of_invalid_values()
+            self.purge_cache_of_invalid_values(force_keep_cache)
 
     def _calculate(self, variable_name: str, period: periods.Period):
         """
@@ -153,11 +159,22 @@ class Simulation:
 
         return array
 
-    def purge_cache_of_invalid_values(self):
+    def purge_cache_of_invalid_values(
+        self, force_keep_cache: Optional[Set[Dict]] = None
+    ):
+        """
+        Purge the cache of values that are no longer valid.
+        force_keep_cache : Set[Dict] = None : A set of dictionaries containing the variable name and period for which the cache should be kept.
+        """
         # We wait for the end of calculate(), signalled by an empty stack, before purging the cache
         if self.tracer.stack:
             return
         for _name, _period in self.invalidated_caches:
+            if (
+                force_keep_cache
+                and {"variable": _name, "period": _period} in force_keep_cache
+            ):
+                continue
             holder = self.get_holder(_name)
             holder.delete_arrays(_period)
         self.invalidated_caches = set()
