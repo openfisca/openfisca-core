@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import NewType, Protocol
 
-from pendulum.datetime import Date
+import pendulum
 
 from openfisca_core import types as t
 
@@ -36,7 +36,7 @@ class Instant(t.Instant, Protocol):
         ...
 
     @property
-    def date(self) -> Date:
+    def date(self) -> pendulum.Date:
         ...
 
     def __lt__(self, other: object, /) -> bool:
@@ -64,3 +64,6 @@ class Period(t.Period, Protocol):
 
     def offset(self, offset: str | int, unit: DateUnit | None = None) -> Period:
         ...
+
+
+__all__ = ["DateUnit", "Instant", "Period", "InstantStr", "PeriodStr"]

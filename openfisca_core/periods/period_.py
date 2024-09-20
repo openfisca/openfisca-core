@@ -225,7 +225,7 @@ class Period(tuple[t.DateUnit, t.Instant, int]):
         return self[2]
 
     @property
-    def date(self) -> Date:
+    def date(self) -> pendulum.Date:
         """The date representation of the ``Period`` start date.
 
         Examples:
@@ -788,7 +788,6 @@ class Period(tuple[t.DateUnit, t.Instant, int]):
 
         """
         unit, start_instant, size = self
-        year, month, day = start_instant
 
         if unit == DateUnit.ETERNITY:
             return Instant.eternity()
@@ -893,3 +892,6 @@ class Period(tuple[t.DateUnit, t.Instant, int]):
     def eternity(cls) -> t.Period:
         """Return an eternity period."""
         return cls((DateUnit.ETERNITY, Instant.eternity(), 0))
+
+
+__all__ = ["Period"]

@@ -1,7 +1,6 @@
 import pytest
-from pendulum.parsing import ParserError
 
-from openfisca_core.periods import DateUnit, Instant, Period, _parsers
+from openfisca_core.periods import DateUnit, Instant, ParserError, Period, _parsers
 
 
 @pytest.mark.parametrize(

@@ -22,6 +22,7 @@
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
 from . import types
+from ._errors import ParserError
 from .config import (
     INSTANT_PATTERN,
     date_by_instant_cache,
@@ -71,5 +72,6 @@ __all__ = [
     "ETERNITY",
     "ISOFORMAT",
     "ISOCALENDAR",
+    "ParserError",
     "types",
 ]

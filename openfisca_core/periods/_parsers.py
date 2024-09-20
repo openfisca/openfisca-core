@@ -3,10 +3,9 @@ from typing import Optional
 import re
 
 import pendulum
-from pendulum.datetime import Date
-from pendulum.parsing import ParserError
 
 from . import types as t
+from ._errors import ParserError
 from .date_unit import DateUnit
 from .instant_ import Instant
 from .period_ import Period
@@ -35,7 +34,7 @@ def _parse_period(value: str) -> Optional[t.Period]:
         return None
 
     # Check for a non-empty string.
-    if not (value and isinstance(value, str)):
+    if len(value) == 0:
         raise AttributeError
 
     # If it's negative, next!
@@ -49,7 +48,7 @@ def _parse_period(value: str) -> Optional[t.Period]:
     unit = _parse_unit(value)
     date = pendulum.parse(value, exact=True)
 
-    if not isinstance(date, Date):
+    if not isinstance(date, pendulum.Date):
         raise ValueError
 
     instant = Instant((date.year, date.month, date.day))
@@ -95,4 +94,8 @@ def _parse_unit(value: str) -> t.DateUnit:
 
         return DateUnit.DAY
 
-    raise ValueError
+    else:
+        raise ValueError
+
+
+__all__ = ["_parse_period", "_parse_unit"]

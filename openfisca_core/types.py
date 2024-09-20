@@ -93,6 +93,9 @@ class DateUnit(Protocol):
     def __contains__(self, other: object, /) -> bool:
         ...
 
+    def upper(self) -> str:
+        ...
+
 
 class Instant(Indexable[int], Iterable[int], Sized, Protocol):
     ...

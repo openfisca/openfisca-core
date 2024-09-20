@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pendulum
-from pendulum.datetime import Date
 
 from . import config
 from . import types as t
@@ -101,7 +100,7 @@ class Instant(tuple[int, int, int]):
         return NotImplemented
 
     @property
-    def date(self) -> Date:
+    def date(self) -> pendulum.Date:
         instant_date = config.date_by_instant_cache.get(self)
 
         if instant_date is None:
@@ -151,7 +150,7 @@ class Instant(tuple[int, int, int]):
             Instant((2019, 12, 29))
 
         """
-        year, month, day = self
+        year, month, _ = self
 
         assert unit in (
             DateUnit.isoformat + DateUnit.isocalendar
@@ -215,3 +214,6 @@ class Instant(tuple[int, int, int]):
     def eternity(cls) -> t.Instant:
         """Return an eternity instant."""
         return cls((1, 1, 1))
+
+
+__all__ = ["Instant"]

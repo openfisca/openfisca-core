@@ -6,10 +6,10 @@ import datetime
 import os
 
 import pendulum
-from pendulum.parsing import ParserError
 
 from . import _parsers, config
 from . import types as t
+from ._errors import ParserError
 from .date_unit import DateUnit
 from .instant_ import Instant
 from .period_ import Period
@@ -21,11 +21,16 @@ def instant(instant: None) -> None:
 
 
 @overload
-def instant(instant: object) -> Instant:
+def instant(instant: int | t.Period | t.Instant | datetime.date) -> t.Instant:
     ...
 
 
-def instant(instant: object | None) -> t.Instant | None:
+@overload
+def instant(instant: str | list[int] | tuple[int, ...]) -> NoReturn | t.Instant:
+    ...
+
+
+def instant(instant: object) -> None | t.Instant:
     """Build a new instant, aka a triple of integers (year, month, day).
 
     Args:
@@ -200,7 +205,7 @@ def period(value: object) -> t.Period:
     try:
         period = _parsers._parse_period(value)
 
-    except (AttributeError, ParserError, ValueError):
+    except (AttributeError, ValueError, ParserError):
         _raise_error(value)
 
     if period is not None:
@@ -225,7 +230,7 @@ def period(value: object) -> t.Period:
     try:
         base_period = _parsers._parse_period(components[1])
 
-    except (AttributeError, ParserError, ValueError):
+    except (AttributeError, ValueError, ParserError):
         _raise_error(value)
 
     if not base_period:
@@ -329,3 +334,13 @@ def unit_weight(unit: t.DateUnit) -> int:
 
     """
     return unit_weights()[unit]
+
+
+__all__ = [
+    "instant",
+    "instant_date",
+    "key_period_size",
+    "period",
+    "unit_weight",
+    "unit_weights",
+]
