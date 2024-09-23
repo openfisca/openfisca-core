@@ -2,7 +2,8 @@ import pytest
 
 from openfisca_country_template import entities, situation_examples
 
-from openfisca_core import simulations, tools
+import openfisca_test as test
+from openfisca_core import simulations
 from openfisca_core.periods import DateUnit
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.variables import Variable
@@ -62,7 +63,7 @@ def test_calculate_output_add(simulation) -> None:
 
 def test_calculate_output_divide(simulation) -> None:
     simulation.set_input("variable_with_calculate_output_divide", 2017, [12000])
-    tools.assert_near(
+    test.assert_near(
         simulation.calculate_output("variable_with_calculate_output_divide", "2017-06"),
         1000,
     )

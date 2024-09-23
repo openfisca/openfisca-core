@@ -9,7 +9,7 @@ check-syntax-errors: .
 	@$(call print_pass,$@:)
 
 ## Run linters to check for syntax and style errors.
-check-style: $(shell git ls-files "*.py")
+check-style: $(shell git ls-files "*.py" "*.pyi")
 	@$(call print_help,$@:)
 	@isort --check $?
 	@black --check $?
@@ -32,21 +32,23 @@ lint-doc-%:
 	@## able to integrate documentation improvements progresively.
 	@##
 	@$(call print_help,$(subst $*,%,$@:))
-	@flake8 --select=D101,D102,D103,DAR openfisca_core/$*
-	@pylint openfisca_core/$*
+	@flake8 --select=D101,D102,D103,DAR openfisca_core/$* openfisca_test
+	@pylint openfisca_core/$* openfisca_test
 	@$(call print_pass,$@:)
 
 ## Run static type checkers for type errors.
 check-types:
 	@$(call print_help,$@:)
+	@command -v pyright && pyright
 	@mypy \
 		openfisca_core/commons \
 		openfisca_core/entities \
-		openfisca_core/types.py
+		openfisca_core/types.py \
+		openfisca_test
 	@$(call print_pass,$@:)
 
 ## Run code formatters to correct style errors.
-format-style: $(shell git ls-files "*.py")
+format-style: $(shell git ls-files "*.py" "*.pyi")
 	@$(call print_help,$@:)
 	@isort $?
 	@black $?

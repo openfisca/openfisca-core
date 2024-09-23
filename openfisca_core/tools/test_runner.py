@@ -18,8 +18,8 @@ import pytest
 
 from openfisca_core.errors import SituationParsingError, VariableNotFound
 from openfisca_core.simulation_builder import SimulationBuilder
-from openfisca_core.tools import assert_near
 from openfisca_core.warnings import LibYAMLWarning
+from openfisca_test import assert_near
 
 
 class Options(TypedDict, total=False):

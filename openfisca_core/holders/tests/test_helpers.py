@@ -1,6 +1,7 @@
 import pytest
 
-from openfisca_core import holders, tools
+import openfisca_test as test
+from openfisca_core import holders
 from openfisca_core.entities import Entity
 from openfisca_core.holders import Holder
 from openfisca_core.periods import DateUnit, Instant, Period
@@ -81,7 +82,7 @@ def test_set_input_dispatch_by_period(
     holders.set_input_dispatch_by_period(holder, dispatch_period, values)
     total = sum(map(holder.get_array, holder.get_known_periods()))
 
-    tools.assert_near(total, expected, absolute_error_margin=0.001)
+    test.assert_near(total, expected, absolute_error_margin=0.001)
 
 
 @pytest.mark.parametrize(
@@ -131,4 +132,4 @@ def test_set_input_divide_by_period(
     holders.set_input_divide_by_period(holder, divide_period, values)
     last = holder.get_array(holder.get_known_periods()[-1])
 
-    tools.assert_near(last, expected, absolute_error_margin=0.001)
+    test.assert_near(last, expected, absolute_error_margin=0.001)

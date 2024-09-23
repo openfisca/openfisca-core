@@ -1,7 +1,8 @@
 import numpy
 from pytest import fixture
 
-from openfisca_core import parameters, periods, taxscales, tools
+import openfisca_test as test
+from openfisca_core import parameters, periods, taxscales
 
 
 @fixture
@@ -32,7 +33,7 @@ def test_calc() -> None:
 
     result = tax_scale.calc(tax_base)
 
-    tools.assert_near(result, [0, 0.23, 0.29])
+    test.assert_near(result, [0, 0.23, 0.29])
 
 
 def test_to_dict() -> None:

@@ -1,7 +1,8 @@
 import numpy
 import pytest
 
-from openfisca_core import taxscales, tools
+import openfisca_test as test
+from openfisca_core import taxscales
 
 
 def test_bracket_indices() -> None:
@@ -13,7 +14,7 @@ def test_bracket_indices() -> None:
 
     result = tax_scale.bracket_indices(tax_base)
 
-    tools.assert_near(result, [0, 0, 0, 1, 1, 2])
+    test.assert_near(result, [0, 0, 0, 1, 1, 2])
 
 
 def test_bracket_indices_with_factor() -> None:
@@ -25,7 +26,7 @@ def test_bracket_indices_with_factor() -> None:
 
     result = tax_scale.bracket_indices(tax_base, factor=2.0)
 
-    tools.assert_near(result, [0, 0, 0, 0, 1, 1])
+    test.assert_near(result, [0, 0, 0, 0, 1, 1])
 
 
 def test_bracket_indices_with_round_decimals() -> None:
@@ -37,7 +38,7 @@ def test_bracket_indices_with_round_decimals() -> None:
 
     result = tax_scale.bracket_indices(tax_base, round_decimals=0)
 
-    tools.assert_near(result, [0, 0, 1, 1, 2, 2])
+    test.assert_near(result, [0, 0, 1, 1, 2, 2])
 
 
 def test_bracket_indices_without_tax_base() -> None:
@@ -79,7 +80,7 @@ def test_calc() -> None:
 
     result = tax_scale.calc(tax_base)
 
-    tools.assert_near(
+    test.assert_near(
         result,
         [0, 0.05, 0.1, 0.2, 0.3, 0.3],
         absolute_error_margin=1e-10,
@@ -94,7 +95,7 @@ def test_calc_without_round() -> None:
 
     result = tax_scale.calc(tax_base)
 
-    tools.assert_near(
+    test.assert_near(
         result,
         [10, 10.02, 10.0002, 10.06, 10.0006, 10.05, 10.0005],
         absolute_error_margin=1e-10,
@@ -109,7 +110,7 @@ def test_calc_when_round_is_1() -> None:
 
     result = tax_scale.calc(tax_base, round_base_decimals=1)
 
-    tools.assert_near(
+    test.assert_near(
         result,
         [10, 10.0, 10.0, 10.1, 10.0, 10, 10.0],
         absolute_error_margin=1e-10,
@@ -124,7 +125,7 @@ def test_calc_when_round_is_2() -> None:
 
     result = tax_scale.calc(tax_base, round_base_decimals=2)
 
-    tools.assert_near(
+    test.assert_near(
         result,
         [10, 10.02, 10.0, 10.06, 10.00, 10.05, 10],
         absolute_error_margin=1e-10,
@@ -139,7 +140,7 @@ def test_calc_when_round_is_3() -> None:
 
     result = tax_scale.calc(tax_base, round_base_decimals=3)
 
-    tools.assert_near(
+    test.assert_near(
         result,
         [10, 10.02, 10.0, 10.06, 10.001, 10.05, 10],
         absolute_error_margin=1e-10,
@@ -155,7 +156,7 @@ def test_marginal_rates() -> None:
 
     result = tax_scale.marginal_rates(tax_base)
 
-    tools.assert_near(result, [0, 0, 0, 0.1, 0.2])
+    test.assert_near(result, [0, 0, 0, 0.1, 0.2])
 
 
 def test_inverse() -> None:
@@ -168,7 +169,7 @@ def test_inverse() -> None:
 
     result = tax_scale.inverse()
 
-    tools.assert_near(result.calc(net_tax_base), gross_tax_base, 1e-15)
+    test.assert_near(result.calc(net_tax_base), gross_tax_base, 1e-15)
 
 
 def test_scale_tax_scales() -> None:
@@ -182,7 +183,7 @@ def test_scale_tax_scales() -> None:
 
     result = tax_scale.scale_tax_scales(tax_base_scale)
 
-    tools.assert_near(result.thresholds, scaled_tax_base)
+    test.assert_near(result.thresholds, scaled_tax_base)
 
 
 def test_inverse_scaled_marginal_tax_scales() -> None:
@@ -200,7 +201,7 @@ def test_inverse_scaled_marginal_tax_scales() -> None:
 
     result = scaled_tax_scale.inverse()
 
-    tools.assert_near(result.calc(scaled_net_tax_base), scaled_gross_tax_base, 1e-13)
+    test.assert_near(result.calc(scaled_net_tax_base), scaled_gross_tax_base, 1e-13)
 
 
 def test_to_average() -> None:
@@ -215,7 +216,7 @@ def test_to_average() -> None:
     # Note: assert_near doesn't work for inf.
     assert result.thresholds == [0, 1, 2, numpy.inf]
     assert result.rates, [0, 0, 0.05, 0.2]
-    tools.assert_near(
+    test.assert_near(
         result.calc(tax_base),
         [0, 0.0375, 0.1, 0.125],
         absolute_error_margin=1e-10,

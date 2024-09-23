@@ -1,7 +1,8 @@
 import numpy
 import pytest
 
-from openfisca_core import taxscales, tools
+import openfisca_test as test
+from openfisca_core import taxscales
 
 
 def test_bracket_indices() -> None:
@@ -13,7 +14,7 @@ def test_bracket_indices() -> None:
 
     result = tax_scale.bracket_indices(tax_base)
 
-    tools.assert_near(result, [0, 0, 0, 1, 1, 2])
+    test.assert_near(result, [0, 0, 0, 1, 1, 2])
 
 
 def test_bracket_indices_with_factor() -> None:
@@ -25,7 +26,7 @@ def test_bracket_indices_with_factor() -> None:
 
     result = tax_scale.bracket_indices(tax_base, factor=2.0)
 
-    tools.assert_near(result, [0, 0, 0, 0, 1, 1])
+    test.assert_near(result, [0, 0, 0, 0, 1, 1])
 
 
 def test_bracket_indices_with_round_decimals() -> None:
@@ -37,7 +38,7 @@ def test_bracket_indices_with_round_decimals() -> None:
 
     result = tax_scale.bracket_indices(tax_base, round_decimals=0)
 
-    tools.assert_near(result, [0, 0, 1, 1, 2, 2])
+    test.assert_near(result, [0, 0, 1, 1, 2, 2])
 
 
 def test_bracket_indices_without_tax_base() -> None:
@@ -79,8 +80,8 @@ def test_to_marginal() -> None:
     result = tax_scale.to_marginal()
 
     assert result.thresholds == [0, 1, 2]
-    tools.assert_near(result.rates, [0.1, 0.3, 0.2], absolute_error_margin=0)
-    tools.assert_near(
+    test.assert_near(result.rates, [0.1, 0.3, 0.2], absolute_error_margin=0)
+    test.assert_near(
         result.calc(tax_base),
         [0.1, 0.25, 0.4, 0.5],
         absolute_error_margin=0,

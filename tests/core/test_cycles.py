@@ -2,7 +2,8 @@ import pytest
 
 from openfisca_country_template import entities
 
-from openfisca_core import periods, tools
+import openfisca_test as test
+from openfisca_core import periods
 from openfisca_core.errors import CycleError
 from openfisca_core.periods import DateUnit
 from openfisca_core.simulations import SimulationBuilder
@@ -122,7 +123,7 @@ def test_pure_cycle(simulation, reference_period) -> None:
 
 def test_spirals_result_in_default_value(simulation, reference_period) -> None:
     variable3 = simulation.calculate("variable3", period=reference_period)
-    tools.assert_near(variable3, [0])
+    test.assert_near(variable3, [0])
 
 
 def test_spiral_heuristic(simulation, reference_period) -> None:
@@ -132,9 +133,9 @@ def test_spiral_heuristic(simulation, reference_period) -> None:
         "variable6",
         reference_period.last_month,
     )
-    tools.assert_near(variable5, [11])
-    tools.assert_near(variable6, [11])
-    tools.assert_near(variable6_last_month, [11])
+    test.assert_near(variable5, [11])
+    test.assert_near(variable6, [11])
+    test.assert_near(variable6_last_month, [11])
 
 
 def test_spiral_cache(simulation, reference_period) -> None:
@@ -146,4 +147,4 @@ def test_spiral_cache(simulation, reference_period) -> None:
 def test_cotisation_1_level(simulation, reference_period) -> None:
     month = reference_period.last_month
     cotisation = simulation.calculate("cotisation", period=month)
-    tools.assert_near(cotisation, [0])
+    test.assert_near(cotisation, [0])

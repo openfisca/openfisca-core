@@ -6,7 +6,7 @@ import pytest
 
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.parameters import Parameter, ParameterNode, ParameterNotFound
-from openfisca_core.tools import assert_near
+from openfisca_test import assert_near
 
 LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
 

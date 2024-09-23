@@ -6,7 +6,7 @@ import pytest
 
 from openfisca_country_template import entities, situation_examples
 
-from openfisca_core import tools
+import openfisca_test as test
 from openfisca_core.errors import SituationParsingError
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import DateUnit
@@ -117,7 +117,7 @@ def test_add_person_entity_with_values(persons) -> None:
     persons_json = {"Alicia": {"salary": {"2018-11": 3000}}, "Javier": {}}
     simulation_builder = SimulationBuilder()
     simulation_builder.add_person_entity(persons, persons_json)
-    tools.assert_near(simulation_builder.get_input("salary", "2018-11"), [3000, 0])
+    test.assert_near(simulation_builder.get_input("salary", "2018-11"), [3000, 0])
 
 
 def test_add_person_values_with_default_period(persons) -> None:
@@ -125,7 +125,7 @@ def test_add_person_values_with_default_period(persons) -> None:
     simulation_builder = SimulationBuilder()
     simulation_builder.set_default_period("2018-11")
     simulation_builder.add_person_entity(persons, persons_json)
-    tools.assert_near(simulation_builder.get_input("salary", "2018-11"), [3000, 0])
+    test.assert_near(simulation_builder.get_input("salary", "2018-11"), [3000, 0])
 
 
 def test_add_person_values_with_default_period_old_syntax(persons) -> None:
@@ -133,7 +133,7 @@ def test_add_person_values_with_default_period_old_syntax(persons) -> None:
     simulation_builder = SimulationBuilder()
     simulation_builder.set_default_period("month:2018-11")
     simulation_builder.add_person_entity(persons, persons_json)
-    tools.assert_near(simulation_builder.get_input("salary", "2018-11"), [3000, 0])
+    test.assert_near(simulation_builder.get_input("salary", "2018-11"), [3000, 0])
 
 
 def test_add_group_entity(households) -> None:
@@ -329,7 +329,7 @@ def test_finalize_person_entity(persons) -> None:
     simulation_builder.add_person_entity(persons, persons_json)
     population = Population(persons)
     simulation_builder.finalize_variables_init(population)
-    tools.assert_near(population.get_holder("salary").get_array("2018-11"), [3000, 0])
+    test.assert_near(population.get_holder("salary").get_array("2018-11"), [3000, 0])
     assert population.count == 2
     assert population.ids == ["Alicia", "Javier"]
 
@@ -340,7 +340,7 @@ def test_canonicalize_period_keys(persons) -> None:
     simulation_builder.add_person_entity(persons, persons_json)
     population = Population(persons)
     simulation_builder.finalize_variables_init(population)
-    tools.assert_near(population.get_holder("salary").get_array("2018-12"), [100])
+    test.assert_near(population.get_holder("salary").get_array("2018-12"), [100])
 
 
 def test_finalize_households(tax_benefit_system) -> None:
@@ -359,8 +359,8 @@ def test_finalize_households(tax_benefit_system) -> None:
         },
     )
     simulation_builder.finalize_variables_init(simulation.household)
-    tools.assert_near(simulation.household.members_entity_id, [0, 0, 1, 1])
-    tools.assert_near(
+    test.assert_near(simulation.household.members_entity_id, [0, 0, 1, 1])
+    test.assert_near(
         simulation.persons.has_role(entities.Household.PARENT),
         [True, True, False, True],
     )
@@ -639,7 +639,7 @@ def test_vectorial_input(tax_benefit_system) -> None:
         test_runner.yaml.safe_load(input_yaml),
     )
 
-    tools.assert_near(simulation.get_array("salary", "2016-10"), [12000, 20000])
+    test.assert_near(simulation.get_array("salary", "2016-10"), [12000, 20000])
     simulation.calculate("income_tax", "2016-10")
     simulation.calculate("total_taxes", "2016-10")
 

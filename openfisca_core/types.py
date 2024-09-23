@@ -10,11 +10,42 @@ import abc
 
 import numpy
 
+# Type aliases
+
+#: Type for arrays of any type.
+ArrayAny: TypeAlias = numpy.generic
+
+#: Type for arrays of booleans.
+ArrayBool: TypeAlias = numpy.bool_
+
+#: Type for arrays of bytes.
+ArrayBytes: TypeAlias = numpy.bytes_
+
+#: Type for arrays of dates.
+ArrayDate: TypeAlias = numpy.datetime64
+
+#: Type for arrays of enums.
+ArrayEnum: TypeAlias = numpy.int16
+
+#: Type for arrays of floats.
+ArrayFloat: TypeAlias = numpy.float32
+
+#: Type for arrays of integers.
+ArrayInt: TypeAlias = numpy.int32
+
+#: Type for arrays of Python objects.
+ArrayObject: TypeAlias = numpy.object_
+
+#: Type for arrays of strings.
+ArrayStr: TypeAlias = numpy.str_
+
+#: Generic numpy type an array can have.
 N = TypeVar("N", bound=numpy.generic, covariant=True)
 
-#: Type representing an numpy array.
+#: Type representing a numpy array.
 Array: TypeAlias = NDArray[N]
 
+#: Generic type a sequence can have.
 L = TypeVar("L")
 
 #: Type representing an array-like object.

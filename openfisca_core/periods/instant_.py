@@ -90,7 +90,7 @@ class Instant(tuple):
         return instant_str
 
     @property
-    def date(self):
+    def date(self) -> pendulum.Date:
         instant_date = config.date_by_instant_cache.get(self)
 
         if instant_date is None:
