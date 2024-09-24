@@ -20,6 +20,11 @@ class EnumArray(numpy.ndarray):
     # Subclassing ndarray is a little tricky.
     # To read more about the two following methods, see:
     # https://docs.scipy.org/doc/numpy-1.13.0/user/basics.subclassing.html#slightly-more-realistic-example-attribute-added-to-existing-array.
+
+    @property
+    def dtype(self) -> t.ArrayEnum:
+        return super().dtype
+
     def __new__(
         cls,
         input_array: t.Array[t.ArrayEnum],
@@ -85,7 +90,7 @@ class EnumArray(numpy.ndarray):
             list(self.possible_values),
         )
 
-    def decode_to_str(self) -> numpy.str_:
+    def decode_to_str(self) -> t.Array[t.ArrayStr]:
         """Return the array of string identifiers corresponding to self.
 
         For instance:

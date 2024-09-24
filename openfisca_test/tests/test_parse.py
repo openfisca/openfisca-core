@@ -24,10 +24,14 @@ def sequence(value):
 
 
 def scalar(value):
+    if isinstance(value, enum.EnumArray):
+        return numpy.array(value.decode())
     return numpy.array(value)
 
 
 def array(value):
+    if isinstance(value, enum.EnumArray):
+        return numpy.array([value.decode()])
     return numpy.array([value])
 
 
@@ -39,18 +43,19 @@ def enum_array(value):
 @pytest.mark.parametrize(
     "arg, expected",
     [
-        (TestEnum, enum_array(["tenant", "owner"])),
-        (TestEnum.tenant, enum_array(["tenant"])),
+        (enum_array(["tenant", "owner"]), numpy.array(["tenant", "owner"])),
+        (TestEnum, numpy.array(["tenant", "owner"], dtype="<U6")),
+        (TestEnum.tenant, numpy.array(["tenant"], dtype="<U6")),
         (periods.Instant((2024, 1, 1)).date, date),
         (datetime.date(2024, 1, 1), date),
         (True, numpy.array([True])),
         (1, numpy.array([1], dtype=numpy.int32)),
         (1.0, numpy.array([1.0], dtype=numpy.float32)),
-        ("TestEnum", numpy.array([b"TestEnum"], dtype="|S8")),
+        ("TestEnum", numpy.array(["TestEnum"], dtype="<U8")),
         ("True", numpy.array([True])),
         ("1", numpy.array([1], dtype=numpy.int32)),
         ("1.0", numpy.array([1.0], dtype=numpy.float32)),
-        ("parent", numpy.array([b"parent"], dtype="|S6")),
+        ("parent", numpy.array(["parent"], dtype="<U6")),
     ],
 )
 def test_parse(f, arg, expected):

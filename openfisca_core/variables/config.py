@@ -27,7 +27,7 @@ VALUE_TYPES = {
         "is_period_size_independent": False,
     },
     str: {
-        "dtype": t.ArrayBytes,
+        "dtype": t.ArrayStr,
         "default": "",
         "json_type": "string",
         "formatted_value_type": "String",

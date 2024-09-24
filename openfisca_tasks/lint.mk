@@ -20,7 +20,6 @@ check-style: $(shell git ls-files "*.py" "*.pyi")
 lint-doc: \
 	lint-doc-commons \
 	lint-doc-entities \
-	lint-doc-types \
 	;
 
 ## Run linters to check for syntax and style errors in the doc.
@@ -32,14 +31,22 @@ lint-doc-%:
 	@## able to integrate documentation improvements progresively.
 	@##
 	@$(call print_help,$(subst $*,%,$@:))
-	@flake8 --select=D101,D102,D103,DAR openfisca_core/$* openfisca_test
-	@pylint openfisca_core/$* openfisca_test
+	@flake8 \
+		--select=D101,D102,D103,DAR \
+		openfisca_core/$* \
+		openfisca_core/types.py \
+		openfisca_test \
+		stubs
+	@pylint openfisca_core/$* \
+		openfisca_core/$* \
+		openfisca_core/types.py \
+		openfisca_test \
+		stubs
 	@$(call print_pass,$@:)
 
 ## Run static type checkers for type errors.
 check-types:
 	@$(call print_help,$@:)
-	@command -v pyright && pyright
 	@mypy \
 		openfisca_core/commons \
 		openfisca_core/entities \

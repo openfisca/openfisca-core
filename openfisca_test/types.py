@@ -7,6 +7,7 @@ from openfisca_core.types import (
     ArrayFloat,
     ArrayInt,
     ArrayObject,
+    ArrayStr,
 )
 
 __all__ = [
@@ -18,4 +19,5 @@ __all__ = [
     "ArrayFloat",
     "ArrayInt",
     "ArrayObject",
+    "ArrayStr",
 ]

@@ -5,6 +5,8 @@ from openfisca_core.types import (
     ArrayEnum,
     ArrayFloat,
     ArrayInt,
+    ArrayObject,
+    ArrayStr,
 )
 
 __any__ = [
@@ -14,4 +16,6 @@ __any__ = [
     ArrayEnum,
     ArrayFloat,
     ArrayInt,
+    ArrayObject,
+    ArrayStr,
 ]

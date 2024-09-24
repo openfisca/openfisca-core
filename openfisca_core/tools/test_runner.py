@@ -36,9 +36,9 @@ class Options(TypedDict, total=False):
 
 @dataclasses.dataclass(frozen=True)
 class ErrorMargin:
-    __root__: dict[str | Literal["default"], float | None]
+    __root__: Dict[Union[str, Literal["default"]], float]
 
-    def __getitem__(self, key: str) -> float | None:
+    def __getitem__(self, key: str) -> float:
         if key in self.__root__:
             return self.__root__[key]
 
@@ -65,7 +65,7 @@ def build_test(params: dict[str, Any]) -> Test:
         value = params.get(key)
 
         if value is None:
-            value = {"default": None}
+            value = {"default": 0}
 
         elif isinstance(value, (float, int, str)):
             value = {"default": float(value)}
@@ -328,9 +328,9 @@ class YamlItem(pytest.Item):
         return assert_near(
             actual_value,
             expected_value,
-            self.test.absolute_error_margin[variable_name],
-            f"{variable_name}@{period}: ",
-            self.test.relative_error_margin[variable_name],
+            message=f"{variable_name}@{period}: ",
+            absolute_error_margin=self.test.absolute_error_margin[variable_name],
+            relative_error_margin=self.test.relative_error_margin[variable_name],
         )
 
     def should_ignore_variable(self, variable_name: str):
