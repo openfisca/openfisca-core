@@ -9,8 +9,7 @@ import textwrap
 import numpy
 import sortedcontainers
 
-from openfisca_core import periods, tools
-from openfisca_core import types as t
+from openfisca_core import periods, tools, types as t
 from openfisca_core.entities import Entity, GroupEntity
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import DateUnit, Period
@@ -384,8 +383,8 @@ class Variable:
 
     def get_formula(
         self,
-        period: Union[t.Instant, t.Period, str, int] = None,
-    ) -> Optional[t.Formula]:
+        period: None | t.Instant | t.Period | str | int = None,
+    ) -> None | t.Formula:
         """Returns the formula to compute the variable at the given period.
 
         If no period is given and the variable has several formulas, the method
@@ -398,7 +397,7 @@ class Variable:
             Formula used to compute the variable.
 
         """
-        instant: Optional[t.Instant]
+        instant: None | t.Instant
 
         if not self.formulas:
             return None

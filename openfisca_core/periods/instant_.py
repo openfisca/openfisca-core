@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import pendulum
 
-from . import config
-from . import types as t
+from . import config, types as t
 from .date_unit import DateUnit
 
 

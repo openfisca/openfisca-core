@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from typing import NoReturn, Optional, overload
+from typing import NoReturn, overload
 
 import datetime
 import os
 
 import pendulum
 
-from . import _parsers, config
-from . import types as t
+from . import _parsers, config, types as t
 from ._errors import ParserError
 from .date_unit import DateUnit
 from .instant_ import Instant
@@ -16,18 +15,15 @@ from .period_ import Period
 
 
 @overload
-def instant(instant: None) -> None:
-    ...
+def instant(instant: None) -> None: ...
 
 
 @overload
-def instant(instant: int | t.Period | t.Instant | datetime.date) -> t.Instant:
-    ...
+def instant(instant: int | t.Period | t.Instant | datetime.date) -> t.Instant: ...
 
 
 @overload
-def instant(instant: str | list[int] | tuple[int, ...]) -> NoReturn | t.Instant:
-    ...
+def instant(instant: str | list[int] | tuple[int, ...]) -> t.Instant: ...
 
 
 def instant(instant: object) -> None | t.Instant:
@@ -100,7 +96,7 @@ def instant(instant: object) -> None | t.Instant:
     return Instant(result)
 
 
-def instant_date(instant: Optional[t.Instant]) -> Optional[datetime.date]:
+def instant_date(instant: None | t.Instant) -> None | datetime.date:
     """Returns the date representation of an :class:`.Instant`.
 
     Args:

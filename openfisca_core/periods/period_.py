@@ -7,8 +7,7 @@ import datetime
 
 import pendulum
 
-from . import helpers
-from . import types as t
+from . import helpers, types as t
 from .date_unit import DateUnit
 from .instant_ import Instant
 
@@ -138,8 +137,8 @@ class Period(tuple[t.DateUnit, t.Instant, int]):
             if month == 1:
                 # civil year starting from january
                 return t.PeriodStr(str(f_year))
-                # rolling year
-                return t.PeriodStr(f"{DateUnit.YEAR}:{f_year}-{month:02d}")
+            # rolling year
+            return t.PeriodStr(f"{DateUnit.YEAR}:{f_year}-{month:02d}")
 
         # simple month
         if unit == DateUnit.MONTH and size == 1:
@@ -152,7 +151,7 @@ class Period(tuple[t.DateUnit, t.Instant, int]):
         if unit == DateUnit.DAY:
             if size == 1:
                 return t.PeriodStr(f"{f_year}-{month:02d}-{day:02d}")
-                return t.PeriodStr(f"{unit}:{f_year}-{month:02d}-{day:02d}:{size}")
+            return t.PeriodStr(f"{unit}:{f_year}-{month:02d}-{day:02d}:{size}")
 
         # 1 week
         if unit == DateUnit.WEEK and size == 1:

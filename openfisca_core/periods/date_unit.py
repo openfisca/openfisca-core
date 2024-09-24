@@ -66,7 +66,7 @@ class DateUnit(StrEnum, metaclass=DateUnitMeta):
         {<DateUnit.DAY: 'day'>: 'day'}
 
         >>> list(DateUnit)
-        [<DateUnit.WEEKDAY: 'weekday'>, <DateUnit.WEEK: 'week'>, <DateUnit.DAY: 'day'>, ...]
+        [<DateUnit.WEEKDAY: 'weekday'>, <DateUnit.WEEK: 'week'>, <DateUnit.D...
 
         >>> len(DateUnit)
         6
