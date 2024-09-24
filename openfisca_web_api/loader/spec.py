@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 from copy import deepcopy
 
@@ -10,13 +8,15 @@ from openfisca_core.indexed_enums import Enum
 from openfisca_web_api import handlers
 
 OPEN_API_CONFIG_FILE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), os.path.pardir, "openAPI.yml"
+    os.path.dirname(os.path.abspath(__file__)),
+    os.path.pardir,
+    "openAPI.yml",
 )
 
 
 def build_openAPI_specification(api_data):
     tax_benefit_system = api_data["tax_benefit_system"]
-    file = open(OPEN_API_CONFIG_FILE, "r")
+    file = open(OPEN_API_CONFIG_FILE)
     spec = yaml.safe_load(file)
     country_package_name = api_data["country_package_metadata"]["name"].title()
     country_package_version = api_data["country_package_metadata"]["version"]
@@ -29,21 +29,24 @@ def build_openAPI_specification(api_data):
         spec,
         "info/description",
         spec["info"]["description"].replace(
-            "{COUNTRY_PACKAGE_NAME}", country_package_name
+            "{COUNTRY_PACKAGE_NAME}",
+            country_package_name,
         ),
     )
     dpath.util.new(
         spec,
         "info/version",
         spec["info"]["version"].replace(
-            "{COUNTRY_PACKAGE_VERSION}", country_package_version
+            "{COUNTRY_PACKAGE_VERSION}",
+            country_package_version,
         ),
     )
 
     for entity in tax_benefit_system.entities:
         name = entity.key.title()
         spec["components"]["schemas"][name] = get_entity_json_schema(
-            entity, tax_benefit_system
+            entity,
+            tax_benefit_system,
         )
 
     situation_schema = get_situation_json_schema(tax_benefit_system)
@@ -79,7 +82,9 @@ def build_openAPI_specification(api_data):
     if tax_benefit_system.open_api_config.get("simulation_example"):
         simulation_example = tax_benefit_system.open_api_config["simulation_example"]
         dpath.util.new(
-            spec, "components/schemas/SituationInput/example", simulation_example
+            spec,
+            "components/schemas/SituationInput/example",
+            simulation_example,
         )
         dpath.util.new(
             spec,
@@ -92,9 +97,7 @@ def build_openAPI_specification(api_data):
             handlers.trace(tax_benefit_system, simulation_example),
         )
     else:
-        message = "No simulation example has been defined for this tax and benefit system. If you are the maintainer of {}, you can define an example by following this documentation: https://openfisca.org/doc/openfisca-web-api/config-openapi.html".format(
-            country_package_name
-        )
+        message = f"No simulation example has been defined for this tax and benefit system. If you are the maintainer of {country_package_name}, you can define an example by following this documentation: https://openfisca.org/doc/openfisca-web-api/config-openapi.html"
         dpath.util.new(spec, "components/schemas/SituationInput/example", message)
         dpath.util.new(spec, "components/schemas/SituationOutput/example", message)
         dpath.util.new(spec, "components/schemas/Trace/example", message)
@@ -122,32 +125,31 @@ def get_entity_json_schema(entity, tax_benefit_system):
             "properties": {
                 variable_name: get_variable_json_schema(variable)
                 for variable_name, variable in tax_benefit_system.get_variables(
-                    entity
+                    entity,
                 ).items()
             },
             "additionalProperties": False,
         }
-    else:
-        properties = {}
-        properties.update(
-            {
-                role.plural or role.key: {"type": "array", "items": {"type": "string"}}
-                for role in entity.roles
-            }
-        )
-        properties.update(
-            {
-                variable_name: get_variable_json_schema(variable)
-                for variable_name, variable in tax_benefit_system.get_variables(
-                    entity
-                ).items()
-            }
-        )
-        return {
-            "type": "object",
-            "properties": properties,
-            "additionalProperties": False,
-        }
+    properties = {}
+    properties.update(
+        {
+            role.plural or role.key: {"type": "array", "items": {"type": "string"}}
+            for role in entity.roles
+        },
+    )
+    properties.update(
+        {
+            variable_name: get_variable_json_schema(variable)
+            for variable_name, variable in tax_benefit_system.get_variables(
+                entity,
+            ).items()
+        },
+    )
+    return {
+        "type": "object",
+        "properties": properties,
+        "additionalProperties": False,
+    }
 
 
 def get_situation_json_schema(tax_benefit_system):
@@ -158,7 +160,7 @@ def get_situation_json_schema(tax_benefit_system):
             entity.plural: {
                 "type": "object",
                 "additionalProperties": {
-                    "$ref": "#/components/schemas/{}".format(entity.key.title())
+                    "$ref": f"#/components/schemas/{entity.key.title()}",
                 },
             }
             for entity in tax_benefit_system.entities

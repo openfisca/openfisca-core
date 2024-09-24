@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import datetime
 
 from pytest import fixture, mark, raises
@@ -26,14 +24,16 @@ tax_benefit_system = country_template.CountryTaxBenefitSystem()
 @fixture
 def couple():
     return SimulationBuilder().build_from_entities(
-        tax_benefit_system, openfisca_country_template.situation_examples.couple
+        tax_benefit_system,
+        openfisca_country_template.situation_examples.couple,
     )
 
 
 @fixture
 def simulation():
     return SimulationBuilder().build_from_entities(
-        tax_benefit_system, openfisca_country_template.situation_examples.single
+        tax_benefit_system,
+        openfisca_country_template.situation_examples.single,
     )
 
 
@@ -41,16 +41,17 @@ def vectorize(individu, number):
     return individu.filled_array(number)
 
 
-def check_error_at_add_variable(tax_benefit_system, variable, error_message_prefix):
+def check_error_at_add_variable(
+    tax_benefit_system, variable, error_message_prefix
+) -> None:
     try:
         tax_benefit_system.add_variable(variable)
     except ValueError as e:
         message = get_message(e)
         if not message or not message.startswith(error_message_prefix):
+            msg = f'Incorrect error message. Was expecting something starting by "{error_message_prefix}". Got: "{message}"'
             raise AssertionError(
-                'Incorrect error message. Was expecting something starting by "{}". Got: "{}"'.format(
-                    error_message_prefix, message
-                )
+                msg,
             )
 
 
@@ -71,11 +72,11 @@ class variable__no_date(Variable):
     label = "Variable without date."
 
 
-def test_before_add__variable__no_date():
+def test_before_add__variable__no_date() -> None:
     assert tax_benefit_system.variables.get("variable__no_date") is None
 
 
-def test_variable__no_date():
+def test_variable__no_date() -> None:
     tax_benefit_system.add_variable(variable__no_date)
     variable = tax_benefit_system.variables["variable__no_date"]
     assert variable.end is None
@@ -93,14 +94,14 @@ class variable__strange_end_attribute(Variable):
     end = "1989-00-00"
 
 
-def test_variable__strange_end_attribute():
+def test_variable__strange_end_attribute() -> None:
     try:
         tax_benefit_system.add_variable(variable__strange_end_attribute)
 
     except ValueError as e:
         message = get_message(e)
         assert message.startswith(
-            "Incorrect 'end' attribute format in 'variable__strange_end_attribute'."
+            "Incorrect 'end' attribute format in 'variable__strange_end_attribute'.",
         )
 
     # Check that Error at variable adding prevents it from registration in the taxbenefitsystem.
@@ -121,12 +122,12 @@ class variable__end_attribute(Variable):
 tax_benefit_system.add_variable(variable__end_attribute)
 
 
-def test_variable__end_attribute():
+def test_variable__end_attribute() -> None:
     variable = tax_benefit_system.variables["variable__end_attribute"]
     assert variable.end == datetime.date(1989, 12, 31)
 
 
-def test_variable__end_attribute_set_input(simulation):
+def test_variable__end_attribute_set_input(simulation) -> None:
     month_before_end = "1989-01"
     month_after_end = "1990-01"
     simulation.set_input("variable__end_attribute", month_before_end, 10)
@@ -145,21 +146,21 @@ class end_attribute__one_simple_formula(Variable):
     label = "Variable with end attribute, one formula without date."
     end = "1989-12-31"
 
-    def formula(individu, period):
-        return vectorize(individu, 100)
+    def formula(self, period):
+        return vectorize(self, 100)
 
 
 tax_benefit_system.add_variable(end_attribute__one_simple_formula)
 
 
-def test_formulas_attributes_single_formula():
+def test_formulas_attributes_single_formula() -> None:
     formulas = tax_benefit_system.variables[
         "end_attribute__one_simple_formula"
     ].formulas
     assert formulas["0001-01-01"] is not None
 
 
-def test_call__end_attribute__one_simple_formula(simulation):
+def test_call__end_attribute__one_simple_formula(simulation) -> None:
     month = "1979-12"
     assert simulation.calculate("end_attribute__one_simple_formula", month) == 100
 
@@ -170,7 +171,7 @@ def test_call__end_attribute__one_simple_formula(simulation):
     assert simulation.calculate("end_attribute__one_simple_formula", month) == 0
 
 
-def test_dates__end_attribute__one_simple_formula():
+def test_dates__end_attribute__one_simple_formula() -> None:
     variable = tax_benefit_system.variables["end_attribute__one_simple_formula"]
     assert variable.end == datetime.date(1989, 12, 31)
 
@@ -190,11 +191,11 @@ class no_end_attribute__one_formula__strange_name(Variable):
     definition_period = DateUnit.MONTH
     label = "Variable without end attribute, one stangely named formula."
 
-    def formula_2015_toto(individu, period):
-        return vectorize(individu, 100)
+    def formula_2015_toto(self, period):
+        return vectorize(self, 100)
 
 
-def test_add__no_end_attribute__one_formula__strange_name():
+def test_add__no_end_attribute__one_formula__strange_name() -> None:
     check_error_at_add_variable(
         tax_benefit_system,
         no_end_attribute__one_formula__strange_name,
@@ -211,14 +212,14 @@ class no_end_attribute__one_formula__start(Variable):
     definition_period = DateUnit.MONTH
     label = "Variable without end attribute, one dated formula."
 
-    def formula_2000_01_01(individu, period):
-        return vectorize(individu, 100)
+    def formula_2000_01_01(self, period):
+        return vectorize(self, 100)
 
 
 tax_benefit_system.add_variable(no_end_attribute__one_formula__start)
 
 
-def test_call__no_end_attribute__one_formula__start(simulation):
+def test_call__no_end_attribute__one_formula__start(simulation) -> None:
     month = "1999-12"
     assert simulation.calculate("no_end_attribute__one_formula__start", month) == 0
 
@@ -229,7 +230,7 @@ def test_call__no_end_attribute__one_formula__start(simulation):
     assert simulation.calculate("no_end_attribute__one_formula__start", month) == 100
 
 
-def test_dates__no_end_attribute__one_formula__start():
+def test_dates__no_end_attribute__one_formula__start() -> None:
     variable = tax_benefit_system.variables["no_end_attribute__one_formula__start"]
     assert variable.end is None
 
@@ -245,15 +246,15 @@ class no_end_attribute__one_formula__eternity(Variable):
     )  # For this entity, this variable shouldn't evolve through time
     label = "Variable without end attribute, one dated formula."
 
-    def formula_2000_01_01(individu, period):
-        return vectorize(individu, 100)
+    def formula_2000_01_01(self, period):
+        return vectorize(self, 100)
 
 
 tax_benefit_system.add_variable(no_end_attribute__one_formula__eternity)
 
 
 @mark.xfail()
-def test_call__no_end_attribute__one_formula__eternity(simulation):
+def test_call__no_end_attribute__one_formula__eternity(simulation) -> None:
     month = "1999-12"
     assert simulation.calculate("no_end_attribute__one_formula__eternity", month) == 0
 
@@ -262,12 +263,12 @@ def test_call__no_end_attribute__one_formula__eternity(simulation):
     assert simulation.calculate("no_end_attribute__one_formula__eternity", month) == 100
 
 
-def test_call__no_end_attribute__one_formula__eternity_before(simulation):
+def test_call__no_end_attribute__one_formula__eternity_before(simulation) -> None:
     month = "1999-12"
     assert simulation.calculate("no_end_attribute__one_formula__eternity", month) == 0
 
 
-def test_call__no_end_attribute__one_formula__eternity_after(simulation):
+def test_call__no_end_attribute__one_formula__eternity_after(simulation) -> None:
     month = "2000-01"
     assert simulation.calculate("no_end_attribute__one_formula__eternity", month) == 100
 
@@ -281,17 +282,17 @@ class no_end_attribute__formulas__start_formats(Variable):
     definition_period = DateUnit.MONTH
     label = "Variable without end attribute, multiple dated formulas."
 
-    def formula_2000(individu, period):
-        return vectorize(individu, 100)
+    def formula_2000(self, period):
+        return vectorize(self, 100)
 
-    def formula_2010_01(individu, period):
-        return vectorize(individu, 200)
+    def formula_2010_01(self, period):
+        return vectorize(self, 200)
 
 
 tax_benefit_system.add_variable(no_end_attribute__formulas__start_formats)
 
 
-def test_formulas_attributes_dated_formulas():
+def test_formulas_attributes_dated_formulas() -> None:
     formulas = tax_benefit_system.variables[
         "no_end_attribute__formulas__start_formats"
     ].formulas
@@ -300,7 +301,7 @@ def test_formulas_attributes_dated_formulas():
     assert formulas["2010-01-01"] is not None
 
 
-def test_get_formulas():
+def test_get_formulas() -> None:
     variable = tax_benefit_system.variables["no_end_attribute__formulas__start_formats"]
     formula_2000 = variable.formulas["2000-01-01"]
     formula_2010 = variable.formulas["2010-01-01"]
@@ -313,7 +314,7 @@ def test_get_formulas():
     assert variable.get_formula("2010-01-01") == formula_2010
 
 
-def test_call__no_end_attribute__formulas__start_formats(simulation):
+def test_call__no_end_attribute__formulas__start_formats(simulation) -> None:
     month = "1999-12"
     assert simulation.calculate("no_end_attribute__formulas__start_formats", month) == 0
 
@@ -342,14 +343,14 @@ class no_attribute__formulas__different_names__dates_overlap(Variable):
     definition_period = DateUnit.MONTH
     label = "Variable, no end attribute, multiple dated formulas with different names but same dates."
 
-    def formula_2000(individu, period):
-        return vectorize(individu, 100)
+    def formula_2000(self, period):
+        return vectorize(self, 100)
 
-    def formula_2000_01_01(individu, period):
-        return vectorize(individu, 200)
+    def formula_2000_01_01(self, period):
+        return vectorize(self, 200)
 
 
-def test_add__no_attribute__formulas__different_names__dates_overlap():
+def test_add__no_attribute__formulas__different_names__dates_overlap() -> None:
     # Variable isn't registered in the taxbenefitsystem
     check_error_at_add_variable(
         tax_benefit_system,
@@ -367,21 +368,22 @@ class no_attribute__formulas__different_names__no_overlap(Variable):
     definition_period = DateUnit.MONTH
     label = "Variable, no end attribute, multiple dated formulas with different names and no date overlap."
 
-    def formula_2000_01_01(individu, period):
-        return vectorize(individu, 100)
+    def formula_2000_01_01(self, period):
+        return vectorize(self, 100)
 
-    def formula_2010_01_01(individu, period):
-        return vectorize(individu, 200)
+    def formula_2010_01_01(self, period):
+        return vectorize(self, 200)
 
 
 tax_benefit_system.add_variable(no_attribute__formulas__different_names__no_overlap)
 
 
-def test_call__no_attribute__formulas__different_names__no_overlap(simulation):
+def test_call__no_attribute__formulas__different_names__no_overlap(simulation) -> None:
     month = "2009-12"
     assert (
         simulation.calculate(
-            "no_attribute__formulas__different_names__no_overlap", month
+            "no_attribute__formulas__different_names__no_overlap",
+            month,
         )
         == 100
     )
@@ -389,7 +391,8 @@ def test_call__no_attribute__formulas__different_names__no_overlap(simulation):
     month = "2015-05"
     assert (
         simulation.calculate(
-            "no_attribute__formulas__different_names__no_overlap", month
+            "no_attribute__formulas__different_names__no_overlap",
+            month,
         )
         == 200
     )
@@ -408,14 +411,14 @@ class end_attribute__one_formula__start(Variable):
     label = "Variable with end attribute, one dated formula."
     end = "2001-12-31"
 
-    def formula_2000_01_01(individu, period):
-        return vectorize(individu, 100)
+    def formula_2000_01_01(self, period):
+        return vectorize(self, 100)
 
 
 tax_benefit_system.add_variable(end_attribute__one_formula__start)
 
 
-def test_call__end_attribute__one_formula__start(simulation):
+def test_call__end_attribute__one_formula__start(simulation) -> None:
     month = "1980-01"
     assert simulation.calculate("end_attribute__one_formula__start", month) == 0
 
@@ -436,11 +439,11 @@ class stop_attribute_before__one_formula__start(Variable):
     label = "Variable with stop attribute only coming before formula start."
     end = "1990-01-01"
 
-    def formula_2000_01_01(individu, period):
-        return vectorize(individu, 0)
+    def formula_2000_01_01(self, period):
+        return vectorize(self, 0)
 
 
-def test_add__stop_attribute_before__one_formula__start():
+def test_add__stop_attribute_before__one_formula__start() -> None:
     check_error_at_add_variable(
         tax_benefit_system,
         stop_attribute_before__one_formula__start,
@@ -460,14 +463,14 @@ class end_attribute_restrictive__one_formula(Variable):
     )
     end = "2001-01-01"
 
-    def formula_2001_01_01(individu, period):
-        return vectorize(individu, 100)
+    def formula_2001_01_01(self, period):
+        return vectorize(self, 100)
 
 
 tax_benefit_system.add_variable(end_attribute_restrictive__one_formula)
 
 
-def test_call__end_attribute_restrictive__one_formula(simulation):
+def test_call__end_attribute_restrictive__one_formula(simulation) -> None:
     month = "2000-12"
     assert simulation.calculate("end_attribute_restrictive__one_formula", month) == 0
 
@@ -488,20 +491,20 @@ class end_attribute__formulas__different_names(Variable):
     label = "Variable with end attribute, multiple dated formulas with different names."
     end = "2010-12-31"
 
-    def formula_2000_01_01(individu, period):
-        return vectorize(individu, 100)
+    def formula_2000_01_01(self, period):
+        return vectorize(self, 100)
 
-    def formula_2005_01_01(individu, period):
-        return vectorize(individu, 200)
+    def formula_2005_01_01(self, period):
+        return vectorize(self, 200)
 
-    def formula_2010_01_01(individu, period):
-        return vectorize(individu, 300)
+    def formula_2010_01_01(self, period):
+        return vectorize(self, 300)
 
 
 tax_benefit_system.add_variable(end_attribute__formulas__different_names)
 
 
-def test_call__end_attribute__formulas__different_names(simulation):
+def test_call__end_attribute__formulas__different_names(simulation) -> None:
     month = "2000-01"
     assert (
         simulation.calculate("end_attribute__formulas__different_names", month) == 100
@@ -518,20 +521,22 @@ def test_call__end_attribute__formulas__different_names(simulation):
     )
 
 
-def test_get_formula(simulation):
+def test_get_formula(simulation) -> None:
     person = simulation.person
     disposable_income_formula = tax_benefit_system.get_variable(
-        "disposable_income"
+        "disposable_income",
     ).get_formula()
     disposable_income = person("disposable_income", "2017-01")
     disposable_income_2 = disposable_income_formula(
-        person, "2017-01", None
+        person,
+        "2017-01",
+        None,
     )  # No need for parameters here
 
     assert_near(disposable_income, disposable_income_2)
 
 
-def test_unexpected_attr():
+def test_unexpected_attr() -> None:
     class variable_with_strange_attr(Variable):
         value_type = int
         entity = Person

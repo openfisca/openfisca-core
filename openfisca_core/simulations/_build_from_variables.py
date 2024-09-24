@@ -139,7 +139,6 @@ class _BuildFromVariables:
             >>> pack.get_array(period)
 
         """
-
         for variable, value in self.variables.items():
             if is_variable_dated(dated_variable := value):
                 for period, dated_value in dated_variable.items():
@@ -197,7 +196,6 @@ class _BuildFromVariables:
             array([5000], dtype=int32)
 
         """
-
         for variable, value in self.variables.items():
             if not is_variable_dated(undated_value := value):
                 if (period := self.default_period) is None:

@@ -48,15 +48,15 @@ def instant(instant) -> Optional[Instant]:
         Instant((2021, 1, 1))
 
     """
-
     if instant is None:
         return None
     if isinstance(instant, Instant):
         return instant
     if isinstance(instant, str):
         if not config.INSTANT_PATTERN.match(instant):
+            msg = f"'{instant}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'."
             raise ValueError(
-                f"'{instant}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'."
+                msg,
             )
         instant = Instant(int(fragment) for fragment in instant.split("-", 2)[:3])
     elif isinstance(instant, datetime.date):
@@ -93,7 +93,6 @@ def instant_date(instant: Optional[Instant]) -> Optional[datetime.date]:
         Date(2021, 1, 1)
 
     """
-
     if instant is None:
         return None
 
@@ -150,7 +149,6 @@ def period(value) -> Period:
 
 
     """
-
     if isinstance(value, Period):
         return value
 
@@ -171,7 +169,7 @@ def period(value) -> Period:
                 DateUnit.ETERNITY,
                 instant(datetime.date.min),
                 float("inf"),
-            )
+            ),
         )
 
     # For example ``2021`` gives
@@ -256,13 +254,12 @@ def _raise_error(value: str) -> NoReturn:
         <https://openfisca.org/doc/coding-the-legislation/35_periods.html#pe...
 
     """
-
     message = os.linesep.join(
         [
             f"Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: '{value}'.",
             "Learn more about legal period formats in OpenFisca:",
             "<https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-simulations>.",
-        ]
+        ],
     )
     raise ValueError(message)
 
@@ -290,7 +287,6 @@ def key_period_size(period: Period) -> str:
         '300_3'
 
     """
-
     unit, start, size = period
 
     return f"{unit_weight(unit)}_{size}"
@@ -304,7 +300,6 @@ def unit_weights() -> dict[str, int]:
         {<DateUnit.WEEKDAY: 'weekday'>: 100, ...ETERNITY: 'eternity'>: 400}
 
     """
-
     return {
         DateUnit.WEEKDAY: 100,
         DateUnit.WEEK: 200,
@@ -323,5 +318,4 @@ def unit_weight(unit: str) -> int:
         100
 
     """
-
     return unit_weights()[unit]

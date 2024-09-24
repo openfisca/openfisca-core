@@ -26,7 +26,7 @@ class GroupEntity(_CoreEntity):
         containing_entities: The list of keys of group entities whose members
             are guaranteed to be a superset of this group's entities.
 
-    """  # noqa RST301
+    """
 
     def __init__(
         self,
@@ -56,7 +56,7 @@ class GroupEntity(_CoreEntity):
                     role.subroles = (*role.subroles, subrole)
                 role.max = len(role.subroles)
         self.flattened_roles = tuple(
-            chain.from_iterable(role.subroles or [role] for role in self.roles)
+            chain.from_iterable(role.subroles or [role] for role in self.roles),
         )
 
         self.is_person = False

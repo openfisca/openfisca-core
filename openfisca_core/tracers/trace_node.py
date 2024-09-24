@@ -18,10 +18,10 @@ if typing.TYPE_CHECKING:
 class TraceNode:
     name: str
     period: Period
-    parent: typing.Optional[TraceNode] = None
-    children: typing.List[TraceNode] = dataclasses.field(default_factory=list)
-    parameters: typing.List[TraceNode] = dataclasses.field(default_factory=list)
-    value: typing.Optional[Array] = None
+    parent: TraceNode | None = None
+    children: list[TraceNode] = dataclasses.field(default_factory=list)
+    parameters: list[TraceNode] = dataclasses.field(default_factory=list)
+    value: Array | None = None
     start: float = 0
     end: float = 0
 

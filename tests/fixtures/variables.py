@@ -6,6 +6,6 @@ class TestVariable(Variable):
     definition_period = DateUnit.ETERNITY
     value_type = float
 
-    def __init__(self, entity):
+    def __init__(self, entity) -> None:
         self.__class__.entity = entity
         super().__init__()

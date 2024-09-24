@@ -7,7 +7,7 @@ from strenum import StrEnum
 
 class DateUnitMeta(EnumMeta):
     @property
-    def isoformat(self) -> tuple[DateUnit, ...]:
+    def isoformat(cls) -> tuple[DateUnit, ...]:
         """Creates a :obj:`tuple` of ``key`` with isoformat items.
 
         Returns:
@@ -24,11 +24,10 @@ class DateUnitMeta(EnumMeta):
             False
 
         """
-
         return DateUnit.DAY, DateUnit.MONTH, DateUnit.YEAR
 
     @property
-    def isocalendar(self) -> tuple[DateUnit, ...]:
+    def isocalendar(cls) -> tuple[DateUnit, ...]:
         """Creates a :obj:`tuple` of ``key`` with isocalendar items.
 
         Returns:
@@ -45,7 +44,6 @@ class DateUnitMeta(EnumMeta):
             False
 
         """
-
         return DateUnit.WEEKDAY, DateUnit.WEEK, DateUnit.YEAR
 
 

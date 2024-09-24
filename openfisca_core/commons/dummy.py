@@ -20,4 +20,3 @@ class Dummy:
             "and will be removed in the future.",
         ]
         warnings.warn(" ".join(message), DeprecationWarning, stacklevel=2)
-        pass

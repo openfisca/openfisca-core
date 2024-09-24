@@ -5,11 +5,9 @@ from openfisca_core.periods import DateUnit
 
 
 class InMemoryStorage:
-    """
-    Low-level class responsible for storing and retrieving calculated vectors in memory
-    """
+    """Low-level class responsible for storing and retrieving calculated vectors in memory."""
 
-    def __init__(self, is_eternal=False):
+    def __init__(self, is_eternal=False) -> None:
         self._arrays = {}
         self.is_eternal = is_eternal
 
@@ -23,14 +21,14 @@ class InMemoryStorage:
             return None
         return values
 
-    def put(self, value, period):
+    def put(self, value, period) -> None:
         if self.is_eternal:
             period = periods.period(DateUnit.ETERNITY)
         period = periods.period(period)
 
         self._arrays[period] = value
 
-    def delete(self, period=None):
+    def delete(self, period=None) -> None:
         if period is None:
             self._arrays = {}
             return
@@ -50,16 +48,16 @@ class InMemoryStorage:
 
     def get_memory_usage(self):
         if not self._arrays:
-            return dict(
-                nb_arrays=0,
-                total_nb_bytes=0,
-                cell_size=numpy.nan,
-            )
+            return {
+                "nb_arrays": 0,
+                "total_nb_bytes": 0,
+                "cell_size": numpy.nan,
+            }
 
         nb_arrays = len(self._arrays)
         array = next(iter(self._arrays.values()))
-        return dict(
-            nb_arrays=nb_arrays,
-            total_nb_bytes=array.nbytes * nb_arrays,
-            cell_size=array.itemsize,
-        )
+        return {
+            "nb_arrays": nb_arrays,
+            "total_nb_bytes": array.nbytes * nb_arrays,
+            "cell_size": array.itemsize,
+        }

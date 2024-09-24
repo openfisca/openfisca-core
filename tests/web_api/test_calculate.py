@@ -12,14 +12,18 @@ from openfisca_country_template.situation_examples import couple
 def post_json(client, data=None, file=None):
     if file:
         file_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "assets", file
+            os.path.dirname(os.path.abspath(__file__)),
+            "assets",
+            file,
         )
-        with open(file_path, "r") as file:
+        with open(file_path) as file:
             data = file.read()
     return client.post("/calculate", data=data, content_type="application/json")
 
 
-def check_response(client, data, expected_error_code, path_to_check, content_to_check):
+def check_response(
+    client, data, expected_error_code, path_to_check, content_to_check
+) -> None:
     response = post_json(client, data)
     assert response.status_code == expected_error_code
     json_response = json.loads(response.data.decode("utf-8"))
@@ -138,11 +142,11 @@ def check_response(client, data, expected_error_code, path_to_check, content_to_
         ),
     ],
 )
-def test_responses(test_client, test):
+def test_responses(test_client, test) -> None:
     check_response(test_client, *test)
 
 
-def test_basic_calculation(test_client):
+def test_basic_calculation(test_client) -> None:
     simulation_json = json.dumps(
         {
             "persons": {
@@ -166,7 +170,7 @@ def test_basic_calculation(test_client):
                     "accommodation_size": {"2017-01": 300},
                 },
             },
-        }
+        },
     )
 
     response = post_json(test_client, simulation_json)
@@ -184,7 +188,8 @@ def test_basic_calculation(test_client):
     assert dpath.util.get(response_json, "persons/bob/basic_income/2017-12") == 600
     assert (
         dpath.util.get(
-            response_json, "persons/bob/social_security_contribution/2017-12"
+            response_json,
+            "persons/bob/social_security_contribution/2017-12",
         )
         == 816
     )  # From social_security_contribution.yaml test
@@ -194,7 +199,7 @@ def test_basic_calculation(test_client):
     )
 
 
-def test_enums_sending_identifier(test_client):
+def test_enums_sending_identifier(test_client) -> None:
     simulation_json = json.dumps(
         {
             "persons": {"bill": {}},
@@ -204,9 +209,9 @@ def test_enums_sending_identifier(test_client):
                     "housing_tax": {"2017": None},
                     "accommodation_size": {"2017-01": 300},
                     "housing_occupancy_status": {"2017-01": "free_lodger"},
-                }
+                },
             },
-        }
+        },
     )
 
     response = post_json(test_client, simulation_json)
@@ -215,7 +220,7 @@ def test_enums_sending_identifier(test_client):
     assert dpath.util.get(response_json, "households/_/housing_tax/2017") == 0
 
 
-def test_enum_output(test_client):
+def test_enum_output(test_client) -> None:
     simulation_json = json.dumps(
         {
             "persons": {
@@ -227,7 +232,7 @@ def test_enum_output(test_client):
                     "housing_occupancy_status": {"2017-01": None},
                 },
             },
-        }
+        },
     )
 
     response = post_json(test_client, simulation_json)
@@ -239,7 +244,7 @@ def test_enum_output(test_client):
     )
 
 
-def test_enum_wrong_value(test_client):
+def test_enum_wrong_value(test_client) -> None:
     simulation_json = json.dumps(
         {
             "persons": {
@@ -251,7 +256,7 @@ def test_enum_wrong_value(test_client):
                     "housing_occupancy_status": {"2017-01": "Unknown value lodger"},
                 },
             },
-        }
+        },
     )
 
     response = post_json(test_client, simulation_json)
@@ -259,26 +264,27 @@ def test_enum_wrong_value(test_client):
     response_json = json.loads(response.data.decode("utf-8"))
     message = "Possible values are ['owner', 'tenant', 'free_lodger', 'homeless']"
     text = dpath.util.get(
-        response_json, "households/_/housing_occupancy_status/2017-01"
+        response_json,
+        "households/_/housing_occupancy_status/2017-01",
     )
     assert message in text
 
 
-def test_encoding_variable_value(test_client):
+def test_encoding_variable_value(test_client) -> None:
     simulation_json = json.dumps(
         {
             "persons": {"toto": {}},
             "households": {
                 "_": {
                     "housing_occupancy_status": {
-                        "2017-07": "Locataire ou sous-locataire d‘un logement loué vide non-HLM"
+                        "2017-07": "Locataire ou sous-locataire d‘un logement loué vide non-HLM",
                     },
                     "parent": [
                         "toto",
                     ],
-                }
+                },
             },
-        }
+        },
     )
 
     # No UnicodeDecodeError
@@ -287,17 +293,18 @@ def test_encoding_variable_value(test_client):
     response_json = json.loads(response.data.decode("utf-8"))
     message = "'Locataire ou sous-locataire d‘un logement loué vide non-HLM' is not a known value for 'housing_occupancy_status'. Possible values are "
     text = dpath.util.get(
-        response_json, "households/_/housing_occupancy_status/2017-07"
+        response_json,
+        "households/_/housing_occupancy_status/2017-07",
     )
     assert message in text
 
 
-def test_encoding_entity_name(test_client):
+def test_encoding_entity_name(test_client) -> None:
     simulation_json = json.dumps(
         {
             "persons": {"O‘Ryan": {}, "Renée": {}},
             "households": {"_": {"parents": ["O‘Ryan", "Renée"]}},
-        }
+        },
     )
 
     # No UnicodeDecodeError
@@ -311,7 +318,7 @@ def test_encoding_entity_name(test_client):
         assert message in text
 
 
-def test_encoding_period_id(test_client):
+def test_encoding_period_id(test_client) -> None:
     simulation_json = json.dumps(
         {
             "persons": {
@@ -324,9 +331,9 @@ def test_encoding_period_id(test_client):
                     "housing_tax": {"à": 400},
                     "accommodation_size": {"2017-01": 300},
                     "housing_occupancy_status": {"2017-01": "tenant"},
-                }
+                },
             },
-        }
+        },
     )
 
     # No UnicodeDecodeError
@@ -341,19 +348,21 @@ def test_encoding_period_id(test_client):
         assert message in text
 
 
-def test_str_variable(test_client):
+def test_str_variable(test_client) -> None:
     new_couple = copy.deepcopy(couple)
     new_couple["households"]["_"]["postal_code"] = {"2017-01": None}
     simulation_json = json.dumps(new_couple)
 
     response = test_client.post(
-        "/calculate", data=simulation_json, content_type="application/json"
+        "/calculate",
+        data=simulation_json,
+        content_type="application/json",
     )
 
     assert response.status_code == client.OK
 
 
-def test_periods(test_client):
+def test_periods(test_client) -> None:
     simulation_json = json.dumps(
         {
             "persons": {"bill": {}},
@@ -362,9 +371,9 @@ def test_periods(test_client):
                     "parents": ["bill"],
                     "housing_tax": {"2017": None},
                     "housing_occupancy_status": {"2017-01": None},
-                }
+                },
             },
-        }
+        },
     )
 
     response = post_json(test_client, simulation_json)
@@ -373,19 +382,20 @@ def test_periods(test_client):
     response_json = json.loads(response.data.decode("utf-8"))
 
     yearly_variable = dpath.util.get(
-        response_json, "households/_/housing_tax"
+        response_json,
+        "households/_/housing_tax",
     )  # web api year is an int
     assert yearly_variable == {"2017": 200.0}
 
     monthly_variable = dpath.util.get(
-        response_json, "households/_/housing_occupancy_status"
+        response_json,
+        "households/_/housing_occupancy_status",
     )  # web api month is a string
     assert monthly_variable == {"2017-01": "tenant"}
 
 
-def test_two_periods(test_client):
-    """
-    Test `calculate` on a request with mixed types periods: yearly periods following
+def test_two_periods(test_client) -> None:
+    """Test `calculate` on a request with mixed types periods: yearly periods following
     monthly or daily periods to check dpath limitation on numeric keys (yearly periods).
     Made to test the case where we have more than one path with a numeric in it.
     See https://github.com/dpath-maintainers/dpath-python/issues/160 for more informations.
@@ -398,9 +408,9 @@ def test_two_periods(test_client):
                     "parents": ["bill"],
                     "housing_tax": {"2017": None, "2018": None},
                     "housing_occupancy_status": {"2017-01": None, "2018-01": None},
-                }
+                },
             },
-        }
+        },
     )
 
     response = post_json(test_client, simulation_json)
@@ -409,17 +419,19 @@ def test_two_periods(test_client):
     response_json = json.loads(response.data.decode("utf-8"))
 
     yearly_variable = dpath.util.get(
-        response_json, "households/_/housing_tax"
+        response_json,
+        "households/_/housing_tax",
     )  # web api year is an int
     assert yearly_variable == {"2017": 200.0, "2018": 200.0}
 
     monthly_variable = dpath.util.get(
-        response_json, "households/_/housing_occupancy_status"
+        response_json,
+        "households/_/housing_occupancy_status",
     )  # web api month is a string
     assert monthly_variable == {"2017-01": "tenant", "2018-01": "tenant"}
 
 
-def test_handle_period_mismatch_error(test_client):
+def test_handle_period_mismatch_error(test_client) -> None:
     variable = "housing_tax"
     period = "2017-01"
 
@@ -430,9 +442,9 @@ def test_handle_period_mismatch_error(test_client):
                 "_": {
                     "parents": ["bill"],
                     variable: {period: 400},
-                }
+                },
             },
-        }
+        },
     )
 
     response = post_json(test_client, simulation_json)
@@ -445,9 +457,8 @@ def test_handle_period_mismatch_error(test_client):
     assert message in error
 
 
-def test_gracefully_handle_unexpected_errors(test_client):
-    """
-    Context
+def test_gracefully_handle_unexpected_errors(test_client) -> None:
+    """Context.
     =======
 
     Whenever an exception is raised by the calculation engine, the API will try
@@ -466,7 +477,7 @@ def test_gracefully_handle_unexpected_errors(test_client):
     In the `country-template`, Housing Tax is only defined from 2010 onwards.
     The calculation engine should therefore raise an exception `ParameterNotFound`.
     The API is not expecting this, but she should handle the situation nonetheless.
-    """  # noqa RST399
+    """
     variable = "housing_tax"
     period = "1234-05-06"
 
@@ -481,9 +492,9 @@ def test_gracefully_handle_unexpected_errors(test_client):
                     variable: {
                         period: None,
                     },
-                }
+                },
             },
-        }
+        },
     )
 
     response = post_json(test_client, simulation_json)

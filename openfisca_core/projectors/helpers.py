@@ -10,8 +10,7 @@ from .typing import GroupPopulation, Population
 
 
 def projectable(function):
-    """
-    Decorator to indicate that when called on a projector, the outcome of the function must be projected.
+    """Decorator to indicate that when called on a projector, the outcome of the function must be projected.
     For instance person.household.sum(...) must be projected on person, while it would not make sense for person.household.get_holder.
     """
     function.projectable = True
@@ -109,15 +108,15 @@ def get_projector_from_shortcut(
         <...UniqueRoleToEntityProjector object at ...>
 
     """
-
     entity: SingleEntity | GroupEntity = population.entity
 
     if isinstance(entity, entities.Entity):
         populations: Mapping[
-            str, Population | GroupPopulation
+            str,
+            Population | GroupPopulation,
         ] = population.simulation.populations
 
-        if shortcut not in populations.keys():
+        if shortcut not in populations:
             return None
 
         return projectors.EntityToPersonProjector(populations[shortcut], parent)
@@ -133,7 +132,8 @@ def get_projector_from_shortcut(
 
         if shortcut in entity.containing_entities:
             projector: projectors.Projector = getattr(
-                projectors.FirstPersonToEntityProjector(population, parent), shortcut
+                projectors.FirstPersonToEntityProjector(population, parent),
+                shortcut,
             )
             return projector
 

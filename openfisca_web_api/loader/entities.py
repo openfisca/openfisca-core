@@ -1,11 +1,5 @@
-# -*- coding: utf-8 -*-
-
-
 def build_entities(tax_benefit_system):
-    entities = {
-        entity.key: build_entity(entity) for entity in tax_benefit_system.entities
-    }
-    return entities
+    return {entity.key: build_entity(entity) for entity in tax_benefit_system.entities}
 
 
 def build_entity(entity):

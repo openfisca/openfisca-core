@@ -13,7 +13,7 @@ def calculate_output_divide(simulation, variable_name: str, period):
     return simulation.calculate_divide(variable_name, period)
 
 
-def check_type(input, input_type, path=None):
+def check_type(input, input_type, path=None) -> None:
     json_type_map = {
         dict: "Object",
         list: "Array",
@@ -26,12 +26,13 @@ def check_type(input, input_type, path=None):
     if not isinstance(input, input_type):
         raise errors.SituationParsingError(
             path,
-            "Invalid type: must be of type '{}'.".format(json_type_map[input_type]),
+            f"Invalid type: must be of type '{json_type_map[input_type]}'.",
         )
 
 
 def check_unexpected_entities(
-    params: ParamsWithoutAxes, entities: Iterable[str]
+    params: ParamsWithoutAxes,
+    entities: Iterable[str],
 ) -> None:
     """Check if the input contains entities that are not in the system.
 
@@ -47,21 +48,18 @@ def check_unexpected_entities(
 
         >>> params = {
         ...     "persons": {"Javier": {"salary": {"2018-11": 2000}}},
-        ...     "households": {"household": {"parents": ["Javier"]}}
+        ...     "households": {"household": {"parents": ["Javier"]}},
         ... }
 
         >>> check_unexpected_entities(params, entities)
 
-        >>> params = {
-        ...     "dogs": {"Bart": {"damages": {"2018-11": 2000}}}
-        ... }
+        >>> params = {"dogs": {"Bart": {"damages": {"2018-11": 2000}}}}
 
         >>> check_unexpected_entities(params, entities)
         Traceback (most recent call last):
         openfisca_core.errors.situation_parsing_error.SituationParsingError
 
     """
-
     if has_unexpected_entities(params, entities):
         unexpected_entities = [entity for entity in params if entity not in entities]
 
@@ -90,21 +88,18 @@ def has_unexpected_entities(params: ParamsWithoutAxes, entities: Iterable[str]) 
 
         >>> params = {
         ...     "persons": {"Javier": {"salary": {"2018-11": 2000}}},
-        ...     "households": {"household": {"parents": ["Javier"]}}
+        ...     "households": {"household": {"parents": ["Javier"]}},
         ... }
 
         >>> has_unexpected_entities(params, entities)
         False
 
-        >>> params = {
-        ...     "dogs": {"Bart": {"damages": {"2018-11": 2000}}}
-        ... }
+        >>> params = {"dogs": {"Bart": {"damages": {"2018-11": 2000}}}}
 
         >>> has_unexpected_entities(params, entities)
         True
 
     """
-
     return any(entity for entity in params if entity not in entities)
 
 

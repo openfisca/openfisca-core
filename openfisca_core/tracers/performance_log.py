@@ -8,12 +8,12 @@ import itertools
 import json
 import os
 
-from .. import tracers
+from openfisca_core import tracers
 
 if typing.TYPE_CHECKING:
-    Trace = typing.Dict[str, dict]
-    Calculation = typing.Tuple[str, dict]
-    SortedTrace = typing.List[Calculation]
+    Trace = dict[str, dict]
+    Calculation = tuple[str, dict]
+    SortedTrace = list[Calculation]
 
 
 class PerformanceLog:
@@ -54,7 +54,7 @@ class PerformanceLog:
         aggregated_csv_rows = [
             {"name": key, **aggregated_time}
             for key, aggregated_time in self.aggregate_calculation_times(
-                flat_trace
+                flat_trace,
             ).items()
         ]
 
@@ -66,7 +66,7 @@ class PerformanceLog:
     def aggregate_calculation_times(
         self,
         flat_trace: Trace,
-    ) -> typing.Dict[str, dict]:
+    ) -> dict[str, dict]:
         def _aggregate_calculations(calculations: list) -> dict:
             calculation_count = len(calculations)
 
@@ -83,10 +83,10 @@ class PerformanceLog:
                 "calculation_time": tracers.TraceNode.round(calculation_time),
                 "formula_time": tracers.TraceNode.round(formula_time),
                 "avg_calculation_time": tracers.TraceNode.round(
-                    calculation_time / calculation_count
+                    calculation_time / calculation_count,
                 ),
                 "avg_formula_time": tracers.TraceNode.round(
-                    formula_time / calculation_count
+                    formula_time / calculation_count,
                 ),
             }
 
@@ -98,7 +98,8 @@ class PerformanceLog:
         return {
             variable_name: _aggregate_calculations(list(calculations))
             for variable_name, calculations in itertools.groupby(
-                all_calculations, _groupby
+                all_calculations,
+                _groupby,
             )
         }
 
@@ -122,7 +123,7 @@ class PerformanceLog:
             "children": children,
         }
 
-    def _write_csv(self, path: str, rows: typing.List[dict]) -> None:
+    def _write_csv(self, path: str, rows: list[dict]) -> None:
         fieldnames = list(rows[0].keys())
 
         with open(path, "w") as csv_file:

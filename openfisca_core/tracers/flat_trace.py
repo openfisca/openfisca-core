@@ -1,18 +1,19 @@
 from __future__ import annotations
 
 import typing
-from typing import Dict, Optional, Union
+from typing import Union
 
 import numpy
 
-from openfisca_core import tracers
 from openfisca_core.indexed_enums import EnumArray
 
 if typing.TYPE_CHECKING:
     from numpy.typing import ArrayLike
 
+    from openfisca_core import tracers
+
     Array = Union[EnumArray, ArrayLike]
-    Trace = Dict[str, dict]
+    Trace = dict[str, dict]
 
 
 class FlatTrace:
@@ -39,7 +40,7 @@ class FlatTrace:
                     key: node_trace
                     for key, node_trace in self._get_flat_trace(node).items()
                     if key not in trace
-                }
+                },
             )
 
         return trace
@@ -52,13 +53,14 @@ class FlatTrace:
 
     def serialize(
         self,
-        value: Optional[Array],
-    ) -> Union[Optional[Array], list]:
+        value: Array | None,
+    ) -> Array | None | list:
         if isinstance(value, EnumArray):
             value = value.decode_to_str()
 
         if isinstance(value, numpy.ndarray) and numpy.issubdtype(
-            value.dtype, numpy.dtype(bytes)
+            value.dtype,
+            numpy.dtype(bytes),
         ):
             value = value.astype(numpy.dtype(str))
 
@@ -73,7 +75,7 @@ class FlatTrace:
     ) -> Trace:
         key = self.key(node)
 
-        node_trace = {
+        return {
             key: {
                 "dependencies": [self.key(child) for child in node.children],
                 "parameters": {
@@ -85,5 +87,3 @@ class FlatTrace:
                 "formula_time": node.formula_time(),
             },
         }
-
-        return node_trace

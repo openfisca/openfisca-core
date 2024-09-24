@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Optional, Sequence, Union
+from collections.abc import Sequence
+from typing import Any
 
 import os
 import warnings
@@ -8,21 +9,23 @@ import warnings
 import numpy
 import psutil
 
-from openfisca_core import commons
-from openfisca_core import data_storage as storage
-from openfisca_core import errors
-from openfisca_core import indexed_enums as enums
-from openfisca_core import periods, tools, types
+from openfisca_core import (
+    commons,
+    data_storage as storage,
+    errors,
+    indexed_enums as enums,
+    periods,
+    tools,
+    types,
+)
 
 from .memory_usage import MemoryUsage
 
 
 class Holder:
-    """
-    A holder keeps tracks of a variable values after they have been calculated, or set as an input.
-    """
+    """A holder keeps tracks of a variable values after they have been calculated, or set as an input."""
 
-    def __init__(self, variable, population):
+    def __init__(self, variable, population) -> None:
         self.population = population
         self.variable = variable
         self.simulation = population.simulation
@@ -44,9 +47,7 @@ class Holder:
                 self._do_not_store = True
 
     def clone(self, population):
-        """
-        Copy the holder just enough to be able to run a new simulation without modifying the original simulation.
-        """
+        """Copy the holder just enough to be able to run a new simulation without modifying the original simulation."""
         new = commons.empty_clone(self)
         new_dict = new.__dict__
 
@@ -66,23 +67,22 @@ class Holder:
         if not os.path.isdir(storage_dir):
             os.mkdir(storage_dir)
         return storage.OnDiskStorage(
-            storage_dir, self._eternal, preserve_storage_dir=preserve
+            storage_dir,
+            self._eternal,
+            preserve_storage_dir=preserve,
         )
 
-    def delete_arrays(self, period=None):
-        """
-        If ``period`` is ``None``, remove all known values of the variable.
+    def delete_arrays(self, period=None) -> None:
+        """If ``period`` is ``None``, remove all known values of the variable.
 
         If ``period`` is not ``None``, only remove all values for any period included in period (e.g. if period is "2017", values for "2017-01", "2017-07", etc. would be removed)
         """
-
         self._memory_storage.delete(period)
         if self._disk_storage:
             self._disk_storage.delete(period)
 
     def get_array(self, period):
-        """
-        Get the value of the variable for the given period.
+        """Get the value of the variable for the given period.
 
         If the value is not known, return ``None``.
         """
@@ -93,6 +93,7 @@ class Holder:
             return value
         if self._disk_storage:
             return self._disk_storage.get(period)
+        return None
 
     def get_memory_usage(self) -> MemoryUsage:
         """Get data about the virtual memory usage of the Holder.
@@ -109,7 +110,7 @@ class Holder:
             ...     simulations,
             ...     taxbenefitsystems,
             ...     variables,
-            ...     )
+            ... )
 
             >>> entity = entities.Entity("", "", "", "")
 
@@ -127,7 +128,7 @@ class Holder:
             >>> simulation = simulations.Simulation(tbs, entities)
             >>> holder.simulation = simulation
 
-            >>> pprint(holder.get_memory_usage(), indent = 3)
+            >>> pprint(holder.get_memory_usage(), indent=3)
             {  'cell_size': nan,
                'dtype': <class 'numpy.int32'>,
                'nb_arrays': 0,
@@ -135,7 +136,6 @@ class Holder:
                'total_nb_bytes': 0...
 
         """
-
         usage = MemoryUsage(
             nb_cells_by_array=self.population.count,
             dtype=self.variable.dtype,
@@ -146,30 +146,29 @@ class Holder:
         if self.simulation.trace:
             nb_requests = self.simulation.tracer.get_nb_requests(self.variable.name)
             usage.update(
-                dict(
-                    nb_requests=nb_requests,
-                    nb_requests_by_array=nb_requests / float(usage["nb_arrays"])
-                    if usage["nb_arrays"] > 0
-                    else numpy.nan,
-                )
+                {
+                    "nb_requests": nb_requests,
+                    "nb_requests_by_array": (
+                        nb_requests / float(usage["nb_arrays"])
+                        if usage["nb_arrays"] > 0
+                        else numpy.nan
+                    ),
+                },
             )
 
         return usage
 
     def get_known_periods(self):
-        """
-        Get the list of periods the variable value is known for.
-        """
-
+        """Get the list of periods the variable value is known for."""
         return list(self._memory_storage.get_known_periods()) + list(
-            (self._disk_storage.get_known_periods() if self._disk_storage else [])
+            self._disk_storage.get_known_periods() if self._disk_storage else [],
         )
 
     def set_input(
         self,
         period: types.Period,
-        array: Union[numpy.ndarray, Sequence[Any]],
-    ) -> Optional[numpy.ndarray]:
+        array: numpy.ndarray | Sequence[Any],
+    ) -> numpy.ndarray | None:
         """Set a Variable's array of values of a given Period.
 
         Args:
@@ -187,6 +186,7 @@ class Holder:
 
         Examples:
             >>> from openfisca_core import entities, populations, variables
+
             >>> entity = entities.Entity("", "", "", "")
 
             >>> class MyVariable(variables.Variable):
@@ -212,7 +212,6 @@ class Holder:
             https://openfisca.org/doc/coding-the-legislation/35_periods.html#set-input-automatically-process-variable-inputs-defined-for-periods-not-matching-the-definition-period
 
         """
-
         period = periods.period(period)
 
         if period.unit == periods.DateUnit.ETERNITY and not self._eternal:
@@ -220,7 +219,7 @@ class Holder:
                 [
                     "Unable to set a value for variable {1} for {0}.",
                     "{1} is only defined for {2}s. Please adapt your input.",
-                ]
+                ],
             ).format(
                 periods.DateUnit.ETERNITY.upper(),
                 self.variable.name,
@@ -233,9 +232,7 @@ class Holder:
                 error_message,
             )
         if self.variable.is_neutralized:
-            warning_message = "You cannot set a value for the variable {}, as it has been neutralized. The value you provided ({}) will be ignored.".format(
-                self.variable.name, array
-            )
+            warning_message = f"You cannot set a value for the variable {self.variable.name}, as it has been neutralized. The value you provided ({array}) will be ignored."
             return warnings.warn(warning_message, Warning, stacklevel=2)
         if self.variable.value_type in (float, int) and isinstance(array, str):
             array = tools.eval_expression(array)
@@ -250,14 +247,9 @@ class Holder:
             # 0-dim arrays are casted to scalar when they interact with float. We don't want that.
             value = value.reshape(1)
         if len(value) != self.population.count:
+            msg = f'Unable to set value "{value}" for variable "{self.variable.name}", as its length is {len(value)} while there are {self.population.count} {self.population.entity.plural} in the simulation.'
             raise ValueError(
-                'Unable to set value "{}" for variable "{}", as its length is {} while there are {} {} in the simulation.'.format(
-                    value,
-                    self.variable.name,
-                    len(value),
-                    self.population.count,
-                    self.population.entity.plural,
-                )
+                msg,
             )
         if self.variable.value_type == enums.Enum:
             value = self.variable.possible_values.encode(value)
@@ -265,20 +257,22 @@ class Holder:
             try:
                 value = value.astype(self.variable.dtype)
             except ValueError:
+                msg = f'Unable to set value "{value}" for variable "{self.variable.name}", as the variable dtype "{self.variable.dtype}" does not match the value dtype "{value.dtype}".'
                 raise ValueError(
-                    'Unable to set value "{}" for variable "{}", as the variable dtype "{}" does not match the value dtype "{}".'.format(
-                        value, self.variable.name, self.variable.dtype, value.dtype
-                    )
+                    msg,
                 )
         return value
 
-    def _set(self, period, value):
+    def _set(self, period, value) -> None:
         value = self._to_array(value)
         if not self._eternal:
             if period is None:
-                raise ValueError(
+                msg = (
                     f"A period must be specified to set values, except for variables with "
-                    f"{periods.DateUnit.ETERNITY.upper()} as as period_definition.",
+                    f"{periods.DateUnit.ETERNITY.upper()} as as period_definition."
+                )
+                raise ValueError(
+                    msg,
                 )
             if self.variable.definition_period != period.unit or period.size > 1:
                 name = self.variable.name
@@ -292,7 +286,7 @@ class Holder:
                         f'Unable to set a value for variable "{name}" for {period_size_adj}-long period "{period}".',
                         f'"{name}" can only be set for one {self.variable.definition_period} at a time. Please adapt your input.',
                         f'If you are the maintainer of "{name}", you can consider adding it a set_input attribute to enable automatic period casting.',
-                    ]
+                    ],
                 )
 
                 raise errors.PeriodMismatchError(
@@ -314,7 +308,7 @@ class Holder:
         else:
             self._memory_storage.put(value, period)
 
-    def put_in_cache(self, value, period):
+    def put_in_cache(self, value, period) -> None:
         if self._do_not_store:
             return
 
@@ -328,8 +322,5 @@ class Holder:
         self._set(period, value)
 
     def default_array(self):
-        """
-        Return a new array of the appropriate length for the entity, filled with the variable default values.
-        """
-
+        """Return a new array of the appropriate length for the entity, filled with the variable default values."""
         return self.variable.default_array(self.population.count)

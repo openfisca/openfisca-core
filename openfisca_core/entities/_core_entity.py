@@ -29,9 +29,13 @@ class _CoreEntity:
 
     @abstractmethod
     def __init__(
-        self, key: str, plural: str, label: str, doc: str, *args: object
-    ) -> None:
-        ...
+        self,
+        key: str,
+        plural: str,
+        label: str,
+        doc: str,
+        *args: object,
+    ) -> None: ...
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.key})"
@@ -47,8 +51,9 @@ class _CoreEntity:
     ) -> t.Variable | None:
         """Get a ``variable_name`` from ``variables``."""
         if self._tax_benefit_system is None:
+            msg = "You must set 'tax_benefit_system' before calling this method."
             raise ValueError(
-                "You must set 'tax_benefit_system' before calling this method."
+                msg,
             )
         return self._tax_benefit_system.get_variable(variable_name, check_existence)
 
@@ -75,4 +80,5 @@ class _CoreEntity:
     def check_role_validity(self, role: object) -> None:
         """Check if a ``role`` is an instance of Role."""
         if role is not None and not isinstance(role, Role):
-            raise ValueError(f"{role} is not a valid role")
+            msg = f"{role} is not a valid role"
+            raise ValueError(msg)

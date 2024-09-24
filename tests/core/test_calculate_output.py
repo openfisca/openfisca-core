@@ -29,7 +29,7 @@ class variable_with_calculate_output_divide(Variable):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def add_variables_to_tax_benefit_system(tax_benefit_system):
+def add_variables_to_tax_benefit_system(tax_benefit_system) -> None:
     tax_benefit_system.add_variables(
         simple_variable,
         variable_with_calculate_output_add,
@@ -40,25 +40,27 @@ def add_variables_to_tax_benefit_system(tax_benefit_system):
 @pytest.fixture
 def simulation(tax_benefit_system):
     return SimulationBuilder().build_from_entities(
-        tax_benefit_system, situation_examples.single
+        tax_benefit_system,
+        situation_examples.single,
     )
 
 
-def test_calculate_output_default(simulation):
+def test_calculate_output_default(simulation) -> None:
     with pytest.raises(ValueError):
         simulation.calculate_output("simple_variable", 2017)
 
 
-def test_calculate_output_add(simulation):
+def test_calculate_output_add(simulation) -> None:
     simulation.set_input("variable_with_calculate_output_add", "2017-01", [10])
     simulation.set_input("variable_with_calculate_output_add", "2017-05", [20])
     simulation.set_input("variable_with_calculate_output_add", "2017-12", [70])
     tools.assert_near(
-        simulation.calculate_output("variable_with_calculate_output_add", 2017), 100
+        simulation.calculate_output("variable_with_calculate_output_add", 2017),
+        100,
     )
 
 
-def test_calculate_output_divide(simulation):
+def test_calculate_output_divide(simulation) -> None:
     simulation.set_input("variable_with_calculate_output_divide", 2017, [12000])
     tools.assert_near(
         simulation.calculate_output("variable_with_calculate_output_divide", "2017-06"),

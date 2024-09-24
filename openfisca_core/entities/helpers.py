@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
-from typing import Optional
 
 from . import types as t
 from .entity import Entity
@@ -13,7 +12,7 @@ def build_entity(
     plural: str,
     label: str,
     doc: str = "",
-    roles: Optional[Sequence[t.RoleParams]] = None,
+    roles: Sequence[t.RoleParams] | None = None,
     is_person: bool = False,
     class_override: object | None = None,
     containing_entities: Sequence[str] = (),
@@ -45,17 +44,17 @@ def build_entity(
         ...     "syndicate",
         ...     "syndicates",
         ...     "Banks loaning jointly.",
-        ...     roles = [],
-        ...     containing_entities = (),
-        ...     )
+        ...     roles=[],
+        ...     containing_entities=(),
+        ... )
         GroupEntity(syndicate)
 
         >>> build_entity(
         ...     "company",
         ...     "companies",
         ...     "A small or medium company.",
-        ...     is_person = True,
-        ...     )
+        ...     is_person=True,
+        ... )
         Entity(company)
 
         >>> role = entities.Role({"key": "key"}, object())
@@ -64,26 +63,33 @@ def build_entity(
         ...     "syndicate",
         ...     "syndicates",
         ...     "Banks loaning jointly.",
-        ...     roles = role,
-        ...     )
+        ...     roles=role,
+        ... )
         Traceback (most recent call last):
         TypeError: 'Role' object is not iterable
 
     """
-
     if is_person:
         return Entity(key, plural, label, doc)
 
     if roles is not None:
         return GroupEntity(
-            key, plural, label, doc, roles, containing_entities=containing_entities
+            key,
+            plural,
+            label,
+            doc,
+            roles,
+            containing_entities=containing_entities,
         )
 
     raise NotImplementedError
 
 
 def find_role(
-    roles: Iterable[t.Role], key: t.RoleKey, *, total: int | None = None
+    roles: Iterable[t.Role],
+    key: t.RoleKey,
+    *,
+    total: int | None = None,
 ) -> t.Role | None:
     """Find a Role in a GroupEntity.
 
@@ -141,7 +147,6 @@ def find_role(
         Role(first_parent)
 
     """
-
     for role in roles:
         if role.subroles:
             for subrole in role.subroles:

@@ -7,8 +7,6 @@ import numpy
 
 from openfisca_core import parameters
 
-from .. import tracers
-
 ParameterNode = Union[
     parameters.VectorialParameterNodeAtInstant,
     parameters.ParameterNodeAtInstant,
@@ -16,6 +14,8 @@ ParameterNode = Union[
 
 if typing.TYPE_CHECKING:
     from numpy.typing import ArrayLike
+
+    from openfisca_core import tracers
 
     Child = Union[ParameterNode, ArrayLike]
 
@@ -32,7 +32,7 @@ class TracingParameterNodeAtInstant:
     def __getattr__(
         self,
         key: str,
-    ) -> Union[TracingParameterNodeAtInstant, Child]:
+    ) -> TracingParameterNodeAtInstant | Child:
         child = getattr(self.parameter_node_at_instant, key)
         return self.get_traced_child(child, key)
 
@@ -44,16 +44,16 @@ class TracingParameterNodeAtInstant:
 
     def __getitem__(
         self,
-        key: Union[str, ArrayLike],
-    ) -> Union[TracingParameterNodeAtInstant, Child]:
+        key: str | ArrayLike,
+    ) -> TracingParameterNodeAtInstant | Child:
         child = self.parameter_node_at_instant[key]
         return self.get_traced_child(child, key)
 
     def get_traced_child(
         self,
         child: Child,
-        key: Union[str, ArrayLike],
-    ) -> Union[TracingParameterNodeAtInstant, Child]:
+        key: str | ArrayLike,
+    ) -> TracingParameterNodeAtInstant | Child:
         period = self.parameter_node_at_instant._instant_str
 
         if isinstance(
@@ -75,9 +75,9 @@ class TracingParameterNodeAtInstant:
             name = self.parameter_node_at_instant._name
 
         else:
-            name = ".".join([self.parameter_node_at_instant._name, key])
+            name = f"{self.parameter_node_at_instant._name}.{key}"
 
-        if isinstance(child, (numpy.ndarray,) + parameters.ALLOWED_PARAM_TYPES):
+        if isinstance(child, (numpy.ndarray, *parameters.ALLOWED_PARAM_TYPES)):
             self.tracer.record_parameter_access(name, period, child)
 
         return child

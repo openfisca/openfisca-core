@@ -27,9 +27,9 @@ class _BuildDefaultSimulation:
         >>> count = 1
         >>> builder = (
         ...     _BuildDefaultSimulation(tax_benefit_system, count)
-        ...    .add_count()
-        ...    .add_ids()
-        ...    .add_members_entity_id()
+        ...     .add_count()
+        ...     .add_ids()
+        ...     .add_members_entity_id()
         ... )
 
         >>> builder.count
@@ -84,7 +84,6 @@ class _BuildDefaultSimulation:
             2
 
         """
-
         for population in self.populations.values():
             population.count = self.count
 
@@ -117,7 +116,6 @@ class _BuildDefaultSimulation:
             array([0, 1])
 
         """
-
         for population in self.populations.values():
             population.ids = numpy.array(range(self.count))
 
@@ -154,7 +152,6 @@ class _BuildDefaultSimulation:
             array([0, 1])
 
         """
-
         for population in self.populations.values():
             if hasattr(population, "members_entity_id"):
                 population.members_entity_id = numpy.array(range(self.count))

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # flake8: noqa T001
 
 import argparse
@@ -33,21 +32,21 @@ TEST_METADATA = {
 def build_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "path", help="paths (files or directories) of tests to execute", nargs="+"
+        "path",
+        help="paths (files or directories) of tests to execute",
+        nargs="+",
     )
-    parser = add_tax_benefit_system_arguments(parser)
-
-    return parser
+    return add_tax_benefit_system_arguments(parser)
 
 
-class Migrator(object):
-    def __init__(self, tax_benefit_system):
+class Migrator:
+    def __init__(self, tax_benefit_system) -> None:
         self.tax_benefit_system = tax_benefit_system
         self.entities_by_plural = {
             entity.plural: entity for entity in self.tax_benefit_system.entities
         }
 
-    def migrate(self, path):
+    def migrate(self, path) -> None:
         if isinstance(path, list):
             for item in path:
                 self.migrate(item)
@@ -64,8 +63,6 @@ class Migrator(object):
                 self.migrate(subdirectory)
 
             return
-
-        print("Migrating {}.".format(path))
 
         with open(path) as yaml_file:
             tests = yaml.safe_load(yaml_file)
@@ -107,14 +104,12 @@ class Migrator(object):
                 continue
             results[entity_plural] = self.convert_entities(entity, entities_description)
 
-        results = self.generate_missing_entities(results)
-
-        return results
+        return self.generate_missing_entities(results)
 
     def convert_entities(self, entity, entities_description):
         return {
-            entity_description.get("id", "{}_{}".format(entity.key, index)): remove_id(
-                entity_description
+            entity_description.get("id", f"{entity.key}_{index}"): remove_id(
+                entity_description,
             )
             for index, entity_description in enumerate(entities_description)
         }
@@ -127,12 +122,12 @@ class Migrator(object):
             if len(persons) == 1:
                 person_id = next(iter(persons))
                 inputs[entity.key] = {
-                    entity.roles[0].plural or entity.roles[0].key: [person_id]
+                    entity.roles[0].plural or entity.roles[0].key: [person_id],
                 }
             else:
                 inputs[entity.plural] = {
-                    "{}_{}".format(entity.key, index): {
-                        entity.roles[0].plural or entity.roles[0].key: [person_id]
+                    f"{entity.key}_{index}": {
+                        entity.roles[0].plural or entity.roles[0].key: [person_id],
                     }
                     for index, person_id in enumerate(persons.keys())
                 }
@@ -143,13 +138,15 @@ def remove_id(input_dict):
     return {key: value for (key, value) in input_dict.items() if key != "id"}
 
 
-def main():
+def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
     paths = [os.path.abspath(path) for path in args.path]
 
     tax_benefit_system = build_tax_benefit_system(
-        args.country_package, args.extensions, args.reforms
+        args.country_package,
+        args.extensions,
+        args.reforms,
     )
 
     Migrator(tax_benefit_system).migrate(paths)

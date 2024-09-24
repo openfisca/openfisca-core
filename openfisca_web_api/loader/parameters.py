@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+import functools
+import operator
 
 from openfisca_core.parameters import Parameter, ParameterNode, Scale
 
@@ -24,8 +25,7 @@ def get_value(date, values):
 
     if candidates:
         return candidates[0][1]
-    else:
-        return None
+    return None
 
 
 def build_api_scale(scale, value_key_name):
@@ -39,13 +39,14 @@ def build_api_scale(scale, value_key_name):
     ]
 
     dates = set(
-        sum(
+        functools.reduce(
+            operator.iadd,
             [
                 list(bracket["thresholds"].keys()) + list(bracket["values"].keys())
                 for bracket in brackets
             ],
             [],
-        )
+        ),
     )  # flatten the dates and remove duplicates
 
     # We iterate on all dates as we need to build the whole scale for each of them
@@ -87,7 +88,8 @@ def build_api_parameter(parameter, country_package_metadata):
     }
     if parameter.file_path:
         api_parameter["source"] = build_source_url(
-            parameter.file_path, country_package_metadata
+            parameter.file_path,
+            country_package_metadata,
         )
     if isinstance(parameter, Parameter):
         if parameter.documentation:
@@ -113,7 +115,8 @@ def build_api_parameter(parameter, country_package_metadata):
 def build_parameters(tax_benefit_system, country_package_metadata):
     return {
         parameter.name.replace(".", "/"): build_api_parameter(
-            parameter, country_package_metadata
+            parameter,
+            country_package_metadata,
         )
         for parameter in tax_benefit_system.parameters.get_descendants()
     }

@@ -30,7 +30,10 @@ def get_parser():
             type=int,
         )
         parser.add_argument(
-            "--tracker-url", action="store", help="tracking service url", type=str
+            "--tracker-url",
+            action="store",
+            help="tracking service url",
+            type=str,
         )
         parser.add_argument(
             "--tracker-idsite",
@@ -65,7 +68,9 @@ def get_parser():
 
     def build_test_parser(parser):
         parser.add_argument(
-            "path", help="paths (files or directories) of tests to execute", nargs="+"
+            "path",
+            help="paths (files or directories) of tests to execute",
+            nargs="+",
         )
         parser = add_tax_benefit_system_arguments(parser)
         parser.add_argument(
@@ -156,6 +161,7 @@ def main():
         from openfisca_core.scripts.run_test import main
 
         return sys.exit(main(parser))
+    return None
 
 
 if __name__ == "__main__":

@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-
-""" xml_to_yaml_extension_template.py : Parse XML parameter files for Extension-Template and convert them to YAML files. Comments are NOT transformed.
+"""xml_to_yaml_extension_template.py : Parse XML parameter files for Extension-Template and convert them to YAML files. Comments are NOT transformed.
 
 Usage :
   `python xml_to_yaml_extension_template.py output_dir`
@@ -15,10 +13,7 @@ import openfisca_extension_template
 
 from . import xml_to_yaml
 
-if len(sys.argv) > 1:
-    target_path = sys.argv[1]
-else:
-    target_path = "yaml_parameters"
+target_path = sys.argv[1] if len(sys.argv) > 1 else "yaml_parameters"
 
 param_dir = os.path.dirname(openfisca_extension_template.__file__)
 param_files = [

@@ -15,12 +15,12 @@ def data():
                 "amount": {
                     "2017-10-01": {"value": 6},
                 },
-            }
+            },
         ],
     }
 
 
-def test_calc():
+def test_calc() -> None:
     tax_base = array([1, 8, 10])
     tax_scale = taxscales.MarginalAmountTaxScale()
     tax_scale.add_bracket(6, 0.23)
@@ -32,7 +32,7 @@ def test_calc():
 
 
 # TODO: move, as we're testing Scale, not MarginalAmountTaxScale
-def test_dispatch_scale_type_on_creation(data):
+def test_dispatch_scale_type_on_creation(data) -> None:
     scale = parameters.Scale("amount_scale", data, "")
     first_jan = periods.Instant((2017, 11, 1))
 

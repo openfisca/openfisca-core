@@ -10,7 +10,7 @@ import numpy
 assert len(sys.argv) == 2
 filename = sys.argv[1]
 
-with open(filename, "r") as f:
+with open(filename) as f:
     lines = f.readlines()
 
 

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import datetime
 import inspect
 import textwrap
@@ -26,7 +24,10 @@ def get_default_value(variable):
 
 
 def build_source_url(
-    country_package_metadata, source_file_path, start_line_number, source_code
+    country_package_metadata,
+    source_file_path,
+    start_line_number,
+    source_code,
 ):
     nb_lines = source_code.count("\n")
     return "{}/blob/{}{}#L{}-L{}".format(
@@ -45,7 +46,10 @@ def build_formula(formula, country_package_metadata, source_file_path):
 
     api_formula = {
         "source": build_source_url(
-            country_package_metadata, source_file_path, start_line_number, source_code
+            country_package_metadata,
+            source_file_path,
+            start_line_number,
+            source_code,
         ),
         "content": source_code,
     }
@@ -80,7 +84,10 @@ def build_variable(variable, country_package_metadata):
 
     if source_code:
         result["source"] = build_source_url(
-            country_package_metadata, source_file_path, start_line_number, source_code
+            country_package_metadata,
+            source_file_path,
+            start_line_number,
+            source_code,
         )
 
     if variable.documentation:
@@ -91,7 +98,9 @@ def build_variable(variable, country_package_metadata):
 
     if len(variable.formulas) > 0:
         result["formulas"] = build_formulas(
-            variable.formulas, country_package_metadata, source_file_path
+            variable.formulas,
+            country_package_metadata,
+            source_file_path,
         )
 
         if variable.end:

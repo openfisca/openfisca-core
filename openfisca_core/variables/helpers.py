@@ -1,19 +1,16 @@
 from __future__ import annotations
 
-from typing import Optional
-
 import sortedcontainers
 
+from openfisca_core import variables
 from openfisca_core.periods import Period
-
-from .. import variables
 
 
 def get_annualized_variable(
-    variable: variables.Variable, annualization_period: Optional[Period] = None
+    variable: variables.Variable,
+    annualization_period: Period | None = None,
 ) -> variables.Variable:
-    """
-    Returns a clone of ``variable`` that is annualized for the period ``annualization_period``.
+    """Returns a clone of ``variable`` that is annualized for the period ``annualization_period``.
     When annualized, a variable's formula is only called for a January calculation, and the results for other months are assumed to be identical.
     """
 
@@ -34,23 +31,24 @@ def get_annualized_variable(
         {
             key: make_annual_formula(formula, annualization_period)
             for key, formula in variable.formulas.items()
-        }
+        },
     )
 
     return new_variable
 
 
 def get_neutralized_variable(variable):
-    """
-    Return a new neutralized variable (to be used by reforms).
+    """Return a new neutralized variable (to be used by reforms).
     A neutralized variable always returns its default value, and does not cache anything.
     """
     result = variable.clone()
     result.is_neutralized = True
     result.label = (
-        "[Neutralized]"
-        if variable.label is None
-        else "[Neutralized] {}".format(variable.label),
+        (
+            "[Neutralized]"
+            if variable.label is None
+            else f"[Neutralized] {variable.label}"
+        ),
     )
 
     return result

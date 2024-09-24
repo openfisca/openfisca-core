@@ -13,31 +13,31 @@ def variable(persons):
     return TestVariable
 
 
-def test_weekday_variable(variable):
+def test_weekday_variable(variable) -> None:
     variable.definition_period = periods.WEEKDAY
     assert variable()
 
 
-def test_week_variable(variable):
+def test_week_variable(variable) -> None:
     variable.definition_period = periods.WEEK
     assert variable()
 
 
-def test_day_variable(variable):
+def test_day_variable(variable) -> None:
     variable.definition_period = periods.DAY
     assert variable()
 
 
-def test_month_variable(variable):
+def test_month_variable(variable) -> None:
     variable.definition_period = periods.MONTH
     assert variable()
 
 
-def test_year_variable(variable):
+def test_year_variable(variable) -> None:
     variable.definition_period = periods.YEAR
     assert variable()
 
 
-def test_eternity_variable(variable):
+def test_eternity_variable(variable) -> None:
     variable.definition_period = periods.ETERNITY
     assert variable()

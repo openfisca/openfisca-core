@@ -10,19 +10,19 @@ PERIOD = periods.period("2016-01")
 
 
 @pytest.mark.parametrize("simulation", [({"salary": 2000}, PERIOD)], indirect=True)
-def test_input_variable(simulation):
+def test_input_variable(simulation) -> None:
     result = simulation.calculate("salary", PERIOD)
     tools.assert_near(result, [2000], absolute_error_margin=0.01)
 
 
 @pytest.mark.parametrize("simulation", [({"salary": 2000}, PERIOD)], indirect=True)
-def test_basic_calculation(simulation):
+def test_basic_calculation(simulation) -> None:
     result = simulation.calculate("income_tax", PERIOD)
     tools.assert_near(result, [300], absolute_error_margin=0.01)
 
 
 @pytest.mark.parametrize("simulation", [({"salary": 24000}, PERIOD)], indirect=True)
-def test_calculate_add(simulation):
+def test_calculate_add(simulation) -> None:
     result = simulation.calculate_add("income_tax", PERIOD)
     tools.assert_near(result, [3600], absolute_error_margin=0.01)
 
@@ -32,26 +32,26 @@ def test_calculate_add(simulation):
     [({"accommodation_size": 100, "housing_occupancy_status": "tenant"}, PERIOD)],
     indirect=True,
 )
-def test_calculate_divide(simulation):
+def test_calculate_divide(simulation) -> None:
     result = simulation.calculate_divide("housing_tax", PERIOD)
     tools.assert_near(result, [1000 / 12.0], absolute_error_margin=0.01)
 
 
 @pytest.mark.parametrize("simulation", [({"salary": 20000}, PERIOD)], indirect=True)
-def test_bareme(simulation):
+def test_bareme(simulation) -> None:
     result = simulation.calculate("social_security_contribution", PERIOD)
     expected = [0.02 * 6000 + 0.06 * 6400 + 0.12 * 7600]
     tools.assert_near(result, expected, absolute_error_margin=0.01)
 
 
 @pytest.mark.parametrize("simulation", [({}, PERIOD)], indirect=True)
-def test_non_existing_variable(simulation):
+def test_non_existing_variable(simulation) -> None:
     with pytest.raises(VariableNotFoundError):
         simulation.calculate("non_existent_variable", PERIOD)
 
 
 @pytest.mark.parametrize("simulation", [({}, PERIOD)], indirect=True)
-def test_calculate_variable_with_wrong_definition_period(simulation):
+def test_calculate_variable_with_wrong_definition_period(simulation) -> None:
     year = str(PERIOD.this_year)
 
     with pytest.raises(ValueError) as error:
@@ -67,7 +67,7 @@ def test_calculate_variable_with_wrong_definition_period(simulation):
 
 
 @pytest.mark.parametrize("simulation", [({}, PERIOD)], indirect=True)
-def test_divide_option_with_complex_period(simulation):
+def test_divide_option_with_complex_period(simulation) -> None:
     quarter = PERIOD.last_3_months
 
     with pytest.raises(ValueError) as error:
@@ -82,7 +82,7 @@ def test_divide_option_with_complex_period(simulation):
         ), f"Expected '{word}' in error message '{error_message}'"
 
 
-def test_input_with_wrong_period(tax_benefit_system):
+def test_input_with_wrong_period(tax_benefit_system) -> None:
     year = str(PERIOD.this_year)
     variables = {"basic_income": {year: 12000}}
     simulation_builder = SimulationBuilder()
@@ -92,7 +92,7 @@ def test_input_with_wrong_period(tax_benefit_system):
         simulation_builder.build_from_variables(tax_benefit_system, variables)
 
 
-def test_variable_with_reference(make_simulation, isolated_tax_benefit_system):
+def test_variable_with_reference(make_simulation, isolated_tax_benefit_system) -> None:
     variables = {"salary": 4000}
     simulation = make_simulation(isolated_tax_benefit_system, variables, PERIOD)
 
@@ -103,8 +103,8 @@ def test_variable_with_reference(make_simulation, isolated_tax_benefit_system):
     class disposable_income(Variable):
         definition_period = DateUnit.MONTH
 
-        def formula(household, period):
-            return household.empty_array()
+        def formula(self, period):
+            return self.empty_array()
 
     isolated_tax_benefit_system.update_variable(disposable_income)
     simulation = make_simulation(isolated_tax_benefit_system, variables, PERIOD)
@@ -114,13 +114,13 @@ def test_variable_with_reference(make_simulation, isolated_tax_benefit_system):
     assert result == 0
 
 
-def test_variable_name_conflict(tax_benefit_system):
+def test_variable_name_conflict(tax_benefit_system) -> None:
     class disposable_income(Variable):
         reference = "disposable_income"
         definition_period = DateUnit.MONTH
 
-        def formula(household, period):
-            return household.empty_array()
+        def formula(self, period):
+            return self.empty_array()
 
     with pytest.raises(VariableNameConflictError):
         tax_benefit_system.add_variable(disposable_income)

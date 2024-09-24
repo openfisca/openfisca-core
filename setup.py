@@ -33,7 +33,7 @@ general_requirements = [
     "numpy >=1.24.2, <1.25",
     "pendulum >=2.1.2, <3.0.0",
     "psutil >=5.9.4, <6.0",
-    "pytest >=7.2.2, <8.0",
+    "pytest >=8.3.3, <9.0",
     "sortedcontainers >=2.4.0, <3.0",
     "typing_extensions >=4.5.0, <5.0",
     "StrEnum >=0.4.8, <0.5.0",  # 3.11.x backport
@@ -47,27 +47,30 @@ api_requirements = [
 ]
 
 dev_requirements = [
-    "black >=23.1.0, <24.0",
-    "coverage >=6.5.0, <7.0",
+    "black >=24.8.0, <25.0",
+    "coverage >=7.6.1, <8.0",
     "darglint >=1.8.1, <2.0",
-    "flake8 >=6.0.0, <7.0.0",
-    "flake8-bugbear >=23.3.23, <24.0",
+    "flake8 >=7.1.1, <8.0.0",
+    "flake8-bugbear >=24.8.19, <25.0",
     "flake8-docstrings >=1.7.0, <2.0",
     "flake8-print >=5.0.0, <6.0",
     "flake8-rst-docstrings >=0.3.0, <0.4.0",
-    "idna >=3.4, <4.0",
-    "isort >=5.12.0, <6.0",
-    "mypy >=1.1.1, <2.0",
+    "idna >=3.10, <4.0",
+    "isort >=5.13.2, <6.0",
+    "mypy >=1.11.2, <2.0",
     "openapi-spec-validator >=0.7.1, <0.8.0",
-    "pycodestyle >=2.10.0, <3.0",
-    "pylint >=2.17.1, <3.0",
+    "pylint >=3.3.1, <4.0",
     "pylint-per-file-ignores >=1.3.2, <2.0",
-    "xdoctest >=1.1.1, <2.0",
-] + api_requirements
+    "pyright >=1.1.381, <2.0",
+    "ruff >=0.6.7, <1.0",
+    "ruff-lsp >=0.0.57, <1.0",
+    "xdoctest >=1.2.0, <2.0",
+    *api_requirements,
+]
 
 setup(
     name="OpenFisca-Core",
-    version="41.5.5",
+    version="41.5.6",
     author="OpenFisca Team",
     author_email="contact@openfisca.org",
     classifiers=[
@@ -104,7 +107,7 @@ setup(
         "dev": dev_requirements,
         "ci": [
             "build >=0.10.0, <0.11.0",
-            "coveralls >=3.3.1, <4.0",
+            "coveralls >=4.0.1, <5.0",
             "twine >=5.1.1, <6.0",
             "wheel >=0.40.0, <0.41.0",
         ],

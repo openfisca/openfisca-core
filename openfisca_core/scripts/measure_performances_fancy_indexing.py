@@ -2,24 +2,25 @@
 
 import timeit
 
-import numpy as np
+import numpy
 from openfisca_france import CountryTaxBenefitSystem
 
 tbs = CountryTaxBenefitSystem()
 N = 200000
 al_plaf_acc = tbs.get_parameters_at_instant("2015-01-01").prestations.al_plaf_acc
-zone_apl = np.random.choice([1, 2, 3], N)
-al_nb_pac = np.random.choice(6, N)
-couple = np.random.choice([True, False], N)
+zone_apl = numpy.random.choice([1, 2, 3], N)
+al_nb_pac = numpy.random.choice(6, N)
+couple = numpy.random.choice([True, False], N)
 formatted_zone = concat(
-    "plafond_pour_accession_a_la_propriete_zone_", zone_apl
+    "plafond_pour_accession_a_la_propriete_zone_",
+    zone_apl,
 )  # zone_apl returns 1, 2 or 3 but the parameters have a long name
 
 
 def formula_with():
     plafonds = al_plaf_acc[formatted_zone]
 
-    result = (
+    return (
         plafonds.personne_isolee_sans_enfant * not_(couple) * (al_nb_pac == 0)
         + plafonds.menage_seul * couple * (al_nb_pac == 0)
         + plafonds.menage_ou_isole_avec_1_enfant * (al_nb_pac == 1)
@@ -31,8 +32,6 @@ def formula_with():
         * (al_nb_pac > 5)
         * (al_nb_pac - 5)
     )
-
-    return result
 
 
 def formula_without():
@@ -79,14 +78,12 @@ def formula_without():
 
 if __name__ == "__main__":
     time_with = timeit.timeit(
-        "formula_with()", setup="from __main__ import formula_with", number=50
+        "formula_with()",
+        setup="from __main__ import formula_with",
+        number=50,
     )
     time_without = timeit.timeit(
-        "formula_without()", setup="from __main__ import formula_without", number=50
+        "formula_without()",
+        setup="from __main__ import formula_without",
+        number=50,
     )
-
-    print("Computing with dynamic legislation computing took {}".format(time_with))
-    print(
-        "Computing without dynamic legislation computing took {}".format(time_without)
-    )
-    print("Ratio: {}".format(time_with / time_without))

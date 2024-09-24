@@ -7,9 +7,8 @@ from openfisca_core.parameters.vectorial_parameter_node_at_instant import (
 
 
 class VectorialAsofDateParameterNodeAtInstant(VectorialParameterNodeAtInstant):
-    """
-    Parameter node of the legislation at a given instant which has been vectorized along some date.
-    Vectorized parameters allow requests such as parameters.housing_benefit[date], where date is a np.datetime64 type vector
+    """Parameter node of the legislation at a given instant which has been vectorized along some date.
+    Vectorized parameters allow requests such as parameters.housing_benefit[date], where date is a numpy.datetime64 type vector.
     """
 
     @staticmethod
@@ -19,13 +18,15 @@ class VectorialAsofDateParameterNodeAtInstant(VectorialParameterNodeAtInstant):
         # Recursively vectorize the children of the node
         vectorial_subnodes = tuple(
             [
-                VectorialAsofDateParameterNodeAtInstant.build_from_node(
-                    node[subnode_name]
-                ).vector
-                if isinstance(node[subnode_name], ParameterNodeAtInstant)
-                else node[subnode_name]
+                (
+                    VectorialAsofDateParameterNodeAtInstant.build_from_node(
+                        node[subnode_name],
+                    ).vector
+                    if isinstance(node[subnode_name], ParameterNodeAtInstant)
+                    else node[subnode_name]
+                )
                 for subnode_name in subnodes_name
-            ]
+            ],
         )
         # A vectorial node is a wrapper around a numpy recarray
         # We first build the recarray
@@ -40,7 +41,9 @@ class VectorialAsofDateParameterNodeAtInstant(VectorialParameterNodeAtInstant):
             ],
         )
         return VectorialAsofDateParameterNodeAtInstant(
-            node._name, recarray.view(numpy.recarray), node._instant_str
+            node._name,
+            recarray.view(numpy.recarray),
+            node._instant_str,
         )
 
     def __getitem__(self, key):
@@ -49,12 +52,12 @@ class VectorialAsofDateParameterNodeAtInstant(VectorialParameterNodeAtInstant):
             key = numpy.array([key], dtype="datetime64[D]")
             return self.__getattr__(key)
         # If the key is a vector, e.g. ['1990-11-25', '1983-04-17', '1969-09-09']
-        elif isinstance(key, numpy.ndarray):
+        if isinstance(key, numpy.ndarray):
             assert numpy.issubdtype(key.dtype, numpy.datetime64)
             names = list(
-                self.dtype.names
+                self.dtype.names,
             )  # Get all the names of the subnodes, e.g. ['before_X', 'after_X', 'after_Y']
-            values = numpy.asarray([value for value in self.vector[0]])
+            values = numpy.asarray(list(self.vector[0]))
             names = [name for name in names if not name.startswith("before")]
             names = [
                 numpy.datetime64("-".join(name[len("after_") :].split("_")))
@@ -65,10 +68,14 @@ class VectorialAsofDateParameterNodeAtInstant(VectorialParameterNodeAtInstant):
 
             # If the result is not a leaf, wrap the result in a vectorial node.
             if numpy.issubdtype(result.dtype, numpy.record) or numpy.issubdtype(
-                result.dtype, numpy.void
+                result.dtype,
+                numpy.void,
             ):
                 return VectorialAsofDateParameterNodeAtInstant(
-                    self._name, result.view(numpy.recarray), self._instant_str
+                    self._name,
+                    result.view(numpy.recarray),
+                    self._instant_str,
                 )
 
             return result
+        return None

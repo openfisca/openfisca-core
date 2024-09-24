@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 from typing_extensions import TypeGuard
 
 from .typing import (
@@ -17,7 +17,8 @@ from .typing import (
 
 
 def are_entities_fully_specified(
-    params: Params, items: Iterable[str]
+    params: Params,
+    items: Iterable[str],
 ) -> TypeGuard[FullySpecifiedEntities]:
     """Check if the params contain fully specified entities.
 
@@ -33,28 +34,32 @@ def are_entities_fully_specified(
 
         >>> params = {
         ...     "axes": [
-        ...         [{"count": 2, "max": 3000, "min": 0, "name": "rent", "period": "2018-11"}]
+        ...         [
+        ...             {
+        ...                 "count": 2,
+        ...                 "max": 3000,
+        ...                 "min": 0,
+        ...                 "name": "rent",
+        ...                 "period": "2018-11",
+        ...             }
+        ...         ]
         ...     ],
         ...     "households": {
         ...         "housea": {"parents": ["Alicia", "Javier"]},
         ...         "houseb": {"parents": ["Tom"]},
-        ...    },
+        ...     },
         ...     "persons": {"Alicia": {"salary": {"2018-11": 0}}, "Javier": {}, "Tom": {}},
         ... }
 
         >>> are_entities_fully_specified(params, entities)
         True
 
-        >>> params = {
-        ...     "persons": {"Javier": {"salary": {"2018-11": [2000, 3000]}}}
-        ... }
+        >>> params = {"persons": {"Javier": {"salary": {"2018-11": [2000, 3000]}}}}
 
         >>> are_entities_fully_specified(params, entities)
         True
 
-        >>> params = {
-        ...     "persons": {"Javier": {"salary": {"2018-11": 2000}}}
-        ... }
+        >>> params = {"persons": {"Javier": {"salary": {"2018-11": 2000}}}}
 
         >>> are_entities_fully_specified(params, entities)
         True
@@ -80,15 +85,15 @@ def are_entities_fully_specified(
         False
 
     """
-
     if not params:
         return False
 
-    return all(key in items for key in params.keys() if key != "axes")
+    return all(key in items for key in params if key != "axes")
 
 
 def are_entities_short_form(
-    params: Params, items: Iterable[str]
+    params: Params,
+    items: Iterable[str],
 ) -> TypeGuard[ImplicitGroupEntities]:
     """Check if the params contain short form entities.
 
@@ -103,25 +108,23 @@ def are_entities_short_form(
         >>> entities = {"person", "household"}
 
         >>> params = {
-        ...     "persons": {"Javier": { "salary": { "2018-11": 2000}}},
+        ...     "persons": {"Javier": {"salary": {"2018-11": 2000}}},
         ...     "households": {"household": {"parents": ["Javier"]}},
-        ...     "axes": [[{"count": 1, "max": 1, "min": 1, "name": "household"}]]
+        ...     "axes": [[{"count": 1, "max": 1, "min": 1, "name": "household"}]],
         ... }
 
         >>> are_entities_short_form(params, entities)
         False
 
-        >>> params = {
-        ...     "persons": {"Javier": {"salary": {"2018-11": 2000}}}
-        ... }
+        >>> params = {"persons": {"Javier": {"salary": {"2018-11": 2000}}}}
 
         >>> are_entities_short_form(params, entities)
         False
 
         >>> params = {
-        ...     "persons": {"Javier": { "salary": { "2018-11": 2000}}},
+        ...     "persons": {"Javier": {"salary": {"2018-11": 2000}}},
         ...     "household": {"parents": ["Javier"]},
-        ...     "axes": [[{"count": 1, "max": 1, "min": 1, "name": "household"}]]
+        ...     "axes": [[{"count": 1, "max": 1, "min": 1, "name": "household"}]],
         ... }
 
         >>> are_entities_short_form(params, entities)
@@ -129,7 +132,7 @@ def are_entities_short_form(
 
         >>> params = {
         ...     "household": {"parents": ["Javier"]},
-        ...     "axes": [[{"count": 1, "max": 1, "min": 1, "name": "household"}]]
+        ...     "axes": [[{"count": 1, "max": 1, "min": 1, "name": "household"}]],
         ... }
 
         >>> are_entities_short_form(params, entities)
@@ -161,12 +164,12 @@ def are_entities_short_form(
         False
 
     """
-
-    return not not set(params).intersection(items)
+    return bool(set(params).intersection(items))
 
 
 def are_entities_specified(
-    params: Params, items: Iterable[str]
+    params: Params,
+    items: Iterable[str],
 ) -> TypeGuard[Variables]:
     """Check if the params contains entities at all.
 
@@ -181,24 +184,20 @@ def are_entities_specified(
         >>> variables = {"salary"}
 
         >>> params = {
-        ...     "persons": {"Javier": { "salary": { "2018-11": 2000}}},
+        ...     "persons": {"Javier": {"salary": {"2018-11": 2000}}},
         ...     "households": {"household": {"parents": ["Javier"]}},
-        ...     "axes": [[{"count": 1, "max": 1, "min": 1, "name": "household"}]]
+        ...     "axes": [[{"count": 1, "max": 1, "min": 1, "name": "household"}]],
         ... }
 
         >>> are_entities_specified(params, variables)
         True
 
-        >>> params = {
-        ...     "persons": {"Javier": {"salary": {"2018-11": [2000, 3000]}}}
-        ... }
+        >>> params = {"persons": {"Javier": {"salary": {"2018-11": [2000, 3000]}}}}
 
         >>> are_entities_specified(params, variables)
         True
 
-        >>> params = {
-        ...     "persons": {"Javier": {"salary": {"2018-11": 2000}}}
-        ... }
+        >>> params = {"persons": {"Javier": {"salary": {"2018-11": 2000}}}}
 
         >>> are_entities_specified(params, variables)
         True
@@ -234,11 +233,10 @@ def are_entities_specified(
         False
 
     """
-
     if not params:
         return False
 
-    return not any(key in items for key in params.keys())
+    return not any(key in items for key in params)
 
 
 def has_axes(params: Params) -> TypeGuard[Axes]:
@@ -252,23 +250,20 @@ def has_axes(params: Params) -> TypeGuard[Axes]:
 
     Examples:
         >>> params = {
-        ...     "persons": {"Javier": { "salary": { "2018-11": 2000}}},
+        ...     "persons": {"Javier": {"salary": {"2018-11": 2000}}},
         ...     "households": {"household": {"parents": ["Javier"]}},
-        ...     "axes": [[{"count": 1, "max": 1, "min": 1, "name": "household"}]]
+        ...     "axes": [[{"count": 1, "max": 1, "min": 1, "name": "household"}]],
         ... }
 
         >>> has_axes(params)
         True
 
-        >>> params = {
-        ...     "persons": {"Javier": {"salary": {"2018-11": [2000, 3000]}}}
-        ... }
+        >>> params = {"persons": {"Javier": {"salary": {"2018-11": [2000, 3000]}}}}
 
         >>> has_axes(params)
         False
 
     """
-
     return params.get("axes", None) is not None
 
 
@@ -300,5 +295,4 @@ def is_variable_dated(
         False
 
     """
-
     return isinstance(variable, dict)

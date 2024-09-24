@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
 from numpy.typing import NDArray as Array
-from typing import Dict, List
+from typing import NoReturn
 
 import copy
 
@@ -39,7 +39,7 @@ from .typing import (
 
 
 class SimulationBuilder:
-    def __init__(self):
+    def __init__(self) -> None:
         self.default_period = (
             None  # Simulation period used for variables when no period is defined
         )
@@ -48,26 +48,27 @@ class SimulationBuilder:
         )
 
         # JSON input - Memory of known input values. Indexed by variable or axis name.
-        self.input_buffer: Dict[
-            variables.Variable.name, Dict[str(periods.period), numpy.array]
+        self.input_buffer: dict[
+            variables.Variable.name,
+            dict[str(periods.period), numpy.array],
         ] = {}
-        self.populations: Dict[entities.Entity.key, populations.Population] = {}
+        self.populations: dict[entities.Entity.key, populations.Population] = {}
         # JSON input - Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
-        self.entity_counts: Dict[entities.Entity.plural, int] = {}
+        self.entity_counts: dict[entities.Entity.plural, int] = {}
         # JSON input - List of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_counts``.
-        self.entity_ids: Dict[entities.Entity.plural, List[int]] = {}
+        self.entity_ids: dict[entities.Entity.plural, list[int]] = {}
 
         # Links entities with persons. For each person index in persons ids list, set entity index in entity ids id. E.g.: self.memberships[entity.plural][person_index] = entity_ids.index(instance_id)
-        self.memberships: Dict[entities.Entity.plural, List[int]] = {}
-        self.roles: Dict[entities.Entity.plural, List[int]] = {}
+        self.memberships: dict[entities.Entity.plural, list[int]] = {}
+        self.roles: dict[entities.Entity.plural, list[int]] = {}
 
-        self.variable_entities: Dict[variables.Variable.name, entities.Entity] = {}
+        self.variable_entities: dict[variables.Variable.name, entities.Entity] = {}
 
         self.axes = [[]]
-        self.axes_entity_counts: Dict[entities.Entity.plural, int] = {}
-        self.axes_entity_ids: Dict[entities.Entity.plural, List[int]] = {}
-        self.axes_memberships: Dict[entities.Entity.plural, List[int]] = {}
-        self.axes_roles: Dict[entities.Entity.plural, List[int]] = {}
+        self.axes_entity_counts: dict[entities.Entity.plural, int] = {}
+        self.axes_entity_ids: dict[entities.Entity.plural, list[int]] = {}
+        self.axes_memberships: dict[entities.Entity.plural, list[int]] = {}
+        self.axes_roles: dict[entities.Entity.plural, list[int]] = {}
 
     def build_from_dict(
         self,
@@ -91,9 +92,9 @@ class SimulationBuilder:
             >>> entities = {"person", "household"}
 
             >>> params = {
-            ...     "persons": {"Javier": { "salary": { "2018-11": 2000}}},
+            ...     "persons": {"Javier": {"salary": {"2018-11": 2000}}},
             ...     "household": {"parents": ["Javier"]},
-            ...     "axes": [[{"count": 1, "max": 1, "min": 1, "name": "household"}]]
+            ...     "axes": [[{"count": 1, "max": 1, "min": 1, "name": "household"}]],
             ... }
 
             >>> are_entities_short_form(params, entities)
@@ -103,13 +104,25 @@ class SimulationBuilder:
 
             >>> params = {
             ...     "axes": [
-            ...         [{"count": 2, "max": 3000, "min": 0, "name": "rent", "period": "2018-11"}]
+            ...         [
+            ...             {
+            ...                 "count": 2,
+            ...                 "max": 3000,
+            ...                 "min": 0,
+            ...                 "name": "rent",
+            ...                 "period": "2018-11",
+            ...             }
+            ...         ]
             ...     ],
             ...     "households": {
             ...         "housea": {"parents": ["Alicia", "Javier"]},
             ...         "houseb": {"parents": ["Tom"]},
-            ...    },
-            ...     "persons": {"Alicia": {"salary": {"2018-11": 0}}, "Javier": {}, "Tom": {}},
+            ...     },
+            ...     "persons": {
+            ...         "Alicia": {"salary": {"2018-11": 0}},
+            ...         "Javier": {},
+            ...         "Tom": {},
+            ...     },
             ... }
 
             >>> are_entities_short_form(params, entities)
@@ -121,7 +134,6 @@ class SimulationBuilder:
             True
 
         """
-
         #: The plural names of the entities in the tax and benefits system.
         plural: Iterable[str] = tax_benefit_system.entities_plural()
 
@@ -140,6 +152,7 @@ class SimulationBuilder:
 
         if not are_entities_specified(params := input_dict, variables):
             return self.build_from_variables(tax_benefit_system, params)
+        return None
 
     def build_from_entities(
         self,
@@ -153,16 +166,15 @@ class SimulationBuilder:
             >>> entities = {"person", "household"}
 
             >>> params = {
-            ...     "persons": {"Javier": { "salary": { "2018-11": 2000}}},
+            ...     "persons": {"Javier": {"salary": {"2018-11": 2000}}},
             ...     "household": {"parents": ["Javier"]},
-            ...     "axes": [[{"count": 1, "max": 1, "min": 1, "name": "household"}]]
+            ...     "axes": [[{"count": 1, "max": 1, "min": 1, "name": "household"}]],
             ... }
 
             >>> are_entities_short_form(params, entities)
             True
 
         """
-
         # Create the populations
         populations = tax_benefit_system.instantiate_entities()
 
@@ -203,9 +215,7 @@ class SimulationBuilder:
         if not persons_json:
             raise errors.SituationParsingError(
                 [person_entity.plural],
-                "No {0} found. At least one {0} must be defined to run a simulation.".format(
-                    person_entity.key
-                ),
+                f"No {person_entity.key} found. At least one {person_entity.key} must be defined to run a simulation.",
             )
 
         persons_ids = self.add_person_entity(simulation.persons.entity, persons_json)
@@ -215,7 +225,10 @@ class SimulationBuilder:
 
             if instances_json is not None:
                 self.add_group_entity(
-                    self.persons_plural, persons_ids, entity_class, instances_json
+                    self.persons_plural,
+                    persons_ids,
+                    entity_class,
+                    instances_json,
                 )
 
             elif axes is not None:
@@ -257,7 +270,9 @@ class SimulationBuilder:
         return simulation
 
     def build_from_variables(
-        self, tax_benefit_system: TaxBenefitSystem, input_dict: Variables
+        self,
+        tax_benefit_system: TaxBenefitSystem,
+        input_dict: Variables,
     ) -> Simulation:
         """Build a simulation from a Python dict ``input_dict`` describing
         variables values without expliciting entities.
@@ -276,18 +291,17 @@ class SimulationBuilder:
             SituationParsingError: If the input is not valid.
 
         Examples:
-            >>> params = {'salary': {'2016-10': 12000}}
+            >>> params = {"salary": {"2016-10": 12000}}
 
             >>> are_entities_specified(params, {"salary"})
             False
 
-            >>> params = {'salary': 12000}
+            >>> params = {"salary": 12000}
 
             >>> are_entities_specified(params, {"salary"})
             False
 
         """
-
         return (
             _BuildFromVariables(tax_benefit_system, input_dict, self.default_period)
             .add_dated_values()
@@ -297,7 +311,8 @@ class SimulationBuilder:
 
     @staticmethod
     def build_default_simulation(
-        tax_benefit_system: TaxBenefitSystem, count: int = 1
+        tax_benefit_system: TaxBenefitSystem,
+        count: int = 1,
     ) -> Simulation:
         """Build a default simulation.
 
@@ -307,7 +322,6 @@ class SimulationBuilder:
             - Every person has, in each entity, the first role
 
         """
-
         return (
             _BuildDefaultSimulation(tax_benefit_system, count)
             .add_count()
@@ -316,10 +330,10 @@ class SimulationBuilder:
             .simulation
         )
 
-    def create_entities(self, tax_benefit_system):
+    def create_entities(self, tax_benefit_system) -> None:
         self.populations = tax_benefit_system.instantiate_entities()
 
-    def declare_person_entity(self, person_singular, persons_ids: Iterable):
+    def declare_person_entity(self, person_singular, persons_ids: Iterable) -> None:
         person_instance = self.populations[person_singular]
         person_instance.ids = numpy.array(list(persons_ids))
         person_instance.count = len(person_instance.ids)
@@ -336,11 +350,15 @@ class SimulationBuilder:
         return self.populations[entity_singular].nb_persons(role=role)
 
     def join_with_persons(
-        self, group_population, persons_group_assignment, roles: Iterable[str]
-    ):
+        self,
+        group_population,
+        persons_group_assignment,
+        roles: Iterable[str],
+    ) -> None:
         # Maps group's identifiers to a 0-based integer range, for indexing into members_roles (see PR#876)
         group_sorted_indices = numpy.unique(
-            persons_group_assignment, return_inverse=True
+            persons_group_assignment,
+            return_inverse=True,
         )[1]
         group_population.members_entity_id = numpy.argsort(group_population.ids)[
             group_sorted_indices
@@ -350,27 +368,32 @@ class SimulationBuilder:
         roles_array = numpy.array(roles)
         if numpy.issubdtype(roles_array.dtype, numpy.integer):
             group_population.members_role = numpy.array(flattened_roles)[roles_array]
+        elif len(flattened_roles) == 0:
+            group_population.members_role = numpy.int64(0)
         else:
-            if len(flattened_roles) == 0:
-                group_population.members_role = numpy.int64(0)
-            else:
-                group_population.members_role = numpy.select(
-                    [roles_array == role.key for role in flattened_roles],
-                    flattened_roles,
-                )
+            group_population.members_role = numpy.select(
+                [roles_array == role.key for role in flattened_roles],
+                flattened_roles,
+            )
 
     def build(self, tax_benefit_system):
         return Simulation(tax_benefit_system, self.populations)
 
     def explicit_singular_entities(
-        self, tax_benefit_system: TaxBenefitSystem, input_dict: ImplicitGroupEntities
+        self,
+        tax_benefit_system: TaxBenefitSystem,
+        input_dict: ImplicitGroupEntities,
     ) -> GroupEntities:
         """Preprocess ``input_dict`` to explicit entities defined using the
-        single-entity shortcut
+        single-entity shortcut.
 
         Examples:
-
-            >>> params = {'persons': {'Javier': {}, }, 'household': {'parents': ['Javier']}}
+            >>> params = {
+            ...     "persons": {
+            ...         "Javier": {},
+            ...     },
+            ...     "household": {"parents": ["Javier"]},
+            ... }
 
             >>> are_entities_fully_specified(params, {"persons", "households"})
             False
@@ -378,7 +401,10 @@ class SimulationBuilder:
             >>> are_entities_short_form(params, {"person", "household"})
             True
 
-            >>> params = {'persons': {'Javier': {}}, 'households': {'household': {'parents': ['Javier']}}}
+            >>> params = {
+            ...     "persons": {"Javier": {}},
+            ...     "households": {"household": {"parents": ["Javier"]}},
+            ... }
 
             >>> are_entities_fully_specified(params, {"persons", "households"})
             True
@@ -387,9 +413,8 @@ class SimulationBuilder:
             False
 
         """
-
         singular_keys = set(input_dict).intersection(
-            tax_benefit_system.entities_by_singular()
+            tax_benefit_system.entities_by_singular(),
         )
 
         result = {
@@ -405,9 +430,7 @@ class SimulationBuilder:
         return result
 
     def add_person_entity(self, entity, instances_json):
-        """
-        Add the simulation's instances of the persons entity as described in ``instances_json``.
-        """
+        """Add the simulation's instances of the persons entity as described in ``instances_json``."""
         helpers.check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
         self.persons_plural = entity.plural
@@ -421,14 +444,16 @@ class SimulationBuilder:
         return self.get_ids(entity.plural)
 
     def add_default_group_entity(
-        self, persons_ids: list[str], entity: GroupEntity
+        self,
+        persons_ids: list[str],
+        entity: GroupEntity,
     ) -> None:
         persons_count = len(persons_ids)
         roles = list(entity.flattened_roles)
         self.entity_ids[entity.plural] = persons_ids
         self.entity_counts[entity.plural] = persons_count
         self.memberships[entity.plural] = list(
-            numpy.arange(0, persons_count, dtype=numpy.int32)
+            numpy.arange(0, persons_count, dtype=numpy.int32),
         )
         self.roles[entity.plural] = [roles[0]] * persons_count
 
@@ -439,9 +464,7 @@ class SimulationBuilder:
         entity: GroupEntity,
         instances_json,
     ) -> None:
-        """
-        Add all instances of one of the model's entities as described in ``instances_json``.
-        """
+        """Add all instances of one of the model's entities as described in ``instances_json``."""
         helpers.check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
 
@@ -464,14 +487,16 @@ class SimulationBuilder:
             roles_json = {
                 role.plural
                 or role.key: helpers.transform_to_strict_syntax(
-                    variables_json.pop(role.plural or role.key, [])
+                    variables_json.pop(role.plural or role.key, []),
                 )
                 for role in entity.roles
             }
 
             for role_id, role_definition in roles_json.items():
                 helpers.check_type(
-                    role_definition, list, [entity.plural, instance_id, role_id]
+                    role_definition,
+                    list,
+                    [entity.plural, instance_id, role_id],
                 )
                 for index, person_id in enumerate(role_definition):
                     entity_plural = entity.plural
@@ -515,7 +540,7 @@ class SimulationBuilder:
             for person_id in persons_to_allocate:
                 person_index = persons_ids.index(person_id)
                 self.memberships[entity.plural][person_index] = entity_ids.index(
-                    person_id
+                    person_id,
                 )
                 self.roles[entity.plural][person_index] = entity.flattened_roles[0]
             # Adjust previously computed ids and counts
@@ -526,7 +551,7 @@ class SimulationBuilder:
         self.roles[entity.plural] = self.roles[entity.plural].tolist()
         self.memberships[entity.plural] = self.memberships[entity.plural].tolist()
 
-    def set_default_period(self, period_str):
+    def set_default_period(self, period_str) -> None:
         if period_str:
             self.default_period = str(periods.period(period_str))
 
@@ -546,26 +571,24 @@ class SimulationBuilder:
         role_id,
         persons_to_allocate,
         index,
-    ):
+    ) -> None:
         helpers.check_type(
-            person_id, str, [entity_plural, entity_id, role_id, str(index)]
+            person_id,
+            str,
+            [entity_plural, entity_id, role_id, str(index)],
         )
         if person_id not in persons_ids:
             raise errors.SituationParsingError(
                 [entity_plural, entity_id, role_id],
-                "Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(
-                    person_id, entity_id, role_id, persons_plural
-                ),
+                f"Unexpected value: {person_id}. {person_id} has been declared in {entity_id} {role_id}, but has not been declared in {persons_plural}.",
             )
         if person_id not in persons_to_allocate:
             raise errors.SituationParsingError(
                 [entity_plural, entity_id, role_id],
-                "{} has been declared more than once in {}".format(
-                    person_id, entity_plural
-                ),
+                f"{person_id} has been declared more than once in {entity_plural}",
             )
 
-    def init_variable_values(self, entity, instance_object, instance_id):
+    def init_variable_values(self, entity, instance_object, instance_id) -> None:
         for variable_name, variable_values in instance_object.items():
             path_in_json = [entity.plural, instance_id, variable_name]
             try:
@@ -592,12 +615,23 @@ class SimulationBuilder:
                     raise errors.SituationParsingError(path_in_json, e.args[0])
                 variable = entity.get_variable(variable_name)
                 self.add_variable_value(
-                    entity, variable, instance_index, instance_id, period_str, value
+                    entity,
+                    variable,
+                    instance_index,
+                    instance_id,
+                    period_str,
+                    value,
                 )
 
     def add_variable_value(
-        self, entity, variable, instance_index, instance_id, period_str, value
-    ):
+        self,
+        entity,
+        variable,
+        instance_index,
+        instance_id,
+        period_str,
+        value,
+    ) -> None:
         path_in_json = [entity.plural, instance_id, variable.name, period_str]
 
         if value is None:
@@ -618,7 +652,7 @@ class SimulationBuilder:
 
         self.input_buffer[variable.name][str(periods.period(period_str))] = array
 
-    def finalize_variables_init(self, population):
+    def finalize_variables_init(self, population) -> None:
         # Due to set_input mechanism, we must bufferize all inputs, then actually set them,
         # so that the months are set first and the years last.
         plural_key = population.entity.plural
@@ -628,7 +662,7 @@ class SimulationBuilder:
         if plural_key in self.memberships:
             population.members_entity_id = numpy.array(self.get_memberships(plural_key))
             population.members_role = numpy.array(self.get_roles(plural_key))
-        for variable_name in self.input_buffer.keys():
+        for variable_name in self.input_buffer:
             try:
                 holder = population.get_holder(variable_name)
             except ValueError:  # Wrong entity, we can just ignore that
@@ -636,7 +670,7 @@ class SimulationBuilder:
             buffer = self.input_buffer[variable_name]
             unsorted_periods = [
                 periods.period(period_str)
-                for period_str in self.input_buffer[variable_name].keys()
+                for period_str in self.input_buffer[variable_name]
             ]
             # We need to handle small periods first for set_input to work
             sorted_periods = sorted(unsorted_periods, key=periods.key_period_size)
@@ -651,21 +685,23 @@ class SimulationBuilder:
                 if (variable.end is None) or (period_value.start.date <= variable.end):
                     holder.set_input(period_value, array)
 
-    def raise_period_mismatch(self, entity, json, e):
+    def raise_period_mismatch(self, entity, json, e) -> NoReturn:
         # This error happens when we try to set a variable value for a period that doesn't match its definition period
         # It is only raised when we consume the buffer. We thus don't know which exact key caused the error.
         # We do a basic research to find the culprit path
         culprit_path = next(
             dpath.util.search(
-                json, f"*/{e.variable_name}/{str(e.period)}", yielded=True
+                json,
+                f"*/{e.variable_name}/{e.period!s}",
+                yielded=True,
             ),
             None,
         )
         if culprit_path:
-            path = [entity.plural] + culprit_path[0].split("/")
+            path = [entity.plural, *culprit_path[0].split("/")]
         else:
             path = [
-                entity.plural
+                entity.plural,
             ]  # Fallback: if we can't find the culprit, just set the error at the entities level
 
         raise errors.SituationParsingError(path, e.message)
@@ -682,7 +718,8 @@ class SimulationBuilder:
     def get_memberships(self, entity_name):
         # Return empty array for the "persons" entity
         return self.axes_memberships.get(
-            entity_name, self.memberships.get(entity_name, [])
+            entity_name,
+            self.memberships.get(entity_name, []),
         )
 
     # Returns the roles of individuals in this entity, including when there is replication along axes
@@ -710,7 +747,7 @@ class SimulationBuilder:
             cell_count *= axis_count
 
         # Scale the "prototype" situation, repeating it cell_count times
-        for entity_name in self.entity_counts.keys():
+        for entity_name in self.entity_counts:
             # Adjust counts
             self.axes_entity_counts[entity_name] = (
                 self.get_count(entity_name) * cell_count
@@ -718,7 +755,8 @@ class SimulationBuilder:
             # Adjust ids
             original_ids: list[str] = self.get_ids(entity_name) * cell_count
             indices: Array[numpy.int_] = numpy.arange(
-                0, cell_count * self.entity_counts[entity_name]
+                0,
+                cell_count * self.entity_counts[entity_name],
             )
             adjusted_ids: list[str] = [
                 original_id + str(index)
@@ -792,7 +830,7 @@ class SimulationBuilder:
                     array = self.get_input(axis_name, str(axis_period))
                     if array is None:
                         array = variable.default_array(
-                            cell_count * axis_entity_step_size
+                            cell_count * axis_entity_step_size,
                         )
                     elif array.size == axis_entity_step_size:
                         array = numpy.tile(array, cell_count)

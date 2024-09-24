@@ -26,12 +26,10 @@ class CoreEntity(t.CoreEntity, Protocol):
     plural: EntityPlural | None
 
 
-class SingleEntity(t.SingleEntity, Protocol):
-    ...
+class SingleEntity(t.SingleEntity, Protocol): ...
 
 
-class GroupEntity(t.GroupEntity, Protocol):
-    ...
+class GroupEntity(t.GroupEntity, Protocol): ...
 
 
 class Role(t.Role, Protocol):
@@ -50,12 +48,10 @@ class RoleParams(TypedDict, total=False):
 # Tax-Benefit systems
 
 
-class TaxBenefitSystem(t.TaxBenefitSystem, Protocol):
-    ...
+class TaxBenefitSystem(t.TaxBenefitSystem, Protocol): ...
 
 
 # Variables
 
 
-class Variable(t.Variable, Protocol):
-    ...
+class Variable(t.Variable, Protocol): ...

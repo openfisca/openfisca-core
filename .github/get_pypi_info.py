@@ -18,12 +18,14 @@ def get_info(package_name: str = "") -> dict:
     ::return:: A dict with last_version, url and sha256
     """
     if package_name == "":
-        raise ValueError("Package name not provided.")
+        msg = "Package name not provided."
+        raise ValueError(msg)
     url = f"https://pypi.org/pypi/{package_name}/json"
     print(f"Calling {url}")  # noqa: T201
     resp = requests.get(url)
     if resp.status_code != 200:
-        raise Exception(f"ERROR calling PyPI ({url}) : {resp}")
+        msg = f"ERROR calling PyPI ({url}) : {resp}"
+        raise Exception(msg)
     resp = resp.json()
     version = resp["info"]["version"]
 
@@ -38,19 +40,19 @@ def get_info(package_name: str = "") -> dict:
     return {}
 
 
-def replace_in_file(filepath: str, info: dict):
+def replace_in_file(filepath: str, info: dict) -> None:
     """Replace placeholder in meta.yaml by their values.
 
     ::filepath:: Path to meta.yaml, with filename.
     ::info:: Dict with information to populate.
     """
-    with open(filepath, "rt", encoding="utf-8") as fin:
+    with open(filepath, encoding="utf-8") as fin:
         meta = fin.read()
     # Replace with info from PyPi
     meta = meta.replace("PYPI_VERSION", info["last_version"])
     meta = meta.replace("PYPI_URL", info["url"])
     meta = meta.replace("PYPI_SHA256", info["sha256"])
-    with open(filepath, "wt", encoding="utf-8") as fout:
+    with open(filepath, "w", encoding="utf-8") as fout:
         fout.write(meta)
     print(f"File {filepath} has been updated with info from PyPi.")  # noqa: T201
 
@@ -75,6 +77,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     info = get_info(args.package)
     print(  # noqa: T201
-        "Information of the last published PyPi package :", info["last_version"]
+        "Information of the last published PyPi package :",
+        info["last_version"],
     )
     replace_in_file(args.filename, info)
