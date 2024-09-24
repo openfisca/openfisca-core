@@ -4,7 +4,6 @@ import enum
 
 import numpy
 
-from . import types as t
 from .config import ENUM_ARRAY_DTYPE
 from .enum_array import EnumArray
 

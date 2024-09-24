@@ -5,8 +5,6 @@ from typing import Any, NoReturn
 
 import numpy
 
-from . import types as t
-
 if typing.TYPE_CHECKING:
     from openfisca_core.indexed_enums import Enum
 
@@ -20,15 +18,10 @@ class EnumArray(numpy.ndarray):
     # Subclassing ndarray is a little tricky.
     # To read more about the two following methods, see:
     # https://docs.scipy.org/doc/numpy-1.13.0/user/basics.subclassing.html#slightly-more-realistic-example-attribute-added-to-existing-array.
-
-    @property
-    def dtype(self) -> t.ArrayEnum:
-        return super().dtype
-
     def __new__(
         cls,
-        input_array: t.Array[t.ArrayEnum],
-        possible_values: Optional[Type[Enum]] = None,
+        input_array: numpy.int_,
+        possible_values: type[Enum] | None = None,
     ) -> EnumArray:
         obj = numpy.asarray(input_array).view(cls)
         obj.possible_values = possible_values
@@ -90,7 +83,7 @@ class EnumArray(numpy.ndarray):
             list(self.possible_values),
         )
 
-    def decode_to_str(self) -> t.Array[t.ArrayStr]:
+    def decode_to_str(self) -> numpy.str_:
         """Return the array of string identifiers corresponding to self.
 
         For instance:

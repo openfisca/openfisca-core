@@ -4,7 +4,7 @@ import pytest
 from openfisca_country_template import situation_examples
 from openfisca_country_template.variables import housing
 
-import openfisca_test as test
+import openfisca_test as tools
 from openfisca_core import holders, periods
 from openfisca_core.errors import PeriodMismatchError
 from openfisca_core.holders import Holder
@@ -205,7 +205,7 @@ def test_cache_disk(couple) -> None:
     data = numpy.asarray([2000, 3000])
     holder.put_in_cache(data, month)
     stored_data = holder.get_array(month)
-    test.assert_near(data, stored_data)
+    tools.assert_near(data, stored_data)
 
 
 def test_known_periods(couple) -> None:

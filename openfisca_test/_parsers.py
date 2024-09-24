@@ -1,4 +1,5 @@
-from typing import NoReturn, Union
+from numpy.typing import NDArray
+from typing import Union
 from typing_extensions import TypeAlias
 
 import datetime
@@ -7,53 +8,41 @@ import functools
 import numpy
 import pendulum
 
-from openfisca_core import indexed_enums as enum
-from openfisca_core import periods, tools
-
-from . import types as t
+from openfisca_core import indexed_enums as enum, periods, tools
 
 ReturnType: TypeAlias = Union[
-    NoReturn,
     enum.EnumArray,
-    t.Array[t.ArrayDate],
-    t.Array[t.ArrayBool],
-    t.Array[t.ArrayInt],
-    t.Array[t.ArrayFloat],
-    t.Array[t.ArrayBytes],
-    t.Array[t.ArrayStr],
+    NDArray[numpy.datetime64],
+    NDArray[numpy.bool_],
+    NDArray[numpy.int32],
+    NDArray[numpy.float32],
+    NDArray[numpy.bytes_],
+    NDArray[numpy.str_],
 ]
 
 
-class _ListEnumArray(tuple[enum.EnumArray, ...]):
-    ...
+class _ListEnumArray(tuple[enum.EnumArray, ...]): ...
 
 
-class _ListEnum(tuple[enum.Enum, ...]):
-    ...
+class _ListEnum(tuple[enum.Enum, ...]): ...
 
 
-class _ListDate(tuple[datetime.date, ...]):
-    ...
+class _ListDate(tuple[datetime.date, ...]): ...
 
 
-class _ListBool(tuple[bool, ...]):
-    ...
+class _ListBool(tuple[bool, ...]): ...
 
 
-class _ListInt(tuple[int, ...]):
-    ...
+class _ListInt(tuple[int, ...]): ...
 
 
-class _ListFloat(tuple[float, ...]):
-    ...
+class _ListFloat(tuple[float, ...]): ...
 
 
-class _ListBytes(tuple[bytes, ...]):
-    ...
+class _ListBytes(tuple[bytes, ...]): ...
 
 
-class _ListStr(tuple[str, ...]):
-    ...
+class _ListStr(tuple[str, ...]): ...
 
 
 @functools.singledispatch
@@ -133,21 +122,21 @@ def parse(__: object) -> ReturnType:
         return parse(__.item())
     if isinstance(__, numpy.ndarray):
         if numpy.issubdtype(__.dtype, numpy.bool_):
-            return __.astype(t.ArrayBool)
+            return __.astype(numpy.bool_)
         if numpy.issubdtype(__.dtype, numpy.int_):
-            return __.astype(t.ArrayInt)
+            return __.astype(numpy.int32)
         if numpy.issubdtype(__.dtype, numpy.int32):
-            return __.astype(t.ArrayInt)
+            return __.astype(numpy.int32)
         if numpy.issubdtype(__.dtype, numpy.int64):
-            return __.astype(t.ArrayInt)
-        if numpy.issubdtype(__.dtype, numpy.float_):
-            return __.astype(t.ArrayFloat)
-        if numpy.issubdtype(__.dtype, numpy.float32):
-            return __.astype(t.ArrayFloat)
+            return __.astype(numpy.int32)
         if numpy.issubdtype(__.dtype, numpy.float64):
-            return __.astype(t.ArrayFloat)
+            return __.astype(numpy.float32)
+        if numpy.issubdtype(__.dtype, numpy.float32):
+            return __.astype(numpy.float32)
+        if numpy.issubdtype(__.dtype, numpy.float64):
+            return __.astype(numpy.float32)
         if numpy.issubdtype(__.dtype, numpy.datetime64):
-            return __.astype(t.ArrayDate)
+            return __.astype(numpy.datetime64)
     if isinstance(__, (list, tuple, numpy.ndarray)):
         if isinstance(__[0], enum.EnumArray):
             return parse(_ListEnumArray(el for el in __))
@@ -178,136 +167,136 @@ def parse(__: object) -> ReturnType:
 
 
 @parse.register
-def _(__: enum.EnumArray) -> t.Array[t.ArrayStr]:
+def _(__: enum.EnumArray) -> NDArray[numpy.str_]:
     return __.decode_to_str()
 
 
 @parse.register
-def _(__: enum.Enum.__class__) -> t.Array[t.ArrayStr]:
-    return numpy.array(tuple(el.name for el in __), dtype=t.ArrayStr)
+def _(__: enum.Enum.__class__) -> NDArray[numpy.str_]:
+    return numpy.array(tuple(el.name for el in __), dtype=numpy.str_)
 
 
 @parse.register
-def _(__: enum.Enum) -> t.Array[t.ArrayStr]:
-    return numpy.array((__.name,), dtype=t.ArrayStr)
+def _(__: enum.Enum) -> NDArray[numpy.str_]:
+    return numpy.array((__.name,), dtype=numpy.str_)
 
 
 @parse.register
-def _(__: periods.Instant) -> t.Array[t.ArrayDate]:
-    return numpy.array((__.date,), dtype=t.ArrayDate)
+def _(__: periods.Instant) -> NDArray[numpy.datetime64]:
+    return numpy.array((__.date,), dtype=numpy.datetime64)
 
 
 @parse.register
-def _(__: datetime.date) -> t.Array[t.ArrayDate]:
-    return numpy.array((__,), dtype=t.ArrayDate)
+def _(__: datetime.date) -> NDArray[numpy.datetime64]:
+    return numpy.array((__,), dtype=numpy.datetime64)
 
 
 @parse.register
-def _(__: pendulum.Date) -> t.Array[t.ArrayDate]:
-    return numpy.array((__,), dtype=t.ArrayDate)
+def _(__: pendulum.Date) -> NDArray[numpy.datetime64]:
+    return numpy.array((__,), dtype=numpy.datetime64)
 
 
 @parse.register
-def _(__: bool) -> t.Array[t.ArrayBool]:
-    return numpy.array((__,), dtype=t.ArrayBool)
+def _(__: bool) -> NDArray[numpy.bool_]:
+    return numpy.array((__,), dtype=numpy.bool_)
 
 
 @parse.register
-def _(__: int) -> t.Array[t.ArrayInt]:
-    return numpy.array((__,), dtype=t.ArrayInt)
+def _(__: int) -> NDArray[numpy.int32]:
+    return numpy.array((__,), dtype=numpy.int32)
 
 
 @parse.register
-def _(__: float) -> t.Array[t.ArrayFloat]:
-    return numpy.array((__,), dtype=t.ArrayFloat)
+def _(__: float) -> NDArray[numpy.float32]:
+    return numpy.array((__,), dtype=numpy.float32)
 
 
 @parse.register
-def _(__: bytes) -> t.Array[t.ArrayBytes]:
-    return numpy.array((__,), dtype=t.ArrayBytes)
+def _(__: bytes) -> NDArray[numpy.bytes_]:
+    return numpy.array((__,), dtype=numpy.bytes_)
 
 
 @parse.register
 def _(__: str) -> ReturnType:
     scalar = tools.eval_expression(__)
     if isinstance(scalar, str):
-        return numpy.array((scalar,), dtype=t.ArrayStr)
+        return numpy.array((scalar,), dtype=numpy.str_)
     return parse(scalar.item())
 
 
 @parse.register
-def _(__: numpy.bool_) -> t.Array[t.ArrayBool]:
-    return numpy.array((__,), dtype=t.ArrayBool)
+def _(__: numpy.bool_) -> NDArray[numpy.bool_]:
+    return numpy.array((__,), dtype=numpy.bool_)
 
 
 @parse.register
-def _(__: numpy.int_) -> t.Array[t.ArrayInt]:
-    return numpy.array((__,), dtype=t.ArrayInt)
+def _(__: numpy.int_) -> NDArray[numpy.int32]:
+    return numpy.array((__,), dtype=numpy.int32)
 
 
 @parse.register
-def _(__: numpy.int32) -> t.Array[t.ArrayInt]:
-    return numpy.array((__,), dtype=t.ArrayInt)
+def _(__: numpy.int32) -> NDArray[numpy.int32]:
+    return numpy.array((__,), dtype=numpy.int32)
 
 
 @parse.register
-def _(__: numpy.int64) -> t.Array[t.ArrayInt]:
-    return numpy.array((__,), dtype=t.ArrayInt)
+def _(__: numpy.int64) -> NDArray[numpy.int32]:
+    return numpy.array((__,), dtype=numpy.int32)
 
 
 @parse.register
-def _(__: numpy.float_) -> t.Array[t.ArrayFloat]:
-    return numpy.array((__,), dtype=t.ArrayFloat)
+def _(__: numpy.float64) -> NDArray[numpy.float32]:
+    return numpy.array((__,), dtype=numpy.float32)
 
 
 @parse.register
-def _(__: numpy.float32) -> t.Array[t.ArrayFloat]:
-    return numpy.array((__,), dtype=t.ArrayFloat)
+def _(__: numpy.float32) -> NDArray[numpy.float32]:
+    return numpy.array((__,), dtype=numpy.float32)
 
 
 @parse.register
-def _(__: numpy.float64) -> t.Array[t.ArrayFloat]:
-    return numpy.array((__,), dtype=t.ArrayFloat)
+def _(__: numpy.float64) -> NDArray[numpy.float32]:
+    return numpy.array((__,), dtype=numpy.float32)
 
 
 @parse.register
-def _(__: numpy.datetime64) -> t.Array[t.ArrayDate]:
-    return numpy.array((__,), dtype=t.ArrayDate)
+def _(__: numpy.datetime64) -> NDArray[numpy.datetime64]:
+    return numpy.array((__,), dtype=numpy.datetime64)
 
 
 @parse.register
 def _(__: _ListEnumArray) -> ReturnType:
-    return numpy.array([parse(el) for el in __], dtype=t.ArrayStr)
+    return numpy.array([parse(el) for el in __], dtype=numpy.str_)
 
 
 @parse.register
-def _(__: _ListEnum) -> t.Array[t.ArrayStr]:
-    return numpy.array(tuple(el.name for el in __), dtype=t.ArrayStr)
+def _(__: _ListEnum) -> NDArray[numpy.str_]:
+    return numpy.array(tuple(el.name for el in __), dtype=numpy.str_)
 
 
 @parse.register
-def _(__: _ListDate) -> t.Array[t.ArrayDate]:
-    return numpy.array(__, dtype=t.ArrayDate)
+def _(__: _ListDate) -> NDArray[numpy.datetime64]:
+    return numpy.array(__, dtype=numpy.datetime64)
 
 
 @parse.register
-def _(__: _ListBool) -> t.Array[t.ArrayBool]:
-    return numpy.array(__, dtype=t.ArrayBool)
+def _(__: _ListBool) -> NDArray[numpy.bool_]:
+    return numpy.array(__, dtype=numpy.bool_)
 
 
 @parse.register
-def _(__: _ListInt) -> t.Array[t.ArrayInt]:
-    return numpy.array(__, dtype=t.ArrayInt)
+def _(__: _ListInt) -> NDArray[numpy.int32]:
+    return numpy.array(__, dtype=numpy.int32)
 
 
 @parse.register
-def _(__: _ListFloat) -> t.Array[t.ArrayFloat]:
-    return numpy.array(__, dtype=t.ArrayFloat)
+def _(__: _ListFloat) -> NDArray[numpy.float32]:
+    return numpy.array(__, dtype=numpy.float32)
 
 
 @parse.register
-def _(__: _ListBytes) -> t.Array[t.ArrayBytes]:
-    return numpy.array(__, dtype=t.ArrayBytes)
+def _(__: _ListBytes) -> NDArray[numpy.bytes_]:
+    return numpy.array(__, dtype=numpy.bytes_)
 
 
 @parse.register
@@ -315,9 +304,9 @@ def _(__: _ListStr) -> ReturnType:
     if len(__) == 1:
         scalar = tools.eval_expression(__[0])
         if isinstance(scalar, str):
-            return numpy.array((scalar,), dtype=t.ArrayStr)
+            return numpy.array((scalar,), dtype=numpy.str_)
         return parse(scalar.item())
-    return numpy.array(__, dtype=t.ArrayStr)
+    return numpy.array(__, dtype=numpy.str_)
 
 
 __all__ = ["parse"]

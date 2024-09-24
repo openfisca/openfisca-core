@@ -36,7 +36,7 @@ class Options(TypedDict, total=False):
 
 @dataclasses.dataclass(frozen=True)
 class ErrorMargin:
-    __root__: Dict[Union[str, Literal["default"]], float]
+    __root__: dict[str | Literal["default"], float]
 
     def __getitem__(self, key: str) -> float:
         if key in self.__root__:

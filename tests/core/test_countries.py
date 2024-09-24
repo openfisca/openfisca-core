@@ -1,6 +1,6 @@
 import pytest
 
-import openfisca_test as test
+import openfisca_test as tools
 from openfisca_core import periods, populations
 from openfisca_core.errors import VariableNameConflictError, VariableNotFoundError
 from openfisca_core.periods import DateUnit
@@ -13,19 +13,19 @@ PERIOD = periods.period("2016-01")
 @pytest.mark.parametrize("simulation", [({"salary": 2000}, PERIOD)], indirect=True)
 def test_input_variable(simulation) -> None:
     result = simulation.calculate("salary", PERIOD)
-    test.assert_near(result, [2000], absolute_error_margin=0.01)
+    tools.assert_near(result, [2000], absolute_error_margin=0.01)
 
 
 @pytest.mark.parametrize("simulation", [({"salary": 2000}, PERIOD)], indirect=True)
 def test_basic_calculation(simulation) -> None:
     result = simulation.calculate("income_tax", PERIOD)
-    test.assert_near(result, [300], absolute_error_margin=0.01)
+    tools.assert_near(result, [300], absolute_error_margin=0.01)
 
 
 @pytest.mark.parametrize("simulation", [({"salary": 24000}, PERIOD)], indirect=True)
 def test_calculate_add(simulation) -> None:
     result = simulation.calculate_add("income_tax", PERIOD)
-    test.assert_near(result, [3600], absolute_error_margin=0.01)
+    tools.assert_near(result, [3600], absolute_error_margin=0.01)
 
 
 @pytest.mark.parametrize(
@@ -35,14 +35,14 @@ def test_calculate_add(simulation) -> None:
 )
 def test_calculate_divide(simulation) -> None:
     result = simulation.calculate_divide("housing_tax", PERIOD)
-    test.assert_near(result, [1000 / 12.0], absolute_error_margin=0.01)
+    tools.assert_near(result, [1000 / 12.0], absolute_error_margin=0.01)
 
 
 @pytest.mark.parametrize("simulation", [({"salary": 20000}, PERIOD)], indirect=True)
 def test_bareme(simulation) -> None:
     result = simulation.calculate("social_security_contribution", PERIOD)
     expected = [0.02 * 6000 + 0.06 * 6400 + 0.12 * 7600]
-    test.assert_near(result, expected, absolute_error_margin=0.01)
+    tools.assert_near(result, expected, absolute_error_margin=0.01)
 
 
 @pytest.mark.parametrize("simulation", [({}, PERIOD)], indirect=True)

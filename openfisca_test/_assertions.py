@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-from typing import NoReturn
-
 import numpy
 
-from . import types as t
 from ._parsers import parse
 
 
@@ -16,7 +13,7 @@ def assert_near(
     *,
     absolute_error_margin: float = 0,
     relative_error_margin: float = 0,
-) -> None | NoReturn:
+) -> None:
     """Assert that two values are near each other.
 
     Args:
@@ -75,34 +72,34 @@ def assert_near(
         )
 
     if numpy.issubdtype(common_dtype, numpy.datetime64):
-        actual = actual.astype(t.ArrayDate)
-        expected = expected.astype(t.ArrayDate)
+        actual = actual.astype(numpy.datetime64)
+        expected = expected.astype(numpy.datetime64)
         assert (actual == expected).all(), f"{message}{actual} differs from {expected}."
         return None
 
     if numpy.issubdtype(common_dtype, numpy.bool_):
-        actual = actual.astype(t.ArrayBool)
-        expected = expected.astype(t.ArrayBool)
+        actual = actual.astype(numpy.bool_)
+        expected = expected.astype(numpy.bool_)
         assert (actual == expected).all(), f"{message}{actual} differs from {expected}."
         return None
 
     if numpy.issubdtype(common_dtype, numpy.bytes_):
-        actual = actual.astype(t.ArrayBytes)
-        expected = expected.astype(t.ArrayBytes)
+        actual = actual.astype(numpy.bytes_)
+        expected = expected.astype(numpy.bytes_)
         assert (actual == expected).all(), f"{message}{actual} differs from {expected}."
         return None
 
     if numpy.issubdtype(common_dtype, numpy.str_):
-        actual = actual.astype(t.ArrayStr)
-        expected = expected.astype(t.ArrayStr)
+        actual = actual.astype(numpy.str_)
+        expected = expected.astype(numpy.str_)
         assert (actual == expected).all(), f"{message}{actual} differs from {expected}."
         return None
 
     if numpy.issubdtype(common_dtype, numpy.int32) or numpy.issubdtype(
         common_dtype, numpy.int64
     ):
-        actual = actual.astype(t.ArrayInt)
-        expected = expected.astype(t.ArrayInt)
+        actual = actual.astype(numpy.int32)
+        expected = expected.astype(numpy.int32)
         diff = abs(expected - actual)
         assert (
             diff == 0
@@ -112,8 +109,8 @@ def assert_near(
     if numpy.issubdtype(common_dtype, numpy.float32) or numpy.issubdtype(
         common_dtype, numpy.float64
     ):
-        actual = actual.astype(t.ArrayFloat)
-        expected = expected.astype(t.ArrayFloat)
+        actual = actual.astype(numpy.float32)
+        expected = expected.astype(numpy.float32)
         diff = abs(expected - actual)
         if absolute_error_margin > 0:
             assert (diff <= absolute_error_margin).all(), (

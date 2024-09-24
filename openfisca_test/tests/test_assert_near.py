@@ -4,8 +4,7 @@ import numpy
 import pytest
 
 import openfisca_test as test
-from openfisca_core import indexed_enums as enum
-from openfisca_core import periods
+from openfisca_core import indexed_enums as enum, periods
 
 instant = periods.Instant((2024, 1, 1))
 date = numpy.array(("2024-01-01",), dtype="datetime64[D]")

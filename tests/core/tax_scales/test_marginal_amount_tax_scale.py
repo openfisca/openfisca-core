@@ -1,7 +1,7 @@
 from numpy import array
 from pytest import fixture
 
-import openfisca_test as test
+import openfisca_test as tools
 from openfisca_core import parameters, periods, taxscales
 
 
@@ -29,7 +29,7 @@ def test_calc() -> None:
 
     result = tax_scale.calc(tax_base)
 
-    test.assert_near(result, [0, 0.23, 0.52])
+    tools.assert_near(result, [0, 0.23, 0.52])
 
 
 # TODO: move, as we're testing Scale, not MarginalAmountTaxScale
