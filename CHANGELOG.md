@@ -1,10 +1,24 @@
 # Changelog
 
+<<<<<<< HEAD
 ###  41.5.6 [#1185](https://github.com/openfisca/openfisca-core/pull/1185)
 
 #### Technical changes
 
 - Remove pre Python 3.9 syntax.
+=======
+## 41.6.0 [#1228](https://github.com/openfisca/openfisca-core/pull/1228)
+
+#### New features
+
+- Introduce `openfisca_test`.
+  - Provides `assert_near` and `parse` to prepare tests.
+
+#### Technical changes
+
+- Move `assert_near` to `openfisca_test`.
+- Add tests to `assert_near`.
+>>>>>>> 9c701ebfc (chore(version): bump)
 
 ### 41.5.5 [#1220](https://github.com/openfisca/openfisca-core/pull/1220)
 
