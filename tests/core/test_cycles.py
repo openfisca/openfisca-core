@@ -2,7 +2,8 @@ import pytest
 
 from openfisca_country_template import entities
 
-from openfisca_core import periods, tools
+import openfisca_test as tools
+from openfisca_core import periods
 from openfisca_core.errors import CycleError
 from openfisca_core.periods import DateUnit
 from openfisca_core.simulations import SimulationBuilder

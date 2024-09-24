@@ -73,7 +73,7 @@ And avoid:
 
 from openfisca_country_template.entities import Person
 from openfisca_core import variables
-from openfisca_core.tools import assert_near
+from openfisca_test import assert_near
 from openfisca_core import axes
 
 from numpy import ndarray

@@ -1,6 +1,7 @@
 import pytest
 
-from openfisca_core import holders, tools
+import openfisca_test as tools
+from openfisca_core import holders
 from openfisca_core.entities import Entity
 from openfisca_core.holders import Holder
 from openfisca_core.periods import DateUnit, Instant, Period

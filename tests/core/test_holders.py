@@ -4,7 +4,8 @@ import pytest
 from openfisca_country_template import situation_examples
 from openfisca_country_template.variables import housing
 
-from openfisca_core import holders, periods, tools
+import openfisca_test as tools
+from openfisca_core import holders, periods
 from openfisca_core.errors import PeriodMismatchError
 from openfisca_core.holders import Holder
 from openfisca_core.memory_config import MemoryConfig

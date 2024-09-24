@@ -6,7 +6,7 @@ import pytest
 
 from openfisca_country_template import entities, situation_examples
 
-from openfisca_core import tools
+import openfisca_test as tools
 from openfisca_core.errors import SituationParsingError
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import DateUnit

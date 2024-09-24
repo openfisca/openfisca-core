@@ -2,7 +2,7 @@ from copy import deepcopy
 
 from openfisca_country_template import entities, situation_examples
 
-from openfisca_core import tools
+import openfisca_test as tools
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.tools import test_runner
 

@@ -16,8 +16,8 @@ from openfisca_core import periods, simulations
 from openfisca_core.entities import build_entity
 from openfisca_core.periods import DateUnit
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
-from openfisca_core.tools import assert_near
 from openfisca_core.variables import Variable
+from openfisca_test import assert_near
 
 args = None
 

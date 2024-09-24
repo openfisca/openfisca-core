@@ -8,8 +8,8 @@ from openfisca_country_template.entities import Person
 
 from openfisca_core.periods import DateUnit
 from openfisca_core.simulation_builder import SimulationBuilder
-from openfisca_core.tools import assert_near
 from openfisca_core.variables import Variable
+from openfisca_test import assert_near
 
 # Check which date is applied whether it comes from Variable attribute (end)
 # or formula(s) dates.

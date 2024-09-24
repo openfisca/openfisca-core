@@ -1,6 +1,7 @@
 import pytest
 
-from openfisca_core import parameters, taxscales, tools
+import openfisca_test as tools
+from openfisca_core import parameters, taxscales
 
 
 @pytest.fixture

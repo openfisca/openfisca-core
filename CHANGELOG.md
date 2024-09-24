@@ -1,5 +1,17 @@
 # Changelog
 
+## 42.0.0 [#1228](https://github.com/openfisca/openfisca-core/pull/1228)
+
+#### New features
+
+- Introduce `openfisca_test`.
+  - Provides `assert_near` and `parse` to prepare tests.
+
+#### Technical changes
+
+- Move `assert_near` to `openfisca_test`.
+- Add tests to `assert_near`.
+
 ###  41.5.6 [#1185](https://github.com/openfisca/openfisca-core/pull/1185)
 
 #### Technical changes

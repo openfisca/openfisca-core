@@ -1,7 +1,8 @@
 import numpy
 import pytest
 
-from openfisca_core import taxscales, tools
+import openfisca_test as tools
+from openfisca_core import taxscales
 
 
 def test_bracket_indices() -> None:

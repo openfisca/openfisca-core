@@ -1,6 +1,7 @@
 import pytest
 
-from openfisca_core import periods, populations, tools
+import openfisca_test as tools
+from openfisca_core import periods, populations
 from openfisca_core.errors import VariableNameConflictError, VariableNotFoundError
 from openfisca_core.periods import DateUnit
 from openfisca_core.simulations import SimulationBuilder

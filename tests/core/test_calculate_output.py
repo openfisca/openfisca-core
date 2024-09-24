@@ -2,7 +2,8 @@ import pytest
 
 from openfisca_country_template import entities, situation_examples
 
-from openfisca_core import simulations, tools
+import openfisca_test as tools
+from openfisca_core import simulations
 from openfisca_core.periods import DateUnit
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.variables import Variable

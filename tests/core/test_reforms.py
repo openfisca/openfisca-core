@@ -8,8 +8,8 @@ from openfisca_core import holders, periods, simulations
 from openfisca_core.parameters import ParameterNode, ValuesHistory
 from openfisca_core.periods import DateUnit, Instant
 from openfisca_core.reforms import Reform
-from openfisca_core.tools import assert_near
 from openfisca_core.variables import Variable
+from openfisca_test import assert_near
 
 
 class goes_to_school(Variable):

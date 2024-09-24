@@ -3,7 +3,7 @@ import os
 import numpy
 
 from openfisca_core.parameters import ParameterNode
-from openfisca_core.tools import assert_near
+from openfisca_test import assert_near
 
 from openfisca_core.model_api import *  # noqa
 

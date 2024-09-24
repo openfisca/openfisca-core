@@ -1,7 +1,8 @@
 import numpy
 from pytest import fixture
 
-from openfisca_core import parameters, periods, taxscales, tools
+import openfisca_test as tools
+from openfisca_core import parameters, periods, taxscales
 
 
 @fixture

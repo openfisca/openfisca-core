@@ -474,7 +474,10 @@ class Variable:
         return value
 
     def default_array(self, array_size):
-        array = numpy.empty(array_size, dtype=self.dtype)
+        if numpy.issubdtype(self.dtype, numpy.datetime64):
+            array = numpy.empty(array_size, dtype="datetime64[D]")
+        else:
+            array = numpy.empty(array_size, dtype=self.dtype)
         if self.value_type == Enum:
             array.fill(self.default_value.index)
             return EnumArray(array, self.possible_values)
