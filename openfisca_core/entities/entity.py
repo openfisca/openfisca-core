@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 import textwrap
 
 from . import types as t
@@ -5,11 +7,16 @@ from ._core_entity import _CoreEntity
 
 
 class Entity(_CoreEntity):
-    """Represents an entity (e.g. a person, a household, etc.) on which calculations can be run."""
+    """An entity (e.g. a person, a household) on which calculations can be run."""
+
+    #: Whether the entity is a person or not.
+    is_person: ClassVar[bool] = True
 
     def __init__(self, key: str, plural: str, label: str, doc: str) -> None:
         self.key = t.EntityKey(key)
-        self.label = label
         self.plural = t.EntityPlural(plural)
+        self.label = label
         self.doc = textwrap.dedent(doc)
-        self.is_person = True
+
+
+__all__ = ["Entity"]

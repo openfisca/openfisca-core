@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
+from typing import ClassVar
 
 import textwrap
 from itertools import chain
@@ -28,6 +29,9 @@ class GroupEntity(_CoreEntity):
 
     """
 
+    #: Whether the entity is a person or not.
+    is_person: ClassVar[bool] = False
+
     def __init__(
         self,
         key: str,
@@ -38,19 +42,18 @@ class GroupEntity(_CoreEntity):
         containing_entities: Iterable[str] = (),
     ) -> None:
         self.key = t.EntityKey(key)
-        self.label = label
         self.plural = t.EntityPlural(plural)
+        self.label = label
         self.doc = textwrap.dedent(doc)
-        self.is_person = False
         self.roles_description = roles
         self.roles: Iterable[Role] = ()
         for role_description in roles:
             role = Role(role_description, self)
             setattr(self, role.key.upper(), role)
             self.roles = (*self.roles, role)
-            if role_description.get("subroles"):
+            if subroles := role_description.get("subroles"):
                 role.subroles = ()
-                for subrole_key in role_description["subroles"]:
+                for subrole_key in subroles:
                     subrole = Role({"key": subrole_key, "max": 1}, self)
                     setattr(self, subrole.key.upper(), subrole)
                     role.subroles = (*role.subroles, subrole)
@@ -58,6 +61,7 @@ class GroupEntity(_CoreEntity):
         self.flattened_roles = tuple(
             chain.from_iterable(role.subroles or [role] for role in self.roles),
         )
-
-        self.is_person = False
         self.containing_entities = containing_entities
+
+
+__all__ = ["GroupEntity"]

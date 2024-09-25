@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from typing import ClassVar
+
+import abc
 import os
-from abc import abstractmethod
 
 from . import types as t
 from .role import Role
@@ -12,29 +14,30 @@ class _CoreEntity:
 
     #: A key to identify the entity.
     key: t.EntityKey
+
     #: The ``key``, pluralised.
-    plural: t.EntityPlural | None
+    plural: t.EntityPlural
 
     #: A summary description.
-    label: str | None
+    label: str
 
     #: A full description.
-    doc: str | None
+    doc: str
 
     #: Whether the entity is a person or not.
-    is_person: bool
+    is_person: ClassVar[bool]
 
     #: A TaxBenefitSystem instance.
-    _tax_benefit_system: t.TaxBenefitSystem | None = None
+    _tax_benefit_system: None | t.TaxBenefitSystem = None
 
-    @abstractmethod
+    @abc.abstractmethod
     def __init__(
         self,
-        key: str,
-        plural: str,
-        label: str,
-        doc: str,
-        *args: object,
+        __key: str,
+        __plural: str,
+        __label: str,
+        __doc: str,
+        *__args: object,
     ) -> None: ...
 
     def __repr__(self) -> str:
@@ -46,7 +49,7 @@ class _CoreEntity:
 
     def get_variable(
         self,
-        variable_name: str,
+        variable_name: t.VariableName,
         check_existence: bool = False,
     ) -> t.Variable | None:
         """Get a ``variable_name`` from ``variables``."""
@@ -57,15 +60,19 @@ class _CoreEntity:
             )
         return self._tax_benefit_system.get_variable(variable_name, check_existence)
 
-    def check_variable_defined_for_entity(self, variable_name: str) -> None:
+    def check_variable_defined_for_entity(self, variable_name: t.VariableName) -> None:
         """Check if ``variable_name`` is defined for ``self``."""
-        variable: t.Variable | None
-        entity: t.CoreEntity
-
-        variable = self.get_variable(variable_name, check_existence=True)
+        entity: None | t.CoreEntity = None
+        variable: None | t.Variable = self.get_variable(
+            variable_name,
+            check_existence=True,
+        )
 
         if variable is not None:
             entity = variable.entity
+
+        if entity is None:
+            return
 
         if entity.key != self.key:
             message = (
@@ -77,8 +84,12 @@ class _CoreEntity:
             )
             raise ValueError(os.linesep.join(message))
 
-    def check_role_validity(self, role: object) -> None:
+    @staticmethod
+    def check_role_validity(role: object) -> None:
         """Check if a ``role`` is an instance of Role."""
         if role is not None and not isinstance(role, Role):
             msg = f"{role} is not a valid role"
             raise ValueError(msg)
+
+
+__all__ = ["_CoreEntity"]
