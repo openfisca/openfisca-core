@@ -48,9 +48,11 @@ def apply_thresholds(
         # must be true to return it.
         condlist += [True]
 
-    assert len(condlist) == len(
-        choices
-    ), "'apply_thresholds' must be called with the same number of thresholds than choices, or one more choice."
+    msg = (
+        "'apply_thresholds' must be called with the same number of thresholds "
+        "than choices, or one more choice."
+    )
+    assert len(condlist) == len(choices), msg
 
     return numpy.select(condlist, choices)
 
