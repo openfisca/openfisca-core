@@ -12,7 +12,7 @@ from openfisca_core import taxscales
 from .rate_tax_scale_like import RateTaxScaleLike
 
 if typing.TYPE_CHECKING:
-    NumericalArray = typing.Union[numpy.int_, numpy.float64]
+    NumericalArray = typing.Union[numpy.int32, numpy.float32]
 
 
 class MarginalRateTaxScale(RateTaxScaleLike):
@@ -37,7 +37,7 @@ class MarginalRateTaxScale(RateTaxScaleLike):
         tax_base: NumericalArray,
         factor: float = 1.0,
         round_base_decimals: int | None = None,
-    ) -> numpy.float64:
+    ) -> numpy.float32:
         """Compute the tax amount for the given tax bases by applying a taxscale.
 
         :param ndarray tax_base: Array of the tax bases.
@@ -119,7 +119,7 @@ class MarginalRateTaxScale(RateTaxScaleLike):
         tax_base: NumericalArray,
         factor: float = 1.0,
         round_base_decimals: int | None = None,
-    ) -> numpy.float64:
+    ) -> numpy.float32:
         """Compute the marginal tax rates relevant for the given tax bases.
 
         :param ndarray tax_base: Array of the tax bases.
@@ -149,8 +149,8 @@ class MarginalRateTaxScale(RateTaxScaleLike):
 
     def rate_from_bracket_indice(
         self,
-        bracket_indice: numpy.int_,
-    ) -> numpy.float64:
+        bracket_indice: numpy.int16,
+    ) -> numpy.float32:
         """Compute the relevant tax rates for the given bracket indices.
 
         :param: ndarray bracket_indice: Array of the bracket indices.
@@ -186,7 +186,7 @@ class MarginalRateTaxScale(RateTaxScaleLike):
     def rate_from_tax_base(
         self,
         tax_base: NumericalArray,
-    ) -> numpy.float64:
+    ) -> numpy.float32:
         """Compute the relevant tax rates for the given tax bases.
 
         :param: ndarray tax_base: Array of the tax bases.

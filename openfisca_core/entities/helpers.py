@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence
 
 from . import types as t
-from .entity import Entity
+from .entity import Entity as SingleEntity
 from .group_entity import GroupEntity
 
 
@@ -12,9 +12,9 @@ def build_entity(
     plural: str,
     label: str,
     doc: str = "",
-    roles: Sequence[t.RoleParams] | None = None,
+    roles: None | Sequence[t.RoleParams] = None,
     is_person: bool = False,
-    class_override: object | None = None,
+    class_override: object = None,
     containing_entities: Sequence[str] = (),
 ) -> t.SingleEntity | t.GroupEntity:
     """Build a SingleEntity or a GroupEntity.
@@ -69,8 +69,9 @@ def build_entity(
         TypeError: 'Role' object is not iterable
 
     """
+
     if is_person:
-        return Entity(key, plural, label, doc)
+        return SingleEntity(key, plural, label, doc)
 
     if roles is not None:
         return GroupEntity(
@@ -89,8 +90,8 @@ def find_role(
     roles: Iterable[t.Role],
     key: t.RoleKey,
     *,
-    total: int | None = None,
-) -> t.Role | None:
+    total: None | int = None,
+) -> None | t.Role:
     """Find a Role in a GroupEntity.
 
     Args:
@@ -157,3 +158,6 @@ def find_role(
             return role
 
     return None
+
+
+__all__ = ["build_entity", "find_role"]

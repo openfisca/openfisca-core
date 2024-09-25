@@ -61,7 +61,7 @@ dev_requirements = [
     "openapi-spec-validator >=0.7.1, <0.8.0",
     "pylint >=3.3.1, <4.0",
     "pylint-per-file-ignores >=1.3.2, <2.0",
-    "pyright >=1.1.381, <2.0",
+    "pyright >=1.1.382, <2.0",
     "ruff >=0.6.7, <1.0",
     "ruff-lsp >=0.0.57, <1.0",
     "xdoctest >=1.2.0, <2.0",
@@ -70,7 +70,7 @@ dev_requirements = [
 
 setup(
     name="OpenFisca-Core",
-    version="41.5.7",
+    version="41.6.0",
     author="OpenFisca Team",
     author_email="contact@openfisca.org",
     classifiers=[

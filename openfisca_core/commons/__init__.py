@@ -8,6 +8,7 @@ Official Public API:
     * :func:`.average_rate`
     * :func:`.concat`
     * :func:`.empty_clone`
+    * :func:`.eval_expression`
     * :func:`.marginal_rate`
     * :func:`.stringify_array`
     * :func:`.switch`
@@ -50,18 +51,21 @@ Note:
 
 """
 
-# Official Public API
-
+from . import types
+from .dummy import Dummy
 from .formulas import apply_thresholds, concat, switch
-from .misc import empty_clone, stringify_array
+from .misc import empty_clone, eval_expression, stringify_array
 from .rates import average_rate, marginal_rate
 
-__all__ = ["apply_thresholds", "concat", "switch"]
-__all__ = ["empty_clone", "stringify_array", *__all__]
-__all__ = ["average_rate", "marginal_rate", *__all__]
-
-# Deprecated
-
-from .dummy import Dummy
-
-__all__ = ["Dummy", *__all__]
+__all__ = [
+    "Dummy",
+    "apply_thresholds",
+    "average_rate",
+    "concat",
+    "empty_clone",
+    "eval_expression",
+    "marginal_rate",
+    "stringify_array",
+    "switch",
+    "types",
+]

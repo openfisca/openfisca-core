@@ -1,39 +1,20 @@
-from __future__ import annotations
-
-from collections.abc import Iterable
-from typing import NewType, Protocol
 from typing_extensions import Required, TypedDict
 
-from openfisca_core import types as t
+from openfisca_core.types import (
+    CoreEntity,
+    EntityKey,
+    EntityPlural,
+    GroupEntity,
+    Role,
+    RoleKey,
+    RolePlural,
+    SingleEntity,
+    TaxBenefitSystem,
+    Variable,
+    VariableName,
+)
 
 # Entities
-
-#: For example "person".
-EntityKey = NewType("EntityKey", str)
-
-#: For example "persons".
-EntityPlural = NewType("EntityPlural", str)
-
-#: For example "principal".
-RoleKey = NewType("RoleKey", str)
-
-#: For example "parents".
-RolePlural = NewType("RolePlural", str)
-
-
-class CoreEntity(t.CoreEntity, Protocol):
-    key: EntityKey
-    plural: EntityPlural | None
-
-
-class SingleEntity(t.SingleEntity, Protocol): ...
-
-
-class GroupEntity(t.GroupEntity, Protocol): ...
-
-
-class Role(t.Role, Protocol):
-    subroles: Iterable[Role] | None
 
 
 class RoleParams(TypedDict, total=False):
@@ -45,13 +26,17 @@ class RoleParams(TypedDict, total=False):
     subroles: list[str]
 
 
-# Tax-Benefit systems
-
-
-class TaxBenefitSystem(t.TaxBenefitSystem, Protocol): ...
-
-
-# Variables
-
-
-class Variable(t.Variable, Protocol): ...
+__all__ = [
+    "CoreEntity",
+    "EntityKey",
+    "EntityPlural",
+    "GroupEntity",
+    "Role",
+    "RoleKey",
+    "RoleParams",
+    "RolePlural",
+    "SingleEntity",
+    "TaxBenefitSystem",
+    "Variable",
+    "VariableName",
+]

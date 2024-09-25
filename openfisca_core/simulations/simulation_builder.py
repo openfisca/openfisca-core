@@ -369,7 +369,7 @@ class SimulationBuilder:
         if numpy.issubdtype(roles_array.dtype, numpy.integer):
             group_population.members_role = numpy.array(flattened_roles)[roles_array]
         elif len(flattened_roles) == 0:
-            group_population.members_role = numpy.int64(0)
+            group_population.members_role = numpy.int16(0)
         else:
             group_population.members_role = numpy.select(
                 [roles_array == role.key for role in flattened_roles],
@@ -754,7 +754,7 @@ class SimulationBuilder:
             )
             # Adjust ids
             original_ids: list[str] = self.get_ids(entity_name) * cell_count
-            indices: Array[numpy.int_] = numpy.arange(
+            indices: Array[numpy.int16] = numpy.arange(
                 0,
                 cell_count * self.entity_counts[entity_name],
             )

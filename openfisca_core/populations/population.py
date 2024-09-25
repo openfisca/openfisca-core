@@ -85,7 +85,7 @@ class Population:
         period: int | str | Period | None,
     ) -> None:
         if isinstance(period, (int, str, periods.Period)):
-            return None
+            return
 
         stack = traceback.extract_stack()
         filename, line_number, function_name, line_of_code = stack[-3]

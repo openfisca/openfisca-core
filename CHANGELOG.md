@@ -1,12 +1,22 @@
 # Changelog
 
-### 41.5.7 [#1223](https://github.com/openfisca/openfisca-core/pull/1223)
+## 41.6.0 [#1223](https://github.com/openfisca/openfisca-core/pull/1223)
+
+#### New features
+
+- Introduce `Instant.eternity()`
 
 #### Technical changes
 
 - Update `pendulum'
 - Remove run-time type-checks
 - Add typing to the periods module
+
+### 41.5.7 [#1225](https://github.com/openfisca/openfisca-core/pull/1225)
+
+#### Technical changes
+
+- Refactor & test `eval_expression`
 
 ###  41.5.6 [#1185](https://github.com/openfisca/openfisca-core/pull/1185)
 

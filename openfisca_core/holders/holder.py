@@ -15,7 +15,6 @@ from openfisca_core import (
     errors,
     indexed_enums as enums,
     periods,
-    tools,
     types,
 )
 
@@ -235,7 +234,7 @@ class Holder:
             warning_message = f"You cannot set a value for the variable {self.variable.name}, as it has been neutralized. The value you provided ({array}) will be ignored."
             return warnings.warn(warning_message, Warning, stacklevel=2)
         if self.variable.value_type in (float, int) and isinstance(array, str):
-            array = tools.eval_expression(array)
+            array = commons.eval_expression(array)
         if self.variable.set_input:
             return self.variable.set_input(self, period, array)
         return self._set(period, array)

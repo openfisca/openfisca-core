@@ -1,16 +1,17 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Union
 
 import numpy
 
-from openfisca_core import types as t
+from . import types as t
 
 
 def apply_thresholds(
-    input: t.Array[numpy.float64],
+    input: t.Array[numpy.float32],
     thresholds: t.ArrayLike[float],
     choices: t.ArrayLike[float],
-) -> t.Array[numpy.float64]:
+) -> t.Array[numpy.float32]:
     """Makes a choice based on an input and thresholds.
 
     From a list of ``choices``, this function selects one of these values
@@ -38,7 +39,8 @@ def apply_thresholds(
         array([10, 10, 15, 15, 20])
 
     """
-    condlist: list[Union[t.Array[numpy.bool_], bool]]
+
+    condlist: list[t.Array[numpy.bool_] | bool]
     condlist = [input <= threshold for threshold in thresholds]
 
     if len(condlist) == len(choices) - 1:
@@ -46,18 +48,20 @@ def apply_thresholds(
         # must be true to return it.
         condlist += [True]
 
-    assert len(condlist) == len(
-        choices
-    ), "'apply_thresholds' must be called with the same number of thresholds than choices, or one more choice."
+    msg = (
+        "'apply_thresholds' must be called with the same number of thresholds "
+        "than choices, or one more choice."
+    )
+    assert len(condlist) == len(choices), msg
 
     return numpy.select(condlist, choices)
 
 
 def concat(
-    this: Union[t.Array[numpy.str_], t.ArrayLike[str]],
-    that: Union[t.Array[numpy.str_], t.ArrayLike[str]],
+    this: t.Array[numpy.str_] | t.ArrayLike[str],
+    that: t.Array[numpy.str_] | t.ArrayLike[str],
 ) -> t.Array[numpy.str_]:
-    """Concatenates the values of two arrays.
+    """Concatenate the values of two arrays.
 
     Args:
         this: An array to concatenate.
@@ -84,10 +88,10 @@ def concat(
 
 
 def switch(
-    conditions: t.Array[numpy.float64],
+    conditions: t.Array[numpy.float32],
     value_by_condition: Mapping[float, float],
-) -> t.Array[numpy.float64]:
-    """Mimicks a switch statement.
+) -> t.Array[numpy.float32]:
+    """Mimick a switch statement.
 
     Given an array of conditions, returns an array of the same size,
     replacing each condition item with the matching given value.
@@ -117,3 +121,6 @@ def switch(
     condlist = [conditions == condition for condition in value_by_condition]
 
     return numpy.select(condlist, tuple(value_by_condition.values()))
+
+
+__all__ = ["apply_thresholds", "concat", "switch"]

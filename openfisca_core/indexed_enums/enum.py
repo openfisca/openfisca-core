@@ -30,7 +30,7 @@ class Enum(enum.Enum):
     @classmethod
     def encode(
         cls,
-        array: EnumArray | numpy.int_ | numpy.float64 | numpy.object_,
+        array: EnumArray | numpy.int32 | numpy.float32 | numpy.object_,
     ) -> EnumArray:
         """Encode a string numpy array, an enum item numpy array, or an int numpy
         array into an :any:`EnumArray`. See :any:`EnumArray.decode` for
