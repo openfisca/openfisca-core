@@ -23,3 +23,13 @@ def test_enum_2(tax_benefit_system):
     value = possible_values.encode(numpy.array(["tenant", "owner"]))
     expected_value = ["tenant", "owner"]
     assert_near(value, expected_value)
+
+def test_single_str():
+    value = "owner"
+    expected_value = "owner"
+    assert_near(value, expected_value)
+
+def test_str():
+    value = ["tenant", "owner"]
+    expected_value = ["tenant", "owner"]
+    assert_near(value, expected_value)
