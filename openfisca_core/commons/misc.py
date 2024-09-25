@@ -30,10 +30,12 @@ def empty_clone(original: object) -> object:
 
     """
 
+    def __init__(_): ...
+
     Dummy = type(
         "Dummy",
         (original.__class__,),
-        {"__init__": lambda _: None},
+        {"__init__": __init__},
     )
 
     new = Dummy()
