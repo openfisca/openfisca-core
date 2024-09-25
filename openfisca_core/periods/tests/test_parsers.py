@@ -16,7 +16,7 @@ from openfisca_core.periods import DateUnit, Instant, ParserError, Period, _pars
     ],
 )
 def test__parse_period(arg, expected) -> None:
-    assert _parsers._parse_period(arg) == expected
+    assert _parsers.parse_period(arg) == expected
 
 
 @pytest.mark.parametrize(
@@ -51,7 +51,7 @@ def test__parse_period(arg, expected) -> None:
 )
 def test__parse_period_with_invalid_argument(arg, error) -> None:
     with pytest.raises(error):
-        _parsers._parse_period(arg)
+        _parsers.parse_period(arg)
 
 
 @pytest.mark.parametrize(
@@ -65,4 +65,4 @@ def test__parse_period_with_invalid_argument(arg, error) -> None:
     ],
 )
 def test__parse_unit(arg, expected) -> None:
-    assert _parsers._parse_unit(arg) == expected
+    assert _parsers.parse_unit(arg) == expected

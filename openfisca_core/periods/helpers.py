@@ -7,8 +7,9 @@ import os
 
 import pendulum
 
-from . import _parsers, config, types as t
+from . import config, types as t
 from ._errors import ParserError
+from ._parsers import parse_period
 from .date_unit import DateUnit
 from .instant_ import Instant
 from .period_ import Period
@@ -64,6 +65,7 @@ def instant(instant: object) -> None | t.Instant:
     """
 
     result: t.Instant | tuple[int, ...]
+    format_y, format_ym, format_ymd = 1, 2, 3
 
     if instant is None:
         return None
@@ -71,7 +73,10 @@ def instant(instant: object) -> None | t.Instant:
         return instant
     if isinstance(instant, str):
         if not config.INSTANT_PATTERN.match(instant):
-            msg = f"'{instant}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'."
+            msg = (
+                f"'{instant}' is not a valid instant. Instants are described "
+                "using the 'YYYY-MM-DD' format, for instance '2015-06-15'."
+            )
             raise ValueError(
                 msg,
             )
@@ -81,17 +86,17 @@ def instant(instant: object) -> None | t.Instant:
     elif isinstance(instant, int):
         result = (instant,)
     elif isinstance(instant, list):
-        assert 1 <= len(instant) <= 3
+        assert 1 <= len(instant) <= format_ymd
         result = tuple(instant)
     elif isinstance(instant, Period):
         result = instant.start
     else:
         assert isinstance(instant, tuple), instant
-        assert 1 <= len(instant) <= 3
+        assert format_y <= len(instant) <= format_ymd
         result = instant
-    if len(result) == 1:
+    if len(result) == format_y:
         return Instant((result[0], 1, 1))
-    if len(result) == 2:
+    if len(result) == format_ym:
         return Instant((result[0], result[1], 1))
     return Instant(result)
 
@@ -165,8 +170,10 @@ def period(value: object) -> t.Period:
         >>> period("day:2014-02-02:3")
         Period((<DateUnit.DAY: 'day'>, Instant((2014, 2, 2)), 3))
 
-
     """
+
+    format_ym, format_ymd = 2, 3
+
     if isinstance(value, Period):
         return value
 
@@ -199,7 +206,7 @@ def period(value: object) -> t.Period:
 
     # Try to parse from an ISO format/calendar period.
     try:
-        period = _parsers._parse_period(value)
+        period = parse_period(value)
 
     except (AttributeError, ValueError, ParserError):
         _raise_error(value)
@@ -224,7 +231,7 @@ def period(value: object) -> t.Period:
 
     # middle component must be a valid iso period
     try:
-        base_period = _parsers._parse_period(components[1])
+        base_period = parse_period(components[1])
 
     except (AttributeError, ValueError, ParserError):
         _raise_error(value)
@@ -233,11 +240,11 @@ def period(value: object) -> t.Period:
         _raise_error(value)
 
     # period like year:2015-03 have a size of 1
-    if len(components) == 2:
+    if len(components) == format_ym:
         size = 1
 
     # if provided, make sure the size is an integer
-    elif len(components) == 3:
+    elif len(components) == format_ymd:
         try:
             size = int(components[2])
 
@@ -268,8 +275,8 @@ def _raise_error(value: str) -> NoReturn:
     """
     message = os.linesep.join(
         [
-            f"Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: '{value}'.",
-            "Learn more about legal period formats in OpenFisca:",
+            "Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); ",
+            f"got: '{value}'. Learn more about legal period formats in OpenFisca:",
             "<https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-simulations>.",
         ],
     )

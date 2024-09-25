@@ -92,8 +92,6 @@ class DateUnit(StrEnum, metaclass=DateUnitMeta):
         >>> DateUnit.DAY.value
         'day'
 
-    .. versionadded:: 35.9.0
-
     """
 
     def __contains__(self, other: object) -> bool:

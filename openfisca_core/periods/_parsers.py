@@ -1,4 +1,4 @@
-from typing import Optional
+from __future__ import annotations
 
 import re
 
@@ -13,22 +13,23 @@ from .period_ import Period
 invalid_week = re.compile(r".*(W[1-9]|W[1-9]-[0-9]|W[0-5][0-9]-0)$")
 
 
-def _parse_period(value: str) -> Optional[t.Period]:
+def parse_period(value: str) -> None | t.Period:
     """Parses ISO format/calendar periods.
 
     Such as "2012" or "2015-03".
 
     Examples:
-        >>> _parse_period("2022")
+        >>> parse_period("2022")
         Period((<DateUnit.YEAR: 'year'>, Instant((2022, 1, 1)), 1))
 
-        >>> _parse_period("2022-02")
+        >>> parse_period("2022-02")
         Period((<DateUnit.MONTH: 'month'>, Instant((2022, 2, 1)), 1))
 
-        >>> _parse_period("2022-W02-7")
+        >>> parse_period("2022-W02-7")
         Period((<DateUnit.WEEKDAY: 'weekday'>, Instant((2022, 1, 16)), 1))
 
     """
+
     # If it's a complex period, next!
     if len(value.split(":")) != 1:
         return None
@@ -45,18 +46,18 @@ def _parse_period(value: str) -> Optional[t.Period]:
     if invalid_week.match(value):
         raise ParserError
 
-    unit = _parse_unit(value)
+    unit = parse_unit(value)
     date = pendulum.parse(value, exact=True)
 
     if not isinstance(date, pendulum.Date):
-        raise ValueError
+        raise TypeError
 
     instant = Instant((date.year, date.month, date.day))
 
     return Period((unit, instant, 1))
 
 
-def _parse_unit(value: str) -> t.DateUnit:
+def parse_unit(value: str) -> t.DateUnit:
     """Determine the date unit of a date string.
 
     Args:
@@ -69,33 +70,34 @@ def _parse_unit(value: str) -> t.DateUnit:
         ValueError when no DateUnit can be determined.
 
     Examples:
-        >>> _parse_unit("2022")
+        >>> parse_unit("2022")
         <DateUnit.YEAR: 'year'>
 
-        >>> _parse_unit("2022-W03-01")
+        >>> parse_unit("2022-W03-01")
         <DateUnit.WEEKDAY: 'weekday'>
 
     """
+
+    format_y, format_ym, format_ymd = 1, 2, 3
     length = len(value.split("-"))
     isweek = value.find("W") != -1
 
-    if length == 1:
+    if length == format_y:
         return DateUnit.YEAR
 
-    if length == 2:
+    if length == format_ym:
         if isweek:
             return DateUnit.WEEK
 
         return DateUnit.MONTH
 
-    if length == 3:
+    if length == format_ymd:
         if isweek:
             return DateUnit.WEEKDAY
 
         return DateUnit.DAY
 
-    else:
-        raise ValueError
+    raise ValueError
 
 
-__all__ = ["_parse_period", "_parse_unit"]
+__all__ = ["parse_period", "parse_unit"]

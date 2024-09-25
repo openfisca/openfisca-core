@@ -76,6 +76,8 @@ class Instant(tuple[int, int, int]):
 
     """
 
+    __slots__ = ()
+
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({super().__repr__()})"
 

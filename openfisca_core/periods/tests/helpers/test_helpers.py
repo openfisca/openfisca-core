@@ -54,10 +54,10 @@ def test_key_period_size(arg, expected) -> None:
 
 
 @pytest.mark.parametrize(
-    "arg, error",
+    ("arg", "error"),
     [
-        [(DateUnit.DAY, None, 1), AttributeError],
-        [(DateUnit.MONTH, None, -1000), AttributeError],
+        ((DateUnit.DAY, None, 1), AttributeError),
+        ((DateUnit.MONTH, None, -1000), AttributeError),
     ],
 )
 def test_key_period_size_when_an_invalid_argument(arg, error):
