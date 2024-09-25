@@ -1,51 +1,57 @@
 from __future__ import annotations
 
-import typing_extensions
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence, Sized
 from numpy.typing import NDArray
-from typing import Any, TypeVar
+from typing import Any, NewType, TypeVar, Union
 from typing_extensions import Protocol, TypeAlias
-
-import abc
 
 import numpy
 
-N = TypeVar("N", bound=numpy.generic, covariant=True)
+_N_co = TypeVar("_N_co", bound=numpy.generic, covariant=True)
 
 #: Type representing an numpy array.
-Array: TypeAlias = NDArray[N]
+Array: TypeAlias = NDArray[_N_co]
 
 L = TypeVar("L")
 
 #: Type representing an array-like object.
 ArrayLike: TypeAlias = Sequence[L]
 
-#: Type variable representing an error.
-E = TypeVar("E", covariant=True)
-
-#: Type variable representing a value.
-A = TypeVar("A", covariant=True)
+#: Generic type vars.
+_T_co = TypeVar("_T_co", covariant=True)
 
 
 # Entities
 
+#: For example "person".
+EntityKey = NewType("EntityKey", str)
+
+#: For example "persons".
+EntityPlural = NewType("EntityPlural", str)
+
+#: For example "principal".
+RoleKey = NewType("RoleKey", str)
+
+#: For example "parents".
+RolePlural = NewType("RolePlural", str)
+
 
 class CoreEntity(Protocol):
-    key: Any
-    plural: Any
+    key: EntityKey
+    plural: EntityPlural
 
-    @abc.abstractmethod
-    def check_role_validity(self, role: Any) -> None: ...
-
-    @abc.abstractmethod
-    def check_variable_defined_for_entity(self, variable_name: Any) -> None: ...
-
-    @abc.abstractmethod
+    def check_role_validity(self, role: object, /) -> None: ...
+    def check_variable_defined_for_entity(
+        self,
+        variable_name: VariableName,
+        /,
+    ) -> None: ...
     def get_variable(
         self,
-        variable_name: Any,
-        check_existence: Any = ...,
-    ) -> Any | None: ...
+        variable_name: VariableName,
+        check_existence: bool = ...,
+        /,
+    ) -> None | Variable: ...
 
 
 class SingleEntity(CoreEntity, Protocol): ...
@@ -55,47 +61,50 @@ class GroupEntity(CoreEntity, Protocol): ...
 
 
 class Role(Protocol):
-    entity: Any
+    entity: GroupEntity
     max: int | None
-    subroles: Any
+    subroles: None | Iterable[Role]
 
     @property
-    def key(self) -> str: ...
+    def key(self, /) -> RoleKey: ...
+    @property
+    def plural(self, /) -> None | RolePlural: ...
 
 
 # Holders
 
 
 class Holder(Protocol):
-    @abc.abstractmethod
-    def clone(self, population: Any) -> Holder: ...
-
-    @abc.abstractmethod
-    def get_memory_usage(self) -> Any: ...
+    def clone(self, population: Any, /) -> Holder: ...
+    def get_memory_usage(self, /) -> Any: ...
 
 
 # Parameters
 
 
-@typing_extensions.runtime_checkable
 class ParameterNodeAtInstant(Protocol): ...
 
 
 # Periods
 
 
-class Instant(Protocol): ...
+class Container(Protocol[_T_co]):
+    def __contains__(self, item: object, /) -> bool: ...
 
 
-@typing_extensions.runtime_checkable
-class Period(Protocol):
+class Indexable(Protocol[_T_co]):
+    def __getitem__(self, index: int, /) -> _T_co: ...
+
+
+class DateUnit(Container[str], Protocol): ...
+
+
+class Instant(Indexable[int], Iterable[int], Sized, Protocol): ...
+
+
+class Period(Indexable[Union[DateUnit, Instant, int]], Protocol):
     @property
-    @abc.abstractmethod
-    def start(self) -> Any: ...
-
-    @property
-    @abc.abstractmethod
-    def unit(self) -> Any: ...
+    def unit(self, /) -> DateUnit: ...
 
 
 # Populations
@@ -104,25 +113,17 @@ class Period(Protocol):
 class Population(Protocol):
     entity: Any
 
-    @abc.abstractmethod
-    def get_holder(self, variable_name: Any) -> Any: ...
+    def get_holder(self, variable_name: VariableName, /) -> Any: ...
 
 
 # Simulations
 
 
 class Simulation(Protocol):
-    @abc.abstractmethod
-    def calculate(self, variable_name: Any, period: Any) -> Any: ...
-
-    @abc.abstractmethod
-    def calculate_add(self, variable_name: Any, period: Any) -> Any: ...
-
-    @abc.abstractmethod
-    def calculate_divide(self, variable_name: Any, period: Any) -> Any: ...
-
-    @abc.abstractmethod
-    def get_population(self, plural: Any | None) -> Any: ...
+    def calculate(self, variable_name: VariableName, period: Any, /) -> Any: ...
+    def calculate_add(self, variable_name: VariableName, period: Any, /) -> Any: ...
+    def calculate_divide(self, variable_name: VariableName, period: Any, /) -> Any: ...
+    def get_population(self, plural: None | str, /) -> Any: ...
 
 
 # Tax-Benefit systems
@@ -131,32 +132,34 @@ class Simulation(Protocol):
 class TaxBenefitSystem(Protocol):
     person_entity: Any
 
-    @abc.abstractmethod
     def get_variable(
         self,
-        variable_name: Any,
-        check_existence: Any = ...,
-    ) -> Any | None:
-        """Abstract method."""
+        variable_name: VariableName,
+        check_existence: bool = ...,
+        /,
+    ) -> None | Variable: ...
 
 
 # Variables
 
+#: For example "salary".
+VariableName = NewType("VariableName", str)
+
 
 class Variable(Protocol):
     entity: Any
+    name: VariableName
 
 
 class Formula(Protocol):
-    @abc.abstractmethod
     def __call__(
         self,
         population: Population,
         instant: Instant,
         params: Params,
+        /,
     ) -> Array[Any]: ...
 
 
 class Params(Protocol):
-    @abc.abstractmethod
-    def __call__(self, instant: Instant) -> ParameterNodeAtInstant: ...
+    def __call__(self, instant: Instant, /) -> ParameterNodeAtInstant: ...

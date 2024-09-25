@@ -9,7 +9,7 @@ check-syntax-errors: .
 	@$(call print_pass,$@:)
 
 ## Run linters to check for syntax and style errors.
-check-style: $(shell git ls-files "*.py")
+check-style: $(shell git ls-files "*.py" "*.pyi")
 	@$(call print_help,$@:)
 	@isort --check $?
 	@black --check $?
@@ -46,7 +46,7 @@ check-types:
 	@$(call print_pass,$@:)
 
 ## Run code formatters to correct style errors.
-format-style: $(shell git ls-files "*.py")
+format-style: $(shell git ls-files "*.py" "*.pyi")
 	@$(call print_help,$@:)
 	@isort $?
 	@black $?

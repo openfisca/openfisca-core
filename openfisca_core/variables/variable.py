@@ -11,7 +11,7 @@ import textwrap
 import numpy
 import sortedcontainers
 
-from openfisca_core import periods, tools
+from openfisca_core import commons, periods
 from openfisca_core.entities import Entity, GroupEntity
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import DateUnit, Period
@@ -452,7 +452,7 @@ class Variable:
                 )
         if self.value_type in (float, int) and isinstance(value, str):
             try:
-                value = tools.eval_expression(value)
+                value = commons.eval_expression(value)
             except SyntaxError:
                 msg = f"I couldn't understand '{value}' as a value for '{self.name}'"
                 raise ValueError(

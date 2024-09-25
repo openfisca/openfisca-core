@@ -7,7 +7,7 @@ import numpy
 from .amount_tax_scale_like import AmountTaxScaleLike
 
 if typing.TYPE_CHECKING:
-    NumericalArray = typing.Union[numpy.int_, numpy.float64]
+    NumericalArray = typing.Union[numpy.int32, numpy.float32]
 
 
 class MarginalAmountTaxScale(AmountTaxScaleLike):
@@ -15,7 +15,7 @@ class MarginalAmountTaxScale(AmountTaxScaleLike):
         self,
         tax_base: NumericalArray,
         right: bool = False,
-    ) -> numpy.float64:
+    ) -> numpy.float32:
         """Matches the input amount to a set of brackets and returns the sum of
         cell values from the lowest bracket to the one containing the input.
         """

@@ -9,7 +9,7 @@ from .tax_scale_like import TaxScaleLike
 if typing.TYPE_CHECKING:
     import numpy
 
-    NumericalArray = typing.Union[numpy.int_, numpy.float64]
+    NumericalArray = typing.Union[numpy.int32, numpy.float32]
 
 
 class AbstractTaxScale(TaxScaleLike):
@@ -21,7 +21,7 @@ class AbstractTaxScale(TaxScaleLike):
         self,
         name: str | None = None,
         option: typing.Any = None,
-        unit: numpy.int_ = None,
+        unit: numpy.int16 = None,
     ) -> None:
         message = [
             "The 'AbstractTaxScale' class has been deprecated since",

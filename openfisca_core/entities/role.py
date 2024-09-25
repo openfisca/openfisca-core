@@ -1,12 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
-from typing import Any
+from collections.abc import Iterable
 
-import dataclasses
-import textwrap
-
-from .types import SingleEntity
+from . import types as t
+from ._description import _Description
 
 
 class Role:
@@ -48,44 +45,45 @@ class Role:
     """
 
     #: The Entity the Role belongs to.
-    entity: SingleEntity
+    entity: t.GroupEntity
 
     #: A description of the Role.
     description: _Description
 
     #: Max number of members.
-    max: int | None = None
+    max: None | int = None
 
     #: A list of subroles.
-    subroles: Iterable[Role] | None = None
+    subroles: None | Iterable[Role] = None
 
     @property
-    def key(self) -> str:
+    def key(self) -> t.RoleKey:
         """A key to identify the Role."""
-        return self.description.key
+        return t.RoleKey(self.description.key)
 
     @property
-    def plural(self) -> str | None:
+    def plural(self) -> None | t.RolePlural:
         """The ``key``, pluralised."""
-        return self.description.plural
+        if (plural := self.description.plural) is None:
+            return None
+        return t.RolePlural(plural)
 
     @property
-    def label(self) -> str | None:
+    def label(self) -> None | str:
         """A summary description."""
         return self.description.label
 
     @property
-    def doc(self) -> str | None:
+    def doc(self) -> None | str:
         """A full description, non-indented."""
         return self.description.doc
 
-    def __init__(self, description: Mapping[str, Any], entity: SingleEntity) -> None:
+    def __init__(self, description: t.RoleParams, entity: t.GroupEntity) -> None:
         self.description = _Description(
-            **{
-                key: value
-                for key, value in description.items()
-                if key in {"key", "plural", "label", "doc"}
-            },
+            key=description["key"],
+            plural=description.get("plural"),
+            label=description.get("label"),
+            doc=description.get("doc"),
         )
         self.entity = entity
         self.max = description.get("max")
@@ -94,51 +92,4 @@ class Role:
         return f"Role({self.key})"
 
 
-@dataclasses.dataclass(frozen=True)
-class _Description:
-    r"""A Role's description.
-
-    Examples:
-        >>> data = {
-        ...     "key": "parent",
-        ...     "label": "Parents",
-        ...     "plural": "parents",
-        ...     "doc": "\t\t\tThe one/two adults in charge of the household.",
-        ... }
-
-        >>> description = _Description(**data)
-
-        >>> repr(_Description)
-        "<class 'openfisca_core.entities.role._Description'>"
-
-        >>> repr(description)
-        "_Description(key='parent', plural='parents', label='Parents', ...)"
-
-        >>> str(description)
-        "_Description(key='parent', plural='parents', label='Parents', ...)"
-
-        >>> {description}
-        {_Description(key='parent', plural='parents', label='Parents', doc=...}
-
-        >>> description.key
-        'parent'
-
-    .. versionadded:: 41.0.1
-
-    """
-
-    #: A key to identify the Role.
-    key: str
-
-    #: The ``key``, pluralised.
-    plural: str | None = None
-
-    #: A summary description.
-    label: str | None = None
-
-    #: A full description, non-indented.
-    doc: str | None = None
-
-    def __post_init__(self) -> None:
-        if self.doc is not None:
-            object.__setattr__(self, "doc", textwrap.dedent(self.doc))
+__all__ = ["Role"]
