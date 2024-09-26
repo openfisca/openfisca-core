@@ -122,6 +122,10 @@ class Instant(tuple[int, int, int]):
     def year(self) -> int:
         return self[0]
 
+    @property
+    def is_eternal(self) -> bool:
+        return self == self.eternity()
+
     def offset(self, offset: str | int, unit: t.DateUnit) -> t.Instant | None:
         """Increments/decrements the given instant with offset units.
 
@@ -214,7 +218,7 @@ class Instant(tuple[int, int, int]):
     @classmethod
     def eternity(cls) -> t.Instant:
         """Return an eternity instant."""
-        return cls((1, 1, 1))
+        return cls((-1, -1, -1))
 
 
 __all__ = ["Instant"]

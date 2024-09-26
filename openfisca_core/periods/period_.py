@@ -827,6 +827,10 @@ class Period(tuple[t.DateUnit, t.Instant, int]):
 
         raise ValueError
 
+    @property
+    def is_eternal(self) -> bool:
+        return self == self.eternity()
+
     # Reference periods
 
     @property
@@ -908,7 +912,7 @@ class Period(tuple[t.DateUnit, t.Instant, int]):
     @classmethod
     def eternity(cls) -> t.Period:
         """Return an eternity period."""
-        return cls((DateUnit.ETERNITY, Instant.eternity(), 0))
+        return cls((DateUnit.ETERNITY, Instant.eternity(), -1))
 
 
 __all__ = ["Period"]

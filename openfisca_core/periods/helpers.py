@@ -145,7 +145,7 @@ def period(value: object) -> t.Period:
         Period((<DateUnit.DAY: 'day'>, Instant((2021, 1, 1)), 1))
 
         >>> period(DateUnit.ETERNITY)
-        Period((<DateUnit.ETERNITY: 'eternity'>, Instant((1, 1, 1)), 0))
+        Period((<DateUnit.ETERNITY: 'eternity'>, Instant((-1, -1, -1)), -1))
 
         >>> period(2021)
         Period((<DateUnit.YEAR: 'year'>, Instant((2021, 1, 1)), 1))
@@ -173,7 +173,7 @@ def period(value: object) -> t.Period:
     one, two, three = 1, 2, 3
 
     # We return an "eternity-period", for example
-    # ``<Period(('eternity', <Instant(1, 1, 1)>, 0))>``.
+    # ``<Period(('eternity', <Instant(-1, -1, -1)>, -1))>``.
     if str(value).lower() == DateUnit.ETERNITY:
         return Period.eternity()
 
