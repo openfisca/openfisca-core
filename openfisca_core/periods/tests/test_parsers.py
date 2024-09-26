@@ -22,11 +22,11 @@ def test__parse_period(arg, expected) -> None:
 @pytest.mark.parametrize(
     ("arg", "error"),
     [
-        (None, AttributeError),
-        ({}, AttributeError),
-        ((), AttributeError),
-        ([], AttributeError),
-        (1, AttributeError),
+        (None, NotImplementedError),
+        ({}, NotImplementedError),
+        ((), NotImplementedError),
+        ([], NotImplementedError),
+        (1, NotImplementedError),
         ("", AttributeError),
         ("à", ParserError),
         ("1", ValueError),

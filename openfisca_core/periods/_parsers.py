@@ -13,7 +13,7 @@ from .period_ import Period
 invalid_week = re.compile(r".*(W[1-9]|W[1-9]-[0-9]|W[0-5][0-9]-0)$")
 
 
-def parse_period(value: str) -> None | t.Period:
+def parse_period(value: object) -> None | t.Period:
     """Parses ISO format/calendar periods.
 
     Such as "2012" or "2015-03".
@@ -29,6 +29,11 @@ def parse_period(value: str) -> None | t.Period:
         Period((<DateUnit.WEEKDAY: 'weekday'>, Instant((2022, 1, 16)), 1))
 
     """
+
+    # If it is not a string, next!
+    if not isinstance(value, str):
+        msg = f"Expected a {str.__name__}, got {type(value).__name__}."
+        raise NotImplementedError(msg)
 
     # If it's a complex period, next!
     if len(value.split(":")) != 1:
