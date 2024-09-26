@@ -3,7 +3,7 @@ import datetime
 import pytest
 
 from openfisca_core import periods
-from openfisca_core.periods import DateUnit, Instant, Period
+from openfisca_core.periods import DateUnit, Instant, InstantError, Period
 
 
 @pytest.mark.parametrize(
@@ -32,7 +32,7 @@ def test_instant(arg, expected) -> None:
 @pytest.mark.parametrize(
     ("arg", "error"),
     [
-        (None, periods.InstantError),
+        (None, InstantError),
         (DateUnit.YEAR, ValueError),
         (DateUnit.ETERNITY, ValueError),
         ("1000-0", ValueError),
@@ -51,21 +51,21 @@ def test_instant(arg, expected) -> None:
         ("year:1000-01-01:3", ValueError),
         ("1000-01-01:a", ValueError),
         ("1000-01-01:1", ValueError),
-        ((), periods.InstantError),
-        ({}, periods.InstantError),
-        ("", periods.InstantError),
-        ((None,), periods.InstantError),
-        ((None, None), periods.InstantError),
-        ((None, None, None), periods.InstantError),
-        ((None, None, None, None), periods.InstantError),
-        (("-1",), periods.InstantError),
-        (("-1", "-1"), periods.InstantError),
-        (("-1", "-1", "-1"), periods.InstantError),
-        (("1-1",), periods.InstantError),
-        (("1-1-1",), periods.InstantError),
-        ((datetime.date(1, 1, 1),), periods.InstantError),
-        ((Instant((1, 1, 1)),), periods.InstantError),
-        ((Period((DateUnit.DAY, Instant((1, 1, 1)), 365)),), periods.InstantError),
+        ((), InstantError),
+        ({}, InstantError),
+        ("", InstantError),
+        ((None,), InstantError),
+        ((None, None), InstantError),
+        ((None, None, None), InstantError),
+        ((None, None, None, None), InstantError),
+        (("-1",), InstantError),
+        (("-1", "-1"), InstantError),
+        (("-1", "-1", "-1"), InstantError),
+        (("1-1",), InstantError),
+        (("1-1-1",), InstantError),
+        ((datetime.date(1, 1, 1),), InstantError),
+        ((Instant((1, 1, 1)),), InstantError),
+        ((Period((DateUnit.DAY, Instant((1, 1, 1)), 365)),), InstantError),
     ],
 )
 def test_instant_with_an_invalid_argument(arg, error) -> None:

@@ -30,7 +30,7 @@ def empty_clone(original: object) -> object:
 
     """
 
-    def __init__(_): ...
+    def __init__(_: object) -> None: ...
 
     Dummy = type(
         "Dummy",
@@ -71,6 +71,7 @@ def stringify_array(array: None | t.Array[numpy.generic]) -> str:
         "[<class 'list'>, {}, <function stringify_array...]"
 
     """
+
     if array is None:
         return "None"
 

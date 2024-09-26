@@ -12,6 +12,8 @@
 - Introduce `Instant.eternity()`
   - This behaviour was duplicated across
   - Now it is encapsulated in a single method
+- Now `periods.instant` parses also ISO calendar strings (weeks)
+  - For instance, `2022-W01` is now a valid input
 
 #### Technical changes
 

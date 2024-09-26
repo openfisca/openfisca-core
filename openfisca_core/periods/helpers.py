@@ -4,13 +4,12 @@ from typing import NoReturn
 
 import datetime
 import functools
-import os
 
 import pendulum
 
 from . import config, types as t
-from ._errors import InstantError, ParserError
-from ._parsers import parse_period
+from ._errors import InstantError, PeriodError
+from ._parsers import parse_instant, parse_period
 from .date_unit import DateUnit
 from .instant_ import Instant
 from .period_ import Period
@@ -64,7 +63,7 @@ def instant(value: object) -> t.Instant:
     """
 
     if isinstance(value, t.SeqInt):
-        return instant(t.SeqInt(value))
+        return Instant((list(value) + [1] * 3)[:3])
 
     raise InstantError(str(value))
 
@@ -77,15 +76,6 @@ def _(value: None) -> NoReturn:
 @instant.register
 def _(value: int) -> t.Instant:
     return Instant((value, 1, 1))
-
-
-@instant.register
-def _(value: str) -> t.Instant:
-    # TODO(<Mauko Quiroga-Alvarado>): Add support for weeks (isocalendar).
-    # https://github.com/openfisca/openfisca-core/issues/1232
-    if not config.INSTANT_PATTERN.match(value):
-        raise InstantError(value)
-    return instant(tuple(int(_) for _ in value.split("-", 2)[:3]))
 
 
 @instant.register
@@ -104,13 +94,8 @@ def _(value: datetime.date) -> t.Instant:
 
 
 @instant.register
-def _(value: pendulum.Date) -> t.Instant:
-    return Instant((value.year, value.month, value.day))
-
-
-@instant.register
-def _(value: t.SeqInt) -> t.Instant:
-    return Instant((value + [1] * 3)[:3])
+def _(value: str) -> t.Instant:
+    return parse_instant(value)
 
 
 def instant_date(instant: None | t.Instant) -> None | datetime.date:
@@ -139,6 +124,7 @@ def instant_date(instant: None | t.Instant) -> None | datetime.date:
     return instant_date
 
 
+@functools.singledispatch
 def period(value: object) -> t.Period:
     """Build a new period, aka a triple (unit, start_instant, size).
 
@@ -184,115 +170,81 @@ def period(value: object) -> t.Period:
 
     """
 
-    format_ym, format_ymd = 2, 3
-
-    if isinstance(value, Period):
-        return value
-
-    # We return a "day-period", for example
-    # ``<Period(('day', <Instant(2021, 1, 1)>, 1))>``.
-    if isinstance(value, Instant):
-        return Period((DateUnit.DAY, value, 1))
-
-    # For example ``datetime.date(2021, 9, 16)``.
-    if isinstance(value, datetime.date):
-        return Period((DateUnit.DAY, instant(value), 1))
+    one, two, three = 1, 2, 3
 
     # We return an "eternity-period", for example
     # ``<Period(('eternity', <Instant(1, 1, 1)>, 0))>``.
     if str(value).lower() == DateUnit.ETERNITY:
         return Period.eternity()
 
-    # For example ``2021`` gives
-    # ``<Period(('year', <Instant(2021, 1, 1)>, 1))>``.
-    if isinstance(value, int):
-        return Period((DateUnit.YEAR, instant(value), 1))
-
-    # Up to this point, if ``value`` is not a :obj:`str`, we desist.
-    if not isinstance(value, str):
-        _raise_error(str(value))
-
-    # There can't be empty strings.
-    if not value:
-        _raise_error(value)
-
-    # Try to parse from an ISO format/calendar period.
-    try:
-        period = parse_period(value)
-
-    except (AttributeError, ValueError, ParserError):
-        _raise_error(value)
-
-    if period is not None:
-        return period
+    # We try to parse from an ISO format/calendar period.
+    if isinstance(value, t.InstantStr):
+        return parse_period(value)
 
     # A complex period has a ':' in its string.
-    if ":" not in value:
-        _raise_error(value)
+    if isinstance(value, t.PeriodStr):
+        components = value.split(":")
 
-    components = value.split(":")
+        # The left-most component must be a valid unit
+        unit = components[0]
 
-    # left-most component must be a valid unit
-    unit = components[0]
+        if unit not in list(DateUnit) or unit == DateUnit.ETERNITY:
+            raise PeriodError(str(value))
 
-    if unit not in list(DateUnit) or unit == DateUnit.ETERNITY:
-        _raise_error(value)
+        # Cast ``unit`` to DateUnit.
+        unit = DateUnit(unit)
 
-    # Cast ``unit`` to DateUnit.
-    unit = DateUnit(unit)
+        # The middle component must be a valid iso period
+        period = parse_period(components[1])
 
-    # middle component must be a valid iso period
-    try:
-        base_period = parse_period(components[1])
+        # Periods like year:2015-03 have a size of 1
+        if len(components) == two:
+            size = one
 
-    except (AttributeError, ValueError, ParserError):
-        _raise_error(value)
+        # if provided, make sure the size is an integer
+        elif len(components) == three:
+            try:
+                size = int(components[2])
 
-    if not base_period:
-        _raise_error(value)
+            except ValueError as error:
+                raise PeriodError(str(value)) from error
 
-    # period like year:2015-03 have a size of 1
-    if len(components) == format_ym:
-        size = 1
+        # If there are more than 2 ":" in the string, the period is invalid
+        else:
+            raise PeriodError(str(value))
 
-    # if provided, make sure the size is an integer
-    elif len(components) == format_ymd:
-        try:
-            size = int(components[2])
+        # Reject ambiguous periods such as month:2014
+        if unit_weight(period.unit) > unit_weight(unit):
+            raise PeriodError(str(value))
 
-        except ValueError:
-            _raise_error(value)
+        return Period((unit, period.start, size))
 
-    # if there is more than 2 ":" in the string, the period is invalid
-    else:
-        _raise_error(value)
-
-    # reject ambiguous periods such as month:2014
-    if unit_weight(base_period.unit) > unit_weight(unit):
-        _raise_error(value)
-
-    return Period((unit, base_period.start, size))
+    raise PeriodError(str(value))
 
 
-def _raise_error(value: str) -> NoReturn:
-    """Raise an error.
+@period.register
+def _(value: None) -> NoReturn:
+    raise PeriodError(str(value))
 
-    Examples:
-        >>> _raise_error("Oi mate!")
-        Traceback (most recent call last):
-        ValueError: Expected a period (eg. '2017', '2017-01', '2017-01-01', ...
-        Learn more about legal period formats in OpenFisca:
-        <https://openfisca.org/doc/coding-the-legislation/35_periods.html#pe...
 
-    """
-    message = os.linesep.join(
-        [
-            "Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); ",
-            f"got: '{value}'. Learn more about legal period formats in OpenFisca:",
-            "<https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-simulations>.",
-        ],
-    )
-    raise ValueError(message)
+@period.register
+def _(value: int) -> t.Period:
+    return Period((DateUnit.YEAR, instant(value), 1))
+
+
+@period.register
+def _(value: t.Period) -> t.Period:
+    return value
+
+
+@period.register
+def _(value: t.Instant) -> t.Period:
+    return Period((DateUnit.DAY, value, 1))
+
+
+@period.register
+def _(value: datetime.date) -> t.Period:
+    return Period((DateUnit.DAY, instant(value), 1))
 
 
 def key_period_size(period: t.Period) -> str:
