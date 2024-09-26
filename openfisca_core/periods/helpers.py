@@ -1,41 +1,30 @@
 from __future__ import annotations
 
-from typing import NoReturn, overload
+from typing import NoReturn
 
 import datetime
+import functools
 import os
 
 import pendulum
 
 from . import config, types as t
-from ._errors import ParserError
+from ._errors import InstantError, ParserError
 from ._parsers import parse_period
 from .date_unit import DateUnit
 from .instant_ import Instant
 from .period_ import Period
 
 
-@overload
-def instant(instant: None) -> None: ...
-
-
-@overload
-def instant(instant: int | t.Period | t.Instant | datetime.date) -> t.Instant: ...
-
-
-@overload
-def instant(instant: str | list[int] | tuple[int, ...]) -> t.Instant: ...
-
-
-def instant(instant: object) -> None | t.Instant:
+@functools.singledispatch
+def instant(value: object) -> t.Instant:
     """Build a new instant, aka a triple of integers (year, month, day).
 
     Args:
-        instant: An ``instant-like`` object.
+        value(object): An ``instant-like`` object.
 
     Returns:
-        None: When ``instant`` is None.
-        :obj:`.Instant`: Otherwise.
+        :obj:`.Instant`: A new instant.
 
     Raises:
         :exc:`ValueError`: When the arguments were invalid, like "2021-32-13".
@@ -62,43 +51,66 @@ def instant(instant: object) -> None | t.Instant:
         >>> instant("2021")
         Instant((2021, 1, 1))
 
+        >>> instant([2021])
+        Instant((2021, 1, 1))
+
+        >>> instant([2021, 9])
+        Instant((2021, 9, 1))
+
+        >>> instant(None)
+        Traceback (most recent call last):
+        openfisca_core.periods._errors.InstantError: 'None' is not a valid i...
+
     """
 
-    result: t.Instant | tuple[int, ...]
-    format_y, format_ym, format_ymd = 1, 2, 3
+    if isinstance(value, t.SeqInt):
+        return instant(t.SeqInt(value))
 
-    if instant is None:
-        return None
-    if isinstance(instant, Instant):
-        return instant
-    if isinstance(instant, str):
-        if not config.INSTANT_PATTERN.match(instant):
-            msg = (
-                f"'{instant}' is not a valid instant. Instants are described "
-                "using the 'YYYY-MM-DD' format, for instance '2015-06-15'."
-            )
-            raise ValueError(
-                msg,
-            )
-        result = Instant(int(fragment) for fragment in instant.split("-", 2)[:3])
-    elif isinstance(instant, datetime.date):
-        result = Instant((instant.year, instant.month, instant.day))
-    elif isinstance(instant, int):
-        result = (instant,)
-    elif isinstance(instant, list):
-        assert 1 <= len(instant) <= format_ymd
-        result = tuple(instant)
-    elif isinstance(instant, Period):
-        result = instant.start
-    else:
-        assert isinstance(instant, tuple), instant
-        assert format_y <= len(instant) <= format_ymd
-        result = instant
-    if len(result) == format_y:
-        return Instant((result[0], 1, 1))
-    if len(result) == format_ym:
-        return Instant((result[0], result[1], 1))
-    return Instant(result)
+    raise InstantError(str(value))
+
+
+@instant.register
+def _(value: None) -> NoReturn:
+    raise InstantError(str(value))
+
+
+@instant.register
+def _(value: int) -> t.Instant:
+    return Instant((value, 1, 1))
+
+
+@instant.register
+def _(value: str) -> t.Instant:
+    # TODO(<Mauko Quiroga-Alvarado>): Add support for weeks (isocalendar).
+    # https://github.com/openfisca/openfisca-core/issues/1232
+    if not config.INSTANT_PATTERN.match(value):
+        raise InstantError(value)
+    return instant(tuple(int(_) for _ in value.split("-", 2)[:3]))
+
+
+@instant.register
+def _(value: Period) -> t.Instant:
+    return value.start
+
+
+@instant.register
+def _(value: t.Instant) -> t.Instant:
+    return value
+
+
+@instant.register
+def _(value: datetime.date) -> t.Instant:
+    return Instant((value.year, value.month, value.day))
+
+
+@instant.register
+def _(value: pendulum.Date) -> t.Instant:
+    return Instant((value.year, value.month, value.day))
+
+
+@instant.register
+def _(value: t.SeqInt) -> t.Instant:
+    return Instant((value + [1] * 3)[:3])
 
 
 def instant_date(instant: None | t.Instant) -> None | datetime.date:

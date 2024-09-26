@@ -1,14 +1,22 @@
 # Changelog
 
-## 41.6.0 [#1223](https://github.com/openfisca/openfisca-core/pull/1223)
+# 42.0.0 [#1223](https://github.com/openfisca/openfisca-core/pull/1223)
+
+#### Breaking changes
+
+- `periods.instant` no longer returns `None`
+  - Now, it raises `periods.InstantError`
 
 #### New features
 
 - Introduce `Instant.eternity()`
+  - This behaviour was duplicated across
+  - Now it is encapsulated in a single method
 
 #### Technical changes
 
-- Update `pendulum'
+- Update `pendulum`
+- Reduce code complexity
 - Remove run-time type-checks
 - Add typing to the periods module
 
