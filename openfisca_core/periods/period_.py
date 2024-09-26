@@ -117,6 +117,8 @@ class Period(tuple[t.DateUnit, t.Instant, int]):
 
     """
 
+    __slots__ = ()
+
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({super().__repr__()})"
 
@@ -466,11 +468,11 @@ class Period(tuple[t.DateUnit, t.Instant, int]):
         Examples:
             >>> period = Period((DateUnit.YEAR, Instant((2021, 1, 1)), 1))
             >>> period.get_subperiods(DateUnit.MONTH)
-            [Period((<DateUnit.MONTH: 'month'>, Instant((2021, 1, 1)), 1)),...2021, 12, 1)), 1))]
+            [Period((<DateUnit.MONTH: 'month'>, Instant((2021, 1, 1)), 1)),...]
 
             >>> period = Period((DateUnit.YEAR, Instant((2021, 1, 1)), 2))
             >>> period.get_subperiods(DateUnit.YEAR)
-            [Period((<DateUnit.YEAR: 'year'>, Instant((2021, 1, 1)), 1)),...((2022, 1, 1)), 1))]
+            [Period((<DateUnit.YEAR: 'year'>, Instant((2021, 1, 1)), 1)), P...]
 
         """
         if helpers.unit_weight(self.unit) < helpers.unit_weight(unit):
@@ -513,19 +515,27 @@ class Period(tuple[t.DateUnit, t.Instant, int]):
             >>> Period((DateUnit.DAY, Instant((2021, 1, 1)), 365)).offset(1)
             Period((<DateUnit.DAY: 'day'>, Instant((2021, 1, 2)), 365))
 
-            >>> Period((DateUnit.DAY, Instant((2021, 1, 1)), 365)).offset(1, DateUnit.DAY)
+            >>> Period((DateUnit.DAY, Instant((2021, 1, 1)), 365)).offset(
+            ...     1, DateUnit.DAY
+            ... )
             Period((<DateUnit.DAY: 'day'>, Instant((2021, 1, 2)), 365))
 
-            >>> Period((DateUnit.DAY, Instant((2021, 1, 1)), 365)).offset(1, DateUnit.MONTH)
+            >>> Period((DateUnit.DAY, Instant((2021, 1, 1)), 365)).offset(
+            ...     1, DateUnit.MONTH
+            ... )
             Period((<DateUnit.DAY: 'day'>, Instant((2021, 2, 1)), 365))
 
-            >>> Period((DateUnit.DAY, Instant((2021, 1, 1)), 365)).offset(1, DateUnit.YEAR)
+            >>> Period((DateUnit.DAY, Instant((2021, 1, 1)), 365)).offset(
+            ...     1, DateUnit.YEAR
+            ... )
             Period((<DateUnit.DAY: 'day'>, Instant((2022, 1, 1)), 365))
 
             >>> Period((DateUnit.MONTH, Instant((2021, 1, 1)), 12)).offset(1)
             Period((<DateUnit.MONTH: 'month'>, Instant((2021, 2, 1)), 12))
 
-            >>> Period((DateUnit.MONTH, Instant((2021, 1, 1)), 12)).offset(1, DateUnit.DAY)
+            >>> Period((DateUnit.MONTH, Instant((2021, 1, 1)), 12)).offset(
+            ...     1, DateUnit.DAY
+            ... )
             Period((<DateUnit.MONTH: 'month'>, Instant((2021, 1, 2)), 12))
 
             >>> Period((DateUnit.MONTH, Instant((2021, 1, 1)), 12)).offset(
@@ -533,19 +543,27 @@ class Period(tuple[t.DateUnit, t.Instant, int]):
             ... )
             Period((<DateUnit.MONTH: 'month'>, Instant((2021, 2, 1)), 12))
 
-            >>> Period((DateUnit.MONTH, Instant((2021, 1, 1)), 12)).offset(1, DateUnit.YEAR)
+            >>> Period((DateUnit.MONTH, Instant((2021, 1, 1)), 12)).offset(
+            ...     1, DateUnit.YEAR
+            ... )
             Period((<DateUnit.MONTH: 'month'>, Instant((2022, 1, 1)), 12))
 
             >>> Period((DateUnit.YEAR, Instant((2021, 1, 1)), 1)).offset(1)
             Period((<DateUnit.YEAR: 'year'>, Instant((2022, 1, 1)), 1))
 
-            >>> Period((DateUnit.YEAR, Instant((2021, 1, 1)), 1)).offset(1, DateUnit.DAY)
+            >>> Period((DateUnit.YEAR, Instant((2021, 1, 1)), 1)).offset(
+            ...     1, DateUnit.DAY
+            ... )
             Period((<DateUnit.YEAR: 'year'>, Instant((2021, 1, 2)), 1))
 
-            >>> Period((DateUnit.YEAR, Instant((2021, 1, 1)), 1)).offset(1, DateUnit.MONTH)
+            >>> Period((DateUnit.YEAR, Instant((2021, 1, 1)), 1)).offset(
+            ...     1, DateUnit.MONTH
+            ... )
             Period((<DateUnit.YEAR: 'year'>, Instant((2021, 2, 1)), 1))
 
-            >>> Period((DateUnit.YEAR, Instant((2021, 1, 1)), 1)).offset(1, DateUnit.YEAR)
+            >>> Period((DateUnit.YEAR, Instant((2021, 1, 1)), 1)).offset(
+            ...     1, DateUnit.YEAR
+            ... )
             Period((<DateUnit.YEAR: 'year'>, Instant((2022, 1, 1)), 1))
 
             >>> Period((DateUnit.DAY, Instant((2011, 2, 28)), 1)).offset(1)
