@@ -13,13 +13,13 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-22.04, windows-2019]
         numpy: [2.1.1, 1.24.2]
         python: [3.11.9, 3.9.13] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs,  and any such difference would lead to a cache not found error.
         include:
-        - os: ubuntu-latest
+        - os: ubuntu-22.04
           activate_command: source venv/bin/activate
-        - os: windows-latest
+        - os: windows-2019
           activate_command: .\venv\Scripts\activate
     uses: ./.github/workflows/_before.yaml
     with:
@@ -33,13 +33,13 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-22.04, windows-2019]
         numpy: [2.1.1, 1.24.2]
         python: [3.11.9, 3.9.13] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs,  and any such difference would lead to a cache not found error.
         include:
-        - os: ubuntu-latest
+        - os: ubuntu-22.04
           activate_command: source venv/bin/activate
-        - os: windows-latest
+        - os: windows-2019
           activate_command: .\venv\Scripts\activate
     uses: ./.github/workflows/_test.yaml
     with:
@@ -57,7 +57,7 @@ jobs:
         python: [3.11.9, 3.9.13] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs,  and any such difference would lead to a cache not found error.
     uses: ./.github/workflows/_lint.yaml
     with:
-        os: ubuntu-latest
+        os: ubuntu-22.04
         numpy: ${{ matrix.numpy }}
         python: ${{ matrix.python }}
         activate_command: source venv/bin/activate
@@ -67,7 +67,7 @@ jobs:
   # so they don't have to do it twice after changes happened to the main branch
   # during the time they took to fix the tests.
   check-version:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [test, lint]
 
     steps:
@@ -78,7 +78,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9.20 # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
+          python-version: 3.9.13 # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
 
       - name: Check version number has been properly updated
         run: "${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh"
@@ -88,7 +88,7 @@ jobs:
   # halt option. The `deploy` job is dependent on the output of the
   # `check-for-functional-changes`job.
   check-for-functional-changes:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [check-version] # Last job to run
     outputs:
       status: ${{ steps.stop-early.outputs.status }}
@@ -101,13 +101,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9.20 # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
+          python-version: 3.9.13 # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
 
       - id: stop-early
         run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "::set-output name=status::success" ; fi # The `check-for-functional-changes` job should always succeed regardless of the `has-functional-changes` script's exit code. Consequently, we do not use that exit code to trigger deploy, but rather a dedicated output variable `status`, to avoid a job failure if the exit code is different from 0. Conversely, if the job fails the entire workflow would be marked as `failed` which is disturbing for contributors.
 
   publish-to-pypi:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: [check-for-functional-changes]
     if: needs.check-for-functional-changes.outputs.status == 'success'
     env:
@@ -122,25 +122,25 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9.20 # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
+          python-version: 3.9.13 # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
 
       - name: Cache deps
         uses: actions/cache@v3
         with:
           path: venv
-          key: deps-ubuntu-20.04-np1.20.3-py3.8.10-${{ hashFiles('setup.py') }}
+          key: deps-ubuntu-22.04-np1.24.2-py3.9.13-${{ hashFiles('setup.py') }}
 
       - name: Cache build
         uses: actions/cache@v3
         with:
           path: venv/**/[oO]pen[fF]isca*
-          key: build-ubuntu-20.04-np1.20.3-py3.8.10-${{ hashFiles('setup.py') }}-${{ github.sha }}
+          key: build-ubuntu-22.04-np1.24.2-py3.9.13-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
       - name: Cache release
         uses: actions/cache@v3
         with:
           path: dist
-          key: release-ubuntu-20.04-np1.20.3-py3.8.10-${{ hashFiles('setup.py') }}-${{ github.sha }}
+          key: release-ubuntu-22.04-np1.24.2-py3.9.13-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
       - name: Upload package to PyPi
         run: |
@@ -220,7 +220,7 @@ jobs:
         run: conda build -c conda-forge --token ${{ secrets.ANACONDA_TOKEN }} --user openfisca .conda
 
   test-on-windows:
-    runs-on: windows-latest
+    runs-on: windows-2019
     needs: [publish-to-conda]
 
     steps:

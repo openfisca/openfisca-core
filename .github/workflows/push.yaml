@@ -13,13 +13,13 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-22.04, windows-2019]
         numpy: [2.1.1, 1.24.2]
         python: [3.11.9, 3.9.13] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs,  and any such difference would lead to a cache not found error.
         include:
-        - os: ubuntu-latest
+        - os: ubuntu-22.04
           activate_command: source venv/bin/activate
-        - os: windows-latest
+        - os: windows-2019
           activate_command: .\venv\Scripts\activate
     uses: ./.github/workflows/_before.yaml
     with:
@@ -33,13 +33,13 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-22.04, windows-2019]
         numpy: [2.1.1, 1.24.2]
         python: [3.11.9, 3.9.13] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs,  and any such difference would lead to a cache not found error.
         include:
-        - os: ubuntu-latest
+        - os: ubuntu-22.04
           activate_command: source venv/bin/activate
-        - os: windows-latest
+        - os: windows-2019
           activate_command: .\venv\Scripts\activate
     uses: ./.github/workflows/_test.yaml
     with:
@@ -57,7 +57,7 @@ jobs:
         python: [3.11.9, 3.9.13] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs,  and any such difference would lead to a cache not found error.
     uses: ./.github/workflows/_lint.yaml
     with:
-        os: ubuntu-latest
+        os: ubuntu-22.04
         numpy: ${{ matrix.numpy }}
         python: ${{ matrix.python }}
         activate_command: source venv/bin/activate
@@ -67,7 +67,7 @@ jobs:
   # so they don't have to do it twice after changes happened to the main branch
   # during the time they took to fix the tests.
   check-version:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [test, lint]
 
     steps:
@@ -78,7 +78,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9.20 # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
+          python-version: 3.9.13 # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
 
       - name: Check version number has been properly updated
         run: "${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh"
