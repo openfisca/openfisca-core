@@ -35,7 +35,7 @@ jobs:
       matrix:
         os: [ubuntu-22.04, windows-2019]
         numpy: [2.1.1, 1.24.2]
-        python: [3.11.9, 3.9.13] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs,  and any such difference would lead to a cache not found error.
+        python: [3.11.9, 3.9.13]
         include:
         - os: ubuntu-22.04
           activate_command: source venv/bin/activate
@@ -54,7 +54,7 @@ jobs:
       fail-fast: true
       matrix:
         numpy: [1.24.2]
-        python: [3.11.9, 3.9.13] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs,  and any such difference would lead to a cache not found error.
+        python: [3.11.9, 3.9.13]
     uses: ./.github/workflows/_lint.yaml
     with:
         os: ubuntu-22.04
@@ -78,7 +78,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9.13 # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
+          python-version: 3.9.13
 
       - name: Check version number has been properly updated
         run: "${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh"
@@ -101,7 +101,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9.13 # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
+          python-version: 3.9.13
 
       - id: stop-early
         run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "::set-output name=status::success" ; fi # The `check-for-functional-changes` job should always succeed regardless of the `has-functional-changes` script's exit code. Consequently, we do not use that exit code to trigger deploy, but rather a dedicated output variable `status`, to avoid a job failure if the exit code is different from 0. Conversely, if the job fails the entire workflow would be marked as `failed` which is disturbing for contributors.
@@ -122,7 +122,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9.13 # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs, and any such difference would lead to a cache not found error.
+          python-version: 3.9.13
 
       - name: Cache deps
         uses: actions/cache@v3
