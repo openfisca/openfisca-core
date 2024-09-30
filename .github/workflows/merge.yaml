@@ -15,7 +15,11 @@ jobs:
       matrix:
         os: [ubuntu-22.04, windows-2019]
         numpy: [2.1.1, 1.24.2]
-        python: [3.11.9, 3.9.13] # Patch version must be specified to avoid any cache confusion, since the cache key depends on the full Python version. If left unspecified, different patch versions could be allocated between jobs,  and any such difference would lead to a cache not found error.
+        # Patch version must be specified to avoid any cache confusion, since
+        # the cache key depends on the full Python version. If left unspecified,
+        # different patch versions could be allocated between jobs,  and any
+        # such difference would lead to a cache not found error.
+        python: [3.11.9, 3.9.13]
         include:
         - os: ubuntu-22.04
           activate_command: source venv/bin/activate
@@ -23,10 +27,10 @@ jobs:
           activate_command: .\venv\Scripts\activate
     uses: ./.github/workflows/_before.yaml
     with:
-        os: ${{ matrix.os }}
-        numpy: ${{ matrix.numpy }}
-        python: ${{ matrix.python }}
-        activate_command: ${{ matrix.activate_command }}
+      os: ${{ matrix.os }}
+      numpy: ${{ matrix.numpy }}
+      python: ${{ matrix.python }}
+      activate_command: ${{ matrix.activate_command }}
 
   test:
     needs: [setup]
@@ -43,10 +47,10 @@ jobs:
           activate_command: .\venv\Scripts\activate
     uses: ./.github/workflows/_test.yaml
     with:
-        os: ${{ matrix.os }}
-        numpy: ${{ matrix.numpy }}
-        python: ${{ matrix.python }}
-        activate_command: ${{ matrix.activate_command }}
+      os: ${{ matrix.os }}
+      numpy: ${{ matrix.numpy }}
+      python: ${{ matrix.python }}
+      activate_command: ${{ matrix.activate_command }}
 
   lint:
     needs: [setup]
@@ -57,10 +61,10 @@ jobs:
         python: [3.11.9, 3.9.13]
     uses: ./.github/workflows/_lint.yaml
     with:
-        os: ubuntu-22.04
-        numpy: ${{ matrix.numpy }}
-        python: ${{ matrix.python }}
-        activate_command: source venv/bin/activate
+      os: ubuntu-22.04
+      numpy: ${{ matrix.numpy }}
+      python: ${{ matrix.python }}
+      activate_command: source venv/bin/activate
 
   # The idea behind these dependencies is we want to give feedback to
   # contributors on the version number only after they have passed all tests,
@@ -71,17 +75,18 @@ jobs:
     needs: [test, lint]
 
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0 # Fetch all the tags
+    - uses: actions/checkout@v4
+      with:
+        # Fetch all the tags
+        fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9.13
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.9.13
 
-      - name: Check version number has been properly updated
-        run: "${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh"
+    - name: Check version number has been properly updated
+      run: ${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh
 
   # GitHub Actions does not have a halt job option, to stop from deploying if
   # no functional changes were found. We build a separate job to substitute the
@@ -89,22 +94,30 @@ jobs:
   # `check-for-functional-changes`job.
   check-for-functional-changes:
     runs-on: ubuntu-22.04
-    needs: [check-version] # Last job to run
+    # Last job to run
+    needs: [check-version]
     outputs:
       status: ${{ steps.stop-early.outputs.status }}
 
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0 # Fetch all the tags
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9.13
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.9.13
 
-      - id: stop-early
-        run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "::set-output name=status::success" ; fi # The `check-for-functional-changes` job should always succeed regardless of the `has-functional-changes` script's exit code. Consequently, we do not use that exit code to trigger deploy, but rather a dedicated output variable `status`, to avoid a job failure if the exit code is different from 0. Conversely, if the job fails the entire workflow would be marked as `failed` which is disturbing for contributors.
+    - id: stop-early
+      # The `check-for-functional-changes` job should always succeed regardless
+      # of the `has-functional-changes` script's exit code. Consequently, we do
+      # not use that exit code to trigger deploy, but rather a dedicated output
+      # variable `status`, to avoid a job failure if the exit code is different
+      # from 0. Conversely, if the job fails the entire workflow would be
+      # marked as `failed` which is disturbing for contributors.
+      run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo
+        "::set-output name=status::success" ; fi
 
   publish-to-pypi:
     runs-on: ubuntu-22.04
@@ -115,47 +128,49 @@ jobs:
       PYPI_TOKEN: ${{ secrets.PYPI_TOKEN_OPENFISCA_BOT }}
 
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0 # Fetch all the tags
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9.13
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.9.13
 
-      - name: Cache deps
-        uses: actions/cache@v3
-        with:
-          path: venv
-          key: deps-ubuntu-22.04-np1.24.2-py3.9.13-${{ hashFiles('setup.py') }}
+    - name: Cache deps
+      uses: actions/cache@v4
+      with:
+        path: venv
+        key: deps-ubuntu-22.04-np1.24.2-py3.9.13-${{ hashFiles('setup.py') }}
 
-      - name: Cache build
-        uses: actions/cache@v3
-        with:
-          path: venv/**/[oO]pen[fF]isca*
-          key: build-ubuntu-22.04-np1.24.2-py3.9.13-${{ hashFiles('setup.py') }}-${{ github.sha }}
+    - name: Cache build
+      uses: actions/cache@v4
+      with:
+        path: venv/**/[oO]pen[fF]isca*
+        key: build-ubuntu-22.04-np1.24.2-py3.9.13-${{ hashFiles('setup.py') }}-${{
+          github.sha }}
 
-      - name: Cache release
-        uses: actions/cache@v3
-        with:
-          path: dist
-          key: release-ubuntu-22.04-np1.24.2-py3.9.13-${{ hashFiles('setup.py') }}-${{ github.sha }}
+    - name: Cache release
+      uses: actions/cache@v4
+      with:
+        path: dist
+        key: release-ubuntu-22.04-np1.24.2-py3.9.13-${{ hashFiles('setup.py') }}-${{
+          github.sha }}
 
-      - name: Upload package to PyPi
-        run: |
-          source venv/bin/activate
-          make publish
+    - name: Upload package to PyPi
+      run: |
+        source venv/bin/activate
+        make publish
 
-      - name: Update doc
-        run: |
-          curl -L \
-            -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.OPENFISCADOC_BOT_ACCESS_TOKEN }}" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/openfisca/openfisca-doc/actions/workflows/deploy.yaml/dispatches \
-            -d '{"ref":"master"}'
+    - name: Update doc
+      run: |
+        curl -L \
+          -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ secrets.OPENFISCADOC_BOT_ACCESS_TOKEN }}" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          https://api.github.com/repos/openfisca/openfisca-doc/actions/workflows/deploy.yaml/dispatches \
+          -d '{"ref":"master"}'
 
   build-conda:
     runs-on: ubuntu-22.04
@@ -163,27 +178,27 @@ jobs:
     # Do not build on master, the artifact will be used
     if: github.ref != 'refs/heads/master'
     steps:
-      - uses: conda-incubator/setup-miniconda@v2
-        with:
-          auto-update-conda: true
-          python-version: "3.10.6"
-          # Add conda-forge for OpenFisca-Core
-          channels: conda-forge
-          activate-environment: true
-      - uses: actions/checkout@v3
-      - name: Display version
-        run: echo "version=`python setup.py --version`"
-      - name: Conda Config
-        run: |
-          conda install conda-build anaconda-client
-          conda info
-      - name: Build Conda package
-        run: conda build --croot /tmp/conda .conda
-      - name: Upload Conda build
-        uses: actions/upload-artifact@v3
-        with:
-          name: conda-build-`python setup.py --version`-${{ github.sha }}
-          path: /tmp/conda
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        auto-update-conda: true
+        python-version: 3.10.6
+        # Add conda-forge for OpenFisca-Core
+        channels: conda-forge
+        activate-environment: true
+    - uses: actions/checkout@v4
+    - name: Display version
+      run: echo "version=`python setup.py --version`"
+    - name: Conda Config
+      run: |
+        conda install conda-build anaconda-client
+        conda info
+    - name: Build Conda package
+      run: conda build --croot /tmp/conda .conda
+    - name: Upload Conda build
+      uses: actions/upload-artifact@v3
+      with:
+        name: conda-build-`python setup.py --version`-${{ github.sha }}
+        path: /tmp/conda
 
   publish-to-conda:
     runs-on: ubuntu-22.04
@@ -192,51 +207,54 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: conda-incubator/setup-miniconda@v2
-        with:
-          auto-update-conda: true
-          python-version: 3.10.6
-          channels: conda-forge
-          activate-environment: true
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        auto-update-conda: true
+        python-version: 3.10.6
+        channels: conda-forge
+        activate-environment: true
 
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0 # Fetch all the tags
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
 
-      - name: Update meta.yaml
-        run: |
-          python3 -m pip install requests argparse
-          # Sleep to allow PyPi to update its API
-          sleep 60
-          python3 .github/get_pypi_info.py -p OpenFisca-Core
+    - name: Update meta.yaml
+      run: |
+        python3 -m pip install requests argparse
+        # Sleep to allow PyPi to update its API
+        sleep 60
+        python3 .github/get_pypi_info.py -p OpenFisca-Core
 
-      - name: Conda Config
-        run: |
-          conda install conda-build anaconda-client
-          conda info
-          conda config --set anaconda_upload yes
+    - name: Conda Config
+      run: |
+        conda install conda-build anaconda-client
+        conda info
+        conda config --set anaconda_upload yes
 
-      - name: Conda build
-        run: conda build -c conda-forge --token ${{ secrets.ANACONDA_TOKEN }} --user openfisca .conda
+    - name: Conda build
+      run: conda build -c conda-forge --token ${{ secrets.ANACONDA_TOKEN }} --user
+        openfisca .conda
 
   test-on-windows:
     runs-on: windows-2019
     needs: [publish-to-conda]
 
     steps:
-      - uses: conda-incubator/setup-miniconda@v2
-        with:
-          auto-update-conda: true
-          python-version: "3.10.6"  # See GHA Windows https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
-          channels: conda-forge
-          activate-environment: true
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        auto-update-conda: true
+        # See GHA Windows
+        # https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
+        python-version: 3.10.6
+        channels: conda-forge
+        activate-environment: true
 
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0 # Fetch all the tags
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
 
-      - name: Install with conda
-        run: conda install -c openfisca openfisca-core
+    - name: Install with conda
+      run: conda install -c openfisca openfisca-core
 
-      - name: Test openfisca
-        run: openfisca --help
+    - name: Test openfisca
+      run: openfisca --help

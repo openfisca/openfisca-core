@@ -27,31 +27,32 @@ jobs:
       TERM: xterm-256color  # To colorize output of make tasks.
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ inputs.python }}
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python }}
 
-      - name: Use zstd for faster cache restore (windows)
-        if: ${{ startsWith(inputs.os, 'windows') }}
-        shell: cmd
-        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+    - name: Use zstd for faster cache restore (windows)
+      if: ${{ startsWith(inputs.os, 'windows') }}
+      shell: cmd
+      run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: venv
-          key: deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: venv
+        key: deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{
+          hashFiles('setup.py') }}
 
-      - name: Lint doc
-        run: |
-          ${{ inputs.activate_command }}
-          make clean check-syntax-errors lint-doc
+    - name: Lint doc
+      run: |
+        ${{ inputs.activate_command }}
+        make clean check-syntax-errors lint-doc
 
-      - name: Lint styles
-        run: |
-          ${{ inputs.activate_command }}
-          make clean check-syntax-errors check-style
+    - name: Lint styles
+      run: |
+        ${{ inputs.activate_command }}
+        make clean check-syntax-errors check-style
