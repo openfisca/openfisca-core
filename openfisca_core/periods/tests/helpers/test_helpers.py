@@ -47,9 +47,19 @@ def test_instant_date_with_an_invalid_argument(arg, error) -> None:
         (Period((DateUnit.MONTH, Instant((1, 1, 1)), 12)), "200_12"),
         (Period((DateUnit.YEAR, Instant((1, 1, 1)), 2)), "300_2"),
         (Period((DateUnit.ETERNITY, Instant((1, 1, 1)), 1)), "400_1"),
-        ((DateUnit.DAY, None, 1), "100_1"),
-        ((DateUnit.MONTH, None, -1000), "200_-1000"),
     ],
 )
 def test_key_period_size(arg, expected) -> None:
     assert periods.key_period_size(arg) == expected
+
+
+@pytest.mark.parametrize(
+    ("arg", "error"),
+    [
+        ((DateUnit.DAY, None, 1), AttributeError),
+        ((DateUnit.MONTH, None, -1000), AttributeError),
+    ],
+)
+def test_key_period_size_when_an_invalid_argument(arg, error):
+    with pytest.raises(error):
+        periods.key_period_size(arg)

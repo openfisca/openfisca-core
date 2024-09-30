@@ -1,62 +1,92 @@
-from typing import Optional
+"""To parse periods and instants from strings."""
 
-import re
+from __future__ import annotations
+
+import datetime
 
 import pendulum
-from pendulum.datetime import Date
-from pendulum.parsing import ParserError
 
+from . import types as t
+from ._errors import InstantError, ParserError, PeriodError
 from .date_unit import DateUnit
 from .instant_ import Instant
 from .period_ import Period
 
-invalid_week = re.compile(r".*(W[1-9]|W[1-9]-[0-9]|W[0-5][0-9]-0)$")
+
+def parse_instant(value: str) -> t.Instant:
+    """Parse a string into an instant.
+
+    Args:
+        value (str): The string to parse.
+
+    Returns:
+        An InstantStr.
+
+    Raises:
+        InstantError: When the string is not a valid ISO Calendar/Format.
+        ParserError: When the string couldn't be parsed.
+
+    Examples:
+        >>> parse_instant("2022")
+        Instant((2022, 1, 1))
+
+        >>> parse_instant("2022-02")
+        Instant((2022, 2, 1))
+
+        >>> parse_instant("2022-W02-7")
+        Instant((2022, 1, 16))
+
+        >>> parse_instant("2022-W013")
+        Traceback (most recent call last):
+        openfisca_core.periods._errors.InstantError: '2022-W013' is not a va...
+
+        >>> parse_instant("2022-02-29")
+        Traceback (most recent call last):
+        pendulum.parsing.exceptions.ParserError: Unable to parse string [202...
+
+    """
+
+    if not isinstance(value, t.InstantStr):
+        raise InstantError(str(value))
+
+    date = pendulum.parse(value, exact=True)
+
+    if not isinstance(date, datetime.date):
+        msg = f"Unable to parse string [{value}]"
+        raise ParserError(msg)
+
+    return Instant((date.year, date.month, date.day))
 
 
-def _parse_period(value: str) -> Optional[Period]:
+def parse_period(value: str) -> t.Period:
     """Parses ISO format/calendar periods.
 
     Such as "2012" or "2015-03".
 
     Examples:
-        >>> _parse_period("2022")
+        >>> parse_period("2022")
         Period((<DateUnit.YEAR: 'year'>, Instant((2022, 1, 1)), 1))
 
-        >>> _parse_period("2022-02")
+        >>> parse_period("2022-02")
         Period((<DateUnit.MONTH: 'month'>, Instant((2022, 2, 1)), 1))
 
-        >>> _parse_period("2022-W02-7")
+        >>> parse_period("2022-W02-7")
         Period((<DateUnit.WEEKDAY: 'weekday'>, Instant((2022, 1, 16)), 1))
 
     """
-    # If it's a complex period, next!
-    if len(value.split(":")) != 1:
-        return None
 
-    # Check for a non-empty string.
-    if not (value and isinstance(value, str)):
-        raise AttributeError
+    try:
+        instant = parse_instant(value)
 
-    # If it's negative, next!
-    if value[0] == "-":
-        raise ValueError
+    except InstantError as error:
+        raise PeriodError(value) from error
 
-    # If it's an invalid week, next!
-    if invalid_week.match(value):
-        raise ParserError
-
-    unit = _parse_unit(value)
-    date = pendulum.parse(value, exact=True)
-
-    if not isinstance(date, Date):
-        raise ValueError
-
-    instant = Instant((date.year, date.month, date.day))
+    unit = parse_unit(value)
 
     return Period((unit, instant, 1))
 
 
-def _parse_unit(value: str) -> DateUnit:
+def parse_unit(value: str) -> t.DateUnit:
     """Determine the date unit of a date string.
 
     Args:
@@ -66,32 +96,26 @@ def _parse_unit(value: str) -> DateUnit:
         A DateUnit.
 
     Raises:
-        ValueError when no DateUnit can be determined.
+        InstantError: when no DateUnit can be determined.
 
     Examples:
-        >>> _parse_unit("2022")
+        >>> parse_unit("2022")
         <DateUnit.YEAR: 'year'>
 
-        >>> _parse_unit("2022-W03-01")
+        >>> parse_unit("2022-W03-1")
         <DateUnit.WEEKDAY: 'weekday'>
 
     """
+
+    if not isinstance(value, t.InstantStr):
+        raise InstantError(str(value))
+
     length = len(value.split("-"))
-    isweek = value.find("W") != -1
 
-    if length == 1:
-        return DateUnit.YEAR
+    if isinstance(value, t.ISOCalendarStr):
+        return DateUnit.isocalendar[-length]
 
-    if length == 2:
-        if isweek:
-            return DateUnit.WEEK
+    return DateUnit.isoformat[-length]
 
-        return DateUnit.MONTH
 
-    if length == 3:
-        if isweek:
-            return DateUnit.WEEKDAY
-
-        return DateUnit.DAY
-
-    raise ValueError
+__all__ = ["parse_instant", "parse_period", "parse_unit"]

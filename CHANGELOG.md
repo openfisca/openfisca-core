@@ -1,5 +1,38 @@
 # Changelog
 
+# 42.0.0 [#1223](https://github.com/openfisca/openfisca-core/pull/1223)
+
+#### Breaking changes
+
+- Changes to `eternity` instants and periods
+  - Eternity instants are now `<Instant(-1, -1, -1)>` instead of
+    `<Instant(inf, inf, inf)>`
+  - Eternity periods are now `<Period(('eternity', <Instant(-1, -1, -1)>, -1))>`
+    instead of `<Period(('eternity', <Instant(inf, inf, inf)>, inf))>`
+  - The reason is to avoid mixing data types: `inf` is a float, periods and
+    instants are integers. Mixed data types make memory optimisations impossible.
+  - Migration should be straightforward. If you have a test that checks for
+    `inf`, you should update it to check for `-1` or use the `is_eternal` method.
+- `periods.instant` no longer returns `None`
+  - Now, it raises `periods.InstantError`
+
+#### New features
+
+- Introduce `Instant.eternity()`
+  - This behaviour was duplicated across
+  - Now it is encapsulated in a single method
+- Introduce `Instant.is_eternal` and `Period.is_eternal`
+    - These methods check if the instant or period are eternity (`bool`).
+- Now `periods.instant` parses also ISO calendar strings (weeks)
+  - For instance, `2022-W01` is now a valid input
+
+#### Technical changes
+
+- Update `pendulum`
+- Reduce code complexity
+- Remove run-time type-checks
+- Add typing to the periods module
+
 ### 41.5.7 [#1225](https://github.com/openfisca/openfisca-core/pull/1225)
 
 #### Technical changes

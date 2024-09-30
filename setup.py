@@ -31,7 +31,7 @@ general_requirements = [
     "dpath >=2.1.4, <3.0",
     "numexpr >=2.8.4, <3.0",
     "numpy >=1.24.2, <1.25",
-    "pendulum >=2.1.2, <3.0.0",
+    "pendulum >=3.0.0, <4.0.0",
     "psutil >=5.9.4, <6.0",
     "pytest >=8.3.3, <9.0",
     "sortedcontainers >=2.4.0, <3.0",
@@ -70,7 +70,7 @@ dev_requirements = [
 
 setup(
     name="OpenFisca-Core",
-    version="41.5.7",
+    version="42.0.0",
     author="OpenFisca Team",
     author_email="contact@openfisca.org",
     classifiers=[

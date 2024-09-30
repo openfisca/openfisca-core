@@ -4,10 +4,12 @@ from enum import EnumMeta
 
 from strenum import StrEnum
 
+from . import types as t
+
 
 class DateUnitMeta(EnumMeta):
     @property
-    def isoformat(cls) -> tuple[DateUnit, ...]:
+    def isoformat(self) -> tuple[t.DateUnit, ...]:
         """Creates a :obj:`tuple` of ``key`` with isoformat items.
 
         Returns:
@@ -27,7 +29,7 @@ class DateUnitMeta(EnumMeta):
         return DateUnit.DAY, DateUnit.MONTH, DateUnit.YEAR
 
     @property
-    def isocalendar(cls) -> tuple[DateUnit, ...]:
+    def isocalendar(self) -> tuple[t.DateUnit, ...]:
         """Creates a :obj:`tuple` of ``key`` with isocalendar items.
 
         Returns:
@@ -64,7 +66,7 @@ class DateUnit(StrEnum, metaclass=DateUnitMeta):
         {<DateUnit.DAY: 'day'>: 'day'}
 
         >>> list(DateUnit)
-        [<DateUnit.WEEKDAY: 'weekday'>, <DateUnit.WEEK: 'week'>, <DateUnit.DAY: 'day'>, ...]
+        [<DateUnit.WEEKDAY: 'weekday'>, <DateUnit.WEEK: 'week'>, <DateUnit.D...
 
         >>> len(DateUnit)
         6
@@ -90,9 +92,12 @@ class DateUnit(StrEnum, metaclass=DateUnitMeta):
         >>> DateUnit.DAY.value
         'day'
 
-    .. versionadded:: 35.9.0
-
     """
+
+    def __contains__(self, other: object) -> bool:
+        if isinstance(other, str):
+            return super().__contains__(other)
+        return NotImplemented
 
     WEEKDAY = "weekday"
     WEEK = "week"
@@ -100,3 +105,6 @@ class DateUnit(StrEnum, metaclass=DateUnitMeta):
     MONTH = "month"
     YEAR = "year"
     ETERNITY = "eternity"
+
+
+__all__ = ["DateUnit"]

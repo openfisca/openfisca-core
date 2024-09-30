@@ -20,7 +20,6 @@ check-style: $(shell git ls-files "*.py" "*.pyi")
 lint-doc: \
 	lint-doc-commons \
 	lint-doc-entities \
-	lint-doc-types \
 	;
 
 ## Run linters to check for syntax and style errors in the doc.
@@ -42,6 +41,7 @@ check-types:
 	@mypy \
 		openfisca_core/commons \
 		openfisca_core/entities \
+		openfisca_core/periods \
 		openfisca_core/types.py
 	@$(call print_pass,$@:)
 

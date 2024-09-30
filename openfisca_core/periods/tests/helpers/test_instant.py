@@ -3,13 +3,12 @@ import datetime
 import pytest
 
 from openfisca_core import periods
-from openfisca_core.periods import DateUnit, Instant, Period
+from openfisca_core.periods import DateUnit, Instant, InstantError, Period
 
 
 @pytest.mark.parametrize(
     ("arg", "expected"),
     [
-        (None, None),
         (datetime.date(1, 1, 1), Instant((1, 1, 1))),
         (Instant((1, 1, 1)), Instant((1, 1, 1))),
         (Period((DateUnit.DAY, Instant((1, 1, 1)), 365)), Instant((1, 1, 1))),
@@ -21,23 +20,9 @@ from openfisca_core.periods import DateUnit, Instant, Period
         ("1000", Instant((1000, 1, 1))),
         ("1000-01", Instant((1000, 1, 1))),
         ("1000-01-01", Instant((1000, 1, 1))),
-        ((None,), Instant((None, 1, 1))),
-        ((None, None), Instant((None, None, 1))),
-        ((None, None, None), Instant((None, None, None))),
-        ((datetime.date(1, 1, 1),), Instant((datetime.date(1, 1, 1), 1, 1))),
-        ((Instant((1, 1, 1)),), Instant((Instant((1, 1, 1)), 1, 1))),
-        (
-            (Period((DateUnit.DAY, Instant((1, 1, 1)), 365)),),
-            Instant((Period((DateUnit.DAY, Instant((1, 1, 1)), 365)), 1, 1)),
-        ),
         ((-1,), Instant((-1, 1, 1))),
         ((-1, -1), Instant((-1, -1, 1))),
         ((-1, -1, -1), Instant((-1, -1, -1))),
-        (("-1",), Instant(("-1", 1, 1))),
-        (("-1", "-1"), Instant(("-1", "-1", 1))),
-        (("-1", "-1", "-1"), Instant(("-1", "-1", "-1"))),
-        (("1-1",), Instant(("1-1", 1, 1))),
-        (("1-1-1",), Instant(("1-1-1", 1, 1))),
     ],
 )
 def test_instant(arg, expected) -> None:
@@ -47,6 +32,7 @@ def test_instant(arg, expected) -> None:
 @pytest.mark.parametrize(
     ("arg", "error"),
     [
+        (None, InstantError),
         (DateUnit.YEAR, ValueError),
         (DateUnit.ETERNITY, ValueError),
         ("1000-0", ValueError),
@@ -65,10 +51,21 @@ def test_instant(arg, expected) -> None:
         ("year:1000-01-01:3", ValueError),
         ("1000-01-01:a", ValueError),
         ("1000-01-01:1", ValueError),
-        ((), AssertionError),
-        ({}, AssertionError),
-        ("", ValueError),
-        ((None, None, None, None), AssertionError),
+        ((), InstantError),
+        ({}, InstantError),
+        ("", InstantError),
+        ((None,), InstantError),
+        ((None, None), InstantError),
+        ((None, None, None), InstantError),
+        ((None, None, None, None), InstantError),
+        (("-1",), InstantError),
+        (("-1", "-1"), InstantError),
+        (("-1", "-1", "-1"), InstantError),
+        (("1-1",), InstantError),
+        (("1-1-1",), InstantError),
+        ((datetime.date(1, 1, 1),), InstantError),
+        ((Instant((1, 1, 1)),), InstantError),
+        ((Period((DateUnit.DAY, Instant((1, 1, 1)), 365)),), InstantError),
     ],
 )
 def test_instant_with_an_invalid_argument(arg, error) -> None:

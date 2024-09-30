@@ -6,16 +6,17 @@ from typing import Any, NewType, TypeVar, Union
 from typing_extensions import Protocol, TypeAlias
 
 import numpy
+import pendulum
 
 _N_co = TypeVar("_N_co", bound=numpy.generic, covariant=True)
 
 #: Type representing an numpy array.
 Array: TypeAlias = NDArray[_N_co]
 
-L = TypeVar("L")
+_L = TypeVar("_L")
 
 #: Type representing an array-like object.
-ArrayLike: TypeAlias = Sequence[L]
+ArrayLike: TypeAlias = Sequence[_L]
 
 #: Generic type vars.
 _T_co = TypeVar("_T_co", covariant=True)
@@ -87,6 +88,12 @@ class ParameterNodeAtInstant(Protocol): ...
 
 # Periods
 
+#: For example "2000-01".
+InstantStr = NewType("InstantStr", str)
+
+#: For example "1:2000-01-01:day".
+PeriodStr = NewType("PeriodStr", str)
+
 
 class Container(Protocol[_T_co]):
     def __contains__(self, item: object, /) -> bool: ...
@@ -96,15 +103,34 @@ class Indexable(Protocol[_T_co]):
     def __getitem__(self, index: int, /) -> _T_co: ...
 
 
-class DateUnit(Container[str], Protocol): ...
+class DateUnit(Container[str], Protocol):
+    def upper(self, /) -> str: ...
 
 
-class Instant(Indexable[int], Iterable[int], Sized, Protocol): ...
+class Instant(Indexable[int], Iterable[int], Sized, Protocol):
+    @property
+    def year(self, /) -> int: ...
+    @property
+    def month(self, /) -> int: ...
+    @property
+    def day(self, /) -> int: ...
+    @property
+    def date(self, /) -> pendulum.Date: ...
+    def __lt__(self, other: object, /) -> bool: ...
+    def __le__(self, other: object, /) -> bool: ...
+    def offset(self, offset: str | int, unit: DateUnit, /) -> None | Instant: ...
 
 
 class Period(Indexable[Union[DateUnit, Instant, int]], Protocol):
     @property
     def unit(self, /) -> DateUnit: ...
+    @property
+    def start(self, /) -> Instant: ...
+    @property
+    def size(self, /) -> int: ...
+    @property
+    def stop(self, /) -> Instant: ...
+    def offset(self, offset: str | int, unit: None | DateUnit = None, /) -> Period: ...
 
 
 # Populations
