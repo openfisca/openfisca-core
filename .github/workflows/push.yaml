@@ -66,13 +66,38 @@ jobs:
       python: ${{ matrix.python }}
       activate_command: source venv/bin/activate
 
+  build-conda:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        auto-update-conda: true
+        python-version: 3.10.6
+        # Add conda-forge for OpenFisca-Core
+        channels: conda-forge
+        activate-environment: true
+    - uses: actions/checkout@v4
+    - name: Display version
+      run: echo "version=`python setup.py --version`"
+    - name: Conda Config
+      run: |
+        conda install conda-build anaconda-client
+        conda info
+    - name: Build Conda package
+      run: conda build --croot /tmp/conda .conda
+    - name: Upload Conda build
+      uses: actions/upload-artifact@v3
+      with:
+        name: conda-build-`python setup.py --version`-${{ github.sha }}
+        path: /tmp/conda
+
   # The idea behind these dependencies is we want to give feedback to
   # contributors on the version number only after they have passed all tests,
   # so they don't have to do it twice after changes happened to the main branch
   # during the time they took to fix the tests.
   check-version:
     runs-on: ubuntu-22.04
-    needs: [test, lint]
+    needs: [test, lint, build-conda]
 
     steps:
     - uses: actions/checkout@v4
