@@ -20,10 +20,11 @@ class Role:
 
     Examples:
         >>> from openfisca_core import entities
+
         >>> entity = entities.GroupEntity("key", "plural", "label", "doc", [])
         >>> role = entities.Role({"key": "parent"}, entity)
 
-        >>> repr(Role)
+        >>> repr(entities.Role)
         "<class 'openfisca_core.entities.role.Role'>"
 
         >>> repr(role)

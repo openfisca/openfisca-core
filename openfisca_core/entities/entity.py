@@ -3,10 +3,10 @@ from typing import ClassVar
 import textwrap
 
 from . import types as t
-from ._core_entity import _CoreEntity
+from ._core_entity import CoreEntity
 
 
-class Entity(_CoreEntity):
+class Entity(CoreEntity):
     """An entity (e.g. a person, a household) on which calculations can be run.
 
     Args:
@@ -14,6 +14,25 @@ class Entity(_CoreEntity):
         plural: The ``key`` pluralised.
         label: A summary description.
         doc: A full description.
+
+    Examples:
+        >>> from openfisca_core import entities
+
+        >>> entity = entities.SingleEntity(
+        ...     "individual",
+        ...     "individuals",
+        ...     "An individual",
+        ...     "\t\t\tThe minimal legal entity on which a rule might be a...",
+        ... )
+
+        >>> repr(entities.SingleEntity)
+        "<class 'openfisca_core.entities.entity.Entity'>"
+
+        >>> repr(entity)
+        'Entity(individual)'
+
+        >>> str(entity)
+        'Entity(individual)'
 
     """
 

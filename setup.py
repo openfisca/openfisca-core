@@ -64,7 +64,6 @@ dev_requirements = [
     "pyright >=1.1.382, <2.0",
     "ruff >=0.6.7, <1.0",
     "ruff-lsp >=0.0.57, <1.0",
-    "xdoctest >=1.2.0, <2.0",
     *api_requirements,
 ]
 
