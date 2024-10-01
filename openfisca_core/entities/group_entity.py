@@ -14,20 +14,34 @@ from .role import Role
 class GroupEntity(_CoreEntity):
     """Represents an entity containing several others with different roles.
 
-    A :class:`.GroupEntity` represents an :class:`.Entity` containing
-    several other :class:`.Entity` with different :class:`.Role`, and on
-    which calculations can be run.
+    A ``GroupEntity`` represents an ``Entity`` containing several other entities,
+    with different roles, and on which calculations can be run.
 
     Args:
-        key: A key to identify the group entity.
-        plural: The ``key``, pluralised.
+        key: A key to identify the ``GroupEntity``.
+        plural: The ``key`` pluralised.
         label: A summary description.
         doc: A full description.
-        roles: The list of :class:`.Role` of the group entity.
+        roles: The list of roles of the group entity.
         containing_entities: The list of keys of group entities whose members
             are guaranteed to be a superset of this group's entities.
 
     """
+
+    #: A key to identify the ``Entity``.
+    key: t.EntityKey
+
+    #: The ``key`` pluralised.
+    plural: t.EntityPlural
+
+    #: A summary description.
+    label: str
+
+    #: A full description.
+    doc: str
+
+    #: The list of roles of the ``GroupEntity``.
+    roles: Iterable[Role]
 
     #: Whether the entity is a person or not.
     is_person: ClassVar[bool] = False
