@@ -11,7 +11,7 @@ class Role:
 
     Each ``Entity`` related to a ``GroupEntity`` has a ``Role``. For example,
     if you have a family, its roles could include a parent, a child, and so on.
-    Or if you have a tax household, its roles could include thetaxpayer, a
+    Or if you have a tax household, its roles could include the taxpayer, a
     spouse, several dependents, and the like.
 
     Args:
