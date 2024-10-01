@@ -1,5 +1,16 @@
 # Changelog
 
+## 42.1.0 [#1255](https://github.com/openfisca/openfisca-core/pull/1255)
+
+#### New features
+
+- Make `CoreEntity` public
+  - Allows for more easily creating customised entities.
+
+#### Technical changes
+
+- Add missing doctests.
+
 ### 42.0.7 [#1264](https://github.com/openfisca/openfisca-core/pull/1264)
 
 #### Technical changes
