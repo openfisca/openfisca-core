@@ -1,5 +1,11 @@
 # Changelog
 
+### 42.0.2 [#1256](https://github.com/openfisca/openfisca-core/pull/1256)
+
+#### Documentation
+
+- Fix bad indent
+
 ### 42.0.1 [#1253](https://github.com/openfisca/openfisca-core/pull/1253)
 
 #### Documentation

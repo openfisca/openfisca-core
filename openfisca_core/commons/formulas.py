@@ -27,8 +27,7 @@ def apply_thresholds(
         Array[numpy.float32]: A list of the values chosen.
 
     Raises:
-        AssertionError: When the number of ``thresholds`` (t) and the
-            number of choices (c) are not either t == c or t == c - 1.
+        AssertionError: When thresholds and choices are incompatible.
 
     Examples:
         >>> input = numpy.array([4, 5, 6, 7, 8])
