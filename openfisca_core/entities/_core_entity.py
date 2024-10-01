@@ -10,12 +10,21 @@ from .role import Role
 
 
 class _CoreEntity:
-    """Base class to build entities from."""
+    """Base class to build entities from.
 
-    #: A key to identify the entity.
+    Args:
+        __key: A key to identify the ``_CoreEntity``.
+        __plural: The ``key`` pluralised.
+        __label: A summary description.
+        __doc: A full description.
+        *__args: Additional arguments.
+
+    """
+
+    #: A key to identify the ``_CoreEntity``.
     key: t.EntityKey
 
-    #: The ``key``, pluralised.
+    #: The ``key`` pluralised.
     plural: t.EntityPlural
 
     #: A summary description.
@@ -24,10 +33,10 @@ class _CoreEntity:
     #: A full description.
     doc: str
 
-    #: Whether the entity is a person or not.
+    #: Whether the ``_CoreEntity`` is a person or not.
     is_person: ClassVar[bool]
 
-    #: A TaxBenefitSystem instance.
+    #: A ``TaxBenefitSystem`` instance.
     _tax_benefit_system: None | t.TaxBenefitSystem = None
 
     @abc.abstractmethod
@@ -44,7 +53,7 @@ class _CoreEntity:
         return f"{self.__class__.__name__}({self.key})"
 
     def set_tax_benefit_system(self, tax_benefit_system: t.TaxBenefitSystem) -> None:
-        """An Entity belongs to a TaxBenefitSystem."""
+        """A ``_CoreEntity`` belongs to a ``TaxBenefitSystem``."""
         self._tax_benefit_system = tax_benefit_system
 
     def get_variable(
@@ -52,7 +61,22 @@ class _CoreEntity:
         variable_name: t.VariableName,
         check_existence: bool = False,
     ) -> t.Variable | None:
-        """Get a ``variable_name`` from ``variables``."""
+        """Get ``variable_name`` from ``variables``.
+
+        Args:
+            variable_name: The ``Variable`` to be found.
+            check_existence: Was the ``Variable`` found?
+
+        Returns:
+            Variable: When the ``Variable`` exists.
+            None: When the ``Variable`` doesn't exist.
+
+        Raises:
+            ValueError: When ``check_existence`` is ``True`` and
+                the ``Variable`` doesn't exist.
+
+        """
+
         if self._tax_benefit_system is None:
             msg = "You must set 'tax_benefit_system' before calling this method."
             raise ValueError(
@@ -61,7 +85,21 @@ class _CoreEntity:
         return self._tax_benefit_system.get_variable(variable_name, check_existence)
 
     def check_variable_defined_for_entity(self, variable_name: t.VariableName) -> None:
-        """Check if ``variable_name`` is defined for ``self``."""
+        """Check if ``variable_name`` is defined for ``self``.
+
+        Args:
+            variable_name: The ``Variable`` to be found.
+
+        Returns:
+            Variable: When the ``Variable`` exists.
+            None: When the :attr:`_tax_benefit_system` is not set.
+
+        Raises:
+            ValueError: When the ``Variable`` exists but is defined
+                for another ``Entity``.
+
+        """
+
         entity: None | t.CoreEntity = None
         variable: None | t.Variable = self.get_variable(
             variable_name,
@@ -86,7 +124,16 @@ class _CoreEntity:
 
     @staticmethod
     def check_role_validity(role: object) -> None:
-        """Check if a ``role`` is an instance of Role."""
+        """Check if ``role`` is an instance of  ``Role``.
+
+        Args:
+            role: Any object.
+
+        Raises:
+            ValueError: When ``role`` is not a ``Role``.
+
+        """
+
         if role is not None and not isinstance(role, Role):
             msg = f"{role} is not a valid role"
             raise ValueError(msg)

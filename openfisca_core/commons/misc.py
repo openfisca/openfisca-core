@@ -50,8 +50,8 @@ def stringify_array(array: None | t.Array[numpy.generic]) -> str:
         array: An array.
 
     Returns:
-        :obj:`str`:
-        "None" if the ``array`` is None, the stringified ``array`` otherwise.
+        str: "None" if the ``array`` is None.
+        str: The stringified ``array`` otherwise.
 
     Examples:
         >>> import numpy
@@ -84,10 +84,11 @@ def eval_expression(
     """Evaluate a string expression to a numpy array.
 
     Args:
-        expression(str): An expression to evaluate.
+        expression: An expression to evaluate.
 
     Returns:
-        :obj:`object`: The result of the evaluation.
+        Array: The result of the evaluation.
+        str: The expression if it couldn't be evaluated.
 
     Examples:
         >>> eval_expression("1 + 2")

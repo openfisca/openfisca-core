@@ -82,8 +82,8 @@ class SimulationBuilder:
         :meth:`.SimulationBuilder.build_from_variables` if they are not.
 
         Args:
-            tax_benefit_system(TaxBenefitSystem): The system to use.
-            input_dict(Params): The input of the simulation.
+            tax_benefit_system: The system to use.
+            input_dict: The input of the simulation.
 
         Returns:
             Simulation: The built simulation.
@@ -281,8 +281,8 @@ class SimulationBuilder:
         infer an entity structure.
 
         Args:
-            tax_benefit_system(TaxBenefitSystem): The system to use.
-            input_dict(Variables): The input of the simulation.
+            tax_benefit_system: The system to use.
+            input_dict: The input of the simulation.
 
         Returns:
             Simulation: The built simulation.

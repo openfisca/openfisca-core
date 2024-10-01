@@ -99,14 +99,14 @@ def _(value: str) -> t.Instant:
 
 
 def instant_date(instant: None | t.Instant) -> None | datetime.date:
-    """Returns the date representation of an :class:`.Instant`.
+    """Returns the date representation of an ``Instant``.
 
     Args:
-        instant (:obj:`.Instant`, optional):
+        instant: An ``Instant``.
 
     Returns:
         None: When ``instant`` is None.
-        :obj:`datetime.date`: Otherwise.
+        datetime.date: Otherwise.
 
     Examples:
         >>> instant_date(Instant((2021, 1, 1)))

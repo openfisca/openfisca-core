@@ -24,11 +24,10 @@ def apply_thresholds(
         choices: A list of the possible values to choose from.
 
     Returns:
-        :obj:`numpy.ndarray` of :obj:`float`:
-        A list of the values chosen.
+        Array[numpy.float32]: A list of the values chosen.
 
     Raises:
-        :exc:`AssertionError`: When the number of ``thresholds`` (t) and the
+        AssertionError: When the number of ``thresholds`` (t) and the
             number of choices (c) are not either t == c or t == c - 1.
 
     Examples:
@@ -68,8 +67,7 @@ def concat(
         that: Another array to concatenate.
 
     Returns:
-        :obj:`numpy.ndarray` of :obj:`numpy.str_`:
-        An array with the concatenated values.
+        Array[numpy.str_]: An array with the concatenated values.
 
     Examples:
         >>> this = ["this", "that"]
@@ -101,11 +99,10 @@ def switch(
         value_by_condition: Values to replace for each condition.
 
     Returns:
-        :obj:`numpy.ndarray`:
-        An array with the replaced values.
+        Array: An array with the replaced values.
 
     Raises:
-        :exc:`AssertionError`: When ``value_by_condition`` is empty.
+        AssertionError: When ``value_by_condition`` is empty.
 
     Examples:
         >>> conditions = numpy.array([1, 1, 1, 2])

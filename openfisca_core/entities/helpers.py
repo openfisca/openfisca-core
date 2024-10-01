@@ -14,39 +14,40 @@ def build_entity(
     doc: str = "",
     roles: None | Sequence[t.RoleParams] = None,
     is_person: bool = False,
+    *,
     class_override: object = None,
     containing_entities: Sequence[str] = (),
 ) -> t.SingleEntity | t.GroupEntity:
-    """Build a SingleEntity or a GroupEntity.
+    """Build an ``Entity`` or a ``GroupEntity``.
 
     Args:
-        key: Key to identify the :class:`.Entity`. or :class:`.GroupEntity`.
-        plural: ``key``, pluralised.
+        key: Key to identify the ``Entity`` or ``GroupEntity``.
+        plural: The ``key`` pluralised.
         label: A summary description.
         doc: A full description.
-        roles: A list of :class:`.Role`, if it's a :class:`.GroupEntity`.
+        roles: A list of roles —if it's a ``GroupEntity``.
         is_person: If is an individual, or not.
         class_override: ?
         containing_entities: Keys of contained entities.
 
     Returns:
-        :obj:`.Entity` or :obj:`.GroupEntity`:
-        :obj:`.Entity`: When ``is_person`` is True.
-        :obj:`.GroupEntity`: When ``is_person`` is False.
+        Entity: When ``is_person`` is ``True``.
+        GroupEntity: When ``is_person`` is ``False``.
 
     Raises:
-        NotImplementedError: if ``roles`` is None.
+        NotImplementedError: If ``roles`` is ``None``.
 
     Examples:
         >>> from openfisca_core import entities
 
-        >>> build_entity(
+        >>> entity = build_entity(
         ...     "syndicate",
         ...     "syndicates",
         ...     "Banks loaning jointly.",
         ...     roles=[],
         ...     containing_entities=(),
         ... )
+        >>> entity
         GroupEntity(syndicate)
 
         >>> build_entity(
@@ -57,16 +58,16 @@ def build_entity(
         ... )
         Entity(company)
 
-        >>> role = entities.Role({"key": "key"}, object())
+        >>> role = entities.Role({"key": "key"}, entity)
 
         >>> build_entity(
         ...     "syndicate",
         ...     "syndicates",
         ...     "Banks loaning jointly.",
-        ...     roles=role,
+        ...     roles=[role],
         ... )
         Traceback (most recent call last):
-        TypeError: 'Role' object is not iterable
+        TypeError: 'Role' object is not subscriptable
 
     """
 
@@ -92,15 +93,16 @@ def find_role(
     *,
     total: None | int = None,
 ) -> None | t.Role:
-    """Find a Role in a GroupEntity.
+    """Find a ``Role`` in a ``GroupEntity``.
 
     Args:
-        roles (Iterable[Role]): The roles to search.
-        key (str): The key of the role to find. Defaults to `None`.
-        total (int | None): The `max` attribute of the role to find.
+        roles: The roles to search.
+        key: The key of the role to find.
+        total: The ``max`` attribute of the role to find.
 
     Returns:
-        Role | None: The role if found, else `None`.
+        Role: The role if found
+        None: Else ``None``.
 
     Examples:
         >>> from openfisca_core.entities.types import RoleParams

@@ -6,7 +6,7 @@ import textwrap
 
 @dataclasses.dataclass(frozen=True)
 class _Description:
-    r"""A Role's description.
+    """A ``Role``'s description.
 
     Examples:
         >>> data = {
@@ -35,10 +35,10 @@ class _Description:
 
     """
 
-    #: A key to identify the Role.
+    #: A key to identify the ``Role``.
     key: str
 
-    #: The ``key``, pluralised.
+    #: The ``key`` pluralised.
     plural: None | str = None
 
     #: A summary description.

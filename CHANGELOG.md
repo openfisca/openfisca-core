@@ -1,5 +1,11 @@
 # Changelog
 
+### 42.0.1 [#1253](https://github.com/openfisca/openfisca-core/pull/1253)
+
+#### Documentation
+
+- Fix documentation of `entities`
+
 # 42.0.0 [#1223](https://github.com/openfisca/openfisca-core/pull/1223)
 
 #### Breaking changes
