@@ -40,7 +40,7 @@ def build_entity(
     Examples:
         >>> from openfisca_core import entities
 
-        >>> entity = build_entity(
+        >>> entity = entities.build_entity(
         ...     "syndicate",
         ...     "syndicates",
         ...     "Banks loaning jointly.",
@@ -50,7 +50,7 @@ def build_entity(
         >>> entity
         GroupEntity(syndicate)
 
-        >>> build_entity(
+        >>> entities.build_entity(
         ...     "company",
         ...     "companies",
         ...     "A small or medium company.",
@@ -60,7 +60,7 @@ def build_entity(
 
         >>> role = entities.Role({"key": "key"}, entity)
 
-        >>> build_entity(
+        >>> entities.build_entity(
         ...     "syndicate",
         ...     "syndicates",
         ...     "Banks loaning jointly.",
@@ -105,23 +105,24 @@ def find_role(
         None: Else ``None``.
 
     Examples:
-        >>> from openfisca_core.entities.types import RoleParams
+        >>> from openfisca_core import entities
+        >>> from openfisca_core.entities import types as t
 
-        >>> principal = RoleParams(
+        >>> principal = t.RoleParams(
         ...     key="principal",
         ...     label="Principal",
         ...     doc="Person focus of a calculation in a family context.",
         ...     max=1,
         ... )
 
-        >>> partner = RoleParams(
+        >>> partner = t.RoleParams(
         ...     key="partner",
         ...     plural="partners",
         ...     label="Partners",
         ...     doc="Persons partners of the principal.",
         ... )
 
-        >>> parent = RoleParams(
+        >>> parent = t.RoleParams(
         ...     key="parent",
         ...     plural="parents",
         ...     label="Parents",
@@ -129,7 +130,7 @@ def find_role(
         ...     subroles=["first_parent", "second_parent"],
         ... )
 
-        >>> group_entity = build_entity(
+        >>> group_entity = entities.build_entity(
         ...     key="family",
         ...     plural="families",
         ...     label="Family",
@@ -137,19 +138,20 @@ def find_role(
         ...     roles=[principal, partner, parent],
         ... )
 
-        >>> find_role(group_entity.roles, "principal", total=1)
+        >>> entities.find_role(group_entity.roles, "principal", total=1)
         Role(principal)
 
-        >>> find_role(group_entity.roles, "partner")
+        >>> entities.find_role(group_entity.roles, "partner")
         Role(partner)
 
-        >>> find_role(group_entity.roles, "parent", total=2)
+        >>> entities.find_role(group_entity.roles, "parent", total=2)
         Role(parent)
 
-        >>> find_role(group_entity.roles, "first_parent", total=1)
+        >>> entities.find_role(group_entity.roles, "first_parent", total=1)
         Role(first_parent)
 
     """
+
     for role in roles:
         if role.subroles:
             for subrole in role.subroles:
