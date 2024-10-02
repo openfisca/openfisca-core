@@ -45,15 +45,13 @@ jobs:
       uses: actions/cache@v4
       with:
         path: venv
-        key: deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{
-          hashFiles('setup.py') }}
+        key: deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}
 
     - name: Cache build
       uses: actions/cache@v4
       with:
         path: venv/**/[Oo]pen[Ff]isca*
-        key: build-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{
-          hashFiles('setup.py') }}-${{ github.sha }}
+        key: build-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
     - name: Run Openfisca Core tests
       run: |

@@ -7,14 +7,22 @@ on:
         required: true
         type: string
 
+      numpy:
+        required: true
+        type: string
+
       python:
         required: true
         type: string
 
+defaults:
+  run:
+    shell: bash -l {0}
+
 jobs:
-  build-conda:
+  setup-conda:
     runs-on: ${{ inputs.os }}
-    name: build-conda-${{ inputs.os }}-py${{ inputs.python }}
+    name: setup-conda-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}
     env:
       # To colorize output of make tasks.
       TERM: xterm-256color
@@ -22,39 +30,82 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      with:
-        # Fetch all the tags
-        fetch-depth: 0
 
-    - name: Cache dependencies
-      id: restore-pkgs
+    - name: Cache conda env
       uses: actions/cache@v4
       with:
-        path: ~/conda_pkgs_dir
-        key: pkgs-${{ inputs.os }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}
-        restore-keys: pkgs-${{ inputs.os }}-py${{ inputs.python }}-
+        path: |
+          /usr/share/miniconda/envs/openfisca
+          ~/.conda/envs/openfisca
+          .env.yaml
+        key: conda-env-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}
+        restore-keys: conda-env-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-
 
-    - uses: conda-incubator/setup-miniconda@v2
+    - name: Cache conda deps
+      uses: actions/cache@v4
       with:
+        path: |
+          ~/conda_pkgs_dir
+          ~/conda-cache
+        key: conda-deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}
+        restore-keys: conda-deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-
+      id: cache-env
+
+    - name: Setup conda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        activate-environment: openfisca
         auto-update-conda: true
-        python-version: ${{ inputs.python }}
-        # Add conda-forge for OpenFisca-Core
         channels: conda-forge
-        activate-environment: true
+        python-version: ${{ inputs.python }}
+      if: steps.cache-env.outputs.cache-hit != 'true'
 
-    - name: Display version
-      run: echo "version=`python setup.py --version`"
-
-    - name: Conda Config
-      run: |
-        conda install conda-build anaconda-client
-        conda info
-
-    - name: Build Conda package
-      run: conda build --croot /tmp/conda .conda
-
-    - name: Upload Conda build
-      uses: actions/upload-artifact@v3
+    - name: Update conda
+      uses: conda-incubator/setup-miniconda@v3
       with:
-        name: conda-build-`python setup.py --version`-${{ github.sha }}
-        path: /tmp/conda
+        activate-environment: openfisca
+        auto-update-conda: true
+        environment-file: .env.yaml
+      if: steps.cache-env.outputs.cache-hit == 'true'
+
+    - name: Install dependencies
+      run: |
+        conda install --name openfisca conda-build
+        conda install --name openfisca numpy=${{ inputs.numpy }}
+        conda install --name openfisca python=${{ inputs.python }}
+      if: steps.cache-env.outputs.cache-hit != 'true'
+
+    - name: Update dependencies
+      run: conda env update --name openfisca --file .env.yaml
+      if: steps.cache-env.outputs.cache-hit == 'true'
+
+    - name: Cache build
+      uses: actions/cache@v4
+      with:
+        path: ~/conda-bld
+        key: conda-build-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
+        restore-keys: |
+          conda-build-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}-
+          conda-build-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-
+
+    - name: Cache release
+      uses: actions/cache@v4
+      with:
+        path: ~/conda-rel
+        key: conda-release-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
+
+    - name: Build conda package
+      run: |
+        mkdir -p ~/conda-rel
+        conda build \
+          .conda \
+          --use-local \
+          --build-only \
+          --croot ~/conda-bld \
+          --cache-dir ~/conda-cache \
+          --output-folder ~/conda-rel \
+          --numpy ${{ inputs.numpy }} \
+          --python ${{ inputs.python }}
+
+    - name: Export env
+      run: conda env export --name openfisca > .env.yaml

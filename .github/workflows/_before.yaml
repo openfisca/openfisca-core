@@ -42,14 +42,11 @@ jobs:
       run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
     - name: Cache dependencies
-      id: restore-deps
       uses: actions/cache@v4
       with:
         path: venv
-        key: deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{
-          hashFiles('setup.py') }}
-        restore-keys: deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python
-          }}-
+        key: deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}
+        restore-keys: deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-
 
     - name: Install dependencies
       run: |
@@ -83,15 +80,13 @@ jobs:
       uses: actions/cache@v4
       with:
         path: venv
-        key: deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{
-          hashFiles('setup.py') }}
+        key: deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}
 
     - name: Cache build
       uses: actions/cache@v4
       with:
         path: venv/**/[Oo]pen[Ff]isca*
-        key: build-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{
-          hashFiles('setup.py') }}-${{ github.sha }}
+        key: build-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
         restore-keys: |
           build-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}-
           build-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-
@@ -100,8 +95,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: dist
-        key: release-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{
-          hashFiles('setup.py') }}-${{ github.sha }}
+        key: release-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
     - name: Build package
       run: |

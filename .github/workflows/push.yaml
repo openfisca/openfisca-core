@@ -36,6 +36,7 @@ jobs:
     uses: ./.github/workflows/_before-conda.yaml
     with:
       os: ubuntu-22.04
+      numpy: 1.26.4
       python: 3.10.6
 
   test:
