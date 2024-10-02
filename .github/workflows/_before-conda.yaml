@@ -26,6 +26,14 @@ jobs:
         # Fetch all the tags
         fetch-depth: 0
 
+    - name: Cache dependencies
+      id: restore-pkgs
+      uses: actions/cache@v4
+      with:
+        path: ~/conda_pkgs_dir
+        key: pkgs-${{ inputs.os }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}
+        restore-keys: pkgs-${{ inputs.os }}-py${{ inputs.python }}-
+
     - uses: conda-incubator/setup-miniconda@v2
       with:
         auto-update-conda: true
