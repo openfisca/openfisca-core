@@ -1,0 +1,52 @@
+name: Setup conda
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+
+      python:
+        required: true
+        type: string
+
+jobs:
+  build-conda:
+    runs-on: ${{ inputs.os }}
+    name: build-conda-${{ inputs.os }}-py${{ inputs.python }}
+    env:
+      # To colorize output of make tasks.
+      TERM: xterm-256color
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        # Fetch all the tags
+        fetch-depth: 0
+
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        auto-update-conda: true
+        python-version: ${{ inputs.python }}
+        # Add conda-forge for OpenFisca-Core
+        channels: conda-forge
+        activate-environment: true
+
+    - name: Display version
+      run: echo "version=`python setup.py --version`"
+
+    - name: Conda Config
+      run: |
+        conda install conda-build anaconda-client
+        conda info
+
+    - name: Build Conda package
+      run: conda build --croot /tmp/conda .conda
+
+    - name: Upload Conda build
+      uses: actions/upload-artifact@v3
+      with:
+        name: conda-build-`python setup.py --version`-${{ github.sha }}
+        path: /tmp/conda
