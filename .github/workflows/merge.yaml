@@ -66,27 +66,12 @@ jobs:
       python: ${{ matrix.python }}
       activate_command: source venv/bin/activate
 
-  # The idea behind these dependencies is we want to give feedback to
-  # contributors on the version number only after they have passed all tests,
-  # so they don't have to do it twice after changes happened to the main branch
-  # during the time they took to fix the tests.
   check-version:
-    runs-on: ubuntu-22.04
     needs: [test, lint]
-
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        # Fetch all the tags
-        fetch-depth: 0
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.9.13
-
-    - name: Check version number has been properly updated
-      run: ${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh
+    uses: ./.github/workflows/_version.yaml
+    with:
+      os: ubuntu-22.04
+      python: 3.9.13
 
   # GitHub Actions does not have a halt job option, to stop from deploying if
   # no functional changes were found. We build a separate job to substitute the

@@ -50,4 +50,5 @@ format-style: $(shell git ls-files "*.py" "*.pyi")
 	@$(call print_help,$@:)
 	@python -m isort $?
 	@python -m black $?
+	@yamlfmt --write .github/**/*.yaml
 	@$(call print_pass,$@:)

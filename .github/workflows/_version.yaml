@@ -1,0 +1,39 @@
+name: Check version
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+
+      python:
+        required: true
+        type: string
+
+jobs:
+  # The idea behind these dependencies is that we want to give feedback to
+  # contributors on the version number only after they have passed all tests,
+  # so they don't have to do it twice after changes happened to the main branch
+  # during the time they took to fix the tests.
+  check-version:
+    runs-on: ${{ inputs.os }}
+    name: check-version-${{ inputs.os }}-py${{ inputs.python }}
+    env:
+      # To colorize output of make tasks.
+      TERM: xterm-256color
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        # Fetch all the tags
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python }}
+
+    - name: Check version number has been properly updated
+      run: ${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh
