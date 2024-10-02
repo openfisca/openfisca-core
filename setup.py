@@ -28,14 +28,15 @@ long_description = (this_directory / "README.md").read_text()
 # DO NOT add space between '>=' and version number as it break conda build.
 general_requirements = [
     "PyYAML >=6.0, <7.0",
-    "StrEnum >=0.4.8, <0.5.0",  # 3.11.x backport
     "dpath >=2.1.4, <3.0",
     "numexpr >=2.8.4, <3.0",
+    "numpy >=1.24.2, <1.25",
     "pendulum >=3.0.0, <4.0.0",
     "psutil >=5.9.4, <6.0",
     "pytest >=8.3.3, <9.0",
     "sortedcontainers >=2.4.0, <3.0",
     "typing_extensions >=4.5.0, <5.0",
+    "StrEnum >=0.4.8, <0.5.0",  # 3.11.x backport
 ]
 
 api_requirements = [
@@ -69,7 +70,7 @@ dev_requirements = [
 
 setup(
     name="OpenFisca-Core",
-    version="42.0.3",
+    version="42.0.2",
     author="OpenFisca Team",
     author_email="contact@openfisca.org",
     classifiers=[
