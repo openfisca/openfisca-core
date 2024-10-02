@@ -56,8 +56,8 @@ def apply_thresholds(
 
 
 def concat(
-    this: t.Array[numpy.str_] | t.ArrayLike[str],
-    that: t.Array[numpy.str_] | t.ArrayLike[str],
+    this: t.Array[numpy.str_] | t.ArrayLike[object],
+    that: t.Array[numpy.str_] | t.ArrayLike[object],
 ) -> t.Array[numpy.str_]:
     """Concatenate the values of two arrays.
 
@@ -75,17 +75,24 @@ def concat(
         array(['this1.0', 'that2.5']...)
 
     """
-    if isinstance(this, numpy.ndarray) and not numpy.issubdtype(this.dtype, numpy.str_):
+
+    if not isinstance(this, numpy.ndarray):
+        this = numpy.array(this)
+
+    if not numpy.issubdtype(this.dtype, numpy.str_):
         this = this.astype("str")
 
-    if isinstance(that, numpy.ndarray) and not numpy.issubdtype(that.dtype, numpy.str_):
+    if not isinstance(that, numpy.ndarray):
+        that = numpy.array(that)
+
+    if not numpy.issubdtype(that.dtype, numpy.str_):
         that = that.astype("str")
 
     return numpy.char.add(this, that)
 
 
 def switch(
-    conditions: t.Array[numpy.float32],
+    conditions: t.Array[numpy.float32] | t.ArrayLike[float],
     value_by_condition: Mapping[float, float],
 ) -> t.Array[numpy.float32]:
     """Mimick a switch statement.
