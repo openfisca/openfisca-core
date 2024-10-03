@@ -63,3 +63,9 @@ jobs:
 
     - name: Run core tests
       run: make test-core
+
+    - name: Run country tests
+      run: make test-country
+
+    - name: Run extension tests
+      run: make test-extension
