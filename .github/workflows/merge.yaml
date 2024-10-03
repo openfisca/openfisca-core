@@ -175,39 +175,62 @@ jobs:
     needs: [publish-to-pypi]
 
     steps:
-    - uses: conda-incubator/setup-miniconda@v2
-      with:
-        auto-update-conda: true
-        python-version: 3.10.6
-        channels: conda-forge
-        activate-environment: true
-
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
-    - name: Update meta.yaml
+    - name: Cache conda env
+      uses: actions/cache@v4
+      with:
+        path: |
+          /usr/share/miniconda/envs/openfisca
+          ~/.conda/envs/openfisca
+          .env.yaml
+        key: conda-env-ubuntu-22.04-np1.26.4-py3.10.6-${{ hashFiles('setup.py') }}
+
+    - name: Cache conda deps
+      uses: actions/cache@v4
+      with:
+        path: ~/conda_pkgs_dir
+        key: conda-deps-ubuntu-22.04-np1.26.4-py3.10.6-${{ hashFiles('setup.py') }}
+
+    - name: Cache release
+      uses: actions/cache@v4
+      with:
+        path: ~/conda-rel
+        key: conda-release-ubuntu-22.04-np1.26.4-py3.10.6-${{ hashFiles('setup.py') }}-${{ github.sha }}
+
+    - name: Update conda & dependencies
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        activate-environment: openfisca
+        auto-update-conda: true
+        environment-file: .env.yaml
+
+    - name: Publish to conda
       run: |
-        python3 -m pip install requests argparse
-        # Sleep to allow PyPi to update its API
-        sleep 60
-        python3 .github/get_pypi_info.py -p OpenFisca-Core
-
-    - name: Conda Config
-      run: |
-        conda install conda-build anaconda-client
-        conda info
-        conda config --set anaconda_upload yes
-
-    - name: Conda build
-      run: conda build -c conda-forge --token ${{ secrets.ANACONDA_TOKEN }} --user
-        openfisca .conda
+        anaconda upload ~/conda-rel/noarch/openfisca-extension-template-* \
+            --token ${{ secrets.ANACONDA_TOKEN }}
+            --user openfisca
+            --force
+        anaconda upload ~/conda-rel/noarch/openfisca-country-template-* \
+            --token ${{ secrets.ANACONDA_TOKEN }}
+            --user openfisca
+            --force
+        anaconda upload ~/conda-rel/noarch/pylint-per-file-ignores-* \
+            --token ${{ secrets.ANACONDA_TOKEN }}
+            --user openfisca
+            --force
+        anaconda upload ~/conda-rel/noarch/openfisca-core-* \
+            --token ${{ secrets.ANACONDA_TOKEN }}
+            --user openfisca
+            --force
 
   test-on-windows:
     runs-on: windows-2019
     needs: [publish-to-conda]
 
     steps:
-    - uses: conda-incubator/setup-miniconda@v2
+    - uses: conda-incubator/setup-miniconda@v3
       with:
         auto-update-conda: true
         # See GHA Windows
@@ -217,7 +240,7 @@ jobs:
         activate-environment: true
 
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Install with conda
       run: conda install -c openfisca openfisca-core

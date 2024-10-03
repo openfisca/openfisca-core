@@ -66,7 +66,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        conda install conda-build conda-verify rattler-build
+        conda install conda-build conda-verify rattler-build anaconda-client
         conda install numpy=${{ inputs.numpy }}
         conda install python=${{ inputs.python }}
       if: steps.cache-env.outputs.cache-hit != 'true'
