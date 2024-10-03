@@ -22,7 +22,7 @@ on:
 jobs:
   test:
     runs-on: ${{ inputs.os }}
-    name: test-core-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}
+    name: pip-test-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       TERM: xterm-256color  # To colorize output of make tasks.
@@ -45,13 +45,13 @@ jobs:
       uses: actions/cache@v4
       with:
         path: venv
-        key: deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}
+        key: pip-deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}
 
     - name: Cache build
       uses: actions/cache@v4
       with:
         path: venv/**/[Oo]pen[Ff]isca*
-        key: build-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
+        key: pip-build-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
     - name: Run Openfisca Core tests
       run: |

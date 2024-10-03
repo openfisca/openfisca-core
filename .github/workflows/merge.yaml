@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  setup:
+  setup-pip:
     strategy:
       fail-fast: true
       matrix:
@@ -25,15 +25,22 @@ jobs:
           activate_command: source venv/bin/activate
         - os: windows-2019
           activate_command: .\venv\Scripts\activate
-    uses: ./.github/workflows/_before.yaml
+    uses: ./.github/workflows/_before-pip.yaml
     with:
       os: ${{ matrix.os }}
       numpy: ${{ matrix.numpy }}
       python: ${{ matrix.python }}
       activate_command: ${{ matrix.activate_command }}
 
-  test:
-    needs: [setup]
+  setup-conda:
+    uses: ./.github/workflows/_before-conda.yaml
+    with:
+      os: ubuntu-22.04
+      numpy: 1.26.4
+      python: 3.10.6
+
+  test-pip:
+    needs: [setup-pip]
     strategy:
       fail-fast: true
       matrix:
@@ -45,21 +52,29 @@ jobs:
           activate_command: source venv/bin/activate
         - os: windows-2019
           activate_command: .\venv\Scripts\activate
-    uses: ./.github/workflows/_test.yaml
+    uses: ./.github/workflows/_test-pip.yaml
     with:
       os: ${{ matrix.os }}
       numpy: ${{ matrix.numpy }}
       python: ${{ matrix.python }}
       activate_command: ${{ matrix.activate_command }}
 
-  lint:
-    needs: [setup]
+  test-conda:
+    uses: ./.github/workflows/_test-conda.yaml
+    needs: [setup-conda]
+    with:
+      os: ubuntu-22.04
+      numpy: 1.26.4
+      python: 3.10.6
+
+  lint-pip:
+    needs: [setup-pip]
     strategy:
       fail-fast: true
       matrix:
         numpy: [1.24.2]
         python: [3.11.9, 3.9.13]
-    uses: ./.github/workflows/_lint.yaml
+    uses: ./.github/workflows/_lint-pip.yaml
     with:
       os: ubuntu-22.04
       numpy: ${{ matrix.numpy }}
@@ -67,7 +82,7 @@ jobs:
       activate_command: source venv/bin/activate
 
   check-version:
-    needs: [test, lint]
+    needs: [test-pip, test-conda, lint-pip]
     uses: ./.github/workflows/_version.yaml
     with:
       os: ubuntu-22.04
@@ -126,21 +141,19 @@ jobs:
       uses: actions/cache@v4
       with:
         path: venv
-        key: deps-ubuntu-22.04-np1.24.2-py3.9.13-${{ hashFiles('setup.py') }}
+        key: pip-deps-ubuntu-22.04-np1.24.2-py3.9.13-${{ hashFiles('setup.py') }}
 
     - name: Cache build
       uses: actions/cache@v4
       with:
         path: venv/**/[oO]pen[fF]isca*
-        key: build-ubuntu-22.04-np1.24.2-py3.9.13-${{ hashFiles('setup.py') }}-${{
-          github.sha }}
+        key: pip-build-ubuntu-22.04-np1.24.2-py3.9.13-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
     - name: Cache release
       uses: actions/cache@v4
       with:
         path: dist
-        key: release-ubuntu-22.04-np1.24.2-py3.9.13-${{ hashFiles('setup.py') }}-${{
-          github.sha }}
+        key: pip-release-ubuntu-22.04-np1.24.2-py3.9.13-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
     - name: Upload package to PyPi
       run: |
@@ -169,9 +182,8 @@ jobs:
         channels: conda-forge
         activate-environment: true
 
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
+    - name: Checkout
+      uses: actions/checkout@v2
 
     - name: Update meta.yaml
       run: |
@@ -204,9 +216,8 @@ jobs:
         channels: conda-forge
         activate-environment: true
 
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
+    - name: Checkout
+      uses: actions/checkout@v2
 
     - name: Install with conda
       run: conda install -c openfisca openfisca-core

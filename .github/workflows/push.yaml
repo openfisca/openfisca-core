@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  setup:
+  setup-pip:
     strategy:
       fail-fast: true
       matrix:
@@ -25,7 +25,7 @@ jobs:
           activate_command: source venv/bin/activate
         - os: windows-2019
           activate_command: .\venv\Scripts\activate
-    uses: ./.github/workflows/_before.yaml
+    uses: ./.github/workflows/_before-pip.yaml
     with:
       os: ${{ matrix.os }}
       numpy: ${{ matrix.numpy }}
@@ -39,8 +39,8 @@ jobs:
       numpy: 1.26.4
       python: 3.10.6
 
-  test:
-    needs: [setup]
+  test-pip:
+    needs: [setup-pip]
     strategy:
       fail-fast: true
       matrix:
@@ -52,21 +52,29 @@ jobs:
           activate_command: source venv/bin/activate
         - os: windows-2019
           activate_command: .\venv\Scripts\activate
-    uses: ./.github/workflows/_test.yaml
+    uses: ./.github/workflows/_test-pip.yaml
     with:
       os: ${{ matrix.os }}
       numpy: ${{ matrix.numpy }}
       python: ${{ matrix.python }}
       activate_command: ${{ matrix.activate_command }}
 
-  lint:
-    needs: [setup]
+  test-conda:
+    uses: ./.github/workflows/_test-conda.yaml
+    needs: [setup-conda]
+    with:
+      os: ubuntu-22.04
+      numpy: 1.26.4
+      python: 3.10.6
+
+  lint-pip:
+    needs: [setup-pip]
     strategy:
       fail-fast: true
       matrix:
         numpy: [1.24.2]
         python: [3.11.9, 3.9.13]
-    uses: ./.github/workflows/_lint.yaml
+    uses: ./.github/workflows/_lint-pip.yaml
     with:
       os: ubuntu-22.04
       numpy: ${{ matrix.numpy }}
@@ -74,7 +82,7 @@ jobs:
       activate_command: source venv/bin/activate
 
   check-version:
-    needs: [test, lint, setup-conda]
+    needs: [test-pip, test-conda, lint-pip]
     uses: ./.github/workflows/_version.yaml
     with:
       os: ubuntu-22.04

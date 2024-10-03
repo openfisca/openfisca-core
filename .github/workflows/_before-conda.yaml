@@ -20,9 +20,9 @@ defaults:
     shell: bash -l {0}
 
 jobs:
-  setup-conda:
+  setup:
     runs-on: ${{ inputs.os }}
-    name: setup-conda-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}
+    name: conda-setup-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}
     env:
       # To colorize output of make tasks.
       TERM: xterm-256color
@@ -44,12 +44,16 @@ jobs:
     - name: Cache conda deps
       uses: actions/cache@v4
       with:
-        path: |
-          ~/conda_pkgs_dir
-          ~/conda-cache
+        path: ~/conda_pkgs_dir
         key: conda-deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}
         restore-keys: conda-deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-
       id: cache-env
+
+    - name: Cache release
+      uses: actions/cache@v4
+      with:
+        path: ~/conda-rel
+        key: conda-release-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
     - name: Setup conda
       uses: conda-incubator/setup-miniconda@v3
@@ -60,7 +64,14 @@ jobs:
         python-version: ${{ inputs.python }}
       if: steps.cache-env.outputs.cache-hit != 'true'
 
-    - name: Update conda
+    - name: Install dependencies
+      run: |
+        conda install conda-build conda-verify rattler-build
+        conda install numpy=${{ inputs.numpy }}
+        conda install python=${{ inputs.python }}
+      if: steps.cache-env.outputs.cache-hit != 'true'
+
+    - name: Update conda & dependencies
       uses: conda-incubator/setup-miniconda@v3
       with:
         activate-environment: openfisca
@@ -68,41 +79,32 @@ jobs:
         environment-file: .env.yaml
       if: steps.cache-env.outputs.cache-hit == 'true'
 
-    - name: Install dependencies
+    - name: Build country template package
       run: |
-        conda install --name openfisca conda-build
-        conda install --name openfisca numpy=${{ inputs.numpy }}
-        conda install --name openfisca python=${{ inputs.python }}
-      if: steps.cache-env.outputs.cache-hit != 'true'
+        rattler-build build \
+          --recipe .conda/openfisca-country-template \
+          --output-dir ~/conda-rel \
+          --no-test
 
-    - name: Update dependencies
-      run: conda env update --name openfisca --file .env.yaml
-      if: steps.cache-env.outputs.cache-hit == 'true'
+    - name: Build extension template package
+      run: |
+        rattler-build build \
+          --recipe .conda/openfisca-extension-template \
+          --output-dir ~/conda-rel \
+          --no-test
 
-    - name: Cache build
-      uses: actions/cache@v4
-      with:
-        path: ~/conda-bld
-        key: conda-build-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
-        restore-keys: |
-          conda-build-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}-
-          conda-build-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-
+    - name: Build pylint plugin package
+      run: |
+        rattler-build build \
+          --recipe .conda/pylint-per-file-ignores \
+          --output-dir ~/conda-rel
 
-    - name: Cache release
-      uses: actions/cache@v4
-      with:
-        path: ~/conda-rel
-        key: conda-release-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
-
-    - name: Build conda package
+    - name: Build core package
       run: |
         mkdir -p ~/conda-rel
-        conda build \
-          .conda \
+        conda build .conda/openfisca-core \
           --use-local \
-          --build-only \
-          --croot ~/conda-bld \
-          --cache-dir ~/conda-cache \
+          --no-anaconda-upload \
           --output-folder ~/conda-rel \
           --numpy ${{ inputs.numpy }} \
           --python ${{ inputs.python }}
