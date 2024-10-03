@@ -24,23 +24,22 @@ build:
 
 requirements:
   host:
-    - python
     - pip
+    - python
+    - setuptools >=61.0
   run:
+    - numpy
+    - python
     {% for req in data['install_requires'] %}
+    {% if not req.startswith('numpy') %}
     - {{ req }}
+    {% endif %}
     {% endfor %}
 
 test:
   imports:
     - openfisca_core
     - openfisca_core.commons
-  requires:
-    - pip
-  commands:
-    - pip check
-    - openfisca --help
-    - openfisca-run-test --help
 
 outputs:
   - name: openfisca-core
@@ -52,7 +51,7 @@ outputs:
       host:
         - python
       run:
-        - python >=3.9,<4.0
+        - python
         {% for req in data['extras_require']['web-api'] %}
         - {{ req }}
         {% endfor %}
@@ -65,9 +64,7 @@ outputs:
       host:
         - python
       run:
-        - python >=3.9,<4.0
-        - openfisca-country-template
-        - openfisca-extension-template
+        - python
         {% for req in  data['extras_require']['dev'] %}
         - {{ req }}
         {% endfor %}

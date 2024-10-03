@@ -59,39 +59,26 @@ jobs:
       uses: conda-incubator/setup-miniconda@v3
       with:
         activate-environment: openfisca
-        auto-update-conda: true
-        channels: conda-forge
+        miniforge-version: latest
         python-version: ${{ inputs.python }}
+        use-mamba: true
       if: steps.cache-env.outputs.cache-hit != 'true'
 
     - name: Install dependencies
       run: |
-        conda install conda-build conda-verify rattler-build anaconda-client
-        conda install numpy=${{ inputs.numpy }}
-        conda install python=${{ inputs.python }}
+        mamba install boa rattler-build anaconda-client
+        mamba install numpy=${{ inputs.numpy }}
+        mamba install python=${{ inputs.python }}
       if: steps.cache-env.outputs.cache-hit != 'true'
 
     - name: Update conda & dependencies
       uses: conda-incubator/setup-miniconda@v3
       with:
         activate-environment: openfisca
-        auto-update-conda: true
         environment-file: .env.yaml
+        miniforge-version: latest
+        use-mamba: true
       if: steps.cache-env.outputs.cache-hit == 'true'
-
-    - name: Build country template package
-      run: |
-        rattler-build build \
-          --recipe .conda/openfisca-country-template \
-          --output-dir ~/conda-rel \
-          --no-test
-
-    - name: Build extension template package
-      run: |
-        rattler-build build \
-          --recipe .conda/openfisca-extension-template \
-          --output-dir ~/conda-rel \
-          --no-test
 
     - name: Build pylint plugin package
       run: |
@@ -101,13 +88,24 @@ jobs:
 
     - name: Build core package
       run: |
-        mkdir -p ~/conda-rel
-        conda build .conda/openfisca-core \
+        conda mambabuild .conda/openfisca-core \
           --use-local \
           --no-anaconda-upload \
           --output-folder ~/conda-rel \
           --numpy ${{ inputs.numpy }} \
           --python ${{ inputs.python }}
 
+    - name: Build country template package
+      run: |
+        rattler-build build \
+          --recipe .conda/openfisca-country-template \
+          --output-dir ~/conda-rel \
+
+    - name: Build extension template package
+      run: |
+        rattler-build build \
+          --recipe .conda/openfisca-extension-template \
+          --output-dir ~/conda-rel
+
     - name: Export env
-      run: conda env export --name openfisca > .env.yaml
+      run: mamba env export --name openfisca > .env.yaml

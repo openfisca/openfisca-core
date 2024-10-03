@@ -173,6 +173,9 @@ jobs:
   publish-to-conda:
     runs-on: ubuntu-22.04
     needs: [publish-to-pypi]
+    defaults:
+      run:
+        shell: bash -l {0}
 
     steps:
     - name: Checkout
@@ -203,23 +206,12 @@ jobs:
       uses: conda-incubator/setup-miniconda@v3
       with:
         activate-environment: openfisca
-        auto-update-conda: true
         environment-file: .env.yaml
+        miniforge-version: latest
+        use-mamba: true
 
     - name: Publish to conda
       run: |
-        anaconda upload ~/conda-rel/noarch/openfisca-extension-template-* \
-            --token ${{ secrets.ANACONDA_TOKEN }}
-            --user openfisca
-            --force
-        anaconda upload ~/conda-rel/noarch/openfisca-country-template-* \
-            --token ${{ secrets.ANACONDA_TOKEN }}
-            --user openfisca
-            --force
-        anaconda upload ~/conda-rel/noarch/pylint-per-file-ignores-* \
-            --token ${{ secrets.ANACONDA_TOKEN }}
-            --user openfisca
-            --force
         anaconda upload ~/conda-rel/noarch/openfisca-core-* \
             --token ${{ secrets.ANACONDA_TOKEN }}
             --user openfisca
@@ -228,6 +220,9 @@ jobs:
   test-on-windows:
     runs-on: windows-2019
     needs: [publish-to-conda]
+    defaults:
+      run:
+        shell: bash -l {0}
 
     steps:
     - uses: conda-incubator/setup-miniconda@v3

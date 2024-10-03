@@ -55,11 +55,16 @@ jobs:
       uses: conda-incubator/setup-miniconda@v3
       with:
         activate-environment: openfisca
-        auto-update-conda: true
         environment-file: .env.yaml
+        miniforge-version: latest
+        use-mamba: true
 
-    - name: Install core
-      run: conda install openfisca-core-dev --channel file:///home/runner/conda-rel
+    - name: Install packages
+      run: |
+        mamba install --channel file:///home/runner/conda-rel \
+          openfisca-core-dev \
+          openfisca-country-template \
+          openfisca-extension-template
 
     - name: Run core tests
       run: make test-core

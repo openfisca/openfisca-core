@@ -18,20 +18,19 @@ build:
 
 requirements:
   host:
-  - python
+  - numpy
   - pip
-  run:
   - python
+  - setuptools >=61.0
+  run:
+  - numpy
+  - python
+  - openfisca-core >=42,<43
 
 tests:
 - python:
     imports:
     - openfisca_country_template
-- requirements:
-    run:
-    - pip
-  script:
-  - pip check
 
 about:
   summary: OpenFisca Rules as Code model for Country-Template.

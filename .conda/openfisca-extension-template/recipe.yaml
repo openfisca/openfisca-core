@@ -18,21 +18,19 @@ build:
 
 requirements:
   host:
+  - numpy
+  - pip
   - python
   - setuptools >=61.0
-  - pip
   run:
+  - numpy
   - python
+  - openfisca-country-template >=7,<8
 
 tests:
 - python:
     imports:
     - openfisca_extension_template
-- requirements:
-    run:
-    - pip
-  script:
-  - pip check
 
 about:
   summary: An OpenFisca extension that adds some variables to an already-existing

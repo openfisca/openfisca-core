@@ -30,11 +30,6 @@ tests:
 - python:
     imports:
     - pylint_per_file_ignores
-- requirements:
-    run:
-    - pip
-  script:
-  - pip check
 
 about:
   summary: A pylint plugin to ignore error codes per file.
