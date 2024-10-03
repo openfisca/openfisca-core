@@ -40,6 +40,7 @@ jobs:
           .env.yaml
         key: conda-env-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}
         restore-keys: conda-env-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-
+      id: cache-env
 
     - name: Cache conda deps
       uses: actions/cache@v4
@@ -47,7 +48,7 @@ jobs:
         path: ~/conda_pkgs_dir
         key: conda-deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}
         restore-keys: conda-deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-
-      id: cache-env
+      id: cache-deps
 
     - name: Cache release
       uses: actions/cache@v4
@@ -65,10 +66,7 @@ jobs:
       if: steps.cache-env.outputs.cache-hit != 'true'
 
     - name: Install dependencies
-      run: |
-        mamba install boa rattler-build anaconda-client
-        mamba install numpy=${{ inputs.numpy }}
-        mamba install python=${{ inputs.python }}
+      run: mamba install boa rattler-build anaconda-client
       if: steps.cache-env.outputs.cache-hit != 'true'
 
     - name: Update conda & dependencies
