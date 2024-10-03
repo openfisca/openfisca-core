@@ -18,7 +18,6 @@ jobs:
   # during the time they took to fix the tests.
   check-version:
     runs-on: ${{ inputs.os }}
-    name: check-version-${{ inputs.os }}-py${{ inputs.python }}
     env:
       # To colorize output of make tasks.
       TERM: xterm-256color
