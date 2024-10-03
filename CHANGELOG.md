@@ -1,5 +1,23 @@
 # Changelog
 
+### 42.0.4 [#1257](https://github.com/openfisca/openfisca-core/pull/1257)
+
+#### Technical changes
+
+- Fix conda test and publish
+- Add matrix testing to CI
+  - Now it tests lower and upper bounds of python and numpy versions
+
+### 42.0.3 [#1234](https://github.com/openfisca/openfisca-core/pull/1234)
+
+#### Technical changes
+
+- Add matrix testing to CI
+  - Now it tests lower and upper bounds of python and numpy versions
+
+> Note: Version `42.0.3` has been unpublished as was deployed by mistake.
+> Please use versions `42.0.4` and subsequents.
+
 ### 42.0.2 [#1256](https://github.com/openfisca/openfisca-core/pull/1256)
 
 #### Documentation
