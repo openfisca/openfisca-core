@@ -217,12 +217,11 @@ jobs:
         use-mamba: true
 
     - name: Publish to conda
-      shell: bash -l {0}
       run: |
-        anaconda upload ~/conda-rel/noarch/openfisca-core-* \
-            --token ${{ secrets.ANACONDA_TOKEN }}
-            --user openfisca
-            --force
+        rattler-build upload anaconda ~/conda-rel/noarch/*.conda \
+          --force \
+          --owner openfisca \
+          --api-key ${{ secrets.ANACONDA_TOKEN }}
 
   test-on-windows:
     runs-on: windows-2019
@@ -245,9 +244,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install with conda
-      shell: bash -l {0}
       run: conda install -c openfisca openfisca-core
 
     - name: Test openfisca
-      shell: bash -l {0}
       run: openfisca --help
