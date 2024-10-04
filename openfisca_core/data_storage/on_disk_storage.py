@@ -9,7 +9,29 @@ from openfisca_core.periods import DateUnit
 
 
 class OnDiskStorage:
-    """Storing and retrieving calculated vectors on disk."""
+    """Storing and retrieving calculated vectors on disk.
+
+    Args:
+        storage_dir: Path to store calculated vectors.
+        is_eternal: Whether the storage is eternal.
+        preserve_storage_dir: Whether to preserve the storage directory.
+
+    """
+
+    #: A dictionary containing data that has been stored on disk.
+    storage_dir: str
+
+    #: Whether the storage is eternal.
+    is_eternal: bool
+
+    #: Whether to preserve the storage directory.
+    preserve_storage_dir: bool
+
+    #: Mapping of file paths to possible Enum values.
+    _enums: dict
+
+    #: Mapping of periods to file paths.
+    _files: dict
 
     def __init__(
         self, storage_dir, is_eternal=False, preserve_storage_dir=False
@@ -21,8 +43,19 @@ class OnDiskStorage:
         self.storage_dir = storage_dir
 
     def _decode_file(self, file):
-        """
-        Examples
+        """Decode a file by loading its contents as a ``numpy`` array.
+
+        Args:
+            file: Path to the file to be decoded.
+
+        Returns:
+            ``numpy`` array or ``EnumArray`` representing the data in the file.
+
+        Note:
+            If the file is associated with ``Enum`` values, the array is
+            converted back to an ``EnumArray`` object.
+
+        Examples:
             >>> import tempfile
 
             >>> import numpy
@@ -54,7 +87,15 @@ class OnDiskStorage:
         return numpy.load(file)
 
     def get(self, period):
-        """
+        """Retrieve the data for the specified period from disk.
+
+        Args:
+            period: The period for which data should be retrieved.
+
+        Returns:
+            A ``numpy`` array or ``EnumArray`` representing the vector for the
+            specified period, or ``None`` if no vector is stored.
+
         Examples:
             >>> import tempfile
 
@@ -84,7 +125,12 @@ class OnDiskStorage:
         return self._decode_file(values)
 
     def put(self, value, period) -> None:
-        """
+        """Store the specified data on disk for the specified period.
+
+        Args:
+            value: The data to store
+            period: The period for which the data should be stored.
+
         Examples:
             >>> import tempfile
 
@@ -117,7 +163,12 @@ class OnDiskStorage:
         self._files[period] = path
 
     def delete(self, period=None) -> None:
-        """
+        """Delete the data for the specified period from disk.
+
+        Args:
+            period: The period for which data should be deleted. If not
+                specified, all data will be deleted.
+
         Examples:
             >>> import tempfile
 
@@ -165,7 +216,11 @@ class OnDiskStorage:
             }
 
     def get_known_periods(self):
-        """
+        """List of storage's known periods.
+
+        Returns:
+            A sequence containing the storage's known periods.
+
         Examples:
             >>> import tempfile
 
@@ -192,7 +247,8 @@ class OnDiskStorage:
         return self._files.keys()
 
     def restore(self) -> None:
-        """
+        """Restore the storage from disk.
+
         Examples:
             >>> import tempfile
 
