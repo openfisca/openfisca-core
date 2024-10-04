@@ -1,5 +1,11 @@
 # Changelog
 
+### 42.0.5 [#1261](https://github.com/openfisca/openfisca-core/pull/1261)
+
+#### Technical changes
+
+- Fix doctests of `data_storage` module
+
 ### 42.0.4 [#1257](https://github.com/openfisca/openfisca-core/pull/1257)
 
 #### Technical changes
