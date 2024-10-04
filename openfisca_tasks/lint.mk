@@ -19,6 +19,7 @@ check-style: $(shell git ls-files "*.py" "*.pyi")
 ## Run linters to check for syntax and style errors in the doc.
 lint-doc: \
 	lint-doc-commons \
+	lint-doc-data_storage \
 	lint-doc-entities \
 	;
 

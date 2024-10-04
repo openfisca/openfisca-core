@@ -5,14 +5,32 @@ from openfisca_core.periods import DateUnit
 
 
 class InMemoryStorage:
-    """Storing and retrieving calculated vectors in memory."""
+    """Storing and retrieving calculated vectors in memory.
+
+    Args:
+        is_eternal: Whether the storage is eternal.
+
+    """
+
+    #: Whether the storage is eternal.
+    is_eternal: bool
+
+    #: A dictionary containing data that has been stored in memory.
+    _arrays: dict
 
     def __init__(self, is_eternal=False) -> None:
         self._arrays = {}
         self.is_eternal = is_eternal
 
     def get(self, period):
-        """
+        """Retrieve the data for the specified period from memory.
+
+        Args:
+            period: The period for which data should be retrieved.
+
+        Returns:
+            The data for the specified period, or None if no data is available.
+
         Examples:
             >>> import numpy
 
@@ -40,7 +58,12 @@ class InMemoryStorage:
         return values
 
     def put(self, value, period) -> None:
-        """
+        """Store the specified data in memory for the specified period.
+
+        Args:
+            value: The data to store
+            period: The period for which the data should be stored.
+
         Examples:
             >>> import numpy
 
@@ -65,7 +88,14 @@ class InMemoryStorage:
         self._arrays[period] = value
 
     def delete(self, period=None) -> None:
-        """
+        """Delete the data for the specified period from memory.
+
+        Args:
+            period: The period for which data should be deleted.
+
+        Note:
+            If ``period`` is specified, all data will be deleted.
+
         Examples:
             >>> import numpy
 
@@ -108,7 +138,11 @@ class InMemoryStorage:
         }
 
     def get_known_periods(self):
-        """
+        """List of storage's known periods.
+
+        Returns:
+            A sequence containing the storage's known periods.
+
         Examples:
             >>> from openfisca_core import data_storage, periods
 
@@ -128,7 +162,11 @@ class InMemoryStorage:
         return self._arrays.keys()
 
     def get_memory_usage(self):
-        """
+        """Memory usage of the storage.
+
+        Returns:
+            A dictionary representing the storage's memory usage.
+
         Examples:
             >>> from openfisca_core import data_storage
 
