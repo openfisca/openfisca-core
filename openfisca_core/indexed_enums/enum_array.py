@@ -1,16 +1,18 @@
 from __future__ import annotations
 
-from numpy.typing import NDArray
-from typing import Any, Iterable, NoReturn
+import typing
+from typing import Any, NoReturn
 
 import numpy
 
-from .typing import HasIndex
+from . import types as t
+
+if typing.TYPE_CHECKING:
+    from openfisca_core.indexed_enums import Enum
 
 
-class EnumArray(NDArray[numpy.int_]):
-    """
-    NumPy array subclass representing an array of enum items.
+class EnumArray(numpy.ndarray):
+    """NumPy array subclass representing an array of enum items.
 
     EnumArrays are encoded as ``int`` arrays to improve performance
     """
@@ -20,38 +22,40 @@ class EnumArray(NDArray[numpy.int_]):
     # https://docs.scipy.org/doc/numpy-1.13.0/user/basics.subclassing.html#slightly-more-realistic-example-attribute-added-to-existing-array.
     def __new__(
         cls,
-        input_array: NDArray[numpy.int_],
-        possible_values: Iterable[HasIndex] | None = None,
+        input_array: t.Array[numpy.int16],
+        possible_values: type[Enum] | None = None,
     ) -> EnumArray:
         obj = numpy.asarray(input_array).view(cls)
         obj.possible_values = possible_values
         return obj
 
     # See previous comment
-    def __array_finalize__(self, obj: NDArray[numpy.int_] | EnumArray | None) -> None:
+    def __array_finalize__(self, obj: numpy.int32 | None) -> None:
         if obj is None:
             return
 
         self.possible_values = getattr(obj, "possible_values", None)
 
-    def __eq__(self, other: HasIndex | Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         # When comparing to an item of self.possible_values, use the item index
         # to speed up the comparison.
-
-        if hasattr(other, "index"):
+        if other.__class__.__name__ is self.possible_values.__name__:
             # Use view(ndarray) so that the result is a classic ndarray, not an
             # EnumArray.
             return self.view(numpy.ndarray) == other.index
 
         return self.view(numpy.ndarray) == other
 
-    def __ne__(self, other: Any) -> bool:
+    def __ne__(self, other: object) -> bool:
         return numpy.logical_not(self == other)
 
     def _forbidden_operation(self, other: Any) -> NoReturn:
-        raise TypeError(
+        msg = (
             "Forbidden operation. The only operations allowed on EnumArrays "
-            "are '==' and '!='.",
+            "are '==' and '!='."
+        )
+        raise TypeError(
+            msg,
         )
 
     __add__ = _forbidden_operation
@@ -64,12 +68,11 @@ class EnumArray(NDArray[numpy.int_]):
     __or__ = _forbidden_operation
 
     def decode(self) -> numpy.object_:
-        """
-        Return the array of enum items corresponding to self.
+        """Return the array of enum items corresponding to self.
 
         For instance:
 
-        >>> enum_array = household('housing_occupancy_status', period)
+        >>> enum_array = household("housing_occupancy_status", period)
         >>> enum_array[0]
         >>> 2  # Encoded value
         >>> enum_array.decode()[0]
@@ -82,13 +85,12 @@ class EnumArray(NDArray[numpy.int_]):
             list(self.possible_values),
         )
 
-    def decode_to_str(self) -> NDArray[numpy.str_]:
-        """
-        Return the array of string identifiers corresponding to self.
+    def decode_to_str(self) -> numpy.str_:
+        """Return the array of string identifiers corresponding to self.
 
         For instance:
 
-        >>> enum_array = household('housing_occupancy_status', period)
+        >>> enum_array = household("housing_occupancy_status", period)
         >>> enum_array[0]
         >>> 2  # Encoded value
         >>> enum_array.decode_to_str()[0]
@@ -100,7 +102,7 @@ class EnumArray(NDArray[numpy.int_]):
         )
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({str(self.decode())})"
+        return f"{self.__class__.__name__}({self.decode()!s})"
 
     def __str__(self) -> str:
         return str(self.decode_to_str())

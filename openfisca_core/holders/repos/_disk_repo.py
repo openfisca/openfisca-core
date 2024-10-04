@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from openfisca_core.types import Enum, Period
 from typing import Any, NoReturn
+
+from openfisca_core.types import Enum, Period
 
 import os
 import pathlib
@@ -10,8 +11,7 @@ import shutil
 
 import numpy
 
-from openfisca_core import indexed_enums as enums
-from openfisca_core import periods
+from openfisca_core import indexed_enums as enums, periods
 
 
 class DiskRepo:

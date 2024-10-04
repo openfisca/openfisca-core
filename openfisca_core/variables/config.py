@@ -5,7 +5,6 @@ import numpy
 from openfisca_core import indexed_enums
 from openfisca_core.indexed_enums import Enum
 
-
 VALUE_TYPES = {
     bool: {
         "dtype": numpy.bool_,

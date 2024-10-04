@@ -1,5 +1,6 @@
-from openfisca_core.types import Period
 from typing import Any
+
+from openfisca_core.types import Period
 
 import logging
 

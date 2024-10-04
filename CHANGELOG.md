@@ -1,6 +1,6 @@
 # Changelog
 
-## 41.1.0 [#1167](https://github.com/openfisca/openfisca-core/pull/1167)
+## 42.1.0 [#1167](https://github.com/openfisca/openfisca-core/pull/1167)
 
 #### New features
 
@@ -11,6 +11,240 @@
 - Add tests to `data_storage`.
 - Add typing to `data_storage`.
 - Add documentation to `data_storage`.
+
+### 42.0.4 [#1257](https://github.com/openfisca/openfisca-core/pull/1257)
+
+#### Technical changes
+
+- Fix conda test and publish
+- Add matrix testing to CI
+  - Now it tests lower and upper bounds of python and numpy versions
+
+### 42.0.3 [#1234](https://github.com/openfisca/openfisca-core/pull/1234)
+
+#### Technical changes
+
+- Add matrix testing to CI
+  - Now it tests lower and upper bounds of python and numpy versions
+
+> Note: Version `42.0.3` has been unpublished as was deployed by mistake.
+> Please use versions `42.0.4` and subsequents.
+
+### 42.0.2 [#1256](https://github.com/openfisca/openfisca-core/pull/1256)
+
+#### Documentation
+
+- Fix bad indent
+
+### 42.0.1 [#1253](https://github.com/openfisca/openfisca-core/pull/1253)
+
+#### Documentation
+
+- Fix documentation of `entities`
+
+# 42.0.0 [#1223](https://github.com/openfisca/openfisca-core/pull/1223)
+
+#### Breaking changes
+
+- Changes to `eternity` instants and periods
+  - Eternity instants are now `<Instant(-1, -1, -1)>` instead of
+    `<Instant(inf, inf, inf)>`
+  - Eternity periods are now `<Period(('eternity', <Instant(-1, -1, -1)>, -1))>`
+    instead of `<Period(('eternity', <Instant(inf, inf, inf)>, inf))>`
+  - The reason is to avoid mixing data types: `inf` is a float, periods and
+    instants are integers. Mixed data types make memory optimisations impossible.
+  - Migration should be straightforward. If you have a test that checks for
+    `inf`, you should update it to check for `-1` or use the `is_eternal` method.
+- `periods.instant` no longer returns `None`
+  - Now, it raises `periods.InstantError`
+
+#### New features
+
+- Introduce `Instant.eternity()`
+  - This behaviour was duplicated across
+  - Now it is encapsulated in a single method
+- Introduce `Instant.is_eternal` and `Period.is_eternal`
+    - These methods check if the instant or period are eternity (`bool`).
+- Now `periods.instant` parses also ISO calendar strings (weeks)
+  - For instance, `2022-W01` is now a valid input
+
+#### Technical changes
+
+- Update `pendulum`
+- Reduce code complexity
+- Remove run-time type-checks
+- Add typing to the periods module
+
+### 41.5.7 [#1225](https://github.com/openfisca/openfisca-core/pull/1225)
+
+#### Technical changes
+
+- Refactor & test `eval_expression`
+
+###  41.5.6 [#1185](https://github.com/openfisca/openfisca-core/pull/1185)
+
+#### Technical changes
+
+- Remove pre Python 3.9 syntax.
+
+### 41.5.5 [#1220](https://github.com/openfisca/openfisca-core/pull/1220)
+
+#### Technical changes
+
+- Fix doc & type definitions in the entities module
+
+### 41.5.4 [#1219](https://github.com/openfisca/openfisca-core/pull/1219)
+
+#### Technical changes
+
+- Fix doc & type definitions in the commons module
+
+### 41.5.3 [#1218](https://github.com/openfisca/openfisca-core/pull/1218)
+
+#### Technical changes
+
+- Fix `flake8` doc linting:
+    - Add format "google"
+    - Fix per-file skips
+- Fix failing lints
+
+### 41.5.2 [#1217](https://github.com/openfisca/openfisca-core/pull/1217)
+
+#### Technical changes
+
+- Fix styles by applying `isort`.
+- Add a `isort` dry-run check to `make lint`
+
+### 41.5.1 [#1216](https://github.com/openfisca/openfisca-core/pull/1216)
+
+#### Technical changes
+
+- Fix styles by applying `black`.
+- Add a `black` dry-run check to `make lint`
+
+## 41.5.0 [#1212](https://github.com/openfisca/openfisca-core/pull/1212)
+
+#### New features
+
+- Introduce `VectorialAsofDateParameterNodeAtInstant`
+  - It is a parameter node of the legislation at a given instant which has been vectorized along some date.
+   - Vectorized parameters allow requests such as parameters.housing_benefit[date], where date is a `numpy.datetime64` vector
+
+### 41.4.7 [#1211](https://github.com/openfisca/openfisca-core/pull/1211)
+
+#### Technical changes
+
+- Update documentation continuous deployment method to reflect OpenFisca-Doc [process updates](https://github.com/openfisca/openfisca-doc/pull/308)
+
+### 41.4.6 [#1210](https://github.com/openfisca/openfisca-core/pull/1210)
+
+#### Technical changes
+
+- Abide by OpenAPI v3.0.0 instead of v3.1.0
+  - Drop support for `propertyNames` in `Values` definition
+
+### 41.4.5 [#1209](https://github.com/openfisca/openfisca-core/pull/1209)
+
+#### Technical changes
+
+- Support loading metadata from both `setup.py` and `pyproject.toml` package description files.
+
+### ~41.4.4~ [#1208](https://github.com/openfisca/openfisca-core/pull/1208)
+
+_Unpublished due to introduced backwards incompatibilities._
+
+#### Technical changes
+
+- Adapt testing pipeline to Country Template [v7](https://github.com/openfisca/country-template/pull/139).
+
+### 41.4.3 [#1206](https://github.com/openfisca/openfisca-core/pull/1206)
+
+#### Technical changes
+
+- Increase spiral and cycle tests robustness.
+  - The current test is ambiguous, as it hides a failure at the first spiral
+    occurrence (from 2017 to 2016).
+
+### 41.4.2 [#1203](https://github.com/openfisca/openfisca-core/pull/1203)
+
+#### Technical changes
+
+- Changes the Pypi's deployment authentication way to use token API following Pypi's 2FA enforcement starting 2024/01/01.
+
+### 41.4.1 [#1202](https://github.com/openfisca/openfisca-core/pull/1202)
+
+#### Technical changes
+
+- Check that entities are fully specified when expanding over axes.
+
+## 41.4.0 [#1197](https://github.com/openfisca/openfisca-core/pull/1197)
+
+#### New features
+
+- Add `entities.find_role()` to find roles by key and `max`.
+
+#### Technical changes
+
+- Document `projectors.get_projector_from_shortcut()`.
+
+## 41.3.0 [#1200](https://github.com/openfisca/openfisca-core/pull/1200)
+
+> As `TracingParameterNodeAtInstant` is a wrapper for `ParameterNodeAtInstant`
+> which allows iteration and the use of `contains`, it was not possible
+> to use those on a `TracingParameterNodeAtInstant`
+
+#### New features
+
+- Allows iterations on `TracingParameterNodeAtInstant`
+- Allows keyword `contains` on `TracingParameterNodeAtInstant`
+
+## 41.2.0 [#1199](https://github.com/openfisca/openfisca-core/pull/1199)
+
+#### Technical changes
+
+- Fix `openfisca-core` Web API error triggered by `Gunicorn` < 22.0.
+  - Bump `Gunicorn` major revision to fix error on Web API.
+    Source: https://github.com/benoitc/gunicorn/issues/2564
+
+### 41.1.2 [#1192](https://github.com/openfisca/openfisca-core/pull/1192)
+
+#### Technical changes
+
+- Add tests to `entities`.
+
+###  41.1.1 [#1186](https://github.com/openfisca/openfisca-core/pull/1186)
+
+#### Technical changes
+
+- Skip type-checking tasks
+  - Before their definition was commented out but still run with `make test`
+  - Now they're skipped but not commented, which is needed to fix the
+    underlying issues
+
+##  41.1.0 [#1195](https://github.com/openfisca/openfisca-core/pull/1195)
+
+#### Technical changes
+
+- Make `Role` explicitly hashable.
+- Details:
+    - By introducing `__eq__`, naturally `Role` became unhashable, because
+      equality was calculated based on a property of `Role`
+      (`role.key == another_role.key`), and no longer structurally
+      (`"1" == "1"`).
+    - This changeset removes `__eq__`, as `Role` is being used downstream as a
+      hashable object, and adds a test to ensure `Role`'s hashability.
+
+###  41.0.2 [#1194](https://github.com/openfisca/openfisca-core/pull/1194)
+
+#### Technical changes
+
+- Add `__hash__` method to `Role`.
+
+###  41.0.1 [#1187](https://github.com/openfisca/openfisca-core/pull/1187)
+
+#### Technical changes
+
+- Document `Role`.
 
 # 41.0.0 [#1189](https://github.com/openfisca/openfisca-core/pull/1189)
 
@@ -24,8 +258,8 @@ The Web API was very prone to crashing, timeouting at startup because of the tim
 
 #### New Features
 
-* Allows for dispatching and dividing inputs over a broader range.
-  * For example, divide a monthly variable by week.
+- Allows for dispatching and dividing inputs over a broader range.
+  - For example, divide a monthly variable by week.
 
 ###  40.0.1 [#1184](https://github.com/openfisca/openfisca-core/pull/1184)
 

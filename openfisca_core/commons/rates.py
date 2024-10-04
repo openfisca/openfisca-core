@@ -1,15 +1,16 @@
-from openfisca_core.types import Array
-from typing import Optional
+from __future__ import annotations
 
 import numpy
 
+from . import types as t
+
 
 def average_rate(
-    target: Array[float],
-    varying: Array[float],
-    trim: Optional[Array[float]] = None,
-) -> Array[float]:
-    """Computes the average rate of a target net income.
+    target: t.Array[numpy.float32],
+    varying: t.Array[numpy.float32] | t.ArrayLike[float],
+    trim: None | t.ArrayLike[float] = None,
+) -> t.Array[numpy.float32]:
+    """Compute the average rate of a target net income.
 
     Given a ``target`` net income, and according to the ``varying`` gross
     income. Optionally, a ``trim`` can be applied consisting of the lower and
@@ -24,23 +25,21 @@ def average_rate(
         trim: The lower and upper bounds of the average rate.
 
     Returns:
-        :obj:`numpy.ndarray` of :obj:`float`:
-
-        The average rate for each target.
-
-        When ``trim`` is provided, values that are out of the provided bounds
-        are replaced by :obj:`numpy.nan`.
+        Array[numpy.float32]: The average rate for each target. When ``trim``
+            is provided, values that are out of the provided bounds are
+            replaced by :any:`numpy.nan`.
 
     Examples:
         >>> target = numpy.array([1, 2, 3])
         >>> varying = [2, 2, 2]
-        >>> trim = [-1, .25]
+        >>> trim = [-1, 0.25]
         >>> average_rate(target, varying, trim)
         array([ nan,  0. , -0.5])
 
     """
 
-    average_rate: Array[float]
+    if not isinstance(varying, numpy.ndarray):
+        varying = numpy.array(varying, dtype=numpy.float32)
 
     average_rate = 1 - target / varying
 
@@ -61,11 +60,11 @@ def average_rate(
 
 
 def marginal_rate(
-    target: Array[float],
-    varying: Array[float],
-    trim: Optional[Array[float]] = None,
-) -> Array[float]:
-    """Computes the marginal rate of a target net income.
+    target: t.Array[numpy.float32],
+    varying: t.Array[numpy.float32] | t.ArrayLike[float],
+    trim: None | t.ArrayLike[float] = None,
+) -> t.Array[numpy.float32]:
+    """Compute the marginal rate of a target net income.
 
     Given a ``target`` net income, and according to the ``varying`` gross
     income. Optionally, a ``trim`` can be applied consisting of the lower and
@@ -80,23 +79,21 @@ def marginal_rate(
         trim: The lower and upper bounds of the marginal rate.
 
     Returns:
-        :obj:`numpy.ndarray` of :obj:`float`:
-
-        The marginal rate for each target.
-
-        When ``trim`` is provided, values that are out of the provided bounds
-        are replaced by :obj:`numpy.nan`.
+        Array[numpy.float32]: The marginal rate for each target. When ``trim``
+        is provided, values that are out of the provided bounds are replaced by
+        :any:`numpy.nan`.
 
     Examples:
         >>> target = numpy.array([1, 2, 3])
         >>> varying = numpy.array([1, 2, 4])
-        >>> trim = [.25, .75]
+        >>> trim = [0.25, 0.75]
         >>> marginal_rate(target, varying, trim)
         array([nan, 0.5])
 
     """
 
-    marginal_rate: Array[float]
+    if not isinstance(varying, numpy.ndarray):
+        varying = numpy.array(varying, dtype=numpy.float32)
 
     marginal_rate = +1 - (target[:-1] - target[1:]) / (varying[:-1] - varying[1:])
 
@@ -114,3 +111,6 @@ def marginal_rate(
         )
 
     return marginal_rate
+
+
+__all__ = ["average_rate", "marginal_rate"]

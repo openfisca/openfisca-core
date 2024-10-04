@@ -1,0 +1,109 @@
+name: Setup conda
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+
+      numpy:
+        required: true
+        type: string
+
+      python:
+        required: true
+        type: string
+
+defaults:
+  run:
+    shell: bash -l {0}
+
+jobs:
+  setup:
+    runs-on: ${{ inputs.os }}
+    name: conda-setup-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}
+    env:
+      # To colorize output of make tasks.
+      TERM: xterm-256color
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Cache conda env
+      uses: actions/cache@v4
+      with:
+        path: |
+          /usr/share/miniconda/envs/openfisca
+          ~/.conda/envs/openfisca
+          .env.yaml
+        key: conda-env-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}
+        restore-keys: conda-env-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-
+      id: cache-env
+
+    - name: Cache conda deps
+      uses: actions/cache@v4
+      with:
+        path: ~/conda_pkgs_dir
+        key: conda-deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}
+        restore-keys: conda-deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-
+      id: cache-deps
+
+    - name: Cache release
+      uses: actions/cache@v4
+      with:
+        path: ~/conda-rel
+        key: conda-release-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
+
+    - name: Setup conda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        activate-environment: openfisca
+        miniforge-version: latest
+        python-version: ${{ inputs.python }}
+        use-mamba: true
+      if: steps.cache-env.outputs.cache-hit != 'true'
+
+    - name: Install dependencies
+      run: mamba install boa rattler-build anaconda-client
+      if: steps.cache-env.outputs.cache-hit != 'true'
+
+    - name: Update conda & dependencies
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        activate-environment: openfisca
+        environment-file: .env.yaml
+        miniforge-version: latest
+        use-mamba: true
+      if: steps.cache-env.outputs.cache-hit == 'true'
+
+    - name: Build pylint plugin package
+      run: |
+        rattler-build build \
+          --recipe .conda/pylint-per-file-ignores \
+          --output-dir ~/conda-rel
+
+    - name: Build core package
+      run: |
+        conda mambabuild .conda/openfisca-core \
+          --use-local \
+          --no-anaconda-upload \
+          --output-folder ~/conda-rel \
+          --numpy ${{ inputs.numpy }} \
+          --python ${{ inputs.python }}
+
+    - name: Build country template package
+      run: |
+        rattler-build build \
+          --recipe .conda/openfisca-country-template \
+          --output-dir ~/conda-rel \
+
+    - name: Build extension template package
+      run: |
+        rattler-build build \
+          --recipe .conda/openfisca-extension-template \
+          --output-dir ~/conda-rel
+
+    - name: Export env
+      run: mamba env export --name openfisca > .env.yaml

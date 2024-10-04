@@ -1,4 +1,4 @@
-openapi: "3.1.0"
+openapi: "3.0.0"
 
 info:
   title: "{COUNTRY_PACKAGE_NAME} Web API"
@@ -137,8 +137,8 @@ components:
       type: "object"
       additionalProperties:
         $ref: "#/components/schemas/Value"
-      propertyNames:  # this keyword is part of JSON Schema but is not supported in OpenAPI Specification at the time of writing, see https://swagger.io/docs/specification/data-models/keywords/#unsupported
-        pattern: "^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$"  # all keys are ISO dates
+      # propertyNames:  # this keyword is part of JSON Schema but is not supported in OpenAPI v3.0.0
+      # pattern: "^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$"  # all keys are ISO dates
 
     Value:
       oneOf:

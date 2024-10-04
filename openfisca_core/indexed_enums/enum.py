@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Union
-
 import enum
 
 import numpy
@@ -11,23 +9,16 @@ from .enum_array import EnumArray
 
 
 class Enum(enum.Enum):
-    """
-    Enum based on `enum34 <https://pypi.python.org/pypi/enum34/>`_, whose items
+    """Enum based on `enum34 <https://pypi.python.org/pypi/enum34/>`_, whose items
     have an index.
     """
 
-    #: Index of the enum.
-    index: int
-
     # Tweak enums to add an index attribute to each enum item
-    def __new__(cls, name: str) -> Enum:
-        # When the enum item is initialized, cls._member_names_ contains the
+    def __init__(self, name: str) -> None:
+        # When the enum item is initialized, self._member_names_ contains the
         # names of the previously initialized items, so its length is the index
         # of this item.
-        new = object.__new__(cls)
-        new._value_ = name
-        new.index = len(cls._member_names_)
-        return new
+        self.index = len(self._member_names_)
 
     # Bypass the slow Enum.__eq__
     __eq__ = object.__eq__
@@ -39,15 +30,9 @@ class Enum(enum.Enum):
     @classmethod
     def encode(
         cls,
-        array: Union[
-            EnumArray,
-            numpy.int_,
-            numpy.float_,
-            numpy.object_,
-        ],
+        array: EnumArray | numpy.int32 | numpy.float32 | numpy.object_,
     ) -> EnumArray:
-        """
-        Encode a string numpy array, an enum item numpy array, or an int numpy
+        """Encode a string numpy array, an enum item numpy array, or an int numpy
         array into an :any:`EnumArray`. See :any:`EnumArray.decode` for
         decoding.
 
@@ -59,7 +44,7 @@ class Enum(enum.Enum):
 
         For instance:
 
-        >>> string_identifier_array = asarray(['free_lodger', 'owner'])
+        >>> string_identifier_array = asarray(["free_lodger", "owner"])
         >>> encoded_array = HousingOccupancyStatus.encode(string_identifier_array)
         >>> encoded_array[0]
         2  # Encoded value

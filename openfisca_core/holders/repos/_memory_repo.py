@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from openfisca_core.holders.typing import MemoryUsage
+
 from openfisca_core.types import Period
 
 import numpy

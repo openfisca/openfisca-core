@@ -13,9 +13,9 @@ class ParameterNode(AtInstantLike):
     A node in the legislation `parameter tree <https://openfisca.org/doc/coding-the-legislation/legislation_parameters.html>`_.
     """
 
-    _allowed_keys: typing.Optional[
-        typing.Iterable[str]
-    ] = None  # By default, no restriction on the keys
+    _allowed_keys: typing.Optional[typing.Iterable[str]] = (
+        None  # By default, no restriction on the keys
+    )
 
     def __init__(self, name="", directory_path=None, data=None, file_path=None):
         """

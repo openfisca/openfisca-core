@@ -19,11 +19,13 @@ class VectorialParameterNodeAtInstant:
         # Recursively vectorize the children of the node
         vectorial_subnodes = tuple(
             [
-                VectorialParameterNodeAtInstant.build_from_node(
-                    node[subnode_name]
-                ).vector
-                if isinstance(node[subnode_name], parameters.ParameterNodeAtInstant)
-                else node[subnode_name]
+                (
+                    VectorialParameterNodeAtInstant.build_from_node(
+                        node[subnode_name]
+                    ).vector
+                    if isinstance(node[subnode_name], parameters.ParameterNodeAtInstant)
+                    else node[subnode_name]
+                )
                 for subnode_name in subnodes_name
             ]
         )

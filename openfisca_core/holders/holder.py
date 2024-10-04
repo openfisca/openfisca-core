@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from openfisca_core.types import Period, Population, Simulation, Variable
 from typing import Any
 from typing_extensions import Literal
+
+from openfisca_core.types import Period, Population, Simulation, Variable
 
 import itertools
 import os
@@ -13,9 +14,14 @@ import numpy
 import psutil
 from sortedcontainers import sorteddict
 
-from openfisca_core import commons, errors, experimental
-from openfisca_core import indexed_enums as enums
-from openfisca_core import periods, tools
+from openfisca_core import (
+    commons,
+    errors,
+    experimental,
+    indexed_enums as enums,
+    periods,
+    tools,
+)
 
 from .repos import DiskRepo, MemoryRepo
 from .typing import MemoryUsage, Storage
@@ -235,9 +241,11 @@ class Holder:
             usage.update(
                 dict(
                     nb_requests=nb_requests,
-                    nb_requests_by_array=nb_requests / float(usage["nb_arrays"])
-                    if usage["nb_arrays"] > 0
-                    else numpy.nan,
+                    nb_requests_by_array=(
+                        nb_requests / float(usage["nb_arrays"])
+                        if usage["nb_arrays"] > 0
+                        else numpy.nan
+                    ),
                 )
             )
 
