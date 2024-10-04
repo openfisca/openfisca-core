@@ -37,6 +37,7 @@ test-core: $(shell git ls-files "*test_*.py")
 	@$(call print_help,$@:)
 	@python -m pytest --capture=no --xdoctest --xdoctest-verbose=0 \
 		openfisca_core/commons \
+		openfisca_core/data_storage \
 		openfisca_core/entities \
 		openfisca_core/holders \
 		openfisca_core/periods \

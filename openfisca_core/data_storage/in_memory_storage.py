@@ -12,6 +12,22 @@ class InMemoryStorage:
         self.is_eternal = is_eternal
 
     def get(self, period):
+        """
+        Examples:
+            >>> from openfisca_core import data_storage, periods
+
+            >>> storage = data_storage.InMemoryStorage()
+            >>> value = numpy.array([1, 2, 3])
+            >>> instant = periods.Instant((2017, 1, 1))
+            >>> period = periods.Period(("year", instant, 1))
+
+            >>> storage.put(value, period)
+
+            >>> storage.get(period)
+            array([1, 2, 3])
+
+        """
+
         if self.is_eternal:
             period = periods.period(DateUnit.ETERNITY)
         period = periods.period(period)
@@ -22,6 +38,22 @@ class InMemoryStorage:
         return values
 
     def put(self, value, period) -> None:
+        """
+        Examples:
+            >>> from openfisca_core import data_storage, periods
+
+            >>> storage = data_storage.InMemoryStorage()
+            >>> value = numpy.array([1, "2", "salary"])
+            >>> instant = periods.Instant((2017, 1, 1))
+            >>> period = periods.Period(("year", instant, 1))
+
+            >>> storage.put(value, period)
+
+            >>> storage.get(period)
+            array(['1', '2', 'salary'], dtype='<U21')
+
+        """
+
         if self.is_eternal:
             period = periods.period(DateUnit.ETERNITY)
         period = periods.period(period)
@@ -29,6 +61,32 @@ class InMemoryStorage:
         self._arrays[period] = value
 
     def delete(self, period=None) -> None:
+        """
+        Examples:
+            >>> from openfisca_core import data_storage, periods
+
+            >>> storage = data_storage.InMemoryStorage()
+            >>> value = numpy.array([1, 2, 3])
+            >>> instant = periods.Instant((2017, 1, 1))
+            >>> period = periods.Period(("year", instant, 1))
+
+            >>> storage.put(value, period)
+
+            >>> storage.get(period)
+            array([1, 2, 3])
+
+            >>> storage.delete(period)
+
+            >>> storage.get(period)
+
+            >>> storage.put(value, period)
+
+            >>> storage.delete()
+
+            >>> storage.get(period)
+
+        """
+
         if period is None:
             self._arrays = {}
             return
@@ -44,9 +102,36 @@ class InMemoryStorage:
         }
 
     def get_known_periods(self):
+        """
+        Examples:
+            >>> from openfisca_core import data_storage, periods
+
+            >>> storage = data_storage.InMemoryStorage()
+            >>> storage.get_known_periods()
+            dict_keys([])
+
+            >>> instant = periods.Instant((2017, 1, 1))
+            >>> period = periods.Period(("year", instant, 1))
+            >>> storage.put([], period)
+
+            >>> storage.get_known_periods()
+            dict_keys([Period(('year', Instant((2017, 1, 1)), 1))])
+
+        """
+
         return self._arrays.keys()
 
     def get_memory_usage(self):
+        """
+        Examples:
+            >>> from openfisca_core import data_storage
+
+            >>> storage = data_storage.InMemoryStorage()
+            >>> storage.get_memory_usage()
+            {'nb_arrays': 0, 'total_nb_bytes': 0, 'cell_size': nan}
+
+        """
+
         if not self._arrays:
             return {
                 "nb_arrays": 0,
