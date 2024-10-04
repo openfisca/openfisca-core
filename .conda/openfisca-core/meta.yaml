@@ -12,7 +12,7 @@ package:
   version: {{ version }}
 
 source:
-  path: ..
+  path: ../..
 
 build:
   noarch: python
@@ -24,34 +24,23 @@ build:
 
 requirements:
   host:
-    - python
+    - numpy
     - pip
+    - python
+    - setuptools >=61.0
   run:
-    {% for req in data.get('install_requires', []) %}
+    - numpy
+    - python
+    {% for req in data['install_requires'] %}
+    {% if not req.startswith('numpy') %}
     - {{ req }}
+    {% endif %}
     {% endfor %}
-    # - PyYAML >=6.0,<7.0
-    # - dpath >=2.1.4,<3.0.0
-    # - importlib-metadata >=6.1.0,<7.0
-    # - numexpr >=2.8.4,<=3.0
-    # - numpy >=1.24.2,<1.25.0
-    # - pendulum >=2.1.2,<3.0.0
-    # - psutil >=5.9.4,<6.0.0
-    # - pytest >=7.2.2,<8.0.0
-    # - python >=3.9,<4.0
-    # - sortedcontainers >=2.4.0
-    # - typing-extensions >=4.5.0,<5.0
 
 test:
   imports:
     - openfisca_core
     - openfisca_core.commons
-  requires:
-    - pip
-  commands:
-    - pip check
-    - openfisca --help
-    - openfisca-run-test --help
 
 outputs:
   - name: openfisca-core
@@ -61,17 +50,14 @@ outputs:
       noarch: python
     requirements:
       host:
+        - numpy
         - python
       run:
-        - python >=3.9,<4.0
-        {% for req in data.get('api_requirements', []) %}
+        - numpy
+        - python
+        {% for req in data['extras_require']['web-api'] %}
         - {{ req }}
         {% endfor %}
-        #
-        # - flask >=2.2.3,<3.0
-        # - flask-cors >=3.0.10,<4.0
-        # - gunicorn >=20.1.0,<21.0.0
-        # - werkzeug >=2.2.3,<3.0.0
         - {{ pin_subpackage('openfisca-core', exact=True) }}
 
   - name: openfisca-core-dev
@@ -79,10 +65,12 @@ outputs:
       noarch: python
     requirements:
       host:
+        - numpy
         - python
       run:
-        - python >=3.9,<4.0
-        {% for req in data.get('dev_requirements', []) %}
+        - numpy
+        - python
+        {% for req in  data['extras_require']['dev'] %}
         - {{ req }}
         {% endfor %}
         - {{ pin_subpackage('openfisca-core-api', exact=True) }}

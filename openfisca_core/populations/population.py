@@ -1,37 +1,28 @@
 from __future__ import annotations
 
-from openfisca_core.holders.typing import MemoryUsage
-from openfisca_core.types import (
-    Array,
-    Entity,
-    Period,
-    Role,
-    Simulation,
-    TaxBenefitSystem,
-    Variable,
-)
-from typing import Dict, NamedTuple, Optional, Sequence, Union
+from collections.abc import Sequence
+from typing import NamedTuple
 from typing_extensions import TypedDict
+
+from openfisca_core.types import Array, Period, Role, Simulation, SingleEntity
 
 import traceback
 
 import numpy
 
-from openfisca_core import errors, periods, projectors
-from openfisca_core.holders import Holder
-from openfisca_core.projectors import Projector
+from openfisca_core import holders, periods, projectors
 
 from . import config
 
 
 class Population:
-    simulation: Optional[Simulation]
-    entity: Entity
-    _holders: Dict[str, Holder]
+    simulation: Simulation | None
+    entity: SingleEntity
+    _holders: dict[str, holders.Holder]
     count: int
     ids: Array[str]
 
-    def __init__(self, entity: Entity) -> None:
+    def __init__(self, entity: SingleEntity) -> None:
         self.simulation = None
         self.entity = entity
         self._holders = {}
@@ -54,22 +45,21 @@ class Population:
 
     def filled_array(
         self,
-        value: Union[float, bool],
-        dtype: Optional[numpy.dtype] = None,
-    ) -> Union[Array[float], Array[bool]]:
+        value: float | bool,
+        dtype: numpy.dtype | None = None,
+    ) -> Array[float] | Array[bool]:
         return numpy.full(self.count, value, dtype)
 
-    def __getattr__(self, attribute: str) -> Projector:
-        projector: Optional[Projector]
+    def __getattr__(self, attribute: str) -> projectors.Projector:
+        projector: projectors.Projector | None
         projector = projectors.get_projector_from_shortcut(self, attribute)
 
-        if isinstance(projector, Projector):
+        if isinstance(projector, projectors.Projector):
             return projector
 
+        msg = f"You tried to use the '{attribute}' of '{self.entity.key}' but that is not a known attribute."
         raise AttributeError(
-            "You tried to use the '{}' of '{}' but that is not a known attribute.".format(
-                attribute, self.entity.key
-            )
+            msg,
         )
 
     def get_index(self, id: str) -> int:
@@ -82,51 +72,48 @@ class Population:
         array: Array[float],
     ) -> None:
         if self.count == array.size:
-            return None
+            return
 
+        msg = f"Input {array} is not a valid value for the entity {self.entity.key} (size = {array.size} != {self.count} = count)"
         raise ValueError(
-            "Input {} is not a valid value for the entity {} (size = {} != {} = count)".format(
-                array, self.entity.key, array.size, self.count
-            )
+            msg,
         )
 
     def check_period_validity(
         self,
         variable_name: str,
-        period: Optional[Union[int, str, Period]],
+        period: int | str | Period | None,
     ) -> None:
-        if isinstance(period, (int, str, Period)):
-            return None
+        if isinstance(period, (int, str, periods.Period)):
+            return
 
         stack = traceback.extract_stack()
         filename, line_number, function_name, line_of_code = stack[-3]
-        raise ValueError(
-            """
-You requested computation of variable "{}", but you did not specify on which period in "{}:{}":
-    {}
+        msg = f"""
+You requested computation of variable "{variable_name}", but you did not specify on which period in "{filename}:{line_number}":
+    {line_of_code}
 When you request the computation of a variable within a formula, you must always specify the period as the second parameter. The convention is to call this parameter "period". For example:
     computed_salary = person('salary', period).
 See more information at <https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-variable-definition>.
-""".format(
-                variable_name, filename, line_number, line_of_code
-            )
+"""
+        raise ValueError(
+            msg,
         )
 
     def __call__(
         self,
         variable_name: str,
-        period: Optional[Union[int, str, Period]] = None,
-        options: Optional[Sequence[str]] = None,
-    ) -> Optional[Array[float]]:
-        """
-        Calculate the variable ``variable_name`` for the entity and the period ``period``, using the variable formula if it exists.
+        period: int | str | Period | None = None,
+        options: Sequence[str] | None = None,
+    ) -> Array[float] | None:
+        """Calculate the variable ``variable_name`` for the entity and the period ``period``, using the variable formula if it exists.
 
         Example:
-
-        >>> person('salary', '2017-04')
-        >>> array([300.])
+        >>> person("salary", "2017-04")
+        >>> array([300.0])
 
         :returns: A numpy array containing the result of the calculation
+
         """
         if self.simulation is None:
             return None
@@ -159,49 +146,23 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             )
 
         raise ValueError(
-            "Options config.ADD and config.DIVIDE are incompatible (trying to compute variable {})".format(
-                variable_name
-            ).encode(
-                "utf-8"
-            )
+            f"Options config.ADD and config.DIVIDE are incompatible (trying to compute variable {variable_name})".encode(),
         )
 
     # Helpers
 
-    def get_holder(self, variable_name: str) -> Holder:
-        holder: Optional[Holder]
-        variable: Optional[Variable]
-        simulation: Optional[Simulation]
-        tax_benefit_system: Optional[TaxBenefitSystem]
-
+    def get_holder(self, variable_name: str) -> holders.Holder:
         self.entity.check_variable_defined_for_entity(variable_name)
         holder = self._holders.get(variable_name)
-
-        if holder is not None:
+        if holder:
             return holder
-
         variable = self.entity.get_variable(variable_name)
-
-        if variable is not None:
-            holder = Holder(variable, self)
-            self._holders[variable_name] = holder
-            return holder
-
-        simulation = self.simulation
-
-        if simulation is None:
-            raise TypeError("Simulation can't be None.")
-
-        tax_benefit_system = simulation.tax_benefit_system
-
-        if tax_benefit_system is None:
-            raise TypeError("TaxBenefitSystem can't be None.")
-
-        raise errors.VariableNotFoundError(variable_name, tax_benefit_system)
+        self._holders[variable_name] = holder = holders.Holder(variable, self)
+        return holder
 
     def get_memory_usage(
         self,
-        variables: Optional[Sequence[str]] = None,
+        variables: Sequence[str] | None = None,
     ) -> MemoryUsageByVariable:
         holders_memory_usage = {
             variable_name: holder.get_memory_usage()
@@ -218,20 +179,18 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             {
                 "total_nb_bytes": total_memory_usage,
                 "by_variable": holders_memory_usage,
-            }
+            },
         )
 
     @projectors.projectable
-    def has_role(self, role: Role) -> Optional[Array[bool]]:
-        """
-        Check if a person has a given role within its `GroupEntity`
+    def has_role(self, role: Role) -> Array[bool] | None:
+        """Check if a person has a given role within its `GroupEntity`.
 
         Example:
-
         >>> person.has_role(Household.CHILD)
         >>> array([False])
-        """
 
+        """
         if self.simulation is None:
             return None
 
@@ -241,25 +200,25 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
         if role.subroles:
             return numpy.logical_or.reduce(
-                [group_population.members_role == subrole for subrole in role.subroles]
+                [group_population.members_role == subrole for subrole in role.subroles],
             )
 
-        else:
-            return group_population.members_role == role
+        return group_population.members_role == role
 
     @projectors.projectable
     def value_from_partner(
         self,
         array: Array[float],
-        entity: Projector,
+        entity: projectors.Projector,
         role: Role,
-    ) -> Optional[Array[float]]:
+    ) -> Array[float] | None:
         self.check_array_compatible_with_entity(array)
         self.entity.check_role_validity(role)
 
-        if not role.subroles or not len(role.subroles) == 2:
+        if not role.subroles or len(role.subroles) != 2:
+            msg = "Projection to partner is only implemented for roles having exactly two subroles."
             raise Exception(
-                "Projection to partner is only implemented for roles having exactly two subroles."
+                msg,
             )
 
         [subrole_1, subrole_2] = role.subroles
@@ -278,25 +237,29 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         criteria: Array[float],
         condition: bool = True,
     ) -> Array[int]:
-        """
-        Get the rank of a person within an entity according to a criteria.
+        """Get the rank of a person within an entity according to a criteria.
         The person with rank 0 has the minimum value of criteria.
         If condition is specified, then the persons who don't respect it are not taken into account and their rank is -1.
 
         Example:
-
-        >>> age = person('age', period)  # e.g [32, 34, 2, 8, 1]
+        >>> age = person("age", period)  # e.g [32, 34, 2, 8, 1]
         >>> person.get_rank(household, age)
         >>> [3, 4, 0, 2, 1]
 
-        >>> is_child = person.has_role(Household.CHILD)  # [False, False, True, True, True]
-        >>> person.get_rank(household, - age, condition = is_child)  # Sort in reverse order so that the eldest child gets the rank 0.
+        >>> is_child = person.has_role(
+        ...     Household.CHILD
+        ... )  # [False, False, True, True, True]
+        >>> person.get_rank(
+        ...     household, -age, condition=is_child
+        ... )  # Sort in reverse order so that the eldest child gets the rank 0.
         >>> [-1, -1, 1, 0, 2]
-        """
 
+        """
         # If entity is for instance 'person.household', we get the reference entity 'household' behind the projector
         entity = (
-            entity if not isinstance(entity, Projector) else entity.reference_entity
+            entity
+            if not isinstance(entity, projectors.Projector)
+            else entity.reference_entity
         )
 
         positions = entity.members_position
@@ -309,7 +272,7 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             [
                 entity.value_nth_person(k, filtered_criteria, default=numpy.inf)
                 for k in range(biggest_entity_size)
-            ]
+            ],
         ).transpose()
 
         # We double-argsort all lines of the matrix.
@@ -327,9 +290,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 class Calculate(NamedTuple):
     variable: str
     period: Period
-    option: Optional[Sequence[str]]
+    option: Sequence[str] | None
 
 
 class MemoryUsageByVariable(TypedDict, total=False):
-    by_variable: Dict[str, MemoryUsage]
+    by_variable: dict[str, holders.MemoryUsage]
     total_nb_bytes: int

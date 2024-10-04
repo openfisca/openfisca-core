@@ -1,6 +1,2 @@
 class MemoryConfigWarning(UserWarning):
-    """
-    Custom warning for MemoryConfig.
-    """
-
-    pass
+    """Custom warning for MemoryConfig."""

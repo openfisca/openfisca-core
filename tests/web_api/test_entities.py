@@ -1,20 +1,17 @@
-# -*- coding: utf-8 -*-
-
-from http import client
 import json
+from http import client
 
 from openfisca_country_template import entities
-
 
 # /entities
 
 
-def test_return_code(test_client):
+def test_return_code(test_client) -> None:
     entities_response = test_client.get("/entities")
     assert entities_response.status_code == client.OK
 
 
-def test_response_data(test_client):
+def test_response_data(test_client) -> None:
     entities_response = test_client.get("/entities")
     entities_dict = json.loads(entities_response.data.decode("utf-8"))
     test_documentation = entities.Household.doc.strip()

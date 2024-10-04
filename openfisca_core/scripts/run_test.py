@@ -1,21 +1,22 @@
-# -*- coding: utf-8 -*-
-
 import logging
-import sys
 import os
+import sys
 
-from openfisca_core.tools.test_runner import run_tests
 from openfisca_core.scripts import build_tax_benefit_system
+from openfisca_core.tools.test_runner import run_tests
 
 
-def main(parser):
+def main(parser) -> None:
     args = parser.parse_args()
     logging.basicConfig(
-        level=logging.DEBUG if args.verbose else logging.WARNING, stream=sys.stdout
+        level=logging.DEBUG if args.verbose else logging.WARNING,
+        stream=sys.stdout,
     )
 
     tax_benefit_system = build_tax_benefit_system(
-        args.country_package, args.extensions, args.reforms
+        args.country_package,
+        args.extensions,
+        args.reforms,
     )
 
     options = {

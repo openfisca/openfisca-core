@@ -1,11 +1,7 @@
 import numpy
-
-from openfisca_core import parameters
-from openfisca_core import periods
-from openfisca_core import taxscales
-from openfisca_core import tools
-
 from pytest import fixture
+
+from openfisca_core import parameters, periods, taxscales, tools
 
 
 @fixture
@@ -23,12 +19,12 @@ def data():
                 "amount": {
                     "2017-10-01": {"value": 6},
                 },
-            }
+            },
         ],
     }
 
 
-def test_calc():
+def test_calc() -> None:
     tax_base = numpy.array([1, 8, 10])
     tax_scale = taxscales.SingleAmountTaxScale()
     tax_scale.add_bracket(6, 0.23)
@@ -39,7 +35,7 @@ def test_calc():
     tools.assert_near(result, [0, 0.23, 0.29])
 
 
-def test_to_dict():
+def test_to_dict() -> None:
     tax_scale = taxscales.SingleAmountTaxScale()
     tax_scale.add_bracket(6, 0.23)
     tax_scale.add_bracket(9, 0.29)
@@ -50,7 +46,7 @@ def test_to_dict():
 
 
 # TODO: move, as we're testing Scale, not SingleAmountTaxScale
-def test_assign_thresholds_on_creation(data):
+def test_assign_thresholds_on_creation(data) -> None:
     scale = parameters.Scale("amount_scale", data, "")
     first_jan = periods.Instant((2017, 11, 1))
     scale_at_instant = scale.get_at_instant(first_jan)
@@ -61,7 +57,7 @@ def test_assign_thresholds_on_creation(data):
 
 
 # TODO: move, as we're testing Scale, not SingleAmountTaxScale
-def test_assign_amounts_on_creation(data):
+def test_assign_amounts_on_creation(data) -> None:
     scale = parameters.Scale("amount_scale", data, "")
     first_jan = periods.Instant((2017, 11, 1))
     scale_at_instant = scale.get_at_instant(first_jan)
@@ -72,7 +68,7 @@ def test_assign_amounts_on_creation(data):
 
 
 # TODO: move, as we're testing Scale, not SingleAmountTaxScale
-def test_dispatch_scale_type_on_creation(data):
+def test_dispatch_scale_type_on_creation(data) -> None:
     scale = parameters.Scale("amount_scale", data, "")
     first_jan = periods.Instant((2017, 11, 1))
 

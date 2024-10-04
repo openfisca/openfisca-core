@@ -1,15 +1,16 @@
 # remove_fuzzy.py : Remove the fuzzy attribute in xml files and add END tags.
 # See https://github.com/openfisca/openfisca-core/issues/437
 
-import re
 import datetime
+import re
 import sys
+
 import numpy
 
 assert len(sys.argv) == 2
 filename = sys.argv[1]
 
-with open(filename, "r") as f:
+with open(filename) as f:
     lines = f.readlines()
 
 
