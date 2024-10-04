@@ -29,7 +29,7 @@ lint-doc-%:
 	@##
 	@## They can be integrated into setup.cfg once all checks pass.
 	@## The reason they're here is because otherwise we wouldn't be
-	@## able to integrate documentation improvements progresively.
+	@## able to integrate documentation improvements progressively.
 	@##
 	@$(call print_help,$(subst $*,%,$@:))
 	@python -m flake8 --select=D101,D102,D103,DAR openfisca_core/$*
