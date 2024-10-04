@@ -9,15 +9,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  setup:
+  setup-pip:
     strategy:
       fail-fast: true
       matrix:
         os: [ubuntu-22.04, windows-2019]
-        numpy: [2.1.1, 1.24.2]
+        numpy: [1.26.4, 1.24.2]
         # Patch version must be specified to avoid any cache confusion, since
         # the cache key depends on the full Python version. If left unspecified,
-        # different patch versions could be allocated between jobs,  and any
+        # different patch versions could be allocated between jobs, and any
         # such difference would lead to a cache not found error.
         python: [3.11.9, 3.9.13]
         include:
@@ -25,90 +25,65 @@ jobs:
           activate_command: source venv/bin/activate
         - os: windows-2019
           activate_command: .\venv\Scripts\activate
-    uses: ./.github/workflows/_before.yaml
+    uses: ./.github/workflows/_before-pip.yaml
     with:
       os: ${{ matrix.os }}
       numpy: ${{ matrix.numpy }}
       python: ${{ matrix.python }}
       activate_command: ${{ matrix.activate_command }}
 
-  test:
-    needs: [setup]
+  setup-conda:
+    uses: ./.github/workflows/_before-conda.yaml
+    with:
+      os: ubuntu-22.04
+      numpy: 1.26.4
+      python: 3.10.6
+
+  test-pip:
+    needs: [setup-pip]
     strategy:
       fail-fast: true
       matrix:
         os: [ubuntu-22.04, windows-2019]
-        numpy: [2.1.1, 1.24.2]
+        numpy: [1.26.4, 1.24.2]
         python: [3.11.9, 3.9.13]
         include:
         - os: ubuntu-22.04
           activate_command: source venv/bin/activate
         - os: windows-2019
           activate_command: .\venv\Scripts\activate
-    uses: ./.github/workflows/_test.yaml
+    uses: ./.github/workflows/_test-pip.yaml
     with:
       os: ${{ matrix.os }}
       numpy: ${{ matrix.numpy }}
       python: ${{ matrix.python }}
       activate_command: ${{ matrix.activate_command }}
 
-  lint:
-    needs: [setup]
+  test-conda:
+    uses: ./.github/workflows/_test-conda.yaml
+    needs: [setup-conda]
+    with:
+      os: ubuntu-22.04
+      numpy: 1.26.4
+      python: 3.10.6
+
+  lint-pip:
+    needs: [setup-pip]
     strategy:
       fail-fast: true
       matrix:
         numpy: [1.24.2]
         python: [3.11.9, 3.9.13]
-    uses: ./.github/workflows/_lint.yaml
+    uses: ./.github/workflows/_lint-pip.yaml
     with:
       os: ubuntu-22.04
       numpy: ${{ matrix.numpy }}
       python: ${{ matrix.python }}
       activate_command: source venv/bin/activate
 
-  build-conda:
-    runs-on: ubuntu-22.04
-    steps:
-    - uses: conda-incubator/setup-miniconda@v2
-      with:
-        auto-update-conda: true
-        python-version: 3.10.6
-        # Add conda-forge for OpenFisca-Core
-        channels: conda-forge
-        activate-environment: true
-    - uses: actions/checkout@v4
-    - name: Display version
-      run: echo "version=`python setup.py --version`"
-    - name: Conda Config
-      run: |
-        conda install conda-build anaconda-client
-        conda info
-    - name: Build Conda package
-      run: conda build --croot /tmp/conda .conda
-    - name: Upload Conda build
-      uses: actions/upload-artifact@v3
-      with:
-        name: conda-build-`python setup.py --version`-${{ github.sha }}
-        path: /tmp/conda
-
-  # The idea behind these dependencies is we want to give feedback to
-  # contributors on the version number only after they have passed all tests,
-  # so they don't have to do it twice after changes happened to the main branch
-  # during the time they took to fix the tests.
   check-version:
-    runs-on: ubuntu-22.04
-    needs: [test, lint, build-conda]
-
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        # Fetch all the tags
-        fetch-depth: 0
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.9.13
-
-    - name: Check version number has been properly updated
-      run: ${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh
+    needs: [test-pip, test-conda, lint-pip]
+    uses: ./.github/workflows/_version.yaml
+    with:
+      os: ubuntu-22.04
+      python: 3.9.13

@@ -22,7 +22,7 @@ on:
 jobs:
   lint:
     runs-on: ${{ inputs.os }}
-    name: lint-doc-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}
+    name: pip-lint-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}
     env:
       TERM: xterm-256color  # To colorize output of make tasks.
 
@@ -44,8 +44,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: venv
-        key: deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{
-          hashFiles('setup.py') }}
+        key: pip-deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}
 
     - name: Lint doc
       run: |

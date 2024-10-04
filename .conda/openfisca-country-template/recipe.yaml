@@ -1,0 +1,42 @@
+schema_version: 1
+
+context:
+  name: openfisca-country-template
+  version: 7.1.5
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/openfisca_country_template-${{ version }}.tar.gz
+  sha256: b2f2ac9945d9ccad467aed0925bd82f7f4d5ce4e96b212324cd071b8bee46914
+
+build:
+  noarch: python
+  script: pip install . -v
+
+requirements:
+  host:
+  - numpy
+  - pip
+  - python
+  - setuptools >=61.0
+  run:
+  - numpy
+  - python
+  - openfisca-core >=42,<43
+
+tests:
+- python:
+    imports:
+    - openfisca_country_template
+
+about:
+  summary: OpenFisca Rules as Code model for Country-Template.
+  license: AGPL-3.0
+  license_file: LICENSE
+
+extra:
+  recipe-maintainers:
+  - bonjourmauko

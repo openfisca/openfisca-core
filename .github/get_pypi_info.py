@@ -71,7 +71,7 @@ if __name__ == "__main__":
         "-f",
         "--filename",
         type=str,
-        default=".conda/meta.yaml",
+        default=".conda/openfisca-core/meta.yaml",
         help="Path to meta.yaml, with filename",
     )
     args = parser.parse_args()
