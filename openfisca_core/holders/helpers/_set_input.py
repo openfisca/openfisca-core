@@ -1,14 +1,21 @@
+from typing import Any
+
+from openfisca_core.types import Period
+
 import logging
 
 import numpy
 
 from openfisca_core import periods
 
+from ..holder import Holder
+
 log = logging.getLogger(__name__)
 
 
-def set_input_dispatch_by_period(holder, period, array) -> None:
-    """This function can be declared as a ``set_input`` attribute of a variable.
+def set_input_dispatch_by_period(holder: Holder, period: Period, array: Any) -> None:
+    """
+    This function can be declared as a ``set_input`` attribute of a variable.
 
     In this case, the variable will accept inputs on larger periods that its definition period, and the value for the larger period will be applied to all its subperiods.
 
@@ -19,15 +26,12 @@ def set_input_dispatch_by_period(holder, period, array) -> None:
     period_size = period.size
     period_unit = period.unit
 
-    if holder.variable.definition_period not in (
-        periods.DateUnit.isoformat + periods.DateUnit.isocalendar
-    ):
-        msg = "set_input_dispatch_by_period can't be used for eternal variables."
+    if holder.eternal:
         raise ValueError(
-            msg,
+            "set_input_dispatch_by_period can't be used for eternal variables."
         )
 
-    cached_period_unit = holder.variable.definition_period
+    cached_period_unit = holder.period
     after_instant = period.start.offset(period_size, period_unit)
 
     # Cache the input data, skipping the existing cached months
@@ -43,8 +47,9 @@ def set_input_dispatch_by_period(holder, period, array) -> None:
         sub_period = sub_period.offset(1)
 
 
-def set_input_divide_by_period(holder, period, array) -> None:
-    """This function can be declared as a ``set_input`` attribute of a variable.
+def set_input_divide_by_period(holder: Holder, period: Period, array: Any) -> None:
+    """
+    This function can be declared as a ``set_input`` attribute of a variable.
 
     In this case, the variable will accept inputs on larger periods that its definition period, and the value for the larger period will be divided between its subperiods.
 
@@ -55,15 +60,12 @@ def set_input_divide_by_period(holder, period, array) -> None:
     period_size = period.size
     period_unit = period.unit
 
-    if holder.variable.definition_period not in (
-        periods.DateUnit.isoformat + periods.DateUnit.isocalendar
-    ):
-        msg = "set_input_divide_by_period can't be used for eternal variables."
+    if holder.eternal:
         raise ValueError(
-            msg,
+            "set_input_divide_by_period can't be used for eternal variables."
         )
 
-    cached_period_unit = holder.variable.definition_period
+    cached_period_unit = holder.period
     after_instant = period.start.offset(period_size, period_unit)
 
     # Count the number of elementary periods to change, and the difference with what is already known.
@@ -87,7 +89,8 @@ def set_input_divide_by_period(holder, period, array) -> None:
                 holder._set(sub_period, divided_array)
             sub_period = sub_period.offset(1)
     elif not (remaining_array == 0).all():
-        msg = f"Inconsistent input: variable {holder.variable.name} has already been set for all months contained in period {period}, and value {array} provided for {period} doesn't match the total ({array - remaining_array}). This error may also be thrown if you try to call set_input twice for the same variable and period."
         raise ValueError(
-            msg,
+            "Inconsistent input: variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} doesn't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period.".format(
+                holder.variable.name, period, array, array - remaining_array
+            )
         )
