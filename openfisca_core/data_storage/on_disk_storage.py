@@ -308,3 +308,6 @@ class OnDiskStorage:
         parent_dir = os.path.abspath(os.path.join(self.storage_dir, os.pardir))
         if not os.listdir(parent_dir):
             shutil.rmtree(parent_dir)
+
+
+__all__ = ["OnDiskStorage"]

@@ -196,3 +196,6 @@ class InMemoryStorage:
             "total_nb_bytes": array.nbytes * nb_arrays,
             "cell_size": array.itemsize,
         }
+
+
+__all__ = ["InMemoryStorage"]
