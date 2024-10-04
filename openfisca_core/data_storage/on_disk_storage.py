@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from collections.abc import KeysView, MutableMapping
+
 import os
 import shutil
 
@@ -6,6 +10,8 @@ import numpy
 from openfisca_core import periods
 from openfisca_core.indexed_enums import EnumArray
 from openfisca_core.periods import DateUnit
+
+from . import types as t
 
 
 class OnDiskStorage:
@@ -28,13 +34,16 @@ class OnDiskStorage:
     preserve_storage_dir: bool
 
     #: Mapping of file paths to possible Enum values.
-    _enums: dict
+    _enums: MutableMapping[str, type[t.Enum]]
 
     #: Mapping of periods to file paths.
-    _files: dict
+    _files: MutableMapping[t.Period, str]
 
     def __init__(
-        self, storage_dir, is_eternal=False, preserve_storage_dir=False
+        self,
+        storage_dir: str,
+        is_eternal: bool = False,
+        preserve_storage_dir: bool = False,
     ) -> None:
         self._files = {}
         self._enums = {}
@@ -42,7 +51,7 @@ class OnDiskStorage:
         self.preserve_storage_dir = preserve_storage_dir
         self.storage_dir = storage_dir
 
-    def _decode_file(self, file):
+    def _decode_file(self, file: str) -> t.Array[t.DTypeGeneric]:
         """Decode a file by loading its contents as a ``numpy`` array.
 
         Args:
@@ -82,11 +91,15 @@ class OnDiskStorage:
         """
 
         enum = self._enums.get(file)
+
         if enum is not None:
             return EnumArray(numpy.load(file), enum)
-        return numpy.load(file)
 
-    def get(self, period):
+        array: t.Array[t.DTypeGeneric] = numpy.load(file)
+
+        return array
+
+    def get(self, period: None | t.Period = None) -> None | t.Array[t.DTypeGeneric]:
         """Retrieve the data for the specified period from disk.
 
         Args:
@@ -124,7 +137,7 @@ class OnDiskStorage:
             return None
         return self._decode_file(values)
 
-    def put(self, value, period) -> None:
+    def put(self, value: t.Array[t.DTypeGeneric], period: None | t.Period) -> None:
         """Store the specified data on disk for the specified period.
 
         Args:
@@ -156,13 +169,13 @@ class OnDiskStorage:
 
         filename = str(period)
         path = os.path.join(self.storage_dir, filename) + ".npy"
-        if isinstance(value, EnumArray):
+        if isinstance(value, EnumArray) and value.possible_values is not None:
             self._enums[path] = value.possible_values
             value = value.view(numpy.ndarray)
         numpy.save(path, value)
         self._files[period] = path
 
-    def delete(self, period=None) -> None:
+    def delete(self, period: None | t.Period = None) -> None:
         """Delete the data for the specified period from disk.
 
         Args:
@@ -208,14 +221,13 @@ class OnDiskStorage:
             period = periods.period(DateUnit.ETERNITY)
         period = periods.period(period)
 
-        if period is not None:
-            self._files = {
-                period_item: value
-                for period_item, value in self._files.items()
-                if not period.contains(period_item)
-            }
+        self._files = {
+            period_item: value
+            for period_item, value in self._files.items()
+            if not period.contains(period_item)
+        }
 
-    def get_known_periods(self):
+    def get_known_periods(self) -> KeysView[t.Period]:
         """List of storage's known periods.
 
         Returns:

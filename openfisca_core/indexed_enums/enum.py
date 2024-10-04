@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-import enum
-
 import numpy
 
+from . import types as t
 from .config import ENUM_ARRAY_DTYPE
 from .enum_array import EnumArray
 
 
-class Enum(enum.Enum):
+class Enum(t.Enum):
     """Enum based on `enum34 <https://pypi.python.org/pypi/enum34/>`_, whose items
     have an index.
     """

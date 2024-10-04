@@ -41,6 +41,7 @@ check-types:
 	@$(call print_help,$@:)
 	@python -m mypy \
 		openfisca_core/commons \
+		openfisca_core/data_storage \
 		openfisca_core/entities \
 		openfisca_core/periods \
 		openfisca_core/types.py

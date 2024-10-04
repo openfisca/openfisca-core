@@ -1,17 +1,14 @@
 from __future__ import annotations
 
-import typing
 from typing import Any, NoReturn
+from typing_extensions import Self
 
 import numpy
 
 from . import types as t
 
-if typing.TYPE_CHECKING:
-    from openfisca_core.indexed_enums import Enum
 
-
-class EnumArray(numpy.ndarray):
+class EnumArray(t.EnumArray):
     """NumPy array subclass representing an array of enum items.
 
     EnumArrays are encoded as ``int`` arrays to improve performance
@@ -22,9 +19,9 @@ class EnumArray(numpy.ndarray):
     # https://docs.scipy.org/doc/numpy-1.13.0/user/basics.subclassing.html#slightly-more-realistic-example-attribute-added-to-existing-array.
     def __new__(
         cls,
-        input_array: t.Array[numpy.int16],
-        possible_values: type[Enum] | None = None,
-    ) -> EnumArray:
+        input_array: t.Array[t.DTypeEnum],
+        possible_values: None | type[t.Enum] = None,
+    ) -> Self:
         obj = numpy.asarray(input_array).view(cls)
         obj.possible_values = possible_values
         return obj

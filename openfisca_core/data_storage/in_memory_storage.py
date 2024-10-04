@@ -1,7 +1,13 @@
+from __future__ import annotations
+
+from collections.abc import KeysView, MutableMapping
+
 import numpy
 
 from openfisca_core import periods
 from openfisca_core.periods import DateUnit
+
+from . import types as t
 
 
 class InMemoryStorage:
@@ -16,13 +22,13 @@ class InMemoryStorage:
     is_eternal: bool
 
     #: A dictionary containing data that has been stored in memory.
-    _arrays: dict
+    _arrays: MutableMapping[t.Period, t.Array[t.DTypeGeneric]]
 
-    def __init__(self, is_eternal=False) -> None:
+    def __init__(self, is_eternal: bool = False) -> None:
         self._arrays = {}
         self.is_eternal = is_eternal
 
-    def get(self, period):
+    def get(self, period: None | t.Period = None) -> None | t.Array[t.DTypeGeneric]:
         """Retrieve the data for the specified period from memory.
 
         Args:
@@ -57,7 +63,7 @@ class InMemoryStorage:
             return None
         return values
 
-    def put(self, value, period) -> None:
+    def put(self, value: t.Array[t.DTypeGeneric], period: None | t.Period) -> None:
         """Store the specified data in memory for the specified period.
 
         Args:
@@ -87,7 +93,7 @@ class InMemoryStorage:
 
         self._arrays[period] = value
 
-    def delete(self, period=None) -> None:
+    def delete(self, period: None | t.Period = None) -> None:
         """Delete the data for the specified period from memory.
 
         Args:
@@ -137,7 +143,7 @@ class InMemoryStorage:
             if not period.contains(period_item)
         }
 
-    def get_known_periods(self):
+    def get_known_periods(self) -> KeysView[t.Period]:
         """List of storage's known periods.
 
         Returns:
@@ -161,7 +167,7 @@ class InMemoryStorage:
 
         return self._arrays.keys()
 
-    def get_memory_usage(self):
+    def get_memory_usage(self) -> t.MemoryUsage:
         """Memory usage of the storage.
 
         Returns:
