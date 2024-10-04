@@ -5,7 +5,7 @@ from openfisca_core.periods import DateUnit
 
 
 class InMemoryStorage:
-    """Low-level class responsible for storing and retrieving calculated vectors in memory."""
+    """Storing and retrieving calculated vectors in memory."""
 
     def __init__(self, is_eternal=False) -> None:
         self._arrays = {}
@@ -14,6 +14,8 @@ class InMemoryStorage:
     def get(self, period):
         """
         Examples:
+            >>> import numpy
+
             >>> from openfisca_core import data_storage, periods
 
             >>> storage = data_storage.InMemoryStorage()
@@ -40,6 +42,8 @@ class InMemoryStorage:
     def put(self, value, period) -> None:
         """
         Examples:
+            >>> import numpy
+
             >>> from openfisca_core import data_storage, periods
 
             >>> storage = data_storage.InMemoryStorage()
@@ -63,6 +67,8 @@ class InMemoryStorage:
     def delete(self, period=None) -> None:
         """
         Examples:
+            >>> import numpy
+
             >>> from openfisca_core import data_storage, periods
 
             >>> storage = data_storage.InMemoryStorage()
