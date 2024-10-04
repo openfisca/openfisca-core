@@ -3,24 +3,57 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence, Sized
 from numpy.typing import NDArray
 from typing import Any, NewType, TypeVar, Union
-from typing_extensions import Protocol, TypeAlias
+from typing_extensions import Protocol, Self, TypeAlias
+
+import abc
+import enum
 
 import numpy
 import pendulum
 
-_N_co = TypeVar("_N_co", bound=numpy.generic, covariant=True)
+#: Generic covariant type var.
+_T_co = TypeVar("_T_co", covariant=True)
+
+# Commons
+
+#: Type var for numpy arrays.
+_N_co = TypeVar("_N_co", covariant=True, bound="DTypeGeneric")
 
 #: Type representing an numpy array.
 Array: TypeAlias = NDArray[_N_co]
 
+#: Type var for array-like objects.
 _L = TypeVar("_L")
 
 #: Type representing an array-like object.
 ArrayLike: TypeAlias = Sequence[_L]
 
-#: Generic type vars.
-_T_co = TypeVar("_T_co", covariant=True)
+#: Type for bool arrays.
+DTypeBool: TypeAlias = numpy.bool_
 
+#: Type for int arrays.
+DTypeInt: TypeAlias = numpy.int32
+
+#: Type for float arrays.
+DTypeFloat: TypeAlias = numpy.float32
+
+#: Type for string arrays.
+DTypeStr: TypeAlias = numpy.str_
+
+#: Type for bytes arrays.
+DTypeBytes: TypeAlias = numpy.bytes_
+
+#: Type for Enum arrays.
+DTypeEnum: TypeAlias = numpy.int16
+
+#: Type for date arrays.
+DTypeDate: TypeAlias = numpy.datetime64
+
+#: Type for "object" arrays.
+DTypeObject: TypeAlias = numpy.object_
+
+#: Type for "generic" arrays.
+DTypeGeneric: TypeAlias = numpy.generic
 
 # Entities
 
@@ -70,6 +103,22 @@ class Role(Protocol):
     def key(self, /) -> RoleKey: ...
     @property
     def plural(self, /) -> None | RolePlural: ...
+
+
+# Indexed enums
+
+
+class Enum(enum.Enum, metaclass=enum.EnumMeta):
+    index: int
+
+
+class EnumArray(Array[DTypeEnum], metaclass=abc.ABCMeta):
+    possible_values: None | type[Enum]
+
+    @abc.abstractmethod
+    def __new__(
+        cls, input_array: Array[DTypeEnum], possible_values: None | type[Enum] = ...
+    ) -> Self: ...
 
 
 # Holders
@@ -130,6 +179,7 @@ class Period(Indexable[Union[DateUnit, Instant, int]], Protocol):
     def size(self, /) -> int: ...
     @property
     def stop(self, /) -> Instant: ...
+    def contains(self, other: Period, /) -> bool: ...
     def offset(self, offset: str | int, unit: None | DateUnit = None, /) -> Period: ...
 
 

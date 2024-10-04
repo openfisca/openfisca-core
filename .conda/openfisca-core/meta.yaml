@@ -44,8 +44,10 @@ test:
 
 outputs:
   - name: openfisca-core
+    type: conda_v2
 
   - name: openfisca-core-api
+    type: conda_v2
     build:
       noarch: python
     requirements:
@@ -61,6 +63,7 @@ outputs:
         - {{ pin_subpackage('openfisca-core', exact=True) }}
 
   - name: openfisca-core-dev
+    type: conda_v2
     build:
       noarch: python
     requirements:
