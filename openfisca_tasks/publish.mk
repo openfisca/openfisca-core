@@ -15,11 +15,3 @@ build:
 	@python -m pip uninstall --yes openfisca-core
 	@find dist -name "*.whl" -exec python -m pip install --no-deps {} \;
 	@$(call print_pass,$@:)
-
-## Upload to PyPi.
-publish:
-	@$(call print_help,$@:)
-	@python -m twine upload dist/* --username $PYPI_USERNAME --password $PYPI_TOKEN
-	@git tag `python setup.py --version`
-	@git push --tags  # update the repository version
-	@$(call print_pass,$@:)
