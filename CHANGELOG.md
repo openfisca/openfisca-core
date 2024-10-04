@@ -1,5 +1,11 @@
 # Changelog
 
+### 42.0.7 [#1264](https://github.com/openfisca/openfisca-core/pull/1264)
+
+#### Technical changes
+
+- Add typing to `data_storage` module
+
 ### 42.0.6 [#1263](https://github.com/openfisca/openfisca-core/pull/1263)
 
 #### Documentation
