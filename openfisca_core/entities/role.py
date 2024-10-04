@@ -1,91 +1,92 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
+from typing import Any, Iterator, Optional, Sequence, Tuple
 
-from . import types as t
-from ._description import _Description
+from openfisca_core.types import HasPlural, RoleLike, SupportsRole
+
+import dataclasses
+import textwrap
 
 
+@dataclasses.dataclass(init=False)
 class Role:
-    """The role of an ``Entity`` within a ``GroupEntity``.
+    """Role of an :class:`.Entity` within a :class:`.GroupEntity`.
 
-    Each ``Entity`` related to a ``GroupEntity`` has a ``Role``. For example,
-    if you have a family, its roles could include a parent, a child, and so on.
-    Or if you have a tax household, its roles could include the taxpayer, a
-    spouse, several dependents, and the like.
+    Each :class:`.Entity` related to a :class:`.GroupEntity` has a
+    :class:`.Role`. For example, if you have a family, its roles could include
+    a parent, a child, and so on. Or if you have a tax household, its roles
+    could include the taxpayer, a spouse, several dependents, and so on.
+
+    Attributes:
+        entity (:obj:`.GroupEntity`): Entity the :class:`.Role` belongs to.
+        key (:obj:`str`): Key to identify the :class:`.Role`.
+        plural (:obj:`str`, optional): The ``key``, pluralised.
+        label (:obj:`str`, optional): A summary description.
+        doc (:obj:`str`): A full description, dedented.
+        max (:obj:`int`, optional): Max number of members. Defaults to None.
+        subroles (list, optional): The ``subroles``. Defaults to None.
 
     Args:
-        description: A description of the Role.
-        entity: The Entity to which the Role belongs.
+        description: A dictionary containing most of the attributes.
+        entity: :obj:`.Entity` the :class:`.Role` belongs to.
 
     Examples:
-        >>> from openfisca_core import entities
-        >>> entity = entities.GroupEntity("key", "plural", "label", "doc", [])
-        >>> role = entities.Role({"key": "parent"}, entity)
+        >>> description = {
+        ...     "key": "parent",
+        ...     "label": "Parents",
+        ...     "plural": "parents",
+        ...     "doc": "The one or two adults in charge of the household.",
+        ...     "max": 2,
+        ...     }
+
+        >>> role = Role(description, object())
 
         >>> repr(Role)
         "<class 'openfisca_core.entities.role.Role'>"
 
         >>> repr(role)
-        'Role(parent)'
+        '<Role(parent)>'
 
         >>> str(role)
-        'Role(parent)'
-
-        >>> {role}
-        {Role(parent)}
-
-        >>> role.key
         'parent'
+
+        >>> dict(role)
+        {'entity': <object object...>, 'key': 'parent', 'plural': 'parents'...}
+
+        >>> list(role)
+        [('entity', <object object...>), ('key', 'parent'), ('plural', 'par...]
+
+        >>> role == role
+        True
+
+        >>> role != role
+        False
 
     """
 
-    #: The ``GroupEntity`` the Role belongs to.
-    entity: t.GroupEntity
+    __slots__ = ["entity", "key", "plural", "label", "doc", "max", "subroles"]
+    entity: HasPlural
+    key: str
+    plural: Optional[str]
+    label: Optional[str]
+    doc: str
+    max: Optional[int]
+    subroles: Optional[Sequence[SupportsRole]]
 
-    #: A description of the ``Role``.
-    description: _Description
-
-    #: Max number of members.
-    max: None | int = None
-
-    #: A list of subroles.
-    subroles: None | Iterable[Role] = None
-
-    @property
-    def key(self) -> t.RoleKey:
-        """A key to identify the ``Role``."""
-        return t.RoleKey(self.description.key)
-
-    @property
-    def plural(self) -> None | t.RolePlural:
-        """The ``key`` pluralised."""
-        if (plural := self.description.plural) is None:
-            return None
-        return t.RolePlural(plural)
-
-    @property
-    def label(self) -> None | str:
-        """A summary description."""
-        return self.description.label
-
-    @property
-    def doc(self) -> None | str:
-        """A full description, non-indented."""
-        return self.description.doc
-
-    def __init__(self, description: t.RoleParams, entity: t.GroupEntity) -> None:
-        self.description = _Description(
-            key=description["key"],
-            plural=description.get("plural"),
-            label=description.get("label"),
-            doc=description.get("doc"),
-        )
+    def __init__(self, description: RoleLike, entity: HasPlural) -> None:
         self.entity = entity
+        self.key = description["key"]
+        self.plural = description.get("plural")
+        self.label = description.get("label")
+        self.doc = textwrap.dedent(str(description.get("doc", "")))
         self.max = description.get("max")
+        self.subroles = None
 
     def __repr__(self) -> str:
-        return f"Role({self.key})"
+        return f"<{self.__class__.__name__}({self.key})>"
 
+    def __str__(self) -> str:
+        return self.key
 
-__all__ = ["Role"]
+    def __iter__(self) -> Iterator[Tuple[str, Any]]:
+        return ((item, self.__getattribute__(item)) for item in self.__slots__)
