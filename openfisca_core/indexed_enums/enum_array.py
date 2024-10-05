@@ -9,41 +9,84 @@ from . import types as t
 
 
 class EnumArray(t.EnumArray):
-    """NumPy array subclass representing an array of enum items.
+    """Subclass of :any:`numpy.ndarray`  representing an array of ``Enum``.
 
-    EnumArrays are encoded as ``int`` arrays to improve performance
+    ``Enum`` arrays are encoded as :any:`int` arrays to improve performance.
+
+    Note:
+        Subclassing :any:`numpy.ndarray` is a little tricky™. To read more
+        about the :meth:`.__new__` and :meth:`.__array_finalize__` methods
+        below, see `Subclassing ndarray`_.
+
+    .. _Subclassing ndarray:
+        https://numpy.org/doc/stable/user/basics.subclassing.html
+
     """
 
-    # Subclassing ndarray is a little tricky.
-    # To read more about the two following methods, see:
-    # https://docs.scipy.org/doc/numpy-1.13.0/user/basics.subclassing.html#slightly-more-realistic-example-attribute-added-to-existing-array.
     def __new__(
         cls,
         input_array: t.Array[t.DTypeEnum],
         possible_values: None | type[t.Enum] = None,
     ) -> Self:
+        """See comment above."""
         obj = numpy.asarray(input_array).view(cls)
         obj.possible_values = possible_values
         return obj
 
-    # See previous comment
     def __array_finalize__(self, obj: numpy.int32 | None) -> None:
+        """See comment above."""
         if obj is None:
             return
 
         self.possible_values = getattr(obj, "possible_values", None)
 
     def __eq__(self, other: object) -> bool:
-        # When comparing to an item of self.possible_values, use the item index
-        # to speed up the comparison.
+        """Compare equality with the item index.
+
+        When comparing to an item of :attr:`.possible_values`, use the item
+        index to speed up the comparison.
+
+        Whenever possible, use :any:`numpy.ndarray.view` so that the result is
+        a classic :any:`numpy.ndarray`, not an :obj:`.EnumArray`.
+
+        Args:
+            other: Another object to compare to.
+
+        Returns:
+            bool: When ???
+            numpy.ndarray[numpy.bool_]: When ???
+
+        Note:
+            This breaks the `Liskov substitution principle`_.
+
+        .. _Liskov substitution principle:
+            https://en.wikipedia.org/wiki/Liskov_substitution_principle
+
+        """
+
         if other.__class__.__name__ is self.possible_values.__name__:
-            # Use view(ndarray) so that the result is a classic ndarray, not an
-            # EnumArray.
             return self.view(numpy.ndarray) == other.index
 
         return self.view(numpy.ndarray) == other
 
     def __ne__(self, other: object) -> bool:
+        """Inequality…
+
+        Args:
+            other: Another object to compare to.
+
+        Returns:
+            bool: When ???
+            numpy.ndarray[numpy.bool_]: When ???
+
+        Note:
+            This breaks the `Liskov substitution principle`_.
+
+        .. _Liskov substitution principle:
+            https://en.wikipedia.org/wiki/Liskov_substitution_principle
+
+        """
+
         return numpy.logical_not(self == other)
 
     def _forbidden_operation(self, other: Any) -> NoReturn:
@@ -65,7 +108,10 @@ class EnumArray(t.EnumArray):
     __or__ = _forbidden_operation
 
     def decode(self) -> numpy.object_:
-        """Return the array of enum items corresponding to self.
+        """Decode itself to a normal array.
+
+        Returns:
+            numpy.ndarray[t.Enum]: The enum items of the ``EnumArray``.
 
         For instance:
 
@@ -76,14 +122,19 @@ class EnumArray(t.EnumArray):
         <HousingOccupancyStatus.free_lodger: 'Free lodger'>
 
         Decoded value: enum item
+
         """
+
         return numpy.select(
             [self == item.index for item in self.possible_values],
             list(self.possible_values),
         )
 
     def decode_to_str(self) -> numpy.str_:
-        """Return the array of string identifiers corresponding to self.
+        """Decode itself to an array of strings.
+
+        Returns:
+            numpy.ndarray[numpy.str_]: The string values of the ``EnumArray``.
 
         For instance:
 
@@ -92,7 +143,9 @@ class EnumArray(t.EnumArray):
         >>> 2  # Encoded value
         >>> enum_array.decode_to_str()[0]
         'free_lodger'  # String identifier
+
         """
+
         return numpy.select(
             [self == item.index for item in self.possible_values],
             [item.name for item in self.possible_values],
