@@ -21,6 +21,7 @@ lint-doc: \
 	lint-doc-commons \
 	lint-doc-data_storage \
 	lint-doc-entities \
+	lint-doc-indexed_enums \
 	;
 
 ## Run linters to check for syntax and style errors in the doc.

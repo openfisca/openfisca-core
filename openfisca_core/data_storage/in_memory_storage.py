@@ -29,13 +29,15 @@ class InMemoryStorage:
         self.is_eternal = is_eternal
 
     def get(self, period: None | t.Period = None) -> None | t.Array[t.DTypeGeneric]:
-        """Retrieve the data for the specified period from memory.
+        """Retrieve the data for the specified :obj:`.Period` from memory.
 
         Args:
-            period: The period for which data should be retrieved.
+            period: The :obj:`.Period` for which data should be retrieved.
 
         Returns:
-            The data for the specified period, or None if no data is available.
+            None: If no data is available.
+            EnumArray: The data for the specified :obj:`.Period`.
+            ndarray[generic]: The data for the specified :obj:`.Period`.
 
         Examples:
             >>> import numpy
@@ -53,7 +55,6 @@ class InMemoryStorage:
             array([1, 2, 3])
 
         """
-
         if self.is_eternal:
             period = periods.period(DateUnit.ETERNITY)
         period = periods.period(period)
@@ -64,11 +65,11 @@ class InMemoryStorage:
         return values
 
     def put(self, value: t.Array[t.DTypeGeneric], period: None | t.Period) -> None:
-        """Store the specified data in memory for the specified period.
+        """Store the specified data in memory for the specified :obj:`.Period`.
 
         Args:
             value: The data to store
-            period: The period for which the data should be stored.
+            period: The :obj:`.Period` for which the data should be stored.
 
         Examples:
             >>> import numpy
@@ -86,7 +87,6 @@ class InMemoryStorage:
             array(['1', '2', 'salary'], dtype='<U21')
 
         """
-
         if self.is_eternal:
             period = periods.period(DateUnit.ETERNITY)
         period = periods.period(period)
@@ -94,10 +94,10 @@ class InMemoryStorage:
         self._arrays[period] = value
 
     def delete(self, period: None | t.Period = None) -> None:
-        """Delete the data for the specified period from memory.
+        """Delete the data for the specified :obj:`.Period` from memory.
 
         Args:
-            period: The period for which data should be deleted.
+            period: The :obj:`.Period` for which data should be deleted.
 
         Note:
             If ``period`` is specified, all data will be deleted.
@@ -128,7 +128,6 @@ class InMemoryStorage:
             >>> storage.get(period)
 
         """
-
         if period is None:
             self._arrays = {}
             return
@@ -147,7 +146,7 @@ class InMemoryStorage:
         """List of storage's known periods.
 
         Returns:
-            A sequence containing the storage's known periods.
+            KeysView[Period]: A sequence containing the storage's known periods.
 
         Examples:
             >>> from openfisca_core import data_storage, periods
@@ -164,14 +163,13 @@ class InMemoryStorage:
             dict_keys([Period(('year', Instant((2017, 1, 1)), 1))])
 
         """
-
         return self._arrays.keys()
 
     def get_memory_usage(self) -> t.MemoryUsage:
         """Memory usage of the storage.
 
         Returns:
-            A dictionary representing the storage's memory usage.
+            MemoryUsage: A dictionary representing the storage's memory usage.
 
         Examples:
             >>> from openfisca_core import data_storage
@@ -181,7 +179,6 @@ class InMemoryStorage:
             {'nb_arrays': 0, 'total_nb_bytes': 0, 'cell_size': nan}
 
         """
-
         if not self._arrays:
             return {
                 "nb_arrays": 0,

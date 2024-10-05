@@ -8,22 +8,36 @@ from .enum_array import EnumArray
 
 
 class Enum(t.Enum):
-    """Enum based on `enum34 <https://pypi.python.org/pypi/enum34/>`_, whose items
-    have an index.
+    """Enum based on `enum34 <https://pypi.python.org/pypi/enum34/>`_.
+
+    Its items have an :class:`int` index, useful and performant when running
+    :mod:`~openfisca_core.simulations` on large :mod:`~openfisca_core.populations`.
+
     """
 
-    # Tweak enums to add an index attribute to each enum item
-    def __init__(self, name: str) -> None:
-        # When the enum item is initialized, self._member_names_ contains the
-        # names of the previously initialized items, so its length is the index
-        # of this item.
+    #: The :attr:`index` of the :class:`.Enum` member.
+    index: int
+
+    def __init__(self, *__args: object, **__kwargs: object) -> None:
+        """Tweak :class:`enum.Enum` to add an :attr:`.index` to each enum item.
+
+        When the enum is initialised, ``_member_names_`` contains the names of
+        the already initialized items, so its length is the index of this item.
+
+        Args:
+            *__args: Positional arguments.
+            **__kwargs: Keyword arguments.
+
+        Note:
+            ``_member_names_`` is undocumented in upstream :class:`enum.Enum`.
+
+        """
         self.index = len(self._member_names_)
 
-    # Bypass the slow Enum.__eq__
+    #: Bypass the slow :meth:`enum.Enum.__eq__` method.
     __eq__ = object.__eq__
 
-    # In Python 3, __hash__ must be defined if __eq__ is defined to stay
-    # hashable.
+    #: :meth:`.__hash__` must also be defined so as to stay hashable.
     __hash__ = object.__hash__
 
     @classmethod
@@ -31,15 +45,13 @@ class Enum(t.Enum):
         cls,
         array: EnumArray | numpy.int32 | numpy.float32 | numpy.object_,
     ) -> EnumArray:
-        """Encode a string numpy array, an enum item numpy array, or an int numpy
-        array into an :any:`EnumArray`. See :any:`EnumArray.decode` for
-        decoding.
+        """Encode an encodable array into an :class:`.EnumArray`.
 
-        :param numpy.ndarray array: Array of string identifiers, or of enum
-                                    items, to encode.
+        Args:
+            array: :class:`~numpy.ndarray` to encode.
 
-        :returns: An :any:`EnumArray` encoding the input array values.
-        :rtype: :any:`EnumArray`
+        Returns:
+            EnumArray: An :class:`.EnumArray` with the encoded input values.
 
         For instance:
 
@@ -87,3 +99,6 @@ class Enum(t.Enum):
             ).astype(ENUM_ARRAY_DTYPE)
 
         return EnumArray(array, cls)
+
+
+__all__ = ["Enum"]

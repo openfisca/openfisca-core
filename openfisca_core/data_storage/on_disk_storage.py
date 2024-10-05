@@ -33,7 +33,7 @@ class OnDiskStorage:
     #: Whether to preserve the storage directory.
     preserve_storage_dir: bool
 
-    #: Mapping of file paths to possible Enum values.
+    #: Mapping of file paths to possible :class:`.Enum` values.
     _enums: MutableMapping[str, type[t.Enum]]
 
     #: Mapping of periods to file paths.
@@ -52,17 +52,18 @@ class OnDiskStorage:
         self.storage_dir = storage_dir
 
     def _decode_file(self, file: str) -> t.Array[t.DTypeGeneric]:
-        """Decode a file by loading its contents as a ``numpy`` array.
+        """Decode a file by loading its contents as a :mod:`numpy` array.
 
         Args:
             file: Path to the file to be decoded.
 
         Returns:
-            ``numpy`` array or ``EnumArray`` representing the data in the file.
+            EnumArray: Representing the data in the file.
+            ndarray[generic]: Representing the data in the file.
 
         Note:
-            If the file is associated with ``Enum`` values, the array is
-            converted back to an ``EnumArray`` object.
+            If the file is associated with :class:`~indexed_enums.Enum` values, the
+            array is converted back to an :obj:`~indexed_enums.EnumArray` object.
 
         Examples:
             >>> import tempfile
@@ -89,7 +90,6 @@ class OnDiskStorage:
             EnumArray([<Housing.TENANT: 'Tenant'>])
 
         """
-
         enum = self._enums.get(file)
 
         if enum is not None:
@@ -106,8 +106,9 @@ class OnDiskStorage:
             period: The period for which data should be retrieved.
 
         Returns:
-            A ``numpy`` array or ``EnumArray`` representing the vector for the
-            specified period, or ``None`` if no vector is stored.
+            None: If no data is available.
+            EnumArray: Representing the data for the specified period.
+            ndarray[generic]: Representing the data for the specified period.
 
         Examples:
             >>> import tempfile
@@ -127,7 +128,6 @@ class OnDiskStorage:
             array([1, 2, 3])
 
         """
-
         if self.is_eternal:
             period = periods.period(DateUnit.ETERNITY)
         period = periods.period(period)
@@ -162,7 +162,6 @@ class OnDiskStorage:
             array(['1', '2', 'salary'], dtype='<U21')
 
         """
-
         if self.is_eternal:
             period = periods.period(DateUnit.ETERNITY)
         period = periods.period(period)
@@ -212,7 +211,6 @@ class OnDiskStorage:
             ...     storage.get(period)
 
         """
-
         if period is None:
             self._files = {}
             return
@@ -231,7 +229,7 @@ class OnDiskStorage:
         """List of storage's known periods.
 
         Returns:
-            A sequence containing the storage's known periods.
+            KeysView[Period]: A sequence containing the storage's known periods.
 
         Examples:
             >>> import tempfile
@@ -255,7 +253,6 @@ class OnDiskStorage:
             dict_keys([Period(('year', Instant((2017, 1, 1)), 1))])
 
         """
-
         return self._files.keys()
 
     def restore(self) -> None:
@@ -289,7 +286,6 @@ class OnDiskStorage:
             >>> directory.cleanup()
 
         """
-
         self._files = files = {}
         # Restore self._files from content of storage_dir.
         for filename in os.listdir(self.storage_dir):
