@@ -32,7 +32,6 @@ class Enum(t.Enum):
             ``_member_names_`` is undocumented in upstream :class:`enum.Enum`.
 
         """
-
         self.index = len(self._member_names_)
 
     #: Bypass the slow :meth:`enum.Enum.__eq__` method.
@@ -100,3 +99,6 @@ class Enum(t.Enum):
             ).astype(ENUM_ARRAY_DTYPE)
 
         return EnumArray(array, cls)
+
+
+__all__ = ["Enum"]

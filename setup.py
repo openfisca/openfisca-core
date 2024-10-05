@@ -62,7 +62,7 @@ dev_requirements = [
     "pylint >=3.3.1, <4.0",
     "pylint-per-file-ignores >=1.3.2, <2.0",
     "pyright >=1.1.382, <2.0",
-    "ruff >=0.6.7, <1.0",
+    "ruff >=0.6.9, <1.0",
     "ruff-lsp >=0.0.57, <1.0",
     "xdoctest >=1.2.0, <2.0",
     *api_requirements,

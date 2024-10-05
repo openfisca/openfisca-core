@@ -66,14 +66,13 @@ class EnumArray(t.EnumArray):
             https://en.wikipedia.org/wiki/Liskov_substitution_principle
 
         """
-
         if other.__class__.__name__ is self.possible_values.__name__:
             return self.view(numpy.ndarray) == other.index
 
         return self.view(numpy.ndarray) == other
 
     def __ne__(self, other: object) -> bool:
-        """Inequality…
+        """Inequality.
 
         Args:
             other: Another :class:`object` to compare to.
@@ -89,10 +88,10 @@ class EnumArray(t.EnumArray):
             https://en.wikipedia.org/wiki/Liskov_substitution_principle
 
         """
-
         return numpy.logical_not(self == other)
 
-    def _forbidden_operation(self, other: Any) -> NoReturn:
+    @staticmethod
+    def _forbidden_operation(other: Any) -> NoReturn:
         msg = (
             "Forbidden operation. The only operations allowed on EnumArrays "
             "are '==' and '!='."
@@ -127,7 +126,6 @@ class EnumArray(t.EnumArray):
         Decoded value: enum item
 
         """
-
         return numpy.select(
             [self == item.index for item in self.possible_values],
             list(self.possible_values),
@@ -148,7 +146,6 @@ class EnumArray(t.EnumArray):
         'free_lodger'  # String identifier
 
         """
-
         return numpy.select(
             [self == item.index for item in self.possible_values],
             [item.name for item in self.possible_values],
@@ -159,3 +156,6 @@ class EnumArray(t.EnumArray):
 
     def __str__(self) -> str:
         return str(self.decode_to_str())
+
+
+__all__ = ["EnumArray"]
