@@ -10,16 +10,16 @@ from .enum_array import EnumArray
 class Enum(t.Enum):
     """Enum based on `enum34 <https://pypi.python.org/pypi/enum34/>`_.
 
-    Its items have an :any:`int` index. This is useful and performant when
-    running simulations on large populations.
+    Its items have an :class:`int` index, useful and performant when running
+    :mod:`~openfisca_core.simulations` on large :mod:`~openfisca_core.populations`.
 
     """
 
-    #: The ``index`` of the ``Enum`` member.
+    #: The :attr:`index` of the :class:`.Enum` member.
     index: int
 
     def __init__(self, *__args: object, **__kwargs: object) -> None:
-        """Tweak :any:`~enum.Enum` to add an index to each enum item.
+        """Tweak :class:`enum.Enum` to add an :attr:`.index` to each enum item.
 
         When the enum is initialised, ``_member_names_`` contains the names of
         the already initialized items, so its length is the index of this item.
@@ -28,11 +28,14 @@ class Enum(t.Enum):
             *__args: Positional arguments.
             **__kwargs: Keyword arguments.
 
+        Note:
+            ``_member_names_`` is undocumented in upstream :class:`enum.Enum`.
+
         """
 
         self.index = len(self._member_names_)
 
-    #: Bypass the slow :any:`~enum.Enum.__eq__` method.
+    #: Bypass the slow :meth:`enum.Enum.__eq__` method.
     __eq__ = object.__eq__
 
     #: :meth:`.__hash__` must also be defined so as to stay hashable.
@@ -43,13 +46,13 @@ class Enum(t.Enum):
         cls,
         array: EnumArray | numpy.int32 | numpy.float32 | numpy.object_,
     ) -> EnumArray:
-        """Encode an encodable array into an ``EnumArray``.
+        """Encode an encodable array into an :class:`.EnumArray`.
 
         Args:
-            array: Array to encode.
+            array: :class:`~numpy.ndarray` to encode.
 
         Returns:
-            EnumArray: An ``EnumArray`` with the encoded input values.
+            EnumArray: An :class:`.EnumArray` with the encoded input values.
 
         For instance:
 

@@ -9,12 +9,12 @@ from . import types as t
 
 
 class EnumArray(t.EnumArray):
-    """Subclass of :any:`numpy.ndarray`  representing an array of ``Enum``.
+    """A subclass of :class:`~numpy.ndarray` of :class:`.Enum`.
 
-    ``Enum`` arrays are encoded as :any:`int` arrays to improve performance.
+    :class:`.Enum` arrays are encoded as :class:`int` to improve performance.
 
     Note:
-        Subclassing :any:`numpy.ndarray` is a little tricky™. To read more
+        Subclassing :class:`~numpy.ndarray` is a little tricky™. To read more
         about the :meth:`.__new__` and :meth:`.__array_finalize__` methods
         below, see `Subclassing ndarray`_.
 
@@ -22,6 +22,9 @@ class EnumArray(t.EnumArray):
         https://numpy.org/doc/stable/user/basics.subclassing.html
 
     """
+
+    #: Enum type of the array items.
+    possible_values: None | type[t.Enum] = None
 
     def __new__(
         cls,
@@ -41,16 +44,16 @@ class EnumArray(t.EnumArray):
         self.possible_values = getattr(obj, "possible_values", None)
 
     def __eq__(self, other: object) -> bool:
-        """Compare equality with the item index.
+        """Compare equality with the item's :attr:`~.Enum.index`.
 
-        When comparing to an item of :attr:`.possible_values`, use the item
-        index to speed up the comparison.
+        When comparing to an item of :attr:`.possible_values`, use the
+        item's :attr:`~.Enum.index`. to speed up the comparison.
 
         Whenever possible, use :any:`numpy.ndarray.view` so that the result is
-        a classic :any:`numpy.ndarray`, not an :obj:`.EnumArray`.
+        a classic :class:`~numpy.ndarray`, not an :obj:`.EnumArray`.
 
         Args:
-            other: Another object to compare to.
+            other: Another :class:`object` to compare to.
 
         Returns:
             bool: When ???
@@ -73,7 +76,7 @@ class EnumArray(t.EnumArray):
         """Inequality…
 
         Args:
-            other: Another object to compare to.
+            other: Another :class:`object` to compare to.
 
         Returns:
             bool: When ???
@@ -111,7 +114,7 @@ class EnumArray(t.EnumArray):
         """Decode itself to a normal array.
 
         Returns:
-            numpy.ndarray[t.Enum]: The enum items of the ``EnumArray``.
+            numpy.ndarray[t.Enum]: The items of the :obj:`.EnumArray`.
 
         For instance:
 
@@ -134,7 +137,7 @@ class EnumArray(t.EnumArray):
         """Decode itself to an array of strings.
 
         Returns:
-            numpy.ndarray[numpy.str_]: The string values of the ``EnumArray``.
+            numpy.ndarray[numpy.str_]: The string values of the :obj:`.EnumArray`.
 
         For instance:
 
