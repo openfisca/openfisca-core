@@ -1,5 +1,11 @@
 # Changelog
 
+### 42.0.8 [#1272](https://github.com/openfisca/openfisca-core/pull/1272)
+
+#### Documentation
+
+- Add documentation to the `indexed_enums` module
+
 ### 42.0.7 [#1264](https://github.com/openfisca/openfisca-core/pull/1264)
 
 #### Technical changes
