@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, NoReturn
+from typing import NoReturn
 from typing_extensions import Self
 
 import numpy
-
 from . import types as t
 
 
@@ -12,6 +11,51 @@ class EnumArray(t.EnumArray):
     """A subclass of :class:`~numpy.ndarray` of :class:`.Enum`.
 
     :class:`.Enum` arrays are encoded as :class:`int` to improve performance.
+
+    Examples:
+        >>> from openfisca_core.indexed_enums import Enum
+        >>> from openfisca_core.variables import Variable
+
+        >>> class Housing(Enum):
+        ...     OWNER = "Owner"
+        ...     TENANT = "Tenant"
+        ...     FREE_LODGER = "Free lodger"
+        ...     HOMELESS = "Homeless"
+
+        >>> array = numpy.array([1])
+        >>> enum_array = EnumArray(array, Housing)
+
+        >>> repr(EnumArray)
+        "<class 'openfisca_core.indexed_enums.enum_array.EnumArray'>"
+
+        >>> repr(enum_array)
+        '<EnumArray([<Housing.TENANT(Tenant)>])>'
+
+        >>> str(enum_array)
+        "['TENANT']"
+
+        >>> list(enum_array)
+        [1]
+
+        >>> enum_array[0]
+        1
+
+        >>> enum_array[0] in enum_array
+        True
+
+        >>> len(enum_array)
+        1
+
+        >>> enum_array = EnumArray(list(Housing), Housing)
+        >>> enum_array[Housing.TENANT.index]
+        <Housing.TENANT(Tenant)>
+
+        >>> class OccupancyStatus(Variable):
+        ...     value_type = Enum
+        ...     possible_values = Housing
+
+        >>> EnumArray(array, OccupancyStatus.possible_values)
+        <EnumArray([<Housing.TENANT(Tenant)>])>
 
     Note:
         Subclassing :class:`~numpy.ndarray` is a little tricky™. To read more
@@ -40,10 +84,15 @@ class EnumArray(t.EnumArray):
         """See comment above."""
         if obj is None:
             return
-
         self.possible_values = getattr(obj, "possible_values", None)
 
-    def __eq__(self, other: object) -> bool:
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.decode()!s})"
+
+    def __str__(self) -> str:
+        return str(self.decode_to_str())
+
+    def __eq__(self, other: object) -> bool | t.Array[t.DTypeBool]:
         """Compare equality with the item's :attr:`~.Enum.index`.
 
         When comparing to an item of :attr:`.possible_values`, use the
@@ -59,6 +108,31 @@ class EnumArray(t.EnumArray):
             bool: When ???
             ndarray[bool_]: When ???
 
+        Examples:
+            >>> from openfisca_core.indexed_enums import Enum
+
+            >>> class MyEnum(Enum):
+            ...     FOO = b"foo"
+            ...     BAR = b"bar"
+
+            >>> array = numpy.array([1])
+            >>> enum_array = EnumArray(array, MyEnum)
+
+            >>> enum_array == 1
+            array([ True])
+
+            >>> enum_array == [1]
+            array([ True])
+
+            >>> enum_array == [2]
+            array([False])
+
+            >>> enum_array == "1"
+            False
+
+            >>> enum_array is None
+            array([False])
+
         Note:
             This breaks the `Liskov substitution principle`_.
 
@@ -68,10 +142,9 @@ class EnumArray(t.EnumArray):
         """
         if other.__class__.__name__ is self.possible_values.__name__:
             return self.view(numpy.ndarray) == other.index
-
         return self.view(numpy.ndarray) == other
 
-    def __ne__(self, other: object) -> bool:
+    def __ne__(self, other: object) -> bool | t.Array[t.DTypeBool]:
         """Inequality.
 
         Args:
@@ -80,6 +153,31 @@ class EnumArray(t.EnumArray):
         Returns:
             bool: When ???
             ndarray[bool_]: When ???
+
+        Examples:
+            >>> from openfisca_core.indexed_enums import Enum
+
+            >>> class MyEnum(Enum):
+            ...     FOO = b"foo"
+            ...     BAR = b"bar"
+
+            >>> array = numpy.array([1])
+            >>> enum_array = EnumArray(array, MyEnum)
+
+            >>> enum_array != 1
+            array([False])
+
+            >>> enum_array != [1]
+            array([False])
+
+            >>> enum_array != [2]
+            array([ True])
+
+            >>> enum_array != "1"
+            True
+
+            >>> enum_array is not None
+            array([ True])
 
         Note:
             This breaks the `Liskov substitution principle`_.
@@ -91,14 +189,12 @@ class EnumArray(t.EnumArray):
         return numpy.logical_not(self == other)
 
     @staticmethod
-    def _forbidden_operation(other: Any) -> NoReturn:
+    def _forbidden_operation(other: object) -> NoReturn:
         msg = (
             "Forbidden operation. The only operations allowed on EnumArrays "
             "are '==' and '!='."
         )
-        raise TypeError(
-            msg,
-        )
+        raise TypeError(msg)
 
     __add__ = _forbidden_operation
     __mul__ = _forbidden_operation
@@ -115,15 +211,17 @@ class EnumArray(t.EnumArray):
         Returns:
             ndarray[Enum]: The items of the :obj:`.EnumArray`.
 
-        For instance:
+        Examples:
+            >>> from openfisca_core.indexed_enums import Enum
 
-        >>> enum_array = household("housing_occupancy_status", period)
-        >>> enum_array[0]
-        >>> 2  # Encoded value
-        >>> enum_array.decode()[0]
-        <HousingOccupancyStatus.free_lodger: 'Free lodger'>
+            >>> class MyEnum(Enum):
+            ...     FOO = b"foo"
+            ...     BAR = b"bar"
 
-        Decoded value: enum item
+            >>> array = numpy.array([1])
+            >>> enum_array = EnumArray(array, MyEnum)
+            >>> enum_array.decode()
+            array([<MyEnum.BAR(b'bar')>], dtype=object)
 
         """
         return numpy.select(
@@ -137,25 +235,23 @@ class EnumArray(t.EnumArray):
         Returns:
             ndarray[str_]: The string values of the :obj:`.EnumArray`.
 
-        For instance:
+        Examples:
+            >>> from openfisca_core.indexed_enums import Enum
 
-        >>> enum_array = household("housing_occupancy_status", period)
-        >>> enum_array[0]
-        >>> 2  # Encoded value
-        >>> enum_array.decode_to_str()[0]
-        'free_lodger'  # String identifier
+            >>> class MyEnum(Enum):
+            ...     FOO = b"foo"
+            ...     BAR = b"bar"
+
+            >>> array = numpy.array([1])
+            >>> enum_array = EnumArray(array, MyEnum)
+            >>> enum_array.decode_to_str()
+            array(['BAR']...)
 
         """
         return numpy.select(
             [self == item.index for item in self.possible_values],
             [item.name for item in self.possible_values],
         )
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.decode()!s})"
-
-    def __str__(self) -> str:
-        return str(self.decode_to_str())
 
 
 __all__ = ["EnumArray"]

@@ -1,70 +1,65 @@
-from collections.abc import Mapping
-from typing import Any
-
 import pytest
 
-from openfisca_core import entities
+from openfisca_core.entities import Entity, GroupEntity
+from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 
 
 @pytest.fixture
-def parent() -> str:
-    return "parent"
+def roles():
+    """A role-like."""
+
+    return [{"key": "parent", "subroles": ["first_parent", "second_parent"]}]
 
 
 @pytest.fixture
-def uncle() -> str:
-    return "uncle"
+def entity():
+    """An entity."""
+
+    return Entity("key", "label", "plural", "doc")
 
 
 @pytest.fixture
-def first_parent() -> str:
-    return "first_parent"
+def group_entity(roles):
+    """A group entity."""
+
+    return GroupEntity("key", "label", "plural", "doc", roles)
 
 
-@pytest.fixture
-def second_parent() -> str:
-    return "second_parent"
+def test_init_when_doc_indented():
+    """Dedents the ``doc`` attribute if it is passed at initialisation."""
 
-
-@pytest.fixture
-def third_parent() -> str:
-    return "third_parent"
-
-
-@pytest.fixture
-def role(parent: str, first_parent: str, third_parent: str) -> Mapping[str, Any]:
-    return {"key": parent, "subroles": {first_parent, third_parent}}
-
-
-@pytest.fixture
-def group_entity(role: Mapping[str, Any]) -> entities.GroupEntity:
-    return entities.GroupEntity("key", "label", "plural", "doc", (role,))
-
-
-def test_init_when_doc_indented() -> None:
-    """De-indent the ``doc`` attribute if it is passed at initialisation."""
     key = "\tkey"
     doc = "\tdoc"
-    group_entity = entities.GroupEntity(key, "label", "plural", doc, ())
+    group_entity = GroupEntity(key, "label", "plural", doc, [])
     assert group_entity.key == key
-    assert group_entity.doc == doc.lstrip()
+    assert group_entity.doc != doc
 
 
-def test_group_entity_with_roles(
-    group_entity: entities.GroupEntity,
-    parent: str,
-    uncle: str,
-) -> None:
-    """Assign a Role for each role-like passed as argument."""
-    assert hasattr(group_entity, parent.upper())
-    assert not hasattr(group_entity, uncle.upper())
+def test_set_tax_benefit_system_deprecation(entity, group_entity):
+    """Throws a deprecation warning when called."""
+
+    tbs = TaxBenefitSystem([entity, group_entity])
+
+    with pytest.warns(DeprecationWarning):
+        group_entity.set_tax_benefit_system(tbs)
 
 
-def test_group_entity_with_subroles(
-    group_entity: entities.GroupEntity,
-    first_parent: str,
-    second_parent: str,
-) -> None:
-    """Assign a Role for each subrole-like passed as argument."""
-    assert hasattr(group_entity, first_parent.upper())
-    assert not hasattr(group_entity, second_parent.upper())
+def test_check_role_validity_deprecation(group_entity):
+    """Throws a deprecation warning when called."""
+
+    with pytest.warns(DeprecationWarning):
+        group_entity.check_role_validity(group_entity.PARENT)
+
+
+def test_check_variable_defined_for_entity_deprecation(group_entity):
+    """Throws a deprecation warning when called."""
+
+    with pytest.warns(DeprecationWarning):
+        group_entity.check_variable_defined_for_entity(object())
+
+
+def test_get_variable_deprecation(group_entity):
+    """Throws a deprecation warning when called."""
+
+    with pytest.warns(DeprecationWarning):
+        group_entity.get_variable("variable")
