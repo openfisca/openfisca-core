@@ -25,9 +25,9 @@ def average_rate(
         trim: The lower and upper bounds of the average rate.
 
     Returns:
-        Array[numpy.float32]: The average rate for each target. When ``trim``
+        ndarray[float32]: The average rate for each target. When ``trim``
             is provided, values that are out of the provided bounds are
-            replaced by :any:`numpy.nan`.
+            replaced by :obj:`numpy.nan`.
 
     Examples:
         >>> target = numpy.array([1, 2, 3])
@@ -37,7 +37,6 @@ def average_rate(
         array([ nan,  0. , -0.5])
 
     """
-
     if not isinstance(varying, numpy.ndarray):
         varying = numpy.array(varying, dtype=numpy.float32)
 
@@ -79,9 +78,9 @@ def marginal_rate(
         trim: The lower and upper bounds of the marginal rate.
 
     Returns:
-        Array[numpy.float32]: The marginal rate for each target. When ``trim``
-        is provided, values that are out of the provided bounds are replaced by
-        :any:`numpy.nan`.
+        ndarray[float32]: The marginal rate for each target. When ``trim``
+            is provided, values that are out of the provided bounds are
+            replaced by :class:`numpy.nan`.
 
     Examples:
         >>> target = numpy.array([1, 2, 3])
@@ -91,7 +90,6 @@ def marginal_rate(
         array([nan, 0.5])
 
     """
-
     if not isinstance(varying, numpy.ndarray):
         varying = numpy.array(varying, dtype=numpy.float32)
 

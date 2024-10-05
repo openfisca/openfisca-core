@@ -24,10 +24,7 @@ def apply_thresholds(
         choices: A list of the possible values to choose from.
 
     Returns:
-        Array[numpy.float32]: A list of the values chosen.
-
-    Raises:
-        AssertionError: When thresholds and choices are incompatible.
+        ndarray[float32]: A list of the values chosen.
 
     Examples:
         >>> input = numpy.array([4, 5, 6, 7, 8])
@@ -37,7 +34,6 @@ def apply_thresholds(
         array([10, 10, 15, 15, 20])
 
     """
-
     condlist: list[t.Array[numpy.bool_] | bool]
     condlist = [input <= threshold for threshold in thresholds]
 
@@ -66,7 +62,7 @@ def concat(
         that: Another array to concatenate.
 
     Returns:
-        Array[numpy.str_]: An array with the concatenated values.
+        ndarray[str_]: An array with the concatenated values.
 
     Examples:
         >>> this = ["this", "that"]
@@ -75,7 +71,6 @@ def concat(
         array(['this1.0', 'that2.5']...)
 
     """
-
     if not isinstance(this, numpy.ndarray):
         this = numpy.array(this)
 
@@ -105,10 +100,7 @@ def switch(
         value_by_condition: Values to replace for each condition.
 
     Returns:
-        Array: An array with the replaced values.
-
-    Raises:
-        AssertionError: When ``value_by_condition`` is empty.
+        ndarray[float32]: An array with the replaced values.
 
     Examples:
         >>> conditions = numpy.array([1, 1, 1, 2])

@@ -57,7 +57,7 @@ class EnumArray(t.EnumArray):
 
         Returns:
             bool: When ???
-            numpy.ndarray[numpy.bool_]: When ???
+            ndarray[bool_]: When ???
 
         Note:
             This breaks the `Liskov substitution principle`_.
@@ -79,7 +79,7 @@ class EnumArray(t.EnumArray):
 
         Returns:
             bool: When ???
-            numpy.ndarray[numpy.bool_]: When ???
+            ndarray[bool_]: When ???
 
         Note:
             This breaks the `Liskov substitution principle`_.
@@ -113,7 +113,7 @@ class EnumArray(t.EnumArray):
         """Decode itself to a normal array.
 
         Returns:
-            numpy.ndarray[t.Enum]: The items of the :obj:`.EnumArray`.
+            ndarray[Enum]: The items of the :obj:`.EnumArray`.
 
         For instance:
 
@@ -135,7 +135,7 @@ class EnumArray(t.EnumArray):
         """Decode itself to an array of strings.
 
         Returns:
-            numpy.ndarray[numpy.str_]: The string values of the :obj:`.EnumArray`.
+            ndarray[str_]: The string values of the :obj:`.EnumArray`.
 
         For instance:
 

@@ -13,7 +13,7 @@ def empty_clone(original: object) -> object:
         original: An object to clone.
 
     Returns:
-        The cloned, empty, object.
+        object: The cloned, empty, object.
 
     Examples:
         >>> Foo = type("Foo", (list,), {})
@@ -50,7 +50,7 @@ def stringify_array(array: None | t.Array[numpy.generic]) -> str:
         array: An array.
 
     Returns:
-        str: "None" if the ``array`` is None.
+        str: ``"None"`` if the ``array`` is ``None``.
         str: The stringified ``array`` otherwise.
 
     Examples:
@@ -71,7 +71,6 @@ def stringify_array(array: None | t.Array[numpy.generic]) -> str:
         "[<class 'list'>, {}, <function stringify_array...]"
 
     """
-
     if array is None:
         return "None"
 
@@ -87,7 +86,7 @@ def eval_expression(
         expression: An expression to evaluate.
 
     Returns:
-        Array: The result of the evaluation.
+        ndarray: The result of the evaluation.
         str: The expression if it couldn't be evaluated.
 
     Examples:
@@ -98,7 +97,6 @@ def eval_expression(
         'salary'
 
     """
-
     try:
         return numexpr.evaluate(expression)
 

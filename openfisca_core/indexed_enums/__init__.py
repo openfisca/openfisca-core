@@ -1,15 +1,4 @@
-"""Enumerations for variables with a limited set of possible values.
-
-These include:
-    * Highest academic level: high school, associate degree, bachelor's degree,
-      master's degree, doctorate…
-    * A household housing occupancy status: owner, tenant, free-lodger,
-      homeless…
-    * The main occupation of a person: employee, freelancer, retired, student,
-      unemployed…
-    * Etc.
-
-"""
+"""Enumerations for variables with a limited set of possible values."""
 
 from . import types
 from .config import ENUM_ARRAY_DTYPE
