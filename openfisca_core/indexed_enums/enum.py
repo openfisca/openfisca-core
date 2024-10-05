@@ -8,22 +8,34 @@ from .enum_array import EnumArray
 
 
 class Enum(t.Enum):
-    """Enum based on `enum34 <https://pypi.python.org/pypi/enum34/>`_, whose items
-    have an index.
+    """Enum based on `enum34 <https://pypi.python.org/pypi/enum34/>`_.
+
+    Its items have an :any:`int` index. This is useful and performant when
+    running simulations on large populations.
+
     """
 
-    # Tweak enums to add an index attribute to each enum item
-    def __init__(self, name: str) -> None:
-        # When the enum item is initialized, self._member_names_ contains the
-        # names of the previously initialized items, so its length is the index
-        # of this item.
+    #: The ``index`` of the ``Enum`` member.
+    index: int
+
+    def __init__(self, *__args: object, **__kwargs: object) -> None:
+        """Tweak :any:`~enum.Enum` to add an index to each enum item.
+
+        When the enum is initialised, ``_member_names_`` contains the names of
+        the already initialized items, so its length is the index of this item.
+
+        Args:
+            *__args: Positional arguments.
+            **__kwargs: Keyword arguments.
+
+        """
+
         self.index = len(self._member_names_)
 
-    # Bypass the slow Enum.__eq__
+    #: Bypass the slow :any:`~enum.Enum.__eq__` method.
     __eq__ = object.__eq__
 
-    # In Python 3, __hash__ must be defined if __eq__ is defined to stay
-    # hashable.
+    #: :meth:`.__hash__` must also be defined so as to stay hashable.
     __hash__ = object.__hash__
 
     @classmethod
@@ -31,15 +43,13 @@ class Enum(t.Enum):
         cls,
         array: EnumArray | numpy.int32 | numpy.float32 | numpy.object_,
     ) -> EnumArray:
-        """Encode a string numpy array, an enum item numpy array, or an int numpy
-        array into an :any:`EnumArray`. See :any:`EnumArray.decode` for
-        decoding.
+        """Encode an encodable array into an ``EnumArray``.
 
-        :param numpy.ndarray array: Array of string identifiers, or of enum
-                                    items, to encode.
+        Args:
+            array: Array to encode.
 
-        :returns: An :any:`EnumArray` encoding the input array values.
-        :rtype: :any:`EnumArray`
+        Returns:
+            EnumArray: An ``EnumArray`` with the encoded input values.
 
         For instance:
 
