@@ -18,6 +18,52 @@ class EnumArray(t.EnumArray):
         about the :meth:`.__new__` and :meth:`.__array_finalize__` methods
         below, see `Subclassing ndarray`_.
 
+    Examples:
+        >>> import numpy
+
+        >>> from openfisca_core import indexed_enums as enum, variables
+
+        >>> class Housing(enum.Enum):
+        ...     OWNER = "Owner"
+        ...     TENANT = "Tenant"
+        ...     FREE_LODGER = "Free lodger"
+        ...     HOMELESS = "Homeless"
+
+        >>> array = numpy.array([1])
+        >>> enum_array = enum.EnumArray(array, Housing)
+
+        >>> repr(enum.EnumArray)
+        "<class 'openfisca_core.indexed_enums.enum_array.EnumArray'>"
+
+        >>> repr(enum_array)
+        "EnumArray([<Housing.TENANT: 'Tenant'>])"
+
+        >>> str(enum_array)
+        "['TENANT']"
+
+        >>> list(enum_array)
+        [1]
+
+        >>> enum_array[0]
+        1
+
+        >>> enum_array[0] in enum_array
+        True
+
+        >>> len(enum_array)
+        1
+
+        >>> enum_array = enum.EnumArray(list(Housing), Housing)
+        >>> enum_array[Housing.TENANT.index]
+        <Housing.TENANT: 'Tenant'>
+
+        >>> class OccupancyStatus(variables.Variable):
+        ...     value_type = enum.Enum
+        ...     possible_values = Housing
+
+        >>> enum.EnumArray(array, OccupancyStatus.possible_values)
+        EnumArray([<Housing.TENANT: 'Tenant'>])
+
     .. _Subclassing ndarray:
         https://numpy.org/doc/stable/user/basics.subclassing.html
 
@@ -59,6 +105,33 @@ class EnumArray(t.EnumArray):
             bool: When ???
             ndarray[bool_]: When ???
 
+        Examples:
+            >>> import numpy
+
+            >>> from openfisca_core import indexed_enums as enum
+
+            >>> class Housing(enum.Enum):
+            ...     OWNER = "Owner"
+            ...     TENANT = "Tenant"
+
+            >>> array = numpy.array([1])
+            >>> enum_array = enum.EnumArray(array, Housing)
+
+            >>> enum_array == 1
+            array([ True])
+
+            >>> enum_array == [1]
+            array([ True])
+
+            >>> enum_array == [2]
+            array([False])
+
+            >>> enum_array == "1"
+            array([False])
+
+            >>> enum_array is None
+            False
+
         Note:
             This breaks the `Liskov substitution principle`_.
 
@@ -80,6 +153,33 @@ class EnumArray(t.EnumArray):
         Returns:
             bool: When ???
             ndarray[bool_]: When ???
+
+        Examples:
+            >>> import numpy
+
+            >>> from openfisca_core import indexed_enums as enum
+
+            >>> class Housing(enum.Enum):
+            ...     OWNER = "Owner"
+            ...     TENANT = "Tenant"
+
+            >>> array = numpy.array([1])
+            >>> enum_array = enum.EnumArray(array, Housing)
+
+            >>> enum_array != 1
+            array([False])
+
+            >>> enum_array != [1]
+            array([False])
+
+            >>> enum_array != [2]
+            array([ True])
+
+            >>> enum_array != "1"
+            array([ True])
+
+            >>> enum_array is not None
+            True
 
         Note:
             This breaks the `Liskov substitution principle`_.
@@ -115,15 +215,19 @@ class EnumArray(t.EnumArray):
         Returns:
             ndarray[Enum]: The items of the :obj:`.EnumArray`.
 
-        For instance:
+        Examples:
+            >>> import numpy
 
-        >>> enum_array = household("housing_occupancy_status", period)
-        >>> enum_array[0]
-        >>> 2  # Encoded value
-        >>> enum_array.decode()[0]
-        <HousingOccupancyStatus.free_lodger: 'Free lodger'>
+            >>> from openfisca_core import indexed_enums as enum
 
-        Decoded value: enum item
+            >>> class Housing(enum.Enum):
+            ...     OWNER = "Owner"
+            ...     TENANT = "Tenant"
+
+            >>> array = numpy.array([1])
+            >>> enum_array = enum.EnumArray(array, Housing)
+            >>> enum_array.decode()
+            array([<Housing.TENANT: 'Tenant'>], dtype=object)
 
         """
         return numpy.select(
@@ -137,13 +241,19 @@ class EnumArray(t.EnumArray):
         Returns:
             ndarray[str_]: The string values of the :obj:`.EnumArray`.
 
-        For instance:
+        Examples:
+            >>> import numpy
 
-        >>> enum_array = household("housing_occupancy_status", period)
-        >>> enum_array[0]
-        >>> 2  # Encoded value
-        >>> enum_array.decode_to_str()[0]
-        'free_lodger'  # String identifier
+            >>> from openfisca_core import indexed_enums as enum
+
+            >>> class Housing(enum.Enum):
+            ...     OWNER = "Owner"
+            ...     TENANT = "Tenant"
+
+            >>> array = numpy.array([1])
+            >>> enum_array = enum.EnumArray(array, Housing)
+            >>> enum_array.decode_to_str()
+            array(['TENANT'], dtype='<U6')
 
         """
         return numpy.select(

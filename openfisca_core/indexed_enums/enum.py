@@ -13,6 +13,69 @@ class Enum(t.Enum):
     Its items have an :class:`int` index, useful and performant when running
     :mod:`~openfisca_core.simulations` on large :mod:`~openfisca_core.populations`.
 
+    Examples:
+        >>> from openfisca_core import indexed_enums as enum
+
+        >>> class Housing(enum.Enum):
+        ...     OWNER = "Owner"
+        ...     TENANT = "Tenant"
+        ...     FREE_LODGER = "Free lodger"
+        ...     HOMELESS = "Homeless"
+
+        >>> repr(Housing)
+        "<enum 'Housing'>"
+
+        >>> repr(Housing.TENANT)
+        "<Housing.TENANT: 'Tenant'>"
+
+        >>> str(Housing.TENANT)
+        'Housing.TENANT'
+
+        >>> dict([(Housing.TENANT, Housing.TENANT.value)])
+        {<Housing.TENANT: 'Tenant'>: 'Tenant'}
+
+        >>> list(Housing)
+        [<Housing.OWNER: 'Owner'>, <Housing.TENANT: 'Tenant'>, ...]
+
+        >>> Housing["TENANT"]
+        <Housing.TENANT: 'Tenant'>
+
+        >>> Housing("Tenant")
+        <Housing.TENANT: 'Tenant'>
+
+        >>> Housing.TENANT in Housing
+        True
+
+        >>> len(Housing)
+        4
+
+        >>> Housing.TENANT == Housing.TENANT
+        True
+
+        >>> Housing.TENANT != Housing.TENANT
+        False
+
+        >>> Housing.TENANT > Housing.TENANT
+        False
+
+        >>> Housing.TENANT < Housing.TENANT
+        False
+
+        >>> Housing.TENANT >= Housing.TENANT
+        True
+
+        >>> Housing.TENANT <= Housing.TENANT
+        True
+
+        >>> Housing.TENANT.index
+        1
+
+        >>> Housing.TENANT.name
+        'TENANT'
+
+        >>> Housing.TENANT.value
+        'Tenant'
+
     """
 
     #: The :attr:`index` of the :class:`.Enum` member.
@@ -28,14 +91,61 @@ class Enum(t.Enum):
             *__args: Positional arguments.
             **__kwargs: Keyword arguments.
 
+        Examples:
+            >>> import numpy
+
+            >>> from openfisca_core import indexed_enums as enum
+
+            >>> Housing = enum.Enum("Housing", "owner tenant")
+            >>> Housing.tenant.index
+            1
+
+            >>> class Housing(enum.Enum):
+            ...     OWNER = "Owner"
+            ...     TENANT = "Tenant"
+
+            >>> Housing.TENANT.index
+            1
+
+            >>> array = numpy.array([[1, 2], [3, 4]])
+            >>> array[Housing.TENANT.index]
+            array([3, 4])
+
         Note:
             ``_member_names_`` is undocumented in upstream :class:`enum.Enum`.
 
         """
         self.index = len(self._member_names_)
 
-    #: Bypass the slow :meth:`enum.Enum.__eq__` method.
-    __eq__ = object.__eq__
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Enum):
+            return NotImplemented
+        return self.index == other.index
+
+    def __ne__(self, other: object) -> bool:
+        if not isinstance(other, Enum):
+            return NotImplemented
+        return self.index != other.index
+
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, Enum):
+            return NotImplemented
+        return self.index < other.index
+
+    def __le__(self, other: object) -> bool:
+        if not isinstance(other, Enum):
+            return NotImplemented
+        return self.index <= other.index
+
+    def __gt__(self, other: object) -> bool:
+        if not isinstance(other, Enum):
+            return NotImplemented
+        return self.index > other.index
+
+    def __ge__(self, other: object) -> bool:
+        if not isinstance(other, Enum):
+            return NotImplemented
+        return self.index >= other.index
 
     #: :meth:`.__hash__` must also be defined so as to stay hashable.
     __hash__ = object.__hash__
@@ -53,19 +163,53 @@ class Enum(t.Enum):
         Returns:
             EnumArray: An :class:`.EnumArray` with the encoded input values.
 
-        For instance:
+        Examples:
+            >>> import numpy
 
-        >>> string_identifier_array = asarray(["free_lodger", "owner"])
-        >>> encoded_array = HousingOccupancyStatus.encode(string_identifier_array)
-        >>> encoded_array[0]
-        2  # Encoded value
+            >>> from openfisca_core import indexed_enums as enum
 
-        >>> free_lodger = HousingOccupancyStatus.free_lodger
-        >>> owner = HousingOccupancyStatus.owner
-        >>> enum_item_array = asarray([free_lodger, owner])
-        >>> encoded_array = HousingOccupancyStatus.encode(enum_item_array)
-        >>> encoded_array[0]
-        2  # Encoded value
+            >>> class Housing(enum.Enum):
+            ...     OWNER = "Owner"
+            ...     TENANT = "Tenant"
+
+            # EnumArray
+
+            >>> array = numpy.array([1])
+            >>> enum_array = enum.EnumArray(array, Housing)
+            >>> Housing.encode(enum_array)
+            EnumArray([<Housing.TENANT: 'Tenant'>])
+
+            # Array of Enum
+
+            >>> array = numpy.array([Housing.TENANT])
+            >>> enum_array = Housing.encode(array)
+            >>> enum_array[0] == Housing.TENANT.index
+            True
+
+            # Array of integers
+
+            >>> array = numpy.array([1])
+            >>> enum_array = Housing.encode(array)
+            >>> enum_array[0] == Housing.TENANT.index
+            True
+
+            # Array of bytes
+
+            >>> array = numpy.array([b"TENANT"])
+            >>> enum_array = Housing.encode(array)
+            >>> enum_array[0] == Housing.TENANT.index
+            True
+
+            # Array of strings
+
+            >>> array = numpy.array(["TENANT"])
+            >>> enum_array = Housing.encode(array)
+            >>> enum_array[0] == Housing.TENANT.index
+            True
+
+        .. seealso::
+            :meth:`.EnumArray.decode` for decoding.
+
         """
         if isinstance(array, EnumArray):
             return array
