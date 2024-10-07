@@ -1,4 +1,5 @@
 import numpy
+import pytest
 
 from openfisca_core import indexed_enums as enum
 
@@ -8,145 +9,126 @@ class Animal(enum.Enum):
     DOG = b"Dog"
 
 
+class Colour(enum.Enum):
+    INCARNADINE = "incarnadine"
+    TURQUOISE = "turquoise"
+    AMARANTH = "amaranth"
+
+
 # Arrays of Enum
 
 
-def test_enum_encode_with_enum_scalar_array():
-    """Encode when called with an enum scalar array."""
-    array = numpy.array(Animal.DOG)
+def test_enum_encode_with_array_of_enum():
+    """Does encode when called with an array of enums."""
+    array = numpy.array([Animal.DOG])
     enum_array = Animal.encode(array)
-    assert enum_array == Animal.DOG.index
+    assert enum_array == Animal.DOG
 
 
 def test_enum_encode_with_enum_sequence():
-    """Does not encode when called with an enum sequence."""
+    """Does encode when called with an enum sequence."""
     sequence = list(Animal)
     enum_array = Animal.encode(sequence)
-    assert enum_array[0] != Animal.DOG.index
+    assert Animal.DOG in enum_array
 
 
-def test_enum_encode_with_enum_scalar():
-    """Does not encode when called with an enum scalar."""
-    scalar = Animal.DOG
-    enum_array = Animal.encode(scalar)
-    assert enum_array != Animal.DOG.index
+def test_enum_encode_with_enum_scalar_array():
+    """Does not encode when called with an enum scalar array."""
+    array = numpy.array(Animal.DOG)
+    with pytest.raises(TypeError):
+        Animal.encode(array)
+
+
+def test_enum_encode_with_enum_with_bad_value():
+    """Does not encode when called with a value not in an Enum."""
+    array = numpy.array([Colour.AMARANTH])
+    with pytest.raises(TypeError):
+        Animal.encode(array)
 
 
 # Arrays of int
 
 
-def test_enum_encode_with_int_scalar_array():
-    """Does not encode when called with an int scalar array (noop)."""
-    array = numpy.array(1)
+def test_enum_encode_with_array_of_int():
+    """Does encode when called with an array of int."""
+    array = numpy.array([1])
     enum_array = Animal.encode(array)
-    assert enum_array == Animal.DOG.index
+    assert enum_array == Animal.DOG
 
 
 def test_enum_encode_with_int_sequence():
-    """Does not encode when called with an int sequence (noop)."""
-    sequence = range(1, 2)
+    """Does encode when called with an int sequence."""
+    sequence = (1, 2)
     enum_array = Animal.encode(sequence)
-    assert enum_array[0] == Animal.DOG.index
+    assert Animal.DOG in enum_array
 
 
-def test_enum_encode_with_int_scalar():
-    """Does not encode when called with an int scalar (noop)."""
-    scalar = 1
-    enum_array = Animal.encode(scalar)
-    assert enum_array == Animal.DOG.index
+def test_enum_encode_with_int_scalar_array():
+    """Does not encode when called with an int scalar array."""
+    array = numpy.array(1)
+    with pytest.raises(TypeError):
+        Animal.encode(array)
 
 
-# Arrays of bytes
-
-def test_enum_encode_with_bytes_scalar_array():
-    """Encode when called with a bytes scalar array."""
-    array = numpy.array(b"DOG")
-    enum_array = Animal.encode(array)
-    assert enum_array == Animal.DOG.index
-
-
-def test_enum_encode_with_bytes_sequence():
-    """Does not encode when called with a bytes sequence."""
-    sequence = bytearray(b"DOG")
-    enum_array = Animal.encode(sequence)
-    assert enum_array[0] != Animal.DOG.index
-
-
-def test_enum_encode_with_bytes_scalar():
-    """Does not encode when called with a bytes scalar."""
-    scalar = b"DOG"
-    enum_array = Animal.encode(scalar)
-    assert enum_array != Animal.DOG.index
-
-
-def test_enum_encode_with_bytes_with_bad_value():
+def test_enum_encode_with_int_with_bad_value():
     """Does not encode when called with a value not in an Enum."""
-    array = numpy.array([b"IGUANA"])
+    array = numpy.array([2])
     enum_array = Animal.encode(array)
-    assert enum_array != Animal.CAT.index
-    assert enum_array != Animal.DOG.index
+    assert len(enum_array) == 0
 
 
 # Arrays of strings
 
 
-def test_enum_encode_with_str_scalar_array():
-    """Encode when called with a str scalar array."""
-    array = numpy.array("DOG")
+def test_enum_encode_with_array_of_string():
+    """Does encode when called with an array of string."""
+    array = numpy.array(["DOG"])
     enum_array = Animal.encode(array)
-    assert enum_array == Animal.DOG.index
+    assert enum_array == Animal.DOG
 
 
 def test_enum_encode_with_str_sequence():
-    """Does not encode when called with a str sequence."""
+    """Does encode when called with a str sequence."""
     sequence = ("DOG",)
     enum_array = Animal.encode(sequence)
-    assert enum_array[0] != Animal.DOG.index
+    assert Animal.DOG in enum_array
 
 
-def test_enum_encode_with_str_scalar():
-    """Does not encode when called with a str scalar."""
-    scalar = "DOG"
-    enum_array = Animal.encode(scalar)
-    assert enum_array != Animal.DOG.index
+def test_enum_encode_with_str_scalar_array():
+    """Does not encode when called with a str scalar array."""
+    array = numpy.array("DOG")
+    with pytest.raises(TypeError):
+        Animal.encode(array)
 
 
 def test_enum_encode_with_str_with_bad_value():
     """Does not encode when called with a value not in an Enum."""
     array = numpy.array(["JAIBA"])
     enum_array = Animal.encode(array)
-    assert enum_array != Animal.CAT.index
-    assert enum_array != Animal.DOG.index
+    assert len(enum_array) == 0
 
 
 # Unsupported encodings
 
 
 def test_enum_encode_with_any_array():
-    """Does not encode when called with unsupported types (noop)."""
+    """Does not encode when called with unsupported types."""
     value = {"animal": "dog"}
     array = numpy.array([value])
-    enum_array = Animal.encode(array)
-    assert enum_array[0] == value
+    with pytest.raises(TypeError):
+        Animal.encode(array)
 
 
 def test_enum_encode_with_any_scalar_array():
-    """Does not encode when called with unsupported types (noop)."""
+    """Does not encode when called with unsupported types."""
     value = 1.5
     array = numpy.array(value)
-    enum_array = Animal.encode(array)
-    assert enum_array == value
+    with pytest.raises(TypeError):
+        Animal.encode(array)
 
 
 def test_enum_encode_with_any_sequence():
-    """Does not encode when called with unsupported types (noop)."""
+    """Does not encode when called with unsupported types."""
     sequence = memoryview(b"DOG")
-    enum_array = Animal.encode(sequence)
-    assert enum_array[0] == sequence[0]
-
-
-def test_enum_encode_with_anything():
-    """Does not encode when called with unsupported types (noop)."""
-    anything = {object()}
-    enum_array = Animal.encode(anything)
-    assert enum_array == anything
+    with pytest.raises(NotImplementedError):
+        Animal.encode(sequence)

@@ -153,7 +153,16 @@ class Enum(t.Enum):
     @classmethod
     def encode(
         cls,
-        array: EnumArray | numpy.int32 | numpy.float32 | numpy.object_,
+        array: (
+            EnumArray
+            | t.Array[t.DTypeStr]
+            | t.Array[t.DTypeInt]
+            | t.Array[t.DTypeEnum]
+            | t.Array[t.DTypeObject]
+            | t.ArrayLike[str]
+            | t.ArrayLike[int]
+            | t.ArrayLike[t.Enum]
+        ),
     ) -> EnumArray:
         """Encode an encodable array into an :class:`.EnumArray`.
 
@@ -162,6 +171,11 @@ class Enum(t.Enum):
 
         Returns:
             EnumArray: An :class:`.EnumArray` with the encoded input values.
+
+        Raises:
+            TypeError: If ``array`` is a scalar :class:`~numpy.ndarray`.
+            TypeError: If ``array`` is of a diffent :class:`.Enum` type.
+            NotImplementedError: If ``array`` is of an unsupported type.
 
         Examples:
             >>> import numpy
@@ -183,22 +197,15 @@ class Enum(t.Enum):
 
             >>> array = numpy.array([Housing.TENANT])
             >>> enum_array = Housing.encode(array)
-            >>> enum_array[0] == Housing.TENANT.index
-            True
+            >>> enum_array == Housing.TENANT
+            array([ True])
 
             # Array of integers
 
             >>> array = numpy.array([1])
             >>> enum_array = Housing.encode(array)
-            >>> enum_array[0] == Housing.TENANT.index
-            True
-
-            # Array of bytes
-
-            >>> array = numpy.array([b"TENANT"])
-            >>> enum_array = Housing.encode(array)
-            >>> enum_array[0] == Housing.TENANT.index
-            True
+            >>> enum_array == Housing.TENANT
+            array([ True])
 
             # Array of strings
 
@@ -207,6 +214,13 @@ class Enum(t.Enum):
             >>> enum_array[0] == Housing.TENANT.index
             True
 
+            # Array of bytes
+
+            >>> array = numpy.array([b"TENANT"])
+            >>> enum_array = Housing.encode(array)
+            Traceback (most recent call last):
+            NotImplementedError: Unsupported encoding: bytes48.
+
         .. seealso::
             :meth:`.EnumArray.decode` for decoding.
 
@@ -214,15 +228,36 @@ class Enum(t.Enum):
         if isinstance(array, EnumArray):
             return array
 
+        if not isinstance(array, numpy.ndarray):
+            return cls.encode(numpy.array(array))
+
+        if array.size == 0:
+            return EnumArray(array, cls)
+
+        if array.ndim == 0:
+            msg = (
+                "Scalar arrays are not supported: expecting a vector array, "
+                f"instead. Please try again with `numpy.array([{array}])`."
+            )
+            raise TypeError(msg)
+
+        # Enum data type array
+        if numpy.issubdtype(array.dtype, t.DTypeEnum):
+            indexes = numpy.array([item.index for item in cls], t.DTypeEnum)
+            return EnumArray(indexes[array[array < indexes.size]], cls)
+
+        # Integer array
+        if numpy.issubdtype(array.dtype, int):
+            array = numpy.array(array, dtype=t.DTypeEnum)
+            return cls.encode(array)
+
         # String array
-        if isinstance(array, numpy.ndarray) and array.dtype.kind in {"U", "S"}:
-            array = numpy.select(
-                [array == item.name for item in cls],
-                [item.index for item in cls],
-            ).astype(ENUM_ARRAY_DTYPE)
+        if numpy.issubdtype(array.dtype, t.DTypeStr):
+            enums = [cls.__members__[key] for key in array if key in cls.__members__]
+            return cls.encode(enums)
 
         # Enum items arrays
-        elif isinstance(array, numpy.ndarray) and array.dtype.kind == "O":
+        if numpy.issubdtype(array.dtype, t.DTypeObject):
             # Ensure we are comparing the comparable. The problem this fixes:
             # On entering this method "cls" will generally come from
             # variable.possible_values, while the array values may come from
@@ -234,15 +269,21 @@ class Enum(t.Enum):
             # So, instead of relying on the "cls" passed in, we use only its
             # name to check that the values in the array, if non-empty, are of
             # the right type.
-            if len(array) > 0 and cls.__name__ is array[0].__class__.__name__:
-                cls = array[0].__class__
+            if cls.__name__ is array[0].__class__.__name__:
+                array = numpy.select(
+                    [array == item for item in array[0].__class__],
+                    [item.index for item in array[0].__class__],
+                ).astype(ENUM_ARRAY_DTYPE)
+                return EnumArray(array, cls)
 
-            array = numpy.select(
-                [array == item for item in cls],
-                [item.index for item in cls],
-            ).astype(ENUM_ARRAY_DTYPE)
+            msg = (
+                f"Diverging enum types are not supported: expected {cls.__name__}, "
+                f"but got {array[0].__class__.__name__} instead."
+            )
+            raise TypeError(msg)
 
-        return EnumArray(array, cls)
+        msg = f"Unsupported encoding: {array.dtype.name}."
+        raise NotImplementedError(msg)
 
 
 __all__ = ["Enum"]
