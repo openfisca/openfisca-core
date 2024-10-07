@@ -55,18 +55,6 @@ class Enum(t.Enum):
         >>> Housing.TENANT != Housing.TENANT
         False
 
-        >>> Housing.TENANT > Housing.TENANT
-        False
-
-        >>> Housing.TENANT < Housing.TENANT
-        False
-
-        >>> Housing.TENANT >= Housing.TENANT
-        True
-
-        >>> Housing.TENANT <= Housing.TENANT
-        True
-
         >>> Housing.TENANT.index
         1
 
@@ -126,26 +114,6 @@ class Enum(t.Enum):
         if not isinstance(other, Enum):
             return NotImplemented
         return self.index != other.index
-
-    def __lt__(self, other: object) -> bool:
-        if not isinstance(other, Enum):
-            return NotImplemented
-        return self.index < other.index
-
-    def __le__(self, other: object) -> bool:
-        if not isinstance(other, Enum):
-            return NotImplemented
-        return self.index <= other.index
-
-    def __gt__(self, other: object) -> bool:
-        if not isinstance(other, Enum):
-            return NotImplemented
-        return self.index > other.index
-
-    def __ge__(self, other: object) -> bool:
-        if not isinstance(other, Enum):
-            return NotImplemented
-        return self.index >= other.index
 
     #: :meth:`.__hash__` must also be defined so as to stay hashable.
     __hash__ = object.__hash__
