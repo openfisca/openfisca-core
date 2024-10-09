@@ -18,6 +18,52 @@ class EnumArray(t.EnumArray):
         about the :meth:`.__new__` and :meth:`.__array_finalize__` methods
         below, see `Subclassing ndarray`_.
 
+    Examples:
+        >>> import numpy
+
+        >>> from openfisca_core import indexed_enums as enum, variables
+
+        >>> class Housing(enum.Enum):
+        ...     OWNER = "Owner"
+        ...     TENANT = "Tenant"
+        ...     FREE_LODGER = "Free lodger"
+        ...     HOMELESS = "Homeless"
+
+        >>> array = numpy.array([1])
+        >>> enum_array = enum.EnumArray(array, Housing)
+
+        >>> repr(enum.EnumArray)
+        "<class 'openfisca_core.indexed_enums.enum_array.EnumArray'>"
+
+        >>> repr(enum_array)
+        'EnumArray(Housing.TENANT)'
+
+        >>> str(enum_array)
+        "['TENANT']"
+
+        >>> list(enum_array)
+        [1]
+
+        >>> enum_array[0]
+        1
+
+        >>> enum_array[0] in enum_array
+        True
+
+        >>> len(enum_array)
+        1
+
+        >>> enum_array = enum.EnumArray(list(Housing), Housing)
+        >>> enum_array[Housing.TENANT.index]
+        Housing.TENANT
+
+        >>> class OccupancyStatus(variables.Variable):
+        ...     value_type = enum.Enum
+        ...     possible_values = Housing
+
+        >>> enum.EnumArray(array, OccupancyStatus.possible_values)
+        EnumArray(Housing.TENANT)
+
     .. _Subclassing ndarray:
         https://numpy.org/doc/stable/user/basics.subclassing.html
 
@@ -28,7 +74,7 @@ class EnumArray(t.EnumArray):
 
     def __new__(
         cls,
-        input_array: t.Array[t.DTypeEnum],
+        input_array: t.IndexArray,
         possible_values: None | type[t.Enum] = None,
     ) -> Self:
         """See comment above."""
@@ -59,6 +105,33 @@ class EnumArray(t.EnumArray):
             bool: When ???
             ndarray[bool_]: When ???
 
+        Examples:
+            >>> import numpy
+
+            >>> from openfisca_core import indexed_enums as enum
+
+            >>> class Housing(enum.Enum):
+            ...     OWNER = "Owner"
+            ...     TENANT = "Tenant"
+
+            >>> array = numpy.array([1])
+            >>> enum_array = enum.EnumArray(array, Housing)
+
+            >>> enum_array == 1
+            array([ True])
+
+            >>> enum_array == [1]
+            array([ True])
+
+            >>> enum_array == [2]
+            array([False])
+
+            >>> enum_array == "1"
+            array([False])
+
+            >>> enum_array is None
+            False
+
         Note:
             This breaks the `Liskov substitution principle`_.
 
@@ -68,8 +141,10 @@ class EnumArray(t.EnumArray):
         """
         if other.__class__.__name__ is self.possible_values.__name__:
             return self.view(numpy.ndarray) == other.index
-
-        return self.view(numpy.ndarray) == other
+        is_eq = self.view(numpy.ndarray) == other
+        if isinstance(is_eq, numpy.ndarray):
+            return is_eq
+        return numpy.array([is_eq], dtype=t.BoolDType)
 
     def __ne__(self, other: object) -> bool:
         """Inequality.
@@ -80,6 +155,33 @@ class EnumArray(t.EnumArray):
         Returns:
             bool: When ???
             ndarray[bool_]: When ???
+
+        Examples:
+            >>> import numpy
+
+            >>> from openfisca_core import indexed_enums as enum
+
+            >>> class Housing(enum.Enum):
+            ...     OWNER = "Owner"
+            ...     TENANT = "Tenant"
+
+            >>> array = numpy.array([1])
+            >>> enum_array = enum.EnumArray(array, Housing)
+
+            >>> enum_array != 1
+            array([False])
+
+            >>> enum_array != [1]
+            array([False])
+
+            >>> enum_array != [2]
+            array([ True])
+
+            >>> enum_array != "1"
+            array([ True])
+
+            >>> enum_array is not None
+            True
 
         Note:
             This breaks the `Liskov substitution principle`_.
@@ -115,15 +217,19 @@ class EnumArray(t.EnumArray):
         Returns:
             ndarray[Enum]: The items of the :obj:`.EnumArray`.
 
-        For instance:
+        Examples:
+            >>> import numpy
 
-        >>> enum_array = household("housing_occupancy_status", period)
-        >>> enum_array[0]
-        >>> 2  # Encoded value
-        >>> enum_array.decode()[0]
-        <HousingOccupancyStatus.free_lodger: 'Free lodger'>
+            >>> from openfisca_core import indexed_enums as enum
 
-        Decoded value: enum item
+            >>> class Housing(enum.Enum):
+            ...     OWNER = "Owner"
+            ...     TENANT = "Tenant"
+
+            >>> array = numpy.array([1])
+            >>> enum_array = enum.EnumArray(array, Housing)
+            >>> enum_array.decode()
+            array([Housing.TENANT], dtype=object)
 
         """
         return numpy.select(
@@ -137,13 +243,19 @@ class EnumArray(t.EnumArray):
         Returns:
             ndarray[str_]: The string values of the :obj:`.EnumArray`.
 
-        For instance:
+        Examples:
+            >>> import numpy
 
-        >>> enum_array = household("housing_occupancy_status", period)
-        >>> enum_array[0]
-        >>> 2  # Encoded value
-        >>> enum_array.decode_to_str()[0]
-        'free_lodger'  # String identifier
+            >>> from openfisca_core import indexed_enums as enum
+
+            >>> class Housing(enum.Enum):
+            ...     OWNER = "Owner"
+            ...     TENANT = "Tenant"
+
+            >>> array = numpy.array([1])
+            >>> enum_array = enum.EnumArray(array, Housing)
+            >>> enum_array.decode_to_str()
+            array(['TENANT'], dtype='<U6')
 
         """
         return numpy.select(
@@ -152,7 +264,8 @@ class EnumArray(t.EnumArray):
         )
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.decode()!s})"
+        items = ", ".join(str(item) for item in self.decode())
+        return f"{self.__class__.__name__}({items})"
 
     def __str__(self) -> str:
         return str(self.decode_to_str())

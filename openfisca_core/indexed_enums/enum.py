@@ -3,15 +3,67 @@ from __future__ import annotations
 import numpy
 
 from . import types as t
-from .config import ENUM_ARRAY_DTYPE
+from ._enum_type import EnumType
+from ._type_guards import _is_int_array, _is_str_array
 from .enum_array import EnumArray
 
 
-class Enum(t.Enum):
+class Enum(t.Enum, metaclass=EnumType):
     """Enum based on `enum34 <https://pypi.python.org/pypi/enum34/>`_.
 
     Its items have an :class:`int` index, useful and performant when running
     :mod:`~openfisca_core.simulations` on large :mod:`~openfisca_core.populations`.
+
+    Examples:
+        >>> from openfisca_core import indexed_enums as enum
+
+        >>> class Housing(enum.Enum):
+        ...     OWNER = "Owner"
+        ...     TENANT = "Tenant"
+        ...     FREE_LODGER = "Free lodger"
+        ...     HOMELESS = "Homeless"
+
+        >>> repr(Housing)
+        "<enum 'Housing'>"
+
+        >>> repr(Housing.TENANT)
+        'Housing.TENANT'
+
+        >>> str(Housing.TENANT)
+        'Housing.TENANT'
+
+        >>> dict([(Housing.TENANT, Housing.TENANT.value)])
+        {Housing.TENANT: 'Tenant'}
+
+        >>> list(Housing)
+        [Housing.OWNER, Housing.TENANT, Housing.FREE_LODGER, Housing.HOMELESS]
+
+        >>> Housing["TENANT"]
+        Housing.TENANT
+
+        >>> Housing("Tenant")
+        Housing.TENANT
+
+        >>> Housing.TENANT in Housing
+        True
+
+        >>> len(Housing)
+        4
+
+        >>> Housing.TENANT == Housing.TENANT
+        True
+
+        >>> Housing.TENANT != Housing.TENANT
+        False
+
+        >>> Housing.TENANT.index
+        1
+
+        >>> Housing.TENANT.name
+        'TENANT'
+
+        >>> Housing.TENANT.value
+        'Tenant'
 
     """
 
@@ -28,22 +80,60 @@ class Enum(t.Enum):
             *__args: Positional arguments.
             **__kwargs: Keyword arguments.
 
+        Examples:
+            >>> import numpy
+
+            >>> from openfisca_core import indexed_enums as enum
+
+            >>> Housing = enum.Enum("Housing", "owner tenant")
+            >>> Housing.tenant.index
+            1
+
+            >>> class Housing(enum.Enum):
+            ...     OWNER = "Owner"
+            ...     TENANT = "Tenant"
+
+            >>> Housing.TENANT.index
+            1
+
+            >>> array = numpy.array([[1, 2], [3, 4]])
+            >>> array[Housing.TENANT.index]
+            array([3, 4])
+
         Note:
             ``_member_names_`` is undocumented in upstream :class:`enum.Enum`.
 
         """
         self.index = len(self._member_names_)
 
-    #: Bypass the slow :meth:`enum.Enum.__eq__` method.
-    __eq__ = object.__eq__
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}.{self.name}"
 
-    #: :meth:`.__hash__` must also be defined so as to stay hashable.
-    __hash__ = object.__hash__
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Enum):
+            return NotImplemented
+        return self.index == other.index
+
+    def __ne__(self, other: object) -> bool:
+        if not isinstance(other, Enum):
+            return NotImplemented
+        return self.index != other.index
+
+    def __hash__(self) -> int:
+        return hash(self.index)
 
     @classmethod
     def encode(
         cls,
-        array: EnumArray | numpy.int32 | numpy.float32 | numpy.object_,
+        array: (
+            EnumArray
+            | t.IntArray
+            | t.StrArray
+            | t.ObjArray
+            | t.ArrayLike[int]
+            | t.ArrayLike[str]
+            | t.ArrayLike[t.Enum]
+        ),
     ) -> EnumArray:
         """Encode an encodable array into an :class:`.EnumArray`.
 
@@ -53,52 +143,105 @@ class Enum(t.Enum):
         Returns:
             EnumArray: An :class:`.EnumArray` with the encoded input values.
 
-        For instance:
+        Raises:
+            TypeError: If ``array`` is a scalar :class:`~numpy.ndarray`.
+            TypeError: If ``array`` is of a diffent :class:`.Enum` type.
 
-        >>> string_identifier_array = asarray(["free_lodger", "owner"])
-        >>> encoded_array = HousingOccupancyStatus.encode(string_identifier_array)
-        >>> encoded_array[0]
-        2  # Encoded value
+        Examples:
+            >>> import numpy
 
-        >>> free_lodger = HousingOccupancyStatus.free_lodger
-        >>> owner = HousingOccupancyStatus.owner
-        >>> enum_item_array = asarray([free_lodger, owner])
-        >>> encoded_array = HousingOccupancyStatus.encode(enum_item_array)
-        >>> encoded_array[0]
-        2  # Encoded value
+            >>> from openfisca_core import indexed_enums as enum
+
+            >>> class Housing(enum.Enum):
+            ...     OWNER = "Owner"
+            ...     TENANT = "Tenant"
+
+            # EnumArray
+
+            >>> array = numpy.array([1])
+            >>> enum_array = enum.EnumArray(array, Housing)
+            >>> Housing.encode(enum_array)
+            EnumArray(Housing.TENANT)
+
+            # Array of Enum
+
+            >>> array = numpy.array([Housing.TENANT])
+            >>> enum_array = Housing.encode(array)
+            >>> enum_array == Housing.TENANT
+            array([ True])
+
+            # Array of integers
+
+            >>> array = numpy.array([1])
+            >>> enum_array = Housing.encode(array)
+            >>> enum_array == Housing.TENANT
+            array([ True])
+
+            # Array of strings
+
+            >>> array = numpy.array(["TENANT"])
+            >>> enum_array = Housing.encode(array)
+            >>> enum_array == Housing.TENANT
+            array([ True])
+
+            # Array of bytes
+
+            >>> array = numpy.array([b"TENANT"])
+            >>> enum_array = Housing.encode(array)
+            Traceback (most recent call last):
+            TypeError: Failed to encode "[b'TENANT']" of type 'bytes_', as i...
+
+        .. seealso::
+            :meth:`.EnumArray.decode` for decoding.
+
         """
         if isinstance(array, EnumArray):
             return array
 
+        if not isinstance(array, numpy.ndarray):
+            return cls.encode(numpy.array(array))
+
+        if array.size == 0:
+            return EnumArray(numpy.array([]), cls)
+
+        if array.ndim == 0:
+            msg = (
+                "Scalar arrays are not supported: expecting a vector array, "
+                f"instead. Please try again with `numpy.array([{array}])`."
+            )
+            raise TypeError(msg)
+
+        # Integer array
+        if _is_int_array(array):
+            indices = numpy.array(array[array < len(cls.items)], dtype=t.EnumDType)
+            return EnumArray(indices, cls)
+
         # String array
-        if isinstance(array, numpy.ndarray) and array.dtype.kind in {"U", "S"}:
-            array = numpy.select(
-                [array == item.name for item in cls],
-                [item.index for item in cls],
-            ).astype(ENUM_ARRAY_DTYPE)
+        if _is_str_array(array):
+            indices = cls.items[numpy.isin(cls.names, array)].index
+            return EnumArray(indices, cls)
 
-        # Enum items arrays
-        elif isinstance(array, numpy.ndarray) and array.dtype.kind == "O":
-            # Ensure we are comparing the comparable. The problem this fixes:
-            # On entering this method "cls" will generally come from
-            # variable.possible_values, while the array values may come from
-            # directly importing a module containing an Enum class. However,
-            # variables (and hence their possible_values) are loaded by a call
-            # to load_module, which gives them a different identity from the
-            # ones imported in the usual way.
-            #
-            # So, instead of relying on the "cls" passed in, we use only its
-            # name to check that the values in the array, if non-empty, are of
-            # the right type.
-            if len(array) > 0 and cls.__name__ is array[0].__class__.__name__:
-                cls = array[0].__class__
+        # Ensure we are comparing the comparable. The problem this fixes:
+        # On entering this method "cls" will generally come from
+        # variable.possible_values, while the array values may come from
+        # directly importing a module containing an Enum class. However,
+        # variables (and hence their possible_values) are loaded by a call
+        # to load_module, which gives them a different identity from the
+        # ones imported in the usual way.
+        #
+        # So, instead of relying on the "cls" passed in, we use only its
+        # name to check that the values in the array, if non-empty, are of
+        # the right type.
+        if cls.__name__ is array[0].__class__.__name__:
+            indices = cls.items[numpy.isin(cls.enums, array)].index
+            return EnumArray(indices, cls)
 
-            array = numpy.select(
-                [array == item for item in cls],
-                [item.index for item in cls],
-            ).astype(ENUM_ARRAY_DTYPE)
-
-        return EnumArray(array, cls)
+        msg = (
+            f"Failed to encode \"{array}\" of type '{array[0].__class__.__name__}', "
+            "as it is not supported. Please, try again with an array of "
+            f"'{int.__name__}', '{str.__name__}', or '{cls.__name__}'."
+        )
+        raise TypeError(msg)
 
 
 __all__ = ["Enum"]

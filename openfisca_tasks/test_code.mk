@@ -40,6 +40,7 @@ test-core: $(shell git ls-files "*test_*.py")
 		openfisca_core/data_storage \
 		openfisca_core/entities \
 		openfisca_core/holders \
+		openfisca_core/indexed_enums \
 		openfisca_core/periods \
 		openfisca_core/projectors
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \

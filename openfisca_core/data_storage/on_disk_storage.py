@@ -87,7 +87,7 @@ class OnDiskStorage:
             ...     storage = data_storage.OnDiskStorage(directory)
             ...     storage.put(value, period)
             ...     storage._decode_file(storage._files[period])
-            EnumArray([<Housing.TENANT: 'Tenant'>])
+            EnumArray(Housing.TENANT)
 
         """
         enum = self._enums.get(file)
