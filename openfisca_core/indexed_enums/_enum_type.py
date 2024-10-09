@@ -111,3 +111,6 @@ class EnumType(t.EnumType):
 
     def __dir__(cls) -> list[str]:
         return sorted({"items", "indices", "names", "enums", *super().__dir__()})
+
+
+__all__ = ["EnumType"]
