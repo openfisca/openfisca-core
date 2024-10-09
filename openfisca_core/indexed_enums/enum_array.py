@@ -150,6 +150,8 @@ class EnumArray(t.EnumArray):
             https://en.wikipedia.org/wiki/Liskov_substitution_principle
 
         """
+        result: t.BoolArray
+
         if self.possible_values is None:
             return NotImplemented
         if other is None:
@@ -158,12 +160,16 @@ class EnumArray(t.EnumArray):
             isinstance(other, type(t.Enum))
             and other.__name__ is self.possible_values.__name__
         ):
-            return self.view(numpy.ndarray) == other.indices[other.indices <= max(self)]
+            result = (
+                self.view(numpy.ndarray) == other.indices[other.indices <= max(self)]
+            )
+            return result
         if (
             isinstance(other, t.Enum)
             and other.__class__.__name__ is self.possible_values.__name__
         ):
-            return self.view(numpy.ndarray) == other.index
+            result = self.view(numpy.ndarray) == other.index
+            return result
         # For NumPy >=1.26.x.
         if isinstance(is_equal := self.view(numpy.ndarray) == other, numpy.ndarray):
             return is_equal
@@ -263,6 +269,8 @@ class EnumArray(t.EnumArray):
             array([Housing.TENANT], dtype=object)
 
         """
+        result: t.ObjArray
+
         if self.possible_values is None:
             msg = (
                 f"The possible values of the {self.__class__.__name__} are "
@@ -271,7 +279,8 @@ class EnumArray(t.EnumArray):
             raise TypeError(msg)
         arr = self.astype(t.EnumDType)
         arr = arr.reshape(1) if arr.ndim == 0 else arr
-        return self.possible_values.items[arr.astype(t.EnumDType)].enum
+        result = self.possible_values.items[arr.astype(t.EnumDType)].enum
+        return result
 
     def decode_to_str(self) -> t.StrArray:
         """Decode itself to an array of strings.
@@ -297,6 +306,8 @@ class EnumArray(t.EnumArray):
             array(['TENANT'], dtype='<U6')
 
         """
+        result: t.StrArray
+
         if self.possible_values is None:
             msg = (
                 f"The possible values of the {self.__class__.__name__} are "
@@ -305,7 +316,8 @@ class EnumArray(t.EnumArray):
             raise TypeError(msg)
         arr = self.astype(t.EnumDType)
         arr = arr.reshape(1) if arr.ndim == 0 else arr
-        return self.possible_values.items[arr.astype(t.EnumDType)].name
+        result = self.possible_values.items[arr.astype(t.EnumDType)].name
+        return result
 
     def __repr__(self) -> str:
         items = ", ".join(str(item) for item in self.decode())

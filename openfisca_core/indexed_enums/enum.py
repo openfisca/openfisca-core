@@ -217,7 +217,7 @@ class Enum(t.Enum, metaclass=EnumType):
             return EnumArray(indices, cls)
 
         # String array
-        if _is_str_array(array):
+        if _is_str_array(array):  # type: ignore[unreachable]
             indices = cls.items[numpy.isin(cls.names, array)].index
             return EnumArray(indices, cls)
 

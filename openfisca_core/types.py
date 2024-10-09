@@ -137,8 +137,8 @@ class EnumArray(Array[DTypeEnum], metaclass=abc.ABCMeta):
 
 
 class Holder(Protocol):
-    def clone(self, population: Any, /) -> Holder: ...
-    def get_memory_usage(self, /) -> Any: ...
+    def clone(self, population: CorePopulation, /) -> Holder: ...
+    def get_memory_usage(self, /) -> dict[str, object]: ...
 
 
 # Parameters
@@ -198,27 +198,39 @@ class Period(Indexable[Union[DateUnit, Instant, int]], Protocol):
 # Populations
 
 
-class Population(Protocol):
-    entity: Any
+class CorePopulation(Protocol): ...
 
-    def get_holder(self, variable_name: VariableName, /) -> Any: ...
+
+class SinglePopulation(CorePopulation, Protocol):
+    entity: SingleEntity
+
+    def get_holder(self, variable_name: VariableName, /) -> Holder: ...
+
+
+class GroupPopulation(CorePopulation, Protocol): ...
 
 
 # Simulations
 
 
 class Simulation(Protocol):
-    def calculate(self, variable_name: VariableName, period: Any, /) -> Any: ...
-    def calculate_add(self, variable_name: VariableName, period: Any, /) -> Any: ...
-    def calculate_divide(self, variable_name: VariableName, period: Any, /) -> Any: ...
-    def get_population(self, plural: None | str, /) -> Any: ...
+    def calculate(
+        self, variable_name: VariableName, period: Period, /
+    ) -> Array[DTypeGeneric]: ...
+    def calculate_add(
+        self, variable_name: VariableName, period: Period, /
+    ) -> Array[DTypeGeneric]: ...
+    def calculate_divide(
+        self, variable_name: VariableName, period: Period, /
+    ) -> Array[DTypeGeneric]: ...
+    def get_population(self, plural: None | str, /) -> CorePopulation: ...
 
 
 # Tax-Benefit systems
 
 
 class TaxBenefitSystem(Protocol):
-    person_entity: Any
+    person_entity: SingleEntity
 
     def get_variable(
         self,
@@ -235,18 +247,18 @@ VariableName = NewType("VariableName", str)
 
 
 class Variable(Protocol):
-    entity: Any
+    entity: CoreEntity
     name: VariableName
 
 
 class Formula(Protocol):
     def __call__(
         self,
-        population: Population,
+        population: CorePopulation,
         instant: Instant,
         params: Params,
         /,
-    ) -> Array[Any]: ...
+    ) -> Array[DTypeGeneric]: ...
 
 
 class Params(Protocol):

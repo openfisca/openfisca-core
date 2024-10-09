@@ -7,15 +7,15 @@ import numpy
 from . import types as t
 
 
-def _item_list(enum_class: type[t.Enum]) -> t.ItemList:
+def _item_list(enum_class: t.EnumType) -> t.ItemList:
     """Return the non-vectorised list of enum items."""
-    return [
+    return [  # type: ignore[var-annotated]
         (index, name, value)
         for index, (name, value) in enumerate(enum_class.__members__.items())
     ]
 
 
-def _item_dtype(enum_class: type[t.Enum]) -> t.RecDType:
+def _item_dtype(enum_class: t.EnumType) -> t.RecDType:
     """Return the dtype of the indexed enum's items."""
     size = max(map(len, enum_class.__members__.keys()))
     return numpy.dtype(
@@ -30,7 +30,7 @@ def _item_dtype(enum_class: type[t.Enum]) -> t.RecDType:
     )
 
 
-def _item_array(enum_class: type[t.Enum]) -> t.RecArray:
+def _item_array(enum_class: t.EnumType) -> t.RecArray:
     """Return the indexed enum's items."""
     items = _item_list(enum_class)
     dtype = _item_dtype(enum_class)
@@ -76,17 +76,20 @@ class EnumType(t.EnumType):
     @property
     def indices(cls) -> t.IndexArray:
         """Return the indices of the indexed enum class."""
-        return cls.items.index
+        indices: t.IndexArray = cls.items.index
+        return indices
 
     @property
     def names(cls) -> t.StrArray:
         """Return the names of the indexed enum class."""
-        return cls.items.name
+        names: t.StrArray = cls.items.name
+        return names
 
     @property
     def enums(cls) -> t.ObjArray:
         """Return the members of the indexed enum class."""
-        return cls.items.enum
+        enums: t.ObjArray = cls.items.enum
+        return enums
 
     def __new__(
         metacls,
