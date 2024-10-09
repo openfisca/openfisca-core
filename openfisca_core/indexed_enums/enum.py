@@ -27,22 +27,22 @@ class Enum(t.Enum, metaclass=EnumType):
         "<enum 'Housing'>"
 
         >>> repr(Housing.TENANT)
-        "<Housing.TENANT: 'Tenant'>"
+        'Housing.TENANT'
 
         >>> str(Housing.TENANT)
         'Housing.TENANT'
 
         >>> dict([(Housing.TENANT, Housing.TENANT.value)])
-        {<Housing.TENANT: 'Tenant'>: 'Tenant'}
+        {Housing.TENANT: 'Tenant'}
 
         >>> list(Housing)
-        [<Housing.OWNER: 'Owner'>, <Housing.TENANT: 'Tenant'>, ...]
+        [Housing.OWNER, Housing.TENANT, Housing.FREE_LODGER, Housing.HOMELESS]
 
         >>> Housing["TENANT"]
-        <Housing.TENANT: 'Tenant'>
+        Housing.TENANT
 
         >>> Housing("Tenant")
-        <Housing.TENANT: 'Tenant'>
+        Housing.TENANT
 
         >>> Housing.TENANT in Housing
         True
@@ -106,6 +106,9 @@ class Enum(t.Enum, metaclass=EnumType):
         """
         self.index = len(self._member_names_)
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}.{self.name}"
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Enum):
             return NotImplemented
@@ -158,7 +161,7 @@ class Enum(t.Enum, metaclass=EnumType):
             >>> array = numpy.array([1])
             >>> enum_array = enum.EnumArray(array, Housing)
             >>> Housing.encode(enum_array)
-            EnumArray([<Housing.TENANT: 'Tenant'>])
+            EnumArray(Housing.TENANT)
 
             # Array of Enum
 

@@ -57,7 +57,7 @@ class EnumType(t.EnumType):
         ...     TENANT = "Tenant"
 
         >>> Housing.items
-        rec.array([(0, 'OWNER', <Housing.OWNER: 'Owner'>), ...])
+        rec.array([(0, 'OWNER', Housing.OWNER), (1, 'TENANT', Housing.TENAN...)
 
         >>> Housing.indices
         array([0, 1], dtype=int16)
@@ -66,7 +66,7 @@ class EnumType(t.EnumType):
         array(['OWNER', 'TENANT'], dtype='<U6')
 
         >>> Housing.enums
-        array([<Housing.OWNER: 'Owner'>, <Housing.TENANT: 'Tenant'>], dtype...)
+        array([Housing.OWNER, Housing.TENANT], dtype=object)
 
     """
 

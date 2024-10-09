@@ -36,7 +36,7 @@ class EnumArray(t.EnumArray):
         "<class 'openfisca_core.indexed_enums.enum_array.EnumArray'>"
 
         >>> repr(enum_array)
-        "EnumArray([<Housing.TENANT: 'Tenant'>])"
+        'EnumArray(Housing.TENANT)'
 
         >>> str(enum_array)
         "['TENANT']"
@@ -55,14 +55,14 @@ class EnumArray(t.EnumArray):
 
         >>> enum_array = enum.EnumArray(list(Housing), Housing)
         >>> enum_array[Housing.TENANT.index]
-        <Housing.TENANT: 'Tenant'>
+        Housing.TENANT
 
         >>> class OccupancyStatus(variables.Variable):
         ...     value_type = enum.Enum
         ...     possible_values = Housing
 
         >>> enum.EnumArray(array, OccupancyStatus.possible_values)
-        EnumArray([<Housing.TENANT: 'Tenant'>])
+        EnumArray(Housing.TENANT)
 
     .. _Subclassing ndarray:
         https://numpy.org/doc/stable/user/basics.subclassing.html
@@ -229,7 +229,7 @@ class EnumArray(t.EnumArray):
             >>> array = numpy.array([1])
             >>> enum_array = enum.EnumArray(array, Housing)
             >>> enum_array.decode()
-            array([<Housing.TENANT: 'Tenant'>], dtype=object)
+            array([Housing.TENANT], dtype=object)
 
         """
         return numpy.select(
@@ -264,7 +264,8 @@ class EnumArray(t.EnumArray):
         )
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.decode()!s})"
+        items = ", ".join(str(item) for item in self.decode())
+        return f"{self.__class__.__name__}({items})"
 
     def __str__(self) -> str:
         return str(self.decode_to_str())
