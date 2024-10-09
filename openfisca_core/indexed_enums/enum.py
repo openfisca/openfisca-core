@@ -181,8 +181,8 @@ class Enum(t.Enum, metaclass=EnumType):
 
             >>> array = numpy.array(["TENANT"])
             >>> enum_array = Housing.encode(array)
-            >>> enum_array[0] == Housing.TENANT.index
-            True
+            >>> enum_array == Housing.TENANT
+            array([ True])
 
             # Array of bytes
 
