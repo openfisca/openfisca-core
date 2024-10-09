@@ -28,6 +28,9 @@ _L = TypeVar("_L")
 #: Type representing an array-like object.
 ArrayLike: TypeAlias = Sequence[_L]
 
+#: Type for record arrays.
+RecArray: TypeAlias = numpy.recarray[object, Any]  # type: ignore[misc]
+
 #: Type for bool arrays.
 DTypeBool: TypeAlias = numpy.bool_
 
@@ -108,11 +111,17 @@ class Role(Protocol):
 # Indexed enums
 
 
-class EnumType(enum.EnumMeta): ...
+class EnumType(enum.EnumMeta):
+    items: RecArray
+
+    @property
+    @abc.abstractmethod
+    def indices(cls) -> Array[DTypeEnum]: ...
 
 
 class Enum(enum.Enum, metaclass=EnumType):
     index: int
+    _member_names_: list[str]
 
 
 class EnumArray(Array[DTypeEnum], metaclass=abc.ABCMeta):

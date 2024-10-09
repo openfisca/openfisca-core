@@ -44,14 +44,17 @@ def date_variable(persons):
 
 @pytest.fixture
 def enum_variable():
+    class _TestEnum(Enum):
+        foo = "bar"
+
     class TestEnum(Variable):
         definition_period = DateUnit.ETERNITY
         value_type = Enum
         dtype = "O"
-        default_value = "0"
+        default_value = _TestEnum.foo
         is_neutralized = False
         set_input = None
-        possible_values = Enum("foo", "bar")
+        possible_values = _TestEnum
         name = "enum"
 
         def __init__(self) -> None:

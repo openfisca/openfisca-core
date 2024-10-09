@@ -1,4 +1,3 @@
-from typing import Any
 from typing_extensions import TypeAlias
 
 from openfisca_core.types import (
@@ -14,6 +13,7 @@ from openfisca_core.types import (
     Enum,
     EnumArray,
     EnumType,
+    RecArray,
 )
 
 import enum
@@ -29,11 +29,11 @@ ItemList: TypeAlias = list[tuple[int, str, Enum]]
 #: Type for record arrays data type.
 RecDType: TypeAlias = numpy.dtype[numpy.void]
 
-#: Type for record arrays.
-RecArray: TypeAlias = numpy.recarray[object, Any]
-
 #: Type for enum indices arrays.
 IndexArray: TypeAlias = Array[EnumDType]
+
+#: Type for boolean arrays.
+BoolArray: TypeAlias = Array[BoolDType]
 
 #: Type for int arrays.
 IntArray: TypeAlias = Array[IntDType]
@@ -55,4 +55,5 @@ __all__ = [
     "Enum",
     "EnumArray",
     "EnumType",
+    "RecArray",
 ]
