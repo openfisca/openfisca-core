@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence, Sized
-from numpy.typing import NDArray
+from numpy.typing import DTypeLike, NDArray
 from typing import Any, NewType, TypeVar, Union
 from typing_extensions import Protocol, Self, TypeAlias
 
@@ -108,7 +108,10 @@ class Role(Protocol):
 # Indexed enums
 
 
-class Enum(enum.Enum, metaclass=enum.EnumMeta):
+class EnumType(enum.EnumMeta): ...
+
+
+class Enum(enum.Enum, metaclass=EnumType):
     index: int
 
 
@@ -239,3 +242,6 @@ class Formula(Protocol):
 
 class Params(Protocol):
     def __call__(self, instant: Instant, /) -> ParameterNodeAtInstant: ...
+
+
+__all__ = ["DTypeLike"]

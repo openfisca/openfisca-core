@@ -27,7 +27,7 @@ def test_enum_encode_with_array_of_enum():
 
 def test_enum_encode_with_enum_sequence():
     """Does encode when called with an enum sequence."""
-    sequence = list(Animal)
+    sequence = list(Animal) + list(Colour)
     enum_array = Animal.encode(sequence)
     assert Animal.DOG in enum_array
 
@@ -89,7 +89,7 @@ def test_enum_encode_with_array_of_string():
 
 def test_enum_encode_with_str_sequence():
     """Does encode when called with a str sequence."""
-    sequence = ("DOG",)
+    sequence = ("DOG", "JAIBA")
     enum_array = Animal.encode(sequence)
     assert Animal.DOG in enum_array
 
@@ -130,5 +130,5 @@ def test_enum_encode_with_any_scalar_array():
 def test_enum_encode_with_any_sequence():
     """Does not encode when called with unsupported types."""
     sequence = memoryview(b"DOG")
-    with pytest.raises(NotImplementedError):
-        Animal.encode(sequence)
+    enum_array = Animal.encode(sequence)
+    assert len(enum_array) == 0

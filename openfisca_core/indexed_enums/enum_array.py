@@ -74,7 +74,7 @@ class EnumArray(t.EnumArray):
 
     def __new__(
         cls,
-        input_array: t.Array[t.DTypeEnum],
+        input_array: t.IndexArray,
         possible_values: None | type[t.Enum] = None,
     ) -> Self:
         """See comment above."""

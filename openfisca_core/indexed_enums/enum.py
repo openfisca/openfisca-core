@@ -3,11 +3,12 @@ from __future__ import annotations
 import numpy
 
 from . import types as t
-from .config import ENUM_ARRAY_DTYPE
+from ._enum_type import EnumType
+from ._type_guards import _is_int_array, _is_str_array
 from .enum_array import EnumArray
 
 
-class Enum(t.Enum):
+class Enum(t.Enum, metaclass=EnumType):
     """Enum based on `enum34 <https://pypi.python.org/pypi/enum34/>`_.
 
     Its items have an :class:`int` index, useful and performant when running
@@ -115,20 +116,19 @@ class Enum(t.Enum):
             return NotImplemented
         return self.index != other.index
 
-    #: :meth:`.__hash__` must also be defined so as to stay hashable.
-    __hash__ = object.__hash__
+    def __hash__(self) -> int:
+        return hash(self.index)
 
     @classmethod
     def encode(
         cls,
         array: (
             EnumArray
-            | t.Array[t.DTypeStr]
-            | t.Array[t.DTypeInt]
-            | t.Array[t.DTypeEnum]
-            | t.Array[t.DTypeObject]
-            | t.ArrayLike[str]
+            | t.IntArray
+            | t.StrArray
+            | t.ObjArray
             | t.ArrayLike[int]
+            | t.ArrayLike[str]
             | t.ArrayLike[t.Enum]
         ),
     ) -> EnumArray:
@@ -143,7 +143,6 @@ class Enum(t.Enum):
         Raises:
             TypeError: If ``array`` is a scalar :class:`~numpy.ndarray`.
             TypeError: If ``array`` is of a diffent :class:`.Enum` type.
-            NotImplementedError: If ``array`` is of an unsupported type.
 
         Examples:
             >>> import numpy
@@ -187,7 +186,7 @@ class Enum(t.Enum):
             >>> array = numpy.array([b"TENANT"])
             >>> enum_array = Housing.encode(array)
             Traceback (most recent call last):
-            NotImplementedError: Unsupported encoding: bytes48.
+            TypeError: Failed to encode "[b'TENANT']" of type 'bytes_', as i...
 
         .. seealso::
             :meth:`.EnumArray.decode` for decoding.
@@ -200,7 +199,7 @@ class Enum(t.Enum):
             return cls.encode(numpy.array(array))
 
         if array.size == 0:
-            return EnumArray(array, cls)
+            return EnumArray(numpy.array([]), cls)
 
         if array.ndim == 0:
             msg = (
@@ -209,49 +208,37 @@ class Enum(t.Enum):
             )
             raise TypeError(msg)
 
-        # Enum data type array
-        if numpy.issubdtype(array.dtype, t.DTypeEnum):
-            indexes = numpy.array([item.index for item in cls], t.DTypeEnum)
-            return EnumArray(indexes[array[array < indexes.size]], cls)
-
         # Integer array
-        if numpy.issubdtype(array.dtype, int):
-            array = numpy.array(array, dtype=t.DTypeEnum)
-            return cls.encode(array)
+        if _is_int_array(array):
+            indices = numpy.array(array[array < len(cls.items)], dtype=t.EnumDType)
+            return EnumArray(indices, cls)
 
         # String array
-        if numpy.issubdtype(array.dtype, t.DTypeStr):
-            enums = [cls.__members__[key] for key in array if key in cls.__members__]
-            return cls.encode(enums)
+        if _is_str_array(array):
+            indices = cls.items[numpy.isin(cls.names, array)].index
+            return EnumArray(indices, cls)
 
-        # Enum items arrays
-        if numpy.issubdtype(array.dtype, t.DTypeObject):
-            # Ensure we are comparing the comparable. The problem this fixes:
-            # On entering this method "cls" will generally come from
-            # variable.possible_values, while the array values may come from
-            # directly importing a module containing an Enum class. However,
-            # variables (and hence their possible_values) are loaded by a call
-            # to load_module, which gives them a different identity from the
-            # ones imported in the usual way.
-            #
-            # So, instead of relying on the "cls" passed in, we use only its
-            # name to check that the values in the array, if non-empty, are of
-            # the right type.
-            if cls.__name__ is array[0].__class__.__name__:
-                array = numpy.select(
-                    [array == item for item in array[0].__class__],
-                    [item.index for item in array[0].__class__],
-                ).astype(ENUM_ARRAY_DTYPE)
-                return EnumArray(array, cls)
+        # Ensure we are comparing the comparable. The problem this fixes:
+        # On entering this method "cls" will generally come from
+        # variable.possible_values, while the array values may come from
+        # directly importing a module containing an Enum class. However,
+        # variables (and hence their possible_values) are loaded by a call
+        # to load_module, which gives them a different identity from the
+        # ones imported in the usual way.
+        #
+        # So, instead of relying on the "cls" passed in, we use only its
+        # name to check that the values in the array, if non-empty, are of
+        # the right type.
+        if cls.__name__ is array[0].__class__.__name__:
+            indices = cls.items[numpy.isin(cls.enums, array)].index
+            return EnumArray(indices, cls)
 
-            msg = (
-                f"Diverging enum types are not supported: expected {cls.__name__}, "
-                f"but got {array[0].__class__.__name__} instead."
-            )
-            raise TypeError(msg)
-
-        msg = f"Unsupported encoding: {array.dtype.name}."
-        raise NotImplementedError(msg)
+        msg = (
+            f"Failed to encode \"{array}\" of type '{array[0].__class__.__name__}', "
+            "as it is not supported. Please, try again with an array of "
+            f"'{int.__name__}', '{str.__name__}', or '{cls.__name__}'."
+        )
+        raise TypeError(msg)
 
 
 __all__ = ["Enum"]
