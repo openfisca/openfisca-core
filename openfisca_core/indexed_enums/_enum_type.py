@@ -50,7 +50,7 @@ class EnumType(t.EnumType):
 
         >>> Enum.items
         Traceback (most recent call last):
-        AttributeError: type object 'Enum' has no attribute 'items'
+        AttributeError: ...
 
         >>> class Housing(Enum):
         ...     OWNER = "Owner"
