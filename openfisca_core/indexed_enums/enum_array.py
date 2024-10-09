@@ -141,8 +141,10 @@ class EnumArray(t.EnumArray):
         """
         if other.__class__.__name__ is self.possible_values.__name__:
             return self.view(numpy.ndarray) == other.index
-
-        return self.view(numpy.ndarray) == other
+        is_eq = self.view(numpy.ndarray) == other
+        if isinstance(is_eq, numpy.ndarray):
+            return is_eq
+        return numpy.array([is_eq], dtype=t.BoolDType)
 
     def __ne__(self, other: object) -> bool:
         """Inequality.

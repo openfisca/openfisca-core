@@ -4,6 +4,7 @@ from typing_extensions import TypeAlias
 from openfisca_core.types import (
     Array,
     ArrayLike,
+    DTypeBool as BoolDType,
     DTypeEnum as EnumDType,
     DTypeGeneric as AnyDType,
     DTypeInt as IntDType,
@@ -49,6 +50,7 @@ AnyArray: TypeAlias = Array[AnyDType]
 __all__ = [
     "Array",
     "ArrayLike",
+    "BoolDType",
     "DTypeLike",
     "Enum",
     "EnumArray",
