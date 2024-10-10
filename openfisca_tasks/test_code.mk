@@ -38,6 +38,7 @@ test-core: $(shell git ls-files "*test_*.py")
 	@python -m pytest --capture=no \
 		openfisca_core/commons \
 		openfisca_core/data_storage \
+		openfisca_core/experimental \
 		openfisca_core/entities \
 		openfisca_core/holders \
 		openfisca_core/indexed_enums \
