@@ -71,7 +71,6 @@ def stringify_array(array: None | t.Array[numpy.generic]) -> str:
         "[<class 'list'>, {}, <function stringify_array...]"
 
     """
-
     if array is None:
         return "None"
 
@@ -98,7 +97,6 @@ def eval_expression(
         'salary'
 
     """
-
     try:
         return numexpr.evaluate(expression)
 

@@ -3,16 +3,24 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 import numpy
+from numba import (  # pyright: ignore[reportMissingImports,reportMissingTypeStubs]
+    float32,
+    guvectorize,
+)
 
 from . import types as t
 
 
+@guvectorize(
+    [(float32[:], float32[:], float32[:], float32[:])], "(n),(o),(p)->(n)"
+)  # pyright: ignore[reportUnknownMemberType,reportUntypedFunctionDecorator]
 def apply_thresholds(
-    input: t.Array[numpy.float32],
-    thresholds: t.ArrayLike[float],
-    choices: t.ArrayLike[float],
-) -> t.Array[numpy.float32]:
-    """Makes a choice based on an input and thresholds.
+    input: t.FloatArray,
+    thresholds: t.FloatArray,
+    choices: t.FloatArray,
+    result: t.FloatArray,
+) -> None:
+    """Make a choice based on an input and thresholds.
 
     From a list of ``choices``, this function selects one of these values
     based on a list of inputs, depending on the value of each ``input`` within
@@ -22,37 +30,46 @@ def apply_thresholds(
         input: A list of inputs to make a choice from.
         thresholds: A list of thresholds to choose.
         choices: A list of the possible values to choose from.
-
-    Returns:
-        Array[numpy.float32]: A list of the values chosen.
+        result: A list of the values chosen.
 
     Raises:
-        AssertionError: When thresholds and choices are incompatible.
+        ValueError: When the number of ``thresholds`` is not equal to the
+            number of ``choices``, or one less.
 
     Examples:
-        >>> input = numpy.array([4, 5, 6, 7, 8])
-        >>> thresholds = [5, 7]
-        >>> choices = [10, 15, 20]
+        >>> input = numpy.array([4, 5, 6, 7, 8], dtype=numpy.float32)
+        >>> thresholds = numpy.array([5, 7], dtype=numpy.float32)
+        >>> choices = numpy.array([10, 15, 20], dtype=numpy.float32)
         >>> apply_thresholds(input, thresholds, choices)
-        array([10, 10, 15, 15, 20])
+        array([10., 10., 15., 15., 20.], dtype=float32)
 
     """
+    condlist = [numpy.array([x], dtype=t.BoolDType) for x in range(0)]
 
-    condlist: list[t.Array[numpy.bool_] | bool]
-    condlist = [input <= threshold for threshold in thresholds]
+    for threshold in thresholds:
+        condlist.append(input <= threshold)  # noqa: PERF401
 
-    if len(condlist) == len(choices) - 1:
+    choicelist = [numpy.array([x], dtype=t.FloatDType) for x in range(0)]
+
+    for choice in choices:
+        choicelist.append(numpy.array([choice], dtype=t.FloatDType))  # noqa: PERF401
+
+    if len(condlist) == len(choicelist) - 1:
         # If a choice is provided for input > highest threshold, last condition
         # must be true to return it.
-        condlist += [True]
+        condlist.append(numpy.array([True], dtype=t.BoolDType))
 
-    msg = (
-        "'apply_thresholds' must be called with the same number of thresholds "
-        "than choices, or one more choice."
-    )
-    assert len(condlist) == len(choices), msg
+    if len(condlist) != len(choicelist):
+        msg = (
+            "'apply_thresholds' must be called with the same number of "
+            "thresholds than choices, or one more choice."
+        )
+        raise ValueError(msg)
 
-    return numpy.select(condlist, choices)
+    array = numpy.select(condlist, choicelist)
+
+    for i in range(array.size):
+        result[i] = array[i]
 
 
 def concat(
@@ -75,7 +92,6 @@ def concat(
         array(['this1.0', 'that2.5']...)
 
     """
-
     if not isinstance(this, numpy.ndarray):
         this = numpy.array(this)
 

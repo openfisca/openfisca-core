@@ -30,6 +30,7 @@ general_requirements = [
     "PyYAML >=6.0, <7.0",
     "StrEnum >=0.4.8, <0.5.0",  # 3.11.x backport
     "dpath >=2.1.4, <3.0",
+    "numba >=0.60.0, <1.0",
     "numexpr >=2.8.4, <3.0",
     "numpy >=1.24.2, <2.0",
     "pendulum >=3.0.0, <4.0.0",
