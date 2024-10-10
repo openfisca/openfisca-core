@@ -7,7 +7,7 @@ from ._core_entity import CoreEntity
 
 
 class Entity(CoreEntity):
-    """An entity (e.g. a person, a household) on which calculations can be run.
+    r"""An entity (e.g. a person, a household) on which calculations can be run.
 
     Args:
         key: A key to identify the ``Entity``.

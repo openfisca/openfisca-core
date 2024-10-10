@@ -70,7 +70,6 @@ def build_entity(
         TypeError: 'Role' object is not subscriptable
 
     """
-
     if is_person:
         return SingleEntity(key, plural, label, doc)
 
@@ -151,7 +150,6 @@ def find_role(
         Role(first_parent)
 
     """
-
     for role in roles:
         if role.subroles:
             for subrole in role.subroles:
