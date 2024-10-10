@@ -73,6 +73,18 @@ class EnumType(t.EnumType):
     #: The items of the indexed enum class.
     items: t.RecArray
 
+    #: The names as if they were sorted.
+    _sorted_names_: t.StrArray
+
+    #: The enums as if they were sorted.
+    _sorted_enums_: t.ObjArray
+
+    #: The indices that would sort the names.
+    _sorted_names_index_: t.IndexArray
+
+    #: The indices that would sort the enums.
+    _sorted_enums_index_: t.IndexArray
+
     @property
     def indices(cls) -> t.IndexArray:
         """Return the indices of the indexed enum class."""
@@ -93,24 +105,36 @@ class EnumType(t.EnumType):
 
     def __new__(
         metacls,
-        cls: str,
+        name: str,
         bases: tuple[type, ...],
         classdict: t.EnumDict,
         **kwds: object,
     ) -> t.EnumType:
         """Create a new indexed enum class."""
         # Create the enum class.
-        enum_class = super().__new__(metacls, cls, bases, classdict, **kwds)
+        cls = super().__new__(metacls, name, bases, classdict, **kwds)
 
         # If the enum class has no members, return it as is.
-        if not enum_class.__members__:
-            return enum_class
+        if not cls.__members__:
+            return cls
 
         # Add the items attribute to the enum class.
-        enum_class.items = _item_array(enum_class)
+        cls.items = _item_array(cls)
+
+        # Add the indices that would sort the names.
+        cls._sorted_names_index_ = numpy.argsort(cls.names).astype(t.EnumDType)
+
+        # Add the indices that would sort the enums.
+        cls._sorted_enums_index_ = numpy.argsort(cls.enums).astype(t.EnumDType)
+
+        # Add the names as if they were sorted.
+        cls._sorted_names_ = cls.names[cls._sorted_names_index_]
+
+        # Add the enums as if they were sorted.
+        cls._sorted_enums_ = cls.enums[cls._sorted_enums_index_]
 
         # Return the modified enum class.
-        return enum_class
+        return cls
 
     def __dir__(cls) -> list[str]:
         return sorted({"items", "indices", "names", "enums", *super().__dir__()})

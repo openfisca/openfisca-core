@@ -66,17 +66,11 @@ def _enum_to_index(enum_class: type[t.Enum], value: t.ObjArray) -> t.IndexArray:
     # In case we're dealing with a scalar, we need to convert it to an array.
     ok = value[mask]
 
-    # Get the indices that would sort the enums.
-    sorted_index = numpy.argsort(enum_class.enums)
-
-    # Get the enums as if they were sorted.
-    sorted_enums = enum_class.enums[sorted_index]
-
     # Get the index positions of the enums in the sorted enums.
-    index_where = numpy.searchsorted(sorted_enums, ok)
+    index_where = numpy.searchsorted(enum_class._sorted_enums_, ok)
 
     # Get the actual index of the enums in the enum class.
-    index = sorted_index[index_where]
+    index = enum_class._sorted_enums_index_[index_where]
 
     # Finally, return the index array.
     return numpy.array(index, dtype=t.EnumDType)
@@ -197,17 +191,11 @@ def _str_to_index(enum_class: type[t.Enum], value: t.StrArray) -> t.IndexArray:
     # In case we're dealing with a scalar, we need to convert it to an array.
     ok = value[mask]
 
-    # Get the indices that would sort the names.
-    sorted_index = numpy.argsort(enum_class.names)
-
-    # Get the names as if they were sorted.
-    sorted_names = enum_class.names[sorted_index]
-
     # Get the index positions of the names in the sorted names.
-    index_where = numpy.searchsorted(sorted_names, ok)
+    index_where = numpy.searchsorted(enum_class._sorted_names_, ok)
 
     # Get the actual index of the names in the enum class.
-    index = sorted_index[index_where]
+    index = enum_class._sorted_names_index_[index_where]
 
     # Finally, return the index array.
     return numpy.array(index, dtype=t.EnumDType)
