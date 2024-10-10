@@ -21,5 +21,5 @@ def test_enum_2(tax_benefit_system) -> None:
         "housing_occupancy_status"
     ].possible_values
     value = possible_values.encode(numpy.array(["tenant", "owner"]))
-    expected_value = ["owner", "tenant"]
+    expected_value = ["tenant", "owner"]
     assert_near(value, expected_value)

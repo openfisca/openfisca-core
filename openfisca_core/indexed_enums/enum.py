@@ -4,7 +4,8 @@ import numpy
 
 from . import types as t
 from ._enum_type import EnumType
-from ._type_guards import _is_int_array, _is_str_array
+from ._guards import _is_int_array, _is_obj_array, _is_str_array
+from ._utils import _enum_to_index, _int_to_index, _str_to_index
 from .enum_array import EnumArray
 
 
@@ -109,24 +110,45 @@ class Enum(t.Enum, metaclass=EnumType):
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.name}"
 
+    def __hash__(self) -> int:
+        return hash(self.__class__.__name__) ^ hash(self.index)
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Enum):
             return NotImplemented
-        return self.index == other.index
+        return hash(self) ^ hash(other) == 0
 
     def __ne__(self, other: object) -> bool:
         if not isinstance(other, Enum):
             return NotImplemented
-        return self.index != other.index
+        return hash(self) ^ hash(other) != 0
 
-    def __hash__(self) -> int:
-        return hash(self.index)
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, Enum):
+            return NotImplemented
+        return self.index < other.index
+
+    def __le__(self, other: object) -> bool:
+        if not isinstance(other, Enum):
+            return NotImplemented
+        return self.index <= other.index
+
+    def __gt__(self, other: object) -> bool:
+        if not isinstance(other, Enum):
+            return NotImplemented
+        return self.index > other.index
+
+    def __ge__(self, other: object) -> bool:
+        if not isinstance(other, Enum):
+            return NotImplemented
+        return self.index >= other.index
 
     @classmethod
     def encode(
         cls,
         array: (
-            EnumArray
+            t.EnumArray
+            | t.IndexArray
             | t.IntArray
             | t.StrArray
             | t.ObjArray
@@ -134,7 +156,7 @@ class Enum(t.Enum, metaclass=EnumType):
             | t.ArrayLike[str]
             | t.ArrayLike[t.Enum]
         ),
-    ) -> EnumArray:
+    ) -> t.EnumArray:
         """Encode an encodable array into an :class:`.EnumArray`.
 
         Args:
@@ -144,7 +166,7 @@ class Enum(t.Enum, metaclass=EnumType):
             EnumArray: An :class:`.EnumArray` with the encoded input values.
 
         Raises:
-            TypeError: If ``array`` is a scalar :class:`~numpy.ndarray`.
+            NotImplementedError: If ``array`` is a scalar :class:`~numpy.ndarray`.
             TypeError: If ``array`` is of a diffent :class:`.Enum` type.
 
         Examples:
@@ -161,7 +183,7 @@ class Enum(t.Enum, metaclass=EnumType):
             >>> array = numpy.array([1])
             >>> enum_array = enum.EnumArray(array, Housing)
             >>> Housing.encode(enum_array)
-            EnumArray(Housing.TENANT)
+            EnumArray([Housing.TENANT])
 
             # Array of Enum
 
@@ -195,31 +217,33 @@ class Enum(t.Enum, metaclass=EnumType):
             :meth:`.EnumArray.decode` for decoding.
 
         """
-        if isinstance(array, EnumArray):
-            return array
-
+        # Array-like values need to be converted to a numpy array.
         if not isinstance(array, numpy.ndarray):
             return cls.encode(numpy.array(array))
 
+        # Empty arrays are returned as is.
         if array.size == 0:
             return EnumArray(numpy.array([]), cls)
 
+        # Scalar arrays are not supported.
         if array.ndim == 0:
             msg = (
                 "Scalar arrays are not supported: expecting a vector array, "
                 f"instead. Please try again with `numpy.array([{array}])`."
             )
-            raise TypeError(msg)
+            raise NotImplementedError(msg)
 
-        # Integer array
+        # Enum arrays.
+        if isinstance(array, t.EnumArray):
+            return array
+
+        # Index arrays.
         if _is_int_array(array):
-            indices = numpy.array(array[array < len(cls.items)], dtype=t.EnumDType)
-            return EnumArray(indices, cls)
+            return EnumArray(_int_to_index(cls, array), cls)
 
-        # String array
-        if _is_str_array(array):
-            indices = cls.items[numpy.isin(cls.names, array)].index
-            return EnumArray(indices, cls)
+        # String arrays.
+        if _is_str_array(array):  # type: ignore[unreachable]
+            return EnumArray(_str_to_index(cls, array), cls)
 
         # Ensure we are comparing the comparable. The problem this fixes:
         # On entering this method "cls" will generally come from
@@ -232,9 +256,8 @@ class Enum(t.Enum, metaclass=EnumType):
         # So, instead of relying on the "cls" passed in, we use only its
         # name to check that the values in the array, if non-empty, are of
         # the right type.
-        if cls.__name__ is array[0].__class__.__name__:
-            indices = cls.items[numpy.isin(cls.enums, array)].index
-            return EnumArray(indices, cls)
+        if _is_obj_array(array) and cls.__name__ is array[0].__class__.__name__:
+            return EnumArray(_enum_to_index(cls, array), cls)
 
         msg = (
             f"Failed to encode \"{array}\" of type '{array[0].__class__.__name__}', "

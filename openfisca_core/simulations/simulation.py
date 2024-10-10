@@ -3,7 +3,11 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import NamedTuple
 
-from openfisca_core.types import Population, TaxBenefitSystem, Variable
+from openfisca_core.types import (
+    CorePopulation as Population,
+    TaxBenefitSystem,
+    Variable,
+)
 
 import tempfile
 import warnings

@@ -30,8 +30,8 @@ general_requirements = [
     "PyYAML >=6.0, <7.0",
     "StrEnum >=0.4.8, <0.5.0",  # 3.11.x backport
     "dpath >=2.1.4, <3.0",
-    "numexpr >=2.8.4, <3.0",
-    "numpy >=1.24.2, <2.0",
+    "numexpr >=2.10.1, <3.0",
+    "numpy >=1.24.3, <2.0",
     "pendulum >=3.0.0, <4.0.0",
     "psutil >=5.9.4, <6.0",
     "pytest >=8.3.3, <9.0",
@@ -64,13 +64,12 @@ dev_requirements = [
     "pyright >=1.1.382, <2.0",
     "ruff >=0.6.9, <1.0",
     "ruff-lsp >=0.0.57, <1.0",
-    "xdoctest >=1.2.0, <2.0",
     *api_requirements,
 ]
 
 setup(
     name="OpenFisca-Core",
-    version="42.1.0",
+    version="42.1.1",
     author="OpenFisca Team",
     author_email="contact@openfisca.org",
     classifiers=[
