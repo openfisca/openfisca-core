@@ -22,6 +22,7 @@ lint-doc: \
 	lint-doc-commons \
 	lint-doc-data_storage \
 	lint-doc-entities \
+	lint-doc-experimental \
 	lint-doc-indexed_enums \
 	;
 
@@ -44,6 +45,7 @@ check-types:
 	@python -m mypy \
 		openfisca_core/commons \
 		openfisca_core/data_storage \
+		openfisca_core/experimental \
 		openfisca_core/entities \
 		openfisca_core/periods \
 		openfisca_core/types.py

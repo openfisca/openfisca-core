@@ -7,7 +7,7 @@ import openfisca_country_template.situation_examples
 from openfisca_country_template.entities import Person
 
 from openfisca_core.periods import DateUnit
-from openfisca_core.simulation_builder import SimulationBuilder
+from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.tools import assert_near
 from openfisca_core.variables import Variable
 

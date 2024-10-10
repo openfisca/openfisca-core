@@ -2570,7 +2570,7 @@ Add `--only-variables` and `--ignore-variables` options to `openfisca-run-test` 
 For instance:
 
 ```
-from openfisca_core.memory_config import MemoryConfig
+from openfisca_core.experimental import MemoryConfig
 
 simulation = ...  # create a Simulation object
 
