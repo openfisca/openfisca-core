@@ -60,7 +60,7 @@ class EnumType(t.EnumType):
         rec.array([(0, 'OWNER', Housing.OWNER), (1, 'TENANT', Housing.TENAN...)
 
         >>> Housing.indices
-        array([0, 1], dtype=int16)
+        array([0, 1], dtype=uint8)
 
         >>> Housing.names
         array(['OWNER', 'TENANT'], dtype='<U6')

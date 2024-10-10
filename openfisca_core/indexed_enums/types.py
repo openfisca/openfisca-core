@@ -16,10 +16,10 @@ import numpy
 from numpy import (
     bool_ as BoolDType,
     generic as AnyDType,
-    int16 as EnumDType,
     int32 as IntDType,
     object_ as ObjDType,
     str_ as StrDType,
+    uint8 as EnumDType,
 )
 
 #: Type for the non-vectorised list of enum items.

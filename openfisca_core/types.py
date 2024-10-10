@@ -47,7 +47,7 @@ DTypeStr: TypeAlias = numpy.str_
 DTypeBytes: TypeAlias = numpy.bytes_
 
 #: Type for Enum arrays.
-DTypeEnum: TypeAlias = numpy.int16
+DTypeEnum: TypeAlias = numpy.uint8
 
 #: Type for date arrays.
 DTypeDate: TypeAlias = numpy.datetime64

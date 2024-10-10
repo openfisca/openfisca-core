@@ -1,5 +1,6 @@
 import numpy
 import pytest
+from numpy.testing import assert_array_equal
 
 from openfisca_core import indexed_enums as enum
 
@@ -20,9 +21,9 @@ class Colour(enum.Enum):
 
 def test_enum_encode_with_array_of_enum():
     """Does encode when called with an array of enums."""
-    array = numpy.array([Animal.DOG])
+    array = numpy.array([Animal.DOG, Animal.DOG, Animal.CAT, Colour.AMARANTH])
     enum_array = Animal.encode(array)
-    assert enum_array == Animal.DOG
+    assert_array_equal(enum_array, numpy.array([1, 1, 0]))
 
 
 def test_enum_encode_with_enum_sequence():
@@ -51,9 +52,9 @@ def test_enum_encode_with_enum_with_bad_value():
 
 def test_enum_encode_with_array_of_int():
     """Does encode when called with an array of int."""
-    array = numpy.array([1])
+    array = numpy.array([1, 1, 0, 2])
     enum_array = Animal.encode(array)
-    assert enum_array == Animal.DOG
+    assert_array_equal(enum_array, numpy.array([1, 1, 0]))
 
 
 def test_enum_encode_with_int_sequence():
@@ -82,9 +83,9 @@ def test_enum_encode_with_int_with_bad_value():
 
 def test_enum_encode_with_array_of_string():
     """Does encode when called with an array of string."""
-    array = numpy.array(["DOG"])
+    array = numpy.array(["DOG", "DOG", "CAT", "AMARANTH"])
     enum_array = Animal.encode(array)
-    assert enum_array == Animal.DOG
+    assert_array_equal(enum_array, numpy.array([1, 1, 0]))
 
 
 def test_enum_encode_with_str_sequence():

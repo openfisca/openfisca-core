@@ -126,7 +126,7 @@ class Enum(t.Enum, metaclass=EnumType):
     def encode(
         cls,
         array: (
-            EnumArray
+            t.EnumArray
             | t.IntArray
             | t.StrArray
             | t.ObjArray
@@ -134,7 +134,7 @@ class Enum(t.Enum, metaclass=EnumType):
             | t.ArrayLike[str]
             | t.ArrayLike[t.Enum]
         ),
-    ) -> EnumArray:
+    ) -> t.EnumArray:
         """Encode an encodable array into an :class:`.EnumArray`.
 
         Args:
@@ -161,7 +161,7 @@ class Enum(t.Enum, metaclass=EnumType):
             >>> array = numpy.array([1])
             >>> enum_array = enum.EnumArray(array, Housing)
             >>> Housing.encode(enum_array)
-            EnumArray(Housing.TENANT)
+            EnumArray([Housing.TENANT])
 
             # Array of Enum
 
@@ -213,13 +213,14 @@ class Enum(t.Enum, metaclass=EnumType):
 
         # Integer array
         if _is_int_array(array):
-            indices = numpy.array(array[array < len(cls.items)], dtype=t.EnumDType)
-            return EnumArray(indices, cls)
+            indices = numpy.array(array[array < cls.indices.size])
+            return EnumArray(indices.astype(t.EnumDType), cls)
 
         # String array
         if _is_str_array(array):  # type: ignore[unreachable]
-            indices = cls.items[numpy.isin(cls.names, array)].index
-            return EnumArray(indices, cls)
+            names = array[numpy.isin(array, cls.names)]
+            indices = numpy.array([cls[name].index for name in names])
+            return EnumArray(indices.astype(t.EnumDType), cls)
 
         # Ensure we are comparing the comparable. The problem this fixes:
         # On entering this method "cls" will generally come from
@@ -233,8 +234,9 @@ class Enum(t.Enum, metaclass=EnumType):
         # name to check that the values in the array, if non-empty, are of
         # the right type.
         if cls.__name__ is array[0].__class__.__name__:
-            indices = cls.items[numpy.isin(cls.enums, array)].index
-            return EnumArray(indices, cls)
+            enums = array[numpy.isin(array, cls.enums)]
+            indices = numpy.array([enum.index for enum in enums])
+            return EnumArray(indices.astype(t.EnumDType), cls)
 
         msg = (
             f"Failed to encode \"{array}\" of type '{array[0].__class__.__name__}', "

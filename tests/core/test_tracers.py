@@ -452,7 +452,7 @@ def test_log_aggregate_with_enum(tracer) -> None:
 
     assert (
         lines[0]
-        == "  A<2017> >> {'avg': EnumArray(HousingOccupancyStatus.tenant), 'max': EnumArray(HousingOccupancyStatus.tenant), 'min': EnumArray(HousingOccupancyStatus.tenant)}"
+        == "  A<2017> >> {'avg': EnumArray([HousingOccupancyStatus.tenant]), 'max': EnumArray([HousingOccupancyStatus.tenant]), 'min': EnumArray([HousingOccupancyStatus.tenant])}"
     )
 
 
