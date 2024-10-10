@@ -64,13 +64,12 @@ dev_requirements = [
     "pyright >=1.1.382, <2.0",
     "ruff >=0.6.7, <1.0",
     "ruff-lsp >=0.0.57, <1.0",
-    "xdoctest >=1.2.0, <2.0",
     *api_requirements,
 ]
 
 setup(
     name="OpenFisca-Core",
-    version="42.0.7",
+    version="42.1.0",
     author="OpenFisca Team",
     author_email="contact@openfisca.org",
     classifiers=[

@@ -89,7 +89,6 @@ class OnDiskStorage:
             EnumArray([<Housing.TENANT: 'Tenant'>])
 
         """
-
         enum = self._enums.get(file)
 
         if enum is not None:
@@ -127,7 +126,6 @@ class OnDiskStorage:
             array([1, 2, 3])
 
         """
-
         if self.is_eternal:
             period = periods.period(DateUnit.ETERNITY)
         period = periods.period(period)
@@ -162,7 +160,6 @@ class OnDiskStorage:
             array(['1', '2', 'salary'], dtype='<U21')
 
         """
-
         if self.is_eternal:
             period = periods.period(DateUnit.ETERNITY)
         period = periods.period(period)
@@ -212,7 +209,6 @@ class OnDiskStorage:
             ...     storage.get(period)
 
         """
-
         if period is None:
             self._files = {}
             return
@@ -255,7 +251,6 @@ class OnDiskStorage:
             dict_keys([Period(('year', Instant((2017, 1, 1)), 1))])
 
         """
-
         return self._files.keys()
 
     def restore(self) -> None:
@@ -289,7 +284,6 @@ class OnDiskStorage:
             >>> directory.cleanup()
 
         """
-
         self._files = files = {}
         # Restore self._files from content of storage_dir.
         for filename in os.listdir(self.storage_dir):

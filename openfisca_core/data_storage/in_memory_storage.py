@@ -53,7 +53,6 @@ class InMemoryStorage:
             array([1, 2, 3])
 
         """
-
         if self.is_eternal:
             period = periods.period(DateUnit.ETERNITY)
         period = periods.period(period)
@@ -86,7 +85,6 @@ class InMemoryStorage:
             array(['1', '2', 'salary'], dtype='<U21')
 
         """
-
         if self.is_eternal:
             period = periods.period(DateUnit.ETERNITY)
         period = periods.period(period)
@@ -128,7 +126,6 @@ class InMemoryStorage:
             >>> storage.get(period)
 
         """
-
         if period is None:
             self._arrays = {}
             return
@@ -164,7 +161,6 @@ class InMemoryStorage:
             dict_keys([Period(('year', Instant((2017, 1, 1)), 1))])
 
         """
-
         return self._arrays.keys()
 
     def get_memory_usage(self) -> t.MemoryUsage:
@@ -181,7 +177,6 @@ class InMemoryStorage:
             {'nb_arrays': 0, 'total_nb_bytes': 0, 'cell_size': nan}
 
         """
-
         if not self._arrays:
             return {
                 "nb_arrays": 0,

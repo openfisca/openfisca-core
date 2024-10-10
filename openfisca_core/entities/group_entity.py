@@ -7,12 +7,12 @@ import textwrap
 from itertools import chain
 
 from . import types as t
-from ._core_entity import _CoreEntity
+from ._core_entity import CoreEntity
 from .role import Role
 
 
-class GroupEntity(_CoreEntity):
-    """Represents an entity containing several others with different roles.
+class GroupEntity(CoreEntity):
+    r"""Represents an entity containing several others with different roles.
 
     A ``GroupEntity`` represents an ``Entity`` containing several other entities,
     with different roles, and on which calculations can be run.
@@ -25,6 +25,49 @@ class GroupEntity(_CoreEntity):
         roles: The list of roles of the group entity.
         containing_entities: The list of keys of group entities whose members
             are guaranteed to be a superset of this group's entities.
+
+    Examples:
+        >>> from openfisca_core import entities
+
+        >>> family_roles = [
+        ...     {
+        ...         "key": "parent",
+        ...         "subroles": ["first_parent", "second_parent"],
+        ...     }
+        ... ]
+
+        >>> family = entities.GroupEntity(
+        ...     "family",
+        ...     "families",
+        ...     "A family",
+        ...     "\t\t\tAll the people somehow related living together.",
+        ...     family_roles,
+        ... )
+
+        >>> household_roles = [
+        ...     {
+        ...         "key": "partners",
+        ...         "subroles": ["first_partner", "second_partner"],
+        ...     }
+        ... ]
+
+        >>> household = entities.GroupEntity(
+        ...     "household",
+        ...     "households",
+        ...     "A household",
+        ...     "\t\t\tAll the people who live together in the same place.",
+        ...     household_roles,
+        ...     (family.key,),
+        ... )
+
+        >>> repr(entities.GroupEntity)
+        "<class 'openfisca_core.entities.group_entity.GroupEntity'>"
+
+        >>> repr(household)
+        'GroupEntity(household)'
+
+        >>> str(household)
+        'GroupEntity(household)'
 
     """
 

@@ -37,7 +37,6 @@ def average_rate(
         array([ nan,  0. , -0.5])
 
     """
-
     if not isinstance(varying, numpy.ndarray):
         varying = numpy.array(varying, dtype=numpy.float32)
 
@@ -91,7 +90,6 @@ def marginal_rate(
         array([nan, 0.5])
 
     """
-
     if not isinstance(varying, numpy.ndarray):
         varying = numpy.array(varying, dtype=numpy.float32)
 
