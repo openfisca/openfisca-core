@@ -113,7 +113,6 @@ class CoreEntity:
             <openfisca_core.entities._core_entity.tax object at ...>
 
         """
-
         if self._tax_benefit_system is None:
             msg = "You must set 'tax_benefit_system' before calling this method."
             raise ValueError(
@@ -126,10 +125,6 @@ class CoreEntity:
 
         Args:
             variable_name: The ``Variable`` to be found.
-
-        Returns:
-            Variable: When the ``Variable`` exists.
-            None: When the :attr:`_tax_benefit_system` is not set.
 
         Raises:
             ValueError: When the ``Variable`` exists but is defined
@@ -172,7 +167,6 @@ class CoreEntity:
             >>> this.check_variable_defined_for_entity("tax")
 
         """
-
         entity: None | t.CoreEntity = None
         variable: None | t.Variable = self.get_variable(
             variable_name,
@@ -216,7 +210,6 @@ class CoreEntity:
             ValueError: hey! is not a valid role
 
         """
-
         if role is not None and not isinstance(role, Role):
             msg = f"{role} is not a valid role"
             raise ValueError(msg)

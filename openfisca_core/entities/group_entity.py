@@ -12,7 +12,7 @@ from .role import Role
 
 
 class GroupEntity(CoreEntity):
-    """Represents an entity containing several others with different roles.
+    r"""Represents an entity containing several others with different roles.
 
     A ``GroupEntity`` represents an ``Entity`` containing several other entities,
     with different roles, and on which calculations can be run.
