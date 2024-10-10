@@ -7,7 +7,7 @@ import numpy
 from . import types as t
 
 
-def _is_int_array(array: t.AnyArray) -> TypeIs[t.IndexArray | t.IntArray]:
+def _is_int_array(array: t.AnyArray) -> TypeIs[t.IndexArray]:
     """Narrow the type of a given array to an array of :obj:`numpy.integer`.
 
     Args:
@@ -33,6 +33,33 @@ def _is_int_array(array: t.AnyArray) -> TypeIs[t.IndexArray | t.IntArray]:
 
     """
     return numpy.issubdtype(array.dtype, numpy.integer)
+
+
+def _is_obj_array(array: t.AnyArray) -> TypeIs[t.ObjArray]:
+    """Narrow the type of a given array to an array of :obj:`numpy.object_`.
+
+    Args:
+        array: Array to check.
+
+    Returns:
+        bool: True if ``array`` is an array of :obj:`numpy.object_`, False otherwise.
+
+    Examples:
+        >>> import numpy
+
+        >>> from openfisca_core import indexed_enums as enum
+
+        >>> Enum = enum.Enum("Enum", ["A", "B"])
+        >>> array = numpy.array([Enum.A], dtype=numpy.object_)
+        >>> _is_obj_array(array)
+        True
+
+        >>> array = numpy.array([1.0])
+        >>> _is_obj_array(array)
+        False
+
+    """
+    return numpy.issubdtype(array.dtype, t.ObjDType)
 
 
 def _is_str_array(array: t.AnyArray) -> TypeIs[t.StrArray]:
@@ -65,4 +92,4 @@ def _is_str_array(array: t.AnyArray) -> TypeIs[t.StrArray]:
     return numpy.issubdtype(array.dtype, str)
 
 
-__all__ = ["_is_int_array", "_is_str_array"]
+__all__ = ["_is_int_array", "_is_obj_array", "_is_str_array"]

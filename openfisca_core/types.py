@@ -117,6 +117,12 @@ class EnumType(enum.EnumMeta):
     @property
     @abc.abstractmethod
     def indices(cls) -> Array[DTypeEnum]: ...
+    @property
+    @abc.abstractmethod
+    def names(cls) -> Array[DTypeStr]: ...
+    @property
+    @abc.abstractmethod
+    def enums(cls) -> Array[DTypeGeneric]: ...
 
 
 class Enum(enum.Enum, metaclass=EnumType):
