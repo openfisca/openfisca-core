@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence, Sized
+from collections.abc import Iterable, Mapping, Sequence, Sized
 from numpy.typing import DTypeLike, NDArray
 from typing import NewType, TypeVar, Union
 from typing_extensions import Protocol, Self, TypeAlias
@@ -133,7 +133,7 @@ class EnumArray(Array[DTypeEnum], metaclass=abc.ABCMeta):
 
 class Holder(Protocol):
     def clone(self, population: CorePopulation, /) -> Holder: ...
-    def get_memory_usage(self, /) -> dict[str, object]: ...
+    def get_memory_usage(self, /) -> Mapping[str, object]: ...
 
 
 # Parameters
