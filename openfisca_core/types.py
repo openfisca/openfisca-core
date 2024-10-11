@@ -113,10 +113,6 @@ class Role(Protocol):
 
 class EnumType(enum.EnumMeta):
     items: RecArray
-    _sorted_names_: Array[DTypeStr]
-    _sorted_enums_: Array[DTypeObject]
-    _sorted_names_index_: Array[DTypeEnum]
-    _sorted_enums_index_: Array[DTypeEnum]
 
     @property
     @abc.abstractmethod

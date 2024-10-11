@@ -4,6 +4,7 @@ import numpy
 
 from . import types as t
 from ._enum_type import EnumType
+from ._errors import EnumEncodingError
 from ._guards import _is_int_array, _is_obj_array, _is_str_array
 from ._utils import _enum_to_index, _int_to_index, _str_to_index
 from .enum_array import EnumArray
@@ -111,37 +112,55 @@ class Enum(t.Enum, metaclass=EnumType):
         return f"{self.__class__.__name__}.{self.name}"
 
     def __hash__(self) -> int:
-        return hash(self.__class__.__name__) ^ hash(self.index)
+        return object.__hash__(self)
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Enum):
-            return NotImplemented
-        return hash(self) ^ hash(other) == 0
+        if (
+            isinstance(other, Enum)
+            and self.__class__.__name__ == other.__class__.__name__
+        ):
+            return self.index == other.index
+        return NotImplemented
 
     def __ne__(self, other: object) -> bool:
-        if not isinstance(other, Enum):
-            return NotImplemented
-        return hash(self) ^ hash(other) != 0
+        if (
+            isinstance(other, Enum)
+            and self.__class__.__name__ == other.__class__.__name__
+        ):
+            return self.index != other.index
+        return NotImplemented
 
     def __lt__(self, other: object) -> bool:
-        if not isinstance(other, Enum):
-            return NotImplemented
-        return self.index < other.index
+        if (
+            isinstance(other, Enum)
+            and self.__class__.__name__ == other.__class__.__name__
+        ):
+            return self.index < other.index
+        return NotImplemented
 
     def __le__(self, other: object) -> bool:
-        if not isinstance(other, Enum):
-            return NotImplemented
-        return self.index <= other.index
+        if (
+            isinstance(other, Enum)
+            and self.__class__.__name__ == other.__class__.__name__
+        ):
+            return self.index <= other.index
+        return NotImplemented
 
     def __gt__(self, other: object) -> bool:
-        if not isinstance(other, Enum):
-            return NotImplemented
-        return self.index > other.index
+        if (
+            isinstance(other, Enum)
+            and self.__class__.__name__ == other.__class__.__name__
+        ):
+            return self.index > other.index
+        return NotImplemented
 
     def __ge__(self, other: object) -> bool:
-        if not isinstance(other, Enum):
-            return NotImplemented
-        return self.index >= other.index
+        if (
+            isinstance(other, Enum)
+            and self.__class__.__name__ == other.__class__.__name__
+        ):
+            return self.index >= other.index
+        return NotImplemented
 
     @classmethod
     def encode(
@@ -167,7 +186,7 @@ class Enum(t.Enum, metaclass=EnumType):
 
         Raises:
             NotImplementedError: If ``array`` is a scalar :class:`~numpy.ndarray`.
-            TypeError: If ``array`` is of a diffent :class:`.Enum` type.
+            EnumEncodingError: If ``array`` is of a diffent :class:`.Enum` type.
 
         Examples:
             >>> import numpy
@@ -211,7 +230,7 @@ class Enum(t.Enum, metaclass=EnumType):
             >>> array = numpy.array([b"TENANT"])
             >>> enum_array = Housing.encode(array)
             Traceback (most recent call last):
-            TypeError: Failed to encode "[b'TENANT']" of type 'bytes_', as i...
+            EnumEncodingError: Failed to encode "[b'TENANT']" of type 'bytes...
 
         .. seealso::
             :meth:`.EnumArray.decode` for decoding.
@@ -259,12 +278,7 @@ class Enum(t.Enum, metaclass=EnumType):
         if _is_obj_array(array) and cls.__name__ is array[0].__class__.__name__:
             return EnumArray(_enum_to_index(cls, array), cls)
 
-        msg = (
-            f"Failed to encode \"{array}\" of type '{array[0].__class__.__name__}', "
-            "as it is not supported. Please, try again with an array of "
-            f"'{int.__name__}', '{str.__name__}', or '{cls.__name__}'."
-        )
-        raise TypeError(msg)
+        raise EnumEncodingError(cls, array)
 
 
 __all__ = ["Enum"]

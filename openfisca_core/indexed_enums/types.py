@@ -15,7 +15,7 @@ from enum import _EnumDict as EnumDict  # noqa: PLC2701
 import numpy
 from numpy import (
     bool_ as BoolDType,
-    generic as AnyDType,
+    generic as VarDType,
     int32 as IntDType,
     object_ as ObjDType,
     str_ as StrDType,
@@ -44,7 +44,7 @@ StrArray: TypeAlias = Array[StrDType]
 ObjArray: TypeAlias = Array[ObjDType]
 
 #: Type for generic arrays.
-AnyArray: TypeAlias = Array[AnyDType]
+VarArray: TypeAlias = Array[VarDType]
 
 __all__ = [
     "ArrayLike",

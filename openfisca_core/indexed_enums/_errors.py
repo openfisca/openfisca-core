@@ -1,6 +1,18 @@
 from . import types as t
 
 
+class EnumEncodingError(TypeError):
+    """Raised when an enum is encoded with an unsupported type."""
+
+    def __init__(self, enum_class: type[t.Enum], value: t.VarArray) -> None:
+        msg = (
+            f"Failed to encode \"{value}\" of type '{value[0].__class__.__name__}', "
+            "as it is not supported. Please, try again with an array of "
+            f"'{int.__name__}', '{str.__name__}', or '{enum_class.__name__}'."
+        )
+        super().__init__(msg)
+
+
 class EnumMemberNotFoundError(IndexError):
     """Raised when a member is not found in an enum."""
 
@@ -15,4 +27,4 @@ class EnumMemberNotFoundError(IndexError):
         super().__init__(msg)
 
 
-__all__ = ["EnumMemberNotFoundError"]
+__all__ = ["EnumEncodingError", "EnumMemberNotFoundError"]

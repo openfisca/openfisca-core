@@ -73,18 +73,6 @@ class EnumType(t.EnumType):
     #: The items of the indexed enum class.
     items: t.RecArray
 
-    #: The names as if they were sorted.
-    _sorted_names_: t.StrArray
-
-    #: The enums as if they were sorted.
-    _sorted_enums_: t.ObjArray
-
-    #: The indices that would sort the names.
-    _sorted_names_index_: t.IndexArray
-
-    #: The indices that would sort the enums.
-    _sorted_enums_index_: t.IndexArray
-
     @property
     def indices(cls) -> t.IndexArray:
         """Return the indices of the indexed enum class."""
@@ -120,18 +108,6 @@ class EnumType(t.EnumType):
 
         # Add the items attribute to the enum class.
         cls.items = _item_array(cls)
-
-        # Add the indices that would sort the names.
-        cls._sorted_names_index_ = numpy.argsort(cls.names).astype(t.EnumDType)
-
-        # Add the indices that would sort the enums.
-        cls._sorted_enums_index_ = numpy.argsort(cls.enums).astype(t.EnumDType)
-
-        # Add the names as if they were sorted.
-        cls._sorted_names_ = cls.names[cls._sorted_names_index_]
-
-        # Add the enums as if they were sorted.
-        cls._sorted_enums_ = cls.enums[cls._sorted_enums_index_]
 
         # Return the modified enum class.
         return cls

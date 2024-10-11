@@ -14,9 +14,6 @@ def _enum_to_index(enum_class: type[t.Enum], value: t.ObjArray) -> t.IndexArray:
     Returns:
         The index array.
 
-    Raises:
-        EnumMemberNotFoundError: If one value is not in the enum class.
-
     Examples:
         >>> import numpy
 
@@ -37,43 +34,24 @@ def _enum_to_index(enum_class: type[t.Enum], value: t.ObjArray) -> t.IndexArray:
         >>> class Rogue(enum.Enum):
         ...     BOULEVARD = "More like a shady impasse, to be honest."
 
-        # >>> _enum_to_index(Road, numpy.array(Road.AVENUE))
-        # array([1], dtype=uint8)
-        #
-        # >>> _enum_to_index(Road, numpy.array([Road.AVENUE]))
-        # array([1], dtype=uint8)
-        #
-        # >>> value = numpy.array([Road.STREET, Road.AVENUE, Road.STREET])
-        # >>> _enum_to_index(Road, value)
-        # array([0, 1, 0], dtype=uint8)
+        >>> _enum_to_index(Road, numpy.array(Road.AVENUE))
+        Traceback (most recent call last):
+        TypeError: iteration over a 0-d array
+
+        >>> _enum_to_index(Road, numpy.array([Road.AVENUE]))
+        array([1], dtype=uint8)
+
+        >>> value = numpy.array([Road.STREET, Road.AVENUE, Road.STREET])
+        >>> _enum_to_index(Road, value)
+        array([0, 1, 0], dtype=uint8)
 
         >>> value = numpy.array([Road.AVENUE, Road.AVENUE, Rogue.BOULEVARD])
         >>> _enum_to_index(Road, value)
-        Traceback (most recent call last):
-        EnumMemberNotFoundError: Member BOULEVARD not found in enum 'Road'...
+        array([1, 1, 0], dtype=uint8)
 
     """
-    # Create a mask to determine which values are in the enum class.
-    mask = numpy.isin(value, enum_class.enums)
-
-    # Get the values that are not in the enum class.
-    ko = value[~mask]
-
-    # If there are values that are not in the enum class, raise an error.
-    if ko.size > 0:
-        raise EnumMemberNotFoundError(enum_class, ko[0].name)
-
-    # In case we're dealing with a scalar, we need to convert it to an array.
-    ok = value[mask]
-
-    # Get the index positions of the enums in the sorted enums.
-    index_where = numpy.searchsorted(enum_class._sorted_enums_, ok)
-
-    # Get the actual index of the enums in the enum class.
-    index = enum_class._sorted_enums_index_[index_where]
-
-    # Finally, return the index array.
-    return numpy.array(index, dtype=t.EnumDType)
+    index = [member.index for member in value]
+    return _int_to_index(enum_class, numpy.array(index))
 
 
 def _int_to_index(enum_class: type[t.Enum], value: t.IndexArray) -> t.IndexArray:
@@ -121,7 +99,7 @@ def _int_to_index(enum_class: type[t.Enum], value: t.IndexArray) -> t.IndexArray
 
     """
     # Create a mask to determine which values are in the enum class.
-    mask = numpy.isin(value, enum_class.indices)
+    mask = value < enum_class.items.size
 
     # Get the values that are not in the enum class.
     ko = value[~mask]
@@ -144,9 +122,6 @@ def _str_to_index(enum_class: type[t.Enum], value: t.StrArray) -> t.IndexArray:
     Returns:
         The index array.
 
-    Raises:
-        EnumMemberNotFoundError: If one value is not in the enum class.
-
     Examples:
         >>> import numpy
 
@@ -165,7 +140,8 @@ def _str_to_index(enum_class: type[t.Enum], value: t.StrArray) -> t.IndexArray:
         ...     )
 
         >>> _str_to_index(Road, numpy.array("AVENUE"))
-        array([1], dtype=uint8)
+        Traceback (most recent call last):
+        TypeError: iteration over a 0-d array
 
         >>> _str_to_index(Road, numpy.array(["AVENUE"]))
         array([1], dtype=uint8)
@@ -174,31 +150,12 @@ def _str_to_index(enum_class: type[t.Enum], value: t.StrArray) -> t.IndexArray:
         array([0, 1, 0], dtype=uint8)
 
         >>> _str_to_index(Road, numpy.array(["AVENUE", "AVENUE", "BOULEVARD"]))
-        Traceback (most recent call last):
-        EnumMemberNotFoundError: Member BOULEVARD not found in enum 'Road'...
+        array([1, 1, 0], dtype=uint8)
 
     """
-    # Create a mask to determine which values are in the enum class.
-    mask = numpy.isin(value, enum_class.names)
-
-    # Get the values that are not in the enum class.
-    ko = value[~mask]
-
-    # If there are values that are not in the enum class, raise an error.
-    if ko.size > 0:
-        raise EnumMemberNotFoundError(enum_class, ko[0])
-
-    # In case we're dealing with a scalar, we need to convert it to an array.
-    ok = value[mask]
-
-    # Get the index positions of the names in the sorted names.
-    index_where = numpy.searchsorted(enum_class._sorted_names_, ok)
-
-    # Get the actual index of the names in the enum class.
-    index = enum_class._sorted_names_index_[index_where]
-
-    # Finally, return the index array.
-    return numpy.array(index, dtype=t.EnumDType)
+    names = enum_class.names
+    index = [enum_class[name].index if name in names else 0 for name in value]
+    return _int_to_index(enum_class, numpy.array(index))
 
 
 __all__ = ["_enum_to_index", "_int_to_index", "_str_to_index"]

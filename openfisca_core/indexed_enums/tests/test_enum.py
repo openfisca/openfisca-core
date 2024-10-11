@@ -103,10 +103,10 @@ def test_enum_encode_with_str_scalar_array():
 
 
 def test_enum_encode_with_str_with_bad_value():
-    """Does not encode when called with a value not in an Enum."""
+    """Encode encode when called with a value not in an Enum."""
     array = numpy.array(["JAIBA"])
-    with pytest.raises(IndexError):
-        Animal.encode(array)
+    enum_array = Animal.encode(array)
+    assert Animal.CAT in enum_array
 
 
 # Unsupported encodings
