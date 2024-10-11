@@ -3,14 +3,13 @@ from __future__ import annotations
 import numpy
 
 from . import types as t
-from ._enum_type import EnumType
 from ._errors import EnumEncodingError
 from ._guards import _is_int_array, _is_obj_array, _is_str_array
 from ._utils import _enum_to_index, _int_to_index, _str_to_index
 from .enum_array import EnumArray
 
 
-class Enum(t.Enum, metaclass=EnumType):
+class Enum(t.Enum):
     """Enum based on `enum34 <https://pypi.python.org/pypi/enum34/>`_.
 
     Its items have an :class:`int` index, useful and performant when running

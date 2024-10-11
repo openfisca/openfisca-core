@@ -99,7 +99,7 @@ def _int_to_index(enum_class: type[t.Enum], value: t.IndexArray) -> t.IndexArray
 
     """
     # Create a mask to determine which values are in the enum class.
-    mask = value < enum_class.items.size
+    mask = value < len(enum_class._member_names_)
 
     # Get the values that are not in the enum class.
     ko = value[~mask]
@@ -153,7 +153,7 @@ def _str_to_index(enum_class: type[t.Enum], value: t.StrArray) -> t.IndexArray:
         array([1, 1, 0], dtype=uint8)
 
     """
-    names = enum_class.names
+    names = enum_class._member_names_
     index = [enum_class[name].index if name in names else 0 for name in value]
     return _int_to_index(enum_class, numpy.array(index))
 

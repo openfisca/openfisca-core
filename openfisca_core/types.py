@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Sequence, Sized
 from numpy.typing import DTypeLike, NDArray
-from typing import Any, NewType, TypeVar, Union
+from typing import NewType, TypeVar, Union
 from typing_extensions import Protocol, Self, TypeAlias
 
 import abc
@@ -27,9 +27,6 @@ _L = TypeVar("_L")
 
 #: Type representing an array-like object.
 ArrayLike: TypeAlias = Sequence[_L]
-
-#: Type for record arrays.
-RecArray: TypeAlias = numpy.recarray[object, Any]  # type: ignore[misc]
 
 #: Type for bool arrays.
 DTypeBool: TypeAlias = numpy.bool_
@@ -111,21 +108,7 @@ class Role(Protocol):
 # Indexed enums
 
 
-class EnumType(enum.EnumMeta):
-    items: RecArray
-
-    @property
-    @abc.abstractmethod
-    def indices(cls) -> Array[DTypeEnum]: ...
-    @property
-    @abc.abstractmethod
-    def names(cls) -> Array[DTypeStr]: ...
-    @property
-    @abc.abstractmethod
-    def enums(cls) -> Array[DTypeGeneric]: ...
-
-
-class Enum(enum.Enum, metaclass=EnumType):
+class Enum(enum.Enum, metaclass=enum.EnumMeta):
     index: int
     _member_names_: list[str]
 

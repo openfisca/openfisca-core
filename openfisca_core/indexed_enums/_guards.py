@@ -1,13 +1,32 @@
 from __future__ import annotations
 
+from typing import Final
 from typing_extensions import TypeIs
 
 import numpy
 
 from . import types as t
 
+#: Types for int arrays.
+ints: Final = {
+    numpy.uint8,
+    numpy.uint16,
+    numpy.uint32,
+    numpy.uint64,
+    numpy.int8,
+    numpy.int16,
+    numpy.int32,
+    numpy.int64,
+}
 
-def _is_int_array(array: t.AnyArray) -> TypeIs[t.IndexArray]:
+#: Types for object arrays.
+objs: Final = {object, numpy.object_}
+
+#: Types for str arrays.
+strs: Final = {str, numpy.str_}
+
+
+def _is_int_array(array: t.VarArray) -> TypeIs[t.IndexArray]:
     """Narrow the type of a given array to an array of :obj:`numpy.integer`.
 
     Args:
@@ -32,10 +51,10 @@ def _is_int_array(array: t.AnyArray) -> TypeIs[t.IndexArray]:
         False
 
     """
-    return numpy.issubdtype(array.dtype, numpy.integer)
+    return array.dtype.type in ints
 
 
-def _is_obj_array(array: t.AnyArray) -> TypeIs[t.ObjArray]:
+def _is_obj_array(array: t.VarArray) -> TypeIs[t.ObjArray]:
     """Narrow the type of a given array to an array of :obj:`numpy.object_`.
 
     Args:
@@ -59,10 +78,10 @@ def _is_obj_array(array: t.AnyArray) -> TypeIs[t.ObjArray]:
         False
 
     """
-    return numpy.issubdtype(array.dtype, t.ObjDType)
+    return array.dtype.type in objs
 
 
-def _is_str_array(array: t.AnyArray) -> TypeIs[t.StrArray]:
+def _is_str_array(array: t.VarArray) -> TypeIs[t.StrArray]:
     """Narrow the type of a given array to an array of :obj:`numpy.str_`.
 
     Args:
@@ -89,7 +108,7 @@ def _is_str_array(array: t.AnyArray) -> TypeIs[t.StrArray]:
         True
 
     """
-    return numpy.issubdtype(array.dtype, str)
+    return array.dtype.type in strs
 
 
 __all__ = ["_is_int_array", "_is_obj_array", "_is_str_array"]

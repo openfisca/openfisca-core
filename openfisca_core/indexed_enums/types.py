@@ -1,18 +1,7 @@
 from typing_extensions import TypeAlias
 
-from openfisca_core.types import (
-    Array,
-    ArrayLike,
-    DTypeLike,
-    Enum,
-    EnumArray,
-    EnumType,
-    RecArray,
-)
+from openfisca_core.types import Array, ArrayLike, DTypeLike, Enum, EnumArray
 
-from enum import _EnumDict as EnumDict  # noqa: PLC2701
-
-import numpy
 from numpy import (
     bool_ as BoolDType,
     generic as VarDType,
@@ -21,12 +10,6 @@ from numpy import (
     str_ as StrDType,
     uint8 as EnumDType,
 )
-
-#: Type for the non-vectorised list of enum items.
-ItemList: TypeAlias = list[tuple[int, str, EnumType]]
-
-#: Type for record arrays data type.
-RecDType: TypeAlias = numpy.dtype[numpy.void]
 
 #: Type for enum indices arrays.
 IndexArray: TypeAlias = Array[EnumDType]
@@ -51,7 +34,4 @@ __all__ = [
     "DTypeLike",
     "Enum",
     "EnumArray",
-    "EnumDict",
-    "EnumType",
-    "RecArray",
 ]
