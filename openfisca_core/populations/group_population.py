@@ -1,14 +1,17 @@
+from __future__ import annotations
+
 import typing
 
 import numpy
 
 from openfisca_core import entities, indexed_enums, projectors
 
+from . import types as t
 from .population import Population
 
 
 class GroupPopulation(Population):
-    def __init__(self, entity, members) -> None:
+    def __init__(self, entity: t.GroupEntity, members: t.Members) -> None:
         super().__init__(entity)
         self.members = members
         self._members_entity_id = None
@@ -77,6 +80,8 @@ class GroupPopulation(Population):
         if self._ordered_members_map is None:
             self._ordered_members_map = numpy.argsort(self.members_entity_id)
         return self._ordered_members_map
+
+    # Helpers
 
     def get_role(self, role_name):
         return next(

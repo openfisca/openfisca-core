@@ -18,6 +18,7 @@ from openfisca_core import (
     types,
 )
 
+from . import types as t
 from .memory_usage import MemoryUsage
 
 
@@ -45,7 +46,7 @@ class Holder:
             if self.variable.name in self.simulation.memory_config.variables_to_drop:
                 self._do_not_store = True
 
-    def clone(self, population):
+    def clone(self, population: t.CorePopulation) -> t.Holder:
         """Copy the holder just enough to be able to run a new simulation without modifying the original simulation."""
         new = commons.empty_clone(self)
         new_dict = new.__dict__

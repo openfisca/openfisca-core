@@ -1,35 +1,18 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import NamedTuple
-from typing_extensions import TypedDict
-
-from openfisca_core.types import Array, Period, Role, Simulation, SingleEntity
-
-import traceback
-
 import numpy
 
-from openfisca_core import holders, periods, projectors
+from openfisca_core import projectors
 
-from . import config
+from . import types as t
+from ._core_population import CorePopulation
 
 
-class Population:
-    simulation: Simulation | None
-    entity: SingleEntity
-    _holders: dict[str, holders.Holder]
-    count: int
-    ids: Array[str]
+class Population(CorePopulation):
+    def __init__(self, entity: t.SingleEntity) -> None:
+        super().__init__(entity)
 
-    def __init__(self, entity: SingleEntity) -> None:
-        self.simulation = None
-        self.entity = entity
-        self._holders = {}
-        self.count = 0
-        self.ids = []
-
-    def clone(self, simulation: Simulation) -> Population:
+    def clone(self, simulation: Simulation) -> t.CorePopulation:
         result = Population(self.entity)
         result.simulation = simulation
         result._holders = {
@@ -39,16 +22,6 @@ class Population:
         result.count = self.count
         result.ids = self.ids
         return result
-
-    def empty_array(self) -> Array[float]:
-        return numpy.zeros(self.count)
-
-    def filled_array(
-        self,
-        value: float | bool,
-        dtype: numpy.dtype | None = None,
-    ) -> Array[float] | Array[bool]:
-        return numpy.full(self.count, value, dtype)
 
     def __getattr__(self, attribute: str) -> projectors.Projector:
         projector: projectors.Projector | None
@@ -62,125 +35,7 @@ class Population:
             msg,
         )
 
-    def get_index(self, id: str) -> int:
-        return self.ids.index(id)
-
-    # Calculations
-
-    def check_array_compatible_with_entity(
-        self,
-        array: Array[float],
-    ) -> None:
-        if self.count == array.size:
-            return
-
-        msg = f"Input {array} is not a valid value for the entity {self.entity.key} (size = {array.size} != {self.count} = count)"
-        raise ValueError(
-            msg,
-        )
-
-    def check_period_validity(
-        self,
-        variable_name: str,
-        period: int | str | Period | None,
-    ) -> None:
-        if isinstance(period, (int, str, periods.Period)):
-            return
-
-        stack = traceback.extract_stack()
-        filename, line_number, function_name, line_of_code = stack[-3]
-        msg = f"""
-You requested computation of variable "{variable_name}", but you did not specify on which period in "{filename}:{line_number}":
-    {line_of_code}
-When you request the computation of a variable within a formula, you must always specify the period as the second parameter. The convention is to call this parameter "period". For example:
-    computed_salary = person('salary', period).
-See more information at <https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-variable-definition>.
-"""
-        raise ValueError(
-            msg,
-        )
-
-    def __call__(
-        self,
-        variable_name: str,
-        period: int | str | Period | None = None,
-        options: Sequence[str] | None = None,
-    ) -> Array[float] | None:
-        """Calculate the variable ``variable_name`` for the entity and the period ``period``, using the variable formula if it exists.
-
-        Example:
-        >>> person("salary", "2017-04")
-        >>> array([300.0])
-
-        :returns: A numpy array containing the result of the calculation
-
-        """
-        if self.simulation is None:
-            return None
-
-        calculate: Calculate = Calculate(
-            variable=variable_name,
-            period=periods.period(period),
-            option=options,
-        )
-
-        self.entity.check_variable_defined_for_entity(calculate.variable)
-        self.check_period_validity(calculate.variable, calculate.period)
-
-        if not isinstance(calculate.option, Sequence):
-            return self.simulation.calculate(
-                calculate.variable,
-                calculate.period,
-            )
-
-        if config.ADD in calculate.option:
-            return self.simulation.calculate_add(
-                calculate.variable,
-                calculate.period,
-            )
-
-        if config.DIVIDE in calculate.option:
-            return self.simulation.calculate_divide(
-                calculate.variable,
-                calculate.period,
-            )
-
-        raise ValueError(
-            f"Options config.ADD and config.DIVIDE are incompatible (trying to compute variable {variable_name})".encode(),
-        )
-
     # Helpers
-
-    def get_holder(self, variable_name: str) -> holders.Holder:
-        self.entity.check_variable_defined_for_entity(variable_name)
-        holder = self._holders.get(variable_name)
-        if holder:
-            return holder
-        variable = self.entity.get_variable(variable_name)
-        self._holders[variable_name] = holder = holders.Holder(variable, self)
-        return holder
-
-    def get_memory_usage(
-        self,
-        variables: Sequence[str] | None = None,
-    ) -> MemoryUsageByVariable:
-        holders_memory_usage = {
-            variable_name: holder.get_memory_usage()
-            for variable_name, holder in self._holders.items()
-            if variables is None or variable_name in variables
-        }
-
-        total_memory_usage = sum(
-            holder_memory_usage["total_nb_bytes"]
-            for holder_memory_usage in holders_memory_usage.values()
-        )
-
-        return MemoryUsageByVariable(
-            {
-                "total_nb_bytes": total_memory_usage,
-                "by_variable": holders_memory_usage,
-            },
-        )
 
     @projectors.projectable
     def has_role(self, role: Role) -> Array[bool] | None:
@@ -285,14 +140,3 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
         # Return -1 for the persons who don't respect the condition
         return numpy.where(condition, result, -1)
-
-
-class Calculate(NamedTuple):
-    variable: str
-    period: Period
-    option: Sequence[str] | None
-
-
-class MemoryUsageByVariable(TypedDict, total=False):
-    by_variable: dict[str, holders.MemoryUsage]
-    total_nb_bytes: int
