@@ -55,7 +55,7 @@ class EnumArray(t.EnumArray):
 
         >>> enum_array = enum.EnumArray(list(Housing), Housing)
         Traceback (most recent call last):
-        TypeError: int() argument must be a string, a bytes-like object or a...
+        AttributeError: 'list' object has no attribute 'view'
 
         >>> class OccupancyStatus(variables.Variable):
         ...     value_type = enum.Enum
@@ -74,21 +74,19 @@ class EnumArray(t.EnumArray):
 
     def __new__(
         cls,
-        input_array: object,
-        possible_values: None | type[t.Enum] = None,
+        input_array: t.IndexArray,
+        possible_values: type[t.Enum],
     ) -> Self:
         """See comment above."""
-        obj = numpy.asarray(input_array).astype(t.EnumDType).view(cls)
+        obj = input_array.view(cls)
         obj.possible_values = possible_values
         return obj
 
-    def __array_finalize__(self, obj: None | t.EnumArray | t.ObjArray) -> None:
+    def __array_finalize__(self, obj: None | t.EnumArray | t.VarArray) -> None:
         """See comment above."""
         if obj is None:
             return
-        if isinstance(obj, EnumArray):
-            self.possible_values = obj.possible_values
-        return
+        self.possible_values = getattr(obj, "possible_values", None)
 
     def __eq__(self, other: object) -> t.BoolArray:  # type: ignore[override]
         """Compare equality with the item's :attr:`~.Enum.index`.
