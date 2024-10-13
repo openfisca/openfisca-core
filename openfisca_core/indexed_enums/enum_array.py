@@ -70,7 +70,7 @@ class EnumArray(t.EnumArray):
     """
 
     #: Enum type of the array items.
-    possible_values: None | type[t.Enum] = None
+    possible_values: None | type[t.Enum]
 
     def __new__(
         cls,
@@ -157,8 +157,12 @@ class EnumArray(t.EnumArray):
             isinstance(other, type(t.Enum))
             and other.__name__ is self.possible_values.__name__
         ):
-            index = numpy.array([enum.index for enum in self.possible_values])
-            result = self.view(numpy.ndarray) == index[index <= max(self)]
+            result = (
+                self.view(numpy.ndarray)
+                == self.possible_values.indices[
+                    self.possible_values.indices <= max(self)
+                ]
+            )
             return result
         if (
             isinstance(other, t.Enum)
@@ -265,16 +269,16 @@ class EnumArray(t.EnumArray):
             array([Housing.TENANT], dtype=object)
 
         """
+        result: t.ObjArray
         if self.possible_values is None:
             msg = (
                 f"The possible values of the {self.__class__.__name__} are "
                 f"not defined."
             )
             raise TypeError(msg)
-        return numpy.select(
-            [self == item.index for item in self.possible_values],
-            list(self.possible_values),  # pyright: ignore[reportArgumentType]
-        )
+        array = self.reshape(1).astype(t.EnumDType) if self.ndim == 0 else self
+        result = self.possible_values.enums[array]
+        return result
 
     def decode_to_str(self) -> t.StrArray:
         """Decode itself to an array of strings.
@@ -300,16 +304,16 @@ class EnumArray(t.EnumArray):
             array(['TENANT'], dtype='<U6')
 
         """
+        result: t.StrArray
         if self.possible_values is None:
             msg = (
                 f"The possible values of the {self.__class__.__name__} are "
                 f"not defined."
             )
             raise TypeError(msg)
-        return numpy.select(
-            [self == item.index for item in self.possible_values],
-            [item.name for item in self.possible_values],
-        )
+        array = self.reshape(1).astype(t.EnumDType) if self.ndim == 0 else self
+        result = self.possible_values.names[array]
+        return result
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.decode()!s})"

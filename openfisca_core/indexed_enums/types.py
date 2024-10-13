@@ -1,6 +1,8 @@
 from typing_extensions import TypeAlias
 
-from openfisca_core.types import Array, ArrayLike, DTypeLike, Enum, EnumArray
+from openfisca_core.types import Array, ArrayLike, DTypeLike, Enum, EnumArray, EnumType
+
+from enum import _EnumDict as EnumDict  # noqa: PLC2701
 
 from numpy import (
     bool_ as BoolDType,
@@ -34,4 +36,6 @@ __all__ = [
     "DTypeLike",
     "Enum",
     "EnumArray",
+    "EnumDict",
+    "EnumType",
 ]

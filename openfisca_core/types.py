@@ -108,7 +108,13 @@ class Role(Protocol):
 # Indexed enums
 
 
-class Enum(enum.Enum, metaclass=enum.EnumMeta):
+class EnumType(enum.EnumMeta):
+    indices: Array[DTypeEnum]
+    names: Array[DTypeStr]
+    enums: Array[DTypeObject]
+
+
+class Enum(enum.Enum, metaclass=EnumType):
     index: int
     _member_names_: list[str]
 
@@ -118,7 +124,7 @@ class EnumArray(Array[DTypeEnum], metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def __new__(
-        cls, input_array: Array[DTypeEnum], possible_values: None | type[Enum] = ...
+        cls, input_array: Array[DTypeEnum], possible_values: type[Enum]
     ) -> Self: ...
 
 

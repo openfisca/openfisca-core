@@ -36,7 +36,7 @@ def test_enum_encode_with_enum_sequence():
 def test_enum_encode_with_enum_scalar_array():
     """Does not encode when called with an enum scalar array."""
     array = numpy.array(Animal.DOG)
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(TypeError):
         Animal.encode(array)
 
 
@@ -67,7 +67,7 @@ def test_enum_encode_with_int_sequence():
 def test_enum_encode_with_int_scalar_array():
     """Does not encode when called with an int scalar array."""
     array = numpy.array(1)
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(TypeError):
         Animal.encode(array)
 
 
@@ -98,7 +98,7 @@ def test_enum_encode_with_str_sequence():
 def test_enum_encode_with_str_scalar_array():
     """Does not encode when called with a str scalar array."""
     array = numpy.array("DOG")
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(TypeError):
         Animal.encode(array)
 
 
@@ -124,7 +124,7 @@ def test_enum_encode_with_any_scalar_array():
     """Does not encode when called with unsupported types."""
     value = 1.5
     array = numpy.array(value)
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(TypeError):
         Animal.encode(array)
 
 

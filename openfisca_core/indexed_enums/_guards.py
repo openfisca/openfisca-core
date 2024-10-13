@@ -53,7 +53,9 @@ def _is_enum_array(array: t.VarArray) -> TypeIs[t.ObjArray]:
     return array.dtype.type in objs
 
 
-def _is_enum_array_like(array: t.ArrayLike[object]) -> TypeIs[t.ArrayLike[t.Enum]]:
+def _is_enum_array_like(
+    array: t.VarArray | t.ArrayLike[object],
+) -> TypeIs[t.ArrayLike[t.Enum]]:
     """Narrow the type of a given array-like to an sequence of :class:`.Enum`.
 
     Args:
@@ -109,7 +111,9 @@ def _is_int_array(array: t.VarArray) -> TypeIs[t.IndexArray]:
     return array.dtype.type in ints
 
 
-def _is_int_array_like(array: t.ArrayLike[object]) -> TypeIs[t.ArrayLike[int]]:
+def _is_int_array_like(
+    array: t.VarArray | t.ArrayLike[object],
+) -> TypeIs[t.ArrayLike[int]]:
     """Narrow the type of a given array-like to a sequence of :obj:`int`.
 
     Args:
@@ -165,7 +169,9 @@ def _is_str_array(array: t.VarArray) -> TypeIs[t.StrArray]:
     return array.dtype.type in strs
 
 
-def _is_str_array_like(array: t.ArrayLike[object]) -> TypeIs[t.ArrayLike[str]]:
+def _is_str_array_like(
+    array: t.VarArray | t.ArrayLike[object],
+) -> TypeIs[t.ArrayLike[str]]:
     """Narrow the type of a given array-like to an sequence of :obj:`str`.
 
     Args:
