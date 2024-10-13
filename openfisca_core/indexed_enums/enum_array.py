@@ -137,6 +137,9 @@ class EnumArray(t.EnumArray):
             >>> enum_array is None
             False
 
+            >>> enum_array == enum.EnumArray(numpy.array([1]), Housing)
+            array([ True])
+
         Note:
             This breaks the `Liskov substitution principle`_.
 

@@ -1,14 +1,14 @@
+from __future__ import annotations
+
 import numpy
 
 from . import types as t
-from ._errors import EnumMemberNotFoundError
 
 
-def _enum_to_index(enum_class: type[t.Enum], value: t.ObjArray) -> t.IndexArray:
+def _enum_to_index(value: t.ObjArray | t.ArrayLike[t.Enum]) -> t.IndexArray:
     """Transform an array of enum members into an index array.
 
     Args:
-        enum_class: The enum class to encode the enum members array.
         value: The enum members array to encode.
 
     Returns:
@@ -34,27 +34,35 @@ def _enum_to_index(enum_class: type[t.Enum], value: t.ObjArray) -> t.IndexArray:
         >>> class Rogue(enum.Enum):
         ...     BOULEVARD = "More like a shady impasse, to be honest."
 
-        >>> _enum_to_index(Road, numpy.array(Road.AVENUE))
+        >>> _enum_to_index(Road.AVENUE)
+        Traceback (most recent call last):
+        TypeError: 'Road' object is not iterable
+
+        >>> _enum_to_index([Road.AVENUE])
+        array([1], dtype=uint8)
+
+        >>> _enum_to_index(numpy.array(Road.AVENUE))
         Traceback (most recent call last):
         TypeError: iteration over a 0-d array
 
-        >>> _enum_to_index(Road, numpy.array([Road.AVENUE]))
+        >>> _enum_to_index(numpy.array([Road.AVENUE]))
         array([1], dtype=uint8)
 
         >>> value = numpy.array([Road.STREET, Road.AVENUE, Road.STREET])
-        >>> _enum_to_index(Road, value)
+        >>> _enum_to_index(value)
         array([0, 1, 0], dtype=uint8)
 
         >>> value = numpy.array([Road.AVENUE, Road.AVENUE, Rogue.BOULEVARD])
-        >>> _enum_to_index(Road, value)
+        >>> _enum_to_index(value)
         array([1, 1, 0], dtype=uint8)
 
     """
-    index = [member.index for member in value]
-    return _int_to_index(enum_class, numpy.array(index))
+    return numpy.array([enum.index for enum in value], t.EnumDType)
 
 
-def _int_to_index(enum_class: type[t.Enum], value: t.IndexArray) -> t.IndexArray:
+def _int_to_index(
+    enum_class: type[t.Enum], value: t.IndexArray | t.ArrayLike[int]
+) -> t.IndexArray:
     """Transform an integer array into an index array.
 
     Args:
@@ -64,10 +72,9 @@ def _int_to_index(enum_class: type[t.Enum], value: t.IndexArray) -> t.IndexArray
     Returns:
         The index array.
 
-    Raises:
-        EnumMemberNotFoundError: If one value is not in the enum class.
-
     Examples:
+        >>> from array import array
+
         >>> import numpy
 
         >>> from openfisca_core import indexed_enums as enum
@@ -84,8 +91,22 @@ def _int_to_index(enum_class: type[t.Enum], value: t.IndexArray) -> t.IndexArray
         ...         "traditionally wider."
         ...     )
 
-        >>> _int_to_index(Road, numpy.array(1))
+        >>> _int_to_index(Road, 1)
+        Traceback (most recent call last):
+        TypeError: 'int' object is not iterable
+
+        >>> _int_to_index(Road, [1])
         array([1], dtype=uint8)
+
+        >>> _int_to_index(Road, array("B", [1]))
+        array([1], dtype=uint8)
+
+        >>> _int_to_index(Road, memoryview(array("B", [1])))
+        array([1], dtype=uint8)
+
+        >>> _int_to_index(Road, numpy.array(1))
+        Traceback (most recent call last):
+        TypeError: iteration over a 0-d array
 
         >>> _int_to_index(Road, numpy.array([1]))
         array([1], dtype=uint8)
@@ -94,25 +115,17 @@ def _int_to_index(enum_class: type[t.Enum], value: t.IndexArray) -> t.IndexArray
         array([0, 1, 0], dtype=uint8)
 
         >>> _int_to_index(Road, numpy.array([1, 1, 2]))
-        Traceback (most recent call last):
-        EnumMemberNotFoundError: Member with index 2 not found in enum 'Road...
+        array([1, 1], dtype=uint8)
 
     """
-    # Create a mask to determine which values are in the enum class.
-    mask = value < len(enum_class._member_names_)
-
-    # Get the values that are not in the enum class.
-    ko = value[~mask]
-
-    # If there are values that are not in the enum class, raise an error.
-    if ko.size > 0:
-        raise EnumMemberNotFoundError(enum_class, f"with index {ko[0]}")
-
-    # Finally, return the index array.
-    return numpy.array(value[mask], dtype=t.EnumDType)
+    return numpy.array(
+        [index for index in value if index < len(enum_class.__members__)], t.EnumDType
+    )
 
 
-def _str_to_index(enum_class: type[t.Enum], value: t.StrArray) -> t.IndexArray:
+def _str_to_index(
+    enum_class: type[t.Enum], value: t.StrArray | t.ArrayLike[str]
+) -> t.IndexArray:
     """Transform a string array into an index array.
 
     Args:
@@ -123,6 +136,8 @@ def _str_to_index(enum_class: type[t.Enum], value: t.StrArray) -> t.IndexArray:
         The index array.
 
     Examples:
+        >>> from array import array
+
         >>> import numpy
 
         >>> from openfisca_core import indexed_enums as enum
@@ -138,6 +153,12 @@ def _str_to_index(enum_class: type[t.Enum], value: t.StrArray) -> t.IndexArray:
         ...         "sides; these run perpendicular to streets and are "
         ...         "traditionally wider."
         ...     )
+
+        >>> _str_to_index(Road, "AVENUE")
+        array([], dtype=uint8)
+
+        >>> _str_to_index(Road, ["AVENUE"])
+        array([1], dtype=uint8)
 
         >>> _str_to_index(Road, numpy.array("AVENUE"))
         Traceback (most recent call last):
@@ -150,12 +171,17 @@ def _str_to_index(enum_class: type[t.Enum], value: t.StrArray) -> t.IndexArray:
         array([0, 1, 0], dtype=uint8)
 
         >>> _str_to_index(Road, numpy.array(["AVENUE", "AVENUE", "BOULEVARD"]))
-        array([1, 1, 0], dtype=uint8)
+        array([1, 1], dtype=uint8)
 
     """
-    names = enum_class._member_names_
-    index = [enum_class[name].index if name in names else 0 for name in value]
-    return _int_to_index(enum_class, numpy.array(index))
+    return numpy.array(
+        [
+            enum_class.__members__[name].index
+            for name in value
+            if name in enum_class._member_names_
+        ],
+        t.EnumDType,
+    )
 
 
 __all__ = ["_enum_to_index", "_int_to_index", "_str_to_index"]

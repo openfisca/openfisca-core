@@ -1,10 +1,19 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import numpy
 
 from . import types as t
-from ._errors import EnumEncodingError
-from ._guards import _is_int_array, _is_obj_array, _is_str_array
+from ._errors import EnumEncodingError, EnumMemberNotFoundError
+from ._guards import (
+    _is_enum_array,
+    _is_enum_array_like,
+    _is_int_array,
+    _is_int_array_like,
+    _is_str_array,
+    _is_str_array_like,
+)
 from ._utils import _enum_to_index, _int_to_index, _str_to_index
 from .enum_array import EnumArray
 
@@ -111,7 +120,7 @@ class Enum(t.Enum):
         return f"{self.__class__.__name__}.{self.name}"
 
     def __hash__(self) -> int:
-        return object.__hash__(self)
+        return object.__hash__(self.__class__.__name__ + self.name)
 
     def __eq__(self, other: object) -> bool:
         if (
@@ -130,19 +139,7 @@ class Enum(t.Enum):
         return NotImplemented
 
     @classmethod
-    def encode(
-        cls,
-        array: (
-            t.EnumArray
-            | t.IndexArray
-            | t.IntArray
-            | t.StrArray
-            | t.ObjArray
-            | t.ArrayLike[int]
-            | t.ArrayLike[str]
-            | t.ArrayLike[t.Enum]
-        ),
-    ) -> t.EnumArray:
+    def encode(cls, array: t.VarArray | t.ArrayLike[object]) -> t.EnumArray:
         """Encode an encodable array into an :class:`.EnumArray`.
 
         Args:
@@ -152,8 +149,9 @@ class Enum(t.Enum):
             EnumArray: An :class:`.EnumArray` with the encoded input values.
 
         Raises:
+            EnumEncodingError: If ``array`` is of diffent :class:`.Enum` type.
+            EnumMemberNotFoundError: If members are not found in :class:`.Enum`.
             NotImplementedError: If ``array`` is a scalar :class:`~numpy.ndarray`.
-            EnumEncodingError: If ``array`` is of a diffent :class:`.Enum` type.
 
         Examples:
             >>> import numpy
@@ -203,49 +201,71 @@ class Enum(t.Enum):
             :meth:`.EnumArray.decode` for decoding.
 
         """
-        # Array-like values need to be converted to a numpy array.
-        if not isinstance(array, numpy.ndarray):
-            return cls.encode(numpy.array(array))
+        # Array of indices
+        indices: t.IndexArray
 
-        # Empty arrays are returned as is.
-        if array.size == 0:
-            return EnumArray(numpy.array([]), cls)
-
-        # Scalar arrays are not supported.
-        if array.ndim == 0:
-            msg = (
-                "Scalar arrays are not supported: expecting a vector array, "
-                f"instead. Please try again with `numpy.array([{array}])`."
-            )
-            raise NotImplementedError(msg)
-
-        # Enum arrays.
-        if isinstance(array, t.EnumArray):
+        if isinstance(array, EnumArray):
             return array
 
-        # Index arrays.
-        if _is_int_array(array):
-            return EnumArray(_int_to_index(cls, array), cls)
+        # Array-like
+        if isinstance(array, Sequence):
+            if len(array) == 0:
+                indices = numpy.array([], t.EnumDType)
 
-        # String arrays.
-        if _is_str_array(array):  # type: ignore[unreachable]
-            return EnumArray(_str_to_index(cls, array), cls)
+            elif _is_int_array_like(array):
+                indices = _int_to_index(cls, array)
 
-        # Ensure we are comparing the comparable. The problem this fixes:
-        # On entering this method "cls" will generally come from
-        # variable.possible_values, while the array values may come from
-        # directly importing a module containing an Enum class. However,
-        # variables (and hence their possible_values) are loaded by a call
-        # to load_module, which gives them a different identity from the
-        # ones imported in the usual way.
-        #
-        # So, instead of relying on the "cls" passed in, we use only its
-        # name to check that the values in the array, if non-empty, are of
-        # the right type.
-        if _is_obj_array(array) and cls.__name__ is array[0].__class__.__name__:
-            return EnumArray(_enum_to_index(cls, array), cls)
+            elif _is_str_array_like(array):
+                indices = _str_to_index(cls, array)
 
-        raise EnumEncodingError(cls, array)
+            elif _is_enum_array_like(array):
+                indices = _enum_to_index(array)
+
+            else:
+                raise EnumEncodingError(cls, array)
+
+        else:
+            # Scalar arrays are not supported.
+            if array.ndim == 0:
+                msg = (
+                    "Scalar arrays are not supported: expecting a vector array, "
+                    f"instead. Please try again with `numpy.array([{array}])`."
+                )
+                raise NotImplementedError(msg)
+
+            # Empty arrays are returned as is.
+            if array.size == 0:
+                indices = numpy.array([], t.EnumDType)
+
+            # Index arrays.
+            elif _is_int_array(array):
+                indices = _int_to_index(cls, array)
+
+            # String arrays.
+            elif _is_str_array(array):  # type: ignore[unreachable]
+                indices = _str_to_index(cls, array)
+
+            # Ensure we are comparing the comparable. The problem this fixes:
+            # On entering this method "cls" will generally come from
+            # variable.possible_values, while the array values may come from
+            # directly importing a module containing an Enum class. However,
+            # variables (and hence their possible_values) are loaded by a call
+            # to load_module, which gives them a different identity from the
+            # ones imported in the usual way.
+            #
+            # So, instead of relying on the "cls" passed in, we use only its
+            # name to check that the values in the array, if non-empty, are of
+            # the right type.
+            elif _is_enum_array(array) and cls.__name__ is array[0].__class__.__name__:
+                indices = _enum_to_index(array)
+
+            else:
+                raise EnumEncodingError(cls, array)
+
+        if indices.size != len(array):
+            raise EnumMemberNotFoundError(cls)
+
+        return EnumArray(indices, cls)
 
 
 __all__ = ["Enum"]
