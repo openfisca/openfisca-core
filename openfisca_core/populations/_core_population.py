@@ -1,14 +1,11 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import NamedTuple, TypeVar
-from typing_extensions import TypedDict
+from typing import TypeVar
 
-import enum
 import traceback
 
 import numpy
-import strenum
 
 from openfisca_core import holders, periods
 
@@ -17,22 +14,6 @@ from ._errors import InvalidArraySizeError
 
 #: Type variable for a covariant data type.
 _DT_co = TypeVar("_DT_co", covariant=True, bound=t.VarDType)
-
-
-class Option(strenum.StrEnum):
-    ADD = enum.auto()
-    DIVIDE = enum.auto()
-
-
-class Calculate(NamedTuple):
-    variable: str
-    period: t.Period
-    option: None | Sequence[str]
-
-
-class MemoryUsageByVariable(TypedDict, total=False):
-    by_variable: dict[str, t.MemoryUsage]
-    total_nb_bytes: int
 
 
 class CorePopulation:
@@ -59,19 +40,19 @@ class CorePopulation:
 
     def __init__(self, entity: t.CoreEntity, *__args: object, **__kwds: object) -> None:
         self.entity = entity
-        self._holders: t.Holders = {}
+        self._holders: t.HolderByVariable = {}
 
     def __call__(
         self,
         variable_name: t.VariableName,
         period: None | t.PeriodLike = None,
-        options: None | Sequence[str] = None,
+        options: None | Sequence[t.Option] = None,
     ) -> None | t.FloatArray:
         """Calculate ``variable_name`` for ``period``, using the formula if it exists.
 
-        Example:
-        >>> person("salary", "2017-04")
-        >>> array([300.0])
+        # Example:
+        # >>> person("salary", "2017-04")
+        # >>> array([300.0])
 
         Returns:
             None: If there is no :class:`.Simulation`.
@@ -81,7 +62,7 @@ class CorePopulation:
         if self.simulation is None:
             return None
 
-        calculate: Calculate = Calculate(
+        calculate = t.Calculate(
             variable=variable_name,
             period=periods.period(period),
             option=options,
@@ -96,13 +77,13 @@ class CorePopulation:
                 calculate.period,
             )
 
-        if Option.ADD in map(str.upper, calculate.option):
+        if t.Option.ADD in map(str.upper, calculate.option):
             return self.simulation.calculate_add(
                 calculate.variable,
                 calculate.period,
             )
 
-        if Option.DIVIDE in map(str.upper, calculate.option):
+        if t.Option.DIVIDE in map(str.upper, calculate.option):
             return self.simulation.calculate_divide(
                 calculate.variable,
                 calculate.period,
@@ -217,8 +198,51 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
 
     def get_memory_usage(
         self,
-        variables: Sequence[str] | None = None,
-    ) -> MemoryUsageByVariable:
+        variables: None | Sequence[t.VariableName] = None,
+    ) -> t.MemoryUsageByVariable:
+        """Return the memory usage of the population per variable.
+
+        Args:
+            variables: The variables to get the memory usage for.
+
+        Returns:
+            MemoryUsageByVariable: The memory usage of the population per variable.
+
+        Examples:
+            >>> from openfisca_core import (
+            ...     entities,
+            ...     holders,
+            ...     periods,
+            ...     populations,
+            ...     simulations,
+            ...     taxbenefitsystems,
+            ...     simulations,
+            ...     variables,
+            ... )
+
+            >>> class Person(entities.SingleEntity): ...
+
+            >>> person = Person("person", "people", "", "")
+
+            >>> class Salary(variables.Variable):
+            ...     definition_period = periods.WEEK
+            ...     entity = person
+            ...     value_type = int
+
+            >>> tbs = taxbenefitsystems.TaxBenefitSystem([person])
+            >>> population = populations.SinglePopulation(person)
+            >>> simulation = simulations.Simulation(tbs, {person.key: population})
+            >>> salary = Salary()
+            >>> holder = holders.Holder(salary, population)
+            >>> population._holders[salary.name] = holder
+
+            >>> population.get_memory_usage()
+            {'total_nb_bytes': 0, 'by_variable': {'Salary': {'nb_cells_by...}}}
+
+            >>> population.get_memory_usage([salary.name])
+            {'total_nb_bytes': 0, 'by_variable': {'Salary': {'nb_cells_by...}}}
+
+        """
         holders_memory_usage = {
             variable_name: holder.get_memory_usage()
             for variable_name, holder in self._holders.items()
@@ -230,11 +254,9 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             for holder_memory_usage in holders_memory_usage.values()
         )
 
-        return MemoryUsageByVariable(
-            {
-                "total_nb_bytes": total_memory_usage,
-                "by_variable": holders_memory_usage,
-            },
+        return t.MemoryUsageByVariable(
+            total_nb_bytes=total_memory_usage,
+            by_variable=holders_memory_usage,
         )
 
 

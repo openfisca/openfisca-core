@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping, Sequence, Sized
+from collections.abc import Iterable, Sequence, Sized
 from numpy.typing import DTypeLike, NDArray
 from typing import NewType, TypeVar, Union
-from typing_extensions import Protocol, Self, TypeAlias, TypedDict
+from typing_extensions import Protocol, Required, Self, TypeAlias, TypedDict
 
 import abc
 import enum
@@ -133,7 +133,7 @@ class EnumArray(Array[DTypeEnum], metaclass=abc.ABCMeta):
 
 class Holder(Protocol):
     def clone(self, population: CorePopulation, /) -> Holder: ...
-    def get_memory_usage(self, /) -> Mapping[str, object]: ...
+    def get_memory_usage(self, /) -> MemoryUsage: ...
 
 
 class MemoryUsage(TypedDict, total=False):
@@ -143,7 +143,7 @@ class MemoryUsage(TypedDict, total=False):
     nb_cells_by_array: int
     nb_requests: int
     nb_requests_by_array: int
-    total_nb_bytes: int
+    total_nb_bytes: Required[int]
 
 
 # Parameters
