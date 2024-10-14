@@ -47,6 +47,7 @@ check-types:
 		openfisca_core/data_storage \
 		openfisca_core/experimental \
 		openfisca_core/entities \
+		openfisca_core/indexed_enums \
 		openfisca_core/periods \
 		openfisca_core/types.py
 	@$(call print_pass,$@:)

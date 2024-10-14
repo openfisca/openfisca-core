@@ -10,7 +10,12 @@ import numpy
 from openfisca_core import holders, periods
 
 from . import types as t
-from ._errors import InvalidArraySizeError, PeriodValidityError
+from ._errors import (
+    IncompatibleOptionsError,
+    InvalidArraySizeError,
+    InvalidOptionError,
+    PeriodValidityError,
+)
 
 #: Type variable for a covariant data type.
 _DT_co = TypeVar("_DT_co", covariant=True, bound=t.VarDType)
@@ -45,18 +50,87 @@ class CorePopulation:
     def __call__(
         self,
         variable_name: t.VariableName,
-        period: None | t.PeriodLike = None,
+        period: t.PeriodLike,
         options: None | Sequence[t.Option] = None,
-    ) -> None | t.FloatArray:
+    ) -> None | t.VarArray:
         """Calculate ``variable_name`` for ``period``, using the formula if it exists.
 
-        # Example:
-        # >>> person("salary", "2017-04")
-        # >>> array([300.0])
+        Args:
+            variable_name: The name of the variable to calculate.
+            period: The period to calculate the variable for.
+            options: The options to use for the calculation.
 
         Returns:
             None: If there is no :class:`.Simulation`.
-            ndarray[float32]: The result of the calculation.
+            ndarray[generic]: The result of the calculation.
+
+        Raises:
+            IncompatibleOptionsError: If the options are incompatible.
+            InvalidOptionError: If the option is invalid.
+
+        Examples:
+            >>> from openfisca_core import (
+            ...     entities,
+            ...     periods,
+            ...     populations,
+            ...     simulations,
+            ...     taxbenefitsystems,
+            ...     variables,
+            ... )
+
+            >>> class Person(entities.SingleEntity): ...
+
+            >>> person = Person("person", "people", "", "")
+            >>> period = periods.Period.eternity()
+            >>> population = populations.CorePopulation(person)
+            >>> population.count = 3
+            >>> population("salary", period)
+
+            >>> tbs = taxbenefitsystems.TaxBenefitSystem([person])
+            >>> person.set_tax_benefit_system(tbs)
+            >>> simulation = simulations.Simulation(tbs, {person.key: population})
+            >>> population("salary", period)
+            Traceback (most recent call last):
+            VariableNotFoundError: You tried to calculate or to set a value ...
+
+            >>> class Salary(variables.Variable):
+            ...     definition_period = periods.ETERNITY
+            ...     entity = person
+            ...     value_type = int
+
+            >>> tbs.add_variable(Salary)
+            <openfisca_core.populations._core_population.Salary object at...
+
+            >>> population(Salary().name, period)
+            array([0, 0, 0], dtype=int32)
+
+            >>> class Tax(Salary):
+            ...     default_value = 100.0
+            ...     definition_period = periods.ETERNITY
+            ...     entity = person
+            ...     value_type = float
+
+            >>> tbs.add_variable(Tax)
+            <openfisca_core.populations._core_population.Tax object at...
+
+            >>> population(Tax().name, period)
+            array([100., 100., 100.], dtype=float32)
+
+            >>> population(Tax().name, period, [populations.ADD])
+            Traceback (most recent call last):
+            ValueError: Unable to ADD constant variable 'Tax' over the perio...
+
+            >>> population(Tax().name, period, [populations.DIVIDE])
+            Traceback (most recent call last):
+            ValueError: Unable to DIVIDE constant variable 'Tax' over the pe...
+
+            >>> population(Tax().name, period, [populations.ADD, populations.DIVIDE])
+            Traceback (most recent call last):
+            IncompatibleOptionsError: Options ADD and DIVIDE are incompatibl...
+
+            >>> population(Tax().name, period, ["LAGRANGIAN"])
+            Traceback (most recent call last):
+            InvalidOptionError: Option LAGRANGIAN is not a valid option (try...
 
         """
         if self.simulation is None:
@@ -77,21 +151,22 @@ class CorePopulation:
                 calculate.period,
             )
 
-        if t.Option.ADD in map(str.upper, calculate.option):
+        if t.Option.ADD in calculate.option and t.Option.DIVIDE in calculate.option:
+            raise IncompatibleOptionsError(variable_name)
+
+        if t.Option.ADD in calculate.option:
             return self.simulation.calculate_add(
                 calculate.variable,
                 calculate.period,
             )
 
-        if t.Option.DIVIDE in map(str.upper, calculate.option):
+        if t.Option.DIVIDE in calculate.option:
             return self.simulation.calculate_divide(
                 calculate.variable,
                 calculate.period,
             )
 
-        raise ValueError(
-            f"Options config.ADD and config.DIVIDE are incompatible (trying to compute variable {variable_name})".encode(),
-        )
+        raise InvalidOptionError(calculate.option[0], variable_name)
 
     def empty_array(self) -> t.FloatArray:
         """Return an empty array.
