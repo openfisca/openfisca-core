@@ -1,3 +1,3 @@
-from openfisca_core.types import CorePopulation, Holder
+from openfisca_core.types import CorePopulation, Holder, MemoryUsage
 
-__all__ = ["CorePopulation", "Holder"]
+__all__ = ["CorePopulation", "Holder", "MemoryUsage"]
