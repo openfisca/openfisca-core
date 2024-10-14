@@ -13,8 +13,9 @@ source:
   sha256: e16ee9cbefdd5e9ddc1c2c0e12bcd74307c8cb1be55353b3b2788d64a90a5df9
 
 build:
+  number: 1
   noarch: python
-  script: pip install . -v
+  script: pip install . -v --no-deps
 
 requirements:
   host:
@@ -25,12 +26,7 @@ requirements:
   run:
   - numpy
   - python
-  - openfisca-country-template >=7,<8
-
-tests:
-- python:
-    imports:
-    - openfisca_extension_template
+  - openfisca-country-template >=7.1.5,<8
 
 about:
   summary: An OpenFisca extension that adds some variables to an already-existing

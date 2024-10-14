@@ -35,11 +35,12 @@ test-code: test-core test-country test-extension
 ## Run openfisca-core tests.
 test-core: $(shell git ls-files "*test_*.py")
 	@$(call print_help,$@:)
-	@python -m pytest --capture=no --xdoctest --xdoctest-verbose=0 \
+	@python -m pytest --capture=no \
 		openfisca_core/commons \
 		openfisca_core/data_storage \
 		openfisca_core/entities \
 		openfisca_core/holders \
+		openfisca_core/indexed_enums \
 		openfisca_core/periods \
 		openfisca_core/projectors
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \

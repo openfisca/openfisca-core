@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence, Sized
-from numpy.typing import NDArray
-from typing import Any, NewType, TypeVar, Union
+from numpy.typing import DTypeLike, NDArray
+from typing import NewType, TypeVar, Union
 from typing_extensions import Protocol, Self, TypeAlias
 
 import abc
@@ -44,7 +44,7 @@ DTypeStr: TypeAlias = numpy.str_
 DTypeBytes: TypeAlias = numpy.bytes_
 
 #: Type for Enum arrays.
-DTypeEnum: TypeAlias = numpy.int16
+DTypeEnum: TypeAlias = numpy.uint8
 
 #: Type for date arrays.
 DTypeDate: TypeAlias = numpy.datetime64
@@ -108,8 +108,15 @@ class Role(Protocol):
 # Indexed enums
 
 
-class Enum(enum.Enum, metaclass=enum.EnumMeta):
+class EnumType(enum.EnumMeta):
+    indices: Array[DTypeEnum]
+    names: Array[DTypeStr]
+    enums: Array[DTypeObject]
+
+
+class Enum(enum.Enum, metaclass=EnumType):
     index: int
+    _member_names_: list[str]
 
 
 class EnumArray(Array[DTypeEnum], metaclass=abc.ABCMeta):
@@ -117,7 +124,7 @@ class EnumArray(Array[DTypeEnum], metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def __new__(
-        cls, input_array: Array[DTypeEnum], possible_values: None | type[Enum] = ...
+        cls, input_array: Array[DTypeEnum], possible_values: type[Enum]
     ) -> Self: ...
 
 
@@ -125,8 +132,8 @@ class EnumArray(Array[DTypeEnum], metaclass=abc.ABCMeta):
 
 
 class Holder(Protocol):
-    def clone(self, population: Any, /) -> Holder: ...
-    def get_memory_usage(self, /) -> Any: ...
+    def clone(self, population: CorePopulation, /) -> Holder: ...
+    def get_memory_usage(self, /) -> dict[str, object]: ...
 
 
 # Parameters
@@ -186,27 +193,39 @@ class Period(Indexable[Union[DateUnit, Instant, int]], Protocol):
 # Populations
 
 
-class Population(Protocol):
-    entity: Any
+class CorePopulation(Protocol): ...
 
-    def get_holder(self, variable_name: VariableName, /) -> Any: ...
+
+class SinglePopulation(CorePopulation, Protocol):
+    entity: SingleEntity
+
+    def get_holder(self, variable_name: VariableName, /) -> Holder: ...
+
+
+class GroupPopulation(CorePopulation, Protocol): ...
 
 
 # Simulations
 
 
 class Simulation(Protocol):
-    def calculate(self, variable_name: VariableName, period: Any, /) -> Any: ...
-    def calculate_add(self, variable_name: VariableName, period: Any, /) -> Any: ...
-    def calculate_divide(self, variable_name: VariableName, period: Any, /) -> Any: ...
-    def get_population(self, plural: None | str, /) -> Any: ...
+    def calculate(
+        self, variable_name: VariableName, period: Period, /
+    ) -> Array[DTypeGeneric]: ...
+    def calculate_add(
+        self, variable_name: VariableName, period: Period, /
+    ) -> Array[DTypeGeneric]: ...
+    def calculate_divide(
+        self, variable_name: VariableName, period: Period, /
+    ) -> Array[DTypeGeneric]: ...
+    def get_population(self, plural: None | str, /) -> CorePopulation: ...
 
 
 # Tax-Benefit systems
 
 
 class TaxBenefitSystem(Protocol):
-    person_entity: Any
+    person_entity: SingleEntity
 
     def get_variable(
         self,
@@ -223,19 +242,22 @@ VariableName = NewType("VariableName", str)
 
 
 class Variable(Protocol):
-    entity: Any
+    entity: CoreEntity
     name: VariableName
 
 
 class Formula(Protocol):
     def __call__(
         self,
-        population: Population,
+        population: CorePopulation,
         instant: Instant,
         params: Params,
         /,
-    ) -> Array[Any]: ...
+    ) -> Array[DTypeGeneric]: ...
 
 
 class Params(Protocol):
     def __call__(self, instant: Instant, /) -> ParameterNodeAtInstant: ...
+
+
+__all__ = ["DTypeLike"]
