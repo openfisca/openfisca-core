@@ -91,10 +91,10 @@ class FullTracer:
     def get_nb_requests(self, variable: str) -> int:
         return sum(self._get_nb_requests(tree, variable) for tree in self.trees)
 
-    def get_flat_trace(self) -> dict:
+    def get_flat_trace(self) -> t.FlatNodeMap:
         return self.flat_trace.get_trace()
 
-    def get_serialized_flat_trace(self) -> dict:
+    def get_serialized_flat_trace(self) -> t.SerializedNodeMap:
         return self.flat_trace.get_serialized_trace()
 
     def browse_trace(self) -> Iterator[t.TraceNode]:
@@ -161,3 +161,6 @@ class FullTracer:
     @staticmethod
     def _get_time_in_sec() -> t.Time:
         return time.time_ns() / (10**9)
+
+
+__all__ = ["FullTracer"]

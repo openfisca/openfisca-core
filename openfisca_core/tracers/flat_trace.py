@@ -37,27 +37,6 @@ class FlatTrace:
             for key, flat_trace in self.get_trace().items()
         }
 
-    def serialize(
-        self,
-        value: None | t.VarArray | t.ArrayLike[object],
-    ) -> None | t.ArrayLike[object]:
-        if value is None:
-            return None
-
-        if isinstance(value, EnumArray):
-            return value.decode_to_str().tolist()
-
-        if isinstance(value, numpy.ndarray) and numpy.issubdtype(
-            value.dtype,
-            numpy.dtype(bytes),
-        ):
-            return value.astype(numpy.dtype(str)).tolist()
-
-        if isinstance(value, numpy.ndarray):
-            return value.tolist()
-
-        return value
-
     def _get_flat_trace(
         self,
         node: t.TraceNode,
@@ -83,3 +62,27 @@ class FlatTrace:
         name = node.name
         period = node.period
         return t.NodeKey(f"{name}<{period}>")
+
+    @staticmethod
+    def serialize(
+        value: None | t.VarArray | t.ArrayLike[object],
+    ) -> None | t.ArrayLike[object]:
+        if value is None:
+            return None
+
+        if isinstance(value, EnumArray):
+            return value.decode_to_str().tolist()
+
+        if isinstance(value, numpy.ndarray) and numpy.issubdtype(
+            value.dtype,
+            numpy.dtype(bytes),
+        ):
+            return value.astype(numpy.dtype(str)).tolist()
+
+        if isinstance(value, numpy.ndarray):
+            return value.tolist()
+
+        return value
+
+
+__all__ = ["FlatTrace"]
