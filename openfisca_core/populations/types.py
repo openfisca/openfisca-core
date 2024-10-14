@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, MutableMapping
-from typing import Union
-from typing_extensions import NewType, TypeAlias
+from collections.abc import Iterable, MutableMapping, Sequence
+from typing import NamedTuple, Union
+from typing_extensions import NewType, TypeAlias, TypedDict
 
 from openfisca_core.types import (
     Array,
@@ -22,6 +22,9 @@ from openfisca_core.types import (
     VariableName,
 )
 
+import enum
+
+import strenum
 from numpy import (
     bool_ as BoolDType,
     float32 as FloatDType,
@@ -55,11 +58,27 @@ PeriodLike: TypeAlias = Union[Period, PeriodStr, PeriodInt]
 # Populations
 
 #: Type alias for a population's holders.
-Holders: TypeAlias = MutableMapping[VariableName, Holder]
+HolderByVariable: TypeAlias = MutableMapping[VariableName, Holder]
 
 # TODO(Mauko Quiroga-Alvarado): I'm not sure if this type alias is correct.
 # https://openfisca.org/doc/coding-the-legislation/50_entities.html
 Members: TypeAlias = Iterable[SinglePopulation]
+
+
+class Option(strenum.StrEnum):
+    ADD = enum.auto()
+    DIVIDE = enum.auto()
+
+
+class Calculate(NamedTuple):
+    variable: VariableName
+    period: Period
+    option: None | Sequence[Option]
+
+
+class MemoryUsageByVariable(TypedDict, total=False):
+    by_variable: dict[VariableName, MemoryUsage]
+    total_nb_bytes: int
 
 
 __all__ = [

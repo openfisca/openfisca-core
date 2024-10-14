@@ -36,6 +36,8 @@ from .config import ADD, DIVIDE
 from .group_population import GroupPopulation
 from .population import Population
 
+SinglePopulation = Population
+
 __all__ = [
     "ADD",
     "DIVIDE",
@@ -46,6 +48,7 @@ __all__ = [
     "InvalidArraySizeError",
     "Population",
     "Projector",
+    "SinglePopulation",
     "UniqueRoleToEntityProjector",
     "get_projector_from_shortcut",
     "projectable",
