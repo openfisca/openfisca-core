@@ -157,6 +157,9 @@ class ParameterNodeAtInstant(Protocol): ...
 #: For example "2000-01".
 InstantStr = NewType("InstantStr", str)
 
+#: For example 2020.
+PeriodInt = NewType("PeriodInt", int)
+
 #: For example "1:2000-01-01:day".
 PeriodStr = NewType("PeriodStr", str)
 
