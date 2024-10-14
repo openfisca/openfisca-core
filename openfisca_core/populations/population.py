@@ -12,7 +12,7 @@ class Population(CorePopulation):
     def __init__(self, entity: t.SingleEntity) -> None:
         super().__init__(entity)
 
-    def clone(self, simulation: Simulation) -> t.CorePopulation:
+    def clone(self, simulation: t.Simulation) -> t.CorePopulation:
         result = Population(self.entity)
         result.simulation = simulation
         result._holders = {
@@ -38,7 +38,7 @@ class Population(CorePopulation):
     # Helpers
 
     @projectors.projectable
-    def has_role(self, role: Role) -> Array[bool] | None:
+    def has_role(self, role: t.Role) -> None | t.BoolArray:
         """Check if a person has a given role within its `GroupEntity`.
 
         Example:
@@ -63,10 +63,10 @@ class Population(CorePopulation):
     @projectors.projectable
     def value_from_partner(
         self,
-        array: Array[float],
+        array: t.FloatArray,
         entity: projectors.Projector,
-        role: Role,
-    ) -> Array[float] | None:
+        role: t.Role,
+    ) -> None | t.FloatArray:
         self.check_array_compatible_with_entity(array)
         self.entity.check_role_validity(role)
 
@@ -89,9 +89,9 @@ class Population(CorePopulation):
     def get_rank(
         self,
         entity: Population,
-        criteria: Array[float],
+        criteria: t.FloatArray,
         condition: bool = True,
-    ) -> Array[int]:
+    ) -> t.IntArray:
         """Get the rank of a person within an entity according to a criteria.
         The person with rank 0 has the minimum value of criteria.
         If condition is specified, then the persons who don't respect it are not taken into account and their rank is -1.

@@ -24,11 +24,9 @@
 from . import types
 from .helpers import set_input_dispatch_by_period, set_input_divide_by_period
 from .holder import Holder
-from .memory_usage import MemoryUsage
 
 __all__ = [
     "Holder",
-    "MemoryUsage",
     "set_input_dispatch_by_period",
     "set_input_divide_by_period",
     "types",

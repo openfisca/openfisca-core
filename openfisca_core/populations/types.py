@@ -12,8 +12,10 @@ from openfisca_core.types import (
     EntityKey,
     GroupEntity,
     Holder,
+    MemoryUsage,
     Period,
     PeriodStr,
+    Role,
     Simulation,
     SingleEntity,
     SinglePopulation,
@@ -24,10 +26,14 @@ from numpy import (
     bool_ as BoolDType,
     float32 as FloatDType,
     generic as VarDType,
+    int32 as IntDType,
     str_ as StrDType,
 )
 
 # Commons
+
+#: Type alias for an array of strings.
+IntArray: TypeAlias = Array[IntDType]
 
 #: Type alias for an array of strings.
 StrArray: TypeAlias = Array[StrDType]
@@ -63,7 +69,9 @@ __all__ = [
     "EntityKey",
     "GroupEntity",
     "Holder",
+    "MemoryUsage",
     "Period",
+    "Role",
     "Simulation",
     "SingleEntity",
     "SinglePopulation",

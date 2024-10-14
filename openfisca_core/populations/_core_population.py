@@ -27,11 +27,11 @@ class Option(strenum.StrEnum):
 class Calculate(NamedTuple):
     variable: str
     period: t.Period
-    option: Sequence[str] | None
+    option: None | Sequence[str]
 
 
 class MemoryUsageByVariable(TypedDict, total=False):
-    by_variable: dict[str, holders.MemoryUsage]
+    by_variable: dict[str, t.MemoryUsage]
     total_nb_bytes: int
 
 
@@ -186,7 +186,7 @@ class CorePopulation:
     def check_period_validity(
         self,
         variable_name: str,
-        period: int | str | Period | None,
+        period: None | t.PeriodLike,
     ) -> None:
         if isinstance(period, (int, str, periods.Period)):
             return

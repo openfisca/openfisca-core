@@ -19,7 +19,6 @@ from openfisca_core import (
 )
 
 from . import types as t
-from .memory_usage import MemoryUsage
 
 
 class Holder:
@@ -95,7 +94,7 @@ class Holder:
             return self._disk_storage.get(period)
         return None
 
-    def get_memory_usage(self) -> MemoryUsage:
+    def get_memory_usage(self) -> t.MemoryUsage:
         """Get data about the virtual memory usage of the Holder.
 
         Returns:
@@ -136,7 +135,7 @@ class Holder:
                'total_nb_bytes': 0...
 
         """
-        usage = MemoryUsage(
+        usage = t.MemoryUsage(
             nb_cells_by_array=self.population.count,
             dtype=self.variable.dtype,
         )
