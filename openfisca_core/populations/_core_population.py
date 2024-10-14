@@ -132,9 +132,9 @@ class CorePopulation:
         Examples:
             >>> import numpy
 
-            >>> from openfisca_core import populations as p
+            >>> from openfisca_core import populations
 
-            >>> class Population(p.CorePopulation): ...
+            >>> class Population(populations.CorePopulation): ...
 
             >>> population = Population(None)
             >>> population.count = 3
@@ -155,6 +155,31 @@ class CorePopulation:
         return numpy.full(self.count, value, dtype)
 
     def get_index(self, id: str) -> int:
+        """Return the index of an `id``.
+
+        Args:
+            id: The id to get the index for.
+
+        Returns:
+            int: The index of the id.
+
+        Examples:
+            >>> from openfisca_core import entities, populations
+
+            >>> class Person(entities.SingleEntity): ...
+
+            >>> person = Person("person", "people", "", "")
+            >>> population = populations.CorePopulation(person)
+            >>> population.ids = ["Juan", "Megan", "Brahim"]
+
+            >>> population.get_index("Megan")
+            1
+
+            >>> population.get_index("Ibrahim")
+            Traceback (most recent call last):
+            ValueError: 'Ibrahim' is not in list
+
+        """
         return self.ids.index(id)
 
     # Calculations
