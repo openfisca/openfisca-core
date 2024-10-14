@@ -188,6 +188,51 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
     # Helpers
 
     def get_holder(self, variable_name: t.VariableName) -> t.Holder:
+        """Return the holder of a variable.
+
+        Args:
+            variable_name: The name of the variable.
+
+        Returns:
+            Holder: The holder of the variable.
+
+        Examples:
+            >>> from openfisca_core import (
+            ...     entities,
+            ...     holders,
+            ...     periods,
+            ...     populations,
+            ...     simulations,
+            ...     taxbenefitsystems,
+            ...     simulations,
+            ...     variables,
+            ... )
+
+            >>> class Person(entities.SingleEntity): ...
+
+            >>> person = Person("person", "people", "", "")
+
+            >>> class Salary(variables.Variable):
+            ...     definition_period = periods.WEEK
+            ...     entity = person
+            ...     value_type = int
+
+            >>> tbs = taxbenefitsystems.TaxBenefitSystem([person])
+            >>> person.set_tax_benefit_system(tbs)
+            >>> population = populations.SinglePopulation(person)
+            >>> simulation = simulations.Simulation(tbs, {person.key: population})
+            >>> population.get_holder("income_tax")
+            Traceback (most recent call last):
+            VariableNotFoundError: You tried to calculate or to set a value ...
+
+            >>> tbs.add_variable(Salary)
+            <openfisca_core.populations._core_population.Salary object at...
+
+            >>> salary = Salary()
+            >>> population.get_holder(salary.name)
+            <openfisca_core.holders.holder.Holder object at ...
+
+        """
         self.entity.check_variable_defined_for_entity(variable_name)
         holder = self._holders.get(variable_name)
         if holder:
