@@ -31,7 +31,7 @@ from openfisca_core.projectors.helpers import get_projector_from_shortcut, proje
 
 from . import types
 from ._core_population import CorePopulation
-from ._errors import InvalidArraySizeError
+from ._errors import InvalidArraySizeError, PeriodValidityError
 from .config import ADD, DIVIDE
 from .group_population import GroupPopulation
 from .population import Population
@@ -46,6 +46,7 @@ __all__ = [
     "FirstPersonToEntityProjector",
     "GroupPopulation",
     "InvalidArraySizeError",
+    "PeriodValidityError",
     "Population",
     "Projector",
     "SinglePopulation",

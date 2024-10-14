@@ -11,6 +11,7 @@ from openfisca_core import holders, periods
 
 from . import types as t
 from ._errors import InvalidArraySizeError
+from ._errors import PeriodValidityError
 
 #: Type variable for a covariant data type.
 _DT_co = TypeVar("_DT_co", covariant=True, bound=t.VarDType)
@@ -164,26 +165,45 @@ class CorePopulation:
             return
         raise InvalidArraySizeError(array, self.entity.key, self.count)
 
+    @staticmethod
     def check_period_validity(
-        self,
-        variable_name: str,
-        period: None | t.PeriodLike,
+        variable_name: t.VariableName,
+        period: None | t.PeriodLike = None,
     ) -> None:
+        """Check if a period is valid.
+
+        Args:
+            variable_name: The name of the variable.
+            period: The period to check.
+
+        Raises:
+            PeriodValidityError: If the period is not valid.
+
+        Examples:
+            >>> from openfisca_core import entities, periods, populations
+
+            >>> class Person(entities.SingleEntity): ...
+
+            >>> person = Person("person", "people", "", "")
+            >>> period = periods.Period("2017-04")
+            >>> population = populations.CorePopulation(person)
+
+            >>> population.check_period_validity("salary")
+            Traceback (most recent call last):
+            PeriodValidityError: You requested computation of variable "sala...
+
+            >>> population.check_period_validity("salary", 2017)
+
+            >>> population.check_period_validity("salary", "2017-04")
+
+            >>> population.check_period_validity("salary", period)
+
+        """
         if isinstance(period, (int, str, periods.Period)):
             return
-
         stack = traceback.extract_stack()
-        filename, line_number, function_name, line_of_code = stack[-3]
-        msg = f"""
-You requested computation of variable "{variable_name}", but you did not specify on which period in "{filename}:{line_number}":
-    {line_of_code}
-When you request the computation of a variable within a formula, you must always specify the period as the second parameter. The convention is to call this parameter "period". For example:
-    computed_salary = person('salary', period).
-See more information at <https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-variable-definition>.
-"""
-        raise ValueError(
-            msg,
-        )
+        filename, line_number, _, line_of_code = stack[-3]
+        raise PeriodValidityError(variable_name, filename, line_number, line_of_code)
 
     # Helpers
 
