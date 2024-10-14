@@ -1,6 +1,29 @@
 from . import types as t
 
 
+class IncompatibleOptionsError(ValueError):
+    """Raised when two options are incompatible."""
+
+    def __init__(self, variable_name: t.VariableName) -> None:
+        add, divide = t.Option
+        msg = (
+            f"Options {add} and {divide} are incompatible (trying to compute "
+            f"variable {variable_name})."
+        )
+        super().__init__(msg)
+
+
+class InvalidOptionError(ValueError):
+    """Raised when an option is invalid."""
+
+    def __init__(self, option: str, variable_name: t.VariableName) -> None:
+        msg = (
+            f"Option {option} is not a valid option (trying to compute "
+            f"variable {variable_name})."
+        )
+        super().__init__(msg)
+
+
 class InvalidArraySizeError(ValueError):
     """Raised when an array has an invalid size."""
 

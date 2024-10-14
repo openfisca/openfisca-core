@@ -72,6 +72,9 @@ class Option(strenum.StrEnum):
     ADD = enum.auto()
     DIVIDE = enum.auto()
 
+    def __contains__(self, option: str) -> bool:
+        return option.upper() is self
+
 
 class Calculate(NamedTuple):
     variable: VariableName
