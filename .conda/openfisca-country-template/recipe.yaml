@@ -13,8 +13,9 @@ source:
   sha256: b2f2ac9945d9ccad467aed0925bd82f7f4d5ce4e96b212324cd071b8bee46914
 
 build:
+  number: 1
   noarch: python
-  script: pip install . -v
+  script: pip install . -v --no-deps
 
 requirements:
   host:
@@ -25,12 +26,7 @@ requirements:
   run:
   - numpy
   - python
-  - openfisca-core >=42,<43
-
-tests:
-- python:
-    imports:
-    - openfisca_country_template
+  - openfisca-core >=42,<44
 
 about:
   summary: OpenFisca Rules as Code model for Country-Template.

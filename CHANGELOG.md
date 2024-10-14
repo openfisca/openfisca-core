@@ -1,28 +1,25 @@
 # Changelog
 
-### 42.1.1 [#1224](https://github.com/openfisca/openfisca-core/pull/1224)
+# 43.0.0 [#1224](https://github.com/openfisca/openfisca-core/pull/1224)
 
 #### Technical changes
 
+- Add documentation to the `indexed_enums` module
 - Fix type definitions in the enums module
-
-## 42.1.0 [#1273](https://github.com/openfisca/openfisca-core/pull/1273)
+- Fix doctests
+- Fix bug in `Enum.encode` when passing a scalar
+- Fix bug in `Enum.encode` when encoding values not present in the enum
 
 #### New features
 
 - Introduce `indexed_enums.EnumType`
   - Allows for actually fancy indexing `indexed_enums.Enum`
 
-#### Technical changes
+#### Note
 
-- Fix doctests
-  - Now `pytest openfisca_core/indexed_enums` runs without errors
-- Fix bug in `Enum.encode` when passing a scalar
-  - Still raises `TypeError` but with an explanation of why it fails
-- Fix bug in `Enum.encode` when encoding values not present in the enum
-  - When encoding values not present in an enum, `Enum.encode` always encoded 
-    the first item of the enum
-  - Now, it correctly encodes only the values requested that exist in the enum
+This changeset has not breaking changes to the `indexed_enums` public API.
+However, as a conservative measure concerning data preparation for large
+population simulations, it has been marked as a major release.
 
 ##### Before
 
@@ -52,12 +49,6 @@ TestEnum.encode([2])
 TestEnum.encode([0,1,2,5])
 # EnumArray([<TestEnum.ONE: 'one'> <TestEnum.TWO: 'two'>])
 ```
-
-### 42.0.8 [#1272](https://github.com/openfisca/openfisca-core/pull/1272)
-
-#### Documentation
-
-- Add documentation to the `indexed_enums` module
 
 ### 42.0.7 [#1264](https://github.com/openfisca/openfisca-core/pull/1264)
 
