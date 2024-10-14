@@ -57,4 +57,9 @@ class PeriodValidityError(ValueError):
         super().__init__(msg)
 
 
-__all__ = ["InvalidArraySizeError", "PeriodValidityError"]
+__all__ = [
+    "IncompatibleOptionsError",
+    "InvalidArraySizeError",
+    "InvalidOptionError",
+    "PeriodValidityError",
+]
