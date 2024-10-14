@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.2.2 [#1280](https://github.com/openfisca/openfisca-core/pull/1280)
+
+#### Documentation
+
+- Add types to common tracers (`SimpleTracer`, `FlatTracer`, etc.)
+
 ### 43.2.1 [#1283](https://github.com/openfisca/openfisca-core/pull/1283)
 
 #### Technical changes
