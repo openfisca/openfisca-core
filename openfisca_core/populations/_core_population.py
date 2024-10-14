@@ -10,8 +10,7 @@ import numpy
 from openfisca_core import holders, periods
 
 from . import types as t
-from ._errors import InvalidArraySizeError
-from ._errors import PeriodValidityError
+from ._errors import InvalidArraySizeError, PeriodValidityError
 
 #: Type variable for a covariant data type.
 _DT_co = TypeVar("_DT_co", covariant=True, bound=t.VarDType)
@@ -160,7 +159,35 @@ class CorePopulation:
 
     # Calculations
 
-    def check_array_compatible_with_entity(self, array: t.FloatArray) -> None:
+    def check_array_compatible_with_entity(self, array: t.VarArray) -> None:
+        """Check if an array is compatible with the population.
+
+        Args:
+            array: The array to check.
+
+        Raises:
+            InvalidArraySizeError: If the array is not compatible.
+
+        Examples:
+            >>> import numpy
+
+            >>> from openfisca_core import entities, populations
+
+            >>> class Person(entities.SingleEntity): ...
+
+            >>> person = Person("person", "people", "", "")
+            >>> population = populations.CorePopulation(person)
+            >>> population.count = 3
+
+            >>> array = numpy.array([1, 2, 3])
+            >>> population.check_array_compatible_with_entity(array)
+
+            >>> array = numpy.array([1, 2, 3, 4])
+            >>> population.check_array_compatible_with_entity(array)
+            Traceback (most recent call last):
+            InvalidArraySizeError: Input [1 2 3 4] is not a valid value for t...
+
+        """
         if self.count == array.size:
             return
         raise InvalidArraySizeError(array, self.entity.key, self.count)

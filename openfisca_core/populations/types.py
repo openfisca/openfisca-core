@@ -47,6 +47,9 @@ BoolArray: TypeAlias = Array[BoolDType]
 #: Type alias for an array of floats.
 FloatArray: TypeAlias = Array[FloatDType]
 
+#: Type alias for an array of generic objects.
+VarArray: TypeAlias = Array[VarDType]
+
 # Periods
 
 #: New type for a period integer.
