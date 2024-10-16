@@ -48,6 +48,7 @@ api_requirements = [
 
 dev_requirements = [
     "black >=24.8.0, <25.0",
+    "codespell >=2.3.0, <3.0",
     "coverage >=7.6.1, <8.0",
     "darglint >=1.8.1, <2.0",
     "flake8 >=7.1.1, <8.0.0",

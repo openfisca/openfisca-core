@@ -33,7 +33,7 @@ class GroupPopulation(Population):
     @property
     def members_position(self):
         if self._members_position is None and self.members_entity_id is not None:
-            # We could use self.count and self.members.count , but with the current initilization, we are not sure count will be set before members_position is called
+            # We could use self.count and self.members.count , but with the current initialization, we are not sure count will be set before members_position is called
             nb_entities = numpy.max(self.members_entity_id) + 1
             nb_persons = len(self.members_entity_id)
             self._members_position = numpy.empty_like(self.members_entity_id)
@@ -145,7 +145,7 @@ class GroupPopulation(Population):
         )  # Neutral value that will be returned if no one with the given role exists.
 
         # We loop over the positions in the entity
-        # Looping over the entities is tempting, but potentielly slow if there are a lot of entities
+        # Looping over the entities is tempting, but potentially slow if there are a lot of entities
         biggest_entity_size = numpy.max(position_in_entity) + 1
 
         for p in range(biggest_entity_size):

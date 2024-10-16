@@ -62,7 +62,7 @@ class TaxBenefitSystem:
         self.open_api_config: dict[Any, Any] = {}
         # Tax benefit systems are mutable, so entities (which need to know about our variables) can't be shared among them
         if entities is None or len(entities) == 0:
-            msg = "A tax and benefit sytem must have at least an entity."
+            msg = "A tax and benefit system must have at least an entity."
             raise Exception(msg)
         self.entities = [copy.copy(entity) for entity in entities]
         self.person_entity = next(

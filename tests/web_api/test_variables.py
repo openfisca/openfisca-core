@@ -188,6 +188,6 @@ def test_variable_documentation(test_client) -> None:
     formula_documentation = variable["formulas"]["1980-01-01"]["documentation"]
     assert "Housing allowance." in formula_documentation
     assert (
-        "Calculating it before this date will always return the variable default value, 0."
+        "before this date will always return the variable default value, 0."
         in formula_documentation
     )

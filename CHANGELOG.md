@@ -791,7 +791,7 @@ _Note: this version has been unpublished due to an issue introduced by NumPy upg
 #### Bug fix
 
 - Repair expansion of axes on a variable given as input
-  - When expanding axes, the expected behavour is to override any input value for the requested variable and period
+  - When expanding axes, the expected behaviour is to override any input value for the requested variable and period
   - As longs as we passed some input for a variable on a period, it was not being overrode, creating a NumPy's error (boradcasting)
   - By additionally checking that an input was given, now we make that the array has the correct shape by constructing it with NumPy's tile with a shape equal to the number of the axis expansion count requested.
 
@@ -860,7 +860,7 @@ _Note: this version has been unpublished due to an issue introduced by NumPy upg
 
 #### Technical changes
 
-- Improve error message when laoding parameters file to detect the problematic file
+- Improve error message when loading parameters file to detect the problematic file
 
 ### 35.0.3 [#961](https://github.com/openfisca/openfisca-core/pull/961)
 
@@ -874,7 +874,7 @@ _Note: this version has been unpublished due to an issue introduced by NumPy upg
 
 #### Technical changes
 
-- Update dependency: `flask-cors` (`Flask` extension for Cross Origin Resouce Sharing)
+- Update dependency: `flask-cors` (`Flask` extension for Cross Origin Resource Sharing)
 
 ### 35.0.1 [#968](https://github.com/openfisca/openfisca-core/pull/968)
 
@@ -1134,7 +1134,7 @@ _Note: this version has been unpublished due to an issue introduced by it. Pleas
 
 ### 34.4.4 [#908](https://github.com/openfisca/openfisca-core/pull/908)
 
-- Make parameter cloning return clones that are truly independant from their source
+- Make parameter cloning return clones that are truly independent from their source
   - Before this PR, editing the clone of a parameter tree would change the initial tree
   - Only impacts reforms that edit parameters tree
 
@@ -2088,14 +2088,14 @@ Country package maintainers who still want to provide the Web API by default wit
 
 ##### Rename development dependencies from `test` to `dev`:
 
-- Developpers should now run `pip install --editable .[dev]` instead of `pip install --editable .[test]` to install them.
+- Developers should now run `pip install --editable .[dev]` instead of `pip install --editable .[test]` to install them.
 
 #### New features
 
 - In the `/spec` route:
   - Indicate the served country package version as API version (instead of `0.1.0`).
-  - Infer the host URL from the requests, instead of relying on the undocumented `SERVER_NAME` environnement variable.
-    - The use of the `SERVER_NAME` environnement variable is therefore deprecated and without effect.
+  - Infer the host URL from the requests, instead of relying on the undocumented `SERVER_NAME` environment variable.
+    - The use of the `SERVER_NAME` environment variable is therefore deprecated and without effect.
 
 ### 23.5.2 [#710](https://github.com/openfisca/openfisca-core/pull/710)
 
@@ -2153,7 +2153,7 @@ HTTP/1.1 300 MULTIPLE CHOICES
 (...)
 
 {
-  "welcome": "Welcome to the OpenFisca-France Web API. To learn how to use it, check our interactive swagger documenation: https://fr.openfisca.org/legislation/swagger"
+  "welcome": "Welcome to the OpenFisca-France Web API. To learn how to use it, check our interactive swagger documentation: https://fr.openfisca.org/legislation/swagger"
 }
 ```
 
@@ -2217,7 +2217,7 @@ Note that this route doesn't _recursively_ explore the node, and only exposes it
 ### 23.3.2 [#702](https://github.com/openfisca/openfisca-core/pull/702)
 
 Minor Change without any impact for country package developers and users:
-  - Make code more Python3-like by backporting unicode litterals.
+  - Make code more Python3-like by backporting unicode literals.
   - With this backport, all strings are by default unicodes.
   - The `u` prefix for strings should *not* be used anymore.
   - Each new module must start by `from __future__ import unicode_literals` for the backport to be effective.
@@ -2315,7 +2315,7 @@ Start adapting OpenFisca to Python 3
 ### 23.0.1 [656](https://github.com/openfisca/openfisca-core/pull/656)
 
 * Re-accept `int` values for `instant` in `tax_benefit_system.get_parameter_at_instant(instant)`
-  * `int` values were accidently rejected since v23
+  * `int` values were accidentally rejected since v23
 
 # 23.0.0 [643](https://github.com/openfisca/openfisca-core/pull/643)
 
@@ -2697,7 +2697,7 @@ class housing_occupancy_status(Variable):
 - When using the Python API (`set_input`), the three following inputs are accepted:
    - The enum item (e.g. HousingOccupancyStatus.tenant)
    - The enum string identifier (e.g. "tenant")
-   - The enum item index, though this is not recommanded.
+   - The enum item index, though this is not recommended.
      - If you rely on index, make sure to specify an `__order__` attribute to all your enums to make sure each intem has the right index. See the enum34 [doc](https://pypi.python.org/pypi/enum34/1.1.1).
 
 > Example:
@@ -2706,7 +2706,7 @@ holder = simulation.household.get_holder('housing_occupancy_status')
 # Three possibilities
 holder.set_input(period, numpy.asarray([HousingOccupancyStatus.owner]))
 holder.set_input(period, numpy.asarray(['owner']))
-holder.set_input(period, numpy.asarray([0])) # Highly not recommanded
+holder.set_input(period, numpy.asarray([0])) # Highly not recommended
 ```
 
 - When calculating an Enum variable, the output will be an [EnumArray](https://openfisca.org/doc/openfisca-python-api/enum_array.html#module-openfisca_core.indexed_enums).
@@ -2869,7 +2869,7 @@ column = make_column_from_variable(variable)
 
 - In `Variable`:
   * Remove `to_column`
-  * Variables can now directly be instanciated:
+  * Variables can now directly be instantiated:
 
 ```py
 class salary(Variable):
@@ -2920,7 +2920,7 @@ tax_benefit_system.parameters.benefits.basic_income
 
 - Be more flexible about parameters definitions
 
-The two following expressions are for instance striclty equivalent:
+The two following expressions are for instance strictly equivalent:
 
 ```
 Parameter("taxes.rate", {"2015-01-01": 2000})
@@ -3141,7 +3141,7 @@ For more information, check the [documentation](https://openfisca.org/doc/coding
     reference_parameters.add_child('plf2016_conterfactual', reform_parameters_subtree)
     ```
 
-  - Note that this way of creating parameters is only recommanded when using dynamically computed values (for instance `round(1135 * (1 + inflation))` in the previous example). If the values are static, the new parameters can be directly built from YAML (See New features section).
+  - Note that this way of creating parameters is only recommended when using dynamically computed values (for instance `round(1135 * (1 + inflation))` in the previous example). If the values are static, the new parameters can be directly built from YAML (See New features section).
 
 ##### TaxBenefitSystem
 
@@ -3201,8 +3201,8 @@ For more information, check the [documentation](https://openfisca.org/doc/coding
 #### Technical changes
 
 * Refactor the internal representation and the interface of legislation parameters
-  - The parameters of a legislation are wraped into the classes `Node`, `Parameter`, `Scale`, `Bracket`, `ValuesHistory`, `ValueAtInstant` instead of bare python dict.
-  - The parameters of a legislation at a given instant are wraped into the classes `NodeAtInstant`, `ValueAtInstant` and tax scales instead of bare python objects.
+  - The parameters of a legislation are wrapped into the classes `Node`, `Parameter`, `Scale`, `Bracket`, `ValuesHistory`, `ValueAtInstant` instead of bare python dict.
+  - The parameters of a legislation at a given instant are wrapped into the classes `NodeAtInstant`, `ValueAtInstant` and tax scales instead of bare python objects.
   - The file `parameters.py` and the classes defined inside are responsible both for loading and accessing the parameters. Before the loading was implemented in `legislationsxml.py` and the other processings were implemented in `legislations.py`
   - The validation of the XML files was performed against a XML schema defined in `legislation.xsd`. Now the YAML files are loaded with the library `yaml` and then validated in basic Python.
 
@@ -3213,7 +3213,7 @@ For more information, check the [documentation](https://openfisca.org/doc/coding
   - `Simulation.get_compact_legislation()` -> `Simulation._get_parameters_at_instant()`
   - `Simulation.get_baseline_compact_legislation()` -> `Simulation._get_baseline_parameters_at_instant()`
 
-* The optionnal parameter `traced_simulation` is removed in function `TaxBenefitSystem.get_compact_legislation()` (now `TaxBenefitSystem.get_parameters_at_instant()`). This parameter had no effect.
+* The optional parameter `traced_simulation` is removed in function `TaxBenefitSystem.get_compact_legislation()` (now `TaxBenefitSystem.get_parameters_at_instant()`). This parameter had no effect.
 
 * The optional parameter `with_source_file_infos` is removed in functions `TaxBenefitSystem.compute_legislation()` (now `TaxBenefitSystem._compute_parameters()`) and `TaxBenefitSystem.get_legislation()`. This parameter had no effect.
 
@@ -3231,7 +3231,7 @@ For more information, check the [documentation](https://openfisca.org/doc/coding
 In the preview web API, for variables of type `Enum`:
 
 * Accept and recommend to use strings as simulation inputs, instead of the enum indices.
-  - For instance, `{"housing_occupancy_status": {"2017-01": "Tenant"}}` is now accepted and prefered to `{"housing_occupancy_status": {"2017-01": 0}}`).
+  - For instance, `{"housing_occupancy_status": {"2017-01": "Tenant"}}` is now accepted and preferred to `{"housing_occupancy_status": {"2017-01": 0}}`).
   - Using the enum indices as inputs is _still accepted_ for backward compatibility, but _should not_ be encouraged.
 * Return strings instead of enum indices.
   - For instance, is `housing_occupancy_status` is calculated for `2017-01`, `{"housing_occupancy_status": {"2017-01": "Tenant"}}` is now returned, instead of `{"housing_occupancy_status": {"2017-01": 0}}`.
@@ -3277,7 +3277,7 @@ In the preview web API, for variables of type `Enum`:
   - This attribute is the legislative reference of a variable.
   - As previously, this attribute can be a string, or a list of strings.
 * Rename `Variable` attribute `reference` to `baseline_variable`
-  - This attibute is, for a variable defined in a reform, the baseline variable the reform variable is replacing.
+  - This attribute is, for a variable defined in a reform, the baseline variable the reform variable is replacing.
 * Remove variable attribute `law_reference`
 * Rename `TaxBenefitSystem.reference` to `TaxBenefitSystem.baseline`
 * Rename `TaxBenefitSystem.get_reference_compact_legislation` to `TaxBenefitSystem.get_baseline_compact_legislation`
@@ -3346,7 +3346,7 @@ In the preview web API, for variables of type `Enum`:
   - These functionalities are now provided by `entity.get_holder(name)`
 
 - Deprecate constructor `Holder(simulation, column)`
-  - A `Holder` should now be instanciated with `Holder(entity = entity, column = column)`
+  - A `Holder` should now be instantiated with `Holder(entity = entity, column = column)`
 
 ### 14.0.1 - [#527](https://github.com/openfisca/openfisca-core/pull/527)
 
@@ -3555,7 +3555,7 @@ These breaking changes only concern variable and tax and benefit system **metada
 
 # 9.0.0
 
-* Make sure identic periods are stringified the same way
+* Make sure identical periods are stringified the same way
 * _Breaking changes_:
   - Change `periods.period` signature.
     - It now only accepts strings.
@@ -3592,7 +3592,7 @@ These breaking changes only concern variable and tax and benefit system **metada
 ## 6.1.0
 
 * Move `base.py` content (file usually located in country packages) to core module `formula_toolbox` so that it can be reused by all countries
-* Use `AbstractScenario` if no custom scenario is defined for a tax and benefit sytem
+* Use `AbstractScenario` if no custom scenario is defined for a tax and benefit system
 
 # 6.0.0
 
@@ -3634,7 +3634,7 @@ These breaking changes only concern variable and tax and benefit system **metada
 * Improve `openfisca-run-test` script
   - Make country package detection more robust (it only worked for packages installed in editable mode)
   - Use spaces instead of commas as separator in the script arguments when loading several extensions or reforms (this is more standard)
-* Refactor the `scripts` module to seperate the logic specific to yaml test running from the one that can be re-used by any script which needs to build a tax and benefit system.
+* Refactor the `scripts` module to separate the logic specific to yaml test running from the one that can be re-used by any script which needs to build a tax and benefit system.
 
 # 5.0.0
 
@@ -3711,8 +3711,8 @@ Unlike simple formulas, a `DatedVariable` have several functions. We thus need t
 ### 4.1.2-Beta
 
 * Enable simulation initialization with only legacy roles
-  * New roles are in this case automatically infered
-  * Positions are always infered from persons entity id
+  * New roles are in this case automatically inferred
+  * Positions are always inferred from persons entity id
 
 ### 4.1.1-Beta
 
@@ -3812,7 +3812,7 @@ Unlike simple formulas, a `DatedVariable` have several functions. We thus need t
 
 # 2.0.0 – [diff](https://github.com/openfisca/openfisca-core/compare/1.1.0...2.0.0)
 
-* Variables are not added to the TaxBenefitSystem when the entities class are imported, but explicitely when the TaxBenefitSystem is instanciated.
+* Variables are not added to the TaxBenefitSystem when the entities class are imported, but explicitly when the TaxBenefitSystem is instantiated.
   * Metaclasses are not used anymore.
 * New API for TaxBenefitSystem
   * Columns are now stored in the TaxBenefitSystem, not in entities.

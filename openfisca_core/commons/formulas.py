@@ -90,7 +90,7 @@ def switch(
     conditions: t.Array[numpy.float32] | t.ArrayLike[float],
     value_by_condition: Mapping[float, float],
 ) -> t.Array[numpy.float32]:
-    """Mimick a switch statement.
+    """Mimic a switch statement.
 
     Given an array of conditions, returns an array of the same size,
     replacing each condition item with the matching given value.

@@ -28,7 +28,7 @@ def get_projector_from_shortcut(
     collective GroupPopulation's on to other populations.
 
     The currently available cases are projecting:
-    - from an invidivual to a group
+    - from an individual to a group
     - from a group to an individual
     - from a group to an individual with a unique role
 
@@ -41,7 +41,7 @@ def get_projector_from_shortcut(
     Behind the scenes, this is done thanks to a Projector, and this function is
     used to find the appropriate one for each case. In the above example, the
     `shortcut` argument would be "household", and the `population` argument
-    whould be the Population linked to the "person" Entity in the context
+    would be the Population linked to the "person" Entity in the context
     of a specific Simulation and TaxBenefitSystem.
 
     Args:
