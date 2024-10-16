@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.1.1 [#1282](https://github.com/openfisca/openfisca-core/pull/1282)
+
+#### Technical changes
+
+- Add check to spot common spelling mistakes
+
 ## 43.1.0 [#1255](https://github.com/openfisca/openfisca-core/pull/1255)
 
 #### New features
