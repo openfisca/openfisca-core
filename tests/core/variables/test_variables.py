@@ -189,7 +189,7 @@ class no_end_attribute__one_formula__strange_name(Variable):
     value_type = int
     entity = Person
     definition_period = DateUnit.MONTH
-    label = "Variable without end attribute, one stangely named formula."
+    label = "Variable without end attribute, one strangely named formula."
 
     def formula_2015_toto(self, period):
         return vectorize(self, 100)

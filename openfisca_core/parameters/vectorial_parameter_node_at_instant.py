@@ -54,7 +54,7 @@ class VectorialParameterNodeAtInstant:
         """Check that a node can be casted to a vectorial node, in order to be able to use fancy indexing."""
         MESSAGE_PART_1 = "Cannot use fancy indexing on parameter node '{}', as"
         MESSAGE_PART_3 = (
-            "To use fancy indexing on parameter node, its children must be homogenous."
+            "To use fancy indexing on parameter node, its children must be homogeneous."
         )
         MESSAGE_PART_4 = "See more at <https://openfisca.org/doc/coding-the-legislation/legislation_parameters#computing-a-parameter-that-depends-on-a-variable-fancy-indexing>."
 

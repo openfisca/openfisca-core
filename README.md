@@ -188,7 +188,7 @@ The tracker is activated when these two options are set:
 
 * `--tracker-url`: An URL ending with `piwik.php`. It defines the Piwik instance that will receive the tracking information. To use the main OpenFisca Piwik instance, use `https://stats.data.gouv.fr/piwik.php`.
 * `--tracker-idsite`: An integer. It defines the identifier of the tracked site on your Piwik instance. To use the main OpenFisca piwik instance, use `4`.
-* `--tracker-token`: A string. It defines the Piwik API Authentification token to differentiate API calls based on the user IP. Otherwise, all API calls will seem to come from your server. The Piwik API Authentification token can be found in your Piwik interface when you are logged in.
+* `--tracker-token`: A string. It defines the Piwik API Authentication token to differentiate API calls based on the user IP. Otherwise, all API calls will seem to come from your server. The Piwik API Authentication token can be found in your Piwik interface when you are logged in.
 
 For instance, to run the Web API with the mock country package `openfisca_country_template` and the tracker activated, run:
 

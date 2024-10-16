@@ -440,7 +440,7 @@ class Simulation:
     # ----- Methods to access stored values ----- #
 
     def get_array(self, variable_name: str, period):
-        """Return the value of ``variable_name`` for ``period``, if this value is alreay in the cache (if it has been set as an input or previously calculated).
+        """Return the value of ``variable_name`` for ``period``, if this value is already in the cache (if it has been set as an input or previously calculated).
 
         Unlike :meth:`.calculate`, this method *does not* trigger calculations and *does not* use any formula.
         """
@@ -512,7 +512,7 @@ class Simulation:
 
         :param variable: the variable to be set
         :param value: the input value for the variable
-        :param period: the period for which the value is setted
+        :param period: the period for which the value is set
 
         Example:
         >>> from openfisca_country_template import CountryTaxBenefitSystem

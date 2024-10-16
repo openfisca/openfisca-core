@@ -14,6 +14,7 @@ check-style: $(shell git ls-files "*.py" "*.pyi")
 	@python -m isort --check $?
 	@python -m black --check $?
 	@python -m flake8 $?
+	@codespell
 	@$(call print_pass,$@:)
 
 ## Run linters to check for syntax and style errors in the doc.
@@ -53,4 +54,5 @@ format-style: $(shell git ls-files "*.py" "*.pyi")
 	@$(call print_help,$@:)
 	@python -m isort $?
 	@python -m black $?
+	@codespell --write-changes
 	@$(call print_pass,$@:)

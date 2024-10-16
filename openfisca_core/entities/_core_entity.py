@@ -90,7 +90,7 @@ class CoreEntity:
 
             >>> this.get_variable("tax")
             Traceback (most recent call last):
-            ValueError: You must set 'tax_benefit_system' before calling thi...
+            ValueError: You must set 'tax_benefit_system' before calling this...
 
             >>> tax_benefit_system = taxbenefitsystems.TaxBenefitSystem([this])
             >>> this.set_tax_benefit_system(tax_benefit_system)
