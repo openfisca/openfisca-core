@@ -11,3 +11,4 @@ ignore-words-list = [
     "impot",
     "treshold",
 ]
+skip = "./venv"
