@@ -31,16 +31,16 @@ class CorePopulation:
 
     """
 
-    #: ???
+    #: The number :class:`.CoreEntity` members in the population.
     count: int = 0
 
     #: The :class:`.CoreEntity` of the population.
     entity: t.CoreEntity
 
-    #: ???
+    #: A pseudo index for the members of the population.
     ids: Sequence[str] = []
 
-    #: ???
+    #: The :class:`.Simulation` for which the population is calculated.
     simulation: None | t.Simulation = None
 
     def __init__(self, entity: t.CoreEntity, *__args: object, **__kwds: object) -> None:
