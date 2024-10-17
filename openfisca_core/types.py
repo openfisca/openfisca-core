@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence, Sized
 from numpy.typing import DTypeLike, NDArray
 from typing import NewType, TypeVar, Union
-from typing_extensions import Protocol, Self, TypeAlias
+from typing_extensions import Protocol, Required, Self, TypeAlias, TypedDict
 
 import abc
 import enum
@@ -133,7 +133,17 @@ class EnumArray(Array[DTypeEnum], metaclass=abc.ABCMeta):
 
 class Holder(Protocol):
     def clone(self, population: CorePopulation, /) -> Holder: ...
-    def get_memory_usage(self, /) -> dict[str, object]: ...
+    def get_memory_usage(self, /) -> MemoryUsage: ...
+
+
+class MemoryUsage(TypedDict, total=False):
+    cell_size: int
+    dtype: DTypeLike
+    nb_arrays: int
+    nb_cells_by_array: int
+    nb_requests: int
+    nb_requests_by_array: int
+    total_nb_bytes: Required[int]
 
 
 # Parameters

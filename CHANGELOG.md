@@ -1,5 +1,12 @@
 # Changelog
 
+## 43.2.0 [#1279](https://github.com/openfisca/openfisca-core/pull/1279)
+
+#### New features
+
+- Introduce `populations.CorePopulation`
+  - Allows for testing and better subclassing custom populations
+
 ### 43.1.2 [#1274](https://github.com/openfisca/openfisca-core/pull/1275)
 
 #### Documentation

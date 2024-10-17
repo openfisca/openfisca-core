@@ -18,7 +18,7 @@ from openfisca_core import (
     types,
 )
 
-from .memory_usage import MemoryUsage
+from . import types as t
 
 
 class Holder:
@@ -45,7 +45,7 @@ class Holder:
             if self.variable.name in self.simulation.memory_config.variables_to_drop:
                 self._do_not_store = True
 
-    def clone(self, population):
+    def clone(self, population: t.CorePopulation) -> t.Holder:
         """Copy the holder just enough to be able to run a new simulation without modifying the original simulation."""
         new = commons.empty_clone(self)
         new_dict = new.__dict__
@@ -94,7 +94,7 @@ class Holder:
             return self._disk_storage.get(period)
         return None
 
-    def get_memory_usage(self) -> MemoryUsage:
+    def get_memory_usage(self) -> t.MemoryUsage:
         """Get data about the virtual memory usage of the Holder.
 
         Returns:
@@ -135,7 +135,7 @@ class Holder:
                'total_nb_bytes': 0...
 
         """
-        usage = MemoryUsage(
+        usage = t.MemoryUsage(
             nb_cells_by_array=self.population.count,
             dtype=self.variable.dtype,
         )
