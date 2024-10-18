@@ -1,34 +1,20 @@
 from __future__ import annotations
 
-import typing
-from typing import Union
-
 import numpy
 
 from openfisca_core.indexed_enums import EnumArray
 
-if typing.TYPE_CHECKING:
-    from numpy.typing import ArrayLike
-
-    from openfisca_core import tracers
-
-    Array = Union[EnumArray, ArrayLike]
-    Trace = dict[str, dict]
+from . import types as t
 
 
 class FlatTrace:
-    _full_tracer: tracers.FullTracer
+    _full_tracer: t.FullTracer
 
-    def __init__(self, full_tracer: tracers.FullTracer) -> None:
+    def __init__(self, full_tracer: t.FullTracer) -> None:
         self._full_tracer = full_tracer
 
-    def key(self, node: tracers.TraceNode) -> str:
-        name = node.name
-        period = node.period
-        return f"{name}<{period}>"
-
-    def get_trace(self) -> dict:
-        trace = {}
+    def get_trace(self) -> t.FlatNodeMap:
+        trace: t.FlatNodeMap = {}
 
         for node in self._full_tracer.browse_trace():
             # We don't want cache read to overwrite data about the initial
@@ -45,34 +31,16 @@ class FlatTrace:
 
         return trace
 
-    def get_serialized_trace(self) -> dict:
+    def get_serialized_trace(self) -> t.SerializedNodeMap:
         return {
             key: {**flat_trace, "value": self.serialize(flat_trace["value"])}
             for key, flat_trace in self.get_trace().items()
         }
 
-    def serialize(
-        self,
-        value: Array | None,
-    ) -> Array | None | list:
-        if isinstance(value, EnumArray):
-            value = value.decode_to_str()
-
-        if isinstance(value, numpy.ndarray) and numpy.issubdtype(
-            value.dtype,
-            numpy.dtype(bytes),
-        ):
-            value = value.astype(numpy.dtype(str))
-
-        if isinstance(value, numpy.ndarray):
-            value = value.tolist()
-
-        return value
-
     def _get_flat_trace(
         self,
-        node: tracers.TraceNode,
-    ) -> Trace:
+        node: t.TraceNode,
+    ) -> t.FlatNodeMap:
         key = self.key(node)
 
         return {
@@ -87,3 +55,34 @@ class FlatTrace:
                 "formula_time": node.formula_time(),
             },
         }
+
+    @staticmethod
+    def key(node: t.TraceNode) -> t.NodeKey:
+        """Return the key of a node."""
+        name = node.name
+        period = node.period
+        return t.NodeKey(f"{name}<{period}>")
+
+    @staticmethod
+    def serialize(
+        value: None | t.VarArray | t.ArrayLike[object],
+    ) -> None | t.ArrayLike[object]:
+        if value is None:
+            return None
+
+        if isinstance(value, EnumArray):
+            return value.decode_to_str().tolist()
+
+        if isinstance(value, numpy.ndarray) and numpy.issubdtype(
+            value.dtype,
+            numpy.dtype(bytes),
+        ):
+            return value.astype(numpy.dtype(str)).tolist()
+
+        if isinstance(value, numpy.ndarray):
+            return value.tolist()
+
+        return value
+
+
+__all__ = ["FlatTrace"]

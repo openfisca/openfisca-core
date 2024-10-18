@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, MutableMapping, Sequence
 from typing import NamedTuple, Union
-from typing_extensions import NewType, TypeAlias, TypedDict
+from typing_extensions import TypeAlias, TypedDict
 
 from openfisca_core.types import (
     Array,
@@ -14,6 +14,7 @@ from openfisca_core.types import (
     Holder,
     MemoryUsage,
     Period,
+    PeriodInt,
     PeriodStr,
     Role,
     Simulation,
@@ -51,9 +52,6 @@ FloatArray: TypeAlias = Array[FloatDType]
 VarArray: TypeAlias = Array[VarDType]
 
 # Periods
-
-#: New type for a period integer.
-PeriodInt = NewType("PeriodInt", int)
 
 #: Type alias for a period-like object.
 PeriodLike: TypeAlias = Union[Period, PeriodStr, PeriodInt]

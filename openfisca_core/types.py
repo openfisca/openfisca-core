@@ -148,14 +148,40 @@ class MemoryUsage(TypedDict, total=False):
 
 # Parameters
 
+#: A type representing a node of parameters.
+ParameterNode: TypeAlias = Union[
+    "ParameterNodeAtInstant", "VectorialParameterNodeAtInstant"
+]
 
-class ParameterNodeAtInstant(Protocol): ...
+#: A type representing a ???
+ParameterNodeChild: TypeAlias = Union[ParameterNode, ArrayLike[object]]
+
+
+class ParameterNodeAtInstant(Protocol):
+    _instant_str: InstantStr
+
+    def __contains__(self, __item: object, /) -> bool: ...
+    def __getitem__(
+        self, __index: str | Array[DTypeGeneric], /
+    ) -> ParameterNodeChild: ...
+
+
+class VectorialParameterNodeAtInstant(Protocol):
+    _instant_str: InstantStr
+
+    def __contains__(self, item: object, /) -> bool: ...
+    def __getitem__(
+        self, __index: str | Array[DTypeGeneric], /
+    ) -> ParameterNodeChild: ...
 
 
 # Periods
 
 #: For example "2000-01".
 InstantStr = NewType("InstantStr", str)
+
+#: For example 2020.
+PeriodInt = NewType("PeriodInt", int)
 
 #: For example "1:2000-01-01:day".
 PeriodStr = NewType("PeriodStr", str)
