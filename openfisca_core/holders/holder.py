@@ -191,7 +191,7 @@ class Holder:
             >>> class MyVariable(variables.Variable):
             ...     definition_period = periods.DateUnit.YEAR
             ...     entity = entity
-            ...     value_type = int
+            ...     value_type = float
 
             >>> variable = MyVariable()
 
@@ -201,11 +201,11 @@ class Holder:
             >>> holder = Holder(variable, population)
             >>> holder.set_input("2018", numpy.array([12.5, 14]))
             >>> holder.get_array("2018")
-            array([12, 14], dtype=int32)
+            array([12.5, 14. ], dtype=float32)
 
             >>> holder.set_input("2018", [12.5, 14])
             >>> holder.get_array("2018")
-            array([12, 14], dtype=int32)
+            array([12.5, 14. ], dtype=float32)
 
         .. _documentation:
             https://openfisca.org/doc/coding-the-legislation/35_periods.html#set-input-automatically-process-variable-inputs-defined-for-periods-not-matching-the-definition-period
