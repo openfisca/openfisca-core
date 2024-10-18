@@ -159,7 +159,7 @@ class OnDiskStorage:
             ...     storage = data_storage.OnDiskStorage(directory)
             ...     storage.put(value, period)
             ...     storage.get(period)
-            array(['1', '2', 'salary'], dtype='<U21')
+            array(['1', '2', 'salary'], ...)
 
         """
         if self.is_eternal:
