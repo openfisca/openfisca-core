@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.2.1 [#1283](https://github.com/openfisca/openfisca-core/pull/1283)
+
+#### Technical changes
+
+- Remove `coveralls`
+
 ## 43.2.0 [#1279](https://github.com/openfisca/openfisca-core/pull/1279)
 
 #### New features
