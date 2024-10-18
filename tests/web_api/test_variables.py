@@ -1,5 +1,6 @@
 import json
 import re
+import sys
 from http import client
 
 import pytest
@@ -70,6 +71,9 @@ def test_input_variable_value(expected_values, input_variable_response) -> None:
     check_input_variable_value(*expected_values, input_variable=input_variable)
 
 
+# TODO(Mauko Quiroga-Alvarado): Fix this test
+# https://github.com/openfisca/openfisca-core/issues/962
+@pytest.mark.skipif(sys.platform == "win32", reason="Does not work on Windows.")
 def test_input_variable_github_url(test_client) -> None:
     input_variable_response = test_client.get("/variable/income_tax")
     input_variable = json.loads(input_variable_response.data.decode("utf-8"))
@@ -102,6 +106,9 @@ def test_variable_value(expected_values, test_client) -> None:
     check_variable_value(*expected_values, variable=variable)
 
 
+# TODO(Mauko Quiroga-Alvarado): Fix this test
+# https://github.com/openfisca/openfisca-core/issues/962
+@pytest.mark.skipif(sys.platform == "win32", reason="Does not work on Windows.")
 def test_variable_formula_github_link(test_client) -> None:
     variable_response = test_client.get("/variable/income_tax")
     variable = json.loads(variable_response.data.decode("utf-8"))
