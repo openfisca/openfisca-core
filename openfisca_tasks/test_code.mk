@@ -45,9 +45,7 @@ test-core: $(shell git ls-files "*test_*.py")
 		openfisca_core/periods \
 		openfisca_core/projectors
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
-		python -m coverage run -m ${openfisca} test \
-		$? \
-		${openfisca_args}
+		python -m ${openfisca} test $? ${openfisca_args}
 	@$(call print_pass,$@:)
 
 ## Run country-template tests.
@@ -69,10 +67,4 @@ test-extension:
 		--country-package openfisca_country_template \
 		--extensions openfisca_extension_template \
 		${openfisca_args}
-	@$(call print_pass,$@:)
-
-## Print the coverage report.
-test-cov:
-	@$(call print_help,$@:)
-	@python -m coverage report
 	@$(call print_pass,$@:)

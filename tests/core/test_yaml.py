@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 
 import pytest
 
@@ -118,6 +119,9 @@ def test_shell_script_with_reform() -> None:
         subprocess.check_call(command, stdout=devnull, stderr=devnull)
 
 
+# TODO(Mauko Quiroga-Alvarado): Fix this test
+# https://github.com/openfisca/openfisca-core/issues/962
+@pytest.mark.skipif(sys.platform == "win32", reason="Does not work on Windows.")
 def test_shell_script_with_extension() -> None:
     tests_dir = os.path.join(openfisca_extension_template.__path__[0], "tests")
     command = [

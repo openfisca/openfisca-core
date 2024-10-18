@@ -49,7 +49,7 @@ api_requirements = [
 dev_requirements = [
     "black >=24.8.0, <25.0",
     "codespell >=2.3.0, <3.0",
-    "coverage >=7.6.1, <8.0",
+    "colorama >=0.4.4, <0.5",
     "darglint >=1.8.1, <2.0",
     "flake8 >=7.1.1, <8.0.0",
     "flake8-bugbear >=24.8.19, <25.0",
@@ -70,7 +70,7 @@ dev_requirements = [
 
 setup(
     name="OpenFisca-Core",
-    version="43.2.0",
+    version="43.2.1",
     author="OpenFisca Team",
     author_email="contact@openfisca.org",
     classifiers=[
@@ -107,7 +107,6 @@ setup(
         "dev": dev_requirements,
         "ci": [
             "build >=0.10.0, <0.11.0",
-            "coveralls >=4.0.1, <5.0",
             "twine >=5.1.1, <6.0",
             "wheel >=0.40.0, <0.41.0",
         ],

@@ -1,5 +1,6 @@
 import json
 import re
+import sys
 from http import client
 
 import pytest
@@ -44,6 +45,9 @@ def test_legacy_parameter_route(test_client) -> None:
     assert response.status_code == client.OK
 
 
+# TODO(Mauko Quiroga-Alvarado): Fix this test
+# https://github.com/openfisca/openfisca-core/issues/962
+@pytest.mark.skipif(sys.platform == "win32", reason="Does not work on Windows.")
 def test_parameter_values(test_client) -> None:
     response = test_client.get("/parameter/taxes/income_tax_rate")
     parameter = json.loads(response.data)

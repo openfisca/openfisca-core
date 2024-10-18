@@ -2,7 +2,6 @@
 *.mo
 *.pyc
 *~
-.coverage
 .mypy_cache
 .mypy_cache*
 .noseids
