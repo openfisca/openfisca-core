@@ -281,7 +281,7 @@ class OnDiskStorage:
 
             >>> storage2.restore()
             >>> storage2._files
-            {Period((<DateUnit.YEAR: 'year'>, Instant((2017, 1, 1.../2017.npy'}
+            {Period((<DateUnit.YEAR: 'year'>, Instant((2017, 1, 1...2017.npy'}
 
             >>> directory.cleanup()
 
