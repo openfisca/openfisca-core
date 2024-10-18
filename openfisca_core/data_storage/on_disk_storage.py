@@ -273,7 +273,7 @@ class OnDiskStorage:
             >>> storage1 = data_storage.OnDiskStorage(directory.name)
             >>> storage1.put(value, period)
             >>> storage1._files
-            {Period(('year', Instant((2017, 1, 1)), 1)): '.../2017.npy'}
+            {Period(('year', Instant((2017, 1, 1)), 1)): '...2017.npy'}
 
             >>> storage2 = data_storage.OnDiskStorage(directory.name)
             >>> storage2._files
