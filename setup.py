@@ -107,7 +107,6 @@ setup(
         "dev": dev_requirements,
         "ci": [
             "build >=0.10.0, <0.11.0",
-            "coveralls >=4.0.1, <5.0",
             "twine >=5.1.1, <6.0",
             "wheel >=0.40.0, <0.41.0",
         ],
