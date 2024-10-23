@@ -6,7 +6,8 @@ from typing import ClassVar
 import textwrap
 from itertools import chain
 
-from . import types as t
+from openfisca_core import types as t
+
 from ._core_entity import CoreEntity
 from .role import Role
 
@@ -84,7 +85,7 @@ class GroupEntity(CoreEntity):
     doc: str
 
     #: The list of roles of the ``GroupEntity``.
-    roles: Iterable[Role]
+    roles: Iterable[t.Role]
 
     #: Whether the entity is a person or not.
     is_person: ClassVar[bool] = False
@@ -103,7 +104,7 @@ class GroupEntity(CoreEntity):
         self.label = label
         self.doc = textwrap.dedent(doc)
         self.roles_description = roles
-        self.roles: Iterable[Role] = ()
+        self.roles: Iterable[t.Role] = ()
         for role_description in roles:
             role = Role(role_description, self)
             setattr(self, role.key.upper(), role)

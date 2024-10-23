@@ -5,7 +5,7 @@ from typing_extensions import Self
 
 import numpy
 
-from . import types as t
+from openfisca_core import types as t
 
 
 class EnumArray(t.EnumArray):
@@ -229,10 +229,10 @@ class EnumArray(t.EnumArray):
         return numpy.logical_not(self == other)
 
     @staticmethod
-    def _forbidden_operation(*__args: object, **__kwds: object) -> NoReturn:
+    def _forbidden_operation(*args: object, **kwds: object) -> NoReturn:
         msg = (
             "Forbidden operation. The only operations allowed on EnumArrays "
-            "are '==' and '!='."
+            f"are '==' and '!=' (called with {args!r} and {kwds!r})."
         )
         raise TypeError(msg)
 

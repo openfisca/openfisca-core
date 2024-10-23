@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy
 
-from . import types as t
+from openfisca_core import types as t
 
 
 def _enum_to_index(value: t.ObjArray | t.ArrayLike[t.Enum]) -> t.IndexArray:

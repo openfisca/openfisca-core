@@ -7,15 +7,18 @@ import traceback
 
 import numpy
 
-from openfisca_core import holders, periods
+from openfisca_core import holders, periods, types as t
 
-from . import types as t
+from ._enums import Calculate, Option
 from ._errors import (
     IncompatibleOptionsError,
     InvalidArraySizeError,
     InvalidOptionError,
     PeriodValidityError,
 )
+
+#: Options for set inputs.
+ADD, DIVIDE = Option
 
 #: Type variable for a covariant data type.
 _DT_co = TypeVar("_DT_co", covariant=True, bound=t.VarDType)
@@ -51,7 +54,7 @@ class CorePopulation:
         self,
         variable_name: t.VariableName,
         period: t.PeriodLike,
-        options: None | Sequence[t.Option] = None,
+        options: None | Sequence[Option] = None,
     ) -> None | t.VarArray:
         """Calculate ``variable_name`` for ``period``, using the formula if it exists.
 
@@ -136,7 +139,7 @@ class CorePopulation:
         if self.simulation is None:
             return None
 
-        calculate = t.Calculate(
+        calculate = Calculate(
             variable=variable_name,
             period=periods.period(period),
             option=options,
@@ -151,16 +154,16 @@ class CorePopulation:
                 calculate.period,
             )
 
-        if t.Option.ADD in calculate.option and t.Option.DIVIDE in calculate.option:
+        if ADD in calculate.option and DIVIDE in calculate.option:
             raise IncompatibleOptionsError(variable_name)
 
-        if t.Option.ADD in calculate.option:
+        if ADD in calculate.option:
             return self.simulation.calculate_add(
                 calculate.variable,
                 calculate.period,
             )
 
-        if t.Option.DIVIDE in calculate.option:
+        if DIVIDE in calculate.option:
             return self.simulation.calculate_divide(
                 calculate.variable,
                 calculate.period,

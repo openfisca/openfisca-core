@@ -7,7 +7,9 @@ import datetime
 
 import pendulum
 
-from . import helpers, types as t
+from openfisca_core import types as t
+
+from . import helpers
 from .date_unit import DateUnit
 from .instant_ import Instant
 

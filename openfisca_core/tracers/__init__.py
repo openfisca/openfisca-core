@@ -21,7 +21,6 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
-from . import types
 from .computation_log import ComputationLog
 from .flat_trace import FlatTrace
 from .full_tracer import FullTracer
@@ -38,5 +37,4 @@ __all__ = [
     "SimpleTracer",
     "TraceNode",
     "TracingParameterNodeAtInstant",
-    "types",
 ]

@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import pendulum
 
-from . import config, types as t
+from openfisca_core import types as t
+
+from . import config
 from .date_unit import DateUnit
 
 
