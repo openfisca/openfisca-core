@@ -471,7 +471,7 @@ class Variable:
 
         return value
 
-    def default_array(self, array_size):
+    def default_array(self, array_size: int) -> t.VarArray:
         array = numpy.empty(array_size, dtype=self.dtype)
         if self.value_type == Enum:
             array.fill(self.default_value.index)

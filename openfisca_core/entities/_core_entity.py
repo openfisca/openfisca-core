@@ -5,7 +5,8 @@ from typing import ClassVar
 import abc
 import os
 
-from . import types as t
+from openfisca_core import types as t
+
 from .role import Role
 
 
@@ -17,8 +18,7 @@ class CoreEntity:
         **__kwargs: Any keyword arguments.
 
     Examples:
-        >>> from openfisca_core import entities
-        >>> from openfisca_core.entities import types as t
+        >>> from openfisca_core import entities, types as t
 
         >>> class Entity(entities.CoreEntity):
         ...     def __init__(self, key):
@@ -61,7 +61,7 @@ class CoreEntity:
         self,
         variable_name: t.VariableName,
         check_existence: bool = False,
-    ) -> t.Variable | None:
+    ) -> None | t.Variable[t.VarDType]:
         """Get ``variable_name`` from ``variables``.
 
         Args:
@@ -168,7 +168,7 @@ class CoreEntity:
 
         """
         entity: None | t.CoreEntity = None
-        variable: None | t.Variable = self.get_variable(
+        variable: None | t.Variable[t.VarDType] = self.get_variable(
             variable_name,
             check_existence=True,
         )

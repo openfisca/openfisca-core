@@ -4,10 +4,7 @@ from collections.abc import KeysView, MutableMapping
 
 import numpy
 
-from openfisca_core import periods
-from openfisca_core.periods import DateUnit
-
-from . import types as t
+from openfisca_core import periods, types as t
 
 
 class InMemoryStorage:
@@ -22,13 +19,13 @@ class InMemoryStorage:
     is_eternal: bool
 
     #: A dictionary containing data that has been stored in memory.
-    _arrays: MutableMapping[t.Period, t.Array[t.DTypeGeneric]]
+    _arrays: MutableMapping[t.Period, t.VarArray]
 
     def __init__(self, is_eternal: bool = False) -> None:
         self._arrays = {}
         self.is_eternal = is_eternal
 
-    def get(self, period: None | t.Period = None) -> None | t.Array[t.DTypeGeneric]:
+    def get(self, period: None | t.Period = None) -> None | t.VarArray:
         """Retrieve the data for the specified :obj:`.Period` from memory.
 
         Args:
@@ -56,7 +53,7 @@ class InMemoryStorage:
 
         """
         if self.is_eternal:
-            period = periods.period(DateUnit.ETERNITY)
+            period = periods.Period.eternity()
         period = periods.period(period)
 
         values = self._arrays.get(period)
@@ -64,7 +61,7 @@ class InMemoryStorage:
             return None
         return values
 
-    def put(self, value: t.Array[t.DTypeGeneric], period: None | t.Period) -> None:
+    def put(self, value: t.VarArray, period: None | t.Period) -> None:
         """Store the specified data in memory for the specified :obj:`.Period`.
 
         Args:
@@ -88,7 +85,7 @@ class InMemoryStorage:
 
         """
         if self.is_eternal:
-            period = periods.period(DateUnit.ETERNITY)
+            period = periods.Period.eternity()
         period = periods.period(period)
 
         self._arrays[period] = value
@@ -133,7 +130,7 @@ class InMemoryStorage:
             return
 
         if self.is_eternal:
-            period = periods.period(DateUnit.ETERNITY)
+            period = periods.Period.eternity()
         period = periods.period(period)
 
         self._arrays = {
