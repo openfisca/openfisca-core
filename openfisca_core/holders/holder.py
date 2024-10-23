@@ -16,19 +16,27 @@ from openfisca_core import (
     indexed_enums as enums,
     periods,
     types,
+    types as t,
 )
-
-from . import types as t
 
 
 class Holder:
-    """A holder keeps tracks of a variable values after they have been calculated, or set as an input."""
+    """Track variable values after they have been calculated or set."""
 
-    def __init__(self, variable, population) -> None:
+    #: The population the variable is calculated for.
+    population: t.CorePopulation
+
+    #: The simulation the variable is calculated in.
+    simulation: None | t.Simulation = None
+
+    #: The variable the holder is tracking.
+    variable: t.Variable
+
+    def __init__(self, variable: t.Variable, population: t.CorePopulation) -> None:
         self.population = population
         self.variable = variable
         self.simulation = population.simulation
-        self._eternal = self.variable.definition_period == periods.DateUnit.ETERNITY
+        self._eternal = self.variable.definition_period == periods.ETERNITY
         self._memory_storage = storage.InMemoryStorage(is_eternal=self._eternal)
 
         # By default, do not activate on-disk storage, or variable dropping
@@ -46,12 +54,12 @@ class Holder:
                 self._do_not_store = True
 
     def clone(self, population: t.CorePopulation) -> t.Holder:
-        """Copy the holder just enough to be able to run a new simulation without modifying the original simulation."""
+        """Copy the holder just enough to be able to run a new simulation."""
         new = commons.empty_clone(self)
         new_dict = new.__dict__
 
         for key, value in self.__dict__.items():
-            if key not in ("population", "formula", "simulation"):
+            if key not in {"population", "formula", "simulation"}:
                 new_dict[key] = value
 
         new_dict["population"] = population
@@ -321,5 +329,33 @@ class Holder:
         self._set(period, value)
 
     def default_array(self):
-        """Return a new array of the appropriate length for the entity, filled with the variable default values."""
+        """Return a default array of the appropriate length for the entity.
+
+        Returns:
+            ndarray[generic]: The default array for the variable.
+
+        Examples:
+            >>> from openfisca_core import (
+            ...     entities,
+            ...     periods,
+            ...     populations,
+            ...     variables,
+            ... )
+
+            >>> entity = entities.SingleEntity("", "", "", "")
+
+            >>> class TestVariable(variables.Variable):
+            ...     definition_period = periods.WEEKDAY
+            ...     entity = entity
+            ...     value_type = bool
+
+            >>> variable = TestVariable()
+            >>> population = populations.CorePopulation(entity)
+            >>> population.count = 2
+            >>> holder = Holder(variable, population)
+
+            >>> holder.default_array()
+            array([False, False])
+
+        """
         return self.variable.default_array(self.population.count)

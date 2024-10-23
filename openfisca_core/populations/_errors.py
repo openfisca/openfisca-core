@@ -1,4 +1,4 @@
-from . import types as t
+from openfisca_core import types as t
 
 
 class IncompatibleOptionsError(ValueError):

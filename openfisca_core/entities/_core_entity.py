@@ -61,7 +61,7 @@ class CoreEntity:
         self,
         variable_name: t.VariableName,
         check_existence: bool = False,
-    ) -> None | t.Variable:
+    ) -> None | t.Variable[t.VarDType]:
         """Get ``variable_name`` from ``variables``.
 
         Args:
@@ -168,7 +168,7 @@ class CoreEntity:
 
         """
         entity: None | t.CoreEntity = None
-        variable: None | t.Variable = self.get_variable(
+        variable: None | t.Variable[t.VarDType] = self.get_variable(
             variable_name,
             check_existence=True,
         )
