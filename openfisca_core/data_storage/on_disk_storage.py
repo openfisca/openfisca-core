@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import KeysView, MutableMapping
+from typing import Generic, TypeVar
 
 import os
 import shutil
@@ -9,8 +10,11 @@ import numpy
 
 from openfisca_core import indexed_enums as enum, periods, types as t
 
+#: Type var for numpy arrays (invariant).
+_N = TypeVar("_N", bound=t.VarDType)
 
-class OnDiskStorage:
+
+class OnDiskStorage(Generic[_N]):
     """Storing and retrieving calculated vectors on disk.
 
     Args:
@@ -57,7 +61,7 @@ class OnDiskStorage:
         if not os.listdir(parent_dir):
             shutil.rmtree(parent_dir)
 
-    def get(self, period: None | t.Period = None) -> None | t.VarArray:
+    def get(self, period: None | t.Period = None) -> None | t.Array[_N]:
         """Retrieve the data for the specified period from disk.
 
         Args:
@@ -95,7 +99,7 @@ class OnDiskStorage:
             return None
         return self._decode_file(values)
 
-    def put(self, value: t.VarArray, period: None | t.Period) -> None:
+    def put(self, value: t.Array[_N], period: None | t.Period) -> None:
         """Store the specified data on disk for the specified period.
 
         Args:
@@ -254,7 +258,7 @@ class OnDiskStorage:
             period = periods.period(filename_core)
             files[period] = path
 
-    def _decode_file(self, file: str) -> t.VarArray:
+    def _decode_file(self, file: str) -> t.Array[_N]:
         """Decode a file by loading its contents as a :mod:`numpy` array.
 
         Args:
@@ -298,7 +302,7 @@ class OnDiskStorage:
         if enum_class is not None:
             return enum.EnumArray(numpy.load(file), enum_class)
 
-        array: t.VarArray = numpy.load(file)
+        array: t.Array[_N] = numpy.load(file)
 
         return array
 

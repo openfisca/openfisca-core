@@ -23,7 +23,6 @@ lint-doc: \
 	lint-doc-data_storage \
 	lint-doc-entities \
 	lint-doc-experimental \
-	lint-doc-holders \
 	lint-doc-indexed_enums \
 	;
 
