@@ -9,7 +9,7 @@ import copy
 import dpath.util
 import numpy
 
-from openfisca_core import entities, errors, periods, populations, variables
+from openfisca_core import entities, errors, periods, populations, types as t, variables
 
 from . import helpers
 from ._build_default_simulation import _BuildDefaultSimulation
@@ -23,17 +23,11 @@ from ._type_guards import (
 from .simulation import Simulation
 from .typing import (
     Axis,
-    Entity,
     FullySpecifiedEntities,
     GroupEntities,
-    GroupEntity,
     ImplicitGroupEntities,
     Params,
     ParamsWithoutAxes,
-    Population,
-    Role,
-    SingleEntity,
-    TaxBenefitSystem,
     Variables,
 )
 
@@ -72,7 +66,7 @@ class SimulationBuilder:
 
     def build_from_dict(
         self,
-        tax_benefit_system: TaxBenefitSystem,
+        tax_benefit_system: t.TaxBenefitSystem,
         input_dict: Params,
     ) -> Simulation:
         """Build a simulation from an input dictionary.
@@ -156,7 +150,7 @@ class SimulationBuilder:
 
     def build_from_entities(
         self,
-        tax_benefit_system: TaxBenefitSystem,
+        tax_benefit_system: t.TaxBenefitSystem,
         input_dict: FullySpecifiedEntities,
     ) -> Simulation:
         """Build a simulation from a Python dict ``input_dict`` fully specifying
@@ -208,7 +202,7 @@ class SimulationBuilder:
         # Check for unexpected entities
         helpers.check_unexpected_entities(params, plural)
 
-        person_entity: SingleEntity = tax_benefit_system.person_entity
+        person_entity: t.SingleEntity = tax_benefit_system.person_entity
 
         persons_json = params.get(person_entity.plural, None)
 
@@ -271,7 +265,7 @@ class SimulationBuilder:
 
     def build_from_variables(
         self,
-        tax_benefit_system: TaxBenefitSystem,
+        tax_benefit_system: t.TaxBenefitSystem,
         input_dict: Variables,
     ) -> Simulation:
         """Build a simulation from a Python dict ``input_dict`` describing
@@ -311,7 +305,7 @@ class SimulationBuilder:
 
     @staticmethod
     def build_default_simulation(
-        tax_benefit_system: TaxBenefitSystem,
+        tax_benefit_system: t.TaxBenefitSystem,
         count: int = 1,
     ) -> Simulation:
         """Build a default simulation.
@@ -381,7 +375,7 @@ class SimulationBuilder:
 
     def explicit_singular_entities(
         self,
-        tax_benefit_system: TaxBenefitSystem,
+        tax_benefit_system: t.TaxBenefitSystem,
         input_dict: ImplicitGroupEntities,
     ) -> GroupEntities:
         """Preprocess ``input_dict`` to explicit entities defined using the
@@ -446,7 +440,7 @@ class SimulationBuilder:
     def add_default_group_entity(
         self,
         persons_ids: list[str],
-        entity: GroupEntity,
+        entity: t.GroupEntity,
     ) -> None:
         persons_count = len(persons_ids)
         roles = list(entity.flattened_roles)
@@ -461,7 +455,7 @@ class SimulationBuilder:
         self,
         persons_plural: str,
         persons_ids: list[str],
-        entity: GroupEntity,
+        entity: t.GroupEntity,
         instances_json,
     ) -> None:
         """Add all instances of one of the model's entities as described in ``instances_json``."""
@@ -723,7 +717,7 @@ class SimulationBuilder:
         )
 
     # Returns the roles of individuals in this entity, including when there is replication along axes
-    def get_roles(self, entity_name: str) -> Sequence[Role]:
+    def get_roles(self, entity_name: str) -> Sequence[t.Role]:
         # Return empty array for the "persons" entity
         return self.axes_roles.get(entity_name, self.roles.get(entity_name, []))
 
@@ -841,17 +835,17 @@ class SimulationBuilder:
                     )
                     self.input_buffer[axis_name][str(axis_period)] = array
 
-    def get_variable_entity(self, variable_name: str) -> Entity:
+    def get_variable_entity(self, variable_name: str) -> t.CoreEntity:
         return self.variable_entities[variable_name]
 
-    def register_variable(self, variable_name: str, entity: Entity) -> None:
+    def register_variable(self, variable_name: str, entity: t.CoreEntity) -> None:
         self.variable_entities[variable_name] = entity
 
     def register_variables(self, simulation: Simulation) -> None:
-        tax_benefit_system: TaxBenefitSystem = simulation.tax_benefit_system
+        tax_benefit_system: t.TaxBenefitSystem = simulation.tax_benefit_system
         variables: Iterable[str] = tax_benefit_system.variables.keys()
 
         for name in variables:
-            population: Population = simulation.get_variable_population(name)
-            entity: Entity = population.entity
+            population: t.CorePopulation = simulation.get_variable_population(name)
+            entity: t.CoreEntity = population.entity
             self.register_variable(name, entity)

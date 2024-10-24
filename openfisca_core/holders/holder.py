@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TypeVar, Generic, cast
+from typing import Generic, TypeVar, cast
 
 import os
 import warnings
@@ -36,9 +36,22 @@ class Holder(Generic[_N]):
     #: The variable the holder is tracking.
     variable: t.Variable[_N]
 
-    def __init__(
-        self, variable: t.Variable[_N], population: t.CorePopulation
-    ) -> None:
+    #: Whether the variable is eternal.
+    _eternal: bool
+
+    #: The memory storage.
+    _memory_storage: t.InMemoryStorage[_N]
+
+    #: The disk storage.
+    _disk_storage: None | t.OnDiskStorage[_N]
+
+    #: Whether the variable is on-disk storable.
+    _on_disk_storable: bool
+
+    #: Whether the variable should not be stored.
+    _do_not_store: bool
+
+    def __init__(self, variable: t.Variable[_N], population: t.CorePopulation) -> None:
         self.population = population
         self.variable = variable
         self.simulation = population.simulation
@@ -75,7 +88,7 @@ class Holder(Generic[_N]):
 
     def create_disk_storage(
         self, directory: None | str = None, preserve: bool = False
-    ) -> t.OnDiskStorage:
+    ) -> t.OnDiskStorage[_N]:
         if directory is None:
             if self.simulation is None:
                 raise NotImplementedError
@@ -98,7 +111,7 @@ class Holder(Generic[_N]):
         if self._disk_storage:
             self._disk_storage.delete(period)
 
-    def get_array(self, period: t.Period) -> t.Array[_N]:
+    def get_array(self, period: t.Period) -> None | t.Array[_N]:
         """Get the value of the variable for the given period.
 
         If the value is not known, return ``None``.
@@ -154,23 +167,21 @@ class Holder(Generic[_N]):
 
         """
         usage = t.MemoryUsage(
-            nb_cells_by_array=self.population.count,
             dtype=self.variable.dtype,
+            nb_arrays=0,
+            nb_cells_by_array=self.population.count,
+            total_nb_bytes=0,
         )
 
         usage.update(self._memory_storage.get_memory_usage())
 
-        if self.simulation.trace:
+        if self.simulation is not None and self.simulation.trace:
             nb_requests = self.simulation.tracer.get_nb_requests(self.variable.name)
-            usage.update(
-                {
-                    "nb_requests": nb_requests,
-                    "nb_requests_by_array": (
-                        nb_requests / float(usage["nb_arrays"])
-                        if usage["nb_arrays"] > 0
-                        else numpy.nan
-                    ),
-                },
+            usage["nb_requests"] = nb_requests
+            usage["nb_requests_by_array"] = (
+                nb_requests / float(usage["nb_arrays"])
+                if usage["nb_arrays"] > 0
+                else numpy.nan
             )
 
         return usage
@@ -323,6 +334,8 @@ class Holder(Generic[_N]):
         )
 
         if should_store_on_disk:
+            if self._disk_storage is None:
+                raise NotImplementedError
             self._disk_storage.put(value, period)
         else:
             self._memory_storage.put(value, period)

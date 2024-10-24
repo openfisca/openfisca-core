@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from typing_extensions import Self
 
-from openfisca_core import errors
+from openfisca_core import errors, types as t
 
 from ._build_default_simulation import _BuildDefaultSimulation
 from ._type_guards import is_variable_dated
 from .simulation import Simulation
-from .typing import Entity, Population, TaxBenefitSystem, Variables
+from .typing import Variables
 
 
 class _BuildFromVariables:
@@ -67,7 +67,7 @@ class _BuildFromVariables:
     default_period: str | None
 
     #: The built populations.
-    populations: dict[str, Population[Entity]]
+    populations: dict[str, t.CorePopulation]
 
     #: The built simulation.
     simulation: Simulation
@@ -77,7 +77,7 @@ class _BuildFromVariables:
 
     def __init__(
         self,
-        tax_benefit_system: TaxBenefitSystem,
+        tax_benefit_system: t.TaxBenefitSystem,
         params: Variables,
         default_period: str | None = None,
     ) -> None:
@@ -228,3 +228,6 @@ def _person_count(params: Variables) -> int:
 
     except Exception:
         return 1
+
+
+__all__ = ["_BuildFromVariables"]
