@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Any
+from typing import TypeVar, Generic, cast
 
 import os
 import warnings
@@ -15,12 +14,17 @@ from openfisca_core import (
     errors,
     indexed_enums as enums,
     periods,
-    types,
     types as t,
 )
 
+#: Type var for numpy arrays (invariant).
+_N = TypeVar("_N", bound=t.VarDType)
 
-class Holder:
+#: Type var for array-like objects.
+_L = TypeVar("_L")
+
+
+class Holder(Generic[_N]):
     """Track variable values after they have been calculated or set."""
 
     #: The population the variable is calculated for.
@@ -30,9 +34,11 @@ class Holder:
     simulation: None | t.Simulation = None
 
     #: The variable the holder is tracking.
-    variable: t.Variable
+    variable: t.Variable[_N]
 
-    def __init__(self, variable: t.Variable, population: t.CorePopulation) -> None:
+    def __init__(
+        self, variable: t.Variable[_N], population: t.CorePopulation
+    ) -> None:
         self.population = population
         self.variable = variable
         self.simulation = population.simulation
@@ -53,7 +59,7 @@ class Holder:
             if self.variable.name in self.simulation.memory_config.variables_to_drop:
                 self._do_not_store = True
 
-    def clone(self, population: t.CorePopulation) -> t.Holder:
+    def clone(self, population: t.CorePopulation) -> t.Holder[_N]:
         """Copy the holder just enough to be able to run a new simulation."""
         new = commons.empty_clone(self)
         new_dict = new.__dict__
@@ -65,10 +71,14 @@ class Holder:
         new_dict["population"] = population
         new_dict["simulation"] = population.simulation
 
-        return new
+        return cast(t.Holder[_N], new)
 
-    def create_disk_storage(self, directory=None, preserve=False):
+    def create_disk_storage(
+        self, directory: None | str = None, preserve: bool = False
+    ) -> t.OnDiskStorage:
         if directory is None:
+            if self.simulation is None:
+                raise NotImplementedError
             directory = self.simulation.data_storage_dir
         storage_dir = os.path.join(directory, self.variable.name)
         if not os.path.isdir(storage_dir):
@@ -79,7 +89,7 @@ class Holder:
             preserve_storage_dir=preserve,
         )
 
-    def delete_arrays(self, period=None) -> None:
+    def delete_arrays(self, period: None | t.Period = None) -> None:
         """If ``period`` is ``None``, remove all known values of the variable.
 
         If ``period`` is not ``None``, only remove all values for any period included in period (e.g. if period is "2017", values for "2017-01", "2017-07", etc. would be removed)
@@ -88,7 +98,7 @@ class Holder:
         if self._disk_storage:
             self._disk_storage.delete(period)
 
-    def get_array(self, period):
+    def get_array(self, period: t.Period) -> t.Array[_N]:
         """Get the value of the variable for the given period.
 
         If the value is not known, return ``None``.
@@ -165,7 +175,7 @@ class Holder:
 
         return usage
 
-    def get_known_periods(self):
+    def get_known_periods(self) -> list[t.Period]:
         """Get the list of periods the variable value is known for."""
         return list(self._memory_storage.get_known_periods()) + list(
             self._disk_storage.get_known_periods() if self._disk_storage else [],
@@ -173,9 +183,9 @@ class Holder:
 
     def set_input(
         self,
-        period: types.Period,
-        array: numpy.ndarray | Sequence[Any],
-    ) -> numpy.ndarray | None:
+        period: t.Period,
+        array: t.Array[_N] | t.ArrayLike[_L],
+    ) -> None | t.Array[_N]:
         """Set a Variable's array of values of a given Period.
 
         Args:
@@ -247,7 +257,7 @@ class Holder:
             return self.variable.set_input(self, period, array)
         return self._set(period, array)
 
-    def _to_array(self, value):
+    def _to_array(self, value: t.Array[_N] | t.ArrayLike[_L], /) -> t.Array[_N]:
         if not isinstance(value, numpy.ndarray):
             value = numpy.asarray(value)
         if value.ndim == 0:
@@ -270,7 +280,7 @@ class Holder:
                 )
         return value
 
-    def _set(self, period, value) -> None:
+    def _set(self, /, period: None | t.Period, value: t.Array[_N]) -> None:
         value = self._to_array(value)
         if not self._eternal:
             if period is None:
@@ -306,6 +316,8 @@ class Holder:
         should_store_on_disk = (
             self._on_disk_storable
             and self._memory_storage.get(period) is None
+            and self.simulation is not None
+            and self.simulation.memory_config is not None
             and psutil.virtual_memory().percent  # If there is already a value in memory, replace it and don't put a new value in the disk storage
             >= self.simulation.memory_config.max_memory_occupation_pc
         )
@@ -315,9 +327,12 @@ class Holder:
         else:
             self._memory_storage.put(value, period)
 
-    def put_in_cache(self, value, period) -> None:
+    def put_in_cache(self, value: t.Array[_N], period: t.Period) -> None:
         if self._do_not_store:
             return
+
+        if self.simulation is None:
+            raise NotImplementedError
 
         if (
             self.simulation.opt_out_cache
@@ -328,7 +343,7 @@ class Holder:
 
         self._set(period, value)
 
-    def default_array(self):
+    def default_array(self) -> t.Array[_N]:
         """Return a default array of the appropriate length for the entity.
 
         Returns:
