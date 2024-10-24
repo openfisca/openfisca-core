@@ -135,4 +135,4 @@ def test_shell_script_with_extension() -> None:
         "openfisca_extension_template",
     ]
     result = subprocess.run(command, capture_output=True)
-    assert result.returncode == 0, result.stderr.decode("utf-8")
+    assert not result.stderr, result.stderr.decode("utf-8")
