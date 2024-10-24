@@ -1,11 +1,13 @@
 from openfisca_core import types as t
 
+from ._enums import Option
+
 
 class IncompatibleOptionsError(ValueError):
     """Raised when two options are incompatible."""
 
     def __init__(self, variable_name: t.VariableName) -> None:
-        add, divide = t.Option
+        add, divide = Option
         msg = (
             f"Options {add} and {divide} are incompatible (trying to compute "
             f"variable {variable_name})."

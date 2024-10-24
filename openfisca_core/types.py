@@ -406,14 +406,11 @@ class Period(Indexable[Union[DateUnit, Instant, int]], Protocol):
 #: Type alias for a period-like object.
 PeriodLike: TypeAlias = Union[Period, PeriodStr, PeriodInt]
 
+
 # Populations
 
 #: Type alias for a population's holders.
 HolderByVariable: TypeAlias = MutableMapping["VariableName", Holder[_N]]
-
-# TODO(Mauko Quiroga-Alvarado): I'm not sure if this type alias is correct.
-# https://openfisca.org/doc/coding-the-legislation/50_entities.html
-Members: TypeAlias = Iterable["SinglePopulation"]
 
 
 class MemoryUsageByVariable(TypedDict, total=False):
@@ -446,6 +443,11 @@ class GroupPopulation(CorePopulation, Protocol):
     @property
     def members_entity_id(self, /) -> StrArray: ...
     def nb_persons(self, /, __role: None | Role = ...) -> int: ...
+
+
+# TODO(Mauko Quiroga-Alvarado): I'm not sure if this type alias is correct.
+# https://openfisca.org/doc/coding-the-legislation/50_entities.html
+Members: TypeAlias = Iterable[SinglePopulation]
 
 
 # Simulations
