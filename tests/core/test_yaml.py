@@ -125,7 +125,7 @@ def test_shell_script_with_extension() -> None:
     command = [
         "openfisca",
         "test",
-        tests_path,
+        str(tests_path),
         "-c",
         "openfisca_country_template",
         "-e",
