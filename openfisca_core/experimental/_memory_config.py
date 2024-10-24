@@ -13,6 +13,9 @@ class MemoryConfig:
     #: Maximum memory occupation allowed.
     max_memory_occupation: float
 
+    #: Maximum memory occupation allowed in percentage.
+    max_memory_occupation_pc: float
+
     #: Priority variables.
     priority_variables: frozenset[str]
 
