@@ -120,12 +120,15 @@ def test_shell_script_with_reform() -> None:
 
 
 def test_shell_script_with_extension() -> None:
-    path = next(iter(openfisca_extension_template.__path__))
-    tests_path = pathlib.Path(path) / ".." / "tests" / "openfisca_extension_template"
+    base_path = next(iter(openfisca_extension_template.__path__))
+    test_path = (
+        pathlib.Path(base_path) / ".." / "tests" / "openfisca_extension_template"
+    )
+    path = str(test_path.resolve())
     command = [
         "openfisca",
         "test",
-        str(tests_path),
+        path,
         "-c",
         "openfisca_country_template",
         "-e",
