@@ -2,11 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from openfisca_core.types import GroupEntity, Role, SingleEntity
-
-from openfisca_core import entities, projectors
-
-from .typing import GroupPopulation, Population
+from openfisca_core import entities, projectors, types as t
 
 
 def projectable(function):
@@ -18,7 +14,7 @@ def projectable(function):
 
 
 def get_projector_from_shortcut(
-    population: Population | GroupPopulation,
+    population: t.CorePopulation,
     shortcut: str,
     parent: projectors.Projector | None = None,
 ) -> projectors.Projector | None:
@@ -108,12 +104,12 @@ def get_projector_from_shortcut(
         <...UniqueRoleToEntityProjector object at ...>
 
     """
-    entity: SingleEntity | GroupEntity = population.entity
+    entity: t.CorePopulation = population.entity
 
     if isinstance(entity, entities.Entity):
         populations: Mapping[
             str,
-            Population | GroupPopulation,
+            t.CorePopulation,
         ] = population.simulation.populations
 
         if shortcut not in populations:
@@ -125,7 +121,7 @@ def get_projector_from_shortcut(
         return projectors.FirstPersonToEntityProjector(population, parent)
 
     if isinstance(entity, entities.GroupEntity):
-        role: Role | None = entities.find_role(entity.roles, shortcut, total=1)
+        role: None | t.Role = entities.find_role(entity.roles, shortcut, total=1)
 
         if role is not None:
             return projectors.UniqueRoleToEntityProjector(population, role, parent)

@@ -1,12 +1,14 @@
 """This module contains the _BuildDefaultSimulation class."""
 
-from typing import Union
+from __future__ import annotations
+
 from typing_extensions import Self
 
 import numpy
 
+from openfisca_core import types as t
+
 from .simulation import Simulation
-from .typing import Entity, Population, TaxBenefitSystem
 
 
 class _BuildDefaultSimulation:
@@ -47,12 +49,12 @@ class _BuildDefaultSimulation:
     count: int
 
     #: The built populations.
-    populations: dict[str, Union[Population[Entity]]]
+    populations: dict[str, t.CorePopulation]
 
     #: The built simulation.
     simulation: Simulation
 
-    def __init__(self, tax_benefit_system: TaxBenefitSystem, count: int) -> None:
+    def __init__(self, tax_benefit_system: t.TaxBenefitSystem, count: int) -> None:
         self.count = count
         self.populations = tax_benefit_system.instantiate_entities()
         self.simulation = Simulation(tax_benefit_system, self.populations)
@@ -157,3 +159,6 @@ class _BuildDefaultSimulation:
                 population.members_entity_id = numpy.array(range(self.count))
 
         return self
+
+
+__all__ = ["_BuildDefaultSimulation"]

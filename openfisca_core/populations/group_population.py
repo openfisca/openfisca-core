@@ -4,9 +4,8 @@ import typing
 
 import numpy
 
-from openfisca_core import entities, indexed_enums, projectors
+from openfisca_core import entities, indexed_enums, projectors, types as t
 
-from . import types as t
 from .population import Population
 
 

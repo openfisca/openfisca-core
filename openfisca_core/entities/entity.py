@@ -2,7 +2,8 @@ from typing import ClassVar
 
 import textwrap
 
-from . import types as t
+from openfisca_core import types as t
+
 from ._core_entity import CoreEntity
 
 

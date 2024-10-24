@@ -21,7 +21,6 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
-from . import types
 from ._errors import InstantError, ParserError, PeriodError
 from .config import (
     INSTANT_PATTERN,
@@ -52,27 +51,26 @@ ISOCALENDAR = DateUnit.isocalendar
 
 __all__ = [
     "DAY",
-    "DateUnit",
     "ETERNITY",
     "INSTANT_PATTERN",
     "ISOCALENDAR",
     "ISOFORMAT",
-    "Instant",
-    "InstantError",
     "MONTH",
-    "ParserError",
-    "Period",
-    "PeriodError",
     "WEEK",
     "WEEKDAY",
     "YEAR",
+    "DateUnit",
+    "Instant",
+    "InstantError",
+    "ParserError",
+    "Period",
+    "PeriodError",
     "date_by_instant_cache",
     "instant",
     "instant_date",
     "key_period_size",
     "period",
     "str_by_instant_cache",
-    "types",
     "unit_weight",
     "unit_weights",
     "year_or_month_or_day_re",

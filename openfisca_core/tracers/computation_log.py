@@ -4,9 +4,8 @@ import sys
 
 import numpy
 
+from openfisca_core import types as t
 from openfisca_core.indexed_enums import EnumArray
-
-from . import types as t
 
 
 class ComputationLog:

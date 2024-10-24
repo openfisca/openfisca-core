@@ -7,15 +7,18 @@ import traceback
 
 import numpy
 
-from openfisca_core import holders, periods
+from openfisca_core import holders, periods, types as t
 
-from . import types as t
+from ._enums import Calculate, Option
 from ._errors import (
     IncompatibleOptionsError,
     InvalidArraySizeError,
     InvalidOptionError,
     PeriodValidityError,
 )
+
+#: Options for set inputs.
+ADD, DIVIDE = Option
 
 #: Type variable for a covariant data type.
 _DT_co = TypeVar("_DT_co", covariant=True, bound=t.VarDType)
@@ -25,7 +28,7 @@ class CorePopulation:
     """Base class to build populations from.
 
     Args:
-        entity: The :class:`.CoreEntity` of the population.
+        entity: The :class:`~entities.CoreEntity` of the population.
         *__args: Variable length argument list.
         **__kwds: Arbitrary keyword arguments.
 
@@ -40,18 +43,21 @@ class CorePopulation:
     #: A pseudo index for the members of the population.
     ids: Sequence[str] = []
 
-    #: The :class:`.Simulation` for which the population is calculated.
+    #: The :class:`~simulations.Simulation` for which the population is calculated.
     simulation: None | t.Simulation = None
+
+    #: The holders of the variables.
+    _holders: t.HolderByVariable[t.VarDType]
 
     def __init__(self, entity: t.CoreEntity, *__args: object, **__kwds: object) -> None:
         self.entity = entity
-        self._holders: t.HolderByVariable = {}
+        self._holders = {}
 
     def __call__(
         self,
         variable_name: t.VariableName,
         period: t.PeriodLike,
-        options: None | Sequence[t.Option] = None,
+        options: None | Sequence[Option] = None,
     ) -> None | t.VarArray:
         """Calculate ``variable_name`` for ``period``, using the formula if it exists.
 
@@ -61,7 +67,7 @@ class CorePopulation:
             options: The options to use for the calculation.
 
         Returns:
-            None: If there is no :class:`.Simulation`.
+            None: If there is no :class:`~simulations.Simulation`.
             ndarray[generic]: The result of the calculation.
 
         Raises:
@@ -136,7 +142,7 @@ class CorePopulation:
         if self.simulation is None:
             return None
 
-        calculate = t.Calculate(
+        calculate = Calculate(
             variable=variable_name,
             period=periods.period(period),
             option=options,
@@ -151,16 +157,16 @@ class CorePopulation:
                 calculate.period,
             )
 
-        if t.Option.ADD in calculate.option and t.Option.DIVIDE in calculate.option:
+        if ADD in calculate.option and DIVIDE in calculate.option:
             raise IncompatibleOptionsError(variable_name)
 
-        if t.Option.ADD in calculate.option:
+        if ADD in calculate.option:
             return self.simulation.calculate_add(
                 calculate.variable,
                 calculate.period,
             )
 
-        if t.Option.DIVIDE in calculate.option:
+        if DIVIDE in calculate.option:
             return self.simulation.calculate_divide(
                 calculate.variable,
                 calculate.period,
@@ -334,7 +340,7 @@ class CorePopulation:
 
     # Helpers
 
-    def get_holder(self, variable_name: t.VariableName) -> t.Holder:
+    def get_holder(self, variable_name: t.VariableName) -> t.Holder[t.VarDType]:
         """Return the holder of a variable.
 
         Args:
@@ -385,8 +391,10 @@ class CorePopulation:
         if holder:
             return holder
         variable = self.entity.get_variable(variable_name)
-        self._holders[variable_name] = holder = holders.Holder(variable, self)
-        return holder
+        if variable is None:
+            raise NotImplementedError
+        self._holders[variable_name] = holders.Holder(variable, self)
+        return self._holders[variable_name]
 
     def get_memory_usage(
         self,

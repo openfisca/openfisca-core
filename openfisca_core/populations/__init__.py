@@ -29,8 +29,8 @@ from openfisca_core.projectors import (
 )
 from openfisca_core.projectors.helpers import get_projector_from_shortcut, projectable
 
-from . import types
 from ._core_population import CorePopulation
+from ._enums import Option
 from ._errors import (
     IncompatibleOptionsError,
     InvalidArraySizeError,
@@ -40,7 +40,7 @@ from ._errors import (
 from .group_population import GroupPopulation
 from .population import Population
 
-ADD, DIVIDE = types.Option
+ADD, DIVIDE = Option
 SinglePopulation = Population
 
 __all__ = [
@@ -60,5 +60,4 @@ __all__ = [
     "UniqueRoleToEntityProjector",
     "get_projector_from_shortcut",
     "projectable",
-    "types",
 ]

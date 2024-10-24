@@ -6,7 +6,8 @@ import datetime
 
 import pendulum
 
-from . import types as t
+from openfisca_core import types as t
+
 from ._errors import InstantError, ParserError, PeriodError
 from .date_unit import DateUnit
 from .instant_ import Instant

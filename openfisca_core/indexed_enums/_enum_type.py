@@ -4,7 +4,7 @@ from typing import final
 
 import numpy
 
-from . import types as t
+from openfisca_core import types as t
 
 
 @final
@@ -35,6 +35,15 @@ class EnumType(t.EnumType):
         array([Housing.OWNER, Housing.TENANT], dtype=object)
 
     """
+
+    #: The indices of the enum members.
+    indices: t.IndexArray
+
+    #: The names of the enum members.
+    names: t.StrArray
+
+    #: The enum members.
+    enums: t.ObjArray
 
     def __new__(
         metacls,
