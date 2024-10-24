@@ -92,8 +92,8 @@ def test_name_filter(tax_benefit_system) -> None:
 def test_shell_script() -> None:
     yaml_path = os.path.join(yaml_tests_dir, "test_success.yml")
     command = ["openfisca", "test", yaml_path, "-c", "openfisca_country_template"]
-    with open(os.devnull, "wb") as devnull:
-        subprocess.check_call(command, stdout=devnull, stderr=devnull)
+    result = subprocess.run(command, capture_output=True)
+    assert result.returncode == 0, result.stderr.decode("utf-8")
 
 
 def test_failing_shell_script() -> None:
@@ -115,8 +115,8 @@ def test_shell_script_with_reform() -> None:
         "-r",
         "openfisca_country_template.reforms.removal_basic_income.removal_basic_income",
     ]
-    with open(os.devnull, "wb") as devnull:
-        subprocess.check_call(command, stdout=devnull, stderr=devnull)
+    result = subprocess.run(command, capture_output=True)
+    assert result.returncode == 0, result.stderr.decode("utf-8")
 
 
 # TODO(Mauko Quiroga-Alvarado): Fix this test
@@ -133,5 +133,5 @@ def test_shell_script_with_extension() -> None:
         "-e",
         "openfisca_extension_template",
     ]
-    with open(os.devnull, "wb") as devnull:
-        subprocess.check_call(command, stdout=devnull, stderr=devnull)
+    result = subprocess.run(command, capture_output=True)
+    assert result.returncode == 0, result.stderr.decode("utf-8")
