@@ -122,7 +122,9 @@ class Enum(t.Enum, metaclass=EnumType):
         return f"{self.__class__.__name__}.{self.name}"
 
     @classmethod
-    def encode(cls, array: t.VarArray | t.ArrayLike[object]) -> t.EnumArray:
+    def encode(
+        cls, array: t.VarArray | t.ArrayLike[object]
+    ) -> t.EnumArray[t.EnumDType]:
         """Encode an encodable array into an :class:`.EnumArray`.
 
         Args:
@@ -188,7 +190,7 @@ class Enum(t.Enum, metaclass=EnumType):
         return cls._encode_array(array)
 
     @classmethod
-    def _encode_array(cls, value: t.VarArray) -> t.EnumArray:
+    def _encode_array(cls, value: t.VarArray) -> t.EnumArray[t.EnumDType]:
         if _is_int_array(value):
             indices = _int_to_index(cls, value)
         elif _is_str_array(value):  # type: ignore[unreachable]
@@ -202,7 +204,7 @@ class Enum(t.Enum, metaclass=EnumType):
         return EnumArray(indices, cls)
 
     @classmethod
-    def _encode_array_like(cls, value: t.ArrayLike[object]) -> t.EnumArray:
+    def _encode_array_like(cls, value: t.ArrayLike[object]) -> t.EnumArray[t.EnumDType]:
         if _is_int_array_like(value):
             indices = _int_to_index(cls, value)
         elif _is_str_array_like(value):  # type: ignore[unreachable]
