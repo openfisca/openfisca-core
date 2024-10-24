@@ -28,7 +28,7 @@ class CorePopulation:
     """Base class to build populations from.
 
     Args:
-        entity: The :class:`.CoreEntity` of the population.
+        entity: The :class:`~entities.CoreEntity` of the population.
         *__args: Variable length argument list.
         **__kwds: Arbitrary keyword arguments.
 
@@ -43,7 +43,7 @@ class CorePopulation:
     #: A pseudo index for the members of the population.
     ids: Sequence[str] = []
 
-    #: The :class:`.Simulation` for which the population is calculated.
+    #: The :class:`~simulations.Simulation` for which the population is calculated.
     simulation: None | t.Simulation = None
 
     #: The holders of the variables.
@@ -67,7 +67,7 @@ class CorePopulation:
             options: The options to use for the calculation.
 
         Returns:
-            None: If there is no :class:`.Simulation`.
+            None: If there is no :class:`~simulations.Simulation`.
             ndarray[generic]: The result of the calculation.
 
         Raises:

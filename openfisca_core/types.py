@@ -321,9 +321,6 @@ InstantInt = NewType("InstantInt", int)
 #: For example 2020.
 PeriodInt = NewType("PeriodInt", int)
 
-#: Type alias for a period-like object.
-PeriodLike: TypeAlias = Union["Period", "PeriodStr", PeriodInt]
-
 
 class _InstantStrMeta(type):
     def __instancecheck__(self, arg: object) -> bool:
@@ -406,14 +403,14 @@ class Period(Indexable[Union[DateUnit, Instant, int]], Protocol):
     ) -> Period: ...
 
 
+#: Type alias for a period-like object.
+PeriodLike: TypeAlias = Union[Period, PeriodStr, PeriodInt]
+
+
 # Populations
 
 #: Type alias for a population's holders.
 HolderByVariable: TypeAlias = MutableMapping["VariableName", Holder[_N]]
-
-# TODO(Mauko Quiroga-Alvarado): I'm not sure if this type alias is correct.
-# https://openfisca.org/doc/coding-the-legislation/50_entities.html
-Members: TypeAlias = Iterable["SinglePopulation"]
 
 
 class MemoryUsageByVariable(TypedDict, total=False):
@@ -446,6 +443,11 @@ class GroupPopulation(CorePopulation, Protocol):
     @property
     def members_entity_id(self, /) -> StrArray: ...
     def nb_persons(self, /, __role: None | Role = ...) -> int: ...
+
+
+# TODO(Mauko Quiroga-Alvarado): I'm not sure if this type alias is correct.
+# https://openfisca.org/doc/coding-the-legislation/50_entities.html
+Members: TypeAlias = Iterable[SinglePopulation]
 
 
 # Simulations
@@ -506,9 +508,6 @@ FlatNodeMap: TypeAlias = dict["NodeKey", "FlatTraceMap"]
 
 #: A type representing a mapping of serialized traces.
 SerializedNodeMap: TypeAlias = dict["NodeKey", "SerializedTraceMap"]
-
-#: A stack of simple traces.
-SimpleStack: TypeAlias = list["SimpleTraceMap"]
 
 #: Key of a trace.
 NodeKey = NewType("NodeKey", str)
@@ -585,6 +584,10 @@ class TraceNode(Protocol):
     def calculation_time(self, *, __round: bool = ...) -> Time: ...
     def formula_time(self, /) -> Time: ...
     def append_child(self, __node: TraceNode, /) -> None: ...
+
+
+#: A stack of simple traces.
+SimpleStack: TypeAlias = list[SimpleTraceMap]
 
 
 # Variables

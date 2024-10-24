@@ -119,11 +119,13 @@ def test_shell_script_with_reform() -> None:
     assert result.returncode == 0, result.stderr.decode("utf-8")
 
 
-# TODO(Mauko Quiroga-Alvarado): Fix this test
-# https://github.com/openfisca/openfisca-core/issues/962
-@pytest.mark.skipif(sys.platform == "win32", reason="Does not work on Windows.")
 def test_shell_script_with_extension() -> None:
-    tests_dir = os.path.join(openfisca_extension_template.__path__[0], "tests")
+    tests_dir = os.path.join(
+        openfisca_extension_template.__path__[0],
+        "../tests/openfisca_extension_template",
+    )
+    if sys.platform == "win32":
+        tests_dir = repr(tests_dir)
     command = [
         "openfisca",
         "test",
