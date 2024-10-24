@@ -46,9 +46,12 @@ class CorePopulation:
     #: The :class:`~simulations.Simulation` for which the population is calculated.
     simulation: None | t.Simulation = None
 
+    #: The holders of the variables.
+    _holders: t.HolderByVariable[t.VarDType]
+
     def __init__(self, entity: t.CoreEntity, *__args: object, **__kwds: object) -> None:
         self.entity = entity
-        self._holders: t.HolderByVariable = {}
+        self._holders = {}
 
     def __call__(
         self,
@@ -337,7 +340,7 @@ class CorePopulation:
 
     # Helpers
 
-    def get_holder(self, variable_name: t.VariableName) -> t.Holder:
+    def get_holder(self, variable_name: t.VariableName) -> t.Holder[t.VarDType]:
         """Return the holder of a variable.
 
         Args:
@@ -388,8 +391,10 @@ class CorePopulation:
         if holder:
             return holder
         variable = self.entity.get_variable(variable_name)
-        self._holders[variable_name] = holder = holders.Holder(variable, self)
-        return holder
+        if variable is None:
+            raise NotImplementedError
+        self._holders[variable_name] = holders.Holder(variable, self)
+        return self._holders[variable_name]
 
     def get_memory_usage(
         self,
