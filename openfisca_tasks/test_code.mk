@@ -1,11 +1,18 @@
 ## The openfisca command module.
 openfisca = openfisca_core.scripts.openfisca_command
 
-## The path to the templates' tests.
+## The path to the country template tests.
 ifeq ($(OS),Windows_NT)
-	tests = $(shell python -c "import os, $(1); print(repr(os.path.join($(1).__path__[0], 'tests')))")
+	country = $(shell python -c "import os, $(1); print(repr(os.path.join($(1).__path__[0], 'tests')))")
 else
-	tests = $(shell python -c "import $(1); print($(1).__path__[0])")/tests
+	country = $(shell python -c "import $(1); print($(1).__path__[0])")/tests
+endif
+
+## The path to the extension template tests.
+ifeq ($(OS),Windows_NT)
+	extension = $(shell python -c "import os, $(1); print(repr(os.path.join($(1).__path__[0], '../tests/$(1)')))")
+else
+	extension = $(shell python -c "import $(1); print($(1).__path__[0])")/../tests/$(1)
 endif
 
 ## Run all tasks required for testing.
@@ -53,7 +60,7 @@ test-country:
 	@$(call print_help,$@:)
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
 		python -m ${openfisca} test \
-		$(call tests,"openfisca_country_template") \
+		$(call country,"openfisca_country_template") \
 		--country-package openfisca_country_template \
 		${openfisca_args}
 	@$(call print_pass,$@:)
@@ -63,7 +70,7 @@ test-extension:
 	@$(call print_help,$@:)
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
 		python -m ${openfisca} test \
-		$(call tests,"openfisca_extension_template") \
+		$(call extension,"openfisca_extension_template") \
 		--country-package openfisca_country_template \
 		--extensions openfisca_extension_template \
 		${openfisca_args}
