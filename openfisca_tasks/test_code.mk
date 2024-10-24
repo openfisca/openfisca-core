@@ -2,18 +2,10 @@
 openfisca = openfisca_core.scripts.openfisca_command
 
 ## The path to the country template tests.
-ifeq ($(OS),Windows_NT)
-	country = $(shell python -c "import os, $(1); print(repr(os.path.join($(1).__path__[0], 'tests')))")
-else
-	country = $(shell python -c "import $(1); print($(1).__path__[0])")/tests
-endif
+country = $(shell python -c "import pathlib, $(1); print(pathlib.Path($(1).__path__[0]) / 'tests')")
 
 ## The path to the extension template tests.
-ifeq ($(OS),Windows_NT)
-	extension = $(shell python -c "import os, $(1); print(repr(os.path.join($(1).__path__[0], '../tests/$(1)')))")
-else
-	extension = $(shell python -c "import $(1); print($(1).__path__[0])")/../tests/$(1)
-endif
+extension = $(shell python -c "import pathlib, $(1); print(pathlib.Path($(1).__path__[0]) / '..' / 'tests' / '$(1)')")
 
 ## Run all tasks required for testing.
 install: install-deps install-edit install-test

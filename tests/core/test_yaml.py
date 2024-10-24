@@ -1,6 +1,6 @@
 import os
+import pathlib
 import subprocess
-import sys
 
 import pytest
 
@@ -120,16 +120,12 @@ def test_shell_script_with_reform() -> None:
 
 
 def test_shell_script_with_extension() -> None:
-    tests_dir = os.path.join(
-        openfisca_extension_template.__path__[0],
-        "../tests/openfisca_extension_template",
-    )
-    if sys.platform == "win32":
-        tests_dir = repr(tests_dir)
+    path = next(iter(openfisca_extension_template.__path__))
+    tests_path = pathlib.Path(path) / ".." / "tests" / "openfisca_extension_template"
     command = [
         "openfisca",
         "test",
-        tests_dir,
+        tests_path,
         "-c",
         "openfisca_country_template",
         "-e",
