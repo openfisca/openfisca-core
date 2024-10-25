@@ -44,17 +44,13 @@ class CoreEntity:
     is_person: ClassVar[bool]
 
     #: A ``TaxBenefitSystem`` instance.
-    _tax_benefit_system: None | t.TaxBenefitSystem = None
+    tax_benefit_system: None | t.TaxBenefitSystem = None
 
     @abc.abstractmethod
     def __init__(self, *__args: object, **__kwargs: object) -> None: ...
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.key})"
-
-    def set_tax_benefit_system(self, tax_benefit_system: t.TaxBenefitSystem) -> None:
-        """A ``CoreEntity`` belongs to a ``TaxBenefitSystem``."""
-        self._tax_benefit_system = tax_benefit_system
 
     def get_variable(
         self,
@@ -92,7 +88,7 @@ class CoreEntity:
             ValueError: You must set 'tax_benefit_system' before calling this...
 
             >>> tax_benefit_system = taxbenefitsystems.TaxBenefitSystem([this])
-            >>> this.set_tax_benefit_system(tax_benefit_system)
+            >>> this.tax_benefit_system = tax_benefit_system
 
             >>> this.get_variable("tax")
 
@@ -105,19 +101,18 @@ class CoreEntity:
             ...     value_type = float
             ...     entity = that
 
-            >>> this._tax_benefit_system.add_variable(tax)
+            >>> this.tax_benefit_system.add_variable(tax)
             <openfisca_core.entities._core_entity.tax object at ...>
 
             >>> this.get_variable("tax")
             <openfisca_core.entities._core_entity.tax object at ...>
 
+
         """
-        if self._tax_benefit_system is None:
-            msg = "You must set 'tax_benefit_system' before calling this method."
-            raise ValueError(
-                msg,
-            )
-        return self._tax_benefit_system.get_variable(variable_name, check_existence)
+        if self.tax_benefit_system is None:
+            msg = "You must set 'tax_benefit_system' to call this method."
+            raise ValueError(msg)
+        return self.tax_benefit_system.get_variable(variable_name, check_existence)
 
     def check_variable_defined_for_entity(self, variable_name: t.VariableName) -> None:
         """Check if ``variable_name`` is defined for ``self``.
@@ -140,7 +135,7 @@ class CoreEntity:
             >>> this = entities.SingleEntity("this", "", "", "")
             >>> that = entities.SingleEntity("that", "", "", "")
             >>> tax_benefit_system = taxbenefitsystems.TaxBenefitSystem([that])
-            >>> this.set_tax_benefit_system(tax_benefit_system)
+            >>> this.tax_benefit_system = tax_benefit_system
 
             >>> this.check_variable_defined_for_entity("tax")
             Traceback (most recent call last):
@@ -151,7 +146,7 @@ class CoreEntity:
             ...     value_type = int
             ...     entity = that
 
-            >>> this._tax_benefit_system.add_variable(tax)
+            >>> this.tax_benefit_system.add_variable(tax)
             <openfisca_core.entities._core_entity.tax object at ...>
 
             >>> this.check_variable_defined_for_entity("tax")
@@ -160,7 +155,7 @@ class CoreEntity:
 
             >>> tax.entity = this
 
-            >>> this._tax_benefit_system.update_variable(tax)
+            >>> this.tax_benefit_system.update_variable(tax)
             <openfisca_core.entities._core_entity.tax object at ...>
 
             >>> this.check_variable_defined_for_entity("tax")

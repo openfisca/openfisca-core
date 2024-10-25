@@ -72,7 +72,7 @@ class TaxBenefitSystem:
             entity for entity in self.entities if not entity.is_person
         ]
         for entity in self.entities:
-            entity.set_tax_benefit_system(self)
+            entity.tax_benefit_system = self
 
     @property
     def base_tax_benefit_system(self):
@@ -572,7 +572,7 @@ class TaxBenefitSystem:
             ):
                 new_dict[key] = value
         for entity in new_dict["entities"]:
-            entity.set_tax_benefit_system(new)
+            entity.tax_benefit_system = new
 
         new_dict["parameters"] = self.parameters.clone()
         new_dict["_parameters_at_instant_cache"] = {}

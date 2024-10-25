@@ -262,6 +262,8 @@ class Simulation(Protocol):
 class TaxBenefitSystem(Protocol):
     person_entity: SingleEntity
 
+    @property
+    def variables(self, /) -> dict[VariableName, Variable]: ...
     def get_variable(
         self,
         variable_name: VariableName,

@@ -87,7 +87,7 @@ class CorePopulation:
             >>> population("salary", period)
 
             >>> tbs = taxbenefitsystems.TaxBenefitSystem([person])
-            >>> person.set_tax_benefit_system(tbs)
+            >>> person.tax_benefit_system = tbs
             >>> simulation = simulations.Simulation(tbs, {person.key: population})
             >>> population("salary", period)
             Traceback (most recent call last):
@@ -365,7 +365,7 @@ class CorePopulation:
             ...     value_type = int
 
             >>> tbs = taxbenefitsystems.TaxBenefitSystem([person])
-            >>> person.set_tax_benefit_system(tbs)
+            >>> person.tax_benefit_system = tbs
             >>> population = populations.SinglePopulation(person)
             >>> simulation = simulations.Simulation(tbs, {person.key: population})
             >>> population.get_holder("income_tax")
