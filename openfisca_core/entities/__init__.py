@@ -2,6 +2,7 @@
 
 from . import types
 from ._core_entity import CoreEntity
+from ._errors import TaxBenefitSystemUnsetError, VariableNotFoundError
 from .entity import Entity
 from .group_entity import GroupEntity
 from .helpers import build_entity, find_role
@@ -15,6 +16,8 @@ __all__ = [
     "GroupEntity",
     "Role",
     "SingleEntity",
+    "TaxBenefitSystemUnsetError",
+    "VariableNotFoundError",
     "build_entity",
     "find_role",
     "types",
