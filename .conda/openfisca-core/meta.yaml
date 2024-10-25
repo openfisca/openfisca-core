@@ -1,0 +1,89 @@
+###############################################################################
+## File for Anaconda.org
+## It use Jinja2 templating code to retreive information from setup.py
+###############################################################################
+
+{% set name = "OpenFisca-Core" %}
+{% set data = load_setup_py_data() %}
+{% set version = data.get('version') %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  path: ../..
+
+build:
+  noarch: python
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+  entry_points:
+    - openfisca = openfisca_core.scripts.openfisca_command:main
+    - openfisca-run-test = openfisca_core.scripts.openfisca_command:main
+
+requirements:
+  host:
+    - numpy
+    - pip
+    - python
+    - setuptools >=61.0
+  run:
+    - numpy
+    - python
+    {% for req in data['install_requires'] %}
+    {% if not req.startswith('numpy') %}
+    - {{ req }}
+    {% endif %}
+    {% endfor %}
+
+test:
+  imports:
+    - openfisca_core
+    - openfisca_core.commons
+
+outputs:
+  - name: openfisca-core
+    type: conda_v2
+
+  - name: openfisca-core-api
+    type: conda_v2
+    build:
+      noarch: python
+    requirements:
+      host:
+        - numpy
+        - python
+      run:
+        - numpy
+        - python
+        {% for req in data['extras_require']['web-api'] %}
+        - {{ req }}
+        {% endfor %}
+        - {{ pin_subpackage('openfisca-core', exact=True) }}
+
+  - name: openfisca-core-dev
+    type: conda_v2
+    build:
+      noarch: python
+    requirements:
+      host:
+        - numpy
+        - python
+      run:
+        - numpy
+        - python
+        {% for req in  data['extras_require']['dev'] %}
+        - {{ req }}
+        {% endfor %}
+        - {{ pin_subpackage('openfisca-core-api', exact=True) }}
+
+about:
+  home: https://openfisca.org
+  license_family: AGPL
+  license: AGPL-3.0-only
+  license_file: LICENSE
+  summary: "A versatile microsimulation free software"
+  doc_url: https://openfisca.org
+  dev_url: https://github.com/openfisca/openfisca-core/
+  description: This package contains the core features of OpenFisca, which are meant to be used by country packages such as OpenFisca-Country-Template.

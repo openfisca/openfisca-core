@@ -6,22 +6,30 @@ from .variables import TestVariable
 
 
 class TestEntity(Entity):
-    def get_variable(self, variable_name):
+    def get_variable(
+        self,
+        variable_name: str,
+        check_existence: bool = False,
+    ) -> TestVariable:
         result = TestVariable(self)
         result.name = variable_name
         return result
 
-    def check_variable_defined_for_entity(self, variable_name):
+    def check_variable_defined_for_entity(self, variable_name: str) -> bool:
         return True
 
 
 class TestGroupEntity(GroupEntity):
-    def get_variable(self, variable_name):
+    def get_variable(
+        self,
+        variable_name: str,
+        check_existence: bool = False,
+    ) -> TestVariable:
         result = TestVariable(self)
         result.name = variable_name
         return result
 
-    def check_variable_defined_for_entity(self, variable_name):
+    def check_variable_defined_for_entity(self, variable_name: str) -> bool:
         return True
 
 
@@ -32,13 +40,9 @@ def persons():
 
 @pytest.fixture
 def households():
-    roles = [{
-        'key': 'parent',
-        'plural': 'parents',
-        'max': 2
-        }, {
-        'key': 'child',
-        'plural': 'children'
-        }]
+    roles = [
+        {"key": "parent", "plural": "parents", "max": 2},
+        {"key": "child", "plural": "children"},
+    ]
 
     return TestGroupEntity("household", "households", "", "", roles)

@@ -21,18 +21,44 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
-from openfisca_core.projectors import (  # noqa: F401
-    Projector,
+from openfisca_core.projectors import (
     EntityToPersonProjector,
     FirstPersonToEntityProjector,
+    Projector,
     UniqueRoleToEntityProjector,
-    )
+)
+from openfisca_core.projectors.helpers import get_projector_from_shortcut, projectable
 
-from openfisca_core.projectors.helpers import (  # noqa: F401
-    projectable,
-    get_projector_from_shortcut,
-    )
+from . import types
+from ._core_population import CorePopulation
+from ._errors import (
+    IncompatibleOptionsError,
+    InvalidArraySizeError,
+    InvalidOptionError,
+    PeriodValidityError,
+)
+from .group_population import GroupPopulation
+from .population import Population
 
-from .config import ADD, DIVIDE  # noqa: F401
-from .population import Population  # noqa: F401
-from .group_population import GroupPopulation  # noqa: F401
+ADD, DIVIDE = types.Option
+SinglePopulation = Population
+
+__all__ = [
+    "ADD",
+    "DIVIDE",
+    "CorePopulation",
+    "EntityToPersonProjector",
+    "FirstPersonToEntityProjector",
+    "GroupPopulation",
+    "IncompatibleOptionsError",
+    "InvalidArraySizeError",
+    "InvalidOptionError",
+    "PeriodValidityError",
+    "Population",
+    "Projector",
+    "SinglePopulation",
+    "UniqueRoleToEntityProjector",
+    "get_projector_from_shortcut",
+    "projectable",
+    "types",
+]

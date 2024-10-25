@@ -5,3 +5,14 @@
     salary: 2000
   output:
     income_tax: 290 # 300
+
+
+- name: "Result within variable relative error margin"
+  period: 2015-01
+  relative_error_margin:
+    default: .001
+    income_tax: 0.05
+  input:
+    salary: 2000
+  output:
+    income_tax: 290 # 300

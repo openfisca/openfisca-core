@@ -1,17 +1,17 @@
-from typing import Any, Dict, Sequence, TypeVar
+from __future__ import annotations
+
+from collections.abc import Mapping
 
 import numpy
 
-from openfisca_core.types import ArrayLike, ArrayType
-
-T = TypeVar("T")
+from . import types as t
 
 
 def apply_thresholds(
-        input: ArrayType[float],
-        thresholds: ArrayLike[float],
-        choices: ArrayLike[float],
-        ) -> ArrayType[float]:
+    input: t.Array[numpy.float32],
+    thresholds: t.ArrayLike[float],
+    choices: t.ArrayLike[float],
+) -> t.Array[numpy.float32]:
     """Makes a choice based on an input and thresholds.
 
     From a list of ``choices``, this function selects one of these values
@@ -24,12 +24,7 @@ def apply_thresholds(
         choices: A list of the possible values to choose from.
 
     Returns:
-        :obj:`numpy.ndarray` of :obj:`float`:
-        A list of the values chosen.
-
-    Raises:
-        :exc:`AssertionError`: When the number of ``thresholds`` (t) and the
-            number of choices (c) are not either t == c or t == c - 1.
+        ndarray[float32]: A list of the values chosen.
 
     Examples:
         >>> input = numpy.array([4, 5, 6, 7, 8])
@@ -39,8 +34,7 @@ def apply_thresholds(
         array([10, 10, 15, 15, 20])
 
     """
-
-    condlist: Sequence[ArrayType[bool]]
+    condlist: list[t.Array[numpy.bool_] | bool]
     condlist = [input <= threshold for threshold in thresholds]
 
     if len(condlist) == len(choices) - 1:
@@ -48,25 +42,27 @@ def apply_thresholds(
         # must be true to return it.
         condlist += [True]
 
-    assert len(condlist) == len(choices), \
-        " ".join([
-            "'apply_thresholds' must be called with the same number of",
-            "thresholds than choices, or one more choice.",
-            ])
+    msg = (
+        "'apply_thresholds' must be called with the same number of thresholds "
+        "than choices, or one more choice."
+    )
+    assert len(condlist) == len(choices), msg
 
     return numpy.select(condlist, choices)
 
 
-def concat(this: ArrayLike[str], that: ArrayLike[str]) -> ArrayType[str]:
-    """Concatenates the values of two arrays.
+def concat(
+    this: t.Array[numpy.str_] | t.ArrayLike[object],
+    that: t.Array[numpy.str_] | t.ArrayLike[object],
+) -> t.Array[numpy.str_]:
+    """Concatenate the values of two arrays.
 
     Args:
         this: An array to concatenate.
         that: Another array to concatenate.
 
     Returns:
-        :obj:`numpy.ndarray` of :obj:`float`:
-        An array with the concatenated values.
+        ndarray[str_]: An array with the concatenated values.
 
     Examples:
         >>> this = ["this", "that"]
@@ -75,25 +71,26 @@ def concat(this: ArrayLike[str], that: ArrayLike[str]) -> ArrayType[str]:
         array(['this1.0', 'that2.5']...)
 
     """
+    if not isinstance(this, numpy.ndarray):
+        this = numpy.array(this)
 
-    if isinstance(this, numpy.ndarray) and \
-       not numpy.issubdtype(this.dtype, numpy.str_):
+    if not numpy.issubdtype(this.dtype, numpy.str_):
+        this = this.astype("str")
 
-        this = this.astype('str')
+    if not isinstance(that, numpy.ndarray):
+        that = numpy.array(that)
 
-    if isinstance(that, numpy.ndarray) and \
-       not numpy.issubdtype(that.dtype, numpy.str_):
-
-        that = that.astype('str')
+    if not numpy.issubdtype(that.dtype, numpy.str_):
+        that = that.astype("str")
 
     return numpy.char.add(this, that)
 
 
 def switch(
-        conditions: ArrayType[Any],
-        value_by_condition: Dict[float, T],
-        ) -> ArrayType[T]:
-    """Mimicks a switch statement.
+    conditions: t.Array[numpy.float32] | t.ArrayLike[float],
+    value_by_condition: Mapping[float, float],
+) -> t.Array[numpy.float32]:
+    """Mimic a switch statement.
 
     Given an array of conditions, returns an array of the same size,
     replacing each condition item with the matching given value.
@@ -103,11 +100,7 @@ def switch(
         value_by_condition: Values to replace for each condition.
 
     Returns:
-        :obj:`numpy.ndarray`:
-        An array with the replaced values.
-
-    Raises:
-        :exc:`AssertionError`: When ``value_by_condition`` is empty.
+        ndarray[float32]: An array with the replaced values.
 
     Examples:
         >>> conditions = numpy.array([1, 1, 1, 2])
@@ -116,13 +109,13 @@ def switch(
         array([80, 80, 80, 90])
 
     """
+    assert (
+        len(value_by_condition) > 0
+    ), "'switch' must be called with at least one value."
 
-    assert len(value_by_condition) > 0, \
-        "'switch' must be called with at least one value."
+    condlist = [conditions == condition for condition in value_by_condition]
 
-    condlist = [
-        conditions == condition
-        for condition in value_by_condition.keys()
-        ]
+    return numpy.select(condlist, tuple(value_by_condition.values()))
 
-    return numpy.select(condlist, value_by_condition.values())
+
+__all__ = ["apply_thresholds", "concat", "switch"]

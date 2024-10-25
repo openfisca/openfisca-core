@@ -1,0 +1,162 @@
+description: Required contribution duration for full rate
+contribution_quarters_required_by_birthdate:
+  description: Contribution quarters required by birthdate
+  before_1934_01_01:
+    description: before 1934
+    values:
+      1983-01-01:
+        value: 150.0
+  after_1934_01_01:
+    description: '1934-01-01'
+    values:
+      1994-01-01:
+        value: 151.0
+      1983-01-01:
+        value: null
+  after_1935_01_01:
+    description: '1935-01-01'
+    values:
+      1994-01-01:
+        value: 152.0
+      1983-01-01:
+        value: null
+  after_1936_01_01:
+    description: '1936-01-01'
+    values:
+      1994-01-01:
+        value: 153.0
+      1983-01-01:
+        value: null
+  after_1937_01_01:
+    description: '1937-01-01'
+    values:
+      1994-01-01:
+        value: 154.0
+      1983-01-01:
+        value: null
+  after_1938_01_01:
+    description: '1938-01-01'
+    values:
+      1994-01-01:
+        value: 155.0
+      1983-01-01:
+        value: null
+  after_1939_01_01:
+    description: '1939-01-01'
+    values:
+      1994-01-01:
+        value: 156.0
+      1983-01-01:
+        value: null
+  after_1940_01_01:
+    description: '1940-01-01'
+    values:
+      1994-01-01:
+        value: 157.0
+      1983-01-01:
+        value: null
+  after_1941_01_01:
+    description: '1941-01-01'
+    values:
+      1994-01-01:
+        value: 158.0
+      1983-01-01:
+        value: null
+  after_1942_01_01:
+    description: '1942-01-01'
+    values:
+      1994-01-01:
+        value: 159.0
+      1983-01-01:
+        value: null
+  after_1943_01_01:
+    description: '1943-01-01'
+    values:
+      1994-01-01:
+        value: 160.0
+      1983-01-01:
+        value: null
+  after_1949_01_01:
+    description: '1949-01-01'
+    values:
+      2009-01-01:
+        value: 161.0
+      1983-01-01:
+        value: null
+  after_1950_01_01:
+    description: '1950-01-01'
+    values:
+      2009-01-01:
+        value: 162.0
+      1983-01-01:
+        value: null
+  after_1951_01_01:
+    description: '1951-01-01'
+    values:
+      2009-01-01:
+        value: 163.0
+      1983-01-01:
+        value: null
+  after_1952_01_01:
+    description: '1952-01-01'
+    values:
+      2009-01-01:
+        value: 164.0
+      1983-01-01:
+        value: null
+  after_1953_01_01:
+    description: '1953-01-01'
+    values:
+      2012-01-01:
+        value: 165.0
+      1983-01-01:
+        value: null
+  after_1955_01_01:
+    description: '1955-01-01'
+    values:
+      2013-01-01:
+        value: 166.0
+      1983-01-01:
+        value: null
+  after_1958_01_01:
+    description: '1958-01-01'
+    values:
+      2015-01-01:
+        value: 167.0
+      1983-01-01:
+        value: null
+  after_1961_01_01:
+    description: '1961-01-01'
+    values:
+      2015-01-01:
+        value: 168.0
+      1983-01-01:
+        value: null
+  after_1964_01_01:
+    description: '1964-01-01'
+    values:
+      2015-01-01:
+        value: 169.0
+      1983-01-01:
+        value: null
+  after_1967_01_01:
+    description: '1967-01-01'
+    values:
+      2015-01-01:
+        value: 170.0
+      1983-01-01:
+        value: null
+  after_1970_01_01:
+    description: '1970-01-01'
+    values:
+      2015-01-01:
+        value: 171.0
+      1983-01-01:
+        value: null
+  after_1973_01_01:
+    description: '1973-01-01'
+    values:
+      2015-01-01:
+        value: 172.0
+      1983-01-01:
+        value: null

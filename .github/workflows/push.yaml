@@ -1,0 +1,89 @@
+name: OpenFisca-Core / Pull request review
+
+on:
+  pull_request:
+    types: [assigned, opened, reopened, synchronize, ready_for_review]
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  setup-pip:
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-22.04, windows-2019]
+        numpy: [1.26.4, 1.24.2]
+        # Patch version must be specified to avoid any cache confusion, since
+        # the cache key depends on the full Python version. If left unspecified,
+        # different patch versions could be allocated between jobs, and any
+        # such difference would lead to a cache not found error.
+        python: [3.11.9, 3.9.13]
+        include:
+        - os: ubuntu-22.04
+          activate_command: source venv/bin/activate
+        - os: windows-2019
+          activate_command: .\venv\Scripts\activate
+    uses: ./.github/workflows/_before-pip.yaml
+    with:
+      os: ${{ matrix.os }}
+      numpy: ${{ matrix.numpy }}
+      python: ${{ matrix.python }}
+      activate_command: ${{ matrix.activate_command }}
+
+  setup-conda:
+    uses: ./.github/workflows/_before-conda.yaml
+    with:
+      os: ubuntu-22.04
+      numpy: 1.26.4
+      python: 3.10.6
+
+  test-pip:
+    needs: [setup-pip]
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-22.04, windows-2019]
+        numpy: [1.26.4, 1.24.2]
+        python: [3.11.9, 3.9.13]
+        include:
+        - os: ubuntu-22.04
+          activate_command: source venv/bin/activate
+        - os: windows-2019
+          activate_command: .\venv\Scripts\activate
+    uses: ./.github/workflows/_test-pip.yaml
+    with:
+      os: ${{ matrix.os }}
+      numpy: ${{ matrix.numpy }}
+      python: ${{ matrix.python }}
+      activate_command: ${{ matrix.activate_command }}
+
+  test-conda:
+    uses: ./.github/workflows/_test-conda.yaml
+    needs: [setup-conda]
+    with:
+      os: ubuntu-22.04
+      numpy: 1.26.4
+      python: 3.10.6
+
+  lint-pip:
+    needs: [setup-pip]
+    strategy:
+      fail-fast: true
+      matrix:
+        numpy: [1.24.2]
+        python: [3.11.9, 3.9.13]
+    uses: ./.github/workflows/_lint-pip.yaml
+    with:
+      os: ubuntu-22.04
+      numpy: ${{ matrix.numpy }}
+      python: ${{ matrix.python }}
+      activate_command: source venv/bin/activate
+
+  check-version:
+    needs: [test-pip, test-conda, lint-pip]
+    uses: ./.github/workflows/_version.yaml
+    with:
+      os: ubuntu-22.04
+      python: 3.9.13

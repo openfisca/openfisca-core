@@ -4,13 +4,14 @@ from openfisca_country_template import entities
 
 from openfisca_core import periods, tools
 from openfisca_core.errors import CycleError
+from openfisca_core.periods import DateUnit
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.variables import Variable
 
 
 @pytest.fixture
 def reference_period():
-    return periods.period('2013-01')
+    return periods.period("2013-01")
 
 
 @pytest.fixture
@@ -22,38 +23,38 @@ def simulation(tax_benefit_system):
 class variable1(Variable):
     value_type = int
     entity = entities.Person
-    definition_period = periods.MONTH
+    definition_period = DateUnit.MONTH
 
-    def formula(person, period):
-        return person('variable2', period)
+    def formula(self, period):
+        return self("variable2", period)
 
 
 class variable2(Variable):
     value_type = int
     entity = entities.Person
-    definition_period = periods.MONTH
+    definition_period = DateUnit.MONTH
 
-    def formula(person, period):
-        return person('variable1', period)
+    def formula(self, period):
+        return self("variable1", period)
 
 
 # 3 <--> 4 with a period offset
 class variable3(Variable):
     value_type = int
     entity = entities.Person
-    definition_period = periods.MONTH
+    definition_period = DateUnit.MONTH
 
-    def formula(person, period):
-        return person('variable4', period.last_month)
+    def formula(self, period):
+        return self("variable4", period.last_month)
 
 
 class variable4(Variable):
     value_type = int
     entity = entities.Person
-    definition_period = periods.MONTH
+    definition_period = DateUnit.MONTH
 
-    def formula(person, period):
-        return person('variable3', period)
+    def formula(self, period):
+        return self("variable3", period)
 
 
 # 5 -f-> 6 with a period offset
@@ -61,30 +62,30 @@ class variable4(Variable):
 class variable5(Variable):
     value_type = int
     entity = entities.Person
-    definition_period = periods.MONTH
+    definition_period = DateUnit.MONTH
 
-    def formula(person, period):
-        variable6 = person('variable6', period.last_month)
+    def formula(self, period):
+        variable6 = self("variable6", period.last_month)
         return 5 + variable6
 
 
 class variable6(Variable):
     value_type = int
     entity = entities.Person
-    definition_period = periods.MONTH
+    definition_period = DateUnit.MONTH
 
-    def formula(person, period):
-        variable5 = person('variable5', period)
+    def formula(self, period):
+        variable5 = self("variable5", period)
         return 6 + variable5
 
 
 class variable7(Variable):
     value_type = int
     entity = entities.Person
-    definition_period = periods.MONTH
+    definition_period = DateUnit.MONTH
 
-    def formula(person, period):
-        variable5 = person('variable5', period)
+    def formula(self, period):
+        variable5 = self("variable5", period)
         return 7 + variable5
 
 
@@ -92,17 +93,16 @@ class variable7(Variable):
 class cotisation(Variable):
     value_type = int
     entity = entities.Person
-    definition_period = periods.MONTH
+    definition_period = DateUnit.MONTH
 
-    def formula(person, period):
+    def formula(self, period):
         if period.start.month == 12:
-            return 2 * person('cotisation', period.last_month)
-        else:
-            return person.empty_array() + 1
+            return 2 * self("cotisation", period.last_month)
+        return self.empty_array() + 1
 
 
-@pytest.fixture(scope = "module", autouse = True)
-def add_variables_to_tax_benefit_system(tax_benefit_system):
+@pytest.fixture(scope="module", autouse=True)
+def add_variables_to_tax_benefit_system(tax_benefit_system) -> None:
     tax_benefit_system.add_variables(
         variable1,
         variable2,
@@ -112,35 +112,38 @@ def add_variables_to_tax_benefit_system(tax_benefit_system):
         variable6,
         variable7,
         cotisation,
-        )
+    )
 
 
-def test_pure_cycle(simulation, reference_period):
+def test_pure_cycle(simulation, reference_period) -> None:
     with pytest.raises(CycleError):
-        simulation.calculate('variable1', period = reference_period)
+        simulation.calculate("variable1", period=reference_period)
 
 
-def test_spirals_result_in_default_value(simulation, reference_period):
-    variable3 = simulation.calculate('variable3', period = reference_period)
+def test_spirals_result_in_default_value(simulation, reference_period) -> None:
+    variable3 = simulation.calculate("variable3", period=reference_period)
     tools.assert_near(variable3, [0])
 
 
-def test_spiral_heuristic(simulation, reference_period):
-    variable5 = simulation.calculate('variable5', period = reference_period)
-    variable6 = simulation.calculate('variable6', period = reference_period)
-    variable6_last_month = simulation.calculate('variable6', reference_period.last_month)
+def test_spiral_heuristic(simulation, reference_period) -> None:
+    variable5 = simulation.calculate("variable5", period=reference_period)
+    variable6 = simulation.calculate("variable6", period=reference_period)
+    variable6_last_month = simulation.calculate(
+        "variable6",
+        reference_period.last_month,
+    )
     tools.assert_near(variable5, [11])
     tools.assert_near(variable6, [11])
     tools.assert_near(variable6_last_month, [11])
 
 
-def test_spiral_cache(simulation, reference_period):
-    simulation.calculate('variable7', period = reference_period)
-    cached_variable7 = simulation.get_holder('variable7').get_array(reference_period)
+def test_spiral_cache(simulation, reference_period) -> None:
+    simulation.calculate("variable7", period=reference_period)
+    cached_variable7 = simulation.get_holder("variable7").get_array(reference_period)
     assert cached_variable7 is not None
 
 
-def test_cotisation_1_level(simulation, reference_period):
+def test_cotisation_1_level(simulation, reference_period) -> None:
     month = reference_period.last_month
-    cotisation = simulation.calculate('cotisation', period = month)
+    cotisation = simulation.calculate("cotisation", period=month)
     tools.assert_near(cotisation, [0])

@@ -21,26 +21,59 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
-from .config import (  # noqa: F401
-    DAY,
-    MONTH,
-    YEAR,
-    ETERNITY,
+from . import types
+from ._errors import InstantError, ParserError, PeriodError
+from .config import (
     INSTANT_PATTERN,
     date_by_instant_cache,
     str_by_instant_cache,
     year_or_month_or_day_re,
-    )
-
-from .helpers import (  # noqa: F401
-    N_,
+)
+from .date_unit import DateUnit
+from .helpers import (
     instant,
     instant_date,
-    period,
     key_period_size,
-    unit_weights,
+    period,
     unit_weight,
-    )
+    unit_weights,
+)
+from .instant_ import Instant
+from .period_ import Period
 
-from .instant_ import Instant  # noqa: F401
-from .period_ import Period  # noqa: F401
+WEEKDAY = DateUnit.WEEKDAY
+WEEK = DateUnit.WEEK
+DAY = DateUnit.DAY
+MONTH = DateUnit.MONTH
+YEAR = DateUnit.YEAR
+ETERNITY = DateUnit.ETERNITY
+ISOFORMAT = DateUnit.isoformat
+ISOCALENDAR = DateUnit.isocalendar
+
+__all__ = [
+    "DAY",
+    "DateUnit",
+    "ETERNITY",
+    "INSTANT_PATTERN",
+    "ISOCALENDAR",
+    "ISOFORMAT",
+    "Instant",
+    "InstantError",
+    "MONTH",
+    "ParserError",
+    "Period",
+    "PeriodError",
+    "WEEK",
+    "WEEKDAY",
+    "YEAR",
+    "date_by_instant_cache",
+    "instant",
+    "instant_date",
+    "key_period_size",
+    "period",
+    "str_by_instant_cache",
+    "types",
+    "unit_weight",
+    "unit_weights",
+    "year_or_month_or_day_re",
+]

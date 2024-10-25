@@ -1,3 +1,2 @@
-graft requirements
-include openfisca_web_api/openAPI.yml
 recursive-include openfisca_core/scripts *
+include openfisca_web_api/openAPI.yml

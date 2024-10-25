@@ -1,6 +1,6 @@
 # OpenFisca's Python Style Guide
 
-Arguments over code style and formatting are the bread and butter of most open-source projets out there, including OpenFisca.
+Arguments over code style and formatting are the bread and butter of most open-source projects out there, including OpenFisca.
 
 To avoid this, we have a style guide, that is a set or arbitrary but consistent conventions about how code should be written, for contributors and maintainers alike.
 
