@@ -52,15 +52,15 @@ def check_response(
         ),
         (
             '{"persons": {"bob": {"unknown_variable": {}}}}',
-            client.NOT_FOUND,
+            client.BAD_REQUEST,
             "persons/bob/unknown_variable",
-            "You tried to calculate or to set",
+            "You requested the variable 'unknown_variable', but it was not found in the entity 'persons'",
         ),
         (
             '{"persons": {"bob": {"housing_allowance": {}}}}',
             client.BAD_REQUEST,
             "persons/bob/housing_allowance",
-            "You tried to compute the variable 'housing_allowance' for the entity 'persons'",
+            "You requested the variable 'housing_allowance', but it was not found in the entity 'persons'",
         ),
         (
             '{"persons": {"bob": {"salary": 4000 }}}',

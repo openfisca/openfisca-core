@@ -592,7 +592,7 @@ class SimulationBuilder:
         for variable_name, variable_values in instance_object.items():
             path_in_json = [entity.plural, instance_id, variable_name]
             try:
-                entity.check_variable_defined_for_entity(variable_name)
+                entity.get_variable(variable_name, check_existence=True)
             except ValueError as e:  # The variable is defined for another entity
                 raise errors.SituationParsingError(path_in_json, e.args[0])
             except errors.VariableNotFoundError as e:  # The variable doesn't exist
@@ -665,6 +665,8 @@ class SimulationBuilder:
         for variable_name in self.input_buffer:
             try:
                 holder = population.get_holder(variable_name)
+            # TODO(Mauko Quiroga-Alvarado): We should handle this differently.
+            # It cost me a lot of time to figure out that this was the problem.
             except ValueError:  # Wrong entity, we can just ignore that
                 continue
             buffer = self.input_buffer[variable_name]

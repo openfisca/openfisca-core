@@ -12,7 +12,7 @@ class TaxBenefitSystemUnsetError(ValueError):
         super().__init__(msg)
 
 
-class VariableNotFoundError(IndexError):
+class VariableNotFoundError(ValueError):
     """Raised when a requested variable is not defined for as entity."""
 
     def __init__(self, name: t.VariableName, plural: t.EntityPlural) -> None:
@@ -23,8 +23,8 @@ class VariableNotFoundError(IndexError):
             "this is most probably linked to an update of the tax and "
             "benefit system. Look at its CHANGELOG to learn about renames "
             "and removals and update your code accordingly."
-            "Learn more about entities in our documentation:",
-            "<https://openfisca.org/doc/coding-the-legislation/50_entities.html>.",
+            "Learn more about entities in our documentation:"
+            "<https://openfisca.org/doc/coding-the-legislation/50_entities.html>."
         )
         super().__init__(msg)
 
