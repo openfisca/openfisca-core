@@ -6,7 +6,6 @@ import abc
 import os
 
 from . import types as t
-from .role import Role
 
 
 class CoreEntity:
@@ -188,31 +187,6 @@ class CoreEntity:
                 "<https://openfisca.org/doc/coding-the-legislation/50_entities.html>.",
             )
             raise ValueError(os.linesep.join(message))
-
-    @staticmethod
-    def check_role_validity(role: object) -> None:
-        """Check if ``role`` is an instance of  ``Role``.
-
-        Args:
-            role: Any object.
-
-        Raises:
-            ValueError: When ``role`` is not a ``Role``.
-
-        Examples:
-            >>> from openfisca_core import entities
-
-            >>> role = entities.Role({"key": "key"}, object())
-            >>> entities.check_role_validity(role)
-
-            >>> entities.check_role_validity("hey!")
-            Traceback (most recent call last):
-            ValueError: hey! is not a valid role
-
-        """
-        if role is not None and not isinstance(role, Role):
-            msg = f"{role} is not a valid role"
-            raise ValueError(msg)
 
 
 __all__ = ["CoreEntity"]

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy
 
-from openfisca_core import projectors
+from openfisca_core import entities, projectors
 
 from . import types as t
 from ._core_population import CorePopulation
@@ -49,7 +49,9 @@ class Population(CorePopulation):
         if self.simulation is None:
             return None
 
-        self.entity.check_role_validity(role)
+        if role is not None and not isinstance(role, entities.Role):
+            msg = f"{role} is not a valid role"
+            raise TypeError(msg)
 
         group_population = self.simulation.get_population(role.entity.plural)
 
@@ -68,7 +70,9 @@ class Population(CorePopulation):
         role: t.Role,
     ) -> None | t.FloatArray:
         self.check_array_compatible_with_entity(array)
-        self.entity.check_role_validity(role)
+        if role is not None and not isinstance(role, entities.Role):
+            msg = f"{role} is not a valid role"
+            raise TypeError(msg)
 
         if not role.subroles or len(role.subroles) != 2:
             msg = "Projection to partner is only implemented for roles having exactly two subroles."

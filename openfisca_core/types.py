@@ -74,7 +74,6 @@ class CoreEntity(Protocol):
     key: EntityKey
     plural: EntityPlural
 
-    def check_role_validity(self, role: object, /) -> None: ...
     def check_variable_defined_for_entity(
         self,
         variable_name: VariableName,

@@ -8,7 +8,6 @@ from .helpers import build_entity, find_role
 from .role import Role
 
 SingleEntity = Entity
-check_role_validity = CoreEntity.check_role_validity
 
 __all__ = [
     "CoreEntity",
@@ -17,7 +16,6 @@ __all__ = [
     "Role",
     "SingleEntity",
     "build_entity",
-    "check_role_validity",
     "find_role",
     "types",
 ]
