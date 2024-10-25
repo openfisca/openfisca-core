@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import ClassVar
 
 import abc
@@ -51,6 +52,64 @@ class CoreEntity:
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.key})"
+
+    @property
+    def variables(self, /) -> Mapping[t.VariableName, t.Variable]:
+        """Get all variables defined for the entity.
+
+        Returns:
+            dict[str, Variable]: The variables defined for the entity.
+
+        Raises:
+            ValueError: When the :attr:`.tax_benefit_system` is not set yet.
+
+        Examples:
+            >>> from openfisca_core import (
+            ...     entities,
+            ...     periods,
+            ...     taxbenefitsystems,
+            ...     variables,
+            ... )
+
+            >>> this = entities.SingleEntity("this", "", "", "")
+            >>> that = entities.SingleEntity("that", "", "", "")
+
+            >>> this.variables
+            Traceback (most recent call last):
+            ValueError: You must set 'tax_benefit_system' to call this method.
+
+            >>> tbs = taxbenefitsystems.TaxBenefitSystem([this, that])
+            >>> this, that = tbs.entities
+
+            >>> this.variables
+            {}
+
+            >>> that.variables
+            {}
+
+            >>> class tax(variables.Variable):
+            ...     definition_period = periods.MONTH
+            ...     value_type = float
+            ...     entity = that
+
+            >>> tbs.add_variable(tax)
+            <openfisca_core.entities._core_entity.tax object at ...>
+
+            >>> this.variables
+            {}
+
+            >>> that.variables
+            {'tax': <openfisca_core.entities._core_entity.tax object at ...>}
+
+        """
+        if self.tax_benefit_system is None:
+            msg = "You must set 'tax_benefit_system' to call this method."
+            raise ValueError(msg)
+        return {
+            name: variable
+            for name, variable in self.tax_benefit_system.variables.items()
+            if variable.entity.key == self.key
+        }
 
     def get_variable(
         self,
