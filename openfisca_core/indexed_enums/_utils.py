@@ -119,7 +119,7 @@ def _int_to_index(
 
     """
     return numpy.array(
-        [index for index in value if index < len(enum_class.__members__)], t.EnumDType
+        value, t.EnumDType
     )
 
 
