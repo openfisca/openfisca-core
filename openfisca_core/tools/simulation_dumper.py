@@ -126,11 +126,12 @@ def _restore_holder(simulation, variable_name, directory) -> None:
         holder.variable.definition_period
         == DateUnit.ETERNITY
     )
+
     disk_storage = OnDiskStorage(
         storage_dir,
         is_eternal=is_variable_eternal,
         preserve_storage_dir=True,
-        enums = {variable_name:holder.variable.possible_values} if holder.variable.value_type == Enum else {}
+        enums = {storage_dir:holder.variable.possible_values} if holder.variable.value_type == Enum else {}
     )
     disk_storage.restore()
 

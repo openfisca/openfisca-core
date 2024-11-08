@@ -91,7 +91,7 @@ class OnDiskStorage:
             EnumArray([Housing.TENANT])
 
         """
-        enum = self._enums.get(file)
+        enum = self._enums.get(self.storage_dir)
 
         if enum is not None:
             return EnumArray(numpy.load(file), enum)
