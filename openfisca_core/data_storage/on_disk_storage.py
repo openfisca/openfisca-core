@@ -44,9 +44,10 @@ class OnDiskStorage:
         storage_dir: str,
         is_eternal: bool = False,
         preserve_storage_dir: bool = False,
+        enums: MutableMapping[str, type[t.Enum]] = {}
     ) -> None:
         self._files = {}
-        self._enums = {}
+        self._enums = enums
         self.is_eternal = is_eternal
         self.preserve_storage_dir = preserve_storage_dir
         self.storage_dir = storage_dir
