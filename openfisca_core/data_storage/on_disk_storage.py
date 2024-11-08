@@ -44,10 +44,10 @@ class OnDiskStorage:
         storage_dir: str,
         is_eternal: bool = False,
         preserve_storage_dir: bool = False,
-        enums: MutableMapping[str, type[t.Enum]] = {}
+        enums: MutableMapping[str, type[t.Enum]] | None = None,
     ) -> None:
         self._files = {}
-        self._enums = enums
+        self._enums = {} if enums is None else enums
         self.is_eternal = is_eternal
         self.preserve_storage_dir = preserve_storage_dir
         self.storage_dir = storage_dir
@@ -170,7 +170,7 @@ class OnDiskStorage:
         filename = str(period)
         path = os.path.join(self.storage_dir, filename) + ".npy"
         if isinstance(value, EnumArray) and value.possible_values is not None:
-            self._enums[path] = value.possible_values
+            self._enums[self.storage_dir] = value.possible_values
             value = value.view(numpy.ndarray)
         numpy.save(path, value)
         self._files[period] = path
