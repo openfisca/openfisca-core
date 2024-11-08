@@ -117,27 +117,15 @@ class Enum(t.Enum, metaclass=EnumType):
         """
         self.index = len(self._member_names_)
 
+    # Bypass the slow Enum.__eq__
+    __eq__ = object.__eq__
+
+    # In Python 3, __hash__ must be defined if __eq__ is defined to stay
+    # hashable.
+    __hash__ = object.__hash__
+
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.name}"
-
-    def __hash__(self) -> int:
-        return object.__hash__(self.__class__.__name__ + self.name)
-
-    def __eq__(self, other: object) -> bool:
-        if (
-            isinstance(other, Enum)
-            and self.__class__.__name__ == other.__class__.__name__
-        ):
-            return self.index == other.index
-        return NotImplemented
-
-    def __ne__(self, other: object) -> bool:
-        if (
-            isinstance(other, Enum)
-            and self.__class__.__name__ == other.__class__.__name__
-        ):
-            return self.index != other.index
-        return NotImplemented
 
     @classmethod
     def encode(cls, array: t.VarArray | t.ArrayLike[object]) -> t.EnumArray:

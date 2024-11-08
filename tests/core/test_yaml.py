@@ -121,6 +121,9 @@ def test_shell_script_with_reform() -> None:
 
 # TODO(Mauko Quiroga-Alvarado): Fix this test
 # https://github.com/openfisca/openfisca-core/issues/962
+@pytest.mark.skip(
+    reason="Does not work because tests are not in openfisca_extension_template anymore."
+)
 @pytest.mark.skipif(sys.platform == "win32", reason="Does not work on Windows.")
 def test_shell_script_with_extension() -> None:
     tests_dir = os.path.join(openfisca_extension_template.__path__[0], "tests")

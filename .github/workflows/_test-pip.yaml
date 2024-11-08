@@ -64,8 +64,9 @@ jobs:
         ${{ inputs.activate_command }}
         make test-country
 
-    - name: Run Extension Template tests
-      if: ${{ startsWith(inputs.os, 'ubuntu') }}
-      run: |
-        ${{ inputs.activate_command }}
-        make test-extension
+    ## There are no tests in extension template anymore
+    # - name: Run Extension Template tests
+    #   if: ${{ startsWith(inputs.os, 'ubuntu') }}
+    #   run: |
+    #     ${{ inputs.activate_command }}
+    #     make test-extension

@@ -3,6 +3,7 @@ import os
 import numpy
 
 from openfisca_core.data_storage import OnDiskStorage
+from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import DateUnit
 from openfisca_core.simulations import Simulation
 
@@ -117,20 +118,25 @@ def _restore_entity(population, directory):
     return person_count
 
 
-def _restore_holder(simulation, variable, directory) -> None:
-    storage_dir = os.path.join(directory, variable)
-    is_variable_eternal = (
-        simulation.tax_benefit_system.get_variable(variable).definition_period
-        == DateUnit.ETERNITY
-    )
+def _restore_holder(simulation, variable_name, directory) -> None:
+    storage_dir = os.path.join(directory, variable_name)
+
+    holder = simulation.get_holder(variable_name)
+
+    is_variable_eternal = holder.variable.definition_period == DateUnit.ETERNITY
+
     disk_storage = OnDiskStorage(
         storage_dir,
         is_eternal=is_variable_eternal,
         preserve_storage_dir=True,
+        enums=(
+            {storage_dir: holder.variable.possible_values}
+            if holder.variable.value_type == Enum
+            and holder.variable.possible_values is not None
+            else {}
+        ),
     )
     disk_storage.restore()
-
-    holder = simulation.get_holder(variable)
 
     for period in disk_storage.get_known_periods():
         value = disk_storage.get(period)

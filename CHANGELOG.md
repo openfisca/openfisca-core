@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.2.3 [#1292](https://github.com/openfisca/openfisca-core/pull/1292)
+
+#### Technical changes
+
+- Improve the way Enum arrays are loaded and saved in dumps
+
 ### 43.2.2 [#1280](https://github.com/openfisca/openfisca-core/pull/1280)
 
 #### Documentation
