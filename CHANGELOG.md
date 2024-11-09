@@ -1,6 +1,6 @@
 # Changelog
 
-### 43.2.4 [#XXX](https://github.com/openfisca/openfisca-core/pull/XXX)
+### 43.2.4 [#1294](https://github.com/openfisca/openfisca-core/pull/1294)
 
 #### Technical changes
 
