@@ -3,7 +3,7 @@ import json
 import os
 from http import client
 
-import dpath.util
+import dpath
 import pytest
 
 from openfisca_country_template.situation_examples import couple
@@ -28,7 +28,7 @@ def check_response(
     assert response.status_code == expected_error_code
     json_response = json.loads(response.data.decode("utf-8"))
     if path_to_check:
-        content = dpath.util.get(json_response, path_to_check)
+        content = dpath.get(json_response, path_to_check)
         assert content_to_check in content
 
 
@@ -177,24 +177,24 @@ def test_basic_calculation(test_client) -> None:
     assert response.status_code == client.OK
     response_json = json.loads(response.data.decode("utf-8"))
     assert (
-        dpath.util.get(response_json, "persons/bill/basic_income/2017-12") == 600
+        dpath.get(response_json, "persons/bill/basic_income/2017-12") == 600
     )  # Universal basic income
     assert (
-        dpath.util.get(response_json, "persons/bill/income_tax/2017-12") == 300
+        dpath.get(response_json, "persons/bill/income_tax/2017-12") == 300
     )  # 15% of the salary
     assert (
-        dpath.util.get(response_json, "persons/bill/age/2017-12") == 37
+        dpath.get(response_json, "persons/bill/age/2017-12") == 37
     )  # 15% of the salary
-    assert dpath.util.get(response_json, "persons/bob/basic_income/2017-12") == 600
+    assert dpath.get(response_json, "persons/bob/basic_income/2017-12") == 600
     assert (
-        dpath.util.get(
+        dpath.get(
             response_json,
             "persons/bob/social_security_contribution/2017-12",
         )
         == 816
     )  # From social_security_contribution.yaml test
     assert (
-        dpath.util.get(response_json, "households/first_household/housing_tax/2017")
+        dpath.get(response_json, "households/first_household/housing_tax/2017")
         == 3000
     )
 
@@ -217,7 +217,7 @@ def test_enums_sending_identifier(test_client) -> None:
     response = post_json(test_client, simulation_json)
     assert response.status_code == client.OK
     response_json = json.loads(response.data.decode("utf-8"))
-    assert dpath.util.get(response_json, "households/_/housing_tax/2017") == 0
+    assert dpath.get(response_json, "households/_/housing_tax/2017") == 0
 
 
 def test_enum_output(test_client) -> None:
@@ -239,7 +239,7 @@ def test_enum_output(test_client) -> None:
     assert response.status_code == client.OK
     response_json = json.loads(response.data.decode("utf-8"))
     assert (
-        dpath.util.get(response_json, "households/_/housing_occupancy_status/2017-01")
+        dpath.get(response_json, "households/_/housing_occupancy_status/2017-01")
         == "tenant"
     )
 
@@ -263,7 +263,7 @@ def test_enum_wrong_value(test_client) -> None:
     assert response.status_code == client.BAD_REQUEST
     response_json = json.loads(response.data.decode("utf-8"))
     message = "Possible values are ['owner', 'tenant', 'free_lodger', 'homeless']"
-    text = dpath.util.get(
+    text = dpath.get(
         response_json,
         "households/_/housing_occupancy_status/2017-01",
     )
@@ -292,7 +292,7 @@ def test_encoding_variable_value(test_client) -> None:
     assert response.status_code == client.BAD_REQUEST, response.data.decode("utf-8")
     response_json = json.loads(response.data.decode("utf-8"))
     message = "'Locataire ou sous-locataire d‘un logement loué vide non-HLM' is not a known value for 'housing_occupancy_status'. Possible values are "
-    text = dpath.util.get(
+    text = dpath.get(
         response_json,
         "households/_/housing_occupancy_status/2017-07",
     )
@@ -381,13 +381,13 @@ def test_periods(test_client) -> None:
 
     response_json = json.loads(response.data.decode("utf-8"))
 
-    yearly_variable = dpath.util.get(
+    yearly_variable = dpath.get(
         response_json,
         "households/_/housing_tax",
     )  # web api year is an int
     assert yearly_variable == {"2017": 200.0}
 
-    monthly_variable = dpath.util.get(
+    monthly_variable = dpath.get(
         response_json,
         "households/_/housing_occupancy_status",
     )  # web api month is a string
@@ -418,13 +418,13 @@ def test_two_periods(test_client) -> None:
 
     response_json = json.loads(response.data.decode("utf-8"))
 
-    yearly_variable = dpath.util.get(
+    yearly_variable = dpath.get(
         response_json,
         "households/_/housing_tax",
     )  # web api year is an int
     assert yearly_variable == {"2017": 200.0, "2018": 200.0}
 
-    monthly_variable = dpath.util.get(
+    monthly_variable = dpath.get(
         response_json,
         "households/_/housing_occupancy_status",
     )  # web api month is a string
@@ -452,7 +452,7 @@ def test_handle_period_mismatch_error(test_client) -> None:
 
     response_json = json.loads(response.data)
 
-    error = dpath.util.get(response_json, f"households/_/housing_tax/{period}")
+    error = dpath.get(response_json, f"households/_/housing_tax/{period}")
     message = f'Unable to set a value for variable "{variable}" for month-long period "{period}"'
     assert message in error
 
