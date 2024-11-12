@@ -194,8 +194,7 @@ def test_basic_calculation(test_client) -> None:
         == 816
     )  # From social_security_contribution.yaml test
     assert (
-        dpath.get(response_json, "households/first_household/housing_tax/2017")
-        == 3000
+        dpath.get(response_json, "households/first_household/housing_tax/2017") == 3000
     )
 
 
