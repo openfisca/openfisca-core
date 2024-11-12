@@ -1,7 +1,7 @@
 import json
 from http import client
 
-import dpath.util
+import dpath
 import pytest
 from openapi_spec_validator import OpenAPIV30SpecValidator
 
@@ -38,12 +38,12 @@ def test_paths(body) -> None:
 
 
 def test_entity_definition(body) -> None:
-    assert "parents" in dpath.util.get(body, "components/schemas/Household/properties")
-    assert "children" in dpath.util.get(body, "components/schemas/Household/properties")
-    assert "salary" in dpath.util.get(body, "components/schemas/Person/properties")
-    assert "rent" in dpath.util.get(body, "components/schemas/Household/properties")
+    assert "parents" in dpath.get(body, "components/schemas/Household/properties")
+    assert "children" in dpath.get(body, "components/schemas/Household/properties")
+    assert "salary" in dpath.get(body, "components/schemas/Person/properties")
+    assert "rent" in dpath.get(body, "components/schemas/Household/properties")
     assert (
-        dpath.util.get(
+        dpath.get(
             body,
             "components/schemas/Person/properties/salary/additionalProperties/type",
         )
@@ -55,17 +55,17 @@ def test_situation_definition(body) -> None:
     situation_input = body["components"]["schemas"]["SituationInput"]
     situation_output = body["components"]["schemas"]["SituationOutput"]
     for situation in situation_input, situation_output:
-        assert "households" in dpath.util.get(situation, "/properties")
-        assert "persons" in dpath.util.get(situation, "/properties")
+        assert "households" in dpath.get(situation, "/properties")
+        assert "persons" in dpath.get(situation, "/properties")
         assert (
-            dpath.util.get(
+            dpath.get(
                 situation,
                 "/properties/households/additionalProperties/$ref",
             )
             == "#/components/schemas/Household"
         )
         assert (
-            dpath.util.get(
+            dpath.get(
                 situation,
                 "/properties/persons/additionalProperties/$ref",
             )

@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.2.4 [#1294](https://github.com/openfisca/openfisca-core/pull/1294)
+
+#### Technical changes
+
+- Upgrade dpath minimal version (dpath.utils deprecated)
+
 ### 43.2.3 [#1292](https://github.com/openfisca/openfisca-core/pull/1292)
 
 #### Technical changes

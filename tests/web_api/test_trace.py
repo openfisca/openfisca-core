@@ -2,7 +2,7 @@ import copy
 import json
 from http import client
 
-import dpath.util
+import dpath
 
 from openfisca_country_template.situation_examples import couple, single
 
@@ -20,13 +20,13 @@ def test_trace_basic(test_client) -> None:
     )
     assert response.status_code == client.OK
     response_json = json.loads(response.data.decode("utf-8"))
-    disposable_income_value = dpath.util.get(
+    disposable_income_value = dpath.get(
         response_json,
         "trace/disposable_income<2017-01>/value",
     )
     assert isinstance(disposable_income_value, list)
     assert isinstance(disposable_income_value[0], float)
-    disposable_income_dep = dpath.util.get(
+    disposable_income_dep = dpath.get(
         response_json,
         "trace/disposable_income<2017-01>/dependencies",
     )
@@ -39,7 +39,7 @@ def test_trace_basic(test_client) -> None:
             "social_security_contribution<2017-01>",
         ],
     )
-    basic_income_dep = dpath.util.get(
+    basic_income_dep = dpath.get(
         response_json,
         "trace/basic_income<2017-01>/dependencies",
     )
@@ -56,7 +56,7 @@ def test_trace_enums(test_client) -> None:
         content_type="application/json",
     )
     response_json = json.loads(response.data)
-    housing_status = dpath.util.get(
+    housing_status = dpath.get(
         response_json,
         "trace/housing_occupancy_status<2017-01>/value",
     )
@@ -72,7 +72,7 @@ def test_entities_description(test_client) -> None:
     )
     response_json = json.loads(response.data.decode("utf-8"))
     assert_items_equal(
-        dpath.util.get(response_json, "entitiesDescription/persons"),
+        dpath.get(response_json, "entitiesDescription/persons"),
         ["Javier", "Alicia"],
     )
 
@@ -86,7 +86,7 @@ def test_root_nodes(test_client) -> None:
     )
     response_json = json.loads(response.data.decode("utf-8"))
     assert_items_equal(
-        dpath.util.get(response_json, "requestedCalculations"),
+        dpath.get(response_json, "requestedCalculations"),
         [
             "disposable_income<2017-01>",
             "total_benefits<2017-01>",
@@ -121,8 +121,8 @@ def test_trace_parameters(test_client) -> None:
     )
     response_json = json.loads(response.data.decode("utf-8"))
 
-    assert len(dpath.util.get(response_json, "trace/housing_tax<2017>/parameters")) > 0
-    taxes__housing_tax__minimal_amount = dpath.util.get(
+    assert len(dpath.get(response_json, "trace/housing_tax<2017>/parameters")) > 0
+    taxes__housing_tax__minimal_amount = dpath.get(
         response_json,
         "trace/housing_tax<2017>/parameters/taxes.housing_tax.minimal_amount<2017-01-01>",
     )

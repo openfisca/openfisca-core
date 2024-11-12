@@ -6,7 +6,7 @@ from typing import NoReturn
 
 import copy
 
-import dpath.util
+import dpath
 import numpy
 
 from openfisca_core import entities, errors, periods, populations, variables
@@ -690,7 +690,7 @@ class SimulationBuilder:
         # It is only raised when we consume the buffer. We thus don't know which exact key caused the error.
         # We do a basic research to find the culprit path
         culprit_path = next(
-            dpath.util.search(
+            dpath.search(
                 json,
                 f"*/{e.variable_name}/{e.period!s}",
                 yielded=True,

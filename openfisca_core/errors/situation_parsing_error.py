@@ -4,7 +4,7 @@ from collections.abc import Iterable
 
 import os
 
-import dpath.util
+import dpath
 
 
 class SituationParsingError(Exception):
@@ -19,7 +19,7 @@ class SituationParsingError(Exception):
         self.error = {}
         dpath_path = "/".join([str(item) for item in path])
         message = str(message).strip(os.linesep).replace(os.linesep, " ")
-        dpath.util.new(self.error, dpath_path, message)
+        dpath.new(self.error, dpath_path, message)
         self.code = code
         Exception.__init__(self, str(self.error))
 
