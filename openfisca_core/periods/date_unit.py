@@ -4,7 +4,7 @@ from enum import EnumMeta
 
 from strenum import StrEnum
 
-from . import types as t
+from openfisca_core import types as t
 
 
 class DateUnitMeta(EnumMeta):

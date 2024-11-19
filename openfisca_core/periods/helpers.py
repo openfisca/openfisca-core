@@ -7,7 +7,9 @@ import functools
 
 import pendulum
 
-from . import config, types as t
+from openfisca_core import types as t
+
+from . import config
 from ._errors import InstantError, PeriodError
 from ._parsers import parse_instant, parse_period
 from .date_unit import DateUnit
