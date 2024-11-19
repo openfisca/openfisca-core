@@ -1,6 +1,6 @@
 import os
+import pathlib
 import subprocess
-import sys
 
 import pytest
 
@@ -92,8 +92,8 @@ def test_name_filter(tax_benefit_system) -> None:
 def test_shell_script() -> None:
     yaml_path = os.path.join(yaml_tests_dir, "test_success.yml")
     command = ["openfisca", "test", yaml_path, "-c", "openfisca_country_template"]
-    with open(os.devnull, "wb") as devnull:
-        subprocess.check_call(command, stdout=devnull, stderr=devnull)
+    result = subprocess.run(command, capture_output=True)
+    assert result.returncode == 0, result.stderr.decode("utf-8")
 
 
 def test_failing_shell_script() -> None:
@@ -115,26 +115,24 @@ def test_shell_script_with_reform() -> None:
         "-r",
         "openfisca_country_template.reforms.removal_basic_income.removal_basic_income",
     ]
-    with open(os.devnull, "wb") as devnull:
-        subprocess.check_call(command, stdout=devnull, stderr=devnull)
+    result = subprocess.run(command, capture_output=True)
+    assert result.returncode == 0, result.stderr.decode("utf-8")
 
 
-# TODO(Mauko Quiroga-Alvarado): Fix this test
-# https://github.com/openfisca/openfisca-core/issues/962
-@pytest.mark.skip(
-    reason="Does not work because tests are not in openfisca_extension_template anymore."
-)
-@pytest.mark.skipif(sys.platform == "win32", reason="Does not work on Windows.")
 def test_shell_script_with_extension() -> None:
-    tests_dir = os.path.join(openfisca_extension_template.__path__[0], "tests")
+    base_path = next(iter(openfisca_extension_template.__path__))
+    test_path = (
+        pathlib.Path(base_path) / ".." / "tests" / "openfisca_extension_template"
+    )
+    path = str(test_path.resolve())
     command = [
         "openfisca",
         "test",
-        tests_dir,
+        path,
         "-c",
         "openfisca_country_template",
         "-e",
         "openfisca_extension_template",
     ]
-    with open(os.devnull, "wb") as devnull:
-        subprocess.check_call(command, stdout=devnull, stderr=devnull)
+    result = subprocess.run(command, capture_output=True)
+    assert not result.stderr, result.stderr.decode("utf-8")
