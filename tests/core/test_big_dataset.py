@@ -1,13 +1,9 @@
-from copy import deepcopy
-from time import time
-from openfisca_country_template import entities, situation_examples
 from collections.abc import Iterable
-from openfisca_core import tools
-from openfisca_core.simulations import SimulationBuilder
-from openfisca_core.tools import test_runner
 
-import random
+from time import time
 from unittest import TestCase
+
+from openfisca_core.simulations import SimulationBuilder
 
 tc = TestCase()
 
@@ -49,12 +45,15 @@ def run_simulation(tax_benefit_system) -> None:
     simulation.set_input("salary", period, persons_salaries)
     simulation.set_input("rent", period, households_rents)
 
-    tc.assertEqual(simulation.calculate_add("salary", period).sum(), sum(persons_salaries))
+    tc.assertEqual(
+        simulation.calculate_add("salary", period).sum(), sum(persons_salaries)
+    )
     tc.assertEqual(
         simulation.calculate_add("rent", period).sum(), sum(households_rents)
     )
     total_taxes = simulation.calculate_add("total_taxes", period).sum()
-    tc.assertAlmostEqual(total_taxes, sum(persons_salaries)*0.17833333, delta=1)
+    tc.assertAlmostEqual(total_taxes, sum(persons_salaries) * 0.17833333, delta=1)
+
 
 def test_speed(tax_benefit_system):
     elapsed = 0
@@ -64,5 +63,6 @@ def test_speed(tax_benefit_system):
         end = time()
         elapsed += end - start
     elapsed_mean = elapsed / 10
-    print(f"Mean elapsed time: {elapsed_mean:.2f} seconds")
+    # print(f"Mean elapsed time: {elapsed_mean:.2f} seconds")
+    # Expected time is less than 0.3 seconds on a AMD Threadripper 1950X
     tc.assertLess(elapsed_mean, 0.3)
