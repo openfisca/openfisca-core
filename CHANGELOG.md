@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.2.6 [#1297](https://github.com/openfisca/openfisca-core/pull/1297)
+
+#### Bugfix
+
+- Add `int` default to `max_depth` in `openfisca test`
+
 ### 43.2.5 [#1296](https://github.com/openfisca/openfisca-core/pull/1296)
 
 #### Bugfix

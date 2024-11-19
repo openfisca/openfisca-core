@@ -25,7 +25,7 @@ from openfisca_core.warnings import LibYAMLWarning
 class Options(TypedDict, total=False):
     aggregate: bool
     ignore_variables: Sequence[str] | None
-    max_depth: int | None
+    max_depth: int
     name_filter: str | None
     only_variables: Sequence[str] | None
     pdb: bool

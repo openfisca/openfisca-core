@@ -40,7 +40,8 @@ class ComputationLog:
 
         This mode is more suited for simulations on a large population.
 
-        If ``max_depth`` is ``None`` (default), print the entire computation.
+        If ``max_depth`` is ``sys.maxsize`` (default), print the entire
+        computation.
 
         If ``max_depth`` is set, for example to ``3``, only print computed
         vectors up to a depth of ``max_depth``.
