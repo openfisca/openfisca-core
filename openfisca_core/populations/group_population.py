@@ -107,7 +107,9 @@ class GroupPopulation(Population):
         >>> array([3500])
 
         """
-        self.entity.check_role_validity(role)
+        if role is not None and not isinstance(role, entities.Role):
+            msg = f"{role} is not a valid role"
+            raise TypeError(msg)
         self.members.check_array_compatible_with_entity(array)
         if role is not None:
             role_filter = self.members.has_role(role)
@@ -140,7 +142,9 @@ class GroupPopulation(Population):
     @projectors.projectable
     def reduce(self, array, reducer, neutral_element, role=None):
         self.members.check_array_compatible_with_entity(array)
-        self.entity.check_role_validity(role)
+        if role is not None and not isinstance(role, entities.Role):
+            msg = f"{role} is not a valid role"
+            raise TypeError(msg)
         position_in_entity = self.members_position
         role_filter = self.members.has_role(role) if role is not None else True
         filtered_array = numpy.where(role_filter, array, neutral_element)
@@ -260,7 +264,9 @@ class GroupPopulation(Population):
 
         The result is a vector which dimension is the number of entities
         """
-        self.entity.check_role_validity(role)
+        if role is not None and not isinstance(role, entities.Role):
+            msg = f"{role} is not a valid role"
+            raise TypeError(msg)
         if role.max != 1:
             msg = f"You can only use value_from_person with a role that is unique in {self.key}. Role {role.key} is not unique."
             raise Exception(
@@ -312,7 +318,9 @@ class GroupPopulation(Population):
 
     def project(self, array, role=None):
         self.check_array_compatible_with_entity(array)
-        self.entity.check_role_validity(role)
+        if role is not None and not isinstance(role, entities.Role):
+            msg = f"{role} is not a valid role"
+            raise TypeError(msg)
         if role is None:
             return array[self.members_entity_id]
         role_condition = self.members.has_role(role)

@@ -15,7 +15,6 @@ def build_entity(
     roles: None | Sequence[t.RoleParams] = None,
     is_person: bool = False,
     *,
-    class_override: object = None,
     containing_entities: Sequence[str] = (),
 ) -> t.SingleEntity | t.GroupEntity:
     """Build an ``Entity`` or a ``GroupEntity``.
@@ -27,7 +26,6 @@ def build_entity(
         doc: A full description.
         roles: A list of roles —if it's a ``GroupEntity``.
         is_person: If is an individual, or not.
-        class_override: ?
         containing_entities: Keys of contained entities.
 
     Returns:

@@ -87,7 +87,7 @@ class CorePopulation:
             >>> population("salary", period)
 
             >>> tbs = taxbenefitsystems.TaxBenefitSystem([person])
-            >>> person.set_tax_benefit_system(tbs)
+            >>> person.tax_benefit_system = tbs
             >>> simulation = simulations.Simulation(tbs, {person.key: population})
             >>> population("salary", period)
             Traceback (most recent call last):
@@ -142,7 +142,7 @@ class CorePopulation:
             option=options,
         )
 
-        self.entity.check_variable_defined_for_entity(calculate.variable)
+        self.entity.get_variable(calculate.variable, check_existence=True)
         self.check_period_validity(calculate.variable, calculate.period)
 
         if not isinstance(calculate.option, Sequence):
@@ -365,7 +365,7 @@ class CorePopulation:
             ...     value_type = int
 
             >>> tbs = taxbenefitsystems.TaxBenefitSystem([person])
-            >>> person.set_tax_benefit_system(tbs)
+            >>> person.tax_benefit_system = tbs
             >>> population = populations.SinglePopulation(person)
             >>> simulation = simulations.Simulation(tbs, {person.key: population})
             >>> population.get_holder("income_tax")
@@ -380,7 +380,7 @@ class CorePopulation:
             <openfisca_core.holders.holder.Holder object at ...
 
         """
-        self.entity.check_variable_defined_for_entity(variable_name)
+        self.entity.get_variable(variable_name, check_existence=True)
         holder = self._holders.get(variable_name)
         if holder:
             return holder

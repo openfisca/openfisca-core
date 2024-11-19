@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import ClassVar
 
 import abc
-import os
 
 from . import types as t
-from .role import Role
+from ._errors import TaxBenefitSystemUnsetError, VariableNotFoundError
 
 
 class CoreEntity:
@@ -45,7 +45,7 @@ class CoreEntity:
     is_person: ClassVar[bool]
 
     #: A ``TaxBenefitSystem`` instance.
-    _tax_benefit_system: None | t.TaxBenefitSystem = None
+    tax_benefit_system: None | t.TaxBenefitSystem = None
 
     @abc.abstractmethod
     def __init__(self, *__args: object, **__kwargs: object) -> None: ...
@@ -53,15 +53,73 @@ class CoreEntity:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.key})"
 
-    def set_tax_benefit_system(self, tax_benefit_system: t.TaxBenefitSystem) -> None:
-        """A ``CoreEntity`` belongs to a ``TaxBenefitSystem``."""
-        self._tax_benefit_system = tax_benefit_system
+    @property
+    def variables(self, /) -> Mapping[t.VariableName, t.Variable]:
+        """Get all variables defined for the entity.
+
+        Returns:
+            dict[str, Variable]: The variables defined for the entity.
+
+        Raises:
+            TaxBenefitSystemUnsetError: When the :attr:`.tax_benefit_system` is
+                not set yet.
+
+        Examples:
+            >>> from openfisca_core import (
+            ...     entities,
+            ...     periods,
+            ...     taxbenefitsystems,
+            ...     variables,
+            ... )
+
+            >>> this = entities.SingleEntity("this", "these", "", "")
+            >>> that = entities.SingleEntity("that", "those", "", "")
+
+            >>> this.variables
+            Traceback (most recent call last):
+            TaxBenefitSystemUnsetError: The tax and benefit system is not se...
+
+            >>> tbs = taxbenefitsystems.TaxBenefitSystem([this, that])
+            >>> this, that = tbs.entities
+
+            >>> this.variables
+            {}
+
+            >>> that.variables
+            {}
+
+            >>> class tax(variables.Variable):
+            ...     definition_period = periods.MONTH
+            ...     value_type = float
+            ...     entity = that
+
+            >>> tbs.add_variable(tax)
+            <openfisca_core.entities._core_entity.tax object at ...>
+
+            >>> this.variables
+            {}
+
+            >>> that.variables
+            {'tax': <openfisca_core.entities._core_entity.tax object at ...>}
+
+            >>> that.variables["tax"]
+            <openfisca_core.entities._core_entity.tax object at ...>
+
+        """
+        if self.tax_benefit_system is None:
+            raise TaxBenefitSystemUnsetError
+        return {
+            name: variable
+            for name, variable in self.tax_benefit_system.variables.items()
+            if variable.entity.key == self.key
+        }
 
     def get_variable(
         self,
         variable_name: t.VariableName,
+        /,
         check_existence: bool = False,
-    ) -> t.Variable | None:
+    ) -> None | t.Variable:
         """Get ``variable_name`` from ``variables``.
 
         Args:
@@ -73,9 +131,10 @@ class CoreEntity:
             None: When the ``Variable`` doesn't exist.
 
         Raises:
-            ValueError: When the :attr:`_tax_benefit_system` is not set yet.
-            ValueError: When ``check_existence`` is ``True`` and
-                the ``Variable`` doesn't exist.
+            TaxBenefitSystemUnsetError: When the :attr:`.tax_benefit_system` is
+                not set yet.
+            VariableNotFoundError: When ``check_existence`` is ``True`` and the
+                ``Variable`` doesn't exist.
 
         Examples:
             >>> from openfisca_core import (
@@ -85,134 +144,43 @@ class CoreEntity:
             ...     variables,
             ... )
 
-            >>> this = entities.SingleEntity("this", "", "", "")
-            >>> that = entities.SingleEntity("that", "", "", "")
+            >>> this = entities.SingleEntity("this", "these", "", "")
+            >>> that = entities.SingleEntity("that", "those", "", "")
 
             >>> this.get_variable("tax")
             Traceback (most recent call last):
-            ValueError: You must set 'tax_benefit_system' before calling this...
+            TaxBenefitSystemUnsetError: The tax and benefit system is not se...
 
-            >>> tax_benefit_system = taxbenefitsystems.TaxBenefitSystem([this])
-            >>> this.set_tax_benefit_system(tax_benefit_system)
+            >>> tbs = taxbenefitsystems.TaxBenefitSystem([this, that])
+            >>> this, that = tbs.entities
 
             >>> this.get_variable("tax")
 
             >>> this.get_variable("tax", check_existence=True)
             Traceback (most recent call last):
-            VariableNotFoundError: You tried to calculate or to set a value...
+            VariableNotFoundError: You requested the variable 'tax', but it ...
 
             >>> class tax(variables.Variable):
             ...     definition_period = periods.MONTH
             ...     value_type = float
             ...     entity = that
 
-            >>> this._tax_benefit_system.add_variable(tax)
+            >>> tbs.add_variable(tax)
             <openfisca_core.entities._core_entity.tax object at ...>
 
             >>> this.get_variable("tax")
+
+            >>> that.get_variable("tax")
             <openfisca_core.entities._core_entity.tax object at ...>
 
         """
-        if self._tax_benefit_system is None:
-            msg = "You must set 'tax_benefit_system' before calling this method."
-            raise ValueError(
-                msg,
-            )
-        return self._tax_benefit_system.get_variable(variable_name, check_existence)
-
-    def check_variable_defined_for_entity(self, variable_name: t.VariableName) -> None:
-        """Check if ``variable_name`` is defined for ``self``.
-
-        Args:
-            variable_name: The ``Variable`` to be found.
-
-        Raises:
-            ValueError: When the ``Variable`` exists but is defined
-                for another ``Entity``.
-
-        Examples:
-            >>> from openfisca_core import (
-            ...     entities,
-            ...     periods,
-            ...     taxbenefitsystems,
-            ...     variables,
-            ... )
-
-            >>> this = entities.SingleEntity("this", "", "", "")
-            >>> that = entities.SingleEntity("that", "", "", "")
-            >>> tax_benefit_system = taxbenefitsystems.TaxBenefitSystem([that])
-            >>> this.set_tax_benefit_system(tax_benefit_system)
-
-            >>> this.check_variable_defined_for_entity("tax")
-            Traceback (most recent call last):
-            VariableNotFoundError: You tried to calculate or to set a value...
-
-            >>> class tax(variables.Variable):
-            ...     definition_period = periods.WEEK
-            ...     value_type = int
-            ...     entity = that
-
-            >>> this._tax_benefit_system.add_variable(tax)
-            <openfisca_core.entities._core_entity.tax object at ...>
-
-            >>> this.check_variable_defined_for_entity("tax")
-            Traceback (most recent call last):
-            ValueError: You tried to compute the variable 'tax' for the enti...
-
-            >>> tax.entity = this
-
-            >>> this._tax_benefit_system.update_variable(tax)
-            <openfisca_core.entities._core_entity.tax object at ...>
-
-            >>> this.check_variable_defined_for_entity("tax")
-
-        """
-        entity: None | t.CoreEntity = None
-        variable: None | t.Variable = self.get_variable(
-            variable_name,
-            check_existence=True,
-        )
-
-        if variable is not None:
-            entity = variable.entity
-
-        if entity is None:
-            return
-
-        if entity.key != self.key:
-            message = (
-                f"You tried to compute the variable '{variable_name}' for",
-                f"the entity '{self.plural}'; however the variable",
-                f"'{variable_name}' is defined for '{entity.plural}'.",
-                "Learn more about entities in our documentation:",
-                "<https://openfisca.org/doc/coding-the-legislation/50_entities.html>.",
-            )
-            raise ValueError(os.linesep.join(message))
-
-    @staticmethod
-    def check_role_validity(role: object) -> None:
-        """Check if ``role`` is an instance of  ``Role``.
-
-        Args:
-            role: Any object.
-
-        Raises:
-            ValueError: When ``role`` is not a ``Role``.
-
-        Examples:
-            >>> from openfisca_core import entities
-
-            >>> role = entities.Role({"key": "key"}, object())
-            >>> entities.check_role_validity(role)
-
-            >>> entities.check_role_validity("hey!")
-            Traceback (most recent call last):
-            ValueError: hey! is not a valid role
-
-        """
-        if role is not None and not isinstance(role, Role):
-            msg = f"{role} is not a valid role"
-            raise ValueError(msg)
+        if self.tax_benefit_system is None:
+            raise TaxBenefitSystemUnsetError
+        if (variable := self.variables.get(variable_name)) is not None:
+            return variable
+        if check_existence:
+            raise VariableNotFoundError(variable_name, self.plural)
+        return None
 
 
 __all__ = ["CoreEntity"]

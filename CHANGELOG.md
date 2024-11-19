@@ -1,5 +1,37 @@
 # Changelog
 
+# 44.0.0 [#1286](https://github.com/openfisca/openfisca-core/pull/1286)
+
+#### New features
+
+- Add `CoreEntity.variables`
+  - Allows for querying the variables defined for an entity.
+
+#### Deprecations
+
+- Remove `CoreEntity.check_role_validity`
+  - The method in itself had no relation to `entities` (it was a static
+     method, so no depending neither on an entity class nor an instance). It
+     could have been kept as a `populations` helper, where it was exclusively
+     used. Nonetheless, `check_role_validity` had the peculiar behaviour of
+     not failing but when the value of `role` is not `None`, that granted it
+     in the author's opinion the right to be removed so as to avoid confusion.
+- Deprecate `class_override` arg from `entities.build_entity`
+  - That argument actually did nothing, and linters have been complaining
+     about this argument for almost 10 years now. It is only being marked as
+     a breaking change for respect to the semantic versioning protocol.
+- Deprecate `CoreEntity.check_variable_defined_for_entity`
+  - The feature is still provided by `CoreEntity.get_variable` when passed
+     the optional positional or keyword argument `check_existence`. In fact,
+     the removed method was duplicating and already existing behaviour.
+- Deprecate `CoreEntity.set_tax_benefit_system`
+  - The feature is now provided by simple variable assignment:
+     ```python
+     entity.tax_benefit_system = tax_benefit_system
+     ```
+   - Likewise, `entity.tax_benefit_system` becomes part of the public API
+     (which implicitly it was as the private marker was being violated).
+
 ### 43.2.5 [#1296](https://github.com/openfisca/openfisca-core/pull/1296)
 
 #### Bugfix

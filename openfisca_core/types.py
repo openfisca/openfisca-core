@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence, Sized
+from collections.abc import Iterable, Mapping, Sequence, Sized
 from numpy.typing import DTypeLike, NDArray
 from typing import NewType, TypeVar, Union
 from typing_extensions import Protocol, Required, Self, TypeAlias, TypedDict
@@ -71,20 +71,23 @@ RolePlural = NewType("RolePlural", str)
 
 
 class CoreEntity(Protocol):
-    key: EntityKey
-    plural: EntityPlural
-
-    def check_role_validity(self, role: object, /) -> None: ...
-    def check_variable_defined_for_entity(
-        self,
-        variable_name: VariableName,
-        /,
-    ) -> None: ...
+    @property
+    def key(self, /) -> EntityKey: ...
+    @property
+    def plural(self, /) -> EntityPlural: ...
+    @property
+    def label(self, /) -> str: ...
+    @property
+    def doc(self, /) -> str: ...
+    @property
+    def tax_benefit_system(self, /) -> None | TaxBenefitSystem: ...
+    @property
+    def variables(self, /) -> Mapping[VariableName, Variable]: ...
     def get_variable(
         self,
-        variable_name: VariableName,
-        check_existence: bool = ...,
+        name: VariableName,
         /,
+        check_existence: bool = ...,
     ) -> None | Variable: ...
 
 
@@ -263,6 +266,8 @@ class Simulation(Protocol):
 class TaxBenefitSystem(Protocol):
     person_entity: SingleEntity
 
+    @property
+    def variables(self, /) -> dict[VariableName, Variable]: ...
     def get_variable(
         self,
         variable_name: VariableName,
