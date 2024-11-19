@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.2.5 [#1296](https://github.com/openfisca/openfisca-core/pull/1296)
+
+#### Bugfix
+
+- Use new `extension-template` tests' path
+
 ### 43.2.4 [#1294](https://github.com/openfisca/openfisca-core/pull/1294)
 
 #### Technical changes
