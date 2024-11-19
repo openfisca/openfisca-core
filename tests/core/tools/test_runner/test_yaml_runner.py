@@ -65,7 +65,7 @@ class TestFile(YamlFile):
 class TestItem(YamlItem):
     def __init__(self, test, **kwargs) -> None:
         # get expected 'parent' from kwargs (comes from 'from_parent')
-        super().__init__(name="", baseline_tax_benefit_system=TaxBenefitSystem(), test=test, options={}, **kwargs)
+        super().__init__(name="", path="", baseline_tax_benefit_system=TaxBenefitSystem(), test=test, options={}, **kwargs)
 
         self.tax_benefit_system = self.baseline_tax_benefit_system
         self.simulation = Simulation()
