@@ -117,7 +117,7 @@ def get_parser():
             "-d",
             "--max-depth",
             type=int,
-            default=None,
+            default=sys.maxsize,
             help="set maximal verbosity depth. If specified, output the calculation trace up to the provided depth. This flag has no effect without --verbose.",
         )
         parser.add_argument(
