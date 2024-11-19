@@ -202,10 +202,13 @@ def test_trace() -> None:
     }
     test_item = TestItem.from_parent(parent=testFile, test=test)
     # 'from_parent' inherited from pytest.Item through YamlItem
-    
+    test_item.options = {"verbose": True}
+
     assert test_item.tax_benefit_system.get_variable("salary") is not None
 
     test_item.runtest()
+
+    assert test_item.simulation.trace
 
 
 def clean_performance_files(paths: list[str]) -> None:
