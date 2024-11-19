@@ -67,7 +67,7 @@ class TestItem(YamlItem):
         # get expected 'parent' from kwargs (comes from 'from_parent')
         super().__init__(name="", path="", baseline_tax_benefit_system=TaxBenefitSystem(), test=test, options={}, **kwargs)
 
-        self.tax_benefit_system = self.baseline_tax_benefit_system
+        self.tax_benefit_system: TaxBenefitSystem = self.baseline_tax_benefit_system
         self.simulation = Simulation()
 
 
@@ -200,7 +200,12 @@ def test_trace() -> None:
         "input": {"salary": {"2017-01": 2000}},
         "output": {"salary": {"2017-01": 2000}},
     }
-    test_item = TestItem.from_parent(parent=testFile, test=test)  # 'from_parent' inherited from pytest.Item through YamlItem
+    test_item = TestItem.from_parent(parent=testFile, test=test)
+    # 'from_parent' inherited from pytest.Item through YamlItem
+    
+    assert test_item.tax_benefit_system.get_variable("salary") is not None
+
+    test_item.runtest()
 
 
 def clean_performance_files(paths: list[str]) -> None:
