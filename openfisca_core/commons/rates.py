@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import numpy
 
-from . import types as t
+from openfisca_core import types as t
 
 
 def average_rate(
-    target: t.Array[numpy.float32],
-    varying: t.Array[numpy.float32] | t.ArrayLike[float],
+    target: t.FloatArray,
+    varying: t.FloatArray | t.ArrayLike[float],
     trim: None | t.ArrayLike[float] = None,
-) -> t.Array[numpy.float32]:
+) -> t.FloatArray:
     """Compute the average rate of a target net income.
 
     Given a ``target`` net income, and according to the ``varying`` gross
@@ -59,10 +59,10 @@ def average_rate(
 
 
 def marginal_rate(
-    target: t.Array[numpy.float32],
-    varying: t.Array[numpy.float32] | t.ArrayLike[float],
+    target: t.FloatArray,
+    varying: t.FloatArray | t.ArrayLike[float],
     trim: None | t.ArrayLike[float] = None,
-) -> t.Array[numpy.float32]:
+) -> t.FloatArray:
     """Compute the marginal rate of a target net income.
 
     Given a ``target`` net income, and according to the ``varying`` gross
