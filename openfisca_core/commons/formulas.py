@@ -4,14 +4,14 @@ from collections.abc import Mapping
 
 import numpy
 
-from . import types as t
+from openfisca_core import types as t
 
 
 def apply_thresholds(
-    input: t.Array[numpy.float32],
+    input: t.FloatArray,
     thresholds: t.ArrayLike[float],
     choices: t.ArrayLike[float],
-) -> t.Array[numpy.float32]:
+) -> t.FloatArray:
     """Makes a choice based on an input and thresholds.
 
     From a list of ``choices``, this function selects one of these values
@@ -52,9 +52,9 @@ def apply_thresholds(
 
 
 def concat(
-    this: t.Array[numpy.str_] | t.ArrayLike[object],
-    that: t.Array[numpy.str_] | t.ArrayLike[object],
-) -> t.Array[numpy.str_]:
+    this: t.StrArray | t.ArrayLike[object],
+    that: t.StrArray | t.ArrayLike[object],
+) -> t.StrArray:
     """Concatenate the values of two arrays.
 
     Args:
@@ -87,9 +87,9 @@ def concat(
 
 
 def switch(
-    conditions: t.Array[numpy.float32] | t.ArrayLike[float],
+    conditions: t.FloatArray | t.ArrayLike[float],
     value_by_condition: Mapping[float, float],
-) -> t.Array[numpy.float32]:
+) -> t.FloatArray:
     """Mimic a switch statement.
 
     Given an array of conditions, returns an array of the same size,
