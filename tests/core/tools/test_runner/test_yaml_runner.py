@@ -64,7 +64,7 @@ class TestFile(YamlFile):
 
 class TestItem(YamlItem):
     def __init__(self, test) -> None:
-        super().__init__("", TestFile(), TaxBenefitSystem(), test, {})
+        super().__init__(TestFile(), name="", baseline_tax_benefit_system=TaxBenefitSystem(), test=test, options={})
 
         self.tax_benefit_system = self.baseline_tax_benefit_system
         self.simulation = Simulation()
@@ -189,6 +189,14 @@ def test_performance_tables_option_output() -> None:
         assert os.path.isfile(path)
 
     clean_performance_files(paths)
+
+
+def test_trace() -> None:
+    test = {
+        "input": {"salary": {"2017-01": 2000}},
+        "output": {"salary": {"2017-01": 2000}},
+    }
+    test_item = TestItem.from_parent(test=test)  # 'from_parent' inherited from pytest.Item through YamlItem
 
 
 def clean_performance_files(paths: list[str]) -> None:
