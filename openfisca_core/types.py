@@ -7,6 +7,7 @@ from typing_extensions import Protocol, Required, Self, TypeAlias, TypedDict
 
 import abc
 import enum
+import re
 
 import numpy
 import pendulum
@@ -25,7 +26,7 @@ from numpy import (
 #: Generic covariant type var.
 _T_co = TypeVar("_T_co", covariant=True)
 
-# Commons
+# Arrays
 
 #: Type var for numpy arrays.
 _N_co = TypeVar("_N_co", covariant=True, bound="DTypeGeneric")
@@ -60,6 +61,8 @@ StrArray: TypeAlias = Array[StrDType]
 #: Type alias for an array of generic objects.
 VarArray: TypeAlias = Array[VarDType]
 
+# Arrays-like
+
 #: Type var for array-like objects.
 _L = TypeVar("_L")
 
@@ -92,6 +95,22 @@ DTypeObject: TypeAlias = numpy.object_
 
 #: Type for "generic" arrays.
 DTypeGeneric: TypeAlias = numpy.generic
+
+# TODO(<Mauko Quiroga-Alvarado>): Properly resolve metaclass types.
+# https://github.com/python/mypy/issues/14033
+
+
+class _SeqIntMeta(type):
+    def __instancecheck__(self, arg: object, /) -> bool:
+        return (
+            bool(arg)
+            and isinstance(arg, Sequence)
+            and all(isinstance(item, int) for item in arg)
+        )
+
+
+class SeqInt(list[int], metaclass=_SeqIntMeta): ...  # type: ignore[misc]
+
 
 # Entities
 
@@ -215,22 +234,65 @@ class VectorialParameterNodeAtInstant(Protocol):
 
 # Periods
 
-#: For example "2000-01".
-InstantStr = NewType("InstantStr", str)
+#: Matches "2015", "2015-01", "2015-01-01" but not "2015-13", "2015-12-32".
+iso_format = re.compile(r"^\d{4}(-(?:0[1-9]|1[0-2])(-(?:0[1-9]|[12]\d|3[01]))?)?$")
+
+#: Matches "2015", "2015-W01", "2015-W53-1" but not "2015-W54", "2015-W10-8".
+iso_calendar = re.compile(r"^\d{4}(-W(0[1-9]|[1-4][0-9]|5[0-3]))?(-[1-7])?$")
+
+#: For example 2020.
+InstantInt = NewType("InstantInt", int)
 
 #: For example 2020.
 PeriodInt = NewType("PeriodInt", int)
 
-#: For example "1:2000-01-01:day".
-PeriodStr = NewType("PeriodStr", str)
+
+class _InstantStrMeta(type):
+    def __instancecheck__(self, arg: object) -> bool:
+        return isinstance(arg, (ISOFormatStr, ISOCalendarStr))
+
+
+class InstantStr(str, metaclass=_InstantStrMeta):  # type: ignore[misc]
+    __slots__ = ()
+
+
+class _ISOFormatStrMeta(type):
+    def __instancecheck__(self, arg: object) -> bool:
+        return isinstance(arg, str) and bool(iso_format.match(arg))
+
+
+class ISOFormatStr(str, metaclass=_ISOFormatStrMeta):  # type: ignore[misc]
+    __slots__ = ()
+
+
+class _ISOCalendarStrMeta(type):
+    def __instancecheck__(self, arg: object) -> bool:
+        return isinstance(arg, str) and bool(iso_calendar.match(arg))
+
+
+class ISOCalendarStr(str, metaclass=_ISOCalendarStrMeta):  # type: ignore[misc]
+    __slots__ = ()
+
+
+class _PeriodStrMeta(type):
+    def __instancecheck__(self, arg: object) -> bool:
+        return (
+            isinstance(arg, str)
+            and ":" in arg
+            and isinstance(arg.split(":")[1], InstantStr)
+        )
+
+
+class PeriodStr(str, metaclass=_PeriodStrMeta):  # type: ignore[misc]
+    __slots__ = ()
 
 
 class Container(Protocol[_T_co]):
-    def __contains__(self, item: object, /) -> bool: ...
+    def __contains__(self, __item: object, /) -> bool: ...
 
 
 class Indexable(Protocol[_T_co]):
-    def __getitem__(self, index: int, /) -> _T_co: ...
+    def __getitem__(self, __index: int, /) -> _T_co: ...
 
 
 class DateUnit(Container[str], Protocol):
@@ -246,9 +308,9 @@ class Instant(Indexable[int], Iterable[int], Sized, Protocol):
     def day(self, /) -> int: ...
     @property
     def date(self, /) -> pendulum.Date: ...
-    def __lt__(self, other: object, /) -> bool: ...
-    def __le__(self, other: object, /) -> bool: ...
-    def offset(self, offset: str | int, unit: DateUnit, /) -> None | Instant: ...
+    def __lt__(self, __other: object, /) -> bool: ...
+    def __le__(self, __other: object, /) -> bool: ...
+    def offset(self, __offset: str | int, __unit: DateUnit, /) -> None | Instant: ...
 
 
 class Period(Indexable[Union[DateUnit, Instant, int]], Protocol):
@@ -260,9 +322,14 @@ class Period(Indexable[Union[DateUnit, Instant, int]], Protocol):
     def size(self, /) -> int: ...
     @property
     def stop(self, /) -> Instant: ...
-    def contains(self, other: Period, /) -> bool: ...
-    def offset(self, offset: str | int, unit: None | DateUnit = None, /) -> Period: ...
+    def contains(self, __other: Period, /) -> bool: ...
+    def offset(
+        self, __offset: str | int, __unit: None | DateUnit = None, /
+    ) -> Period: ...
 
+
+#: Type alias for a period-like object.
+PeriodLike: TypeAlias = Union[Period, PeriodStr, PeriodInt]
 
 # Populations
 

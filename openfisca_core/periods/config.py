@@ -2,7 +2,7 @@ import re
 
 import pendulum
 
-from . import types as t
+from openfisca_core import types as t
 
 # Matches "2015", "2015-01", "2015-01-01"
 # Does not match "2015-13", "2015-12-32"
