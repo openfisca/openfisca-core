@@ -5,7 +5,8 @@ from collections.abc import Iterator
 import sys
 import time
 
-from . import types as t
+from openfisca_core import types as t
+
 from .computation_log import ComputationLog
 from .flat_trace import FlatTrace
 from .performance_log import PerformanceLog
