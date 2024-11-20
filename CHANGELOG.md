@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.2.9 [#1304](https://github.com/openfisca/openfisca-core/pull/1304)
+
+#### Bugfix
+
+- Fix `computation_log`.
+
 ### 43.2.8 [#1322](https://github.com/openfisca/openfisca-core/pull/1322)
 
 #### Technical changes
