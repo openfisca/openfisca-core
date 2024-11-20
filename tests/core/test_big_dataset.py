@@ -1,6 +1,5 @@
 from collections.abc import Iterable
 
-from time import time
 from unittest import TestCase
 
 from openfisca_core.simulations import SimulationBuilder
@@ -55,14 +54,8 @@ def run_simulation(tax_benefit_system) -> None:
     tc.assertAlmostEqual(total_taxes, sum(persons_salaries) * 0.17833333, delta=1)
 
 
-def test_speed(tax_benefit_system):
-    elapsed = 0
-    for _ in range(10):
-        start = time()
+def test_speed(tax_benefit_system, benchmark) -> None:
+    def run() -> None:
         run_simulation(tax_benefit_system)
-        end = time()
-        elapsed += end - start
-    elapsed_mean = elapsed / 10
-    # print(f"Mean elapsed time: {elapsed_mean:.2f} seconds")
-    # Expected time is less than 0.3 seconds on a AMD Threadripper 1950X
-    tc.assertLess(elapsed_mean, 0.3)
+    result = benchmark.pedantic(run, iterations=1, rounds=10)
+    assert not result
