@@ -57,5 +57,6 @@ def run_simulation(tax_benefit_system) -> None:
 def test_speed(tax_benefit_system, benchmark) -> None:
     def run() -> None:
         run_simulation(tax_benefit_system)
+
     result = benchmark.pedantic(run, iterations=1, rounds=10)
     assert not result

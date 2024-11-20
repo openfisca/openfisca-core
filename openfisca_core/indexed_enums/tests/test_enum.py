@@ -133,3 +133,17 @@ def test_enum_encode_with_any_sequence():
     sequence = memoryview(b"DOG")
     with pytest.raises(IndexError):
         Animal.encode(sequence)
+
+
+# Benchmarking
+
+
+def test_benchmark_enum_eq(benchmark):
+    """Benchmark the `__eq__` method."""
+
+    def test():
+        for animal in Animal:
+            for colour in Colour:
+                assert animal != colour
+
+    benchmark.pedantic(test, iterations=100, rounds=1000)
