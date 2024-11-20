@@ -151,10 +151,32 @@ def test_benchmark_enum_eq(benchmark):
     benchmark.pedantic(test, iterations=10000, rounds=100)
 
 
-@pytest.mark.benchmark(group="Enum.encode")
-def test_benchmark_enum_encode(benchmark):
+@pytest.mark.benchmark(group="Enum.encode (int)")
+def test_benchmark_enum_encode_int(benchmark):
+    """Benchmark the `Enum.encode` method."""
+    array = numpy.random.choice([0, 1, 2], size=50000)
+
+    def test():
+        Colour.encode(array)
+
+    benchmark.pedantic(test, iterations=10, rounds=100)
+
+
+@pytest.mark.benchmark(group="Enum.encode (str)")
+def test_benchmark_enum_encode_str(benchmark):
     """Benchmark the `Enum.encode` method."""
     array = numpy.random.choice(["INCARNADINE", "TURQUOISE", "AMARANTH"], size=50000)
+
+    def test():
+        Colour.encode(array)
+
+    benchmark.pedantic(test, iterations=10, rounds=100)
+
+
+@pytest.mark.benchmark(group="Enum.encode (Enum)")
+def test_benchmark_enum_encode_enum(benchmark):
+    """Benchmark the `Enum.encode` method."""
+    array = numpy.random.choice(list(Colour), size=50000)
 
     def test():
         Colour.encode(array)

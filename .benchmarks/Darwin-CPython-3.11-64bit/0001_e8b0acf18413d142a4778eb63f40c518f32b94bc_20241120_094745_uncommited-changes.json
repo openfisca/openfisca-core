@@ -1,0 +1,288 @@
+{
+    "machine_info": {
+        "node": "diotimac2.local",
+        "processor": "arm",
+        "machine": "arm64",
+        "python_compiler": "Clang 18.1.8 ",
+        "python_implementation": "CPython",
+        "python_implementation_version": "3.11.10",
+        "python_version": "3.11.10",
+        "python_build": [
+            "main",
+            "Oct  1 2024 00:26:49"
+        ],
+        "release": "23.4.0",
+        "system": "Darwin",
+        "cpu": {
+            "python_version": "3.11.10.final.0 (64 bit)",
+            "cpuinfo_version": [
+                9,
+                0,
+                0
+            ],
+            "cpuinfo_version_string": "9.0.0",
+            "arch": "ARM_8",
+            "bits": 64,
+            "count": 8,
+            "arch_string_raw": "arm64",
+            "brand_raw": "Apple M1"
+        }
+    },
+    "commit_info": {
+        "id": "e8b0acf18413d142a4778eb63f40c518f32b94bc",
+        "time": "2024-11-20T10:36:21+01:00",
+        "author_time": "2024-11-20T10:27:23+01:00",
+        "dirty": true,
+        "project": "openfisca-core",
+        "branch": "perf/add-benchmark-to-perf-test"
+    },
+    "benchmarks": [
+        {
+            "group": "Enum.__eq__",
+            "name": "test_benchmark_enum_eq",
+            "fullname": "openfisca_core/indexed_enums/tests/test_enum.py::test_benchmark_enum_eq",
+            "params": null,
+            "param": null,
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 6.116424999891024e-06,
+                "max": 6.239233299857005e-06,
+                "mean": 6.1712051209888155e-06,
+                "stddev": 2.3556546098919103e-08,
+                "rounds": 100,
+                "median": 6.170224949983095e-06,
+                "iqr": 2.8364549962134198e-08,
+                "q1": 6.158277100075793e-06,
+                "q3": 6.186641650037927e-06,
+                "iqr_outliers": 2,
+                "stddev_outliers": 30,
+                "outliers": "30;2",
+                "ld15iqr": 6.116424999891024e-06,
+                "hd15iqr": 6.2380624998695565e-06,
+                "ops": 162042.90416452225,
+                "total": 0.0006171205120988818,
+                "iterations": 10000
+            }
+        },
+        {
+            "group": "Enum.encode (int)",
+            "name": "test_benchmark_enum_encode_int",
+            "fullname": "openfisca_core/indexed_enums/tests/test_enum.py::test_benchmark_enum_encode_int",
+            "params": null,
+            "param": null,
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 6.000000212225132e-07,
+                "max": 4.333400102041196e-06,
+                "mean": 6.603360034205253e-07,
+                "stddev": 3.7118752804099704e-07,
+                "rounds": 100,
+                "median": 6.209000275703147e-07,
+                "iqr": 1.2449982023099353e-08,
+                "q1": 6.166999810375274e-07,
+                "q3": 6.291499630606267e-07,
+                "iqr_outliers": 3,
+                "stddev_outliers": 1,
+                "outliers": "1;3",
+                "ld15iqr": 6.000000212225132e-07,
+                "hd15iqr": 6.584001312148757e-07,
+                "ops": 1514380.5499321925,
+                "total": 6.603360034205245e-05,
+                "iterations": 10
+            }
+        },
+        {
+            "group": "Enum.encode (str)",
+            "name": "test_benchmark_enum_encode_str",
+            "fullname": "openfisca_core/indexed_enums/tests/test_enum.py::test_benchmark_enum_encode_str",
+            "params": null,
+            "param": null,
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.0011514084000737058,
+                "max": 0.005457095800011302,
+                "mean": 0.0013338218729913934,
+                "stddev": 0.0005570327348628046,
+                "rounds": 100,
+                "median": 0.0011803895499724604,
+                "iqr": 3.827289992841543e-05,
+                "q1": 0.0011704437500156927,
+                "q3": 0.0012087166499441082,
+                "iqr_outliers": 16,
+                "stddev_outliers": 6,
+                "outliers": "6;16",
+                "ld15iqr": 0.0011514084000737058,
+                "hd15iqr": 0.0013195624998843414,
+                "ops": 749.7252970947887,
+                "total": 0.13338218729913934,
+                "iterations": 10
+            }
+        },
+        {
+            "group": "Enum.encode (Enum)",
+            "name": "test_benchmark_enum_encode_enum",
+            "fullname": "openfisca_core/indexed_enums/tests/test_enum.py::test_benchmark_enum_encode_enum",
+            "params": null,
+            "param": null,
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.0019466166999336566,
+                "max": 0.0024945540999397053,
+                "mean": 0.0020038005400019755,
+                "stddev": 8.117530790455684e-05,
+                "rounds": 100,
+                "median": 0.001972604149977997,
+                "iqr": 5.918540000493565e-05,
+                "q1": 0.0019553521000489123,
+                "q3": 0.002014537500053848,
+                "iqr_outliers": 11,
+                "stddev_outliers": 15,
+                "outliers": "15;11",
+                "ld15iqr": 0.0019466166999336566,
+                "hd15iqr": 0.002103391700075008,
+                "ops": 499.05166708808946,
+                "total": 0.2003800540001976,
+                "iterations": 10
+            }
+        },
+        {
+            "group": "EnumArray.__eq__",
+            "name": "test_benchmark_enum_array_eq",
+            "fullname": "openfisca_core/indexed_enums/tests/test_enum_array.py::test_benchmark_enum_array_eq",
+            "params": null,
+            "param": null,
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 8.86542000444024e-06,
+                "max": 9.384160002809948e-06,
+                "mean": 8.935446600662544e-06,
+                "stddev": 1.0087850596955905e-07,
+                "rounds": 100,
+                "median": 8.896874996935366e-06,
+                "iqr": 4.874999831372528e-08,
+                "q1": 8.881044996087438e-06,
+                "q3": 8.929794994401163e-06,
+                "iqr_outliers": 15,
+                "stddev_outliers": 10,
+                "outliers": "10;15",
+                "ld15iqr": 8.86542000444024e-06,
+                "hd15iqr": 9.002920014609117e-06,
+                "ops": 111913.82419831734,
+                "total": 0.0008935446600662543,
+                "iterations": 100
+            }
+        },
+        {
+            "group": "EnumArray.decode",
+            "name": "test_benchmark_enum_array_decode",
+            "fullname": "openfisca_core/indexed_enums/tests/test_enum_array.py::test_benchmark_enum_array_decode",
+            "params": null,
+            "param": null,
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.0007523354099976131,
+                "max": 0.0015013620799982164,
+                "mean": 0.0007657737745999838,
+                "stddev": 7.457900895775381e-05,
+                "rounds": 100,
+                "median": 0.0007576514599986695,
+                "iqr": 4.303959995013377e-06,
+                "q1": 0.0007556031250078377,
+                "q3": 0.0007599070850028511,
+                "iqr_outliers": 3,
+                "stddev_outliers": 1,
+                "outliers": "1;3",
+                "ld15iqr": 0.0007523354099976131,
+                "hd15iqr": 0.000770621250012482,
+                "ops": 1305.8686953890117,
+                "total": 0.07657737745999839,
+                "iterations": 100
+            }
+        },
+        {
+            "group": "EnumArray.decode_to_str",
+            "name": "test_benchmark_enum_array_decode_to_str",
+            "fullname": "openfisca_core/indexed_enums/tests/test_enum_array.py::test_benchmark_enum_array_decode_to_str",
+            "params": null,
+            "param": null,
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.0008616308300042875,
+                "max": 0.0009163904200067918,
+                "mean": 0.0008716657909002606,
+                "stddev": 9.943622783295886e-06,
+                "rounds": 100,
+                "median": 0.0008683410449975782,
+                "iqr": 6.7525050053518325e-06,
+                "q1": 0.00086608999499731,
+                "q3": 0.0008728425000026619,
+                "iqr_outliers": 11,
+                "stddev_outliers": 12,
+                "outliers": "12;11",
+                "ld15iqr": 0.0008616308300042875,
+                "hd15iqr": 0.0008845904199915822,
+                "ops": 1147.2286860852892,
+                "total": 0.08716657909002602,
+                "iterations": 100
+            }
+        }
+    ],
+    "datetime": "2024-11-20T09:48:12.053939+00:00",
+    "version": "5.1.0"
+}
