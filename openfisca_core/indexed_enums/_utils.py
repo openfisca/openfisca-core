@@ -118,9 +118,9 @@ def _int_to_index(
         array([1, 1], dtype=uint8)
 
     """
-    return numpy.array(
-        [index for index in value if index < len(enum_class.__members__)], t.EnumDType
-    )
+    indices = enum_class.indices
+    values = numpy.array(value, copy=False)
+    return values[values < indices.size].astype(t.EnumDType)
 
 
 def _str_to_index(
@@ -175,7 +175,7 @@ def _str_to_index(
     """
     values = numpy.array(value, copy=False)
     names = enum_class.names
-    mask = numpy.isin(values, enum_class.names)
+    mask = numpy.isin(values, names)
     sorter = numpy.argsort(names)
     result = sorter[numpy.searchsorted(names, values[mask], sorter=sorter)]
     return result.astype(t.EnumDType)
