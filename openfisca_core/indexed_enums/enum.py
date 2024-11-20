@@ -120,25 +120,6 @@ class Enum(t.Enum, metaclass=EnumType):
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.name}"
 
-    def __hash__(self) -> int:
-        return object.__hash__(self.__class__.__name__ + self.name)
-
-    def __eq__(self, other: object) -> bool:
-        if (
-            isinstance(other, Enum)
-            and self.__class__.__name__ == other.__class__.__name__
-        ):
-            return self.index == other.index
-        return NotImplemented
-
-    def __ne__(self, other: object) -> bool:
-        if (
-            isinstance(other, Enum)
-            and self.__class__.__name__ == other.__class__.__name__
-        ):
-            return self.index != other.index
-        return NotImplemented
-
     @classmethod
     def encode(cls, array: t.VarArray | t.ArrayLike[object]) -> t.EnumArray:
         """Encode an encodable array into an :class:`.EnumArray`.
@@ -211,7 +192,7 @@ class Enum(t.Enum, metaclass=EnumType):
             indices = _int_to_index(cls, value)
         elif _is_str_array(value):  # type: ignore[unreachable]
             indices = _str_to_index(cls, value)
-        elif _is_enum_array(value) and cls.__name__ is value[0].__class__.__name__:
+        elif _is_enum_array(value) and cls == value[0].__class__:
             indices = _enum_to_index(value)
         else:
             raise EnumEncodingError(cls, value)
