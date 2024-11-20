@@ -146,4 +146,15 @@ def test_benchmark_enum_eq(benchmark):
             for colour in Colour:
                 assert animal != colour
 
-    benchmark.pedantic(test, iterations=100, rounds=1000)
+    benchmark.pedantic(test, iterations=10, rounds=50000)
+
+
+def test_benchmark_enum_encode(benchmark):
+    """Benchmark the `Enum.encode` method."""
+    array = numpy.array([Animal.DOG, Animal.CAT, Animal.DOG])
+
+    def test():
+        enum_array = Animal.encode(array)
+        assert_array_equal(enum_array, numpy.array([1, 0, 1]))
+
+    benchmark.pedantic(test, iterations=10, rounds=50000)
