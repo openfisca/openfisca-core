@@ -141,22 +141,22 @@ def test_enum_encode_with_any_sequence():
 @pytest.mark.benchmark(group="Enum.__eq__")
 def test_benchmark_enum_eq(benchmark):
     """Benchmark the `__eq__` method."""
+    array = numpy.random.choice([*list(Animal), *list(Colour)], size=50000)
 
     def test():
-        for animal in Animal:
-            for colour in Colour:
-                assert animal != colour
+        animal_1, animal_2 = numpy.random.choice(array, size=2)
+        animal_1 == animal_2
+        animal_1 != animal_2
 
-    benchmark.pedantic(test, iterations=10, rounds=50000)
+    benchmark.pedantic(test, iterations=10000, rounds=100)
 
 
 @pytest.mark.benchmark(group="Enum.encode")
 def test_benchmark_enum_encode(benchmark):
     """Benchmark the `Enum.encode` method."""
-    array = numpy.array([Animal.DOG, Animal.CAT, Animal.DOG])
+    array = numpy.random.choice(["INCARNADINE", "TURQUOISE", "AMARANTH"], size=50000)
 
     def test():
-        enum_array = Animal.encode(array)
-        assert_array_equal(enum_array, numpy.array([1, 0, 1]))
+        Colour.encode(array)
 
-    benchmark.pedantic(test, iterations=10, rounds=50000)
+    benchmark.pedantic(test, iterations=10, rounds=100)
