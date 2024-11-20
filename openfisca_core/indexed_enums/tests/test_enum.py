@@ -138,6 +138,7 @@ def test_enum_encode_with_any_sequence():
 # Benchmarking
 
 
+@pytest.mark.benchmark(group="Enum.__eq__")
 def test_benchmark_enum_eq(benchmark):
     """Benchmark the `__eq__` method."""
 
@@ -149,6 +150,7 @@ def test_benchmark_enum_eq(benchmark):
     benchmark.pedantic(test, iterations=10, rounds=50000)
 
 
+@pytest.mark.benchmark(group="Enum.encode")
 def test_benchmark_enum_encode(benchmark):
     """Benchmark the `Enum.encode` method."""
     array = numpy.array([Animal.DOG, Animal.CAT, Animal.DOG])
