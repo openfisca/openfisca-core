@@ -92,8 +92,7 @@ def _int_to_index(
         ...     )
 
         >>> _int_to_index(Road, 1)
-        Traceback (most recent call last):
-        TypeError: 'int' object is not iterable
+        array([1], dtype=uint8)
 
         >>> _int_to_index(Road, [1])
         array([1], dtype=uint8)
@@ -105,8 +104,7 @@ def _int_to_index(
         array([1], dtype=uint8)
 
         >>> _int_to_index(Road, numpy.array(1))
-        Traceback (most recent call last):
-        TypeError: iteration over a 0-d array
+        array([1], dtype=uint8)
 
         >>> _int_to_index(Road, numpy.array([1]))
         array([1], dtype=uint8)
