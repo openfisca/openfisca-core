@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 
-from . import types as t
+from openfisca_core import types as t
 
 
 @dataclasses.dataclass
