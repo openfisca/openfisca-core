@@ -133,3 +133,52 @@ def test_enum_encode_with_any_sequence():
     sequence = memoryview(b"DOG")
     with pytest.raises(IndexError):
         Animal.encode(sequence)
+
+
+# Benchmarking
+
+
+@pytest.mark.benchmark(group="Enum.__eq__")
+def test_benchmark_enum_eq(benchmark):
+    """Benchmark the `__eq__` method."""
+    array = numpy.random.choice([*list(Animal), *list(Colour)], size=50000)
+
+    def test():
+        animal_1, animal_2 = numpy.random.choice(array, size=2)
+        animal_1 == animal_2
+        animal_1 != animal_2
+
+    benchmark.pedantic(test, iterations=10000, rounds=100)
+
+
+@pytest.mark.benchmark(group="Enum.encode (int)")
+def test_benchmark_enum_encode_int(benchmark):
+    """Benchmark the `Enum.encode` method."""
+    array = numpy.random.choice([0, 1, 2], size=50000)
+
+    def test():
+        Colour.encode(array)
+
+    benchmark.pedantic(test, iterations=10, rounds=100)
+
+
+@pytest.mark.benchmark(group="Enum.encode (str)")
+def test_benchmark_enum_encode_str(benchmark):
+    """Benchmark the `Enum.encode` method."""
+    array = numpy.random.choice(["INCARNADINE", "TURQUOISE", "AMARANTH"], size=50000)
+
+    def test():
+        Colour.encode(array)
+
+    benchmark.pedantic(test, iterations=10, rounds=100)
+
+
+@pytest.mark.benchmark(group="Enum.encode (Enum)")
+def test_benchmark_enum_encode_enum(benchmark):
+    """Benchmark the `Enum.encode` method."""
+    array = numpy.random.choice(list(Colour), size=50000)
+
+    def test():
+        Colour.encode(array)
+
+    benchmark.pedantic(test, iterations=10, rounds=100)

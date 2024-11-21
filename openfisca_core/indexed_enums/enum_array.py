@@ -153,10 +153,7 @@ class EnumArray(t.EnumArray):
             return NotImplemented
         if other is None:
             return NotImplemented
-        if (
-            isinstance(other, type(t.Enum))
-            and other.__name__ is self.possible_values.__name__
-        ):
+        if isinstance(other, type(t.Enum)) and other == self.possible_values:
             result = (
                 self.view(numpy.ndarray)
                 == self.possible_values.indices[
@@ -164,10 +161,7 @@ class EnumArray(t.EnumArray):
                 ]
             )
             return result
-        if (
-            isinstance(other, t.Enum)
-            and other.__class__.__name__ is self.possible_values.__name__
-        ):
+        if isinstance(other, t.Enum) and other.__class__ == self.possible_values:
             result = self.view(numpy.ndarray) == other.index
             return result
         # For NumPy >=1.26.x.

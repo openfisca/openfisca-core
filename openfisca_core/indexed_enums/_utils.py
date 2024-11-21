@@ -92,8 +92,7 @@ def _int_to_index(
         ...     )
 
         >>> _int_to_index(Road, 1)
-        Traceback (most recent call last):
-        TypeError: 'int' object is not iterable
+        array([1], dtype=uint8)
 
         >>> _int_to_index(Road, [1])
         array([1], dtype=uint8)
@@ -105,8 +104,7 @@ def _int_to_index(
         array([1], dtype=uint8)
 
         >>> _int_to_index(Road, numpy.array(1))
-        Traceback (most recent call last):
-        TypeError: iteration over a 0-d array
+        array([1], dtype=uint8)
 
         >>> _int_to_index(Road, numpy.array([1]))
         array([1], dtype=uint8)
@@ -118,9 +116,9 @@ def _int_to_index(
         array([1, 1], dtype=uint8)
 
     """
-    return numpy.array(
-        [index for index in value if index < len(enum_class.__members__)], t.EnumDType
-    )
+    indices = enum_class.indices
+    values = numpy.array(value, copy=False)
+    return values[values < indices.size].astype(t.EnumDType)
 
 
 def _str_to_index(
@@ -155,14 +153,13 @@ def _str_to_index(
         ...     )
 
         >>> _str_to_index(Road, "AVENUE")
-        array([], dtype=uint8)
+        array([1], dtype=uint8)
 
         >>> _str_to_index(Road, ["AVENUE"])
         array([1], dtype=uint8)
 
         >>> _str_to_index(Road, numpy.array("AVENUE"))
-        Traceback (most recent call last):
-        TypeError: iteration over a 0-d array
+        array([1], dtype=uint8)
 
         >>> _str_to_index(Road, numpy.array(["AVENUE"]))
         array([1], dtype=uint8)
@@ -174,14 +171,12 @@ def _str_to_index(
         array([1, 1], dtype=uint8)
 
     """
-    return numpy.array(
-        [
-            enum_class.__members__[name].index
-            for name in value
-            if name in enum_class._member_names_
-        ],
-        t.EnumDType,
-    )
+    values = numpy.array(value, copy=False)
+    names = enum_class.names
+    mask = numpy.isin(values, names)
+    sorter = numpy.argsort(names)
+    result = sorter[numpy.searchsorted(names, values[mask], sorter=sorter)]
+    return result.astype(t.EnumDType)
 
 
 __all__ = ["_enum_to_index", "_int_to_index", "_str_to_index"]

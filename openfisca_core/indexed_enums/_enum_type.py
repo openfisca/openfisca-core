@@ -66,5 +66,14 @@ class EnumType(t.EnumType):
     def __dir__(cls) -> list[str]:
         return sorted({"indices", "names", "enums", *super().__dir__()})
 
+    def __hash__(cls) -> int:
+        return object.__hash__(cls.__name__)
+
+    def __eq__(cls, other: object) -> bool:
+        return hash(cls) == hash(other)
+
+    def __ne__(cls, other: object) -> bool:
+        return hash(cls) != hash(other)
+
 
 __all__ = ["EnumType"]
