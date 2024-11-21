@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
 
-from . import types as t
+from openfisca_core import types as t
+
 from .entity import Entity as SingleEntity
 from .group_entity import GroupEntity
 
@@ -15,7 +16,6 @@ def build_entity(
     roles: None | Sequence[t.RoleParams] = None,
     is_person: bool = False,
     *,
-    class_override: object = None,
     containing_entities: Sequence[str] = (),
 ) -> t.SingleEntity | t.GroupEntity:
     """Build an ``Entity`` or a ``GroupEntity``.
@@ -27,7 +27,6 @@ def build_entity(
         doc: A full description.
         roles: A list of roles —if it's a ``GroupEntity``.
         is_person: If is an individual, or not.
-        class_override: ?
         containing_entities: Keys of contained entities.
 
     Returns:
@@ -104,8 +103,7 @@ def find_role(
         None: Else ``None``.
 
     Examples:
-        >>> from openfisca_core import entities
-        >>> from openfisca_core.entities import types as t
+        >>> from openfisca_core import entities, types as t
 
         >>> principal = t.RoleParams(
         ...     key="principal",

@@ -1,20 +1,20 @@
 from __future__ import annotations
 
 from collections.abc import KeysView, MutableMapping
+from typing import Generic, TypeVar
 
 import os
 import shutil
 
 import numpy
 
-from openfisca_core import periods
-from openfisca_core.indexed_enums import EnumArray
-from openfisca_core.periods import DateUnit
+from openfisca_core import indexed_enums as enum, periods, types as t
 
-from . import types as t
+#: Type var for numpy arrays (invariant).
+_N = TypeVar("_N", bound=t.VarDType)
 
 
-class OnDiskStorage:
+class OnDiskStorage(Generic[_N]):
     """Storing and retrieving calculated vectors on disk.
 
     Args:
@@ -44,7 +44,7 @@ class OnDiskStorage:
         storage_dir: str,
         is_eternal: bool = False,
         preserve_storage_dir: bool = False,
-        enums: MutableMapping[str, type[t.Enum]] | None = None,
+        enums: None | MutableMapping[str, type[t.Enum]] = None,
     ) -> None:
         self._files = {}
         self._enums = {} if enums is None else enums
@@ -52,55 +52,16 @@ class OnDiskStorage:
         self.preserve_storage_dir = preserve_storage_dir
         self.storage_dir = storage_dir
 
-    def _decode_file(self, file: str) -> t.Array[t.DTypeGeneric]:
-        """Decode a file by loading its contents as a :mod:`numpy` array.
+    def __del__(self) -> None:
+        if self.preserve_storage_dir:
+            return
+        shutil.rmtree(self.storage_dir)  # Remove the holder temporary files
+        # If the simulation temporary directory is empty, remove it
+        parent_dir = os.path.abspath(os.path.join(self.storage_dir, os.pardir))
+        if not os.listdir(parent_dir):
+            shutil.rmtree(parent_dir)
 
-        Args:
-            file: Path to the file to be decoded.
-
-        Returns:
-            EnumArray: Representing the data in the file.
-            ndarray[generic]: Representing the data in the file.
-
-        Note:
-            If the file is associated with :class:`~indexed_enums.Enum` values, the
-            array is converted back to an :obj:`~indexed_enums.EnumArray` object.
-
-        Examples:
-            >>> import tempfile
-
-            >>> import numpy
-
-            >>> from openfisca_core import data_storage, indexed_enums, periods
-
-            >>> class Housing(indexed_enums.Enum):
-            ...     OWNER = "Owner"
-            ...     TENANT = "Tenant"
-            ...     FREE_LODGER = "Free lodger"
-            ...     HOMELESS = "Homeless"
-
-            >>> array = numpy.array([1])
-            >>> value = indexed_enums.EnumArray(array, Housing)
-            >>> instant = periods.Instant((2017, 1, 1))
-            >>> period = periods.Period(("year", instant, 1))
-
-            >>> with tempfile.TemporaryDirectory() as directory:
-            ...     storage = data_storage.OnDiskStorage(directory)
-            ...     storage.put(value, period)
-            ...     storage._decode_file(storage._files[period])
-            EnumArray([Housing.TENANT])
-
-        """
-        enum = self._enums.get(self.storage_dir)
-
-        if enum is not None:
-            return EnumArray(numpy.load(file), enum)
-
-        array: t.Array[t.DTypeGeneric] = numpy.load(file)
-
-        return array
-
-    def get(self, period: None | t.Period = None) -> None | t.Array[t.DTypeGeneric]:
+    def get(self, period: None | t.Period = None) -> None | t.Array[_N]:
         """Retrieve the data for the specified period from disk.
 
         Args:
@@ -130,7 +91,7 @@ class OnDiskStorage:
 
         """
         if self.is_eternal:
-            period = periods.period(DateUnit.ETERNITY)
+            period = periods.Period.eternity()
         period = periods.period(period)
 
         values = self._files.get(period)
@@ -138,7 +99,7 @@ class OnDiskStorage:
             return None
         return self._decode_file(values)
 
-    def put(self, value: t.Array[t.DTypeGeneric], period: None | t.Period) -> None:
+    def put(self, value: t.Array[_N], period: None | t.Period) -> None:
         """Store the specified data on disk for the specified period.
 
         Args:
@@ -164,12 +125,12 @@ class OnDiskStorage:
 
         """
         if self.is_eternal:
-            period = periods.period(DateUnit.ETERNITY)
+            period = periods.Period.eternity()
         period = periods.period(period)
 
         filename = str(period)
         path = os.path.join(self.storage_dir, filename) + ".npy"
-        if isinstance(value, EnumArray) and value.possible_values is not None:
+        if isinstance(value, enum.EnumArray) and value.possible_values is not None:
             self._enums[self.storage_dir] = value.possible_values
             value = value.view(numpy.ndarray)
         numpy.save(path, value)
@@ -217,7 +178,7 @@ class OnDiskStorage:
             return
 
         if self.is_eternal:
-            period = periods.period(DateUnit.ETERNITY)
+            period = periods.Period.eternity()
         period = periods.period(period)
 
         self._files = {
@@ -297,14 +258,53 @@ class OnDiskStorage:
             period = periods.period(filename_core)
             files[period] = path
 
-    def __del__(self) -> None:
-        if self.preserve_storage_dir:
-            return
-        shutil.rmtree(self.storage_dir)  # Remove the holder temporary files
-        # If the simulation temporary directory is empty, remove it
-        parent_dir = os.path.abspath(os.path.join(self.storage_dir, os.pardir))
-        if not os.listdir(parent_dir):
-            shutil.rmtree(parent_dir)
+    def _decode_file(self, file: str) -> t.Array[_N]:
+        """Decode a file by loading its contents as a :mod:`numpy` array.
+
+        Args:
+            file: Path to the file to be decoded.
+
+        Returns:
+            EnumArray: Representing the data in the file.
+            ndarray[generic]: Representing the data in the file.
+
+        Note:
+            If the file is associated with :class:`~indexed_enums.Enum` values, the
+            array is converted back to an :obj:`~indexed_enums.EnumArray` object.
+
+        Examples:
+            >>> import tempfile
+
+            >>> import numpy
+
+            >>> from openfisca_core import data_storage, indexed_enums, periods
+
+            >>> class Housing(indexed_enums.Enum):
+            ...     OWNER = "Owner"
+            ...     TENANT = "Tenant"
+            ...     FREE_LODGER = "Free lodger"
+            ...     HOMELESS = "Homeless"
+
+            >>> array = numpy.array([1])
+            >>> value = indexed_enums.EnumArray(array, Housing)
+            >>> instant = periods.Instant((2017, 1, 1))
+            >>> period = periods.Period(("year", instant, 1))
+
+            >>> with tempfile.TemporaryDirectory() as directory:
+            ...     storage = data_storage.OnDiskStorage(directory)
+            ...     storage.put(value, period)
+            ...     storage._decode_file(storage._files[period])
+            EnumArray([Housing.TENANT])
+
+        """
+        enum_class = self._enums.get(self.storage_dir)
+
+        if enum_class is not None:
+            return enum.EnumArray(numpy.load(file), enum_class)
+
+        array: t.Array[_N] = numpy.load(file)
+
+        return array
 
 
 __all__ = ["OnDiskStorage"]

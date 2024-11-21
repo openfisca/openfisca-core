@@ -21,7 +21,6 @@
 #
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
-from . import typing
 from .entity_to_person_projector import EntityToPersonProjector
 from .first_person_to_entity_projector import FirstPersonToEntityProjector
 from .helpers import get_projector_from_shortcut, projectable
@@ -31,9 +30,8 @@ from .unique_role_to_entity_projector import UniqueRoleToEntityProjector
 __all__ = [
     "EntityToPersonProjector",
     "FirstPersonToEntityProjector",
-    "get_projector_from_shortcut",
-    "projectable",
     "Projector",
     "UniqueRoleToEntityProjector",
-    "typing",
+    "get_projector_from_shortcut",
+    "projectable",
 ]
