@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.2.7 [#1300](https://github.com/openfisca/openfisca-core/pull/1300)
+
+#### Technical changes
+
+- Move types from `openfisca_core.commons` to `openfisca_core`
+
 ### 43.2.6 [#1297](https://github.com/openfisca/openfisca-core/pull/1297)
 
 #### Bugfix
