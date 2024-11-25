@@ -63,6 +63,20 @@ class TestFile(YamlFile):
 
 
 class TestItem(YamlItem):
+    """
+    Mock a YamlItem for tests.
+
+    Usage example:
+        testFile = TestFile.from_parent(parent=None)
+        test = {
+            "input": {...},
+            "output": {...}
+        }
+        test_item = TestItem.from_parent(parent=testFile, test=test)
+
+    where 'from_parent' is inherited from pytest.Item through YamlItem
+    """
+
     def __init__(self, test, **kwargs) -> None:
         # get expected 'parent' from kwargs (comes from 'from_parent')
         super().__init__(name="", path="", baseline_tax_benefit_system=TaxBenefitSystem(), test=test, options={}, **kwargs)
@@ -193,15 +207,12 @@ def test_performance_tables_option_output() -> None:
 
 
 def test_trace() -> None:
-    rootParent = None
-    testFile = TestFile.from_parent(rootParent)
-
+    testFile = TestFile.from_parent(parent=None)
     test = {
         "input": {"salary": {"2017-01": 2000}},
         "output": {"salary": {"2017-01": 2000}},
     }
     test_item = TestItem.from_parent(parent=testFile, test=test)
-    # 'from_parent' inherited from pytest.Item through YamlItem
     test_item.options = {"verbose": True}
 
     assert test_item.tax_benefit_system.get_variable("salary") is not None
