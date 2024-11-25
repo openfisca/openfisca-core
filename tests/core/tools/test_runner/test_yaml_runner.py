@@ -184,13 +184,13 @@ def test_performance_graph_option_output() -> None:
     clean_performance_files(paths)
 
 
-@pytest.mark.skip(reason="Deprecated node constructor")
 def test_performance_tables_option_output() -> None:
+    testFile = TestFile.from_parent(parent=None)
     test = {
         "input": {"salary": {"2017-01": 2000}},
         "output": {"salary": {"2017-01": 2000}},
     }
-    test_item = TestItem(test)
+    test_item = TestItem.from_parent(parent=testFile, test=test)
     test_item.options = {"performance_tables": True}
 
     paths = ["performance_table.csv", "aggregated_performance_table.csv"]
