@@ -259,7 +259,7 @@ class YamlItem(pytest.Item):
             tracer = self.simulation.tracer
             if verbose:
                 if max_depth is None:
-                    max_depth = sys.maxsize  # Print full tree
+                    max_depth = sys.maxsize  # Print trace full depth
                 self.print_computation_log(tracer, aggregate, max_depth)
             if performance_graph:
                 self.generate_performance_graph(tracer)
