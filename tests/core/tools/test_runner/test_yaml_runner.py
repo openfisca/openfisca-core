@@ -103,11 +103,12 @@ class TestVariable(Variable):
         self.dtype = numpy.float32
 
 
-@pytest.mark.skip(reason="Deprecated node constructor")
 def test_variable_not_found() -> None:
+    test_file = TestFile.from_parent(parent=None)
     test = {"output": {"unknown_variable": 0}}
     with pytest.raises(errors.VariableNotFoundError) as excinfo:
-        test_item = TestItem(test)
+        test_item = TestItem.from_parent(parent=test_file, test=test)
+        test_item.simulation = Simulation()
         test_item.check_output()
     assert excinfo.value.variable_name == "unknown_variable"
 
@@ -169,12 +170,12 @@ def test_extensions_order() -> None:
 
 
 def test_performance_graph_option_output() -> None:
-    testFile = TestFile.from_parent(parent=None)
+    test_file = TestFile.from_parent(parent=None)
     test = {
         "input": {"salary": {"2017-01": 2000}},
         "output": {"salary": {"2017-01": 2000}},
     }
-    test_item = TestItem.from_parent(parent=testFile, test=test)
+    test_item = TestItem.from_parent(parent=test_file, test=test)
     test_item.options = {"performance_graph": True}
 
     paths = ["./performance_graph.html"]
@@ -191,12 +192,12 @@ def test_performance_graph_option_output() -> None:
 
 
 def test_performance_tables_option_output() -> None:
-    testFile = TestFile.from_parent(parent=None)
+    test_file = TestFile.from_parent(parent=None)
     test = {
         "input": {"salary": {"2017-01": 2000}},
         "output": {"salary": {"2017-01": 2000}},
     }
-    test_item = TestItem.from_parent(parent=testFile, test=test)
+    test_item = TestItem.from_parent(parent=test_file, test=test)
     test_item.options = {"performance_tables": True}
 
     paths = ["performance_table.csv", "aggregated_performance_table.csv"]
@@ -213,8 +214,8 @@ def test_performance_tables_option_output() -> None:
 
 
 def test_verbose_option_output(capsys) -> None:
-    testFile = TestFile.from_parent(parent=None)
-    
+    test_file = TestFile.from_parent(parent=None)
+
     expected_output_variable = "salary"
     expected_output_date = "2017-01"
     expected_output_value = 2000
@@ -222,7 +223,8 @@ def test_verbose_option_output(capsys) -> None:
         "input": {"salary": {"2017-01": 2000}},
         "output": {expected_output_variable: {expected_output_date: expected_output_value}},
     }
-    test_item = TestItem.from_parent(parent=testFile, test=test)
+
+    test_item = TestItem.from_parent(parent=test_file, test=test)
 
     # TestItem init should instantiate the TaxBenefitSystem
     assert test_item.tax_benefit_system.get_variable("salary") is not None
