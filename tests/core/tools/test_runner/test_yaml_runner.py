@@ -70,7 +70,7 @@ class TestItem(YamlItem):
         testFile = TestFile.from_parent(parent=None)
         test = {
             "input": {...},
-            "output": {...}
+            "output": {...},  # noqa RST201
         }
         test_item = TestItem.from_parent(parent=testFile, test=test)
 
@@ -79,7 +79,14 @@ class TestItem(YamlItem):
 
     def __init__(self, test, **kwargs) -> None:
         # get expected 'parent' from kwargs (comes from 'from_parent')
-        super().__init__(name="", path="", baseline_tax_benefit_system=TaxBenefitSystem(), test=test, options={}, **kwargs)
+        super().__init__(
+            name="",
+            path="",
+            baseline_tax_benefit_system=TaxBenefitSystem(),
+            test=test,
+            options={},
+            **kwargs,
+        )
 
         self.tax_benefit_system: TaxBenefitSystem = self.baseline_tax_benefit_system
 
@@ -212,10 +219,10 @@ def test_trace(capsys) -> None:
         "output": {"salary": {"2017-01": 2000}},
     }
     test_item = TestItem.from_parent(parent=testFile, test=test)
-    
-    # TestItem init should instanciate the TaxBenefitSystem
+
+    # TestItem init should instantiate the TaxBenefitSystem
     assert test_item.tax_benefit_system.get_variable("salary") is not None
-    
+
     test_item.options = {"verbose": True}
     test_item.runtest()
     captured = capsys.readouterr()
@@ -223,9 +230,9 @@ def test_trace(capsys) -> None:
     # TestItem.runtest should set the trace attribute from the 'verbose' option
     assert test_item.simulation.trace is True
     assert test_item
-    
+
     # TestItem.runtest should run print_computation_log
-    assert captured.out is not ''
+    assert captured.out != ""
 
 
 def clean_performance_files(paths: list[str]) -> None:
