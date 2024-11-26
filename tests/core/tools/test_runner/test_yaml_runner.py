@@ -212,11 +212,15 @@ def test_performance_tables_option_output() -> None:
     clean_performance_files(paths)
 
 
-def test_trace(capsys) -> None:
+def test_verbose_option_output(capsys) -> None:
     testFile = TestFile.from_parent(parent=None)
+    
+    expected_output_variable = "salary"
+    expected_output_date = "2017-01"
+    expected_output_value = 2000
     test = {
         "input": {"salary": {"2017-01": 2000}},
-        "output": {"salary": {"2017-01": 2000}},
+        "output": {expected_output_variable: {expected_output_date: expected_output_value}},
     }
     test_item = TestItem.from_parent(parent=testFile, test=test)
 
@@ -229,10 +233,12 @@ def test_trace(capsys) -> None:
 
     # TestItem.runtest should set the trace attribute from the 'verbose' option
     assert test_item.simulation.trace is True
-    assert test_item
 
     # TestItem.runtest should run print_computation_log
     assert captured.out != ""
+    assert expected_output_variable in captured.out
+    assert expected_output_date in captured.out
+    assert str(expected_output_value) in captured.out
 
 
 def clean_performance_files(paths: list[str]) -> None:
