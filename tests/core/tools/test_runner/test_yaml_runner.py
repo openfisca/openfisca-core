@@ -88,8 +88,6 @@ class TestItem(YamlItem):
             **kwargs,
         )
 
-        self.tax_benefit_system: TaxBenefitSystem = self.baseline_tax_benefit_system
-
 
 class TestVariable(Variable):
     definition_period = DateUnit.ETERNITY
@@ -108,6 +106,7 @@ def test_variable_not_found() -> None:
     test = {"output": {"unknown_variable": 0}}
     with pytest.raises(errors.VariableNotFoundError) as excinfo:
         test_item = TestItem.from_parent(parent=test_file, test=test)
+        test_item.tax_benefit_system = test_item.baseline_tax_benefit_system
         test_item.simulation = Simulation()
         test_item.check_output()
     assert excinfo.value.variable_name == "unknown_variable"
@@ -169,6 +168,24 @@ def test_extensions_order() -> None:
     )  # extensions order is ignored in cache
 
 
+def test_runtest() -> None:
+    test_file = TestFile.from_parent(parent=None)
+    test = {
+        "input": {"salary": {"2017-01": 2000}},
+        "output": {"salary": {"2017-01": 2000}},
+    }
+    test_item = TestItem.from_parent(parent=test_file, test=test)
+
+    # TestItem init should instantiate the baseline TaxBenefitSystem
+    assert test_item.baseline_tax_benefit_system.get_variable("salary") is not None
+
+    test_item.runtest()
+
+    # TestItem.runtest(...) should instantiate the TaxBenefitSystem and the Simulation
+    assert test_item.tax_benefit_system.get_variable("salary") is not None
+    assert test_item.simulation is not None
+
+
 def test_performance_graph_option_output() -> None:
     test_file = TestFile.from_parent(parent=None)
     test = {
@@ -225,9 +242,6 @@ def test_verbose_option_output(capsys) -> None:
     }
 
     test_item = TestItem.from_parent(parent=test_file, test=test)
-
-    # TestItem init should instantiate the TaxBenefitSystem
-    assert test_item.tax_benefit_system.get_variable("salary") is not None
 
     test_item.options = {"verbose": True}
     test_item.runtest()
