@@ -82,7 +82,6 @@ class TestItem(YamlItem):
         super().__init__(name="", path="", baseline_tax_benefit_system=TaxBenefitSystem(), test=test, options={}, **kwargs)
 
         self.tax_benefit_system: TaxBenefitSystem = self.baseline_tax_benefit_system
-        self.simulation = Simulation()
 
 
 class TestVariable(Variable):
@@ -206,20 +205,27 @@ def test_performance_tables_option_output() -> None:
     clean_performance_files(paths)
 
 
-def test_trace() -> None:
+def test_trace(capsys) -> None:
     testFile = TestFile.from_parent(parent=None)
     test = {
         "input": {"salary": {"2017-01": 2000}},
         "output": {"salary": {"2017-01": 2000}},
     }
     test_item = TestItem.from_parent(parent=testFile, test=test)
-    test_item.options = {"verbose": True}
-
+    
+    # TestItem init should instanciate the TaxBenefitSystem
     assert test_item.tax_benefit_system.get_variable("salary") is not None
-
+    
+    test_item.options = {"verbose": True}
     test_item.runtest()
+    captured = capsys.readouterr()
 
-    assert test_item.simulation.trace
+    # TestItem.runtest should set the trace attribute from the 'verbose' option
+    assert test_item.simulation.trace is True
+    assert test_item
+    
+    # TestItem.runtest should run print_computation_log
+    assert captured.out is not ''
 
 
 def clean_performance_files(paths: list[str]) -> None:
