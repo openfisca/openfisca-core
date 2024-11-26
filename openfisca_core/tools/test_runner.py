@@ -208,8 +208,8 @@ class YamlItem(pytest.Item):
     def __init__(self, *, baseline_tax_benefit_system, test, options, **kwargs) -> None:
         super().__init__(**kwargs)
         self.baseline_tax_benefit_system = baseline_tax_benefit_system
-        self.options = options
         self.test = build_test(test)
+        self.options = options
         self.simulation = None
         self.tax_benefit_system = None
 
@@ -258,6 +258,8 @@ class YamlItem(pytest.Item):
         finally:
             tracer = self.simulation.tracer
             if verbose:
+                if max_depth is None:
+                    max_depth = sys.maxsize  # Print trace full depth
                 self.print_computation_log(tracer, aggregate, max_depth)
             if performance_graph:
                 self.generate_performance_graph(tracer)

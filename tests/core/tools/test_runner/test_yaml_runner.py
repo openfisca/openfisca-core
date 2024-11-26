@@ -63,11 +63,30 @@ class TestFile(YamlFile):
 
 
 class TestItem(YamlItem):
-    def __init__(self, test) -> None:
-        super().__init__("", TestFile(), TaxBenefitSystem(), test, {})
+    """
+    Mock a YamlItem for tests.
 
-        self.tax_benefit_system = self.baseline_tax_benefit_system
-        self.simulation = Simulation()
+    Usage example:
+        testFile = TestFile.from_parent(parent=None)
+        test = {
+            "input": {...},
+            "output": {...},  # noqa RST201
+        }
+        test_item = TestItem.from_parent(parent=testFile, test=test)
+
+    where 'from_parent' is inherited from pytest.Item through YamlItem
+    """
+
+    def __init__(self, test, **kwargs) -> None:
+        # get expected 'parent' from kwargs (comes from 'from_parent')
+        super().__init__(
+            name="",
+            path="",
+            baseline_tax_benefit_system=TaxBenefitSystem(),
+            test=test,
+            options={},
+            **kwargs,
+        )
 
 
 class TestVariable(Variable):
@@ -82,11 +101,13 @@ class TestVariable(Variable):
         self.dtype = numpy.float32
 
 
-@pytest.mark.skip(reason="Deprecated node constructor")
 def test_variable_not_found() -> None:
+    test_file = TestFile.from_parent(parent=None)
     test = {"output": {"unknown_variable": 0}}
     with pytest.raises(errors.VariableNotFoundError) as excinfo:
-        test_item = TestItem(test)
+        test_item = TestItem.from_parent(parent=test_file, test=test)
+        test_item.tax_benefit_system = test_item.baseline_tax_benefit_system
+        test_item.simulation = Simulation()
         test_item.check_output()
     assert excinfo.value.variable_name == "unknown_variable"
 
@@ -147,13 +168,31 @@ def test_extensions_order() -> None:
     )  # extensions order is ignored in cache
 
 
-@pytest.mark.skip(reason="Deprecated node constructor")
-def test_performance_graph_option_output() -> None:
+def test_runtest() -> None:
+    test_file = TestFile.from_parent(parent=None)
     test = {
         "input": {"salary": {"2017-01": 2000}},
         "output": {"salary": {"2017-01": 2000}},
     }
-    test_item = TestItem(test)
+    test_item = TestItem.from_parent(parent=test_file, test=test)
+
+    # TestItem init should instantiate the baseline TaxBenefitSystem
+    assert test_item.baseline_tax_benefit_system.get_variable("salary") is not None
+
+    test_item.runtest()
+
+    # TestItem.runtest(...) should instantiate the TaxBenefitSystem and the Simulation
+    assert test_item.tax_benefit_system.get_variable("salary") is not None
+    assert test_item.simulation is not None
+
+
+def test_performance_graph_option_output() -> None:
+    test_file = TestFile.from_parent(parent=None)
+    test = {
+        "input": {"salary": {"2017-01": 2000}},
+        "output": {"salary": {"2017-01": 2000}},
+    }
+    test_item = TestItem.from_parent(parent=test_file, test=test)
     test_item.options = {"performance_graph": True}
 
     paths = ["./performance_graph.html"]
@@ -169,13 +208,13 @@ def test_performance_graph_option_output() -> None:
     clean_performance_files(paths)
 
 
-@pytest.mark.skip(reason="Deprecated node constructor")
 def test_performance_tables_option_output() -> None:
+    test_file = TestFile.from_parent(parent=None)
     test = {
         "input": {"salary": {"2017-01": 2000}},
         "output": {"salary": {"2017-01": 2000}},
     }
-    test_item = TestItem(test)
+    test_item = TestItem.from_parent(parent=test_file, test=test)
     test_item.options = {"performance_tables": True}
 
     paths = ["performance_table.csv", "aggregated_performance_table.csv"]
@@ -189,6 +228,33 @@ def test_performance_tables_option_output() -> None:
         assert os.path.isfile(path)
 
     clean_performance_files(paths)
+
+
+def test_verbose_option_output(capsys) -> None:
+    test_file = TestFile.from_parent(parent=None)
+
+    expected_output_variable = "salary"
+    expected_output_date = "2017-01"
+    expected_output_value = 2000
+    test = {
+        "input": {"salary": {"2017-01": 2000}},
+        "output": {expected_output_variable: {expected_output_date: expected_output_value}},
+    }
+
+    test_item = TestItem.from_parent(parent=test_file, test=test)
+
+    test_item.options = {"verbose": True}
+    test_item.runtest()
+    captured = capsys.readouterr()
+
+    # TestItem.runtest should set the trace attribute from the 'verbose' option
+    assert test_item.simulation.trace is True
+
+    # TestItem.runtest should run print_computation_log
+    assert captured.out != ""
+    assert expected_output_variable in captured.out
+    assert expected_output_date in captured.out
+    assert str(expected_output_value) in captured.out
 
 
 def clean_performance_files(paths: list[str]) -> None:
