@@ -1,5 +1,40 @@
 # Changelog
 
+### 43.2.7 [#1307](https://github.com/openfisca/openfisca-core/pull/1307)
+
+#### Performance
+
+- Fix enum's module performance issues
+  - `43.0.0` fixed impending bugs in `indexed_enums` and improved `EnumArray`
+    performance
+  - However, `Enun.__eq__` and `Enum.encode` suffered from performance
+    degradation on large datasets
+  - This changeset aims at correcting these while keeping the bugfixes provided
+    by the aforesaid published version
+
+#### Note
+
+Some of the spectacular performances of `Enum.encode` came from the fact that
+it didn't actually work, leaving buggy behaviour unseen (see for example
+https://github.com/openfisca/openfisca-france/pull/2357/commits/84e41a5007f8bc23ec74ee3a693bc21e4c20df73).
+
+This PR introduces `O(n)` and `O(1)` use of fancy indexing, vector masking, and
+`numpy.searchsorted`, that scales nicely with large datasets (10k+).
+
+However, as we need to validate data at enum encoding time, the encoding of
+`int` and `str` sequences can't be faster than the pre-43.0.0 just because
+data has to be copied over.
+
+If ever this becomes problematic for very large datasets (50M+), we can workout
+a feature flag to disable fancy indexing and trusting data has been properly
+validated priorly by the user disabling run-time data validation, and so to
+gain from the performance of using a memory view instead of copying data over
+(that is, not using neither fancy indexing nor binary search).
+
+However, it seems the least surprising for every user that the data be
+validated before encoding (out of bounds indices and wrong `str` values not
+present in an `Enum`).
+
 ### 43.2.6 [#1297](https://github.com/openfisca/openfisca-core/pull/1297)
 
 #### Bugfix
