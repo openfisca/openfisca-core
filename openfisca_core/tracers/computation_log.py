@@ -54,7 +54,7 @@ class ComputationLog:
         node: t.TraceNode,
         depth: int,
         aggregate: bool,
-        max_depth: int = sys.maxsize,
+        max_depth: int,
     ) -> list[str]:
         if depth > max_depth:
             return []
