@@ -1,5 +1,11 @@
 # Changelog
 
+## 43.3.0 [#1319](https://github.com/openfisca/openfisca-core/pull/1319)
+
+#### Technical change
+
+- Use a deepcopy of variables in tax and benefit system cloning instead of a copy.
+
 ### 43.2.9 [#1304](https://github.com/openfisca/openfisca-core/pull/1304)
 
 #### Bugfix
