@@ -576,7 +576,7 @@ class TaxBenefitSystem:
 
         new_dict["parameters"] = self.parameters.clone()
         new_dict["_parameters_at_instant_cache"] = {}
-        new_dict["variables"] = self.variables.copy()
+        new_dict["variables"] = copy.deepcopy(self.variables)
         new_dict["open_api_config"] = self.open_api_config.copy()
         return new
 
