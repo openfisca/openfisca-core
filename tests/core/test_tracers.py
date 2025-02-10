@@ -439,7 +439,7 @@ def test_log_aggregate(tracer) -> None:
     tracer._exit_calculation()
     lines = tracer.computation_log.lines(aggregate=True)
 
-    assert lines[0] == "  A<2017> >> {'avg': 1.0, 'max': 1, 'min': 1}"
+    assert lines[0] == "  A<2017> >> {'avg': 1.0, 'max': 1, 'min': 1}" or lines[0] == "  A<2017> >> {'avg': np.float64(1.0), 'max': np.int64(1), 'min': np.int64(1)}"
 
 
 def test_log_aggregate_with_enum(tracer) -> None:
