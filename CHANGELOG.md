@@ -3722,7 +3722,7 @@ These breaking changes only concern variable and tax and benefit system **metada
 * Improve `openfisca-run-test` script
   - Make country package detection more robust (it only worked for packages installed in editable mode)
   - Use spaces instead of commas as separator in the script arguments when loading several extensions or reforms (this is more standard)
-* Refactor the `scripts` module to separate the logic specific to yaml test running from the one that can be re-used by any script which needs to build a tax and benefit system.
+* Refactor the `scripts` module to separate the logic specific to yaml test running from the one that can be reused by any script which needs to build a tax and benefit system.
 
 # 5.0.0
 
