@@ -23,6 +23,11 @@ build:
     - openfisca-run-test = openfisca_core.scripts.openfisca_command:main
 
 requirements:
+  build:
+    - numpy
+    - pip
+    - python
+    - setuptools >=61.0
   host:
     - numpy
     - pip
