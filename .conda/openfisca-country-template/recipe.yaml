@@ -2,7 +2,7 @@ schema_version: 1
 
 context:
   name: openfisca-country-template
-  version: 7.1.5
+  version: 7.1.9
 
 package:
   name: ${{ name|lower }}

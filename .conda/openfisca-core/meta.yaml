@@ -1,6 +1,6 @@
 ###############################################################################
 ## File for Anaconda.org
-## It use Jinja2 templating code to retreive information from setup.py
+## It use Jinja2 templating code to retrieve information from setup.py
 ###############################################################################
 
 {% set name = "OpenFisca-Core" %}
