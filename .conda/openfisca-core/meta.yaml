@@ -26,16 +26,16 @@ requirements:
   build:
     - numpy ==1.26.3
     - pip >=25.0
-    - python ==3.11
+    - python ==3.10
     - setuptools >=61.0
   host:
     - numpy ==1.26.3
     - pip >=25.0
-    - python ==3.11
+    - python ==3.10
     - setuptools >=61.0
   run:
     - numpy ==1.26.3
-    - python ==3.11
+    - python ==3.10
     {% for req in data['install_requires'] %}
     {% if not req.startswith('numpy') %}
     - {{ req }}
