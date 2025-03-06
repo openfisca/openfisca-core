@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.2.8 [#1322](https://github.com/openfisca/openfisca-core/pull/1322)
+
+#### Technical changes
+
+- Use appropriate `numpy` version with `conda`
+
 ### 43.2.7 [#1307](https://github.com/openfisca/openfisca-core/pull/1307)
 
 #### Performance
