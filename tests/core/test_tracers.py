@@ -438,8 +438,13 @@ def test_log_aggregate(tracer) -> None:
     tracer.record_calculation_result(numpy.asarray([1]))
     tracer._exit_calculation()
     lines = tracer.computation_log.lines(aggregate=True)
-
-    assert lines[0] == "  A<2017> >> {'avg': 1.0, 'max': 1, 'min': 1}"
+    # TODO(Mauko Quiroga-Alvarado): Remove when support for NumPy 1.x is dropped
+    # https://numpy.org/doc/stable/release.html
+    expected_numpy_1 = "  A<2017> >> {'avg': 1.0, 'max': 1, 'min': 1}"
+    expected_numpy_2 = (
+        "  A<2017> >> {'avg': np.float64(1.0), 'max': np.int64(1), 'min': np.int64(1)}"
+    )
+    assert lines[0] == expected_numpy_1 or lines[0] == expected_numpy_2
 
 
 def test_log_aggregate_with_enum(tracer) -> None:
