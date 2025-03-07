@@ -1,6 +1,6 @@
 ###############################################################################
 ## File for Anaconda.org
-## It use Jinja2 templating code to retreive information from setup.py
+## It use Jinja2 templating code to retrieve information from setup.py
 ###############################################################################
 
 {% set name = "OpenFisca-Core" %}
@@ -23,14 +23,19 @@ build:
     - openfisca-run-test = openfisca_core.scripts.openfisca_command:main
 
 requirements:
+  build:
+    - numpy ==1.26.3
+    - pip >=25.0
+    - python ==3.10
+    - setuptools >=61.0
   host:
-    - numpy
-    - pip
-    - python
+    - numpy ==1.26.3
+    - pip >=25.0
+    - python ==3.10
     - setuptools >=61.0
   run:
-    - numpy
-    - python
+    - numpy ==1.26.3
+    - python ==3.10
     {% for req in data['install_requires'] %}
     {% if not req.startswith('numpy') %}
     - {{ req }}

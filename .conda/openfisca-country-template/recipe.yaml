@@ -2,7 +2,7 @@ schema_version: 1
 
 context:
   name: openfisca-country-template
-  version: 7.1.5
+  version: 7.1.9
 
 package:
   name: ${{ name|lower }}
@@ -10,7 +10,7 @@ package:
 
 source:
   url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/openfisca_country_template-${{ version }}.tar.gz
-  sha256: b2f2ac9945d9ccad467aed0925bd82f7f4d5ce4e96b212324cd071b8bee46914
+  sha256: 57371d284e7d1f6850e00e8b348f1a396cf480b007afcab0d4b306d4f1a1bb2f
 
 build:
   number: 2
