@@ -46,8 +46,8 @@ class ComputationLog:
         If ``max_depth`` is set, for example to ``3``, only print computed
         vectors up to a depth of ``max_depth``.
         """
-        for _ in self.lines(aggregate, max_depth):
-            pass
+        for line in self.lines(aggregate, max_depth):
+            print(line)  # noqa: T201
 
     def _get_node_log(
         self,
