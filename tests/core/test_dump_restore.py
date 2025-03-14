@@ -41,7 +41,7 @@ def test_dump(tax_benefit_system) -> None:
 
     # Check calculated values are in cache
 
-    disposable_income_holder = simulation_2.person.get_holder("disposable_income")
+    disposable_income_holder = simulation_2.household.get_holder("disposable_income")
     cached_value = disposable_income_holder.get_array("2018-01")
     assert cached_value is not None
     testing.assert_array_equal(cached_value, calculated_value)

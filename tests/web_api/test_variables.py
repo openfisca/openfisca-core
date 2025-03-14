@@ -120,10 +120,7 @@ def test_variable_formula_content(test_client) -> None:
     variable = json.loads(variable_response.data.decode("utf-8"))
     content = variable["formulas"]["0001-01-01"]["content"]
     assert "def formula(person, period, parameters):" in content
-    assert (
-        'return person("salary", period) * parameters(period).taxes.income_tax_rate'
-        in content
-    )
+    assert 'return (\n        person("salary", period)' in content
 
 
 def test_null_values_are_dropped(test_client) -> None:

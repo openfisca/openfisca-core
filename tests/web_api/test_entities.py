@@ -22,13 +22,12 @@ def test_response_data(test_client) -> None:
         "plural": "households",
         "roles": {
             "child": {
-                "description": "Other individuals living in the household.",
+                "description": "The non-adults of the household.",
                 "plural": "children",
             },
-            "parent": {
-                "description": "The one or two adults in charge of the household.",
-                "plural": "parents",
-                "max": 2,
+            "adult": {
+                "description": "The adults of the household.",
+                "plural": "adults",
             },
         },
     }

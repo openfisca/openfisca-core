@@ -200,8 +200,8 @@ def test_cache_disk(couple) -> None:
     simulation = couple
     simulation.memory_config = force_storage_on_disk
     month = periods.period("2017-01")
-    holder = simulation.person.get_holder("disposable_income")
-    data = numpy.asarray([2000, 3000])
+    holder = simulation.household.get_holder("disposable_income")
+    data = numpy.asarray([2000])
     holder.put_in_cache(data, month)
     stored_data = holder.get_array(month)
     tools.assert_near(data, stored_data)
@@ -212,8 +212,8 @@ def test_known_periods(couple) -> None:
     simulation.memory_config = force_storage_on_disk
     month = periods.period("2017-01")
     month_2 = periods.period("2017-02")
-    holder = simulation.person.get_holder("disposable_income")
-    data = numpy.asarray([2000, 3000])
+    holder = simulation.household.get_holder("disposable_income")
+    data = numpy.asarray([2000])
     holder.put_in_cache(data, month)
     holder._memory_storage.put(data, month_2)
 

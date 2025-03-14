@@ -9,8 +9,8 @@ from openfisca_core.tools import test_runner
 TEST_CASE = {
     "persons": {"ind0": {}, "ind1": {}, "ind2": {}, "ind3": {}, "ind4": {}, "ind5": {}},
     "households": {
-        "h1": {"children": ["ind2", "ind3"], "parents": ["ind0", "ind1"]},
-        "h2": {"children": ["ind5"], "parents": ["ind4"]},
+        "h1": {"children": ["ind2", "ind3"], "adults": ["ind0", "ind1"]},
+        "h2": {"children": ["ind5"], "adults": ["ind4"]},
     },
 }
 
@@ -19,9 +19,7 @@ AGES = [40, 37, 7, 9, 54, 20]
 for individu, age in zip(TEST_CASE_AGES["persons"].values(), AGES):
     individu["age"] = age
 
-FIRST_PARENT = entities.Household.FIRST_PARENT
-SECOND_PARENT = entities.Household.SECOND_PARENT
-PARENT = entities.Household.PARENT
+ADULT = entities.Household.ADULT
 CHILD = entities.Household.CHILD
 
 YEAR = 2016
@@ -38,8 +36,7 @@ def test_role_index_and_positions(tax_benefit_system) -> None:
     simulation = new_simulation(tax_benefit_system, TEST_CASE)
     tools.assert_near(simulation.household.members_entity_id, [0, 0, 0, 0, 1, 1])
     assert (
-        simulation.household.members_role
-        == [FIRST_PARENT, SECOND_PARENT, CHILD, CHILD, FIRST_PARENT, CHILD]
+        simulation.household.members_role == [ADULT, ADULT, CHILD, CHILD, ADULT, CHILD]
     ).all()
     tools.assert_near(simulation.household.members_position, [0, 1, 2, 3, 0, 1])
     assert simulation.person.ids == ["ind0", "ind1", "ind2", "ind3", "ind4", "ind5"]
@@ -56,14 +53,14 @@ def test_entity_structure_with_constructor(tax_benefit_system) -> None:
           tom: {}
         households:
           first_household:
-            parents:
+            adults:
             - bill
             - bob
             children:
             - janet
             - tom
           second_household:
-            parents:
+            adults:
             - claudia
     """
 
@@ -75,10 +72,7 @@ def test_entity_structure_with_constructor(tax_benefit_system) -> None:
     household = simulation.household
 
     tools.assert_near(household.members_entity_id, [0, 0, 1, 0, 0])
-    assert (
-        household.members_role
-        == [FIRST_PARENT, SECOND_PARENT, FIRST_PARENT, CHILD, CHILD]
-    ).all()
+    assert (household.members_role == [ADULT, ADULT, ADULT, CHILD, CHILD]).all()
     tools.assert_near(household.members_position, [0, 1, 0, 2, 3])
 
 
@@ -92,7 +86,7 @@ def test_entity_variables_with_constructor(tax_benefit_system) -> None:
           tom: {}
         households:
           first_household:
-            parents:
+            adults:
             - bill
             - bob
             children:
@@ -101,7 +95,7 @@ def test_entity_variables_with_constructor(tax_benefit_system) -> None:
             rent:
               2017-06: 800
           second_household:
-            parents:
+            adults:
             - claudia
             rent:
               2017-06: 600
@@ -132,14 +126,14 @@ def test_person_variable_with_constructor(tax_benefit_system) -> None:
           tom: {}
         households:
           first_household:
-            parents:
+            adults:
             - bill
             - bob
             children:
             - janet
             - tom
           second_household:
-            parents:
+            adults:
             - claudia
     """
 
@@ -174,14 +168,14 @@ def test_set_input_with_constructor(tax_benefit_system) -> None:
           tom: {}
         households:
           first_household:
-            parents:
+            adults:
             - bill
             - bob
             children:
             - janet
             - tom
           second_household:
-            parents:
+            adults:
             - claudia
     """
 
@@ -204,16 +198,8 @@ def test_has_role_with_subrole(tax_benefit_system) -> None:
     simulation = new_simulation(tax_benefit_system, TEST_CASE)
     individu = simulation.persons
     tools.assert_near(
-        individu.has_role(PARENT),
+        individu.has_role(ADULT),
         [True, True, False, False, True, False],
-    )
-    tools.assert_near(
-        individu.has_role(FIRST_PARENT),
-        [True, False, False, False, True, False],
-    )
-    tools.assert_near(
-        individu.has_role(SECOND_PARENT),
-        [False, True, False, False, False, False],
     )
 
 
@@ -229,7 +215,7 @@ def test_project(tax_benefit_system) -> None:
 
     tools.assert_near(projected_housing_tax, [20000, 20000, 20000, 20000, 0, 0])
 
-    housing_tax_projected_on_parents = household.project(housing_tax, role=PARENT)
+    housing_tax_projected_on_parents = household.project(housing_tax, role=ADULT)
     tools.assert_near(housing_tax_projected_on_parents, [20000, 20000, 0, 0, 0, 0])
 
 
@@ -259,7 +245,7 @@ def test_sum(tax_benefit_system) -> None:
 
     tools.assert_near(total_salary_by_household, [2500, 3500])
 
-    total_salary_parents_by_household = household.sum(salary, role=PARENT)
+    total_salary_parents_by_household = household.sum(salary, role=ADULT)
 
     tools.assert_near(total_salary_parents_by_household, [2500, 3000])
 
@@ -290,7 +276,7 @@ def test_all(tax_benefit_system) -> None:
     all_persons_age_sup_18 = household.all(condition_age)
     tools.assert_near(all_persons_age_sup_18, [False, True])
 
-    all_parents_age_sup_18 = household.all(condition_age, role=PARENT)
+    all_parents_age_sup_18 = household.all(condition_age, role=ADULT)
     tools.assert_near(all_parents_age_sup_18, [True, True])
 
 
@@ -318,7 +304,7 @@ def test_min(tax_benefit_system) -> None:
     age_min = household.min(age)
     tools.assert_near(age_min, [7, 20])
 
-    age_min_parents = household.min(age, role=PARENT)
+    age_min_parents = household.min(age, role=ADULT)
     tools.assert_near(age_min_parents, [37, 54])
 
 
@@ -358,23 +344,6 @@ def test_rank(tax_benefit_system) -> None:
     tools.assert_near(rank_in_siblings, [-1, -1, 1, 0, -1, 0])
 
 
-def test_partner(tax_benefit_system) -> None:
-    test_case = deepcopy(TEST_CASE)
-    test_case["persons"]["ind0"]["salary"] = 1000
-    test_case["persons"]["ind1"]["salary"] = 1500
-    test_case["persons"]["ind4"]["salary"] = 3000
-    test_case["persons"]["ind5"]["salary"] = 500
-
-    simulation = new_simulation(tax_benefit_system, test_case)
-    persons = simulation.persons
-
-    salary = persons("salary", period=MONTH)
-
-    salary_second_parent = persons.value_from_partner(salary, persons.household, PARENT)
-
-    tools.assert_near(salary_second_parent, [1500, 1000, 0, 0, 0, 0])
-
-
 def test_value_from_first_person(tax_benefit_system) -> None:
     test_case = deepcopy(TEST_CASE)
     test_case["persons"]["ind0"]["salary"] = 1000
@@ -399,7 +368,7 @@ def test_projectors_methods(tax_benefit_system) -> None:
     household = simulation.household
     person = simulation.person
 
-    projected_vector = household.first_parent.has_role(entities.Household.FIRST_PARENT)
+    projected_vector = household.first_person.has_role(entities.Household.ADULT)
     assert len(projected_vector) == 1  # Must be of a household dimension
 
     salary_i = person.household.members("salary", "2017-01")
@@ -409,7 +378,7 @@ def test_projectors_methods(tax_benefit_system) -> None:
     assert len(person.household.all(salary_i)) == 2  # Must be of a person dimension
     assert len(person.household.any(salary_i)) == 2  # Must be of a person dimension
     assert (
-        len(household.first_parent.get_rank(household, salary_i)) == 1
+        len(household.first_person.get_rank(household, salary_i)) == 1
     )  # Must be of a person dimension
 
 
@@ -417,8 +386,8 @@ def test_sum_following_bug_ipp_1(tax_benefit_system) -> None:
     test_case = {
         "persons": {"ind0": {}, "ind1": {}, "ind2": {}, "ind3": {}},
         "households": {
-            "h1": {"parents": ["ind0"]},
-            "h2": {"parents": ["ind1"], "children": ["ind2", "ind3"]},
+            "h1": {"adults": ["ind0"]},
+            "h2": {"adults": ["ind1"], "children": ["ind2", "ind3"]},
         },
     }
     test_case["persons"]["ind0"]["salary"] = 2000
@@ -439,8 +408,8 @@ def test_sum_following_bug_ipp_2(tax_benefit_system) -> None:
     test_case = {
         "persons": {"ind0": {}, "ind1": {}, "ind2": {}, "ind3": {}},
         "households": {
-            "h1": {"parents": ["ind1"], "children": ["ind2", "ind3"]},
-            "h2": {"parents": ["ind0"]},
+            "h1": {"adults": ["ind1"], "children": ["ind2", "ind3"]},
+            "h2": {"adults": ["ind0"]},
         },
     }
     test_case["persons"]["ind0"]["salary"] = 2000
@@ -478,8 +447,8 @@ def test_unordered_persons(tax_benefit_system) -> None:
             "ind0": {},
         },
         "households": {
-            "h1": {"children": ["ind2", "ind3"], "parents": ["ind0", "ind1"]},
-            "h2": {"children": ["ind5"], "parents": ["ind4"]},
+            "h1": {"children": ["ind2", "ind3"], "adults": ["ind0", "ind1"]},
+            "h2": {"children": ["ind5"], "adults": ["ind4"]},
         },
     }
     # 1st family
@@ -497,8 +466,6 @@ def test_unordered_persons(tax_benefit_system) -> None:
 
     simulation = new_simulation(tax_benefit_system, test_case, MONTH)
     household = simulation.household
-    person = simulation.person
-
     salary = household.members("salary", "2016-01")  # [ 3000, 0, 1500, 20, 500, 1000 ]
     accommodation_size = household("accommodation_size", "2016-01")  # [ 160, 60 ]
 
@@ -510,28 +477,22 @@ def test_unordered_persons(tax_benefit_system) -> None:
     tools.assert_near(household.all(salary > 0), [False, True])
     tools.assert_near(household.any(salary > 2000), [False, True])
     tools.assert_near(household.first_person("salary", "2016-01"), [0, 3000])
-    tools.assert_near(household.first_parent("salary", "2016-01"), [1000, 3000])
-    tools.assert_near(household.second_parent("salary", "2016-01"), [1500, 0])
-    tools.assert_near(
-        person.value_from_partner(salary, person.household, PARENT),
-        [0, 0, 1000, 0, 0, 1500],
-    )
 
-    tools.assert_near(household.sum(salary, role=PARENT), [2500, 3000])
+    tools.assert_near(household.sum(salary, role=ADULT), [2500, 3000])
     tools.assert_near(household.sum(salary, role=CHILD), [20, 500])
-    tools.assert_near(household.max(salary, role=PARENT), [1500, 3000])
+    tools.assert_near(household.max(salary, role=ADULT), [1500, 3000])
     tools.assert_near(household.max(salary, role=CHILD), [20, 500])
-    tools.assert_near(household.min(salary, role=PARENT), [1000, 3000])
+    tools.assert_near(household.min(salary, role=ADULT), [1000, 3000])
     tools.assert_near(household.min(salary, role=CHILD), [0, 500])
-    tools.assert_near(household.all(salary > 0, role=PARENT), [True, True])
+    tools.assert_near(household.all(salary > 0, role=ADULT), [True, True])
     tools.assert_near(household.all(salary > 0, role=CHILD), [False, True])
-    tools.assert_near(household.any(salary < 1500, role=PARENT), [True, False])
+    tools.assert_near(household.any(salary < 1500, role=ADULT), [True, False])
     tools.assert_near(household.any(salary > 200, role=CHILD), [False, True])
 
     # nb_persons
 
     tools.assert_near(household.nb_persons(), [4, 2])
-    tools.assert_near(household.nb_persons(role=PARENT), [2, 1])
+    tools.assert_near(household.nb_persons(role=ADULT), [2, 1])
     tools.assert_near(household.nb_persons(role=CHILD), [2, 1])
 
     # Projection entity -> persons
@@ -541,7 +502,7 @@ def test_unordered_persons(tax_benefit_system) -> None:
         [60, 160, 160, 160, 60, 160],
     )
     tools.assert_near(
-        household.project(accommodation_size, role=PARENT),
+        household.project(accommodation_size, role=ADULT),
         [60, 0, 160, 0, 0, 160],
     )
     tools.assert_near(

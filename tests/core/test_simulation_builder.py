@@ -71,9 +71,7 @@ def test_build_default_simulation(tax_benefit_system) -> None:
     assert one_person_simulation.persons.count == 1
     assert one_person_simulation.household.count == 1
     assert one_person_simulation.household.members_entity_id == [0]
-    assert (
-        one_person_simulation.household.members_role == entities.Household.FIRST_PARENT
-    )
+    assert one_person_simulation.household.members_role == entities.Household.ADULT
 
     several_persons_simulation = SimulationBuilder().build_default_simulation(
         tax_benefit_system,
@@ -85,18 +83,17 @@ def test_build_default_simulation(tax_benefit_system) -> None:
         several_persons_simulation.household.members_entity_id == [0, 1, 2, 3]
     ).all()
     assert (
-        several_persons_simulation.household.members_role
-        == entities.Household.FIRST_PARENT
+        several_persons_simulation.household.members_role == entities.Household.ADULT
     ).all()
 
 
 def test_explicit_singular_entities(tax_benefit_system) -> None:
     assert SimulationBuilder().explicit_singular_entities(
         tax_benefit_system,
-        {"persons": {"Javier": {}}, "household": {"parents": ["Javier"]}},
+        {"persons": {"Javier": {}}, "household": {"adults": ["Javier"]}},
     ) == {
         "persons": {"Javier": {}},
-        "households": {"household": {"parents": ["Javier"]}},
+        "households": {"household": {"adults": ["Javier"]}},
     }
 
 
@@ -146,18 +143,18 @@ def test_add_group_entity(households) -> None:
         ["Alicia", "Javier", "Sarah", "Tom"],
         households,
         {
-            "Household_1": {"parents": ["Alicia", "Javier"]},
-            "Household_2": {"parents": ["Tom"], "children": ["Sarah"]},
+            "Household_1": {"adults": ["Alicia", "Javier"]},
+            "Household_2": {"adults": ["Tom"], "children": ["Sarah"]},
         },
     )
     assert simulation_builder.get_count("households") == 2
     assert simulation_builder.get_ids("households") == ["Household_1", "Household_2"]
     assert simulation_builder.get_memberships("households") == [0, 0, 1, 1]
     assert [role.key for role in simulation_builder.get_roles("households")] == [
-        "parent",
-        "parent",
+        "adult",
+        "adult",
         "child",
-        "parent",
+        "adult",
     ]
 
 
@@ -168,18 +165,18 @@ def test_add_group_entity_loose_syntax(households) -> None:
         ["Alicia", "Javier", "Sarah", "1"],
         households,
         {
-            "Household_1": {"parents": ["Alicia", "Javier"]},
-            "Household_2": {"parents": 1, "children": "Sarah"},
+            "Household_1": {"adults": ["Alicia", "Javier"]},
+            "Household_2": {"adults": 1, "children": "Sarah"},
         },
     )
     assert simulation_builder.get_count("households") == 2
     assert simulation_builder.get_ids("households") == ["Household_1", "Household_2"]
     assert simulation_builder.get_memberships("households") == [0, 0, 1, 1]
     assert [role.key for role in simulation_builder.get_roles("households")] == [
-        "parent",
-        "parent",
+        "adult",
+        "adult",
         "child",
-        "parent",
+        "adult",
     ]
 
 
@@ -357,14 +354,14 @@ def test_finalize_households(tax_benefit_system) -> None:
         ["Alicia", "Javier", "Sarah", "Tom"],
         simulation.household.entity,
         {
-            "Household_1": {"parents": ["Alicia", "Javier"]},
-            "Household_2": {"parents": ["Tom"], "children": ["Sarah"]},
+            "Household_1": {"adults": ["Alicia", "Javier"]},
+            "Household_2": {"adults": ["Tom"], "children": ["Sarah"]},
         },
     )
     simulation_builder.finalize_variables_init(simulation.household)
     tools.assert_near(simulation.household.members_entity_id, [0, 0, 1, 1])
     tools.assert_near(
-        simulation.persons.has_role(entities.Household.PARENT),
+        simulation.persons.has_role(entities.Household.ADULT),
         [True, True, False, True],
     )
 
@@ -374,7 +371,7 @@ def test_check_persons_to_allocate() -> None:
     persons_plural = "individus"
     person_id = "Alicia"
     entity_id = "famille1"
-    role_id = "parents"
+    role_id = "adults"
     persons_to_allocate = ["Alicia"]
     persons_ids = ["Alicia"]
     index = 0
@@ -395,7 +392,7 @@ def test_allocate_undeclared_person() -> None:
     persons_plural = "individus"
     person_id = "Alicia"
     entity_id = "famille1"
-    role_id = "parents"
+    role_id = "adults"
     persons_to_allocate = ["Alicia"]
     persons_ids = []
     index = 0
@@ -413,7 +410,7 @@ def test_allocate_undeclared_person() -> None:
     assert exception.value.error == {
         "familles": {
             "famille1": {
-                "parents": "Unexpected value: Alicia. Alicia has been declared in famille1 parents, but has not been declared in individus.",
+                "adults": "Unexpected value: Alicia. Alicia has been declared in famille1 adults, but has not been declared in individus.",
             },
         },
     }
@@ -424,7 +421,7 @@ def test_allocate_person_twice() -> None:
     persons_plural = "individus"
     person_id = "Alicia"
     entity_id = "famille1"
-    role_id = "parents"
+    role_id = "adults"
     persons_to_allocate = []
     persons_ids = ["Alicia"]
     index = 0
@@ -442,7 +439,7 @@ def test_allocate_person_twice() -> None:
     assert exception.value.error == {
         "familles": {
             "famille1": {
-                "parents": "Alicia has been declared more than once in familles",
+                "adults": "Alicia has been declared more than once in familles",
             },
         },
     }
@@ -455,31 +452,31 @@ def test_one_person_without_household(tax_benefit_system) -> None:
         simulation_dict,
     )
     assert simulation.household.count == 1
-    parents_in_households = simulation.household.nb_persons(
-        role=entities.Household.PARENT,
+    adults_in_households = simulation.household.nb_persons(
+        role=entities.Household.ADULT,
     )
-    assert parents_in_households.tolist() == [
+    assert adults_in_households.tolist() == [
         1,
-    ]  # household member default role is first_parent
+    ]  # household member default role is adult
 
 
 def test_some_person_without_household(tax_benefit_system) -> None:
     input_yaml = """
         persons: {'Alicia': {}, 'Bob': {}}
-        household: {'parents': ['Alicia']}
+        household: {'adults': ['Alicia']}
     """
     simulation = SimulationBuilder().build_from_dict(
         tax_benefit_system,
         test_runner.yaml.safe_load(input_yaml),
     )
     assert simulation.household.count == 2
-    parents_in_households = simulation.household.nb_persons(
-        role=entities.Household.PARENT,
+    adults_in_households = simulation.household.nb_persons(
+        role=entities.Household.ADULT,
     )
-    assert parents_in_households.tolist() == [
+    assert adults_in_households.tolist() == [
         1,
         1,
-    ]  # household member default role is first_parent
+    ]  # household member default role is adult
 
 
 def test_nb_persons_in_households(tax_benefit_system) -> None:
@@ -494,7 +491,7 @@ def test_nb_persons_in_households(tax_benefit_system) -> None:
     simulation_builder.join_with_persons(
         household_instance,
         persons_households,
-        ["first_parent"] * 5,
+        ["adult"] * 5,
     )
 
     persons_in_households = simulation_builder.nb_persons("household")
@@ -515,17 +512,17 @@ def test_nb_persons_no_role(tax_benefit_system) -> None:
     simulation_builder.join_with_persons(
         household_instance,
         persons_households,
-        ["first_parent"] * 5,
+        ["adult"] * 5,
     )
-    parents_in_households = household_instance.nb_persons(
-        role=entities.Household.PARENT,
+    adults_in_households = household_instance.nb_persons(
+        role=entities.Household.ADULT,
     )
 
-    assert parents_in_households.tolist() == [
+    assert adults_in_households.tolist() == [
         1,
         3,
         1,
-    ]  # household member default role is first_parent
+    ]  # household member default role is adult
 
 
 def test_nb_persons_by_role(tax_benefit_system) -> None:
@@ -534,9 +531,9 @@ def test_nb_persons_by_role(tax_benefit_system) -> None:
     persons_households: Iterable = ["c", "a", "a", "b", "a"]
     persons_households_roles: Iterable = [
         "child",
-        "first_parent",
-        "second_parent",
-        "first_parent",
+        "adult",
+        "adult",
+        "adult",
         "child",
     ]
 
@@ -550,11 +547,11 @@ def test_nb_persons_by_role(tax_benefit_system) -> None:
         persons_households,
         persons_households_roles,
     )
-    parents_in_households = household_instance.nb_persons(
-        role=entities.Household.FIRST_PARENT,
+    adults_in_households = household_instance.nb_persons(
+        role=entities.Household.ADULT,
     )
 
-    assert parents_in_households.tolist() == [0, 1, 1]
+    assert adults_in_households.tolist() == [0, 2, 1]
 
 
 def test_integral_roles(tax_benefit_system) -> None:
@@ -562,7 +559,7 @@ def test_integral_roles(tax_benefit_system) -> None:
     households_ids: Iterable = ["c", "a", "b"]
     persons_households: Iterable = ["c", "a", "a", "b", "a"]
     # Same roles as test_nb_persons_by_role
-    persons_households_roles: Iterable = [2, 0, 1, 0, 2]
+    persons_households_roles: Iterable = [1, 0, 1, 0, 1]
 
     simulation_builder = SimulationBuilder()
     simulation_builder.create_entities(tax_benefit_system)
@@ -574,11 +571,11 @@ def test_integral_roles(tax_benefit_system) -> None:
         persons_households,
         persons_households_roles,
     )
-    parents_in_households = household_instance.nb_persons(
-        role=entities.Household.FIRST_PARENT,
+    adults_in_households = household_instance.nb_persons(
+        role=entities.Household.ADULT,
     )
 
-    assert parents_in_households.tolist() == [0, 1, 1]
+    assert adults_in_households.tolist() == [0, 1, 1]
 
 
 # Test Intégration
@@ -603,7 +600,7 @@ def test_from_person_variable_to_group(tax_benefit_system) -> None:
     simulation_builder.join_with_persons(
         household_instance,
         persons_households,
-        ["first_parent"] * 5,
+        ["adult"] * 5,
     )
 
     simulation = simulation_builder.build(tax_benefit_system)
@@ -662,7 +659,7 @@ def test_single_entity_shortcut(tax_benefit_system) -> None:
           Alicia: {}
           Javier: {}
         household:
-          parents: [Alicia, Javier]
+          adults: [Alicia, Javier]
     """
 
     simulation = SimulationBuilder().build_from_dict(
@@ -680,7 +677,7 @@ def test_order_preserved(tax_benefit_system) -> None:
           Sarah: {}
           Tom: {}
         household:
-          parents: [Alicia, Javier]
+          adults: [Alicia, Javier]
           children: [Tom, Sarah]
     """
 

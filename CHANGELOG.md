@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.3.1 [#1323](https://github.com/openfisca/openfisca-core/pull/1323)
+
+#### Technical changes
+
+- Adapt tests to `country-template` 8.0.0.
+
 ## 43.3.0 [#1319](https://github.com/openfisca/openfisca-core/pull/1319)
 
 #### Technical change

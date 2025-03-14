@@ -41,7 +41,7 @@ def persons():
 @pytest.fixture
 def households():
     roles = [
-        {"key": "parent", "plural": "parents", "max": 2},
+        {"key": "adult", "plural": "adults", "max": 2},
         {"key": "child", "plural": "children"},
     ]
 

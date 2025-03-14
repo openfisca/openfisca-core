@@ -33,9 +33,14 @@ def test_trace_basic(test_client) -> None:
     assert_items_equal(
         disposable_income_dep,
         [
-            "salary<2017-01>",
             "basic_income<2017-01>",
+            "capital_returns<2017-01>",
+            "housing_allowance<2017-01>",
+            "housing_tax<2017>",
             "income_tax<2017-01>",
+            "parenting_allowance<2017-01>",
+            "pension<2017-01>",
+            "salary<2017-01>",
             "social_security_contribution<2017-01>",
         ],
     )

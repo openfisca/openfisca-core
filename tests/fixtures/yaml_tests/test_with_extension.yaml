@@ -7,7 +7,7 @@
       parent: {}
       child1: {}
     household:
-      parents: [parent]
+      adults: [parent]
       children: [child1]
   output:
     local_town_child_allowance: 100
@@ -22,7 +22,7 @@
       child1: {}
       child2: {}
     household:
-      parents: [parent]
+      adults: [parent]
       children: [child1, child2]
   output:
     local_town_child_allowance: 200

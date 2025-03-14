@@ -2,7 +2,7 @@ schema_version: 1
 
 context:
   name: openfisca-extension-template
-  version: 2.0.6
+  version: 2.0.7
 
 package:
   name: ${{ name|lower }}
@@ -10,7 +10,7 @@ package:
 
 source:
   url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/openfisca_extension_template-${{ version }}.tar.gz
-  sha256: e6ee405e9710e5e07f498173bad1a41531527b8e423fca7d045332cbdb10082f
+  sha256: 0e1be79ea25bce776b484a13672a27017d663c7e189ce467cb22fc3db5c5bcf8
 
 build:
   number: 2
