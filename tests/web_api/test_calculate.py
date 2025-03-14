@@ -45,9 +45,9 @@ def check_response(
             "entities are not found",
         ),
         (
-            '{"persons": {"bob": {}}, "households": {"dupont": {"parents": {}}}}',
+            '{"persons": {"bob": {}}, "households": {"dupont": {"adults": {}}}}',
             client.BAD_REQUEST,
-            "households/dupont/parents",
+            "households/dupont/adults",
             "type",
         ),
         (
@@ -93,21 +93,21 @@ def check_response(
             "Can't deal with date",
         ),
         (
-            '{"persons": {"bob": {}}, "households": {"household": {"parents": ["unexpected_person_id"]}}}',
+            '{"persons": {"bob": {}}, "households": {"household": {"adults": ["unexpected_person_id"]}}}',
             client.BAD_REQUEST,
-            "households/household/parents",
+            "households/household/adults",
             "has not been declared in persons",
         ),
         (
-            '{"persons": {"bob": {}}, "households": {"household": {"parents": ["bob", "bob"]}}}',
+            '{"persons": {"bob": {}}, "households": {"household": {"adults": ["bob", "bob"]}}}',
             client.BAD_REQUEST,
-            "households/household/parents",
+            "households/household/adults",
             "has been declared more than once",
         ),
         (
-            '{"persons": {"bob": {}}, "households": {"household": {"parents": ["bob", {}]}}}',
+            '{"persons": {"bob": {}}, "households": {"household": {"adults": ["bob", {}]}}}',
             client.BAD_REQUEST,
-            "households/household/parents/1",
+            "households/household/adults/1",
             "Invalid type",
         ),
         (
@@ -123,22 +123,16 @@ def check_response(
             "Expected a period",
         ),
         (
-            '{"persons": {"bob": {"basic_income": {"2017": 2000 }}}, "households": {"household": {"parents": ["bob"]}}}',
+            '{"persons": {"bob": {"basic_income": {"2017": 2000 }}}, "households": {"household": {"adults": ["bob"]}}}',
             client.BAD_REQUEST,
             "persons/bob/basic_income/2017",
             '"basic_income" can only be set for one month',
         ),
         (
-            '{"persons": {"bob": {"salary": {"ETERNITY": 2000 }}}, "households": {"household": {"parents": ["bob"]}}}',
+            '{"persons": {"bob": {"salary": {"ETERNITY": 2000 }}}, "households": {"household": {"adults": ["bob"]}}}',
             client.BAD_REQUEST,
             "persons/bob/salary/ETERNITY",
             "salary is only defined for months",
-        ),
-        (
-            '{"persons": {"alice": {}, "bob": {}, "charlie": {}}, "households": {"_": {"parents": ["alice", "bob", "charlie"]}}}',
-            client.BAD_REQUEST,
-            "households/_/parents",
-            "at most 2 parents in a household",
         ),
     ],
 )
@@ -165,7 +159,7 @@ def test_basic_calculation(test_client) -> None:
             },
             "households": {
                 "first_household": {
-                    "parents": ["bill", "bob"],
+                    "adults": ["bill", "bob"],
                     "housing_tax": {"2017": None},
                     "accommodation_size": {"2017-01": 300},
                 },
@@ -204,7 +198,7 @@ def test_enums_sending_identifier(test_client) -> None:
             "persons": {"bill": {}},
             "households": {
                 "_": {
-                    "parents": ["bill"],
+                    "adults": ["bill"],
                     "housing_tax": {"2017": None},
                     "accommodation_size": {"2017-01": 300},
                     "housing_occupancy_status": {"2017-01": "free_lodger"},
@@ -227,7 +221,7 @@ def test_enum_output(test_client) -> None:
             },
             "households": {
                 "_": {
-                    "parents": ["bill"],
+                    "adults": ["bill"],
                     "housing_occupancy_status": {"2017-01": None},
                 },
             },
@@ -251,7 +245,7 @@ def test_enum_wrong_value(test_client) -> None:
             },
             "households": {
                 "_": {
-                    "parents": ["bill"],
+                    "adults": ["bill"],
                     "housing_occupancy_status": {"2017-01": "Unknown value lodger"},
                 },
             },
@@ -302,7 +296,7 @@ def test_encoding_entity_name(test_client) -> None:
     simulation_json = json.dumps(
         {
             "persons": {"O‘Ryan": {}, "Renée": {}},
-            "households": {"_": {"parents": ["O‘Ryan", "Renée"]}},
+            "households": {"_": {"adults": ["O‘Ryan", "Renée"]}},
         },
     )
 
@@ -326,7 +320,7 @@ def test_encoding_period_id(test_client) -> None:
             },
             "households": {
                 "_": {
-                    "parents": ["bill", "bell"],
+                    "adults": ["bill", "bell"],
                     "housing_tax": {"à": 400},
                     "accommodation_size": {"2017-01": 300},
                     "housing_occupancy_status": {"2017-01": "tenant"},
@@ -367,7 +361,7 @@ def test_periods(test_client) -> None:
             "persons": {"bill": {}},
             "households": {
                 "_": {
-                    "parents": ["bill"],
+                    "adults": ["bill"],
                     "housing_tax": {"2017": None},
                     "housing_occupancy_status": {"2017-01": None},
                 },
@@ -404,7 +398,7 @@ def test_two_periods(test_client) -> None:
             "persons": {"bill": {}},
             "households": {
                 "_": {
-                    "parents": ["bill"],
+                    "adults": ["bill"],
                     "housing_tax": {"2017": None, "2018": None},
                     "housing_occupancy_status": {"2017-01": None, "2018-01": None},
                 },
@@ -439,7 +433,7 @@ def test_handle_period_mismatch_error(test_client) -> None:
             "persons": {"bill": {}},
             "households": {
                 "_": {
-                    "parents": ["bill"],
+                    "adults": ["bill"],
                     variable: {period: 400},
                 },
             },
@@ -487,7 +481,7 @@ def test_gracefully_handle_unexpected_errors(test_client) -> None:
             },
             "households": {
                 "_": {
-                    "parents": ["bill"],
+                    "adults": ["bill"],
                     variable: {
                         period: None,
                     },

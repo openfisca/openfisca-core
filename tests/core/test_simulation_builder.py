@@ -93,10 +93,10 @@ def test_build_default_simulation(tax_benefit_system) -> None:
 def test_explicit_singular_entities(tax_benefit_system) -> None:
     assert SimulationBuilder().explicit_singular_entities(
         tax_benefit_system,
-        {"persons": {"Javier": {}}, "household": {"parents": ["Javier"]}},
+        {"persons": {"Javier": {}}, "household": {"adults": ["Javier"]}},
     ) == {
         "persons": {"Javier": {}},
-        "households": {"household": {"parents": ["Javier"]}},
+        "households": {"household": {"adults": ["Javier"]}},
     }
 
 
@@ -146,8 +146,8 @@ def test_add_group_entity(households) -> None:
         ["Alicia", "Javier", "Sarah", "Tom"],
         households,
         {
-            "Household_1": {"parents": ["Alicia", "Javier"]},
-            "Household_2": {"parents": ["Tom"], "children": ["Sarah"]},
+            "Household_1": {"adults": ["Alicia", "Javier"]},
+            "Household_2": {"adults": ["Tom"], "children": ["Sarah"]},
         },
     )
     assert simulation_builder.get_count("households") == 2
@@ -168,8 +168,8 @@ def test_add_group_entity_loose_syntax(households) -> None:
         ["Alicia", "Javier", "Sarah", "1"],
         households,
         {
-            "Household_1": {"parents": ["Alicia", "Javier"]},
-            "Household_2": {"parents": 1, "children": "Sarah"},
+            "Household_1": {"adults": ["Alicia", "Javier"]},
+            "Household_2": {"adults": 1, "children": "Sarah"},
         },
     )
     assert simulation_builder.get_count("households") == 2
@@ -357,8 +357,8 @@ def test_finalize_households(tax_benefit_system) -> None:
         ["Alicia", "Javier", "Sarah", "Tom"],
         simulation.household.entity,
         {
-            "Household_1": {"parents": ["Alicia", "Javier"]},
-            "Household_2": {"parents": ["Tom"], "children": ["Sarah"]},
+            "Household_1": {"adults": ["Alicia", "Javier"]},
+            "Household_2": {"adults": ["Tom"], "children": ["Sarah"]},
         },
     )
     simulation_builder.finalize_variables_init(simulation.household)
@@ -413,7 +413,7 @@ def test_allocate_undeclared_person() -> None:
     assert exception.value.error == {
         "familles": {
             "famille1": {
-                "parents": "Unexpected value: Alicia. Alicia has been declared in famille1 parents, but has not been declared in individus.",
+                "adults": "Unexpected value: Alicia. Alicia has been declared in famille1 parents, but has not been declared in individus.",
             },
         },
     }
@@ -442,7 +442,7 @@ def test_allocate_person_twice() -> None:
     assert exception.value.error == {
         "familles": {
             "famille1": {
-                "parents": "Alicia has been declared more than once in familles",
+                "adults": "Alicia has been declared more than once in familles",
             },
         },
     }

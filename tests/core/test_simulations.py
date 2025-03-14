@@ -39,7 +39,7 @@ def test_clone(tax_benefit_system) -> None:
             "persons": {
                 "bill": {"salary": {"2017-01": 3000}},
             },
-            "households": {"household": {"parents": ["bill"]}},
+            "households": {"household": {"adults": ["bill"]}},
         },
     )
 
