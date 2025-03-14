@@ -522,13 +522,13 @@ def test_call__end_attribute__formulas__different_names(simulation) -> None:
 
 
 def test_get_formula(simulation) -> None:
-    person = simulation.person
+    household = simulation.household
     disposable_income_formula = tax_benefit_system.get_variable(
         "disposable_income",
     ).get_formula()
-    disposable_income = person("disposable_income", "2017-01")
+    disposable_income = household("disposable_income", "2017-01")
     disposable_income_2 = disposable_income_formula(
-        person,
+        household,
         "2017-01",
         None,
     )  # No need for parameters here
