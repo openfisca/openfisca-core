@@ -219,12 +219,12 @@ def test_add_axis_distributes_roles(persons, households) -> None:
     )
     simulation_builder.expand_axes()
     assert [role.key for role in simulation_builder.get_roles("households")] == [
-        "parent",
+        "adult",
         "child",
-        "parent",
-        "parent",
+        "adult",
+        "adult",
         "child",
-        "parent",
+        "adult",
     ]
 
 
@@ -249,12 +249,12 @@ def test_add_axis_on_persons_distributes_roles(persons, households) -> None:
     )
     simulation_builder.expand_axes()
     assert [role.key for role in simulation_builder.get_roles("households")] == [
-        "parent",
+        "adult",
         "child",
-        "parent",
-        "parent",
+        "adult",
+        "adult",
         "child",
-        "parent",
+        "adult",
     ]
 
 
@@ -340,9 +340,9 @@ def test_simulation_with_axes(tax_benefit_system) -> None:
           Tom: {}
         households:
           housea:
-            parents: [Alicia, Javier]
+            adults: [Alicia, Javier]
           houseb:
-            parents: [Tom]
+            adults: [Tom]
         axes:
             -
                 - count: 2
