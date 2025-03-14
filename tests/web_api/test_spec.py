@@ -38,7 +38,7 @@ def test_paths(body) -> None:
 
 
 def test_entity_definition(body) -> None:
-    assert "parents" in dpath.get(body, "components/schemas/Household/properties")
+    assert "adults" in dpath.get(body, "components/schemas/Household/properties")
     assert "children" in dpath.get(body, "components/schemas/Household/properties")
     assert "salary" in dpath.get(body, "components/schemas/Person/properties")
     assert "rent" in dpath.get(body, "components/schemas/Household/properties")
