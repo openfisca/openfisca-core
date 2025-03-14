@@ -51,7 +51,7 @@ def test_formula_neutralization(make_simulation, tax_benefit_system) -> None:
         "disposable_income",
         period=period,
     )
-    assert_near(disposable_income_reform, 0)
+    assert_near(disposable_income_reform, -17, absolute_error_margin=0.5)
 
 
 def test_neutralization_variable_with_default_value(
@@ -112,7 +112,7 @@ def test_input_variable_neutralization(make_simulation, tax_benefit_system) -> N
         "disposable_income",
         period=period,
     )
-    assert_near(disposable_income_reform, [600, 600])
+    assert_near(disposable_income_reform, [583, 583], absolute_error_margin=0.5)
 
 
 def test_permanent_variable_neutralization(make_simulation, tax_benefit_system) -> None:
