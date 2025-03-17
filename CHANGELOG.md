@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.3.4 [#1302](https://github.com/openfisca/openfisca-core/pull/1302)
+
+#### Technical changes
+
+- Move types from `openfisca_core.periods` to `openfisca_core`
+
 ### 43.3.3 [#1301](https://github.com/openfisca/openfisca-core/pull/1301)
 
 #### Technical changes
