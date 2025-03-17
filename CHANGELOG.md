@@ -1,5 +1,12 @@
 # Changelog
 
+## 43.4.0 [#1327](https://github.com/openfisca/openfisca-core/pull/1327)
+
+#### New features
+
+- Introduce parallel axes expansion to the Web API
+  - Allows for calculating variables based on a range of depending values
+
 ### 43.3.5 [#1325](https://github.com/openfisca/openfisca-core/pull/1325)
 
 #### Documentation
