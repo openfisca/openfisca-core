@@ -168,6 +168,10 @@ def test_basic_individual_calculation(test_client) -> None:
     assert basic_income == 600  # Universal basic income
     assert income_tax == 300  # 15% of the salary
     assert age == 37
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "persons/bill0")
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "households")
 
 
 def test_basic_group_calculation(test_client) -> None:
@@ -219,6 +223,10 @@ def test_basic_group_calculation(test_client) -> None:
     assert bob_basic_income == 600
     assert bob_social_security_contribution == 816
     assert housing_tax == 3000
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "persons/bill0")
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "households/bill&bob0")
 
 
 def test_axes_individual(test_client) -> None:
