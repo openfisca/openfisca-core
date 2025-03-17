@@ -13,17 +13,33 @@ def calculate(tax_benefit_system, input_data: dict) -> dict:
         afilter=lambda t: t is None,
         yielded=True,
     )
+    # Calculated results requested by the user.
     computation_results: dict = {}
+    # Paths to delete from the result in case of axes calculation.
+    paths_to_delete = []
+
     for computation in requested_computations:
         path = computation[
             0
         ]  # format: entity_plural/entity_instance_id/openfisca_variable_name/period
-        entity_plural, _entity_id, variable_name, period = path.split("/")
+        entity_plural, entity_id, variable_name, period = path.split("/")
         variable = tax_benefit_system.get_variable(variable_name)
         result = simulation.calculate(variable_name, period)
         population = simulation.get_population(entity_plural)
 
-        for entity_id in population.ids:
+        # With axes, entities are expanded by the given number of `counts`.
+        # So, for example, `bob` becomes `bob_0`, `bob_1`, `bob_2`, etc.
+        if input_data.get("axes") is None:
+            entity_ids = [entity_id]
+        else:
+            entity_ids = [
+                id_
+                for id_ in population.ids
+                if id_.startswith(entity_id) and id_ != entity_id
+            ]
+            paths_to_delete.append("/".join(path.split("/")[0:2]))
+
+        for entity_id in entity_ids:
             entity_index = population.get_index(entity_id)
 
             if variable.value_type == Enum:
@@ -63,6 +79,10 @@ def calculate(tax_benefit_system, input_data: dict) -> dict:
                 computation_results[entity_plural] = {
                     entity_id: {variable_name: {period: entity_result}},
                 }
+
+    for path in paths_to_delete:
+        if dpath.search(input_data, path):
+            dpath.delete(input_data, path)
 
     dpath.merge(input_data, computation_results)
 

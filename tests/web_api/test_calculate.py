@@ -283,6 +283,10 @@ def test_axes_individual(test_client) -> None:
     assert salary_1 == 0
     assert salary_2 == 4250
     assert salary_3 == 8500
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "persons/bill")
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "households/_0")
 
 
 def test_axes_group(test_client) -> None:
@@ -343,6 +347,12 @@ def test_axes_group(test_client) -> None:
     assert benefits_1 == 1200
     assert benefits_2 == 1200
     assert benefits_3 == 1200
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "persons/bill0")
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "persons/bob0")
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "households/b&b")
 
 
 def test_axes_group_targeting_individuals(test_client) -> None:
@@ -395,9 +405,6 @@ def test_axes_group_targeting_individuals(test_client) -> None:
     bill_salary_1 = dpath.get(response_json, "persons/bill0/salary/2025-03")
     bill_salary_2 = dpath.get(response_json, "persons/bill2/salary/2025-03")
     bill_salary_3 = dpath.get(response_json, "persons/bill4/salary/2025-03")
-    bob_salary_1 = dpath.get(response_json, "persons/bob1/salary/2025-03")
-    bob_salary_2 = dpath.get(response_json, "persons/bob3/salary/2025-03")
-    bob_salary_3 = dpath.get(response_json, "persons/bob5/salary/2025-03")
 
     # Assert
     assert response.status_code == client.OK
@@ -413,9 +420,12 @@ def test_axes_group_targeting_individuals(test_client) -> None:
     assert bill_salary_1 == 0
     assert bill_salary_2 == 5000
     assert bill_salary_3 == 10000
-    assert bob_salary_1 == 0
-    assert bob_salary_2 == 0
-    assert bob_salary_3 == 0
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "persons/bill")
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "persons/bob1")
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "households/b&b")
 
 
 def test_enums_sending_identifier(test_client) -> None:
