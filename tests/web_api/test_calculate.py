@@ -140,7 +140,37 @@ def test_responses(test_client, test) -> None:
     check_response(test_client, *test)
 
 
-def test_basic_calculation(test_client) -> None:
+def test_basic_individual_calculation(test_client) -> None:
+    # Arrange
+    simulation_json = json.dumps(
+        {
+            "persons": {
+                "bill": {
+                    "birth": {"2017-12": "1980-01-01"},
+                    "age": {"2017-12": None},
+                    "salary": {"2017-12": 2000},
+                    "basic_income": {"2017-12": None},
+                    "income_tax": {"2017-12": None},
+                }
+            }
+        },
+    )
+
+    # Act
+    response = post_json(test_client, simulation_json)
+    response_json = json.loads(response.data.decode("utf-8"))
+    basic_income = dpath.get(response_json, "persons/bill/basic_income/2017-12")
+    income_tax = dpath.get(response_json, "persons/bill/income_tax/2017-12")
+    age = dpath.get(response_json, "persons/bill/age/2017-12")
+
+    # Assert
+    assert response.status_code == client.OK
+    assert basic_income == 600  # Universal basic income
+    assert income_tax == 300  # 15% of the salary
+    assert age == 37
+
+
+def test_basic_group_calculation(test_client) -> None:
     # Arrange
     simulation_json = json.dumps(
         {
