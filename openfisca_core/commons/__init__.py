@@ -1,6 +1,5 @@
 """Common tools for contributors and users."""
 
-from . import types
 from .dummy import Dummy
 from .formulas import apply_thresholds, concat, switch
 from .misc import empty_clone, eval_expression, stringify_array
@@ -16,5 +15,4 @@ __all__ = [
     "marginal_rate",
     "stringify_array",
     "switch",
-    "types",
 ]

@@ -10,6 +10,17 @@ import enum
 
 import numpy
 import pendulum
+from numpy import (
+    bool_ as BoolDType,
+    bytes_ as BytesDType,
+    datetime64 as DateDType,
+    float32 as FloatDType,
+    generic as VarDType,
+    int32 as IntDType,
+    object_ as ObjDType,
+    str_ as StrDType,
+    uint8 as EnumDType,
+)
 
 #: Generic covariant type var.
 _T_co = TypeVar("_T_co", covariant=True)
@@ -21,6 +32,33 @@ _N_co = TypeVar("_N_co", covariant=True, bound="DTypeGeneric")
 
 #: Type representing an numpy array.
 Array: TypeAlias = NDArray[_N_co]
+
+#: Type alias for a boolean array.
+BoolArray: TypeAlias = Array[BoolDType]
+
+#: Type alias for an array of bytes.
+BytesArray: TypeAlias = Array[BytesDType]
+
+#: Type alias for an array of dates.
+DateArray: TypeAlias = Array[DateDType]
+
+#: Type alias for an array of floats.
+FloatArray: TypeAlias = Array[FloatDType]
+
+#: Type alias for an array of enum indices.
+IndexArray: TypeAlias = Array[EnumDType]
+
+#: Type alias for an array of integers.
+IntArray: TypeAlias = Array[IntDType]
+
+#: Type alias for an array of objects.
+ObjArray: TypeAlias = Array[ObjDType]
+
+#: Type alias for an array of strings.
+StrArray: TypeAlias = Array[StrDType]
+
+#: Type alias for an array of generic objects.
+VarArray: TypeAlias = Array[VarDType]
 
 #: Type var for array-like objects.
 _L = TypeVar("_L")

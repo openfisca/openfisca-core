@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import numexpr
-import numpy
 
 from openfisca_core import types as t
 
@@ -43,7 +42,7 @@ def empty_clone(original: object) -> object:
     return new
 
 
-def stringify_array(array: None | t.Array[numpy.generic]) -> str:
+def stringify_array(array: None | t.VarArray) -> str:
     """Generate a clean string representation of a numpy array.
 
     Args:
@@ -79,7 +78,7 @@ def stringify_array(array: None | t.Array[numpy.generic]) -> str:
 
 def eval_expression(
     expression: str,
-) -> str | t.Array[numpy.bool_] | t.Array[numpy.int32] | t.Array[numpy.float32]:
+) -> str | t.BoolArray | t.IntArray | t.FloatArray:
     """Evaluate a string expression to a numpy array.
 
     Args:
