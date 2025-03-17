@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from . import types as t
+from openfisca_core import types as t
+
 from ._description import _Description
 
 
@@ -51,7 +52,7 @@ class Role:
     max: None | int = None
 
     #: A list of subroles.
-    subroles: None | Iterable[Role] = None
+    subroles: None | Iterable[t.Role] = None
 
     @property
     def key(self) -> t.RoleKey:

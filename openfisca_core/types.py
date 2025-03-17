@@ -128,38 +128,61 @@ RolePlural = NewType("RolePlural", str)
 
 
 class CoreEntity(Protocol):
-    key: EntityKey
-    plural: EntityPlural
-
-    def check_role_validity(self, role: object, /) -> None: ...
+    @property
+    def key(self, /) -> EntityKey: ...
+    @property
+    def plural(self, /) -> EntityPlural: ...
+    @property
+    def label(self, /) -> str: ...
+    @property
+    def doc(self, /) -> str: ...
+    def set_tax_benefit_system(self, __tbs: TaxBenefitSystem, /) -> None: ...
+    def get_variable(
+        self, __name: VariableName, __check: bool = ..., /
+    ) -> None | Variable: ...
     def check_variable_defined_for_entity(
         self,
-        variable_name: VariableName,
+        __name: VariableName,
         /,
     ) -> None: ...
-    def get_variable(
-        self,
-        variable_name: VariableName,
-        check_existence: bool = ...,
-        /,
-    ) -> None | Variable: ...
+    @staticmethod
+    def check_role_validity(__role: object, /) -> None: ...
 
 
 class SingleEntity(CoreEntity, Protocol): ...
 
 
-class GroupEntity(CoreEntity, Protocol): ...
+class GroupEntity(CoreEntity, Protocol):
+    @property
+    def roles(self, /) -> Iterable[Role]: ...
+    @property
+    def flattened_roles(self, /) -> Iterable[Role]: ...
 
 
 class Role(Protocol):
-    entity: GroupEntity
-    max: int | None
-    subroles: None | Iterable[Role]
-
+    @property
+    def entity(self, /) -> GroupEntity: ...
+    @property
+    def max(self, /) -> None | int: ...
+    @property
+    def subroles(self, /) -> None | Iterable[Role]: ...
     @property
     def key(self, /) -> RoleKey: ...
     @property
     def plural(self, /) -> None | RolePlural: ...
+    @property
+    def label(self, /) -> None | str: ...
+    @property
+    def doc(self, /) -> None | str: ...
+
+
+class RoleParams(TypedDict, total=False):
+    key: Required[str]
+    plural: str
+    label: str
+    doc: str
+    max: int
+    subroles: list[str]
 
 
 # Indexed enums
