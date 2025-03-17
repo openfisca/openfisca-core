@@ -140,7 +140,42 @@ def test_responses(test_client, test) -> None:
     check_response(test_client, *test)
 
 
-def test_basic_calculation(test_client) -> None:
+def test_basic_individual_calculation(test_client) -> None:
+    # Arrange
+    simulation_json = json.dumps(
+        {
+            "persons": {
+                "bill": {
+                    "birth": {"2017-12": "1980-01-01"},
+                    "age": {"2017-12": None},
+                    "salary": {"2017-12": 2000},
+                    "basic_income": {"2017-12": None},
+                    "income_tax": {"2017-12": None},
+                }
+            }
+        },
+    )
+
+    # Act
+    response = post_json(test_client, simulation_json)
+    response_json = json.loads(response.data.decode("utf-8"))
+    basic_income = dpath.get(response_json, "persons/bill/basic_income/2017-12")
+    income_tax = dpath.get(response_json, "persons/bill/income_tax/2017-12")
+    age = dpath.get(response_json, "persons/bill/age/2017-12")
+
+    # Assert
+    assert response.status_code == client.OK
+    assert basic_income == 600  # Universal basic income
+    assert income_tax == 300  # 15% of the salary
+    assert age == 37
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "persons/bill0")
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "households")
+
+
+def test_basic_group_calculation(test_client) -> None:
+    # Arrange
     simulation_json = json.dumps(
         {
             "persons": {
@@ -158,7 +193,7 @@ def test_basic_calculation(test_client) -> None:
                 },
             },
             "households": {
-                "first_household": {
+                "bill&bob": {
                     "adults": ["bill", "bob"],
                     "housing_tax": {"2017": None},
                     "accommodation_size": {"2017-01": 300},
@@ -167,29 +202,230 @@ def test_basic_calculation(test_client) -> None:
         },
     )
 
+    # Act
     response = post_json(test_client, simulation_json)
-    assert response.status_code == client.OK
     response_json = json.loads(response.data.decode("utf-8"))
-    assert (
-        dpath.get(response_json, "persons/bill/basic_income/2017-12") == 600
-    )  # Universal basic income
-    assert (
-        dpath.get(response_json, "persons/bill/income_tax/2017-12") == 300
-    )  # 15% of the salary
-    assert (
-        dpath.get(response_json, "persons/bill/age/2017-12") == 37
-    )  # 15% of the salary
-    assert dpath.get(response_json, "persons/bob/basic_income/2017-12") == 600
-    assert (
-        dpath.get(
-            response_json,
-            "persons/bob/social_security_contribution/2017-12",
-        )
-        == 816
-    )  # From social_security_contribution.yaml test
-    assert (
-        dpath.get(response_json, "households/first_household/housing_tax/2017") == 3000
+    bill_basic_income = dpath.get(response_json, "persons/bill/basic_income/2017-12")
+    bill_income_tax = dpath.get(response_json, "persons/bill/income_tax/2017-12")
+    bill_age = dpath.get(response_json, "persons/bill/age/2017-12")
+    bob_basic_income = dpath.get(response_json, "persons/bob/basic_income/2017-12")
+    bob_social_security_contribution = dpath.get(
+        response_json,
+        "persons/bob/social_security_contribution/2017-12",
     )
+    housing_tax = dpath.get(response_json, "households/bill&bob/housing_tax/2017")
+
+    # Assert
+    assert response.status_code == client.OK
+    assert bill_basic_income == 600  # Universal basic income
+    assert bill_income_tax == 300  # 15% of the salary
+    assert bill_age == 37
+    assert bob_basic_income == 600
+    assert bob_social_security_contribution == 816
+    assert housing_tax == 3000
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "persons/bill0")
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "households/bill&bob0")
+
+
+def test_axes_individual(test_client) -> None:
+    # Arrange
+    simulation_json = json.dumps(
+        {
+            "persons": {
+                "bill": {
+                    "income_tax": {"2025-03": None},
+                    "salary": {"2025-03": None},
+                }
+            },
+            "households": {
+                "_": {
+                    "adults": ["bill"],
+                }
+            },
+            "axes": [
+                [
+                    {
+                        "count": 3,
+                        "name": "capital_returns",
+                        "min": 0,
+                        "max": 1500,
+                        "period": "2025-03",
+                    },
+                    {
+                        "count": 3,
+                        "name": "salary",
+                        "min": 0,
+                        "max": 8500,
+                        "period": "2025-03",
+                    },
+                ]
+            ],
+        },
+    )
+
+    # Act
+    response = post_json(test_client, simulation_json)
+    response_json = json.loads(response.data.decode("utf-8"))
+    income_tax_1 = dpath.get(response_json, "persons/bill0/income_tax/2025-03")
+    income_tax_2 = dpath.get(response_json, "persons/bill1/income_tax/2025-03")
+    income_tax_3 = dpath.get(response_json, "persons/bill2/income_tax/2025-03")
+    salary_1 = dpath.get(response_json, "persons/bill0/salary/2025-03")
+    salary_2 = dpath.get(response_json, "persons/bill1/salary/2025-03")
+    salary_3 = dpath.get(response_json, "persons/bill2/salary/2025-03")
+
+    # Assert
+    assert response.status_code == client.OK
+    assert income_tax_1 == 0
+    assert income_tax_2 == 750
+    assert income_tax_3 == 1500
+    assert salary_1 == 0
+    assert salary_2 == 4250
+    assert salary_3 == 8500
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "persons/bill")
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "households/_0")
+
+
+def test_axes_group(test_client) -> None:
+    # Arrange
+    simulation_json = json.dumps(
+        {
+            "persons": {
+                "bill": {
+                    "pension": {"2025-03": 5000},
+                },
+                "bob": {
+                    "capital_returns": {"2025-03": 1000},
+                },
+            },
+            "households": {
+                "b&b": {
+                    "adults": ["bill", "bob"],
+                    "disposable_income": {"2025-03": None},
+                    "total_taxes": {"2025-03": None},
+                    "total_benefits": {"2025-03": None},
+                },
+            },
+            "axes": [
+                [
+                    {
+                        "count": 3,
+                        "name": "salary",
+                        "min": 0,
+                        "max": 10000,
+                        "period": "2025-03",
+                    },
+                ]
+            ],
+        },
+    )
+
+    # Act
+    response = post_json(test_client, simulation_json)
+    response_json = json.loads(response.data.decode("utf-8"))
+    income_1 = dpath.get(response_json, "households/b&b0/disposable_income/2025-03")
+    income_2 = dpath.get(response_json, "households/b&b1/disposable_income/2025-03")
+    income_3 = dpath.get(response_json, "households/b&b2/disposable_income/2025-03")
+    taxes_1 = dpath.get(response_json, "households/b&b0/total_taxes/2025-03")
+    taxes_2 = dpath.get(response_json, "households/b&b1/total_taxes/2025-03")
+    taxes_3 = dpath.get(response_json, "households/b&b2/total_taxes/2025-03")
+    benefits_1 = dpath.get(response_json, "households/b&b0/total_benefits/2025-03")
+    benefits_2 = dpath.get(response_json, "households/b&b1/total_benefits/2025-03")
+    benefits_3 = dpath.get(response_json, "households/b&b2/total_benefits/2025-03")
+
+    # Assert
+    assert response.status_code == client.OK
+    assert income_1 == 6283.3335
+    assert income_2 == 10433.333
+    assert income_3 == 14423.333
+    assert taxes_1 == 916.6667
+    assert taxes_2 == 1766.6666
+    assert taxes_3 == 2776.6667
+    assert benefits_1 == 1200
+    assert benefits_2 == 1200
+    assert benefits_3 == 1200
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "persons/bill0")
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "persons/bob0")
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "households/b&b")
+
+
+def test_axes_group_targeting_individuals(test_client) -> None:
+    # Arrange
+    simulation_json = json.dumps(
+        {
+            "persons": {
+                "bill": {
+                    "pension": {"2025-03": 5000},
+                    "salary": {"2025-03": None},
+                },
+                "bob": {
+                    "capital_returns": {"2025-03": 1000},
+                },
+            },
+            "households": {
+                "b&b": {
+                    "adults": ["bill", "bob"],
+                    "disposable_income": {"2025-03": None},
+                    "total_taxes": {"2025-03": None},
+                    "total_benefits": {"2025-03": None},
+                },
+            },
+            "axes": [
+                [
+                    {
+                        "count": 3,
+                        "name": "salary",
+                        "min": 0,
+                        "max": 10000,
+                        "period": "2025-03",
+                    },
+                ]
+            ],
+        },
+    )
+
+    # Act
+    response = post_json(test_client, simulation_json)
+    response_json = json.loads(response.data.decode("utf-8"))
+    income_1 = dpath.get(response_json, "households/b&b0/disposable_income/2025-03")
+    income_2 = dpath.get(response_json, "households/b&b1/disposable_income/2025-03")
+    income_3 = dpath.get(response_json, "households/b&b2/disposable_income/2025-03")
+    taxes_1 = dpath.get(response_json, "households/b&b0/total_taxes/2025-03")
+    taxes_2 = dpath.get(response_json, "households/b&b1/total_taxes/2025-03")
+    taxes_3 = dpath.get(response_json, "households/b&b2/total_taxes/2025-03")
+    benefits_1 = dpath.get(response_json, "households/b&b0/total_benefits/2025-03")
+    benefits_2 = dpath.get(response_json, "households/b&b1/total_benefits/2025-03")
+    benefits_3 = dpath.get(response_json, "households/b&b2/total_benefits/2025-03")
+    bill_salary_1 = dpath.get(response_json, "persons/bill0/salary/2025-03")
+    bill_salary_2 = dpath.get(response_json, "persons/bill2/salary/2025-03")
+    bill_salary_3 = dpath.get(response_json, "persons/bill4/salary/2025-03")
+
+    # Assert
+    assert response.status_code == client.OK
+    assert income_1 == 6283.3335
+    assert income_2 == 10433.333
+    assert income_3 == 14423.333
+    assert taxes_1 == 916.6667
+    assert taxes_2 == 1766.6666
+    assert taxes_3 == 2776.6667
+    assert benefits_1 == 1200
+    assert benefits_2 == 1200
+    assert benefits_3 == 1200
+    assert bill_salary_1 == 0
+    assert bill_salary_2 == 5000
+    assert bill_salary_3 == 10000
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "persons/bill")
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "persons/bob1")
+    with pytest.raises(KeyError):
+        dpath.get(response_json, "households/b&b")
 
 
 def test_enums_sending_identifier(test_client) -> None:
