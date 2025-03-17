@@ -337,6 +337,79 @@ def test_axes_group(test_client) -> None:
     assert benefits_3 == 1200
 
 
+def test_axes_group_targeting_individuals(test_client) -> None:
+    # Arrange
+    simulation_json = json.dumps(
+        {
+            "persons": {
+                "bill": {
+                    "pension": {"2025-03": 5000},
+                    "salary": {"2025-03": None},
+                },
+                "bob": {
+                    "capital_returns": {"2025-03": 1000},
+                },
+            },
+            "households": {
+                "b&b": {
+                    "adults": ["bill", "bob"],
+                    "disposable_income": {"2025-03": None},
+                    "total_taxes": {"2025-03": None},
+                    "total_benefits": {"2025-03": None},
+                },
+            },
+            "axes": [
+                [
+                    {
+                        "count": 3,
+                        "name": "salary",
+                        "min": 0,
+                        "max": 10000,
+                        "period": "2025-03",
+                    },
+                ]
+            ],
+        },
+    )
+
+    # Act
+    response = post_json(test_client, simulation_json)
+    response_json = json.loads(response.data.decode("utf-8"))
+    income_1 = dpath.get(response_json, "households/b&b0/disposable_income/2025-03")
+    income_2 = dpath.get(response_json, "households/b&b1/disposable_income/2025-03")
+    income_3 = dpath.get(response_json, "households/b&b2/disposable_income/2025-03")
+    taxes_1 = dpath.get(response_json, "households/b&b0/total_taxes/2025-03")
+    taxes_2 = dpath.get(response_json, "households/b&b1/total_taxes/2025-03")
+    taxes_3 = dpath.get(response_json, "households/b&b2/total_taxes/2025-03")
+    benefits_1 = dpath.get(response_json, "households/b&b0/total_benefits/2025-03")
+    benefits_2 = dpath.get(response_json, "households/b&b1/total_benefits/2025-03")
+    benefits_3 = dpath.get(response_json, "households/b&b2/total_benefits/2025-03")
+    bill_salary_1 = dpath.get(response_json, "persons/bill0/salary/2025-03")
+    bill_salary_2 = dpath.get(response_json, "persons/bill2/salary/2025-03")
+    bill_salary_3 = dpath.get(response_json, "persons/bill4/salary/2025-03")
+    bob_salary_1 = dpath.get(response_json, "persons/bob1/salary/2025-03")
+    bob_salary_2 = dpath.get(response_json, "persons/bob3/salary/2025-03")
+    bob_salary_3 = dpath.get(response_json, "persons/bob5/salary/2025-03")
+
+    # Assert
+    assert response.status_code == client.OK
+    assert income_1 == 6283.3335
+    assert income_2 == 10433.333
+    assert income_3 == 14423.333
+    assert taxes_1 == 916.6667
+    assert taxes_2 == 1766.6666
+    assert taxes_3 == 2776.6667
+    assert benefits_1 == 1200
+    assert benefits_2 == 1200
+    assert benefits_3 == 1200
+    assert bill_salary_1 == 0
+    assert bill_salary_2 == 5000
+    assert bill_salary_3 == 10000
+    assert bob_salary_1 == 0
+    assert bob_salary_2 == 0
+    assert bob_salary_3 == 0
+
+
 def test_enums_sending_identifier(test_client) -> None:
     simulation_json = json.dumps(
         {
