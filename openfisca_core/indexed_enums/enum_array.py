@@ -1,14 +1,17 @@
 from __future__ import annotations
 
-from typing import NoReturn
+from typing import NoReturn, TypeVar
 from typing_extensions import Self
 
 import numpy
 
-from . import types as t
+from openfisca_core import types as t
+
+#: Type var for numpy arrays (invariant).
+_N = TypeVar("_N", bound=t.VarDType)
 
 
-class EnumArray(t.EnumArray):
+class EnumArray(t.EnumArray[_N]):
     """A subclass of :class:`~numpy.ndarray` of :class:`.Enum`.
 
     :class:`.Enum` arrays are encoded as :class:`int` to improve performance.
@@ -82,7 +85,7 @@ class EnumArray(t.EnumArray):
         obj.possible_values = possible_values
         return obj
 
-    def __array_finalize__(self, obj: None | t.EnumArray | t.VarArray) -> None:
+    def __array_finalize__(self, obj: None | t.EnumArray[_N] | t.VarArray) -> None:
         """See comment above."""
         if obj is None:
             return
@@ -223,10 +226,10 @@ class EnumArray(t.EnumArray):
         return numpy.logical_not(self == other)
 
     @staticmethod
-    def _forbidden_operation(*__args: object, **__kwds: object) -> NoReturn:
+    def _forbidden_operation(*args: object, **kwds: object) -> NoReturn:
         msg = (
             "Forbidden operation. The only operations allowed on EnumArrays "
-            "are '==' and '!='."
+            f"are '==' and '!=' (called with {args!r} and {kwds!r})."
         )
         raise TypeError(msg)
 
@@ -270,7 +273,8 @@ class EnumArray(t.EnumArray):
                 f"not defined."
             )
             raise TypeError(msg)
-        array = self.reshape(1).astype(t.EnumDType) if self.ndim == 0 else self
+        array = self.reshape(1) if self.ndim == 0 else self
+        array = array.astype(t.EnumDType)
         result = self.possible_values.enums[array]
         return result
 
@@ -305,7 +309,8 @@ class EnumArray(t.EnumArray):
                 f"not defined."
             )
             raise TypeError(msg)
-        array = self.reshape(1).astype(t.EnumDType) if self.ndim == 0 else self
+        array = self.reshape(1) if self.ndim == 0 else self
+        array = array.astype(t.EnumDType)
         result = self.possible_values.names[array]
         return result
 

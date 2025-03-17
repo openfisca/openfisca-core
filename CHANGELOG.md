@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.3.7 [#1285](https://github.com/openfisca/openfisca-core/pull/1285)
+
+#### Documentation
+
+- Add some types to `holders` (1 of 3)
+
 ### 43.3.6 [#1324](https://github.com/openfisca/openfisca-core/pull/1324)
 
 #### Technical changes

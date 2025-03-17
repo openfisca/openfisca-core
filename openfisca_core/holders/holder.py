@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Any
+from typing import Generic, TypeVar, cast
 
 import os
 import warnings
@@ -15,20 +14,48 @@ from openfisca_core import (
     errors,
     indexed_enums as enums,
     periods,
-    types,
+    types as t,
 )
 
-from . import types as t
+#: Type var for numpy arrays (invariant).
+_N = TypeVar("_N", bound=t.VarDType)
+
+#: Type var for array-like objects.
+_L = TypeVar("_L")
 
 
-class Holder:
-    """A holder keeps tracks of a variable values after they have been calculated, or set as an input."""
+class Holder(Generic[_N]):
+    """Track variable values after they have been calculated or set."""
 
-    def __init__(self, variable, population) -> None:
+    #: The population the variable is calculated for.
+    population: t.CorePopulation
+
+    #: The simulation the variable is calculated in.
+    simulation: None | t.Simulation = None
+
+    #: The variable the holder is tracking.
+    variable: t.Variable[_N]
+
+    #: Whether the variable is eternal.
+    _eternal: bool
+
+    #: The memory storage.
+    _memory_storage: t.InMemoryStorage[_N]
+
+    #: The disk storage.
+    _disk_storage: None | t.OnDiskStorage[_N]
+
+    #: Whether the variable is on-disk storable.
+    _on_disk_storable: bool
+
+    #: Whether the variable should not be stored.
+    _do_not_store: bool
+
+    def __init__(self, variable: t.Variable[_N], population: t.CorePopulation) -> None:
         self.population = population
         self.variable = variable
         self.simulation = population.simulation
-        self._eternal = self.variable.definition_period == periods.DateUnit.ETERNITY
+        self._eternal = self.variable.definition_period == periods.ETERNITY
         self._memory_storage = storage.InMemoryStorage(is_eternal=self._eternal)
 
         # By default, do not activate on-disk storage, or variable dropping
@@ -45,22 +72,26 @@ class Holder:
             if self.variable.name in self.simulation.memory_config.variables_to_drop:
                 self._do_not_store = True
 
-    def clone(self, population: t.CorePopulation) -> t.Holder:
-        """Copy the holder just enough to be able to run a new simulation without modifying the original simulation."""
+    def clone(self, population: t.CorePopulation) -> t.Holder[_N]:
+        """Copy the holder just enough to be able to run a new simulation."""
         new = commons.empty_clone(self)
         new_dict = new.__dict__
 
         for key, value in self.__dict__.items():
-            if key not in ("population", "formula", "simulation"):
+            if key not in {"population", "formula", "simulation"}:
                 new_dict[key] = value
 
         new_dict["population"] = population
         new_dict["simulation"] = population.simulation
 
-        return new
+        return cast(t.Holder[_N], new)
 
-    def create_disk_storage(self, directory=None, preserve=False):
+    def create_disk_storage(
+        self, directory: None | str = None, preserve: bool = False
+    ) -> t.OnDiskStorage[_N]:
         if directory is None:
+            if self.simulation is None:
+                raise NotImplementedError
             directory = self.simulation.data_storage_dir
         storage_dir = os.path.join(directory, self.variable.name)
         if not os.path.isdir(storage_dir):
@@ -71,7 +102,7 @@ class Holder:
             preserve_storage_dir=preserve,
         )
 
-    def delete_arrays(self, period=None) -> None:
+    def delete_arrays(self, period: None | t.Period = None) -> None:
         """If ``period`` is ``None``, remove all known values of the variable.
 
         If ``period`` is not ``None``, only remove all values for any period included in period (e.g. if period is "2017", values for "2017-01", "2017-07", etc. would be removed)
@@ -80,7 +111,7 @@ class Holder:
         if self._disk_storage:
             self._disk_storage.delete(period)
 
-    def get_array(self, period):
+    def get_array(self, period: t.Period) -> None | t.Array[_N]:
         """Get the value of the variable for the given period.
 
         If the value is not known, return ``None``.
@@ -136,28 +167,26 @@ class Holder:
 
         """
         usage = t.MemoryUsage(
-            nb_cells_by_array=self.population.count,
             dtype=self.variable.dtype,
+            nb_arrays=0,
+            nb_cells_by_array=self.population.count,
+            total_nb_bytes=0,
         )
 
         usage.update(self._memory_storage.get_memory_usage())
 
-        if self.simulation.trace:
+        if self.simulation is not None and self.simulation.trace:
             nb_requests = self.simulation.tracer.get_nb_requests(self.variable.name)
-            usage.update(
-                {
-                    "nb_requests": nb_requests,
-                    "nb_requests_by_array": (
-                        nb_requests / float(usage["nb_arrays"])
-                        if usage["nb_arrays"] > 0
-                        else numpy.nan
-                    ),
-                },
+            usage["nb_requests"] = nb_requests
+            usage["nb_requests_by_array"] = (
+                nb_requests / float(usage["nb_arrays"])
+                if usage["nb_arrays"] > 0
+                else numpy.nan
             )
 
         return usage
 
-    def get_known_periods(self):
+    def get_known_periods(self) -> list[t.Period]:
         """Get the list of periods the variable value is known for."""
         return list(self._memory_storage.get_known_periods()) + list(
             self._disk_storage.get_known_periods() if self._disk_storage else [],
@@ -165,9 +194,9 @@ class Holder:
 
     def set_input(
         self,
-        period: types.Period,
-        array: numpy.ndarray | Sequence[Any],
-    ) -> numpy.ndarray | None:
+        period: t.Period,
+        array: t.Array[_N] | t.ArrayLike[_L],
+    ) -> None | t.Array[_N]:
         """Set a Variable's array of values of a given Period.
 
         Args:
@@ -239,7 +268,7 @@ class Holder:
             return self.variable.set_input(self, period, array)
         return self._set(period, array)
 
-    def _to_array(self, value):
+    def _to_array(self, value: t.Array[_N] | t.ArrayLike[_L], /) -> t.Array[_N]:
         if not isinstance(value, numpy.ndarray):
             value = numpy.asarray(value)
         if value.ndim == 0:
@@ -262,7 +291,7 @@ class Holder:
                 )
         return value
 
-    def _set(self, period, value) -> None:
+    def _set(self, /, period: None | t.Period, value: t.Array[_N]) -> None:
         value = self._to_array(value)
         if not self._eternal:
             if period is None:
@@ -298,18 +327,25 @@ class Holder:
         should_store_on_disk = (
             self._on_disk_storable
             and self._memory_storage.get(period) is None
+            and self.simulation is not None
+            and self.simulation.memory_config is not None
             and psutil.virtual_memory().percent  # If there is already a value in memory, replace it and don't put a new value in the disk storage
             >= self.simulation.memory_config.max_memory_occupation_pc
         )
 
         if should_store_on_disk:
+            if self._disk_storage is None:
+                raise NotImplementedError
             self._disk_storage.put(value, period)
         else:
             self._memory_storage.put(value, period)
 
-    def put_in_cache(self, value, period) -> None:
+    def put_in_cache(self, value: t.Array[_N], period: t.Period) -> None:
         if self._do_not_store:
             return
+
+        if self.simulation is None:
+            raise NotImplementedError
 
         if (
             self.simulation.opt_out_cache
@@ -320,6 +356,34 @@ class Holder:
 
         self._set(period, value)
 
-    def default_array(self):
-        """Return a new array of the appropriate length for the entity, filled with the variable default values."""
+    def default_array(self) -> t.Array[_N]:
+        """Return a default array of the appropriate length for the entity.
+
+        Returns:
+            ndarray[generic]: The default array for the variable.
+
+        Examples:
+            >>> from openfisca_core import (
+            ...     entities,
+            ...     periods,
+            ...     populations,
+            ...     variables,
+            ... )
+
+            >>> entity = entities.SingleEntity("", "", "", "")
+
+            >>> class TestVariable(variables.Variable):
+            ...     definition_period = periods.WEEKDAY
+            ...     entity = entity
+            ...     value_type = bool
+
+            >>> variable = TestVariable()
+            >>> population = populations.CorePopulation(entity)
+            >>> population.count = 2
+            >>> holder = Holder(variable, population)
+
+            >>> holder.default_array()
+            array([False, False])
+
+        """
         return self.variable.default_array(self.population.count)

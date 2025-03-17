@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import numpy
 
-from openfisca_core import projectors
+from openfisca_core import projectors, types as t
 
-from . import types as t
 from ._core_population import CorePopulation
 
 
