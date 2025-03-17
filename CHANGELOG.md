@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.3.5 [#1325](https://github.com/openfisca/openfisca-core/pull/1325)
+
+#### Documentation
+
+- Remove ambiguous documentation references.
+
 ### 43.3.4 [#1302](https://github.com/openfisca/openfisca-core/pull/1302)
 
 #### Technical changes
