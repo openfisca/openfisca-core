@@ -221,6 +221,55 @@ def test_basic_group_calculation(test_client) -> None:
     assert housing_tax == 3000
 
 
+def test_axes_individual(test_client) -> None:
+    # Arrange
+    simulation_json = json.dumps(
+        {
+            "persons": {
+                "bill": {
+                    "income_tax": {"2025-03": None},
+                }
+            },
+            "households": {
+                "_": {
+                    "adults": ["bill"],
+                }
+            },
+            "axes": [
+                [
+                    {
+                        "count": 3,
+                        "name": "capital_returns",
+                        "min": 0,
+                        "max": 1500,
+                        "period": "2025-03",
+                    },
+                    {
+                        "count": 3,
+                        "name": "salary",
+                        "min": 0,
+                        "max": 8500,
+                        "period": "2025-03",
+                    },
+                ]
+            ],
+        },
+    )
+
+    # Act
+    response = post_json(test_client, simulation_json)
+    response_json = json.loads(response.data.decode("utf-8"))
+    income_tax_1 = dpath.get(response_json, "persons/bill0/income_tax/2025-03")
+    income_tax_2 = dpath.get(response_json, "persons/bill1/income_tax/2025-03")
+    income_tax_3 = dpath.get(response_json, "persons/bill2/income_tax/2025-03")
+
+    # Assert
+    assert response.status_code == client.OK
+    assert income_tax_1 == 0
+    assert income_tax_2 == 750
+    assert income_tax_3 == 1500
+
+
 def test_enums_sending_identifier(test_client) -> None:
     simulation_json = json.dumps(
         {
