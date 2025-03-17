@@ -141,6 +141,7 @@ def test_responses(test_client, test) -> None:
 
 
 def test_basic_calculation(test_client) -> None:
+    # Arrange
     simulation_json = json.dumps(
         {
             "persons": {
@@ -158,7 +159,7 @@ def test_basic_calculation(test_client) -> None:
                 },
             },
             "households": {
-                "first_household": {
+                "bill&bob": {
                     "adults": ["bill", "bob"],
                     "housing_tax": {"2017": None},
                     "accommodation_size": {"2017-01": 300},
@@ -167,29 +168,27 @@ def test_basic_calculation(test_client) -> None:
         },
     )
 
+    # Act
     response = post_json(test_client, simulation_json)
-    assert response.status_code == client.OK
     response_json = json.loads(response.data.decode("utf-8"))
-    assert (
-        dpath.get(response_json, "persons/bill/basic_income/2017-12") == 600
-    )  # Universal basic income
-    assert (
-        dpath.get(response_json, "persons/bill/income_tax/2017-12") == 300
-    )  # 15% of the salary
-    assert (
-        dpath.get(response_json, "persons/bill/age/2017-12") == 37
-    )  # 15% of the salary
-    assert dpath.get(response_json, "persons/bob/basic_income/2017-12") == 600
-    assert (
-        dpath.get(
-            response_json,
-            "persons/bob/social_security_contribution/2017-12",
-        )
-        == 816
-    )  # From social_security_contribution.yaml test
-    assert (
-        dpath.get(response_json, "households/first_household/housing_tax/2017") == 3000
+    bill_basic_income = dpath.get(response_json, "persons/bill/basic_income/2017-12")
+    bill_income_tax = dpath.get(response_json, "persons/bill/income_tax/2017-12")
+    bill_age = dpath.get(response_json, "persons/bill/age/2017-12")
+    bob_basic_income = dpath.get(response_json, "persons/bob/basic_income/2017-12")
+    bob_social_security_contribution = dpath.get(
+        response_json,
+        "persons/bob/social_security_contribution/2017-12",
     )
+    housing_tax = dpath.get(response_json, "households/bill&bob/housing_tax/2017")
+
+    # Assert
+    assert response.status_code == client.OK
+    assert bill_basic_income == 600  # Universal basic income
+    assert bill_income_tax == 300  # 15% of the salary
+    assert bill_age == 37
+    assert bob_basic_income == 600
+    assert bob_social_security_contribution == 816
+    assert housing_tax == 3000
 
 
 def test_enums_sending_identifier(test_client) -> None:
