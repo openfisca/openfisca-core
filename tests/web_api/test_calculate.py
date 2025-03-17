@@ -228,6 +228,7 @@ def test_axes_individual(test_client) -> None:
             "persons": {
                 "bill": {
                     "income_tax": {"2025-03": None},
+                    "salary": {"2025-03": None},
                 }
             },
             "households": {
@@ -262,12 +263,18 @@ def test_axes_individual(test_client) -> None:
     income_tax_1 = dpath.get(response_json, "persons/bill0/income_tax/2025-03")
     income_tax_2 = dpath.get(response_json, "persons/bill1/income_tax/2025-03")
     income_tax_3 = dpath.get(response_json, "persons/bill2/income_tax/2025-03")
+    salary_1 = dpath.get(response_json, "persons/bill0/salary/2025-03")
+    salary_2 = dpath.get(response_json, "persons/bill1/salary/2025-03")
+    salary_3 = dpath.get(response_json, "persons/bill2/salary/2025-03")
 
     # Assert
     assert response.status_code == client.OK
     assert income_tax_1 == 0
     assert income_tax_2 == 750
     assert income_tax_3 == 1500
+    assert salary_1 == 0
+    assert salary_2 == 4250
+    assert salary_3 == 8500
 
 
 def test_axes_group(test_client) -> None:
