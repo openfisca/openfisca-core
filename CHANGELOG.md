@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.3.6 [#1324](https://github.com/openfisca/openfisca-core/pull/1324)
+
+#### Technical changes
+
+- Move types from `openfisca_core.entities` to `openfisca_core`
+
 ### 43.3.5 [#1325](https://github.com/openfisca/openfisca-core/pull/1325)
 
 #### Documentation
