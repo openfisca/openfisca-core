@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.3.3 [#1301](https://github.com/openfisca/openfisca-core/pull/1301)
+
+#### Technical changes
+
+- Move types from `openfisca_core.tracers` to `openfisca_core`
+
 ### 43.3.2 [#1300](https://github.com/openfisca/openfisca-core/pull/1300)
 
 #### Technical changes

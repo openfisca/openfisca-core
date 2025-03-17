@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence, Sized
+from collections.abc import Iterable, Iterator, Sequence, Sized
 from numpy.typing import DTypeLike, NDArray
 from typing import NewType, TypeVar, Union
 from typing_extensions import Protocol, Required, Self, TypeAlias, TypedDict
@@ -308,6 +308,97 @@ class TaxBenefitSystem(Protocol):
         /,
     ) -> None | Variable: ...
 
+
+# Tracers
+
+#: A type representing a unit time.
+Time: TypeAlias = float
+
+#: A type representing a mapping of flat traces.
+FlatNodeMap: TypeAlias = dict["NodeKey", "FlatTraceMap"]
+
+#: A type representing a mapping of serialized traces.
+SerializedNodeMap: TypeAlias = dict["NodeKey", "SerializedTraceMap"]
+
+#: Key of a trace.
+NodeKey = NewType("NodeKey", str)
+
+
+class FlatTraceMap(TypedDict, total=True):
+    dependencies: list[NodeKey]
+    parameters: dict[NodeKey, None | ArrayLike[object]]
+    value: None | VarArray
+    calculation_time: Time
+    formula_time: Time
+
+
+class SerializedTraceMap(TypedDict, total=True):
+    dependencies: list[NodeKey]
+    parameters: dict[NodeKey, None | ArrayLike[object]]
+    value: None | ArrayLike[object]
+    calculation_time: Time
+    formula_time: Time
+
+
+class SimpleTraceMap(TypedDict, total=True):
+    name: VariableName
+    period: int | Period
+
+
+class ComputationLog(Protocol):
+    def print_log(self, __aggregate: bool = ..., __max_depth: int = ..., /) -> None: ...
+
+
+class FlatTrace(Protocol):
+    def get_trace(self, /) -> FlatNodeMap: ...
+    def get_serialized_trace(self, /) -> SerializedNodeMap: ...
+
+
+class FullTracer(Protocol):
+    @property
+    def trees(self, /) -> list[TraceNode]: ...
+    def browse_trace(self, /) -> Iterator[TraceNode]: ...
+    def get_nb_requests(self, __name: VariableName, /) -> int: ...
+
+
+class PerformanceLog(Protocol):
+    def generate_graph(self, __dir_path: str, /) -> None: ...
+    def generate_performance_tables(self, __dir_path: str, /) -> None: ...
+
+
+class SimpleTracer(Protocol):
+    @property
+    def stack(self, /) -> SimpleStack: ...
+    def record_calculation_start(
+        self, __name: VariableName, __period: PeriodInt | Period, /
+    ) -> None: ...
+    def record_calculation_end(self, /) -> None: ...
+
+
+class TraceNode(Protocol):
+    @property
+    def children(self, /) -> list[TraceNode]: ...
+    @property
+    def end(self, /) -> Time: ...
+    @property
+    def name(self, /) -> str: ...
+    @property
+    def parameters(self, /) -> list[TraceNode]: ...
+    @property
+    def parent(self, /) -> None | TraceNode: ...
+    @property
+    def period(self, /) -> PeriodInt | Period: ...
+    @property
+    def start(self, /) -> Time: ...
+    @property
+    def value(self, /) -> None | VarArray: ...
+    def calculation_time(self, *, __round: bool = ...) -> Time: ...
+    def formula_time(self, /) -> Time: ...
+    def append_child(self, __node: TraceNode, /) -> None: ...
+
+
+#: A stack of simple traces.
+SimpleStack: TypeAlias = list[SimpleTraceMap]
 
 # Variables
 
