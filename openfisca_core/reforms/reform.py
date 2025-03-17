@@ -71,7 +71,8 @@ class Reform(TaxBenefitSystem):
         Call this function in `apply()` if the reform asks for legislation parameter modifications.
 
         Args:
-            modifier_function: A function that takes a :obj:`.ParameterNode` and should return an object of the same type.
+            modifier_function: A function that takes a :obj:`~parameters.ParameterNode`
+            and should return an object of the same type.
 
         """
         baseline_parameters = self.baseline.parameters
