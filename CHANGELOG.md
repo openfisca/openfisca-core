@@ -1,10 +1,22 @@
 # Changelog
 
+### 44.1.1
+
+#### Technical changes
+
+- Rebase and update dependencies
+
 ## 44.1.0 [#1355](https://github.com/openfisca/openfisca-core/pull/1355)
 
 #### New features
 
 - Yaml tests can have a `parameters` parameter that replace the parameter tree. It allows tests with parameter overrides.
+
+### 44.0.5 [#1341](https://github.com/openfisca/openfisca-core/pull/1341)
+
+#### Technical changes
+
+- Add a check for creating a simulation when building a test
 
 ### 44.0.4 [#1354](https://github.com/openfisca/openfisca-core/pull/1354)
 
