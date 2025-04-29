@@ -21,8 +21,18 @@ jobs:
         # such difference would lead to a cache not found error.
         python: [3.12.3, 3.9.13]
         include:
-        - python: 3.9.13
+        - os: ubuntu-22.04
+          python: 3.9.13
           numpy: 1.24.2
+          activate_command: source venv/bin/activate
+        - os: ubuntu-22.04
+          python: 3.13.3
+          numpy: 1.26.4
+          activate_command: source venv/bin/activate
+        - os: windows-2019
+          python: 3.9.13
+          numpy: 1.24.2
+          activate_command: .\venv\Scripts\activate
         - os: ubuntu-22.04
           activate_command: source venv/bin/activate
         - os: windows-2019
@@ -44,14 +54,24 @@ jobs:
   test-pip:
     needs: [setup-pip]
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os: [ubuntu-22.04, windows-2019]
         numpy: [1.26.4]
         python: [3.12.3, 3.9.13]
         include:
-        - python: 3.9.13
+        - os: ubuntu-22.04
+          python: 3.9.13
           numpy: 1.24.2
+          activate_command: source venv/bin/activate
+        - os: ubuntu-22.04
+          python: 3.13.3
+          numpy: 1.26.4
+          activate_command: source venv/bin/activate
+        - os: windows-2019
+          python: 3.9.13
+          numpy: 1.24.2
+          activate_command: .\venv\Scripts\activate
         - os: ubuntu-22.04
           activate_command: source venv/bin/activate
         - os: windows-2019

@@ -21,8 +21,14 @@ jobs:
         # such difference would lead to a cache not found error.
         python: [3.12.3, 3.9.13]
         include:
-        - python: 3.9.13
+        - os: ubuntu-22.04
+          python: 3.9.13
           numpy: 1.24.2
+          activate_command: source venv/bin/activate
+        - os: windows-2019
+          python: 3.9.13
+          numpy: 1.24.2
+          activate_command: .\venv\Scripts\activate
         - os: ubuntu-22.04
           activate_command: source venv/bin/activate
         - os: windows-2019
@@ -50,8 +56,14 @@ jobs:
         numpy: [1.26.4]
         python: [3.12.3, 3.9.13]
         include:
-        - python: 3.9.13
+        - os: ubuntu-22.04
+          python: 3.9.13
           numpy: 1.24.2
+          activate_command: source venv/bin/activate
+        - os: windows-2019
+          python: 3.9.13
+          numpy: 1.24.2
+          activate_command: .\venv\Scripts\activate
         - os: ubuntu-22.04
           activate_command: source venv/bin/activate
         - os: windows-2019
