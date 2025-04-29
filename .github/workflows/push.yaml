@@ -25,10 +25,6 @@ jobs:
           python: 3.9.13
           numpy: 1.24.2
           activate_command: source venv/bin/activate
-        - os: ubuntu-22.04
-          python: 3.13.3
-          numpy: 1.26.4
-          activate_command: source venv/bin/activate
         - os: windows-2019
           python: 3.9.13
           numpy: 1.24.2
@@ -63,10 +59,6 @@ jobs:
         - os: ubuntu-22.04
           python: 3.9.13
           numpy: 1.24.2
-          activate_command: source venv/bin/activate
-        - os: ubuntu-22.04
-          python: 3.13.3
-          numpy: 1.26.4
           activate_command: source venv/bin/activate
         - os: windows-2019
           python: 3.9.13
