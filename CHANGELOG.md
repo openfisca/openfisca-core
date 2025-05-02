@@ -1,8 +1,14 @@
 # Changelog
 
+### 43.3.7 [#1328](https://github.com/openfisca/openfisca-core/pull/1328)
+
+#### Technical changes
+
+- Bump the Twine version to fix the PyPi upload issue.
+
 ### 43.3.6 [#1289](https://github.com/openfisca/openfisca-core/pull/1289)
 
-#### Documentation
+#### Technical changes
 
 - Change Github Action matrix test to support Python 3.12.
 
