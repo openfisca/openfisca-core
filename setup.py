@@ -70,7 +70,7 @@ dev_requirements = [
 
 setup(
     name="OpenFisca-Core",
-    version="43.3.5",
+    version="43.3.6",
     author="OpenFisca Team",
     author_email="contact@openfisca.org",
     classifiers=[
@@ -81,6 +81,7 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Topic :: Scientific/Engineering :: Information Analysis",
     ],
     description="A versatile microsimulation free software",

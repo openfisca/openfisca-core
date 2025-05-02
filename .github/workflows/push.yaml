@@ -14,13 +14,21 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-22.04, windows-2019]
-        numpy: [1.26.4, 1.24.2]
+        numpy: [1.26.4]
         # Patch version must be specified to avoid any cache confusion, since
         # the cache key depends on the full Python version. If left unspecified,
         # different patch versions could be allocated between jobs, and any
         # such difference would lead to a cache not found error.
-        python: [3.11.9, 3.9.13]
+        python: [3.12.3, 3.9.13]
         include:
+        - os: ubuntu-22.04
+          python: 3.9.13
+          numpy: 1.24.2
+          activate_command: source venv/bin/activate
+        - os: windows-2019
+          python: 3.9.13
+          numpy: 1.24.2
+          activate_command: .\venv\Scripts\activate
         - os: ubuntu-22.04
           activate_command: source venv/bin/activate
         - os: windows-2019
@@ -42,12 +50,20 @@ jobs:
   test-pip:
     needs: [setup-pip]
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os: [ubuntu-22.04, windows-2019]
-        numpy: [1.26.4, 1.24.2]
-        python: [3.11.9, 3.9.13]
+        numpy: [1.26.4]
+        python: [3.12.3, 3.9.13]
         include:
+        - os: ubuntu-22.04
+          python: 3.9.13
+          numpy: 1.24.2
+          activate_command: source venv/bin/activate
+        - os: windows-2019
+          python: 3.9.13
+          numpy: 1.24.2
+          activate_command: .\venv\Scripts\activate
         - os: ubuntu-22.04
           activate_command: source venv/bin/activate
         - os: windows-2019
@@ -72,8 +88,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        numpy: [1.24.2]
-        python: [3.11.9, 3.9.13]
+        numpy: [1.26.4]
+        python: [3.12.3, 3.9.13]
     uses: ./.github/workflows/_lint-pip.yaml
     with:
       os: ubuntu-22.04
