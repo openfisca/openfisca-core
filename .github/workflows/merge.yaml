@@ -171,6 +171,11 @@ jobs:
         path: dist
         key: pip-release-ubuntu-22.04-np1.24.2-py3.9.13-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
+    - name: Check package format
+      run: |
+        source venv/bin/activate
+        twine check dist/*
+
     - name: Upload package to PyPi
       run: |
         source venv/bin/activate

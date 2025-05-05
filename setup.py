@@ -70,7 +70,7 @@ dev_requirements = [
 
 setup(
     name="OpenFisca-Core",
-    version="43.3.6",
+    version="43.3.7",
     author="OpenFisca Team",
     author_email="contact@openfisca.org",
     classifiers=[
@@ -108,7 +108,7 @@ setup(
         "dev": dev_requirements,
         "ci": [
             "build >=0.10.0, <0.11.0",
-            "twine >=5.1.1, <6.0",
+            "twine >=6.0, <7.0",
             "wheel >=0.40.0, <0.41.0",
         ],
         "tracker": ["OpenFisca-Tracker >=0.4.0, <0.5.0"],
