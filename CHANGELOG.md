@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.3.8 [#1329](https://github.com/openfisca/openfisca-core/pull/1329)
+
+#### New features
+
+- Add a parameter `start_computation_period` in simulation : if this parameter is not None, the simulation return the default value for all variable calculate before this period. The aim is to avoid computation of variables for period before the input  variables period.
+
 ### 43.3.7 [#1328](https://github.com/openfisca/openfisca-core/pull/1328)
 
 #### Technical changes
