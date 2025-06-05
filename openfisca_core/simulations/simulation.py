@@ -59,7 +59,7 @@ class Simulation:
         self.max_spiral_loops: int = 1
         self.memory_config = None
         self._data_storage_dir = None
-        self.start_computation_date = None
+        self.start_computation_period = None
 
     @property
     def trace(self):
@@ -146,10 +146,10 @@ class Simulation:
 
         # First, try to run a formula
 
-        if self.start_computation_date is not None:
-            if not isinstance(self.start_computation_date, periods.Period):
-                self.start_computation_date = periods.period(self.start_computation_date)
-            if period < self.start_computation_date:
+        if self.start_computation_period is not None:
+            if not isinstance(self.start_computation_period, periods.Period):
+                self.start_computation_period = periods.period(self.start_computation_period)
+            if period < self.start_computation_period:
                 return holder.default_array()
         try:
             self._check_for_cycle(variable.name, period)
