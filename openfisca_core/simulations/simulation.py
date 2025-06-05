@@ -145,6 +145,7 @@ class Simulation:
         array = None
 
         # First, try to run a formula
+
         if self.start_computation_date is not None:
             if not isinstance(self.start_computation_date, periods.Period):
                 self.start_computation_date = periods.period(self.start_computation_date)
