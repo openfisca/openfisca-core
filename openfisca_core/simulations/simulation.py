@@ -145,10 +145,11 @@ class Simulation:
         array = None
 
         # First, try to run a formula
-
         if self.start_computation_period is not None:
             if not isinstance(self.start_computation_period, periods.Period):
-                self.start_computation_period = periods.period(self.start_computation_period)
+                self.start_computation_period = periods.period(
+                    self.start_computation_period
+                )
             if period < self.start_computation_period:
                 return holder.default_array()
         try:
