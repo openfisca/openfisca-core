@@ -19,7 +19,8 @@ from openfisca_core.tracers import (
 from .parameters_fancy_indexing.test_fancy_indexing import parameters
 
 
-class TestException(Exception): ...
+class TestException(Exception):
+    ...
 
 
 class StubSimulation(Simulation):

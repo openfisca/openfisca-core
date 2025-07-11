@@ -81,9 +81,9 @@ class TaxBenefitSystem:
             baseline = self.baseline
             if baseline is None:
                 return self
-            self._base_tax_benefit_system = base_tax_benefit_system = (
-                baseline.base_tax_benefit_system
-            )
+            self._base_tax_benefit_system = (
+                base_tax_benefit_system
+            ) = baseline.base_tax_benefit_system
         return base_tax_benefit_system
 
     def instantiate_entities(self):

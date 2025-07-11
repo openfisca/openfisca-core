@@ -48,7 +48,8 @@ class CoreEntity:
     _tax_benefit_system: None | t.TaxBenefitSystem = None
 
     @abc.abstractmethod
-    def __init__(self, *__args: object, **__kwargs: object) -> None: ...
+    def __init__(self, *__args: object, **__kwargs: object) -> None:
+        ...
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.key})"

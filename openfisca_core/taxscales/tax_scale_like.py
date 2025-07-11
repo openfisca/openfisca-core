@@ -48,17 +48,20 @@ class TaxScaleLike(abc.ABC):
         )
 
     @abc.abstractmethod
-    def __repr__(self) -> str: ...
+    def __repr__(self) -> str:
+        ...
 
     @abc.abstractmethod
     def calc(
         self,
         tax_base: NumericalArray,
         right: bool,
-    ) -> numpy.float32: ...
+    ) -> numpy.float32:
+        ...
 
     @abc.abstractmethod
-    def to_dict(self) -> dict: ...
+    def to_dict(self) -> dict:
+        ...
 
     def copy(self) -> typing.Any:
         new = commons.empty_clone(self)

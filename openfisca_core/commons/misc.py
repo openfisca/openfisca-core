@@ -29,7 +29,8 @@ def empty_clone(original: object) -> object:
 
     """
 
-    def __init__(_: object) -> None: ...
+    def __init__(_: object) -> None:
+        ...
 
     Dummy = type(
         "Dummy",
