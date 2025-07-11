@@ -134,8 +134,6 @@ def _str_to_index(
         The index array.
 
     Examples:
-        >>> from array import array
-
         >>> import numpy
 
         >>> from openfisca_core import indexed_enums as enum

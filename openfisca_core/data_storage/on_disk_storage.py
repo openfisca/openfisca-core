@@ -235,8 +235,6 @@ class OnDiskStorage:
         Examples:
             >>> import tempfile
 
-            >>> import numpy
-
             >>> from openfisca_core import data_storage, periods
 
             >>> instant = periods.Instant((2017, 1, 1))

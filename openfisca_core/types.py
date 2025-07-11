@@ -132,11 +132,13 @@ class CoreEntity(Protocol):
     plural: EntityPlural
 
     def check_role_validity(self, role: object, /) -> None: ...
+
     def check_variable_defined_for_entity(
         self,
         variable_name: VariableName,
         /,
     ) -> None: ...
+
     def get_variable(
         self,
         variable_name: VariableName,
@@ -158,6 +160,7 @@ class Role(Protocol):
 
     @property
     def key(self, /) -> RoleKey: ...
+
     @property
     def plural(self, /) -> None | RolePlural: ...
 
@@ -190,6 +193,7 @@ class EnumArray(Array[DTypeEnum], metaclass=abc.ABCMeta):
 
 class Holder(Protocol):
     def clone(self, population: CorePopulation, /) -> Holder: ...
+
     def get_memory_usage(self, /) -> MemoryUsage: ...
 
 
@@ -218,6 +222,7 @@ class ParameterNodeAtInstant(Protocol):
     _instant_str: InstantStr
 
     def __contains__(self, __item: object, /) -> bool: ...
+
     def __getitem__(
         self, __index: str | Array[DTypeGeneric], /
     ) -> ParameterNodeChild: ...
@@ -227,6 +232,7 @@ class VectorialParameterNodeAtInstant(Protocol):
     _instant_str: InstantStr
 
     def __contains__(self, item: object, /) -> bool: ...
+
     def __getitem__(
         self, __index: str | Array[DTypeGeneric], /
     ) -> ParameterNodeChild: ...
@@ -302,27 +308,38 @@ class DateUnit(Container[str], Protocol):
 class Instant(Indexable[int], Iterable[int], Sized, Protocol):
     @property
     def year(self, /) -> int: ...
+
     @property
     def month(self, /) -> int: ...
+
     @property
     def day(self, /) -> int: ...
+
     @property
     def date(self, /) -> pendulum.Date: ...
+
     def __lt__(self, __other: object, /) -> bool: ...
+
     def __le__(self, __other: object, /) -> bool: ...
+
     def offset(self, __offset: str | int, __unit: DateUnit, /) -> None | Instant: ...
 
 
 class Period(Indexable[Union[DateUnit, Instant, int]], Protocol):
     @property
     def unit(self, /) -> DateUnit: ...
+
     @property
     def start(self, /) -> Instant: ...
+
     @property
     def size(self, /) -> int: ...
+
     @property
     def stop(self, /) -> Instant: ...
+
     def contains(self, __other: Period, /) -> bool: ...
+
     def offset(
         self, __offset: str | int, __unit: None | DateUnit = None, /
     ) -> Period: ...
@@ -353,12 +370,15 @@ class Simulation(Protocol):
     def calculate(
         self, variable_name: VariableName, period: Period, /
     ) -> Array[DTypeGeneric]: ...
+
     def calculate_add(
         self, variable_name: VariableName, period: Period, /
     ) -> Array[DTypeGeneric]: ...
+
     def calculate_divide(
         self, variable_name: VariableName, period: Period, /
     ) -> Array[DTypeGeneric]: ...
+
     def get_population(self, plural: None | str, /) -> CorePopulation: ...
 
 
@@ -418,49 +438,65 @@ class ComputationLog(Protocol):
 
 class FlatTrace(Protocol):
     def get_trace(self, /) -> FlatNodeMap: ...
+
     def get_serialized_trace(self, /) -> SerializedNodeMap: ...
 
 
 class FullTracer(Protocol):
     @property
     def trees(self, /) -> list[TraceNode]: ...
+
     def browse_trace(self, /) -> Iterator[TraceNode]: ...
+
     def get_nb_requests(self, __name: VariableName, /) -> int: ...
 
 
 class PerformanceLog(Protocol):
     def generate_graph(self, __dir_path: str, /) -> None: ...
+
     def generate_performance_tables(self, __dir_path: str, /) -> None: ...
 
 
 class SimpleTracer(Protocol):
     @property
     def stack(self, /) -> SimpleStack: ...
+
     def record_calculation_start(
         self, __name: VariableName, __period: PeriodInt | Period, /
     ) -> None: ...
+
     def record_calculation_end(self, /) -> None: ...
 
 
 class TraceNode(Protocol):
     @property
     def children(self, /) -> list[TraceNode]: ...
+
     @property
     def end(self, /) -> Time: ...
+
     @property
     def name(self, /) -> str: ...
+
     @property
     def parameters(self, /) -> list[TraceNode]: ...
+
     @property
     def parent(self, /) -> None | TraceNode: ...
+
     @property
     def period(self, /) -> PeriodInt | Period: ...
+
     @property
     def start(self, /) -> Time: ...
+
     @property
     def value(self, /) -> None | VarArray: ...
+
     def calculation_time(self, *, __round: bool = ...) -> Time: ...
+
     def formula_time(self, /) -> Time: ...
+
     def append_child(self, __node: TraceNode, /) -> None: ...
 
 
