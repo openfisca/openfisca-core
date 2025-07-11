@@ -1,5 +1,13 @@
 # Changelog
 
+### 43.3.10 [#1333](https://github.com/openfisca/openfisca-core/pull/1332)
+
+#### Technical changes
+
+- Applying make format to the codebase
+  - This is a follow-up of the previous PR, which was not applied correctly.
+  - The codebase is now formatted with `black` and `isort`.
+
 ### 43.3.9 [#1332](https://github.com/openfisca/openfisca-core/pull/1332)
 
 #### New features
