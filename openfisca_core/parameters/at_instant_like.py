@@ -14,5 +14,4 @@ class AtInstantLike(abc.ABC):
         return self._get_at_instant(instant)
 
     @abc.abstractmethod
-    def _get_at_instant(self, instant):
-        ...
+    def _get_at_instant(self, instant): ...
