@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-22.04, windows-2019]
+        os: [ubuntu-22.04, windows-2025]
         numpy: [1.26.4]
         # Patch version must be specified to avoid any cache confusion, since
         # the cache key depends on the full Python version. If left unspecified,
@@ -25,13 +25,13 @@ jobs:
           python: 3.9.13
           numpy: 1.24.2
           activate_command: source venv/bin/activate
-        - os: windows-2019
+        - os: windows-2025
           python: 3.9.13
           numpy: 1.24.2
           activate_command: .\venv\Scripts\activate
         - os: ubuntu-22.04
           activate_command: source venv/bin/activate
-        - os: windows-2019
+        - os: windows-2025
           activate_command: .\venv\Scripts\activate
     uses: ./.github/workflows/_before-pip.yaml
     with:
@@ -52,7 +52,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-22.04, windows-2019]
+        os: [ubuntu-22.04, windows-2025]
         numpy: [1.26.4]
         python: [3.12.3, 3.9.13]
         include:
@@ -60,13 +60,13 @@ jobs:
           python: 3.9.13
           numpy: 1.24.2
           activate_command: source venv/bin/activate
-        - os: windows-2019
+        - os: windows-2025
           python: 3.9.13
           numpy: 1.24.2
           activate_command: .\venv\Scripts\activate
         - os: ubuntu-22.04
           activate_command: source venv/bin/activate
-        - os: windows-2019
+        - os: windows-2025
           activate_command: .\venv\Scripts\activate
     uses: ./.github/workflows/_test-pip.yaml
     with:
@@ -245,7 +245,7 @@ jobs:
           --api-key ${{ secrets.ANACONDA_TOKEN }}
 
   test-on-windows:
-    runs-on: windows-2019
+    runs-on: windows-2025
     needs: [publish-to-conda]
     defaults:
       run:

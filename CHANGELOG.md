@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.3.9 [#1332](https://github.com/openfisca/openfisca-core/pull/1332)
+
+#### New features
+
+- Fix a `return` instead of a `raise`.
+
 ### 43.3.8 [#1329](https://github.com/openfisca/openfisca-core/pull/1329)
 
 #### New features
