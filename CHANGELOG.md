@@ -1,6 +1,13 @@
 # Changelog
 
-### 43.3.10 [#1333](https://github.com/openfisca/openfisca-core/pull/1332)
+### 43.3.11 [#1335](https://github.com/openfisca/openfisca-core/pull/1335)
+
+#### Technical changes
+
+- Ensure correct CI builds of openfisca-extension-template and openfisca-country-template
+
+
+### 43.3.10 [#1333](https://github.com/openfisca/openfisca-core/pull/1333)
 
 #### Technical changes
 

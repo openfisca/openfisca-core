@@ -30,7 +30,7 @@ requirements:
 
 about:
   summary: OpenFisca Rules as Code model for Country-Template.
-  license: AGPL-3.0
+  license: AGPL-3.0-or-later
   license_file: LICENSE
 
 extra:
