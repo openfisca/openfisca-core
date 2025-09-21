@@ -175,3 +175,11 @@ def test_with_enum() -> None:
 
     zone = numpy.asarray([TypesZone.z1, TypesZone.z2, TypesZone.z2, TypesZone.z1])
     assert_near(P.single.owner[zone], [100, 200, 200, 100])
+
+
+P_4 = parameters.next_category("2015-01-01")
+
+
+def test_on_leaf_str() -> None:
+    current_category = numpy.asarray(["step1", "step1", "step2", "step3"])
+    assert_near(P_4[current_category], ["step2", "step2", "step3", "step3"])
