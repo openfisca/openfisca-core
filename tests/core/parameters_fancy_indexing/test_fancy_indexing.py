@@ -74,7 +74,7 @@ def test_wrong_key() -> None:
     zone = numpy.asarray(["z1", "z2", "z2", "toto"])
     with pytest.raises(ParameterNotFound) as e:
         P.single.owner[zone]
-    assert "'rate.single.owner.toto' was not found" in get_message(e.value)
+    assert "'rate.single.owner[toto]' was not found" in get_message(e.value)
 
 
 def test_inhomogenous() -> None:

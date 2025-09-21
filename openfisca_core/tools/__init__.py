@@ -1,5 +1,7 @@
 import os
 
+from numpy.testing import assert_array_equal
+
 from openfisca_core import commons
 from openfisca_core.indexed_enums import EnumArray
 
@@ -26,6 +28,8 @@ def assert_near(
         absolute_error_margin = 0
     if not isinstance(value, numpy.ndarray):
         value = numpy.array(value)
+    if isinstance(value[0], str):
+        return assert_array_equal(value, target_value, message)
     if isinstance(value, EnumArray):
         return assert_enum_equals(value, target_value, message)
     if numpy.issubdtype(value.dtype, numpy.datetime64):
