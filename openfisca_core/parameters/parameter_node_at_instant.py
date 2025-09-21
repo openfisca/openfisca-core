@@ -41,7 +41,7 @@ class ParameterNodeAtInstant:
             )
         try:
             return self._children[key]
-        except KeyError as e:
+        except KeyError:
             param_name = helpers._compose_name(self._name, item_name=key)
             raise ParameterNotFoundError(param_name, self._instant_str)
 

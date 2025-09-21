@@ -3,9 +3,7 @@ from typing import NoReturn
 import numpy
 
 from openfisca_core import parameters
-from openfisca_core.errors import ParameterNotFoundError
-from openfisca_core.indexed_enums import Enum, EnumArray
-from openfisca_core.parameters import helpers
+from openfisca_core.indexed_enums import Enum
 
 
 class VectorialParameterNodeAtInstant:
@@ -13,7 +11,6 @@ class VectorialParameterNodeAtInstant:
         self.vector = vector
         self._name = name
         self._instant_str = instant_str
-
 
     @staticmethod
     def _get_appropriate_subnode_key(node, k):
@@ -34,17 +31,20 @@ class VectorialParameterNodeAtInstant:
     @staticmethod
     def build_from_node_name(node, key):
         VectorialParameterNodeAtInstant.check_node_vectorisable(node)
-        nodes = [node[VectorialParameterNodeAtInstant._get_appropriate_subnode_key(node, a)] for a in key]
+        nodes = [
+            node[VectorialParameterNodeAtInstant._get_appropriate_subnode_key(node, a)]
+            for a in key
+        ]
+        return VectorialParameterNodeAtInstant.build_from_nodes(node, nodes)
+
+    @staticmethod
+    def build_from_nodes(node, nodes):
         if isinstance(nodes[0], parameters.ParameterNodeAtInstant):
             return VectorialParameterNodeAtInstant(nodes, node._name, node._instant_str)
         return nodes
 
     def __getattr__(self, attribute):
-        nodes = [v[attribute] for v in self.vector]
-        if isinstance(nodes[0], parameters.ParameterNodeAtInstant):
-            return VectorialParameterNodeAtInstant(nodes, attribute, self._instant_str)
-        else:
-            return nodes
+        return self[[attribute for v in self.vector]]
 
     def __getitem__(self, key):
         if isinstance(key, str):
@@ -53,10 +53,7 @@ class VectorialParameterNodeAtInstant:
         nodes = [
             v[a if isinstance(a, str) else a.value] for (v, a) in zip(self.vector, key)
         ]
-        if isinstance(nodes[0], parameters.ParameterNodeAtInstant):
-            return VectorialParameterNodeAtInstant(nodes, "complex", self._instant_str)
-        else:
-            return nodes
+        return VectorialParameterNodeAtInstant.build_from_nodes(self, nodes)
 
     @staticmethod
     def check_node_vectorisable(node) -> None:

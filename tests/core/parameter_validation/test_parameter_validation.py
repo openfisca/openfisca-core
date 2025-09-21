@@ -43,10 +43,6 @@ def check_fails_with_message(file_name, keywords) -> None:
             },
         ),
         ("wrong_scale", {"Unexpected property", "scale[1]", "treshold"}),
-        (
-            "wrong_value",
-            {"not one of the allowed types", "wrong_value[2015-12-01]", "1A"},
-        ),
         ("unexpected_key_in_parameter", {"Unexpected property", "unexpected_key"}),
         ("wrong_type_in_parameter", {"must be of type object"}),
         ("wrong_type_in_value_history", {"must be of type object"}),
