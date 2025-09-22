@@ -37,12 +37,3 @@ def test_on_node() -> None:
     node = parameter_at_instant.full_rate_age_by_birthdate[birthdate]
     assert_near(node.year, [65, 66, 67, 67])
     assert_near(node.month, [0, 2, 0, 0])
-
-
-# def test_inhomogenous():
-#     birthdate = numpy.array(['1930-01-01', '1935-01-01', '1940-01-01', '1945-01-01'], dtype = 'datetime64[D]')
-#     parameter_at_instant = parameters..full_rate_age('2011-01-01')
-#     parameter_at_instant.full_rate_age_by_birthdate[birthdate]
-#     with pytest.raises(ValueError) as error:
-#         parameter_at_instant.full_rate_age_by_birthdate[birthdate]
-#     assert "Cannot use fancy indexing on parameter node '.full_rate_age.full_rate_age_by_birthdate'" in get_message(error.value)
