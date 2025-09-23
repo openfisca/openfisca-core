@@ -31,7 +31,7 @@ requirements:
 about:
   summary: An OpenFisca extension that adds some variables to an already-existing
     tax and benefit system.
-  license: AGPL-3.0
+  license: AGPL-3.0-or-later
   license_file: LICENSE
 
 extra:
