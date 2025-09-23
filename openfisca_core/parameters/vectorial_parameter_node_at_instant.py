@@ -50,7 +50,7 @@ class VectorialParameterNodeAtInstant:
     def build_from_nodes(node, nodes):
         if isinstance(nodes[0], parameters.ParameterNodeAtInstant):
             return VectorialParameterNodeAtInstant(nodes, node._name, node._instant_str)
-        return nodes
+        return numpy.array(nodes)
 
     def __getattr__(self, attribute):
         return self[[attribute for v in self.vector]]

@@ -174,7 +174,10 @@ def test_with_enum() -> None:
         z2 = "Zone 2"
 
     zone = numpy.asarray([TypesZone.z1, TypesZone.z2, TypesZone.z2, TypesZone.z1])
-    assert_near(P.single.owner[zone], [100, 200, 200, 100])
+    value = P.single.owner[zone]
+    assert_near(value, [100, 200, 200, 100])
+    # Ensure correct behavior of operator "*"
+    assert_near(value * [2, 1, 1, 2], [200, 200, 200, 200])
 
 
 def test_with_enum_array() -> None:
