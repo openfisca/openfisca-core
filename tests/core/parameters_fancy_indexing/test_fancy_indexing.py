@@ -4,7 +4,7 @@ import re
 import numpy
 import pytest
 
-from openfisca_core.indexed_enums import Enum
+from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.parameters import Parameter, ParameterNode, ParameterNotFound
 from openfisca_core.tools import assert_near
 
@@ -175,6 +175,17 @@ def test_with_enum() -> None:
 
     zone = numpy.asarray([TypesZone.z1, TypesZone.z2, TypesZone.z2, TypesZone.z1])
     assert_near(P.single.owner[zone], [100, 200, 200, 100])
+
+
+def test_with_enum_array() -> None:
+    class TypesZone(Enum):
+        z1 = "Zone 1"
+        z2 = "Zone 2"
+
+    zones = [TypesZone.z1, TypesZone.z2, TypesZone.z2, TypesZone.z1]
+    indexes = numpy.asarray([z.index for z in zones])
+    zone_array = EnumArray(indexes, TypesZone)
+    assert_near(P.single.owner[zone_array], [100, 200, 200, 100])
 
 
 P_4 = parameters.next_category("2015-01-01")

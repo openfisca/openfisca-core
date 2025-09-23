@@ -3,7 +3,7 @@ from typing import NoReturn
 import numpy
 
 from openfisca_core import parameters
-from openfisca_core.indexed_enums import Enum
+from openfisca_core.indexed_enums import Enum, EnumArray
 
 
 class VectorialParameterNodeAtInstant:
@@ -28,12 +28,21 @@ class VectorialParameterNodeAtInstant:
         index = sum([name <= k for name in points_in_time])
         return subnodes_name[index]
 
+    def _get_appropriate_keys(key):
+        if isinstance(key, EnumArray):
+            enum = key.possible_values
+            return numpy.select(
+                [key == item.index for item in enum],
+                [item.name for item in enum],
+            )
+        return key
+
     @staticmethod
     def build_from_node_name(node, key):
         VectorialParameterNodeAtInstant.check_node_vectorisable(node)
         nodes = [
             node[VectorialParameterNodeAtInstant._get_appropriate_subnode_key(node, a)]
-            for a in key
+            for a in VectorialParameterNodeAtInstant._get_appropriate_keys(key)
         ]
         return VectorialParameterNodeAtInstant.build_from_nodes(node, nodes)
 
