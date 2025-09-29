@@ -36,16 +36,14 @@ class ParameterNodeAtInstant:
     def __getitem__(self, key):
         # If fancy indexing is used, cast to a vectorial node
         if isinstance(key, numpy.ndarray):
-            # If fancy indexing is used with a datetime64, cast to a vectorial node supporting datetime64
-            if numpy.issubdtype(key.dtype, numpy.datetime64):
-                return (
-                    parameters.VectorialAsofDateParameterNodeAtInstant.build_from_node(
-                        self,
-                    )[key]
-                )
-
-            return parameters.VectorialParameterNodeAtInstant.build_from_node(self)[key]
-        return self._children[key]
+            return parameters.VectorialParameterNodeAtInstant.build_from_node_name(
+                self, key
+            )
+        try:
+            return self._children[key]
+        except KeyError:
+            param_name = helpers._compose_name(self._name, item_name=key)
+            raise ParameterNotFoundError(param_name, self._instant_str)
 
     def __iter__(self):
         return iter(self._children)

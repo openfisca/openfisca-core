@@ -1,11 +1,20 @@
 # Changelog
 
+## 43.4.0 [#1334](https://github.com/openfisca/openfisca-core/pull/1334)
+
+#### New features
+
+- Allow parameters to be string values
+
+#### Technical changes
+
+- Simplify fancing index logic (to allow string value subnodes)
+
 ### 43.3.11 [#1335](https://github.com/openfisca/openfisca-core/pull/1335)
 
 #### Technical changes
 
 - Ensure correct CI builds of openfisca-extension-template and openfisca-country-template
-
 
 ### 43.3.10 [#1333](https://github.com/openfisca/openfisca-core/pull/1333)
 

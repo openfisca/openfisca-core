@@ -1,5 +1,7 @@
 import os
 
+from numpy.testing import assert_array_equal
+
 from openfisca_core import commons
 from openfisca_core.indexed_enums import EnumArray
 
@@ -33,6 +35,10 @@ def assert_near(
         assert_datetime_equals(value, target_value, message)
     if isinstance(target_value, str):
         target_value = commons.eval_expression(target_value)
+    if isinstance(target_value, str):
+        return assert_array_equal(value, [target_value])
+    if isinstance(target_value, list) and isinstance(target_value[0], str):
+        return assert_array_equal(value, target_value)
 
     target_value = numpy.array(target_value).astype(numpy.float32)
 

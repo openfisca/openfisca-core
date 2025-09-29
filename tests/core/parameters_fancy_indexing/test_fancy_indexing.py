@@ -4,7 +4,7 @@ import re
 import numpy
 import pytest
 
-from openfisca_core.indexed_enums import Enum
+from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.parameters import Parameter, ParameterNode, ParameterNotFound
 from openfisca_core.tools import assert_near
 
@@ -74,7 +74,7 @@ def test_wrong_key() -> None:
     zone = numpy.asarray(["z1", "z2", "z2", "toto"])
     with pytest.raises(ParameterNotFound) as e:
         P.single.owner[zone]
-    assert "'rate.single.owner.toto' was not found" in get_message(e.value)
+    assert "'rate.single.owner[toto]' was not found" in get_message(e.value)
 
 
 def test_inhomogenous() -> None:
@@ -174,4 +174,26 @@ def test_with_enum() -> None:
         z2 = "Zone 2"
 
     zone = numpy.asarray([TypesZone.z1, TypesZone.z2, TypesZone.z2, TypesZone.z1])
-    assert_near(P.single.owner[zone], [100, 200, 200, 100])
+    value = P.single.owner[zone]
+    assert_near(value, [100, 200, 200, 100])
+    # Ensure correct behavior of operator "*"
+    assert_near(value * [2, 1, 1, 2], [200, 200, 200, 200])
+
+
+def test_with_enum_array() -> None:
+    class TypesZone(Enum):
+        z1 = "Zone 1"
+        z2 = "Zone 2"
+
+    zones = [TypesZone.z1, TypesZone.z2, TypesZone.z2, TypesZone.z1]
+    indexes = numpy.asarray([z.index for z in zones])
+    zone_array = EnumArray(indexes, TypesZone)
+    assert_near(P.single.owner[zone_array], [100, 200, 200, 100])
+
+
+P_4 = parameters.next_category("2015-01-01")
+
+
+def test_on_leaf_str() -> None:
+    current_category = numpy.asarray(["step1", "step1", "step2", "step3"])
+    assert_near(P_4[current_category], ["step2", "step2", "step3", "step3"])

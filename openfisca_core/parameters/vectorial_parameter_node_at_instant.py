@@ -3,51 +3,66 @@ from typing import NoReturn
 import numpy
 
 from openfisca_core import parameters
-from openfisca_core.errors import ParameterNotFoundError
 from openfisca_core.indexed_enums import Enum, EnumArray
-from openfisca_core.parameters import helpers
 
 
 class VectorialParameterNodeAtInstant:
-    """Parameter node of the legislation at a given instant which has been vectorized.
-    Vectorized parameters allow requests such as parameters.housing_benefit[zipcode], where zipcode is a vector.
-    """
+    def __init__(self, vector, name, instant_str) -> None:
+        self.vector = vector
+        self._name = name
+        self._instant_str = instant_str
 
     @staticmethod
-    def build_from_node(node):
-        VectorialParameterNodeAtInstant.check_node_vectorisable(node)
-        subnodes_name = sorted(node._children.keys())
-        # Recursively vectorize the children of the node
-        vectorial_subnodes = tuple(
-            [
-                (
-                    VectorialParameterNodeAtInstant.build_from_node(
-                        node[subnode_name],
-                    ).vector
-                    if isinstance(node[subnode_name], parameters.ParameterNodeAtInstant)
-                    else node[subnode_name]
-                )
-                for subnode_name in subnodes_name
-            ],
-        )
-        # A vectorial node is a wrapper around a numpy recarray
-        # We first build the recarray
-        recarray = numpy.array(
-            [vectorial_subnodes],
-            dtype=[
-                (
-                    subnode_name,
-                    subnode.dtype if isinstance(subnode, numpy.recarray) else "float",
-                )
-                for (subnode_name, subnode) in zip(subnodes_name, vectorial_subnodes)
-            ],
-        )
+    def _get_appropriate_subnode_key(node, k):
+        if isinstance(k, str):
+            return k
+        if isinstance(k, Enum):
+            return k.name
 
-        return VectorialParameterNodeAtInstant(
-            node._name,
-            recarray.view(numpy.recarray),
-            node._instant_str,
-        )
+        subnodes_name = list(node._children.keys())
+        names = [name for name in subnodes_name if not name.startswith("before")]
+        points_in_time = [
+            numpy.datetime64("-".join(name[len("after_") :].split("_")))
+            for name in names
+        ]
+        index = sum([name <= k for name in points_in_time])
+        return subnodes_name[index]
+
+    def _get_appropriate_keys(key):
+        if isinstance(key, EnumArray):
+            enum = key.possible_values
+            return numpy.select(
+                [key == item.index for item in enum],
+                [item.name for item in enum],
+            )
+        return key
+
+    @staticmethod
+    def build_from_node_name(node, key):
+        VectorialParameterNodeAtInstant.check_node_vectorisable(node)
+        nodes = [
+            node[VectorialParameterNodeAtInstant._get_appropriate_subnode_key(node, a)]
+            for a in VectorialParameterNodeAtInstant._get_appropriate_keys(key)
+        ]
+        return VectorialParameterNodeAtInstant.build_from_nodes(node, nodes)
+
+    @staticmethod
+    def build_from_nodes(node, nodes):
+        if isinstance(nodes[0], parameters.ParameterNodeAtInstant):
+            return VectorialParameterNodeAtInstant(nodes, node._name, node._instant_str)
+        return numpy.array(nodes)
+
+    def __getattr__(self, attribute):
+        return self[[attribute for v in self.vector]]
+
+    def __getitem__(self, key):
+        if isinstance(key, str):
+            return getattr(self, key)
+
+        nodes = [
+            v[a if isinstance(a, str) else a.value] for (v, a) in zip(self.vector, key)
+        ]
+        return VectorialParameterNodeAtInstant.build_from_nodes(self, nodes)
 
     @staticmethod
     def check_node_vectorisable(node) -> None:
@@ -119,81 +134,15 @@ class VectorialParameterNodeAtInstant:
                             raise_key_inhomogeneity_error(name, first_name, missing_key)
                     children.update(extract_named_children(node))
                 check_nodes_homogeneous(children)
-            elif isinstance(first_node, (float, int)):
+            elif isinstance(first_node, (float, int, str)):
                 for node, name in list(zip(nodes, names))[1:]:
-                    if isinstance(node, (int, float)):
+                    if isinstance(node, (int, float, str)):
                         pass
                     elif isinstance(node, parameters.ParameterNodeAtInstant):
                         raise_type_inhomogeneity_error(name, first_name)
                     else:
                         raise_not_implemented(name, type(node).__name__)
-
             else:
                 raise_not_implemented(first_name, type(first_node).__name__)
 
         check_nodes_homogeneous(extract_named_children(node))
-
-    def __init__(self, name, vector, instant_str) -> None:
-        self.vector = vector
-        self._name = name
-        self._instant_str = instant_str
-
-    def __getattr__(self, attribute):
-        result = getattr(self.vector, attribute)
-        if isinstance(result, numpy.recarray):
-            return VectorialParameterNodeAtInstant(result)
-        return result
-
-    def __getitem__(self, key):
-        # If the key is a string, just get the subnode
-        if isinstance(key, str):
-            return self.__getattr__(key)
-        # If the key is a vector, e.g. ['zone_1', 'zone_2', 'zone_1']
-        if isinstance(key, numpy.ndarray):
-            if not numpy.issubdtype(key.dtype, numpy.str_):
-                # In case the key is not a string vector, stringify it
-                if key.dtype == object and issubclass(type(key[0]), Enum):
-                    enum = type(key[0])
-                    key = numpy.select(
-                        [key == item for item in enum],
-                        [item.name for item in enum],
-                    )
-                elif isinstance(key, EnumArray):
-                    enum = key.possible_values
-                    key = numpy.select(
-                        [key == item.index for item in enum],
-                        [item.name for item in enum],
-                    )
-                else:
-                    key = key.astype("str")
-            names = list(
-                self.dtype.names,
-            )  # Get all the names of the subnodes, e.g. ['zone_1', 'zone_2']
-            default = numpy.full_like(
-                self.vector[key[0]],
-                numpy.nan,
-            )  # In case of unexpected key, we will set the corresponding value to NaN.
-            conditions = [key == name for name in names]
-            values = [self.vector[name] for name in names]
-            result = numpy.select(conditions, values, default)
-            if helpers.contains_nan(result):
-                unexpected_key = set(key).difference(self.vector.dtype.names).pop()
-                msg = f"{self._name}.{unexpected_key}"
-                raise ParameterNotFoundError(
-                    msg,
-                    self._instant_str,
-                )
-
-            # If the result is not a leaf, wrap the result in a vectorial node.
-            if numpy.issubdtype(result.dtype, numpy.record) or numpy.issubdtype(
-                result.dtype,
-                numpy.void,
-            ):
-                return VectorialParameterNodeAtInstant(
-                    self._name,
-                    result.view(numpy.recarray),
-                    self._instant_str,
-                )
-
-            return result
-        return None
