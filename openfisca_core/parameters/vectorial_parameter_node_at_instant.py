@@ -14,6 +14,8 @@ class VectorialParameterNodeAtInstant:
 
     @staticmethod
     def _get_appropriate_subnode_key(node, k):
+        if isinstance(k, int):
+            return k
         if isinstance(k, str):
             return k
         if isinstance(k, Enum):
