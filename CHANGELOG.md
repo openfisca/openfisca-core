@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.4.1 [#1337](https://github.com/openfisca/openfisca-core/pull/1337)
+
+#### Technical changes
+
+- Allow strings with spaces in yaml files
+
 ## 43.4.0 [#1334](https://github.com/openfisca/openfisca-core/pull/1334)
 
 #### New features
