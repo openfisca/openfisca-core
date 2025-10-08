@@ -95,11 +95,14 @@ def eval_expression(
         >>> eval_expression("salary")
         'salary'
 
+        >>> eval_expression("date of birth")
+        'date of birth'
+
     """
     try:
         return numexpr.evaluate(expression)
 
-    except (KeyError, TypeError):
+    except (KeyError, TypeError, SyntaxError):
         return expression
 
 
