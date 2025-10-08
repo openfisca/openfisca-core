@@ -1,5 +1,3 @@
-import numpy
-
 from openfisca_core.commons import eval_expression
 
 
