@@ -15,7 +15,7 @@ class VectorialParameterNodeAtInstant:
     @staticmethod
     def _get_appropriate_subnode_key(node, k):
         if isinstance(k, numpy.integer):
-            return k
+            return str(k)
         if isinstance(k, str):
             return k
         if isinstance(k, Enum):
@@ -42,7 +42,6 @@ class VectorialParameterNodeAtInstant:
     @staticmethod
     def build_from_node_name(node, key):
         VectorialParameterNodeAtInstant.check_node_vectorisable(node)
-        import pdb; pdb.set_trace()
         nodes = [
             node[VectorialParameterNodeAtInstant._get_appropriate_subnode_key(node, a)]
             for a in VectorialParameterNodeAtInstant._get_appropriate_keys(key)
