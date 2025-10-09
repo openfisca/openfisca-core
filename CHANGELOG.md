@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.4.1 [#1341](https://github.com/openfisca/openfisca-core/pull/1341)
+
+#### Technical changes
+
+- Add a check for creating a simulation when building a test
+
 ## 43.4.0 [#1334](https://github.com/openfisca/openfisca-core/pull/1334)
 
 #### New features
