@@ -154,6 +154,11 @@ def test_with_properties_starting_by_number() -> None:
     assert_near(P_2[city_code], [100, 300, 200])
 
 
+def test_with_integer() -> None:
+    city_code = numpy.asarray([75012, 75007, 75015])
+    assert_near(P_2[city_code], [100, 300, 200])
+
+
 P_3 = parameters.bareme("2015-01-01")
 
 
