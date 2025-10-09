@@ -449,13 +449,7 @@ class Variable:
                     msg,
                 )
         if self.value_type in (float, int) and isinstance(value, str):
-            try:
-                value = commons.eval_expression(value)
-            except SyntaxError:
-                msg = f"I couldn't understand '{value}' as a value for '{self.name}'"
-                raise ValueError(
-                    msg,
-                )
+            value = commons.eval_expression(value)
 
         try:
             value = numpy.array([value], dtype=self.dtype)[0]

@@ -257,7 +257,7 @@ def test_fail_on_ill_formed_expression(persons) -> None:
         "persons": {
             "Alicia": {
                 "salary": {
-                    "2018-11": "I couldn't understand '2 * / 1000' as a value for 'salary'",
+                    "2018-11": "Can't deal with value: expected type number, received '2 * / 1000'.",
                 },
             },
         },
