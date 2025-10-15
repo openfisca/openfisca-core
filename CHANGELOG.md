@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.4.2 [#1336](https://github.com/openfisca/openfisca-core/pull/1336)
+
+#### Technical changes
+
+- Fix various vectorial parameter access and add unit tests
+
 ### 43.4.1 [#1337](https://github.com/openfisca/openfisca-core/pull/1337)
 
 #### Technical changes
