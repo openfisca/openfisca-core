@@ -37,6 +37,8 @@ class VectorialParameterNodeAtInstant:
                 [key == item.index for item in enum],
                 [item.name for item in enum],
             )
+        if key.dtype == object and issubclass(type(key[0]), Enum):
+            return key
         return key
 
     @staticmethod
@@ -61,9 +63,13 @@ class VectorialParameterNodeAtInstant:
         if isinstance(key, str):
             return getattr(self, key)
 
-        nodes = [
-            v[a if isinstance(a, str) else a.value] for (v, a) in zip(self.vector, key)
-        ]
+        keys = key
+        if isinstance(key[0], Enum):
+            keys = [k.name for k in keys]
+        elif isinstance(key, EnumArray):
+            keys = [key.possible_values.names[v] for v in key]
+
+        nodes = [v[a] for (v, a) in zip(self.vector, keys)]
         return VectorialParameterNodeAtInstant.build_from_nodes(self, nodes)
 
     @staticmethod

@@ -196,9 +196,44 @@ def test_with_enum_array() -> None:
     assert_near(P.single.owner[zone_array], [100, 200, 200, 100])
 
 
+def test_with_enum_in_object_array() -> None:
+    class TypesZone(Enum):
+        z1 = "Zone 1"
+        z2 = "Zone 2"
+
+    zone = numpy.asarray([TypesZone.z1, TypesZone.z2, TypesZone.z2, TypesZone.z1])
+    value = P.single.owner[zone]
+    assert_near(value, [100, 200, 200, 100])
+    # Ensure correct behavior of operator "*"
+    assert_near(value * [2, 1, 1, 2], [200, 200, 200, 200])
+
+
 P_4 = parameters.next_category("2015-01-01")
 
 
 def test_on_leaf_str() -> None:
     current_category = numpy.asarray(["step1", "step1", "step2", "step3"])
     assert_near(P_4[current_category], ["step2", "step2", "step3", "step3"])
+
+
+P_5 = parameters.multiple_enum_levels("2015-01-01")
+
+
+def test_multiple_enums() -> None:
+    class Level(Enum):
+        level1 = "Level 1"
+        level2 = "Level 2"
+
+    class Step(Enum):
+        step1 = "Step 1"
+        step2 = "Step 2"
+        step3 = "Step 3"
+
+    levels = [Level.level1, Level.level1, Level.level2, Level.level2]
+    current_level = EnumArray(numpy.asarray([i.index for i in levels]), Level)
+
+    P_steps = P_5[current_level]
+    steps = [Step.step1, Step.step1, Step.step2, Step.step3]
+    current_step = EnumArray(numpy.asarray([i.index for i in steps]), Step)
+
+    assert_near(P_steps[current_step], ["step2", "step2", "step3", "step3"])
