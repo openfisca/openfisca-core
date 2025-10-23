@@ -23,6 +23,14 @@ class Population(CorePopulation):
         result.ids = self.ids
         return result
 
+    def slice(self, simulation: t.Simulation, ids: Sequence[int]):
+        sliced = self.clone(simulation)
+        for variable_name in sliced._holders:
+            sliced._holders[variable_name] = sliced._holders[variable_name].slice(sliced, ids)
+        sliced.ids = ids
+        sliced.count = len(ids)
+        return sliced
+
     def __getattr__(self, attribute: str) -> projectors.Projector:
         projector: projectors.Projector | None
         projector = projectors.get_projector_from_shortcut(self, attribute)

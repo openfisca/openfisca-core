@@ -194,5 +194,12 @@ class InMemoryStorage:
             "cell_size": array.itemsize,
         }
 
+    def slice(self, ids: t.Array[t.DTypeGeneric]):
+        clone = InMemoryStorage(is_eternal = self.is_eternal)
+        for period in self._arrays:
+            a = self._arrays[period]
+            clone.put([a[i] for i in ids], period)
+        return clone
+
 
 __all__ = ["InMemoryStorage"]

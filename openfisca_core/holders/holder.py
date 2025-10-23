@@ -59,6 +59,11 @@ class Holder:
 
         return new
 
+    def slice(self, population, ids):
+        sliced = self.clone(population)
+        sliced._memory_storage = self._memory_storage.slice(ids)
+        return sliced
+
     def create_disk_storage(self, directory=None, preserve=False):
         if directory is None:
             directory = self.simulation.data_storage_dir

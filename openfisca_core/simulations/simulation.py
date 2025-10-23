@@ -610,6 +610,35 @@ class Simulation:
 
         return new
 
+    def slice(self, persons_ids):
+        """Slice the simulation to be able to run simplier computations."""
+        new = commons.empty_clone(self)
+        new_dict = new.__dict__
+
+        for key, value in self.__dict__.items():
+            if key not in ("debug", "trace", "tracer"):
+                new_dict[key] = value
+
+        new.persons = self.persons.slice(new, persons_ids)
+        setattr(new, new.persons.entity.key, new.persons)
+        new.populations = {new.persons.entity.key: new.persons}
+
+
+        for entity in self.tax_benefit_system.group_entities:
+            entity_ids = [i for (i, v) in enumerate(self.populations[entity.key]._members_entity_id) if v in persons_ids]
+            population = self.populations[entity.key].slice(new, entity_ids)
+            new.populations[entity.key] = population
+            setattr(
+                new,
+                entity.key,
+                population,
+            )  # create shortcut simulation.household (for instance)
+
+        new.debug = False
+        new.trace = False
+
+        return new
+
 
 class Cache(NamedTuple):
     variable: str
