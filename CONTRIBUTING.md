@@ -182,7 +182,7 @@ def get(self, key: str) -> Any:
         * Return None when key is not found.
 
     .. versionadded:: 1.2.3
-        This will help people to undestand the code evolution.
+        This will help people to understand the code evolution.
 
     .. deprecated:: 2.3.4
         This, to have time to adapt their own codebases before the code is

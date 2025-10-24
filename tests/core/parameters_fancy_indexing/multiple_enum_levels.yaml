@@ -1,0 +1,26 @@
+level1:
+  step1:
+    values:
+      2015-01-01:
+        value: step2
+  step2:
+    values:
+      2015-01-01:
+        value: step3
+  step3:
+    values:
+      2015-01-01:
+        value: step3
+level2:
+  step1:
+    values:
+      2015-01-01:
+        value: step2
+  step2:
+    values:
+      2015-01-01:
+        value: step3
+  step3:
+    values:
+      2015-01-01:
+        value: step3

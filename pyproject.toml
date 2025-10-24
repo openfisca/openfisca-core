@@ -1,0 +1,14 @@
+[tool.black]
+target-version = [ "py39", "py310", "py311", "py312" ]
+
+[tool.codespell]
+ignore-words-list = [
+    "THIRDPARTY",
+    "ans",
+    "constitue",
+    "exemple",
+    "fonction",
+    "impot",
+    "treshold",
+]
+skip = "./venv"

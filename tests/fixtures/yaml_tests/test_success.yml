@@ -30,7 +30,7 @@
         salary: 2500
     households:
       household_1:
-        parents: [Alicia, Javier]
+        adults: [Alicia, Javier]
   output:
     total_benefits: 600 * 2
 
@@ -44,7 +44,7 @@
         salary: 2500
     households:
       household_1:
-        parents: [Alicia, Javier]
+        adults: [Alicia, Javier]
   output:
     persons:
       Alicia:
@@ -63,7 +63,7 @@
       Javier:
         salary: 2500
     household:
-      parents: [Alicia, Javier]
+      adults: [Alicia, Javier]
   output:
     household:
       total_benefits: 600 * 2
@@ -75,7 +75,7 @@
       Alicia: {}
     household:
       housing_allowance: 100
-      parents: [Alicia]
+      adults: [Alicia]
   output:
     household:
       housing_allowance: 100

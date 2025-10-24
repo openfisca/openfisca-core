@@ -8,7 +8,7 @@
         salary: 2500
     households:
       household_1:
-        parents: [Alicia, Javier]
+        adults: [Alicia, Javier]
   output:
     total_benefits: 1200
 
@@ -20,6 +20,6 @@
       <<: *persons
     households:
       household_1:
-        parents: [Alicia, Javier]
+        adults: [Alicia, Javier]
   output:
     total_benefits: 600 * 2

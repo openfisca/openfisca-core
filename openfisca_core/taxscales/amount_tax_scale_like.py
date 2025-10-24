@@ -1,26 +1,27 @@
+import typing
+
 import abc
 import bisect
 import os
-import typing
 
 from openfisca_core import tools
-from openfisca_core.taxscales import TaxScaleLike
+
+from .tax_scale_like import TaxScaleLike
 
 
 class AmountTaxScaleLike(TaxScaleLike, abc.ABC):
-    """
-    Base class for various types of amount-based tax scales: single amount,
+    """Base class for various types of amount-based tax scales: single amount,
     marginal amount...
     """
 
-    amounts: typing.List
+    amounts: list
 
     def __init__(
-            self,
-            name: typing.Optional[str] = None,
-            option: typing.Any = None,
-            unit: typing.Any = None,
-            ) -> None:
+        self,
+        name: typing.Optional[str] = None,
+        option: typing.Any = None,
+        unit: typing.Any = None,
+    ) -> None:
         super().__init__(name, option, unit)
         self.amounts = []
 
@@ -29,17 +30,16 @@ class AmountTaxScaleLike(TaxScaleLike, abc.ABC):
             os.linesep.join(
                 [
                     f"- threshold: {threshold}{os.linesep}  amount: {amount}"
-                    for (threshold, amount)
-                    in zip(self.thresholds, self.amounts)
-                    ]
-                )
-            )
+                    for (threshold, amount) in zip(self.thresholds, self.amounts)
+                ],
+            ),
+        )
 
     def add_bracket(
-            self,
-            threshold: int,
-            amount: typing.Union[int, float],
-            ) -> None:
+        self,
+        threshold: int,
+        amount: typing.Union[int, float],
+    ) -> None:
         if threshold in self.thresholds:
             i = self.thresholds.index(threshold)
             self.amounts[i] += amount
@@ -52,6 +52,5 @@ class AmountTaxScaleLike(TaxScaleLike, abc.ABC):
     def to_dict(self) -> dict:
         return {
             str(threshold): self.amounts[index]
-            for index, threshold
-            in enumerate(self.thresholds)
-            }
+            for index, threshold in enumerate(self.thresholds)
+        }

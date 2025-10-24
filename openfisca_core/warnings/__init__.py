@@ -22,5 +22,4 @@
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
 from .libyaml_warning import LibYAMLWarning  # noqa: F401
-from .memory_warning import MemoryConfigWarning  # noqa: F401
 from .tempfile_warning import TempfileWarning  # noqa: F401

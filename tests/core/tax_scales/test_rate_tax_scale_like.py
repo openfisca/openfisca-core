@@ -3,7 +3,7 @@ import numpy
 from openfisca_core import taxscales
 
 
-def test_threshold_from_tax_base():
+def test_threshold_from_tax_base() -> None:
     tax_base = numpy.array([0, 33_000, 500, 400_000])
     tax_scale = taxscales.LinearAverageRateTaxScale()
     tax_scale.add_bracket(0, 0)

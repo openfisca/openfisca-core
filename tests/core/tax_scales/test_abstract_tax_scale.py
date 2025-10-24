@@ -1,9 +1,9 @@
-from openfisca_core import taxscales
-
 import pytest
 
+from openfisca_core import taxscales
 
-def test_abstract_tax_scale():
+
+def test_abstract_tax_scale() -> None:
     with pytest.warns(DeprecationWarning):
         result = taxscales.AbstractTaxScale()
-        assert type(result) == taxscales.AbstractTaxScale
+        assert isinstance(result, taxscales.AbstractTaxScale)
