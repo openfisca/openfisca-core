@@ -74,7 +74,7 @@ def test_with_anchors(tax_benefit_system) -> None:
     assert run_yaml_test(tax_benefit_system, "test_with_anchors.yaml") == EXIT_OK
 
 
-def test_with_neutralized_variables(tax_benefit_system): -> None:
+def test_with_neutralized_variables(tax_benefit_system) -> None:
     assert run_yaml_test(tax_benefit_system, 'test_with_neutralized_variables.yaml') == EXIT_OK
 
 
