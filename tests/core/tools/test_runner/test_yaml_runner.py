@@ -106,7 +106,9 @@ def test_reforms_formats() -> None:
     baseline = TaxBenefitSystem()
 
     lonely_reform_tbs = _get_tax_benefit_system(baseline, "lonely_reform", [], [])
-    list_lonely_reform_tbs = _get_tax_benefit_system(baseline, ["lonely_reform"], [], [])
+    list_lonely_reform_tbs = _get_tax_benefit_system(
+        baseline, ["lonely_reform"], [], []
+    )
     assert lonely_reform_tbs == list_lonely_reform_tbs
 
 
