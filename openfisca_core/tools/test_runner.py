@@ -101,21 +101,21 @@ def import_yaml():
 #: .. _Writing YAML tests: https://openfisca.org/doc/coding-the-legislation/writing_yaml_tests.html
 #:
 TEST_KEYWORDS = {
-    'absolute_error_margin',
-    'description',
-    'extensions',
-    'ignore_variables',
-    'input',
-    'keywords',
-    'max_spiral_loops',
-    'name',
-    'neutralize_variables',
-    'only_variables',
-    'output',
-    'period',
-    'reforms',
-    'relative_error_margin'
-    }
+    "absolute_error_margin",
+    "description",
+    "extensions",
+    "ignore_variables",
+    "input",
+    "keywords",
+    "max_spiral_loops",
+    "name",
+    "neutralize_variables",
+    "only_variables",
+    "output",
+    "period",
+    "reforms",
+    "relative_error_margin",
+}
 
 yaml, Loader = import_yaml()
 
@@ -233,7 +233,7 @@ class YamlItem(pytest.Item):
             self.baseline_tax_benefit_system,
             self.test.reforms,
             self.test.extensions,
-            self.test.neutralize_variables
+            self.test.neutralize_variables,
         )
 
         builder = SimulationBuilder()
@@ -403,7 +403,14 @@ def _get_tax_benefit_system(baseline, reforms, extensions, neutralize_variables)
         neutralize_variables = [neutralize_variables]
 
     # keep reforms order in cache, ignore extensions order
-    key = hash((id(baseline), ':'.join(reforms), frozenset(extensions), ':'.join(neutralize_variables)))
+    key = hash(
+        (
+            id(baseline),
+            ":".join(reforms),
+            frozenset(extensions),
+            ":".join(neutralize_variables),
+        )
+    )
     if _tax_benefit_system_cache.get(key):
         return _tax_benefit_system_cache.get(key)
 
