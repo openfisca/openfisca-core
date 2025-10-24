@@ -146,8 +146,8 @@ def test_extensions_formats() -> None:
 def test_extensions_order() -> None:
     baseline = TaxBenefitSystem()
 
-    xy_tax_benefit_system = _get_tax_benefit_system(baseline, [], ["x", "y"], [], [])
-    yx_tax_benefit_system = _get_tax_benefit_system(baseline, [], ["y", "x"], [], [])
+    xy_tax_benefit_system = _get_tax_benefit_system(baseline, [], ["x", "y"], [])
+    yx_tax_benefit_system = _get_tax_benefit_system(baseline, [], ["y", "x"], [])
     assert (
         xy_tax_benefit_system == yx_tax_benefit_system
     )  # extensions order is ignored in cache
