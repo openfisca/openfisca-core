@@ -1,5 +1,11 @@
 # Changelog
 
+## 35.12.0 [#1021](https://github.com/openfisca/openfisca-core/pull/1021)
+
+#### New features
+
+- Introduce `neutralize_variables` option in YAML test files
+  - A neutralized variable in a YAML test will return its default value when computed.
 ### 43.4.2 [#1336](https://github.com/openfisca/openfisca-core/pull/1336)
 
 #### Technical changes
