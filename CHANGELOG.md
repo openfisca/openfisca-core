@@ -1,5 +1,803 @@
 # Changelog
 
+### 43.4.2 [#1336](https://github.com/openfisca/openfisca-core/pull/1336)
+
+#### Technical changes
+
+- Fix various vectorial parameter access and add unit tests
+
+### 43.4.1 [#1337](https://github.com/openfisca/openfisca-core/pull/1337)
+
+#### Technical changes
+
+- Allow strings with spaces in yaml files
+
+## 43.4.0 [#1334](https://github.com/openfisca/openfisca-core/pull/1334)
+
+#### New features
+
+- Allow parameters to be string values
+
+#### Technical changes
+
+- Simplify fancing index logic (to allow string value subnodes)
+
+### 43.3.11 [#1335](https://github.com/openfisca/openfisca-core/pull/1335)
+
+#### Technical changes
+
+- Ensure correct CI builds of openfisca-extension-template and openfisca-country-template
+
+### 43.3.10 [#1333](https://github.com/openfisca/openfisca-core/pull/1333)
+
+#### Technical changes
+
+- Applying make format to the codebase
+  - This is a follow-up of the previous PR, which was not applied correctly.
+  - The codebase is now formatted with `black` and `isort`.
+
+### 43.3.9 [#1332](https://github.com/openfisca/openfisca-core/pull/1332)
+
+#### New features
+
+- Fix a `return` instead of a `raise`.
+
+### 43.3.8 [#1329](https://github.com/openfisca/openfisca-core/pull/1329)
+
+#### New features
+
+- Add a parameter `start_computation_period` in simulation : if this parameter is not None, the simulation return the default value for all variable calculate before this period. The aim is to avoid computation of variables for period before the input  variables period.
+
+### 43.3.7 [#1328](https://github.com/openfisca/openfisca-core/pull/1328)
+
+#### Technical changes
+
+- Bump the Twine version to fix the PyPi upload issue.
+
+### 43.3.6 [#1289](https://github.com/openfisca/openfisca-core/pull/1289)
+
+#### Technical changes
+
+- Change Github Action matrix test to support Python 3.12.
+
+### 43.3.5 [#1325](https://github.com/openfisca/openfisca-core/pull/1325)
+
+#### Documentation
+
+- Remove ambiguous documentation references.
+
+### 43.3.4 [#1302](https://github.com/openfisca/openfisca-core/pull/1302)
+
+#### Technical changes
+
+- Move types from `openfisca_core.periods` to `openfisca_core`
+
+### 43.3.3 [#1301](https://github.com/openfisca/openfisca-core/pull/1301)
+
+#### Technical changes
+
+- Move types from `openfisca_core.tracers` to `openfisca_core`
+
+### 43.3.2 [#1300](https://github.com/openfisca/openfisca-core/pull/1300)
+
+#### Technical changes
+
+- Move types from `openfisca_core.commons` to `openfisca_core`
+
+### 43.3.1 [#1323](https://github.com/openfisca/openfisca-core/pull/1323)
+
+#### Technical changes
+
+- Adapt tests to `country-template` 8.0.0.
+
+## 43.3.0 [#1319](https://github.com/openfisca/openfisca-core/pull/1319)
+
+#### Technical change
+
+- Use a deepcopy of variables in tax and benefit system cloning instead of a copy.
+
+### 43.2.9 [#1304](https://github.com/openfisca/openfisca-core/pull/1304)
+
+#### Bugfix
+
+- Fix `computation_log`.
+
+### 43.2.8 [#1322](https://github.com/openfisca/openfisca-core/pull/1322)
+
+#### Technical changes
+
+- Use appropriate `numpy` version with `conda`
+
+### 43.2.7 [#1307](https://github.com/openfisca/openfisca-core/pull/1307)
+
+#### Performance
+
+- Fix enum's module performance issues
+  - `43.0.0` fixed impending bugs in `indexed_enums` and improved `EnumArray`
+    performance
+  - However, `Enun.__eq__` and `Enum.encode` suffered from performance
+    degradation on large datasets
+  - This changeset aims at correcting these while keeping the bugfixes provided
+    by the aforesaid published version
+
+#### Note
+
+Some of the spectacular performances of `Enum.encode` came from the fact that
+it didn't actually work, leaving buggy behaviour unseen (see for example
+https://github.com/openfisca/openfisca-france/pull/2357/commits/84e41a5007f8bc23ec74ee3a693bc21e4c20df73).
+
+This PR introduces `O(n)` and `O(1)` use of fancy indexing, vector masking, and
+`numpy.searchsorted`, that scales nicely with large datasets (10k+).
+
+However, as we need to validate data at enum encoding time, the encoding of
+`int` and `str` sequences can't be faster than the pre-43.0.0 just because
+data has to be copied over.
+
+If ever this becomes problematic for very large datasets (50M+), we can workout
+a feature flag to disable fancy indexing and trusting data has been properly
+validated priorly by the user disabling run-time data validation, and so to
+gain from the performance of using a memory view instead of copying data over
+(that is, not using neither fancy indexing nor binary search).
+
+However, it seems the least surprising for every user that the data be
+validated before encoding (out of bounds indices and wrong `str` values not
+present in an `Enum`).
+
+### 43.2.6 [#1297](https://github.com/openfisca/openfisca-core/pull/1297)
+
+#### Bugfix
+
+- Add `int` default to `max_depth` in `openfisca test`
+
+### 43.2.5 [#1296](https://github.com/openfisca/openfisca-core/pull/1296)
+
+#### Bugfix
+
+- Use new `extension-template` tests' path
+
+### 43.2.4 [#1294](https://github.com/openfisca/openfisca-core/pull/1294)
+
+#### Technical changes
+
+- Upgrade dpath minimal version (dpath.utils deprecated)
+
+### 43.2.3 [#1292](https://github.com/openfisca/openfisca-core/pull/1292)
+
+#### Technical changes
+
+- Improve the way Enum arrays are loaded and saved in dumps
+
+### 43.2.2 [#1280](https://github.com/openfisca/openfisca-core/pull/1280)
+
+#### Documentation
+
+- Add types to common tracers (`SimpleTracer`, `FlatTracer`, etc.)
+
+### 43.2.1 [#1283](https://github.com/openfisca/openfisca-core/pull/1283)
+
+#### Technical changes
+
+- Remove `coveralls`
+
+## 43.2.0 [#1279](https://github.com/openfisca/openfisca-core/pull/1279)
+
+#### New features
+
+- Introduce `populations.CorePopulation`
+  - Allows for testing and better subclassing custom populations
+
+### 43.1.2 [#1274](https://github.com/openfisca/openfisca-core/pull/1275)
+
+#### Documentation
+
+- Add docs to experimental
+
+### 43.1.1 [#1282](https://github.com/openfisca/openfisca-core/pull/1282)
+
+#### Technical changes
+
+- Add check to spot common spelling mistakes
+
+## 43.1.0 [#1255](https://github.com/openfisca/openfisca-core/pull/1255)
+
+- Make `CoreEntity` public
+  - Allows for more easily creating customised entities.
+
+#### Technical changes
+
+- Add missing doctests.
+
+# 43.0.0 [#1224](https://github.com/openfisca/openfisca-core/pull/1224)
+
+#### Technical changes
+
+- Add documentation to the `indexed_enums` module
+- Fix type definitions in the enums module
+- Fix doctests
+- Fix bug in `Enum.encode` when passing a scalar
+- Fix bug in `Enum.encode` when encoding values not present in the enum
+
+#### New features
+
+- Introduce `indexed_enums.EnumType`
+  - Allows for actually fancy indexing `indexed_enums.Enum`
+
+#### Note
+
+This changeset has not breaking changes to the `indexed_enums` public API.
+However, as a conservative measure concerning data preparation for large
+population simulations, it has been marked as a major release.
+
+##### Before
+
+```python
+from openfisca_core import indexed_enums as enum
+
+class TestEnum(enum.Enum):
+     ONE = "one"
+     TWO = "two"
+
+TestEnum.encode([2])
+#  EnumArray([0])
+```
+
+##### After
+
+```python
+from openfisca_core import indexed_enums as enum
+
+class TestEnum(enum.Enum):
+     ONE = "one"
+     TWO = "two"
+
+TestEnum.encode([2])
+#  EnumArray([])
+
+TestEnum.encode([0,1,2,5])
+# EnumArray([<TestEnum.ONE: 'one'> <TestEnum.TWO: 'two'>])
+```
+
+### 42.0.7 [#1264](https://github.com/openfisca/openfisca-core/pull/1264)
+
+#### Technical changes
+
+- Add typing to `data_storage` module
+
+### 42.0.6 [#1263](https://github.com/openfisca/openfisca-core/pull/1263)
+
+#### Documentation
+
+- Fix docs of the `data_storage` module
+
+### 42.0.5 [#1261](https://github.com/openfisca/openfisca-core/pull/1261)
+
+#### Technical changes
+
+- Fix doctests of `data_storage` module
+
+### 42.0.4 [#1257](https://github.com/openfisca/openfisca-core/pull/1257)
+
+#### Technical changes
+
+- Fix conda test and publish
+- Add matrix testing to CI
+  - Now it tests lower and upper bounds of python and numpy versions
+
+### 42.0.3 [#1234](https://github.com/openfisca/openfisca-core/pull/1234)
+
+#### Technical changes
+
+- Add matrix testing to CI
+  - Now it tests lower and upper bounds of python and numpy versions
+
+> Note: Version `42.0.3` has been unpublished as was deployed by mistake.
+> Please use versions `42.0.4` and subsequents.
+
+### 42.0.2 [#1256](https://github.com/openfisca/openfisca-core/pull/1256)
+
+#### Documentation
+
+- Fix bad indent
+
+### 42.0.1 [#1253](https://github.com/openfisca/openfisca-core/pull/1253)
+
+#### Documentation
+
+- Fix documentation of `entities`
+
+# 42.0.0 [#1223](https://github.com/openfisca/openfisca-core/pull/1223)
+
+#### Breaking changes
+
+- Changes to `eternity` instants and periods
+  - Eternity instants are now `<Instant(-1, -1, -1)>` instead of
+    `<Instant(inf, inf, inf)>`
+  - Eternity periods are now `<Period(('eternity', <Instant(-1, -1, -1)>, -1))>`
+    instead of `<Period(('eternity', <Instant(inf, inf, inf)>, inf))>`
+  - The reason is to avoid mixing data types: `inf` is a float, periods and
+    instants are integers. Mixed data types make memory optimisations impossible.
+  - Migration should be straightforward. If you have a test that checks for
+    `inf`, you should update it to check for `-1` or use the `is_eternal` method.
+- `periods.instant` no longer returns `None`
+  - Now, it raises `periods.InstantError`
+
+#### New features
+
+- Introduce `Instant.eternity()`
+  - This behaviour was duplicated across
+  - Now it is encapsulated in a single method
+- Introduce `Instant.is_eternal` and `Period.is_eternal`
+    - These methods check if the instant or period are eternity (`bool`).
+- Now `periods.instant` parses also ISO calendar strings (weeks)
+  - For instance, `2022-W01` is now a valid input
+
+#### Technical changes
+
+- Update `pendulum`
+- Reduce code complexity
+- Remove run-time type-checks
+- Add typing to the periods module
+
+### 41.5.7 [#1225](https://github.com/openfisca/openfisca-core/pull/1225)
+
+#### Technical changes
+
+- Refactor & test `eval_expression`
+
+###  41.5.6 [#1185](https://github.com/openfisca/openfisca-core/pull/1185)
+
+#### Technical changes
+
+- Remove pre Python 3.9 syntax.
+
+### 41.5.5 [#1220](https://github.com/openfisca/openfisca-core/pull/1220)
+
+#### Technical changes
+
+- Fix doc & type definitions in the entities module
+
+### 41.5.4 [#1219](https://github.com/openfisca/openfisca-core/pull/1219)
+
+#### Technical changes
+
+- Fix doc & type definitions in the commons module
+
+### 41.5.3 [#1218](https://github.com/openfisca/openfisca-core/pull/1218)
+
+#### Technical changes
+
+- Fix `flake8` doc linting:
+    - Add format "google"
+    - Fix per-file skips
+- Fix failing lints
+
+### 41.5.2 [#1217](https://github.com/openfisca/openfisca-core/pull/1217)
+
+#### Technical changes
+
+- Fix styles by applying `isort`.
+- Add a `isort` dry-run check to `make lint`
+
+### 41.5.1 [#1216](https://github.com/openfisca/openfisca-core/pull/1216)
+
+#### Technical changes
+
+- Fix styles by applying `black`.
+- Add a `black` dry-run check to `make lint`
+
+## 41.5.0 [#1212](https://github.com/openfisca/openfisca-core/pull/1212)
+
+#### New features
+
+- Introduce `VectorialAsofDateParameterNodeAtInstant`
+  - It is a parameter node of the legislation at a given instant which has been vectorized along some date.
+   - Vectorized parameters allow requests such as parameters.housing_benefit[date], where date is a `numpy.datetime64` vector
+
+### 41.4.7 [#1211](https://github.com/openfisca/openfisca-core/pull/1211)
+
+#### Technical changes
+
+- Update documentation continuous deployment method to reflect OpenFisca-Doc [process updates](https://github.com/openfisca/openfisca-doc/pull/308)
+
+### 41.4.6 [#1210](https://github.com/openfisca/openfisca-core/pull/1210)
+
+#### Technical changes
+
+- Abide by OpenAPI v3.0.0 instead of v3.1.0
+  - Drop support for `propertyNames` in `Values` definition
+
+### 41.4.5 [#1209](https://github.com/openfisca/openfisca-core/pull/1209)
+
+#### Technical changes
+
+- Support loading metadata from both `setup.py` and `pyproject.toml` package description files.
+
+### ~41.4.4~ [#1208](https://github.com/openfisca/openfisca-core/pull/1208)
+
+_Unpublished due to introduced backwards incompatibilities._
+
+#### Technical changes
+
+- Adapt testing pipeline to Country Template [v7](https://github.com/openfisca/country-template/pull/139).
+
+### 41.4.3 [#1206](https://github.com/openfisca/openfisca-core/pull/1206)
+
+#### Technical changes
+
+- Increase spiral and cycle tests robustness.
+  - The current test is ambiguous, as it hides a failure at the first spiral
+    occurrence (from 2017 to 2016).
+
+### 41.4.2 [#1203](https://github.com/openfisca/openfisca-core/pull/1203)
+
+#### Technical changes
+
+- Changes the Pypi's deployment authentication way to use token API following Pypi's 2FA enforcement starting 2024/01/01.
+
+### 41.4.1 [#1202](https://github.com/openfisca/openfisca-core/pull/1202)
+
+#### Technical changes
+
+- Check that entities are fully specified when expanding over axes.
+
+## 41.4.0 [#1197](https://github.com/openfisca/openfisca-core/pull/1197)
+
+#### New features
+
+- Add `entities.find_role()` to find roles by key and `max`.
+
+#### Technical changes
+
+- Document `projectors.get_projector_from_shortcut()`.
+
+## 41.3.0 [#1200](https://github.com/openfisca/openfisca-core/pull/1200)
+
+> As `TracingParameterNodeAtInstant` is a wrapper for `ParameterNodeAtInstant`
+> which allows iteration and the use of `contains`, it was not possible
+> to use those on a `TracingParameterNodeAtInstant`
+
+#### New features
+
+- Allows iterations on `TracingParameterNodeAtInstant`
+- Allows keyword `contains` on `TracingParameterNodeAtInstant`
+
+## 41.2.0 [#1199](https://github.com/openfisca/openfisca-core/pull/1199)
+
+#### Technical changes
+
+- Fix `openfisca-core` Web API error triggered by `Gunicorn` < 22.0.
+  - Bump `Gunicorn` major revision to fix error on Web API.
+    Source: https://github.com/benoitc/gunicorn/issues/2564
+
+### 41.1.2 [#1192](https://github.com/openfisca/openfisca-core/pull/1192)
+
+#### Technical changes
+
+- Add tests to `entities`.
+
+###  41.1.1 [#1186](https://github.com/openfisca/openfisca-core/pull/1186)
+
+#### Technical changes
+
+- Skip type-checking tasks
+  - Before their definition was commented out but still run with `make test`
+  - Now they're skipped but not commented, which is needed to fix the
+    underlying issues
+
+##  41.1.0 [#1195](https://github.com/openfisca/openfisca-core/pull/1195)
+
+#### Technical changes
+
+- Make `Role` explicitly hashable.
+- Details:
+    - By introducing `__eq__`, naturally `Role` became unhashable, because
+      equality was calculated based on a property of `Role`
+      (`role.key == another_role.key`), and no longer structurally
+      (`"1" == "1"`).
+    - This changeset removes `__eq__`, as `Role` is being used downstream as a
+      hashable object, and adds a test to ensure `Role`'s hashability.
+
+###  41.0.2 [#1194](https://github.com/openfisca/openfisca-core/pull/1194)
+
+#### Technical changes
+
+- Add `__hash__` method to `Role`.
+
+###  41.0.1 [#1187](https://github.com/openfisca/openfisca-core/pull/1187)
+
+#### Technical changes
+
+- Document `Role`.
+
+# 41.0.0 [#1189](https://github.com/openfisca/openfisca-core/pull/1189)
+
+#### Breaking changes
+
+- `Variable.get_introspection_data` no longer has parameters nor calling functions
+
+The Web API was very prone to crashing, timeouting at startup because of the time consuming python file parsing to generate documentation displayed for instance in the Legislation Explorer.
+
+##  40.1.0 [#1174](https://github.com/openfisca/openfisca-core/pull/1174)
+
+#### New Features
+
+- Allows for dispatching and dividing inputs over a broader range.
+  - For example, divide a monthly variable by week.
+
+###  40.0.1 [#1184](https://github.com/openfisca/openfisca-core/pull/1184)
+
+#### Technical changes
+
+- Require numpy < 1.25 because of memory leak detected in OpenFisca-France.
+
+# 40.0.0 [#1181](https://github.com/openfisca/openfisca-core/pull/1181)
+
+#### Breaking changes
+
+- Upgrade every dependencies to its latest version.
+- Upgrade to Python >= 3.9
+
+Note: Checks on mypy typings are disabled, because they cause generate of errors that we were not able to fix easily.
+
+# 39.0.0 [#1181](https://github.com/openfisca/openfisca-core/pull/1181)
+
+#### Breaking changes
+
+- Upgrade every dependencies to their latest versions.
+- Upgrade to Python >= 3.9
+
+Main changes, that may require some code changes in country packages:
+- numpy
+- pytest
+- Flask
+
+### 38.0.4 [#1182](https://github.com/openfisca/openfisca-core/pull/1182)
+
+#### Technical changes
+
+- Method `_get_tax_benefit_system()` of class `YamlItem` in file  `openfisca_core/tools/test_runner.py` will now clone the TBS when applying reforms to avoid running tests with previously reformed TBS.
+
+### 38.0.3 [#1179](https://github.com/openfisca/openfisca-core/pull/1179)
+
+#### Bug fix
+
+- Do not install dependencies outside the `setup.py`
+  - Dependencies installed outside the `setup.py` are not taken into account by
+    `pip`'s dependency resolver.
+  - In case of conflicting transient dependencies, the last library installed
+    will "impose" its dependency version.
+  - This makes the installation and build of the library non-deterministic and
+    prone to unforeseen bugs caused by external changes in dependencies'
+    versions.
+
+#### Note
+
+A definite way to solve this issue is to clearly separate library dependencies
+(with a `virtualenv`) and a universal dependency installer for CI requirements
+(like `pipx`), taking care of:
+
+- Always running tests inside the `virtualenv` (for example with `nox`).
+- Always building outside of the `virtualenv` (for example with `poetry`
+  installed by `pipx`).
+
+Moreover, it is indeed even better to have a lock file for dependencies,
+using `pip freeze`) or with tools providing such features (`pipenv`, etc.).
+
+### 38.0.2 [#1178](https://github.com/openfisca/openfisca-core/pull/1178)
+
+#### Technical changes
+
+- Remove use of `importlib_metadata`.
+
+### 38.0.1 -
+
+> Note: Version `38.0.1` has been unpublished as was deployed by mistake.
+> Please use versions `38.0.2` and subsequents.
+
+
+# 38.0.0 [#989](https://github.com/openfisca/openfisca-core/pull/989)
+
+> Note: Version `38.0.0` has been unpublished as `35.11.1` introduced a bug
+> preventing users to load a tax-benefit system. Please use versions `38.0.2`
+> and subsequents.
+
+#### New Features
+
+- Upgrade OpenAPI specification of the API to v3 from Swagger v2.
+- Continuously validate OpenAPI specification.
+
+#### Breaking changes
+
+- Drop support for OpenAPI specification v2 and prior.
+  - Users relying on OpenAPI v2 can use [Swagger Converter](https://converter.swagger.io/api/convert?url=OAS2_YAML_OR_JSON_URL) to migrate ([example](https://web.archive.org/web/20221103230822/https://converter.swagger.io/api/convert?url=https://api.demo.openfisca.org/latest/spec)).
+
+### 37.0.2 [#1170](https://github.com/openfisca/openfisca-core/pull/1170)
+
+> Note: Version `37.0.2` has been unpublished as `35.11.1` introduced a bug
+> preventing users to load a tax-benefit system. Please use versions `38.0.2`
+> and subsequents.
+
+#### Technical changes
+
+- Always import numpy
+
+### 37.0.1 [#1169](https://github.com/openfisca/openfisca-core/pull/1169)
+
+> Note: Version `37.0.1` has been unpublished as `35.11.1` introduced a bug
+> preventing users to load a tax-benefit system. Please use versions `38.0.2`
+> and subsequents.
+
+#### Technical changes
+
+- Unify casing of NumPy.
+
+# 37.0.0 [#1142](https://github.com/openfisca/openfisca-core/pull/1142)
+
+> Note: Version `37.0.0` has been unpublished as `35.11.1` introduced a bug
+> preventing users to load a tax-benefit system. Please use versions `38.0.2`
+> and subsequents.
+
+#### Deprecations
+
+- In _periods.Instant_:
+  - Remove `period`, method used to build a `Period` from an `Instant`.
+  - This method created an upward circular dependency between `Instant` and `Period` causing lots of trouble.
+  - The functionality is still provided by `periods.period` and the `Period` constructor.
+
+#### Migration details
+
+- Replace `some_period.start.period` and similar methods with `Period((unit, some_period.start, 1))`.
+
+# 36.0.0 [#1149](https://github.com/openfisca/openfisca-core/pull/1162)
+
+> Note: Version `36.0.0` has been unpublished as `35.11.1` introduced a bug
+> preventing users to load a tax-benefit system. Please use versions `38.0.2`
+> and subsequents.
+
+#### Breaking changes
+
+- In `ParameterScaleBracket`:
+  - Remove the `base` attribute
+  - The attribute's usage was unclear and it was only being used by some French social security variables
+
+## 35.12.0 [#1160](https://github.com/openfisca/openfisca-core/pull/1160)
+
+> Note: Version `35.12.0` has been unpublished as `35.11.1` introduced a bug
+> preventing users to load a tax-benefit system. Please use versions `38.0.2`
+> and subsequents.
+
+#### New Features
+
+- Lighter install by removing test packages from systematic install.
+
+### 35.11.2 [#1166](https://github.com/openfisca/openfisca-core/pull/1166)
+
+> Note: Version `35.11.2` has been unpublished as `35.11.1` introduced a bug
+> preventing users to load a tax-benefit system. Please use versions `38.0.2`
+> and subsequents.
+
+#### Technical changes
+
+- Fix Holder's doctests.
+
+### 35.11.1 [#1165](https://github.com/openfisca/openfisca-core/pull/1165)
+
+> Note: Version `35.11.1` has been unpublished as it introduced a bug
+> preventing users to load a tax-benefit system. Please use versions `38.0.2`
+> and subsequents.
+
+#### Bug fix
+
+- Fix documentation
+  - Suppression of some modules broke the documentation build
+
+## 35.11.0 [#1149](https://github.com/openfisca/openfisca-core/pull/1149)
+
+#### New Features
+
+- Introduce variable dependent error margins in YAML tests.
+
+### 35.10.1 [#1143](https://github.com/openfisca/openfisca-core/pull/1143)
+
+#### Bug fix
+
+- Reintroduce support for the ``day`` date unit in `holders.set_input_dispatch_by_period` and `holders.
+  set_input_divide_by_period`
+  - Allows for dispatching values per day, for example, to provide a daily (week, fortnight) to an yearly variable.
+  - Inversely, allows for calculating the daily (week, fortnight) value of a yearly input.
+
+## 35.10.0 [#1151](https://github.com/openfisca/openfisca-core/pull/1151)
+
+#### New features
+
+- Add type hints for all instances of `variable_name` in function declarations.
+- Add type hints for some `Simulation` and `Population` properties.
+
+## 35.9.0 [#1150](https://github.com/openfisca/openfisca-core/pull/1150)
+
+#### New Features
+
+- Introduce a maximal depth for computation logs
+  - Allows for limiting the depth of the computation log chain
+
+### 35.8.6 [#1145](https://github.com/openfisca/openfisca-core/pull/1145)
+
+#### Technical changes
+
+- Removes the automatic documentation build check
+  - It has been proven difficult to maintain, specifically due _dependency hell_ and a very contrived build workflow.
+
+### 35.8.5 [#1137](https://github.com/openfisca/openfisca-core/pull/1137)
+
+#### Technical changes
+
+- Fix pylint dependency in fresh editable installations
+  - Ignore pytest requirement, used to collect test cases, if it is not yet installed.
+
+### 35.8.4 [#1131](https://github.com/openfisca/openfisca-core/pull/1131)
+
+#### Technical changes
+
+- Correct some type hints and docstrings.
+
+### 35.8.3 [#1127](https://github.com/openfisca/openfisca-core/pull/1127)
+
+#### Technical changes
+
+- Fix the build for Anaconda in CI. The conda build failed on master because of a replacement in a comment string.
+  - The _ were removed in the comment to avoid a replace.
+
+### 35.8.2 [#1128](https://github.com/openfisca/openfisca-core/pull/1128)
+
+#### Technical changes
+
+- Remove ambiguous links in docstrings.
+
+### 35.8.1 [#1105](https://github.com/openfisca/openfisca-core/pull/1105)
+
+#### Technical changes
+
+- Add publish to Anaconda in CI. See file .conda/README.md.
+
+## 35.8.0 [#1114](https://github.com/openfisca/openfisca-core/pull/1114)
+
+#### New Features
+
+- Introduce `rate_from_bracket_indice` method on `RateTaxScaleLike` class
+  - Allows for the determination of the tax rate based on the tax bracket indice
+
+- Introduce `rate_from_tax_base` method on `RateTaxScaleLike` class
+  - Allows for the determination of the tax rate based on the tax base
+
+- Introduce `threshold_from_tax_base` method on `RateTaxScaleLike` class
+  - Allows for the determination of the lower threshold based on the tax base
+
+- Add publish openfisca-core library to Anaconda in CI. See file .conda/README.md.
+
+### 35.7.8 [#1086](https://github.com/openfisca/openfisca-core/pull/1086)
+
+#### Technical changes
+
+### 35.7.7 [#1109](https://github.com/openfisca/openfisca-core/pull/1109)
+
+#### Technical changes
+
+- Fix `openfisca-core` Web API error triggered by `Flask` dependencies updates
+  - Bump `Flask` patch revision to fix `cannot import name 'json' from 'itsdangerous'` on Web API.
+  - Then, fix `MarkupSafe` revision to avoid `cannot import name 'soft_unicode' from 'markupsafe'` error on Web API.
+
+### 35.7.6 [#1065](https://github.com/openfisca/openfisca-core/pull/1065)
+
+#### Technical changes
+
+- Made code compatible with dpath versions >=1.5.0,<3.0.0, instead of >=1.5.0,<2.0.0
+
+### 35.7.5 [#1090](https://github.com/openfisca/openfisca-core/pull/1090)
+
+#### Technical changes
+
+- Remove calls to deprecated imp module
+
 ### 35.7.4 [#1083](https://github.com/openfisca/openfisca-core/pull/1083)
 
 #### Technical changes
@@ -8,7 +806,7 @@
 
 ### 35.7.3 [#1081](https://github.com/openfisca/openfisca-core/pull/1081)
 
-- Correct error message in case of mis-sized population 
+- Correct error message in case of mis-sized population
 
 ### 35.7.2 [#1057](https://github.com/openfisca/openfisca-core/pull/1057)
 
@@ -147,7 +945,7 @@
   - When libraries do not implement their own types, MyPy provides stubs, or type sheds
   - Thanks to `__future__.annotations`, those stubs or type sheds are casted to `typing.Any`
   - Since 1.20.x, NumPy now provides their own type definitions
-  - The introduction of NumPy 1.20.x in #990 caused one major problem: 
+  - The introduction of NumPy 1.20.x in #990 caused one major problem:
     - It is general practice to do not import at runtime modules only used for typing purposes, thanks to the `typing.TYPE_CHEKING` variable
     - The new `numpy.typing` module was being imported at runtime, rendering OpenFisca unusable to all users depending on previous versions of NumPy (1.20.x-)
   - These changes revert #990 and solve #1009 and #1012
@@ -189,7 +987,7 @@ _Note: this version has been unpublished due to an issue introduced by NumPy upg
 #### Bug fix
 
 - Repair expansion of axes on a variable given as input
-  - When expanding axes, the expected behavour is to override any input value for the requested variable and period
+  - When expanding axes, the expected behaviour is to override any input value for the requested variable and period
   - As longs as we passed some input for a variable on a period, it was not being overrode, creating a NumPy's error (boradcasting)
   - By additionally checking that an input was given, now we make that the array has the correct shape by constructing it with NumPy's tile with a shape equal to the number of the axis expansion count requested.
 
@@ -258,7 +1056,7 @@ _Note: this version has been unpublished due to an issue introduced by NumPy upg
 
 #### Technical changes
 
-- Improve error message when laoding parameters file to detect the problematic file
+- Improve error message when loading parameters file to detect the problematic file
 
 ### 35.0.3 [#961](https://github.com/openfisca/openfisca-core/pull/961)
 
@@ -272,7 +1070,7 @@ _Note: this version has been unpublished due to an issue introduced by NumPy upg
 
 #### Technical changes
 
-- Update dependency: `flask-cors` (`Flask` extension for Cross Origin Resouce Sharing)
+- Update dependency: `flask-cors` (`Flask` extension for Cross Origin Resource Sharing)
 
 ### 35.0.1 [#968](https://github.com/openfisca/openfisca-core/pull/968)
 
@@ -285,22 +1083,22 @@ _Note: this version has been unpublished due to an issue introduced by NumPy upg
 
 #### Breaking changes
 
-- Update Numpy version's upper bound to 1.18
-  - Numpy 1.18 [expires a list of old deprecations](https://numpy.org/devdocs/release/1.18.0-notes.html#expired-deprecations) that might be used in openfisca country models.
+- Update NumPy version's upper bound to 1.18
+  - NumPy 1.18 [expires a list of old deprecations](https://numpy.org/devdocs/release/1.18.0-notes.html#expired-deprecations) that might be used in openfisca country models.
 
 #### Migration details
 
-You might need to change your code if any of the [Numpy expired deprecations](https://numpy.org/devdocs/release/1.18.0-notes.html#expired-deprecations) is used in your model formulas.
+You might need to change your code if any of the [NumPy expired deprecations](https://numpy.org/devdocs/release/1.18.0-notes.html#expired-deprecations) is used in your model formulas.
 
 Here is a subset of the deprecations that you might find in your model with some checks and migration steps (where `np` stands for `numpy`):
 
-* `Removed deprecated support for boolean and empty condition lists in np.select.`
-  * Before `np.select([], [])` result was `0` (for a `default` argument value set to `0`).
+* `Removed deprecated support for boolean and empty condition lists in numpy.select.`
+  * Before `numpy.select([], [])` result was `0` (for a `default` argument value set to `0`).
     * Now, we have to check for empty conditions and, return `0` or the defined default argument value when we want to keep the same behavior.
   * Before, integer conditions where transformed to booleans.
-    * For example, `np.select([0, 1, 0], ['a', 'b', 'c'])` result was `array('b', dtype='<U21')`. Now, we have to update such code to: `np.select(np.array([0, 1, 0]).astype(bool), ['a', 'b', 'c'])`.
-* `np.linspace parameter num must be an integer.`
-  * No surprise here, update the `num` parameter in [np.linspace](https://numpy.org/doc/1.18/reference/generated/numpy.linspace.html) in order to get an integer.
+    * For example, `numpy.select([0, 1, 0], ['a', 'b', 'c'])` result was `array('b', dtype='<U21')`. Now, we have to update such code to: `numpy.select(numpy.array([0, 1, 0]).astype(bool), ['a', 'b', 'c'])`.
+* `numpy.linspace parameter num must be an integer.`
+  * No surprise here, update the `num` parameter in [numpy.linspace](https://numpy.org/doc/1.18/reference/generated/numpy.linspace.html) in order to get an integer.
 * `Array order only accepts ‘C’, ‘F’, ‘A’, and ‘K’.`
   * Check that [numpy.array](https://numpy.org/doc/1.18/reference/generated/numpy.array.html) `order` argument gets one of the allowed values listed above.
 * `UFuncs with multiple outputs must use a tuple for the out kwarg.`
@@ -448,7 +1246,7 @@ _Note: this version has been unpublished due to an issue introduced by dpath upg
 
 - Downgrade numpy version's upper bound to 1.17
 - Details:
-  - Numpy 1.18 deprecates the use of several of its methods.
+  - NumPy 1.18 deprecates the use of several of its methods.
   - Changes in `numpy.select` have impacted other packages depending on OpenFisca Core.
 
 ## 34.6.0 [#920](https://github.com/openfisca/openfisca-core/pull/920)
@@ -532,7 +1330,7 @@ _Note: this version has been unpublished due to an issue introduced by it. Pleas
 
 ### 34.4.4 [#908](https://github.com/openfisca/openfisca-core/pull/908)
 
-- Make parameter cloning return clones that are truly independant from their source
+- Make parameter cloning return clones that are truly independent from their source
   - Before this PR, editing the clone of a parameter tree would change the initial tree
   - Only impacts reforms that edit parameters tree
 
@@ -673,7 +1471,7 @@ _Note: this version has been unpublished due to an issue introduced by 34.2.9 in
 
 #### Technical changes
 
-- Update dependencies: Numpy, Flask, dpath, numexpr
+- Update dependencies: NumPy, Flask, dpath, numexpr
 
 ## 34.2.0 [#872](https://github.com/openfisca/openfisca-core/pull/872)
 
@@ -735,7 +1533,7 @@ _Note: this version has been unpublished due to an issue introduced by 34.2.9 in
   - Much more detail (and class diagrams) in the PR description
 - Remove support from the syntax `some_entity.SOME_ROLE` to access roles (where `some_entity` is the entity passed to a formula).
 
-### Migration details
+#### Migration details
 
 - Use the standard SomeEntity.SOME_ROLE instead. (Where SomeEntity is the capitalized entity or instance, Household.PARENT.)
 - Code that relied excessively on internal implementation details of Entity may break, and should be updated to access methods of Entity/Population instead.
@@ -1486,14 +2284,14 @@ Country package maintainers who still want to provide the Web API by default wit
 
 ##### Rename development dependencies from `test` to `dev`:
 
-- Developpers should now run `pip install --editable .[dev]` instead of `pip install --editable .[test]` to install them.
+- Developers should now run `pip install --editable .[dev]` instead of `pip install --editable .[test]` to install them.
 
 #### New features
 
 - In the `/spec` route:
   - Indicate the served country package version as API version (instead of `0.1.0`).
-  - Infer the host URL from the requests, instead of relying on the undocumented `SERVER_NAME` environnement variable.
-    - The use of the `SERVER_NAME` environnement variable is therefore deprecated and without effect.
+  - Infer the host URL from the requests, instead of relying on the undocumented `SERVER_NAME` environment variable.
+    - The use of the `SERVER_NAME` environment variable is therefore deprecated and without effect.
 
 ### 23.5.2 [#710](https://github.com/openfisca/openfisca-core/pull/710)
 
@@ -1506,7 +2304,7 @@ Country package maintainers who still want to provide the Web API by default wit
 _Note: this version has been unpublished due to an issue introduced by 23.4.0 in the Web API. Please use 23.5.2 or a more recent version._
 
 - Remove the irrelevant decimals that were added at the end of `float` results in the Web API and the test runner.
-  - These decimals were added while converting a Numpy `float32` to a regular 64-bits Python `float`.
+  - These decimals were added while converting a NumPy `float32` to a regular 64-bits Python `float`.
 
 For instance, the former Web API response extract:
 
@@ -1551,7 +2349,7 @@ HTTP/1.1 300 MULTIPLE CHOICES
 (...)
 
 {
-  "welcome": "Welcome to the OpenFisca-France Web API. To learn how to use it, check our interactive swagger documenation: https://fr.openfisca.org/legislation/swagger"
+  "welcome": "Welcome to the OpenFisca-France Web API. To learn how to use it, check our interactive swagger documentation: https://fr.openfisca.org/legislation/swagger"
 }
 ```
 
@@ -1615,7 +2413,7 @@ Note that this route doesn't _recursively_ explore the node, and only exposes it
 ### 23.3.2 [#702](https://github.com/openfisca/openfisca-core/pull/702)
 
 Minor Change without any impact for country package developers and users:
-  - Make code more Python3-like by backporting unicode litterals.
+  - Make code more Python3-like by backporting unicode literals.
   - With this backport, all strings are by default unicodes.
   - The `u` prefix for strings should *not* be used anymore.
   - Each new module must start by `from __future__ import unicode_literals` for the backport to be effective.
@@ -1713,7 +2511,7 @@ Start adapting OpenFisca to Python 3
 ### 23.0.1 [656](https://github.com/openfisca/openfisca-core/pull/656)
 
 * Re-accept `int` values for `instant` in `tax_benefit_system.get_parameter_at_instant(instant)`
-  * `int` values were accidently rejected since v23
+  * `int` values were accidentally rejected since v23
 
 # 23.0.0 [643](https://github.com/openfisca/openfisca-core/pull/643)
 
@@ -1811,7 +2609,7 @@ Each value is a simple python function.
 ### 22.0.10 [#654](https://github.com/openfisca/openfisca-core/pull/654)
 
 * Fix `dtype` attribute for `EnumArray`s (returned when calculating a variable of `value_type` `Enum`):
-  - It was the type `np.int16` and not the dtype instance `np.dtype(np.int16)`
+  - It was the type `numpy.int16` and not the dtype instance `numpy.dtype(numpy.int16)`
   - This caused issue when trying to export an `EnumArray` with `pandas`
 
 ### 22.0.9 [#650](https://github.com/openfisca/openfisca-core/pull/5O)
@@ -1967,7 +2765,7 @@ Add `--only-variables` and `--ignore-variables` options to `openfisca-run-test` 
 For instance:
 
 ```
-from openfisca_core.memory_config import MemoryConfig
+from openfisca_core.experimental import MemoryConfig
 
 simulation = ...  # create a Simulation object
 
@@ -2071,7 +2869,7 @@ class housing_occupancy_status(Variable):
 > ```
 > And two parameters `parameters.city_tax.z1` and `parameters.city_tax.z2`, they can be dynamically accessed through:
 > ```py
-> zone = np.asarray([TypesZone.z1, TypesZone.z2, TypesZone.z2, TypesZone.z1])
+> zone = numpy.asarray([TypesZone.z1, TypesZone.z2, TypesZone.z2, TypesZone.z1])
 > zone_value = parameters.rate._get_at_instant('2015-01-01').single.owner[zone]
 > ```
 > returns
@@ -2095,16 +2893,16 @@ class housing_occupancy_status(Variable):
 - When using the Python API (`set_input`), the three following inputs are accepted:
    - The enum item (e.g. HousingOccupancyStatus.tenant)
    - The enum string identifier (e.g. "tenant")
-   - The enum item index, though this is not recommanded.
+   - The enum item index, though this is not recommended.
      - If you rely on index, make sure to specify an `__order__` attribute to all your enums to make sure each intem has the right index. See the enum34 [doc](https://pypi.python.org/pypi/enum34/1.1.1).
 
 > Example:
 ```py
 holder = simulation.household.get_holder('housing_occupancy_status')
 # Three possibilities
-holder.set_input(period, np.asarray([HousingOccupancyStatus.owner]))
-holder.set_input(period, np.asarray(['owner']))
-holder.set_input(period, np.asarray([0])) # Highly not recommanded
+holder.set_input(period, numpy.asarray([HousingOccupancyStatus.owner]))
+holder.set_input(period, numpy.asarray(['owner']))
+holder.set_input(period, numpy.asarray([0])) # Highly not recommended
 ```
 
 - When calculating an Enum variable, the output will be an [EnumArray](https://openfisca.org/doc/openfisca-python-api/enum_array.html#module-openfisca_core.indexed_enums).
@@ -2267,7 +3065,7 @@ column = make_column_from_variable(variable)
 
 - In `Variable`:
   * Remove `to_column`
-  * Variables can now directly be instanciated:
+  * Variables can now directly be instantiated:
 
 ```py
 class salary(Variable):
@@ -2318,7 +3116,7 @@ tax_benefit_system.parameters.benefits.basic_income
 
 - Be more flexible about parameters definitions
 
-The two following expressions are for instance striclty equivalent:
+The two following expressions are for instance strictly equivalent:
 
 ```
 Parameter("taxes.rate", {"2015-01-01": 2000})
@@ -2539,7 +3337,7 @@ For more information, check the [documentation](https://openfisca.org/doc/coding
     reference_parameters.add_child('plf2016_conterfactual', reform_parameters_subtree)
     ```
 
-  - Note that this way of creating parameters is only recommanded when using dynamically computed values (for instance `round(1135 * (1 + inflation))` in the previous example). If the values are static, the new parameters can be directly built from YAML (See New features section).
+  - Note that this way of creating parameters is only recommended when using dynamically computed values (for instance `round(1135 * (1 + inflation))` in the previous example). If the values are static, the new parameters can be directly built from YAML (See New features section).
 
 ##### TaxBenefitSystem
 
@@ -2599,8 +3397,8 @@ For more information, check the [documentation](https://openfisca.org/doc/coding
 #### Technical changes
 
 * Refactor the internal representation and the interface of legislation parameters
-  - The parameters of a legislation are wraped into the classes `Node`, `Parameter`, `Scale`, `Bracket`, `ValuesHistory`, `ValueAtInstant` instead of bare python dict.
-  - The parameters of a legislation at a given instant are wraped into the classes `NodeAtInstant`, `ValueAtInstant` and tax scales instead of bare python objects.
+  - The parameters of a legislation are wrapped into the classes `Node`, `Parameter`, `Scale`, `Bracket`, `ValuesHistory`, `ValueAtInstant` instead of bare python dict.
+  - The parameters of a legislation at a given instant are wrapped into the classes `NodeAtInstant`, `ValueAtInstant` and tax scales instead of bare python objects.
   - The file `parameters.py` and the classes defined inside are responsible both for loading and accessing the parameters. Before the loading was implemented in `legislationsxml.py` and the other processings were implemented in `legislations.py`
   - The validation of the XML files was performed against a XML schema defined in `legislation.xsd`. Now the YAML files are loaded with the library `yaml` and then validated in basic Python.
 
@@ -2611,7 +3409,7 @@ For more information, check the [documentation](https://openfisca.org/doc/coding
   - `Simulation.get_compact_legislation()` -> `Simulation._get_parameters_at_instant()`
   - `Simulation.get_baseline_compact_legislation()` -> `Simulation._get_baseline_parameters_at_instant()`
 
-* The optionnal parameter `traced_simulation` is removed in function `TaxBenefitSystem.get_compact_legislation()` (now `TaxBenefitSystem.get_parameters_at_instant()`). This parameter had no effect.
+* The optional parameter `traced_simulation` is removed in function `TaxBenefitSystem.get_compact_legislation()` (now `TaxBenefitSystem.get_parameters_at_instant()`). This parameter had no effect.
 
 * The optional parameter `with_source_file_infos` is removed in functions `TaxBenefitSystem.compute_legislation()` (now `TaxBenefitSystem._compute_parameters()`) and `TaxBenefitSystem.get_legislation()`. This parameter had no effect.
 
@@ -2629,7 +3427,7 @@ For more information, check the [documentation](https://openfisca.org/doc/coding
 In the preview web API, for variables of type `Enum`:
 
 * Accept and recommend to use strings as simulation inputs, instead of the enum indices.
-  - For instance, `{"housing_occupancy_status": {"2017-01": "Tenant"}}` is now accepted and prefered to `{"housing_occupancy_status": {"2017-01": 0}}`).
+  - For instance, `{"housing_occupancy_status": {"2017-01": "Tenant"}}` is now accepted and preferred to `{"housing_occupancy_status": {"2017-01": 0}}`).
   - Using the enum indices as inputs is _still accepted_ for backward compatibility, but _should not_ be encouraged.
 * Return strings instead of enum indices.
   - For instance, is `housing_occupancy_status` is calculated for `2017-01`, `{"housing_occupancy_status": {"2017-01": "Tenant"}}` is now returned, instead of `{"housing_occupancy_status": {"2017-01": 0}}`.
@@ -2675,7 +3473,7 @@ In the preview web API, for variables of type `Enum`:
   - This attribute is the legislative reference of a variable.
   - As previously, this attribute can be a string, or a list of strings.
 * Rename `Variable` attribute `reference` to `baseline_variable`
-  - This attibute is, for a variable defined in a reform, the baseline variable the reform variable is replacing.
+  - This attribute is, for a variable defined in a reform, the baseline variable the reform variable is replacing.
 * Remove variable attribute `law_reference`
 * Rename `TaxBenefitSystem.reference` to `TaxBenefitSystem.baseline`
 * Rename `TaxBenefitSystem.get_reference_compact_legislation` to `TaxBenefitSystem.get_baseline_compact_legislation`
@@ -2744,7 +3542,7 @@ In the preview web API, for variables of type `Enum`:
   - These functionalities are now provided by `entity.get_holder(name)`
 
 - Deprecate constructor `Holder(simulation, column)`
-  - A `Holder` should now be instanciated with `Holder(entity = entity, column = column)`
+  - A `Holder` should now be instantiated with `Holder(entity = entity, column = column)`
 
 ### 14.0.1 - [#527](https://github.com/openfisca/openfisca-core/pull/527)
 
@@ -2953,7 +3751,7 @@ These breaking changes only concern variable and tax and benefit system **metada
 
 # 9.0.0
 
-* Make sure identic periods are stringified the same way
+* Make sure identical periods are stringified the same way
 * _Breaking changes_:
   - Change `periods.period` signature.
     - It now only accepts strings.
@@ -2990,7 +3788,7 @@ These breaking changes only concern variable and tax and benefit system **metada
 ## 6.1.0
 
 * Move `base.py` content (file usually located in country packages) to core module `formula_toolbox` so that it can be reused by all countries
-* Use `AbstractScenario` if no custom scenario is defined for a tax and benefit sytem
+* Use `AbstractScenario` if no custom scenario is defined for a tax and benefit system
 
 # 6.0.0
 
@@ -3032,7 +3830,7 @@ These breaking changes only concern variable and tax and benefit system **metada
 * Improve `openfisca-run-test` script
   - Make country package detection more robust (it only worked for packages installed in editable mode)
   - Use spaces instead of commas as separator in the script arguments when loading several extensions or reforms (this is more standard)
-* Refactor the `scripts` module to seperate the logic specific to yaml test running from the one that can be re-used by any script which needs to build a tax and benefit system.
+* Refactor the `scripts` module to separate the logic specific to yaml test running from the one that can be reused by any script which needs to build a tax and benefit system.
 
 # 5.0.0
 
@@ -3050,7 +3848,7 @@ These breaking changes only concern variable and tax and benefit system **metada
 
 ### 4.3.4
 
-* Fix occasionnal `NaN` creation in `MarginalRateTaxScale.calc` resulting from `0 * np.inf`
+* Fix occasionnal `NaN` creation in `MarginalRateTaxScale.calc` resulting from `0 * numpy.inf`
 
 ### 4.3.3
 
@@ -3109,8 +3907,8 @@ Unlike simple formulas, a `DatedVariable` have several functions. We thus need t
 ### 4.1.2-Beta
 
 * Enable simulation initialization with only legacy roles
-  * New roles are in this case automatically infered
-  * Positions are always infered from persons entity id
+  * New roles are in this case automatically inferred
+  * Positions are always inferred from persons entity id
 
 ### 4.1.1-Beta
 
@@ -3210,7 +4008,7 @@ Unlike simple formulas, a `DatedVariable` have several functions. We thus need t
 
 # 2.0.0 – [diff](https://github.com/openfisca/openfisca-core/compare/1.1.0...2.0.0)
 
-* Variables are not added to the TaxBenefitSystem when the entities class are imported, but explicitely when the TaxBenefitSystem is instanciated.
+* Variables are not added to the TaxBenefitSystem when the entities class are imported, but explicitly when the TaxBenefitSystem is instantiated.
   * Metaclasses are not used anymore.
 * New API for TaxBenefitSystem
   * Columns are now stored in the TaxBenefitSystem, not in entities.

@@ -1,15 +1,19 @@
-# -*- coding: utf-8 -*-
-
 import os
+
 import pytest
-from openfisca_core.parameters import load_parameter_file, ParameterNode, ParameterParsingError
+
+from openfisca_core.parameters import (
+    ParameterNode,
+    ParameterParsingError,
+    load_parameter_file,
+)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 year = 2016
 
 
-def check_fails_with_message(file_name, keywords):
-    path = os.path.join(BASE_DIR, file_name) + '.yaml'
+def check_fails_with_message(file_name, keywords) -> None:
+    path = os.path.join(BASE_DIR, file_name) + ".yaml"
     try:
         load_parameter_file(path, file_name)
     except ParameterParsingError as e:
@@ -40,22 +44,22 @@ def test_parsing_errors(test):
         check_fails_with_message(*test)
 
 
-def test_array_type():
-    path = os.path.join(BASE_DIR, 'array_type.yaml')
-    load_parameter_file(path, 'array_type')
+def test_array_type() -> None:
+    path = os.path.join(BASE_DIR, "array_type.yaml")
+    load_parameter_file(path, "array_type")
 
 
-def test_filesystem_hierarchy():
-    path = os.path.join(BASE_DIR, 'filesystem_hierarchy')
-    parameters = ParameterNode('', directory_path = path)
-    parameters_at_instant = parameters('2016-01-01')
+def test_filesystem_hierarchy() -> None:
+    path = os.path.join(BASE_DIR, "filesystem_hierarchy")
+    parameters = ParameterNode("", directory_path=path)
+    parameters_at_instant = parameters("2016-01-01")
     assert parameters_at_instant.node1.param == 1.0
 
 
-def test_yaml_hierarchy():
-    path = os.path.join(BASE_DIR, 'yaml_hierarchy')
-    parameters = ParameterNode('', directory_path = path)
-    parameters_at_instant = parameters('2016-01-01')
+def test_yaml_hierarchy() -> None:
+    path = os.path.join(BASE_DIR, "yaml_hierarchy")
+    parameters = ParameterNode("", directory_path=path)
+    parameters_at_instant = parameters("2016-01-01")
     assert parameters_at_instant.node1.param == 1.0
 
 

@@ -1,0 +1,39 @@
+schema_version: 1
+
+context:
+  name: openfisca-extension-template
+  version: 2.0.7
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/openfisca_extension_template-${{ version }}.tar.gz
+  sha256: 0e1be79ea25bce776b484a13672a27017d663c7e189ce467cb22fc3db5c5bcf8
+
+build:
+  number: 2
+  noarch: python
+  script: pip install . -v --no-deps
+
+requirements:
+  host:
+  - numpy
+  - pip
+  - poetry >=1.7
+  - python
+  run:
+  - numpy
+  - python
+  - openfisca-country-template >=7.1.5
+
+about:
+  summary: An OpenFisca extension that adds some variables to an already-existing
+    tax and benefit system.
+  license: AGPL-3.0-or-later
+  license_file: LICENSE
+
+extra:
+  recipe-maintainers:
+  - bonjourmauko

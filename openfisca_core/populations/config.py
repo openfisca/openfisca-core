@@ -1,2 +1,0 @@
-ADD = 'add'
-DIVIDE = 'divide'
