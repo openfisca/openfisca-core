@@ -13,23 +13,15 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-22.04, windows-2025]
+        os: [ubuntu-24.04, windows-2025]
         numpy: [1.26.4]
         # Patch version must be specified to avoid any cache confusion, since
         # the cache key depends on the full Python version. If left unspecified,
         # different patch versions could be allocated between jobs, and any
         # such difference would lead to a cache not found error.
-        python: [3.12.3, 3.9.13]
+        python: [3.11, 3.12, 3.13]
         include:
-        - os: ubuntu-22.04
-          python: 3.9.13
-          numpy: 1.24.2
-          activate_command: source venv/bin/activate
-        - os: windows-2025
-          python: 3.9.13
-          numpy: 1.24.2
-          activate_command: .\venv\Scripts\activate
-        - os: ubuntu-22.04
+        - os: ubuntu-24.04
           activate_command: source venv/bin/activate
         - os: windows-2025
           activate_command: .\venv\Scripts\activate
@@ -43,28 +35,20 @@ jobs:
   setup-conda:
     uses: ./.github/workflows/_before-conda.yaml
     with:
-      os: ubuntu-22.04
+      os: ubuntu-24.04
       numpy: 1.26.4
-      python: 3.10.6
+      python: 3.11
 
   test-pip:
     needs: [setup-pip]
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, windows-2025]
+        os: [ubuntu-24.04, windows-2025]
         numpy: [1.26.4]
-        python: [3.12.3, 3.9.13]
+        python: [3.11, 3.12, 3.13]
         include:
-        - os: ubuntu-22.04
-          python: 3.9.13
-          numpy: 1.24.2
-          activate_command: source venv/bin/activate
-        - os: windows-2025
-          python: 3.9.13
-          numpy: 1.24.2
-          activate_command: .\venv\Scripts\activate
-        - os: ubuntu-22.04
+        - os: ubuntu-24.04
           activate_command: source venv/bin/activate
         - os: windows-2025
           activate_command: .\venv\Scripts\activate
@@ -79,9 +63,9 @@ jobs:
     uses: ./.github/workflows/_test-conda.yaml
     needs: [setup-conda]
     with:
-      os: ubuntu-22.04
+      os: ubuntu-24.04
       numpy: 1.26.4
-      python: 3.10.6
+      python: 3.11
 
   lint-pip:
     needs: [setup-pip]
@@ -89,10 +73,10 @@ jobs:
       fail-fast: true
       matrix:
         numpy: [1.26.4]
-        python: [3.12.3, 3.9.13]
+        python: [3.11, 3.12, 3.13]
     uses: ./.github/workflows/_lint-pip.yaml
     with:
-      os: ubuntu-22.04
+      os: ubuntu-24.04
       numpy: ${{ matrix.numpy }}
       python: ${{ matrix.python }}
       activate_command: source venv/bin/activate
@@ -101,5 +85,5 @@ jobs:
     needs: [test-pip, test-conda, lint-pip]
     uses: ./.github/workflows/_version.yaml
     with:
-      os: ubuntu-22.04
-      python: 3.9.13
+      os: ubuntu-24.04
+      python: 3.11
