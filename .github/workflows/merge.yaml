@@ -14,16 +14,34 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-24.04, windows-2025]
-        numpy: [1.26.4]
         # Patch version must be specified to avoid any cache confusion, since
         # the cache key depends on the full Python version. If left unspecified,
         # different patch versions could be allocated between jobs,  and any
         # such difference would lead to a cache not found error.
-        python: [3.11, 3.12]
         include:
         - os: ubuntu-24.04
+          python: 3.11
+          numpy: 1.26.4
+          activate_command: source venv/bin/activate
+        - os: ubuntu-24.04
+          python: 3.12
+          numpy: 1.26.4
+          activate_command: source venv/bin/activate
+        - os: ubuntu-24.04
+          python: 3.13.9
+          numpy: 2.1.0
           activate_command: source venv/bin/activate
         - os: windows-2025
+          python: 3.11
+          numpy: 1.26.4
+          activate_command: .\venv\Scripts\activate
+        - os: windows-2025
+          python: 3.12
+          numpy: 1.26.4
+          activate_command: .\venv\Scripts\activate
+        - os: windows-2025
+          python: 3.13.9
+          numpy: 2.1.0
           activate_command: .\venv\Scripts\activate
     uses: ./.github/workflows/_before-pip.yaml
     with:
@@ -44,13 +62,30 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-24.04, windows-2025]
-        numpy: [1.26.4]
-        python: [3.11, 3.12]
         include:
         - os: ubuntu-24.04
+          python: 3.11
+          numpy: 1.26.4
+          activate_command: source venv/bin/activate
+        - os: ubuntu-24.04
+          python: 3.12
+          numpy: 1.26.4
+          activate_command: source venv/bin/activate
+        - os: ubuntu-24.04
+          python: 3.13.9
+          numpy: 2.1.0
           activate_command: source venv/bin/activate
         - os: windows-2025
+          python: 3.11
+          numpy: 1.26.4
+          activate_command: .\venv\Scripts\activate
+        - os: windows-2025
+          python: 3.12
+          numpy: 1.26.4
+          activate_command: .\venv\Scripts\activate
+        - os: windows-2025
+          python: 3.13.9
+          numpy: 2.1.0
           activate_command: .\venv\Scripts\activate
     uses: ./.github/workflows/_test-pip.yaml
     with:
@@ -72,8 +107,13 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        numpy: [1.26.4]
-        python: [3.11, 3.12]
+        include:
+        - python: 3.11
+          numpy: 1.26.4
+        - python: 3.12
+          numpy: 1.26.4
+        - python: 3.13.9
+          numpy: 2.1.0
     uses: ./.github/workflows/_lint-pip.yaml
     with:
       os: ubuntu-24.04
