@@ -2,12 +2,12 @@ import datetime
 
 import numpy
 
-from openfisca_core import indexed_enums
+from openfisca_core import indexed_enums, types
 from openfisca_core.indexed_enums import Enum
 
 VALUE_TYPES = {
     bool: {
-        "dtype": numpy.bool,
+        "dtype": types.BoolDType,
         "default": False,
         "json_type": "boolean",
         "formatted_value_type": "Boolean",
