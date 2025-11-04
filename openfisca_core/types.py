@@ -12,7 +12,7 @@ import re
 import numpy
 import pendulum
 from numpy import (
-    bool_ as BoolDType,
+    bool as BoolDType,
     bytes_ as BytesDType,
     datetime64 as DateDType,
     float32 as FloatDType,
@@ -70,7 +70,7 @@ _L = TypeVar("_L")
 ArrayLike: TypeAlias = Sequence[_L]
 
 #: Type for bool arrays.
-DTypeBool: TypeAlias = numpy.bool_
+DTypeBool: TypeAlias = numpy.bool
 
 #: Type for int arrays.
 DTypeInt: TypeAlias = numpy.int32
