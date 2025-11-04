@@ -34,7 +34,7 @@ def apply_thresholds(
         array([10, 10, 15, 15, 20])
 
     """
-    condlist: list[t.Array[numpy.bool_] | bool]
+    condlist: list[t.Array[t.BoolDType] | bool]
     condlist = [input <= threshold for threshold in thresholds]
 
     if len(condlist) == len(choices) - 1:

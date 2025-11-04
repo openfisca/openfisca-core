@@ -31,7 +31,8 @@ general_requirements = [
     "StrEnum >=0.4.8, <0.5.0",  # 3.11.x backport
     "dpath >=2.2.0, <3.0",
     "numexpr >=2.10.1, <3.0",
-    "numpy >=1.24.2, <2.0",
+    "numpy >=1.24.2, <2.0; python_version < '3.13'",
+    "numpy >=2.1.0, <3.0; python_version >= '3.13'",
     "pendulum >=3.0.0, <4.0.0",
     "psutil >=5.9.4, <6.0",
     "pytest >=8.3.3, <9.0",

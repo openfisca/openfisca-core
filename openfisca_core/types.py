@@ -11,8 +11,15 @@ import re
 
 import numpy
 import pendulum
+
+# NumPy 1.x/2.x compatibility
+# In NumPy 2.0, numpy.bool_ was removed and replaced with numpy.bool
+try:
+    from numpy import bool as BoolDType
+except ImportError:
+    from numpy import bool_ as BoolDType  # type: ignore[attr-defined]
+
 from numpy import (
-    bool_ as BoolDType,
     bytes_ as BytesDType,
     datetime64 as DateDType,
     float32 as FloatDType,
@@ -70,7 +77,7 @@ _L = TypeVar("_L")
 ArrayLike: TypeAlias = Sequence[_L]
 
 #: Type for bool arrays.
-DTypeBool: TypeAlias = numpy.bool_
+DTypeBool: TypeAlias = BoolDType
 
 #: Type for int arrays.
 DTypeInt: TypeAlias = numpy.int32
