@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.4.3 [#1340](https://github.com/openfisca/openfisca-core/pull/1340)
+
+#### Technical changes
+
+- Improve fancy indexing performance on long vectors.
+
 ### 43.4.2 [#1336](https://github.com/openfisca/openfisca-core/pull/1336)
 
 #### Technical changes
