@@ -13,14 +13,29 @@ class VectorialParameterNodeAtInstant:
         self._instant_str = instant_str
 
     @staticmethod
-    def _get_appropriate_subnode_key(node, k):
-        if isinstance(k, numpy.integer):
-            return str(k)
+    def _get_appropriate_subnode_function(k):
         if isinstance(k, str):
-            return k
+            return VectorialParameterNodeAtInstant._get_appropriate_subnode_key_string
         if isinstance(k, Enum):
-            return k.name
+            return VectorialParameterNodeAtInstant._get_appropriate_subnode_key_enum
+        if isinstance(k, numpy.integer):
+            return VectorialParameterNodeAtInstant._get_appropriate_subnode_key_integer
+        return VectorialParameterNodeAtInstant._get_appropriate_subnode_key_date
 
+    @staticmethod
+    def _get_appropriate_subnode_key_string(node, k):
+        return k
+
+    @staticmethod
+    def _get_appropriate_subnode_key_enum(node, k):
+        return k.name
+
+    @staticmethod
+    def _get_appropriate_subnode_key_integer(node, k):
+        return str(k)
+
+    @staticmethod
+    def _get_appropriate_subnode_key_date(node, k):
         subnodes_name = list(node._children.keys())
         names = [name for name in subnodes_name if not name.startswith("before")]
         points_in_time = [
@@ -44,10 +59,11 @@ class VectorialParameterNodeAtInstant:
     @staticmethod
     def build_from_node_name(node, key):
         VectorialParameterNodeAtInstant.check_node_vectorisable(node)
-        nodes = [
-            node[VectorialParameterNodeAtInstant._get_appropriate_subnode_key(node, a)]
-            for a in VectorialParameterNodeAtInstant._get_appropriate_keys(key)
-        ]
+        keys = VectorialParameterNodeAtInstant._get_appropriate_keys(key)
+        get_subnode_key = (
+            VectorialParameterNodeAtInstant._get_appropriate_subnode_function(keys[0])
+        )
+        nodes = [node[get_subnode_key(node, key)] for key in keys]
         return VectorialParameterNodeAtInstant.build_from_nodes(node, nodes)
 
     @staticmethod
@@ -57,17 +73,17 @@ class VectorialParameterNodeAtInstant:
         return numpy.array(nodes)
 
     def __getattr__(self, attribute):
-        return self[[attribute for v in self.vector]]
+        return self[attribute]
 
     def __getitem__(self, key):
         if isinstance(key, str):
-            return getattr(self, key)
-
-        keys = key
-        if isinstance(key[0], Enum):
-            keys = [k.name for k in keys]
+            keys = [key for v in self.vector]
+        elif isinstance(key[0], Enum):
+            keys = [k.name for k in key]
         elif isinstance(key, EnumArray):
             keys = [key.possible_values.names[v] for v in key]
+        else:
+            keys = key
 
         nodes = [v[a] for (v, a) in zip(self.vector, keys)]
         return VectorialParameterNodeAtInstant.build_from_nodes(self, nodes)
