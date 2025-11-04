@@ -13,7 +13,6 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-24.04, windows-2025]
         # Patch version must be specified to avoid any cache confusion, since
         # the cache key depends on the full Python version. If left unspecified,
         # different patch versions could be allocated between jobs,  and any
