@@ -32,26 +32,26 @@ fundedBy:
   - name: Verb
     uri: https://verb.nz
 usedBy:
-  - 🇫🇷 Unemployment agency
-  - 🇫🇷 Parliament
-  - 🇫🇷 Direction of social security
-  - 🇫🇷 Interministerial Direction for Digital Affairs
-  - 🇫🇷 City of Strasbourg
-  - 🇫🇷 Local government of Eure-et-Loir
-  - 🇳🇨 Direction of digital transformation
-  - 🇯🇵 GovTech Tokyo (prototype)
-  - 🇨🇦 City of Vancouver (prototype)
   - 🇦🇪 Prime Minister Office (prototype)
-  - 🇪🇸 City of Barcelona
-  - 🇳🇿 Government Service Innovation Lab
-  - 🇦🇺 Members of Parliamentary Staff (beta)
+  - 🇦🇺 Australian Border Force (beta)
+  - 🇦🇺 Department of Agriculture Fisheries and Forestry (beta)
   - 🇦🇺 Dept of Health and Aged Care (beta)
   - 🇦🇺 Digital Transformation Agency (beta)
-  - 🇦🇺 Department of Agriculture Fisheries and Forestry (beta)
-  - 🇦🇺 Australian Border Force (beta)
+  - 🇦🇺 Members of Parliamentary Staff (beta)
+  - 🇨🇦 City of Vancouver (prototype)
   - 🇨🇮 Agence France Développement
-  - 🇸🇳  Agence France Développement
-  - 🇲🇱  Agence France Développement
+  - 🇪🇸 City of Barcelona
+  - 🇫🇷 City of Strasbourg
+  - 🇫🇷 Direction of social security
+  - 🇫🇷 Interministerial Direction for Digital Affairs
+  - 🇫🇷 Local government of Eure-et-Loir
+  - 🇫🇷 Parliament
+  - 🇫🇷 Unemployment agency
+  - 🇯🇵 GovTech Tokyo (prototype)
+  - 🇲🇱 Agence France Développement
+  - 🇳🇨 Direction of digital transformation
+  - 🇳🇿 Government Service Innovation Lab
+  - 🇸🇳 Agence France Développement
 developmentStatus: stable
 softwareType: library
 description:
