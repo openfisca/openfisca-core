@@ -1,0 +1,100 @@
+publiccodeYmlVersion: 0.5.0
+name: OpenFisca Core
+applicationSuite: OpenFisca
+url: https://github.com/openfisca/openfisca-core/
+landingURL: https://openfisca.org/
+softwareVersion: 43.4.3
+releaseDate: 2025-11-06
+logo: https://openfisca.org/img/logo-openfisca.svg
+platforms:
+  - web
+  - windows
+  - mac
+  - linux
+categories:
+  - other
+  - regulations-and-directives
+  - budgeting
+  - compliance-management
+organisation:
+  uri: https://openfisca.org/en/association
+fundedBy:
+  - name: French Interministerial Direction for Digital Affairs
+    uri: https://numerique.gouv.fr/numerique-etat/dinum/
+  - name: Institut des Politiques Publiques
+    uri: https://www.ipp.eu
+  - name: French Parliament
+    uri: https://leximpact.an.fr
+  - name: Étalab
+    uri: https://etalab.gouv.fr
+  - name: Dubai Prime Minister Office
+    uri: https://pmo.gov.ae
+  - name: Verb
+    uri: https://verb.nz
+usedBy:
+  - 🇦🇪 Prime Minister Office (prototype)
+  - 🇦🇺 Australian Border Force (beta)
+  - 🇦🇺 Department of Agriculture Fisheries and Forestry (beta)
+  - 🇦🇺 Dept of Health and Aged Care (beta)
+  - 🇦🇺 Digital Transformation Agency (beta)
+  - 🇦🇺 Members of Parliamentary Staff (beta)
+  - 🇨🇦 City of Vancouver (prototype)
+  - 🇨🇮 Agence France Développement
+  - 🇪🇸 City of Barcelona
+  - 🇫🇷 City of Strasbourg
+  - 🇫🇷 Direction of social security
+  - 🇫🇷 Interministerial Direction for Digital Affairs
+  - 🇫🇷 Local government of Eure-et-Loir
+  - 🇫🇷 Parliament
+  - 🇫🇷 Unemployment agency
+  - 🇯🇵 GovTech Tokyo (prototype)
+  - 🇲🇱 Agence France Développement
+  - 🇳🇨 Direction of digital transformation
+  - 🇳🇿 Government Service Innovation Lab
+  - 🇸🇳 Agence France Développement
+developmentStatus: stable
+softwareType: library
+description:
+  en:
+    shortDescription: The most widely adopted free and open-source engine to write rules as code
+    longDescription: "OpenFisca is a Rules as Code engine: it enables
+      collaboratively making laws and regulations computable over APIs for
+      developers, datascientists and researchers. This allows building software
+      to help citizens and businesses understand how laws apply to them,
+      designing better rules and public policies, debating potential reforms,
+      and scaling economic micro-simulation."
+    documentation: https://openfisca.org/doc/
+    apiDocumentation: https://openfisca.org/doc/openfisca-web-api/index.html
+    features:
+      - Microsimulation
+      - Census data integration
+      - Reform impact assessment
+      - Budget modelling
+      - Economic modelling
+      - Rules as Code
+      - Web API
+      - Python API
+      - Interministerial collaboration
+      - Public-private collaboration
+    videos:
+      - https://www.youtube.com/watch?v=jqEMVq6CsYo&pp=ygUJb3BlbmZpc2Nh
+      - https://www.youtube.com/watch?v=VjoyW6m1-ms&pp=ygUJb3BlbmZpc2Nh
+      - https://www.youtube.com/watch?v=WlCV4_DIEdg&pp=ygUJb3BlbmZpc2Nh
+    awards:
+      - Most Innovative Open-Source Software Award (European Commission, 2019)
+      - Edge of Government Innovation Award (World Government Summit, 2023)
+      - Recognised as Digital Public Good (UNDP, UNICEF, Norad, 2022)
+      - Recommended by the OECD OPSI (OECD, 2021, 2022, 2023, 2024)
+legal:
+  license: AGPL-3.0-or-later
+maintenance:
+  type: community
+  contacts:
+    - name: OpenFisca Association
+      email: contact@openfisca.org
+      affiliation: OpenFisca Association
+localisation:
+  localisationReady: true
+  availableLanguages:
+    - en
+    - fr
