@@ -68,6 +68,10 @@ dev_requirements = [
     *api_requirements,
 ]
 
+excel_requirements = [
+    "openpyxl >=3.1.2, <4.0",
+]
+
 setup(
     name="OpenFisca-Core",
     version="43.4.4",
@@ -112,6 +116,7 @@ setup(
             "wheel >=0.40.0, <0.41.0",
         ],
         "tracker": ["OpenFisca-Tracker >=0.4.0, <0.5.0"],
+        "excel": excel_requirements,
     },
     include_package_data=True,  # Will read MANIFEST.in
     install_requires=general_requirements,
