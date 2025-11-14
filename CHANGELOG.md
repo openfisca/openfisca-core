@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.4.4 [#1343](https://github.com/openfisca/openfisca-core/pull/1343)
+
+#### Technical changes
+
+- Allow Flask < 4.0.0
+
 ### 43.4.3 [#1340](https://github.com/openfisca/openfisca-core/pull/1340)
 
 #### Technical changes
