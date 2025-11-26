@@ -1,7 +1,6 @@
 from typing import IO
 
 import io
-from tempfile import NamedTemporaryFile
 
 import openpyxl
 import pytest
@@ -158,7 +157,7 @@ class TestExcel:
                 period="2025-01-01",
             )
 
-            parameters = reform.get_parameter_data()
+            parameters = reform.parameter_data
             assert parameters == [
                 ("basic_income", 600.0),
                 ("housing_allowance", None),
@@ -173,23 +172,23 @@ class TestExcel:
                 period="2025-01-01",
             )
 
-            with NamedTemporaryFile(suffix=".xlsx") as fp:
-                reform.generate_template_xlsx(fp.name)
-                fp.seek(0)
-                wb = openpyxl.load_workbook(fp.name)
-                config_sheet = wb["Config"]
-                assert config_sheet["A2"].value == "root"
-                assert config_sheet["B2"].value == "taxes"
-                assert config_sheet["A3"].value == "period"
-                assert config_sheet["B3"].value == "2025-01-01"
-                param_sheet = wb["Paramètres"]
-                rows = list(param_sheet.iter_rows(values_only=True))
-                assert rows == [
-                    ("Nom", "Valeur"),
-                    ("housing_tax.minimal_amount", 200),
-                    ("housing_tax.rate", 10),
-                    ("income_tax_rate", 0.15),
-                    ("taxes.social_security_contribution.0.0", 0.02),
-                    ("taxes.social_security_contribution.12400.0", 0.12),
-                    ("taxes.social_security_contribution.6000.0", 0.06),
-                ]
+            io_bytes = io.BytesIO()
+            reform.generate_template_xlsx(io_bytes)
+            io_bytes.seek(0)
+            wb = openpyxl.load_workbook(io_bytes)
+            config_sheet = wb["Config"]
+            assert config_sheet["A2"].value == "root"
+            assert config_sheet["B2"].value == "taxes"
+            assert config_sheet["A3"].value == "period"
+            assert config_sheet["B3"].value == "2025-01-01"
+            param_sheet = wb["Paramètres"]
+            rows = list(param_sheet.iter_rows(values_only=True))
+            assert rows == [
+                ("Nom", "Valeur"),
+                ("housing_tax.minimal_amount", 200),
+                ("housing_tax.rate", 10),
+                ("income_tax_rate", 0.15),
+                ("taxes.social_security_contribution.0.0", 0.02),
+                ("taxes.social_security_contribution.12400.0", 0.12),
+                ("taxes.social_security_contribution.6000.0", 0.06),
+            ]

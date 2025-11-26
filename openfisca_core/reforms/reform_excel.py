@@ -100,15 +100,6 @@ class ReformExcel(Reform):
         else:
             return p, []
 
-    @staticmethod
-    def new_bracket(period, threshold, value, prop_name):
-        return ParameterScaleBracket(
-            data={
-                "threshold": {period: {"value": threshold}},
-                prop_name: {period: {"value": value}},
-            }
-        )
-
     def apply(self):
         def modify_parameters(local_parameters: ParameterNode) -> ParameterNode:
             # On récupère le nœud racine des paramètres
@@ -129,9 +120,14 @@ class ReformExcel(Reform):
                         else "rate"
                     )
                     stripped_name = ".".join(name.split(".")[:-1])
-                    bracket = self.new_bracket(
-                        self.period, threshold_value, value, prop_name
+
+                    bracket = ParameterScaleBracket(
+                        data={
+                            "threshold": {self.period: {"value": threshold_value}},
+                            prop_name: {self.period: {"value": value}},
+                        }
                     )
+
                     params_with_thresholds.setdefault(stripped_name, (leaf, list()))[
                         1
                     ].append(
@@ -171,11 +167,12 @@ class ReformExcel(Reform):
                 values.append((name, value))
         return sorted(values, key=lambda v: v[0])
 
-    def get_parameter_data(self):
+    @property
+    def parameter_data(self) -> list[tuple[str, float]]:
         root_parameter, _ = self.get_parameter_node(self.parameters, self.root_name)
         return self.generate_parameter_tree_values(root_parameter)
 
-    def generate_template_xlsx(self, path: Path | str) -> None:
+    def generate_template_xlsx(self, path_or_file: Path | str | IO[bytes]) -> None:
         wb = openpyxl.Workbook()
         ws_config = wb.active
         ws_config.title = "Config"
@@ -190,9 +187,8 @@ class ReformExcel(Reform):
         ws_params["A1"] = "Nom"
         ws_params["B1"] = "Valeur"
 
-        parameter_data = self.get_parameter_data()
-        for i, (name, value) in enumerate(parameter_data, start=2):
+        for i, (name, value) in enumerate(self.parameter_data, start=2):
             ws_params[f"A{i}"] = name
             ws_params[f"B{i}"] = value
 
-        wb.save(path)
+        wb.save(path_or_file)
