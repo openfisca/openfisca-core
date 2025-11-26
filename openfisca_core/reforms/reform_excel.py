@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import IO
+
 from openfisca_core.types import TaxBenefitSystem
 
 from pathlib import Path
@@ -16,16 +18,10 @@ class ReformExcelBuilder:
     def __init__(
         self,
         baseline_class: type[TaxBenefitSystem],
-        path: Path | str | None = None,
-        wb: openpyxl.Workbook | None = None,
+        path_or_file: Path | str | IO[bytes],
     ) -> None:
-        if path is not None:
-            self.path = Path(path)
-            self.wb = openpyxl.load_workbook(self.path, data_only=True)
-        elif wb is not None:
-            self.wb = wb
-        else:
-            raise ValueError("Either path or wb must be provided")
+        # Le paramètre data_only permet de lire les valeurs calculées des formulas
+        self.wb = openpyxl.load_workbook(path_or_file, data_only=True)
         self.baseline_class = baseline_class
 
     def get_suffixes(self) -> list[str]:

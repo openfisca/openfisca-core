@@ -1,3 +1,6 @@
+from typing import IO
+
+import io
 from tempfile import NamedTemporaryFile
 
 import openpyxl
@@ -5,6 +8,13 @@ import pytest
 
 from openfisca_core.parameters.parameter_scale import ParameterScale
 from openfisca_core.reforms.reform_excel import ReformExcel, ReformExcelBuilder
+
+
+def to_wb_file(wb: openpyxl.Workbook) -> IO[bytes]:
+    bytes = io.BytesIO()
+    wb.save(bytes)
+    bytes.seek(0)
+    return bytes
 
 
 class TestExcel:
@@ -27,29 +37,26 @@ class TestExcel:
         return wb
 
     @pytest.fixture
-    def wb_path(self, wb):
-        with NamedTemporaryFile(suffix=".xlsx") as fp:
-            wb.save(fp.name)
-            fp.seek(0)
-            yield fp.name
+    def wb_file(self, wb: openpyxl.Workbook) -> IO[bytes]:
+        return to_wb_file(wb)
 
     class TestReformExcelBuilder:
-        def test_get_suffixes(self, wb_path):
-            builder = ReformExcelBuilder(baseline_class=None, path=wb_path)
+        def test_get_suffixes(self, wb_file):
+            builder = ReformExcelBuilder(baseline_class=None, path_or_file=wb_file)
             suffixes = builder.get_suffixes()
             assert suffixes == ["", "_2025"]
 
-        def test_get_reform_data(self, wb_path):
-            builder = ReformExcelBuilder(baseline_class=None, path=wb_path)
+        def test_get_reform_data(self, wb_file):
+            builder = ReformExcelBuilder(baseline_class=None, path_or_file=wb_file)
             reform_data = builder.get_reform_data("_2025")
 
             assert reform_data["root_name"] == "benefits"
             assert reform_data["period"] == "2025-01-01"
             assert reform_data["parameters"] == [("parenting_allowance.amount", 100000)]
 
-        def test_build_reform(self, tax_benefit_system_class, wb_path):
+        def test_build_reform(self, tax_benefit_system_class, wb_file):
             builder = ReformExcelBuilder(
-                baseline_class=tax_benefit_system_class, path=wb_path
+                baseline_class=tax_benefit_system_class, path_or_file=wb_file
             )
             reform = builder.build_reform("_2025")
 
@@ -63,7 +70,9 @@ class TestExcel:
             ws = wb["Config"]
             ws.delete_rows(2)
 
-            builder = ReformExcelBuilder(baseline_class=tax_benefit_system_class, wb=wb)
+            builder = ReformExcelBuilder(
+                baseline_class=tax_benefit_system_class, path_or_file=to_wb_file(wb)
+            )
             with pytest.raises(AssertionError):
                 builder.build_reform("_2025")
 
@@ -71,7 +80,9 @@ class TestExcel:
             ws = wb["Config"]
             ws.delete_rows(3)
 
-            builder = ReformExcelBuilder(baseline_class=tax_benefit_system_class, wb=wb)
+            builder = ReformExcelBuilder(
+                baseline_class=tax_benefit_system_class, path_or_file=to_wb_file(wb)
+            )
             with pytest.raises(AssertionError):
                 builder.build_reform("_2025")
 
