@@ -1,14 +1,15 @@
 from __future__ import annotations
 
+from openfisca_core.types import TaxBenefitSystem
+
 from pathlib import Path
 
 import openpyxl
+
 from openfisca_core.parameters.parameter_node import ParameterNode
 from openfisca_core.parameters.parameter_scale import ParameterScale
 from openfisca_core.parameters.parameter_scale_bracket import ParameterScaleBracket
 from openfisca_core.reforms import Reform
-
-from openfisca_core.types import TaxBenefitSystem
 
 
 class ReformExcelBuilder:
