@@ -2,6 +2,7 @@ from datetime import date
 from typing import IO
 
 import io
+from datetime import date
 
 import openpyxl
 import pytest

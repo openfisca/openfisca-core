@@ -5,6 +5,7 @@ from typing import IO
 
 from openfisca_core.types import TaxBenefitSystem
 
+from datetime import date
 from pathlib import Path
 
 import openpyxl
