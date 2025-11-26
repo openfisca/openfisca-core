@@ -26,37 +26,36 @@ class ReformExcelBuilder:
 
     def get_suffixes(self) -> list[str]:
         return [
-            n[len("Paramètres") :]
-            for n in self.wb.sheetnames
-            if n.startswith("Paramètres")
+            sheetname[len("Paramètres") :]
+            for sheetname in self.wb.sheetnames
+            if sheetname.startswith("Paramètres")
         ]
 
-    def get_reform_data(self, suffix: str) -> dict:
+    @property
+    def root_name(self) -> str:
         assert self.wb["Config"]["A2"].value == "root"
-        root_name = self.wb["Config"]["B2"].value
+        return self.wb["Config"]["B2"].value
 
+    @property
+    def period(self) -> str:
         assert self.wb["Config"]["A3"].value == "period"
-        period = self.wb["Config"]["B3"].value
+        return self.wb["Config"]["B3"].value
 
+    def get_parameters(self, suffix: str) -> list[tuple[str, float]]:
         sheet = self.wb[f"Paramètres{suffix}"]
         assert sheet["A1"].value == "Nom"
         assert sheet["B1"].value == "Valeur"
 
-        return {
-            "root_name": root_name,
-            "period": period,
-            "parameters": [
-                (row[0], row[1]) for row in sheet.iter_rows(min_row=2, values_only=True)
-            ],
-        }
+        return [
+            (row[0], row[1]) for row in sheet.iter_rows(min_row=2, values_only=True)
+        ]
 
     def build_reform(self, suffix: str) -> "ReformExcel":
-        reform_data = self.get_reform_data(suffix)
         return ReformExcel(
             self.baseline_class(),
-            reform_data["root_name"],
-            reform_data["period"],
-            reform_data["parameters"],
+            self.root_name,
+            self.period,
+            self.get_parameters(suffix),
         )
 
 

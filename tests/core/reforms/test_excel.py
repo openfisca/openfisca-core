@@ -47,11 +47,12 @@ class TestExcel:
 
         def test_get_reform_data(self, wb_file):
             builder = ReformExcelBuilder(baseline_class=None, path_or_file=wb_file)
-            reform_data = builder.get_reform_data("_2025")
 
-            assert reform_data["root_name"] == "benefits"
-            assert reform_data["period"] == "2025-01-01"
-            assert reform_data["parameters"] == [("parenting_allowance.amount", 100000)]
+            assert builder.root_name == "benefits"
+            assert builder.period == "2025-01-01"
+            assert builder.get_parameters("_2025") == [
+                ("parenting_allowance.amount", 100000)
+            ]
 
         def test_build_reform(self, tax_benefit_system_class, wb_file):
             builder = ReformExcelBuilder(
