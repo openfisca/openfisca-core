@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 from typing import IO
 
 from openfisca_core.types import TaxBenefitSystem
@@ -41,13 +42,27 @@ class ReformExcelBuilder:
         assert self.wb["Config"]["A3"].value == "period"
         return self.wb["Config"]["B3"].value
 
-    def get_parameters(self, suffix: str) -> list[tuple[str, float]]:
+    def get_parameters(self, suffix: str) -> list[tuple[str, float, date | None]]:
         sheet = self.wb[f"Paramètres{suffix}"]
-        assert sheet["A1"].value == "Nom"
-        assert sheet["B1"].value == "Valeur"
+        nom_col = [
+            i for i, cell in enumerate(sheet.iter_cols()) if cell[0].value == "Nom"
+        ]
+        valeur_col = [
+            i for i, cell in enumerate(sheet.iter_cols()) if cell[0].value == "Valeur"
+        ]
+        date_col = [
+            i for i, cell in enumerate(sheet.iter_cols()) if cell[0].value == "Date"
+        ]
+        assert nom_col, "La colonne 'Nom' est manquante"
+        assert valeur_col, "La colonne 'Valeur' est manquante"
 
         return [
-            (row[0], row[1]) for row in sheet.iter_rows(min_row=2, values_only=True)
+            (
+                row[nom_col[0]],
+                row[valeur_col[0]],
+                row[date_col[0]].date() if date_col else None,
+            )
+            for row in sheet.iter_rows(min_row=2, values_only=True)
         ]
 
     def build_reform(self, suffix: str) -> "ReformExcel":
@@ -70,7 +85,7 @@ class ReformExcel(Reform):
         baseline: TaxBenefitSystem,
         root_name: str,
         period: str,
-        reformed_parameters: list[tuple[str, str]] | None = None,
+        reformed_parameters: list[tuple[str, str, date | None]] | None = None,
     ) -> None:
         """Initialize the ReformExcel instance.
 
@@ -109,7 +124,7 @@ class ReformExcel(Reform):
                 str, tuple[ParameterScale, list[tuple[float, ParameterScaleBracket]]]
             ] = dict()
 
-            for name, value in self.reformed_parameters:
+            for name, value, date_ in self.reformed_parameters:
                 leaf, threshold = self.get_parameter_node(root, name)
                 if type(leaf) is ParameterScale:
                     threshold_value = float(".".join(threshold))
@@ -122,8 +137,16 @@ class ReformExcel(Reform):
 
                     bracket = ParameterScaleBracket(
                         data={
-                            "threshold": {self.period: {"value": threshold_value}},
-                            prop_name: {self.period: {"value": value}},
+                            "threshold": {
+                                date_.isoformat() if date_ else self.period: {
+                                    "value": threshold_value
+                                }
+                            },
+                            prop_name: {
+                                date_.isoformat() if date_ else self.period: {
+                                    "value": value
+                                }
+                            },
                         }
                     )
 
@@ -136,7 +159,7 @@ class ReformExcel(Reform):
                         )
                     )
                 else:
-                    leaf.update(start=self.period, value=value)
+                    leaf.update(start=date_ or self.period, value=value)
 
             for leaf, threshold in params_with_thresholds.values():
                 sorted_brackets = [v[1] for v in sorted(threshold, key=lambda x: x[0])]
@@ -185,6 +208,7 @@ class ReformExcel(Reform):
         ws_params = wb.create_sheet(title="Paramètres")
         ws_params["A1"] = "Nom"
         ws_params["B1"] = "Valeur"
+        ws_params["C1"] = "Date"
 
         for i, (name, value) in enumerate(self.parameter_data, start=2):
             ws_params[f"A{i}"] = name

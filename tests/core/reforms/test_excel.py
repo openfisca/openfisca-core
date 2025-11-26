@@ -1,3 +1,4 @@
+from datetime import date
 from typing import IO
 
 import io
@@ -51,7 +52,7 @@ class TestExcel:
             assert builder.root_name == "benefits"
             assert builder.period == "2025-01-01"
             assert builder.get_parameters("_2025") == [
-                ("parenting_allowance.amount", 100000)
+                ("parenting_allowance.amount", 100000, None)
             ]
 
         def test_build_reform(self, tax_benefit_system_class, wb_file):
@@ -63,7 +64,7 @@ class TestExcel:
             assert reform.root_name == "benefits"
             assert reform.period == "2025-01-01"
             assert reform.reformed_parameters == [
-                ("parenting_allowance.amount", 100000)
+                ("parenting_allowance.amount", 100000, None)
             ]
 
         def test_pas_de_root(self, tax_benefit_system_class, wb):
@@ -86,19 +87,44 @@ class TestExcel:
             with pytest.raises(AssertionError):
                 builder.build_reform("_2025")
 
+        def test_get_parameters_shuffled_columns(self, wb):
+            param_sheet = wb["Paramètres_2025"]
+            # Shuffle columns
+            for row in param_sheet.iter_rows():
+                row[0].value, row[1].value = row[1].value, row[0].value
+
+            builder = ReformExcelBuilder(
+                baseline_class=None, path_or_file=to_wb_file(wb)
+            )
+            assert builder.get_parameters("_2025") == [
+                ("parenting_allowance.amount", 100000, None)
+            ]
+
+        def test_get_parameters_with_date(self, wb):
+            param_sheet = wb["Paramètres_2025"]
+            param_sheet["C1"] = "Date"
+            param_sheet["C2"] = date(2025, 1, 1)
+
+            builder = ReformExcelBuilder(
+                baseline_class=None, path_or_file=to_wb_file(wb)
+            )
+            assert builder.get_parameters("_2025") == [
+                ("parenting_allowance.amount", 100000, date(2025, 1, 1))
+            ]
+
     class TestReformExcel:
         def test_init(self, tax_benefit_system):
             reform = ReformExcel(
                 baseline=tax_benefit_system,
                 root_name="benefits",
                 period="2025-01-01",
-                reformed_parameters=[("parenting_allowance.amount", 1000.0)],
+                reformed_parameters=[("parenting_allowance.amount", 1000.0, None)],
             )
 
             assert reform.root_name == "benefits"
             assert reform.period == "2025-01-01"
             assert reform.reformed_parameters == [
-                ("parenting_allowance.amount", 1000.0)
+                ("parenting_allowance.amount", 1000.0, None)
             ]
 
             parameter, _ = reform.get_parameter_node(
@@ -112,10 +138,10 @@ class TestExcel:
                 root_name="taxes",
                 period="2025-01-01",
                 reformed_parameters=[
-                    ("social_security_contribution.0", 0.01),
-                    ("social_security_contribution.3000", 0.03),
-                    ("social_security_contribution.6000", 0.13),
-                    ("social_security_contribution.12400", 0.001),
+                    ("social_security_contribution.0", 0.01, None),
+                    ("social_security_contribution.3000", 0.03, None),
+                    ("social_security_contribution.6000", 0.13, None),
+                    ("social_security_contribution.12400", 0.001, None),
                 ],
             )
             parameter, _ = reform.get_parameter_node(
@@ -134,10 +160,10 @@ class TestExcel:
                 root_name="taxes",
                 period="2025-01-01",
                 reformed_parameters=[
-                    ("social_security_contribution.6000", 0.13),
-                    ("social_security_contribution.0", 0.01),
-                    ("social_security_contribution.12400", 0.001),
-                    ("social_security_contribution.3000", 0.03),
+                    ("social_security_contribution.6000", 0.13, None),
+                    ("social_security_contribution.0", 0.01, None),
+                    ("social_security_contribution.12400", 0.001, None),
+                    ("social_security_contribution.3000", 0.03, None),
                 ],
             )
             parameter, _ = reform.get_parameter_node(
@@ -149,6 +175,49 @@ class TestExcel:
             assert len(p_instant.thresholds) == 4
             assert p_instant.rates == [0.01, 0.03, 0.13, 0.001]
             assert p_instant.thresholds == [0.0, 3000.0, 6000.0, 12400.0]
+
+        def test_parameters_with_date(self, tax_benefit_system):
+            reform = ReformExcel(
+                baseline=tax_benefit_system,
+                root_name="benefits",
+                period="2025-01-01",
+                reformed_parameters=[
+                    ("basic_income", 500.0, None),
+                    ("basic_income", 600.0, date(2026, 1, 1)),
+                ],
+            )
+
+            parameter, _ = reform.get_parameter_node(
+                reform.parameters, "benefits.basic_income"
+            )
+            assert parameter.get_at_instant("2025-06-01") == 500.0
+            assert parameter.get_at_instant("2026-06-01") == 600.0
+
+        def test_bracket_parameters_with_date(self, tax_benefit_system):
+            reform = ReformExcel(
+                baseline=tax_benefit_system,
+                root_name="taxes",
+                period="2025-01-01",
+                reformed_parameters=[
+                    ("social_security_contribution.0", 0.02, None),
+                    ("social_security_contribution.6000", 0.06, None),
+                    ("social_security_contribution.12400", 0.12, None),
+                    ("social_security_contribution.0", 0.03, date(2026, 1, 1)),
+                    ("social_security_contribution.6000", 0.07, date(2026, 1, 1)),
+                    ("social_security_contribution.12400", 0.13, date(2026, 1, 1)),
+                ],
+            )
+
+            parameter, _ = reform.get_parameter_node(
+                reform.parameters, "taxes.social_security_contribution"
+            )
+            assert isinstance(parameter, ParameterScale)
+
+            p_instant_2025 = parameter.get_at_instant("2025-06")
+            assert p_instant_2025.rates == [0.02, 0.06, 0.12]
+
+            p_instant_2026 = parameter.get_at_instant("2026-06")
+            assert p_instant_2026.rates == [0.05, 0.13, 0.25]
 
     class TestReformExcelGenerator:
         def test_generate_parameter_data(self, tax_benefit_system):
@@ -185,11 +254,11 @@ class TestExcel:
             param_sheet = wb["Paramètres"]
             rows = list(param_sheet.iter_rows(values_only=True))
             assert rows == [
-                ("Nom", "Valeur"),
-                ("housing_tax.minimal_amount", 200),
-                ("housing_tax.rate", 10),
-                ("income_tax_rate", 0.15),
-                ("taxes.social_security_contribution.0.0", 0.02),
-                ("taxes.social_security_contribution.12400.0", 0.12),
-                ("taxes.social_security_contribution.6000.0", 0.06),
+                ("Nom", "Valeur", "Date"),
+                ("housing_tax.minimal_amount", 200, None),
+                ("housing_tax.rate", 10, None),
+                ("income_tax_rate", 0.15, None),
+                ("taxes.social_security_contribution.0.0", 0.02, None),
+                ("taxes.social_security_contribution.12400.0", 0.12, None),
+                ("taxes.social_security_contribution.6000.0", 0.06, None),
             ]
