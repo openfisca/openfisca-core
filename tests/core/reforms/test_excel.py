@@ -35,20 +35,22 @@ class TestExcel:
 
     class TestReformExcelBuilder:
         def test_get_suffixes(self, wb_path):
-            builder = ReformExcelBuilder(baseline=None, path=wb_path)
+            builder = ReformExcelBuilder(baseline_class=None, path=wb_path)
             suffixes = builder.get_suffixes()
             assert suffixes == ["", "_2025"]
 
         def test_get_reform_data(self, wb_path):
-            builder = ReformExcelBuilder(baseline=None, path=wb_path)
+            builder = ReformExcelBuilder(baseline_class=None, path=wb_path)
             reform_data = builder.get_reform_data("_2025")
 
             assert reform_data["root_name"] == "benefits"
             assert reform_data["period"] == "2025-01-01"
             assert reform_data["parameters"] == [("parenting_allowance.amount", 100000)]
 
-        def test_build_reform(self, tax_benefit_system, wb_path):
-            builder = ReformExcelBuilder(baseline=tax_benefit_system, path=wb_path)
+        def test_build_reform(self, tax_benefit_system_class, wb_path):
+            builder = ReformExcelBuilder(
+                baseline_class=tax_benefit_system_class, path=wb_path
+            )
             reform = builder.build_reform("_2025")
 
             assert reform.root_name == "benefits"
@@ -57,19 +59,19 @@ class TestExcel:
                 ("parenting_allowance.amount", 100000)
             ]
 
-        def test_pas_de_root(self, tax_benefit_system, wb):
+        def test_pas_de_root(self, tax_benefit_system_class, wb):
             ws = wb["Config"]
             ws.delete_rows(2)
 
-            builder = ReformExcelBuilder(baseline=tax_benefit_system, wb=wb)
+            builder = ReformExcelBuilder(baseline_class=tax_benefit_system_class, wb=wb)
             with pytest.raises(AssertionError):
                 builder.build_reform("_2025")
 
-        def test_pas_de_period(self, tax_benefit_system, wb):
+        def test_pas_de_period(self, tax_benefit_system_class, wb):
             ws = wb["Config"]
             ws.delete_rows(3)
 
-            builder = ReformExcelBuilder(baseline=tax_benefit_system, wb=wb)
+            builder = ReformExcelBuilder(baseline_class=tax_benefit_system_class, wb=wb)
             with pytest.raises(AssertionError):
                 builder.build_reform("_2025")
 
@@ -145,7 +147,7 @@ class TestExcel:
                 period="2025-01-01",
             )
 
-            parameters = reform.generate_parameter_data()
+            parameters = reform.get_parameter_data()
             assert parameters == [
                 ("basic_income", 600.0),
                 ("housing_allowance", None),

@@ -14,7 +14,7 @@ from openfisca_core.types import TaxBenefitSystem
 class ReformExcelBuilder:
     def __init__(
         self,
-        baseline: TaxBenefitSystem,
+        baseline_class: type[TaxBenefitSystem],
         path: Path | str | None = None,
         wb: openpyxl.Workbook | None = None,
     ) -> None:
@@ -25,7 +25,7 @@ class ReformExcelBuilder:
             self.wb = wb
         else:
             raise ValueError("Either path or wb must be provided")
-        self.baseline = baseline
+        self.baseline_class = baseline_class
 
     def get_suffixes(self) -> list[str]:
         return [
@@ -56,7 +56,7 @@ class ReformExcelBuilder:
     def build_reform(self, suffix: str) -> "ReformExcel":
         reform_data = self.get_reform_data(suffix)
         return ReformExcel(
-            self.baseline,
+            self.baseline_class(),
             reform_data["root_name"],
             reform_data["period"],
             reform_data["parameters"],

@@ -9,5 +9,10 @@ def tax_benefit_system():
 
 
 @pytest.fixture
+def tax_benefit_system_class():
+    return CountryTaxBenefitSystem
+
+
+@pytest.fixture
 def isolated_tax_benefit_system():
     return CountryTaxBenefitSystem()
