@@ -155,32 +155,29 @@ class ReformExcel(Reform):
 
         self.modify_parameters(modifier_function=modify_parameters)
 
-    def generate_parameter_data(self):
-        def key(threshold: float, name) -> str:
-            return f"{self.root_name}.{name}.{threshold}"
-
-        def loop_over(accumulator, parameter):
-            if type(parameter) is ParameterNode:
-                for name in parameter.children:
-                    child = parameter.children[name]
-                    loop_over(accumulator, child)
+    def generate_parameter_tree_values(self, parameter) -> list[tuple[str, float]]:
+        values = []
+        if type(parameter) is ParameterNode:
+            for child in parameter.children.values():
+                values.extend(self.generate_parameter_tree_values(child))
+        else:
+            value = parameter.get_at_instant(self.period)
+            name = parameter.name.removeprefix(self.root_name + ".")
+            if type(parameter) is ParameterScale:
+                threshold_values = (
+                    value.amounts
+                    if parameter.metadata.get("type") == "single_amount"
+                    else value.rates
+                )
+                for threshold, val in zip(value.thresholds, threshold_values):
+                    values.append((f"{self.root_name}.{name}.{threshold}", val))
             else:
-                value = parameter.get_at_instant(self.period)
-                name = parameter.name.removeprefix(self.root_name + ".")
-                if type(parameter) is ParameterScale:
-                    if parameter.metadata.get("type") == "single_amount":
-                        for i, threshold in enumerate(value.thresholds):
-                            accumulator.append((key(threshold, name), value.amounts[i]))
-                    else:
-                        for i, threshold in enumerate(value.thresholds):
-                            accumulator.append((key(threshold, name), value.rates[i]))
-                else:
-                    accumulator.append((name, value))
-            return accumulator
-
-        root_parameter, _ = self.get_parameter_node(self.parameters, self.root_name)
-        values = loop_over([], root_parameter)
+                values.append((name, value))
         return sorted(values, key=lambda v: v[0])
+
+    def get_parameter_data(self):
+        root_parameter, _ = self.get_parameter_node(self.parameters, self.root_name)
+        return self.generate_parameter_tree_values(root_parameter)
 
     def generate_template_xlsx(self, path: Path | str) -> None:
         wb = openpyxl.Workbook()
@@ -197,7 +194,7 @@ class ReformExcel(Reform):
         ws_params["A1"] = "Nom"
         ws_params["B1"] = "Valeur"
 
-        parameter_data = self.generate_parameter_data()
+        parameter_data = self.get_parameter_data()
         for i, (name, value) in enumerate(parameter_data, start=2):
             ws_params[f"A{i}"] = name
             ws_params[f"B{i}"] = value
