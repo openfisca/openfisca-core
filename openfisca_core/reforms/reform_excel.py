@@ -38,39 +38,37 @@ class ReformExcelBuilder:
         assert self.wb["Config"]["A2"].value == "root"
         return self.wb["Config"]["B2"].value
 
-    @property
-    def period(self) -> str:
-        assert self.wb["Config"]["A3"].value == "period"
-        return self.wb["Config"]["B3"].value
-
-    def get_parameters(self, suffix: str) -> list[tuple[str, float, date | None]]:
+    def get_parameters(self, suffix: str) -> list[tuple[str, float, date]]:
         sheet = self.wb[f"Paramètres{suffix}"]
         nom_col = [
             i for i, cell in enumerate(sheet.iter_cols()) if cell[0].value == "Nom"
         ]
-        valeur_col = [
-            i for i, cell in enumerate(sheet.iter_cols()) if cell[0].value == "Valeur"
-        ]
-        date_col = [
-            i for i, cell in enumerate(sheet.iter_cols()) if cell[0].value == "Date"
-        ]
+        valeurs_col: list[tuple[int, date]] = []
+        for i, cell in enumerate(sheet.iter_cols()):
+            if cell[0].value and cell[0].value.startswith("Valeur "):
+                try:
+                    period = date.fromisoformat(cell[0].value[len("Valeur ") :])
+                    valeurs_col.append((i, period))
+                except ValueError:
+                    pass
         assert nom_col, "La colonne 'Nom' est manquante"
-        assert valeur_col, "La colonne 'Valeur' est manquante"
+        assert valeurs_col, "Aucune colonne de 'Valeur période' trouvée"
 
         return [
             (
                 row[nom_col[0]],
-                row[valeur_col[0]],
-                row[date_col[0]].date() if date_col else None,
+                row[valeur_col],
+                period,
             )
             for row in sheet.iter_rows(min_row=2, values_only=True)
+            for valeur_col, period in valeurs_col
+            if (row[valeur_col] is not None)
         ]
 
     def build_reform(self, suffix: str) -> "ReformExcel":
         return ReformExcel(
             self.baseline_class(),
             self.root_name,
-            self.period,
             self.get_parameters(suffix),
         )
 
@@ -85,7 +83,6 @@ class ReformExcel(Reform):
         self,
         baseline: TaxBenefitSystem,
         root_name: str,
-        period: str,
         reformed_parameters: list[tuple[str, str, date | None]] | None = None,
     ) -> None:
         """Initialize the ReformExcel instance.
@@ -95,7 +92,6 @@ class ReformExcel(Reform):
         :param suffix: Suffix to identify the relevant parameters sheet.
         """
         self.root_name = root_name
-        self.period = period
         self.reformed_parameters = reformed_parameters or []
         super().__init__(baseline)
 
@@ -139,15 +135,9 @@ class ReformExcel(Reform):
                     bracket = ParameterScaleBracket(
                         data={
                             "threshold": {
-                                date_.isoformat() if date_ else self.period: {
-                                    "value": threshold_value
-                                }
+                                date_.isoformat(): {"value": threshold_value}
                             },
-                            prop_name: {
-                                date_.isoformat() if date_ else self.period: {
-                                    "value": value
-                                }
-                            },
+                            prop_name: {date_.isoformat(): {"value": value}},
                         }
                     )
 
@@ -160,7 +150,7 @@ class ReformExcel(Reform):
                         )
                     )
                 else:
-                    leaf.update(start=date_ or self.period, value=value)
+                    leaf.update(start=date_, value=value)
 
             for leaf, threshold in params_with_thresholds.values():
                 sorted_brackets = [v[1] for v in sorted(threshold, key=lambda x: x[0])]
@@ -176,7 +166,7 @@ class ReformExcel(Reform):
             for child in parameter.children.values():
                 values.extend(self.generate_parameter_tree_values(child))
         else:
-            value = parameter.get_at_instant(self.period)
+            value = parameter.get_at_instant(date(date.today().year, 1, 1).isoformat())
             name = parameter.name.removeprefix(self.root_name + ".")
             if type(parameter) is ParameterScale:
                 threshold_values = (
@@ -203,13 +193,11 @@ class ReformExcel(Reform):
         ws_config["B1"] = "Parameter value"
         ws_config["A2"] = "root"
         ws_config["B2"] = self.root_name
-        ws_config["A3"] = "period"
-        ws_config["B3"] = self.period
 
         ws_params = wb.create_sheet(title="Paramètres")
         ws_params["A1"] = "Nom"
-        ws_params["B1"] = "Valeur"
-        ws_params["C1"] = "Date"
+        ws_params["B1"] = "Valeur initiale"
+        ws_params["C1"] = f"Valeur {date(date.today().year, 1, 1).isoformat()}"
 
         for i, (name, value) in enumerate(self.parameter_data, start=2):
             ws_params[f"A{i}"] = name
