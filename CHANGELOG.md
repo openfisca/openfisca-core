@@ -1,5 +1,11 @@
 # Changelog
 
+### 43.4.5 [#1344](https://github.com/openfisca/openfisca-core/pull/1344)
+
+#### New features
+
+- Add ReformBuilderExcel and ReformExcel to build reform from excel files 
+
 ### 43.4.4 [#1343](https://github.com/openfisca/openfisca-core/pull/1343)
 
 #### Technical changes
