@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import IO
+from typing import IO, Iterator
 
 from openfisca_core.types import TaxBenefitSystem
 
-from datetime import date
 from pathlib import Path
 
 import openpyxl
@@ -40,12 +39,18 @@ class ReformExcelBuilder:
         self.wb = openpyxl.load_workbook(path_or_file, data_only=True)
         self.baseline_class = baseline_class
 
-    def get_suffixes(self) -> list[str]:
+    @property
+    def suffixes(self) -> list[str]:
         return [
             sheetname[len("Paramètres") :]
             for sheetname in self.wb.sheetnames
             if sheetname.startswith("Paramètres")
         ]
+
+    @property
+    def reforms(self) -> Iterator[ReformExcel]:
+        for suffix in self.suffixes:
+            yield self.build_reform(suffix)
 
     @property
     def root_name(self) -> str:
@@ -81,6 +86,7 @@ class ReformExcelBuilder:
 
     def build_reform(self, suffix: str) -> "ReformExcel":
         return ReformExcel(
+            suffix,
             self.baseline_class(),
             self.root_name,
             self.get_parameters(suffix),
@@ -156,6 +162,7 @@ class ReformExcel(Reform):
 
     def __init__(
         self,
+        name: str,
         baseline: TaxBenefitSystem,
         root_name: str,
         reformed_parameters: list[tuple[str, str, date | None]] | None = None,
@@ -166,6 +173,7 @@ class ReformExcel(Reform):
         :param path: Path to the Excel file defining the reform.
         :param suffix: Suffix to identify the relevant parameters sheet.
         """
+        self.name = name
         self.root_name = root_name
         self.reformed_parameters = reformed_parameters or []
         super().__init__(baseline)

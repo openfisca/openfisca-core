@@ -48,7 +48,7 @@ class TestExcel:
     class TestReformExcelBuilder:
         def test_get_suffixes(self, wb_file):
             builder = ReformExcelBuilder(baseline_class=None, path_or_file=wb_file)
-            suffixes = builder.get_suffixes()
+            suffixes = builder.suffixes
             assert suffixes == ["", "_2025"]
 
         def test_get_reform_data(self, wb_file):
@@ -123,6 +123,7 @@ class TestExcel:
     class TestReformExcel:
         def test_init(self, tax_benefit_system):
             reform = ReformExcel(
+                name="name",
                 baseline=tax_benefit_system,
                 root_name="benefits",
                 reformed_parameters=[
@@ -135,13 +136,14 @@ class TestExcel:
                 ("parenting_allowance.amount", 1000.0, date(2025, 1, 1))
             ]
 
-            parameter, _ = reform.get_parameter_node(
+            parameter, _ = get_parameter_node(
                 reform.parameters, "benefits.parenting_allowance.amount"
             )
             assert parameter.get_at_instant("2025-01-01") == 1000.0
 
         def test_partials_parameters(self, tax_benefit_system):
             reform = ReformExcel(
+                name="name",
                 baseline=tax_benefit_system,
                 root_name="benefits",
                 reformed_parameters=[
@@ -164,6 +166,7 @@ class TestExcel:
 
         def test_brackets(self, tax_benefit_system):
             reform = ReformExcel(
+                name="name",
                 baseline=tax_benefit_system,
                 root_name="taxes",
                 reformed_parameters=[
@@ -185,6 +188,7 @@ class TestExcel:
 
         def test_unsorted_brackets(self, tax_benefit_system):
             reform = ReformExcel(
+                name="name",
                 baseline=tax_benefit_system,
                 root_name="taxes",
                 reformed_parameters=[
@@ -206,6 +210,7 @@ class TestExcel:
 
         def test_parameters_with_date(self, tax_benefit_system):
             reform = ReformExcel(
+                name="name",
                 baseline=tax_benefit_system,
                 root_name="benefits",
                 reformed_parameters=[
@@ -222,6 +227,7 @@ class TestExcel:
 
         def test_bracket_parameters_with_date(self, tax_benefit_system):
             reform = ReformExcel(
+                name="name",
                 baseline=tax_benefit_system,
                 root_name="taxes",
                 reformed_parameters=[
@@ -250,7 +256,6 @@ class TestExcel:
             parameters = ReformExcelBuilder.parameter_data(
                 tax_benefit_system, "benefits"
             )
-
             assert parameters == [
                 ("basic_income", 600.0),
                 ("housing_allowance", None),
