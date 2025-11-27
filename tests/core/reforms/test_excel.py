@@ -1,4 +1,3 @@
-from datetime import date
 from typing import IO
 
 import io
