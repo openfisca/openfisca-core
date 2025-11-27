@@ -8,7 +8,11 @@ import openpyxl
 import pytest
 
 from openfisca_core.parameters.parameter_scale import ParameterScale
-from openfisca_core.reforms.reform_excel import ReformExcel, ReformExcelBuilder
+from openfisca_core.reforms.reform_excel import (
+    ReformExcel,
+    ReformExcelBuilder,
+    get_parameter_node,
+)
 
 
 def to_wb_file(wb: openpyxl.Workbook) -> IO[bytes]:
@@ -145,14 +149,14 @@ class TestExcel:
                 ],
             )
 
-            parameter, _ = reform.get_parameter_node(
+            parameter, _ = get_parameter_node(
                 reform.parameters, "benefits.basic_income"
             )
             assert parameter.get_at_instant("2024-06-01") == 600.0
             assert parameter.get_at_instant("2025-06-01") == 600.0
             assert parameter.get_at_instant("2026-06-01") == 800.0
 
-            parameter2, _ = reform.get_parameter_node(
+            parameter2, _ = get_parameter_node(
                 reform.parameters, "benefits.parenting_allowance.amount"
             )
             assert parameter2.get_at_instant("2024-06-01") == 600.0
@@ -169,7 +173,7 @@ class TestExcel:
                     ("social_security_contribution.12400", 0.001, date(2025, 1, 1)),
                 ],
             )
-            parameter, _ = reform.get_parameter_node(
+            parameter, _ = get_parameter_node(
                 reform.parameters, "taxes.social_security_contribution"
             )
             assert isinstance(parameter, ParameterScale)
@@ -190,7 +194,7 @@ class TestExcel:
                     ("social_security_contribution.3000", 0.03, date(2025, 1, 1)),
                 ],
             )
-            parameter, _ = reform.get_parameter_node(
+            parameter, _ = get_parameter_node(
                 reform.parameters, "taxes.social_security_contribution"
             )
             assert isinstance(parameter, ParameterScale)
@@ -210,7 +214,7 @@ class TestExcel:
                 ],
             )
 
-            parameter, _ = reform.get_parameter_node(
+            parameter, _ = get_parameter_node(
                 reform.parameters, "benefits.basic_income"
             )
             assert parameter.get_at_instant("2025-06-01") == 500.0
@@ -230,7 +234,7 @@ class TestExcel:
                 ],
             )
 
-            parameter, _ = reform.get_parameter_node(
+            parameter, _ = get_parameter_node(
                 reform.parameters, "taxes.social_security_contribution"
             )
             assert isinstance(parameter, ParameterScale)
@@ -243,12 +247,10 @@ class TestExcel:
 
     class TestReformExcelGenerator:
         def test_generate_parameter_data(self, tax_benefit_system):
-            reform = ReformExcel(
-                baseline=tax_benefit_system,
-                root_name="benefits",
+            parameters = ReformExcelBuilder.parameter_data(
+                tax_benefit_system, "benefits"
             )
 
-            parameters = reform.parameter_data
             assert parameters == [
                 ("basic_income", 600.0),
                 ("housing_allowance", None),
@@ -257,13 +259,8 @@ class TestExcel:
             ]
 
         def test_generate_parameter_data_with_scale(self, tax_benefit_system):
-            reform = ReformExcel(
-                baseline=tax_benefit_system,
-                root_name="taxes",
-            )
-
             io_bytes = io.BytesIO()
-            reform.generate_template_xlsx(io_bytes)
+            ReformExcelBuilder.save_template_xlsx(tax_benefit_system, "taxes", io_bytes)
             io_bytes.seek(0)
             wb = openpyxl.load_workbook(io_bytes)
             config_sheet = wb["Config"]

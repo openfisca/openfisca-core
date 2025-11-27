@@ -16,6 +16,20 @@ from openfisca_core.parameters.parameter_scale_bracket import ParameterScaleBrac
 from openfisca_core.reforms import Reform
 
 
+def get_parameter_node(
+    p: ParameterNode, segments: str | list[str]
+) -> tuple[ParameterNode | ParameterScale | ParameterScaleBracket, list[str]]:
+    if isinstance(segments, str):
+        segments = segments.split(".")
+    if segments:
+        if hasattr(p, "children"):
+            return get_parameter_node(p.children[segments[0]], segments[1:])
+        else:
+            return p, segments
+    else:
+        return p, []
+
+
 class ReformExcelBuilder:
     def __init__(
         self,
@@ -72,6 +86,67 @@ class ReformExcelBuilder:
             self.get_parameters(suffix),
         )
 
+    @staticmethod
+    def generate_parameter_tree_values(
+        root_name: str, parameter
+    ) -> list[tuple[str, float]]:
+        values = []
+        if type(parameter) is ParameterNode:
+            for child in parameter.children.values():
+                values.extend(
+                    ReformExcelBuilder.generate_parameter_tree_values(root_name, child)
+                )
+        else:
+            value = parameter.get_at_instant(date(date.today().year, 1, 1).isoformat())
+            name = parameter.name.removeprefix(root_name + ".")
+            if type(parameter) is ParameterScale:
+                threshold_values = (
+                    value.amounts
+                    if parameter.metadata.get("type") == "single_amount"
+                    else value.rates
+                )
+                for threshold, val in zip(value.thresholds, threshold_values):
+                    values.append((f"{root_name}.{name}.{threshold}", val))
+            else:
+                values.append((name, value))
+        return sorted(values, key=lambda v: v[0])
+
+    @staticmethod
+    def parameter_data(
+        baseline: TaxBenefitSystem, root_name: str
+    ) -> list[tuple[str, float]]:
+        root_parameter, _ = get_parameter_node(baseline.parameters, root_name)
+        return ReformExcelBuilder.generate_parameter_tree_values(
+            root_name, root_parameter
+        )
+
+    @staticmethod
+    def save_template_xlsx(
+        baseline: TaxBenefitSystem,
+        root_name: str,
+        path_or_file: Path | str | IO[bytes],
+    ) -> None:
+        wb = openpyxl.Workbook()
+        ws_config = wb.active
+        ws_config.title = "Config"
+        ws_config["A1"] = "Parameter name"
+        ws_config["B1"] = "Parameter value"
+        ws_config["A2"] = "root"
+        ws_config["B2"] = root_name
+
+        ws_params = wb.create_sheet(title="Paramètres")
+        ws_params["A1"] = "Nom"
+        ws_params["B1"] = "Valeur initiale"
+        ws_params["C1"] = f"Valeur {date(date.today().year, 1, 1).isoformat()}"
+
+        for i, (name, value) in enumerate(
+            ReformExcelBuilder.parameter_data(baseline, root_name), start=2
+        ):
+            ws_params[f"A{i}"] = name
+            ws_params[f"B{i}"] = value
+
+        wb.save(path_or_file)
+
 
 class ReformExcel(Reform):
     """A class representing a reform defined in an Excel file.
@@ -95,26 +170,10 @@ class ReformExcel(Reform):
         self.reformed_parameters = reformed_parameters or []
         super().__init__(baseline)
 
-    @staticmethod
-    def get_parameter_node(
-        p: ParameterNode, segments: str | list[str]
-    ) -> tuple[ParameterNode | ParameterScale | ParameterScaleBracket, list[str]]:
-        if isinstance(segments, str):
-            segments = segments.split(".")
-        if segments:
-            if hasattr(p, "children"):
-                return ReformExcel.get_parameter_node(
-                    p.children[segments[0]], segments[1:]
-                )
-            else:
-                return p, segments
-        else:
-            return p, []
-
     def apply(self):
         def modify_parameters(local_parameters: ParameterNode) -> ParameterNode:
             # On récupère le nœud racine des paramètres
-            root, _ = self.get_parameter_node(local_parameters, self.root_name)
+            root, _ = get_parameter_node(local_parameters, self.root_name)
             # Dictionnaire temporaire pour stocker les paramètres à échelons
             # On va le remplir lors du parcours des paramètres de la réforme
             params_with_thresholds: dict[
@@ -122,7 +181,7 @@ class ReformExcel(Reform):
             ] = dict()
 
             for name, value, date_ in self.reformed_parameters:
-                leaf, threshold = self.get_parameter_node(root, name)
+                leaf, threshold = get_parameter_node(root, name)
                 if type(leaf) is ParameterScale:
                     threshold_value = float(".".join(threshold))
                     prop_name = (
@@ -159,48 +218,3 @@ class ReformExcel(Reform):
             return local_parameters
 
         self.modify_parameters(modifier_function=modify_parameters)
-
-    def generate_parameter_tree_values(self, parameter) -> list[tuple[str, float]]:
-        values = []
-        if type(parameter) is ParameterNode:
-            for child in parameter.children.values():
-                values.extend(self.generate_parameter_tree_values(child))
-        else:
-            value = parameter.get_at_instant(date(date.today().year, 1, 1).isoformat())
-            name = parameter.name.removeprefix(self.root_name + ".")
-            if type(parameter) is ParameterScale:
-                threshold_values = (
-                    value.amounts
-                    if parameter.metadata.get("type") == "single_amount"
-                    else value.rates
-                )
-                for threshold, val in zip(value.thresholds, threshold_values):
-                    values.append((f"{self.root_name}.{name}.{threshold}", val))
-            else:
-                values.append((name, value))
-        return sorted(values, key=lambda v: v[0])
-
-    @property
-    def parameter_data(self) -> list[tuple[str, float]]:
-        root_parameter, _ = self.get_parameter_node(self.parameters, self.root_name)
-        return self.generate_parameter_tree_values(root_parameter)
-
-    def generate_template_xlsx(self, path_or_file: Path | str | IO[bytes]) -> None:
-        wb = openpyxl.Workbook()
-        ws_config = wb.active
-        ws_config.title = "Config"
-        ws_config["A1"] = "Parameter name"
-        ws_config["B1"] = "Parameter value"
-        ws_config["A2"] = "root"
-        ws_config["B2"] = self.root_name
-
-        ws_params = wb.create_sheet(title="Paramètres")
-        ws_params["A1"] = "Nom"
-        ws_params["B1"] = "Valeur initiale"
-        ws_params["C1"] = f"Valeur {date(date.today().year, 1, 1).isoformat()}"
-
-        for i, (name, value) in enumerate(self.parameter_data, start=2):
-            ws_params[f"A{i}"] = name
-            ws_params[f"B{i}"] = value
-
-        wb.save(path_or_file)
