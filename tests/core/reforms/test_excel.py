@@ -277,7 +277,7 @@ class TestExcel:
                 ("housing_tax.minimal_amount", 200, None),
                 ("housing_tax.rate", 10, None),
                 ("income_tax_rate", 0.15, None),
-                ("taxes.social_security_contribution.0.0", 0.02, None),
-                ("taxes.social_security_contribution.12400.0", 0.12, None),
-                ("taxes.social_security_contribution.6000.0", 0.06, None),
+                ("social_security_contribution.0.0", 0.02, None),
+                ("social_security_contribution.12400.0", 0.12, None),
+                ("social_security_contribution.6000.0", 0.06, None),
             ]

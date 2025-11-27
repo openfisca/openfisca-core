@@ -112,7 +112,7 @@ class ReformExcelBuilder:
                     else value.rates
                 )
                 for threshold, val in zip(value.thresholds, threshold_values):
-                    values.append((f"{root_name}.{name}.{threshold}", val))
+                    values.append((f"{name}.{threshold}", val))
             else:
                 values.append((name, value))
         return sorted(values, key=lambda v: v[0])
