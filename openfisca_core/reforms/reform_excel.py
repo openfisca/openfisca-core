@@ -92,6 +92,8 @@ class ReformExcelBuilder:
             self.get_parameters(suffix),
         )
 
+
+class ReformExcelTemplateGenerator:
     @staticmethod
     def generate_parameter_tree_values(
         root_name: str, parameter
@@ -100,7 +102,9 @@ class ReformExcelBuilder:
         if type(parameter) is ParameterNode:
             for child in parameter.children.values():
                 values.extend(
-                    ReformExcelBuilder.generate_parameter_tree_values(root_name, child)
+                    ReformExcelTemplateGenerator.generate_parameter_tree_values(
+                        root_name, child
+                    )
                 )
         else:
             value = parameter.get_at_instant(date(date.today().year, 1, 1).isoformat())
@@ -122,7 +126,7 @@ class ReformExcelBuilder:
         baseline: TaxBenefitSystem, root_name: str
     ) -> list[tuple[str, float]]:
         root_parameter, _ = get_parameter_node(baseline.parameters, root_name)
-        return ReformExcelBuilder.generate_parameter_tree_values(
+        return ReformExcelTemplateGenerator.generate_parameter_tree_values(
             root_name, root_parameter
         )
 
@@ -146,7 +150,7 @@ class ReformExcelBuilder:
         ws_params["C1"] = f"Valeur {date(date.today().year, 1, 1).isoformat()}"
 
         for i, (name, value) in enumerate(
-            ReformExcelBuilder.parameter_data(baseline, root_name), start=2
+            ReformExcelTemplateGenerator.parameter_data(baseline, root_name), start=2
         ):
             ws_params[f"A{i}"] = name
             ws_params[f"B{i}"] = value
