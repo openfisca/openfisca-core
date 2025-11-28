@@ -80,6 +80,7 @@ class ReformExcelBuilder:
                 row[date_col[0]].date(),
             )
             for row in sheet.iter_rows(min_row=2, values_only=True)
+            if row[date_col[0]]
         ]
 
     def build_reform(self, suffix: str) -> "ReformExcel":
