@@ -62,26 +62,24 @@ class ReformExcelBuilder:
         nom_col = [
             i for i, cell in enumerate(sheet.iter_cols()) if cell[0].value == "Nom"
         ]
-        valeurs_col: list[tuple[int, date]] = []
-        for i, cell in enumerate(sheet.iter_cols()):
-            if cell[0].value and cell[0].value.startswith("Valeur "):
-                try:
-                    period = date.fromisoformat(cell[0].value[len("Valeur ") :])
-                    valeurs_col.append((i, period))
-                except ValueError:
-                    pass
+        valeur_col = [
+            i for i, cell in enumerate(sheet.iter_cols()) if cell[0].value == "Valeur"
+        ]
+        date_col = [
+            i for i, cell in enumerate(sheet.iter_cols()) if cell[0].value == "Date"
+        ]
+
         assert nom_col, "La colonne 'Nom' est manquante"
-        assert valeurs_col, "Aucune colonne de 'Valeur période' trouvée"
+        assert valeur_col is not None, "La colonne 'Valeur' est manquante"
+        assert date_col, "La colonne 'Date' est manquante"
 
         return [
             (
                 row[nom_col[0]],
-                row[valeur_col],
-                period,
+                row[valeur_col[0]],
+                row[date_col[0]].date(),
             )
             for row in sheet.iter_rows(min_row=2, values_only=True)
-            for valeur_col, period in valeurs_col
-            if (row[valeur_col] is not None)
         ]
 
     def build_reform(self, suffix: str) -> "ReformExcel":
@@ -146,14 +144,15 @@ class ReformExcelTemplateGenerator:
 
         ws_params = wb.create_sheet(title="Paramètres")
         ws_params["A1"] = "Nom"
-        ws_params["B1"] = "Valeur initiale"
-        ws_params["C1"] = f"Valeur {date(date.today().year, 1, 1).isoformat()}"
+        ws_params["B1"] = "Valeur"
+        ws_params["C1"] = "Date"
 
         for i, (name, value) in enumerate(
             ReformExcelTemplateGenerator.parameter_data(baseline, root_name), start=2
         ):
             ws_params[f"A{i}"] = name
             ws_params[f"B{i}"] = value
+            ws_params[f"C{i}"] = date(date.today().year, 1, 1)
 
         wb.save(path_or_file)
 

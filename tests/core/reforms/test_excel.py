@@ -1,7 +1,7 @@
 from typing import IO
 
 import io
-from datetime import date
+from datetime import date, datetime
 
 import openpyxl
 import pytest
@@ -33,10 +33,10 @@ def wb():
 
     param_sheet = wb.create_sheet("Paramètres_2025")
     param_sheet["A1"] = "Nom"
-    param_sheet["B1"] = "Valeur initiale"
-    param_sheet["C1"] = "Valeur 2025-01-01"
+    param_sheet["B1"] = "Valeur"
+    param_sheet["C1"] = "Date"
 
-    param_sheet.append(["parenting_allowance.amount", 200, 100000])
+    param_sheet.append(["parenting_allowance.amount", 100000, date(2025, 1, 1)])
 
     return wb
 
@@ -108,8 +108,9 @@ class TestReformExcelBuilder:
 
     def test_get_parameters_with_two_periods(self, wb: openpyxl.Workbook):
         param_sheet = wb["Paramètres_2025"]
-        param_sheet["D1"] = "Valeur 2026-01-01"
-        param_sheet["D2"] = 200000
+        param_sheet["A3"] = param_sheet["A2"].value
+        param_sheet["B3"] = 200000
+        param_sheet["C3"] = date(2026, 1, 1)
 
         builder = ReformExcelBuilder(baseline_class=None, path_or_file=to_wb_file(wb))
         assert builder.get_parameters("_2025") == [
@@ -270,14 +271,15 @@ class TestReformExcelTemplateGenerator:
         assert config_sheet["B2"].value == "taxes"
         param_sheet = wb["Paramètres"]
         rows = list(param_sheet.iter_rows(values_only=True))
+        valeur_date = datetime(date.today().year, 1, 1)
         assert rows == [
-            ("Nom", "Valeur initiale", f"Valeur {date.today().year}-01-01"),
-            ("housing_tax.minimal_amount", 200, None),
-            ("housing_tax.rate", 10, None),
-            ("income_tax_rate", 0.15, None),
-            ("social_security_contribution.0.0", 0.02, None),
-            ("social_security_contribution.12400.0", 0.12, None),
-            ("social_security_contribution.6000.0", 0.06, None),
+            ("Nom", "Valeur", "Date"),
+            ("housing_tax.minimal_amount", 200, valeur_date),
+            ("housing_tax.rate", 10, valeur_date),
+            ("income_tax_rate", 0.15, valeur_date),
+            ("social_security_contribution.0.0", 0.02, valeur_date),
+            ("social_security_contribution.12400.0", 0.12, valeur_date),
+            ("social_security_contribution.6000.0", 0.06, valeur_date),
         ]
 
 
@@ -289,8 +291,17 @@ class TestReformExcelIntegration:
         )
         io_bytes.seek(0)
         wb = openpyxl.load_workbook(io_bytes)
+
+        # On modifie une ligne et on efface toutes les autres
         param_sheet = wb["Paramètres"]
-        param_sheet["C3"] = 1000  # housing_tax.rate for
+        param_sheet["B2"] = 1000
+        for i, _ in enumerate(
+            param_sheet.iter_rows(min_row=3, values_only=False), start=3
+        ):
+            del param_sheet[f"A{i}"]
+            del param_sheet[f"B{i}"]
+            del param_sheet[f"C{i}"]
+
         io_bytes_modified = io.BytesIO()
         wb.save(io_bytes_modified)
         io_bytes_modified.seek(0)
@@ -303,5 +314,9 @@ class TestReformExcelIntegration:
 
         assert reform.root_name == "taxes"
         assert reform.reformed_parameters == [
-            ("housing_tax.rate", 1000, date(2025, 1, 1))
+            (
+                "housing_tax.minimal_amount",
+                1000,
+                date(2025, 1, 1),
+            )
         ]
