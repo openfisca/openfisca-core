@@ -138,22 +138,19 @@ class ReformExcelTemplateGenerator:
         wb = openpyxl.Workbook()
         ws_config = wb.active
         ws_config.title = "Config"
-        ws_config["A1"] = "Parameter name"
-        ws_config["B1"] = "Parameter value"
-        ws_config["A2"] = "root"
-        ws_config["B2"] = root_name
+        ws_config.append(["Parameter name", "Parameter value"])
+        ws_config.append(["root", root_name])
 
-        ws_params = wb.create_sheet(title="Paramètres")
-        ws_params["A1"] = "Nom"
-        ws_params["B1"] = "Valeur"
-        ws_params["C1"] = "Date"
+        wb.create_sheet(title="Paramètres")
+        ws_params = wb["Paramètres"]
+        ws_params.append(["Nom", "Valeur", "Date"])
 
-        for i, (name, value) in enumerate(
-            ReformExcelTemplateGenerator.parameter_data(baseline, root_name), start=2
+        for name, value in ReformExcelTemplateGenerator.parameter_data(
+            baseline, root_name
         ):
-            ws_params[f"A{i}"] = name
-            ws_params[f"B{i}"] = value
-            ws_params[f"C{i}"] = date(date.today().year, 1, 1)
+            ws_params.append([name, value, date(date.today().year, 1, 1)])
+        ws_params.column_dimensions["A"].width = 70
+        wb.active = ws_params
 
         wb.save(path_or_file)
 
