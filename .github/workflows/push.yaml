@@ -42,14 +42,14 @@ jobs:
           python: 3.13.9
           activate_command: .\venv\Scripts\activate
         # 3.14
-        # - os: ubuntu-24.04
-        #   numpy: 2.3.4
-        #   python: 3.14
-        #   activate_command: source venv/bin/activate
-        # - os: windows-2025
-        #   numpy: 2.3.4
-        #   python: 3.14
-        #   activate_command: .\venv\Scripts\activate
+        - os: ubuntu-24.04
+          numpy: 2.3.4
+          python: 3.14
+          activate_command: source venv/bin/activate
+        - os: windows-2025
+          numpy: 2.3.4
+          python: 3.14
+          activate_command: .\venv\Scripts\activate
     uses: ./.github/workflows/_before-pip.yaml
     with:
       os: ${{ matrix.os }}
@@ -98,14 +98,14 @@ jobs:
           python: 3.13.9
           activate_command: .\venv\Scripts\activate
         # 3.14
-        # - os: ubuntu-24.04
-        #   numpy: 2.3.4
-        #   python: 3.14
-        #   activate_command: source venv/bin/activate
-        # - os: windows-2025
-        #   numpy: 2.3.4
-        #   python: 3.14
-        #   activate_command: .\venv\Scripts\activate
+        - os: ubuntu-24.04
+          numpy: 2.3.4
+          python: 3.14
+          activate_command: source venv/bin/activate
+        - os: windows-2025
+          numpy: 2.3.4
+          python: 3.14
+          activate_command: .\venv\Scripts\activate
     uses: ./.github/workflows/_test-pip.yaml
     with:
       os: ${{ matrix.os }}
@@ -135,8 +135,8 @@ jobs:
           python: 3.12
         - numpy: 2.3.0
           python: 3.13.9
-        # - numpy: 2.3.4
-        #   python: 3.14
+        - numpy: 2.3.4
+          python: 3.14
     uses: ./.github/workflows/_lint-pip.yaml
     with:
       os: ubuntu-24.04
