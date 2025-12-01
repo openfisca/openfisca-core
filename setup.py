@@ -31,7 +31,8 @@ general_requirements = [
     "StrEnum >=0.4.8, <0.5.0",  # 3.11.x backport
     "dpath >=2.2.0, <3.0",
     "numexpr >=2.10.1, <3.0",
-    "numpy >=1.24.2, <2.0",
+    "numpy >=1.24.2, <2.0; python_version < '3.11'",
+    "numpy >=1.24.2, <2.4; python_version >= '3.11'",
     "pendulum >=3.0.0, <4.0.0",
     "psutil >=5.9.4, <6.0",
     "pytest >=8.3.3, <9.0",
@@ -87,6 +88,7 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "Topic :: Scientific/Engineering :: Information Analysis",
     ],
     description="A versatile microsimulation free software",
