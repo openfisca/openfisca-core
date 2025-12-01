@@ -31,8 +31,17 @@ general_requirements = [
     "StrEnum >=0.4.8, <0.5.0",  # 3.11.x backport
     "dpath >=2.2.0, <3.0",
     "numexpr >=2.10.1, <3.0",
+    # NumPy 1.24.2 support Python 3.8-3.11
+    # Numpy 2.0.2 support Python 3.9-3.12
+    "numpy >=1.24.2, <2.1.0; python_version < '3.10'",
+    # Numpy 2.1.2 support Python 3.10-3.12
     "numpy >=1.24.2, <2.0; python_version < '3.11'",
-    "numpy >=1.24.2, <2.4; python_version >= '3.11'",
+    # NumPy 1.26.0 support Python 3.9-3.12
+    "numpy >=1.26.0, <=3; python_version <= '3.12'",
+    # NumPy 2.1.0 support Python 3.10-3.13
+    "numpy >=2.1.0, <=3; python_version >= '3.13'",
+    # NumPy 2.3.2 support Python 3.11-3.14
+    "numpy >=2.3.2, <3; python_version >= '3.14'",
     "pendulum >=3.0.0, <4.0.0",
     "psutil >=5.9.4, <6.0",
     "pytest >=8.3.3, <9.0",
