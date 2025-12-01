@@ -41,7 +41,7 @@ general_requirements = [
     # NumPy 2.1.0 support Python 3.10-3.13
     "numpy >=2.1.0, <=3; python_version >= '3.13'",
     # NumPy 2.3.2 support Python 3.11-3.14
-    "numpy >=2.3.2, <3; python_version >= '3.14'",
+    #"numpy >=2.3.2, <3; python_version >= '3.14'",
     "pendulum >=3.0.0, <4.0.0",
     "psutil >=5.9.4, <6.0",
     "pytest >=8.3.3, <9.0",
