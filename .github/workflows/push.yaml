@@ -21,7 +21,7 @@ jobs:
           activate_command: source venv/bin/activate
         - os: ubuntu-24.04
           numpy: 1.26.4
-          python: 3.10
+          python: "3.10"  # To avoid having an error on py3.1 instead of py3.10
           activate_command: source venv/bin/activate
         - os: windows-2025
           numpy: 1.26.4
@@ -29,7 +29,7 @@ jobs:
           activate_command: .\venv\Scripts\activate
         - os: windows-2025
           numpy: 1.26.4
-          python: 3.10
+          python: "3.10"
           activate_command: .\venv\Scripts\activate
         # Python 3.11+: test both numpy 1.x and 2.x
         - os: ubuntu-24.04
@@ -99,7 +99,7 @@ jobs:
           activate_command: source venv/bin/activate
         - os: ubuntu-24.04
           numpy: 1.26.4
-          python: 3.10
+          python: "3.10"
           activate_command: source venv/bin/activate
         - os: windows-2025
           numpy: 1.26.4
@@ -107,7 +107,7 @@ jobs:
           activate_command: .\venv\Scripts\activate
         - os: windows-2025
           numpy: 1.26.4
-          python: 3.10
+          python: "3.10"
           activate_command: .\venv\Scripts\activate
         # Python 3.11+: test both numpy 1.x and 2.x
         - os: ubuntu-24.04
@@ -175,7 +175,7 @@ jobs:
         - numpy: 1.26.4
           python: 3.9
         - numpy: 1.26.4
-          python: 3.10
+          python: "3.10"
         - numpy: 1.26.4
           python: 3.11
         - numpy: 2.3.0
