@@ -81,7 +81,7 @@ setup(
     author_email="contact@openfisca.org",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
-        "License :: OSI Approved :: GNU Affero General Public License v3",
+        "License :: AGPL-3.0-only",
         "Operating System :: POSIX",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.9",
@@ -93,7 +93,7 @@ setup(
     ],
     description="A versatile microsimulation free software",
     keywords="benefit microsimulation social tax",
-    license="https://www.fsf.org/licensing/licenses/agpl-3.0.html",
+    license="https://spdx.org/licenses/AGPL-3.0-only.html",
     license_files=("LICENSE",),
     url="https://github.com/openfisca/openfisca-core",
     long_description=long_description,
