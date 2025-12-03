@@ -107,7 +107,6 @@ class TestReformExcelBuilder:
         param_sheet["B3"] = date(2026, 1, 1)
         param_sheet["C3"] = 200000
 
-
         builder = ReformExcelBuilder(baseline_class=None, path_or_file=to_wb_file(wb))
         assert builder.get_parameters("_2025") == [
             ("parenting_allowance.amount", 100000, date(2025, 1, 1)),
