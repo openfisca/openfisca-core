@@ -94,7 +94,7 @@ class ReformExcelBuilder:
 
 class ReformExcelTemplateGenerator:
     def __init__(
-        self, baseline: type[TaxBenefitSystem], root_name: str, period: datetime.date
+        self, baseline: type[TaxBenefitSystem], root_name: str, period: date
     ) -> None:
         self.baseline = baseline
         self.root_name = root_name
