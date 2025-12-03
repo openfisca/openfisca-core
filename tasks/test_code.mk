@@ -34,7 +34,8 @@ test-code: test-core test-country test-extension
 ## Run openfisca-core tests.
 test-core: $(shell git ls-files "*test_*.py")
 	@$(call print_help,$@:)
-	@python -m pytest --capture=no \
+	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
+		python -m ${openfisca} test \
 		openfisca_core/commons \
 		openfisca_core/data_storage \
 		openfisca_core/experimental \
@@ -42,9 +43,8 @@ test-core: $(shell git ls-files "*test_*.py")
 		openfisca_core/holders \
 		openfisca_core/indexed_enums \
 		openfisca_core/periods \
-		openfisca_core/projectors
-	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
-		python -m ${openfisca} test $? ${openfisca_args}
+		openfisca_core/projectors \
+		${openfisca_args}
 	@$(call print_pass,$@:)
 
 ## Run country-template tests.
