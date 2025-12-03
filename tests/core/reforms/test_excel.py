@@ -242,9 +242,8 @@ class TestReformExcel:
 
 class TestReformExcelTemplateGenerator:
     def test_generate_parameter_data(self, tax_benefit_system):
-        parameters = ReformExcelTemplateGenerator.parameter_data(
-            tax_benefit_system, "benefits"
-        )
+        generator = ReformExcelTemplateGenerator(tax_benefit_system, "benefits")
+        parameters = generator.parameter_data()
         assert parameters == [
             ("basic_income", 600.0),
             ("housing_allowance", None),
@@ -253,15 +252,19 @@ class TestReformExcelTemplateGenerator:
         ]
 
     def test_generate_parameter_data_with_scale(self, tax_benefit_system):
+        root_name = "taxes"
+        generator = ReformExcelTemplateGenerator(tax_benefit_system, root_name)
+
         io_bytes = io.BytesIO()
-        ReformExcelTemplateGenerator.save_template_xlsx(
-            tax_benefit_system, "taxes", io_bytes
-        )
+        generator.save_template_xlsx(io_bytes)
+
         io_bytes.seek(0)
         wb = openpyxl.load_workbook(io_bytes)
+
         config_sheet = wb["Config"]
         assert config_sheet["A2"].value == "root"
-        assert config_sheet["B2"].value == "taxes"
+        assert config_sheet["B2"].value == root_name
+
         param_sheet = wb["Paramètres"]
         rows = list(param_sheet.iter_rows(values_only=True))
         valeur_date = datetime(date.today().year, 1, 1)
@@ -278,12 +281,11 @@ class TestReformExcelTemplateGenerator:
 
 class TestReformExcelIntegration:
     def test_build_reform_excel_and_generate_template(self, tax_benefit_system):
-        io_bytes = io.BytesIO()
-
         root_name = "taxes"
-        ReformExcelTemplateGenerator.save_template_xlsx(
-            tax_benefit_system, root_name, io_bytes
-        )
+        generator = ReformExcelTemplateGenerator(tax_benefit_system, root_name)
+
+        io_bytes = io.BytesIO()
+        generator.save_template_xlsx(io_bytes)
 
         io_bytes.seek(0)
 

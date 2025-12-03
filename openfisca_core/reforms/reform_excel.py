@@ -93,21 +93,18 @@ class ReformExcelBuilder:
 
 
 class ReformExcelTemplateGenerator:
-    @staticmethod
-    def generate_parameter_tree_values(
-        root_name: str, parameter
-    ) -> list[tuple[str, float]]:
+    def __init__(self, baseline: type[TaxBenefitSystem], root_name: str) -> None:
+        self.baseline = baseline
+        self.root_name = root_name
+
+    def generate_parameter_tree_values(self, parameter) -> list[tuple[str, float]]:
         values = []
         if type(parameter) is ParameterNode:
             for child in parameter.children.values():
-                values.extend(
-                    ReformExcelTemplateGenerator.generate_parameter_tree_values(
-                        root_name, child
-                    )
-                )
+                values.extend(self.generate_parameter_tree_values(child))
         else:
             value = parameter.get_at_instant(date(date.today().year, 1, 1).isoformat())
-            name = parameter.name.removeprefix(root_name + ".")
+            name = parameter.name.removeprefix(self.root_name + ".")
             if type(parameter) is ParameterScale:
                 threshold_values = (
                     value.amounts
@@ -120,34 +117,25 @@ class ReformExcelTemplateGenerator:
                 values.append((name, value))
         return sorted(values, key=lambda v: v[0])
 
-    @staticmethod
-    def parameter_data(
-        baseline: TaxBenefitSystem, root_name: str
-    ) -> list[tuple[str, float]]:
-        root_parameter, _ = get_parameter_node(baseline.parameters, root_name)
-        return ReformExcelTemplateGenerator.generate_parameter_tree_values(
-            root_name, root_parameter
-        )
+    def parameter_data(self) -> list[tuple[str, float]]:
+        root_parameter, _ = get_parameter_node(self.baseline.parameters, self.root_name)
+        return self.generate_parameter_tree_values(root_parameter)
 
-    @staticmethod
     def save_template_xlsx(
-        baseline: TaxBenefitSystem,
-        root_name: str,
+        self,
         path_or_file: Path | str | IO[bytes],
     ) -> None:
         wb = openpyxl.Workbook()
         ws_config = wb.active
         ws_config.title = "Config"
         ws_config.append(["Parameter name", "Parameter value"])
-        ws_config.append(["root", root_name])
+        ws_config.append(["root", self.root_name])
 
         wb.create_sheet(title="Paramètres")
         ws_params = wb["Paramètres"]
         ws_params.append(["Nom", "Date", "Valeur"])
 
-        for name, value in ReformExcelTemplateGenerator.parameter_data(
-            baseline, root_name
-        ):
+        for name, value in self.parameter_data():
             ws_params.append([name, date(date.today().year, 1, 1), value])
 
         # Heuristics to adjust to content
