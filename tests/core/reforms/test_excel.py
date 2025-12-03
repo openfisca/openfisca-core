@@ -61,9 +61,7 @@ class TestReformExcelBuilder:
         ]
 
     def test_build_reform(self, tax_benefit_system, wb_file):
-        builder = ReformExcelBuilder(
-            baseline=tax_benefit_system, path_or_file=wb_file
-        )
+        builder = ReformExcelBuilder(baseline=tax_benefit_system, path_or_file=wb_file)
         reform = builder.build_reform("_2025")
 
         assert reform.root_name == "benefits"
@@ -285,9 +283,7 @@ class TestReformExcelIntegration:
             tax_benefit_system, "taxes", io_bytes
         )
         io_bytes.seek(0)
-        builder = ReformExcelBuilder(
-            baseline=tax_benefit_system, path_or_file=io_bytes
-        )
+        builder = ReformExcelBuilder(baseline=tax_benefit_system, path_or_file=io_bytes)
         assert builder.suffixes == [""]
         reform = builder.build_reform(builder.suffixes[0])
 
