@@ -1,7 +1,7 @@
 from typing import IO
 
 import io
-from datetime import date, datetime
+from datetime import date, datetime, time
 
 import openpyxl
 import pytest
@@ -242,7 +242,7 @@ class TestReformExcel:
 
 class TestReformExcelTemplateGenerator:
     def test_generate_parameter_data(self, tax_benefit_system):
-        period = datetime(2025, 1, 1)
+        period = date(2025, 1, 1)
         generator = ReformExcelTemplateGenerator(tax_benefit_system, "benefits", period)
         parameters = generator.parameter_data()
         assert parameters == [
@@ -254,7 +254,7 @@ class TestReformExcelTemplateGenerator:
 
     def test_generate_parameter_data_with_scale(self, tax_benefit_system):
         root_name = "taxes"
-        period = datetime(2025, 1, 1)
+        period = date(2025, 1, 1)
         generator = ReformExcelTemplateGenerator(tax_benefit_system, root_name, period)
 
         io_bytes = io.BytesIO()
@@ -269,21 +269,24 @@ class TestReformExcelTemplateGenerator:
 
         param_sheet = wb["Paramètres"]
         rows = list(param_sheet.iter_rows(values_only=True))
+
+        # Deal with Excel date to datetime conversion
+        output_period = datetime.combine(period, time())
         assert rows == [
             ("Nom", "Date", "Valeur"),
-            ("housing_tax.minimal_amount", period, 200),
-            ("housing_tax.rate", period, 10),
-            ("income_tax_rate", period, 0.15),
-            ("social_security_contribution.0.0", period, 0.02),
-            ("social_security_contribution.12400.0", period, 0.12),
-            ("social_security_contribution.6000.0", period, 0.06),
+            ("housing_tax.minimal_amount", output_period, 200),
+            ("housing_tax.rate", output_period, 10),
+            ("income_tax_rate", output_period, 0.15),
+            ("social_security_contribution.0.0", output_period, 0.02),
+            ("social_security_contribution.12400.0", output_period, 0.12),
+            ("social_security_contribution.6000.0", output_period, 0.06),
         ]
 
 
 class TestReformExcelIntegration:
     def test_build_reform_excel_and_generate_template(self, tax_benefit_system):
         root_name = "taxes"
-        period = datetime(2025, 1, 1)
+        period = date(2025, 1, 1)
         generator = ReformExcelTemplateGenerator(tax_benefit_system, root_name, period)
 
         io_bytes = io.BytesIO()
