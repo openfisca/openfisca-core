@@ -32,12 +32,12 @@ def get_parameter_node(
 class ReformExcelBuilder:
     def __init__(
         self,
-        baseline_class: type[TaxBenefitSystem],
+        baseline: type[TaxBenefitSystem],
         path_or_file: Path | str | IO[bytes],
     ) -> None:
         # data_only = True to get the value stored the last time Excel read the sheet
         self.wb = openpyxl.load_workbook(path_or_file, data_only=True)
-        self.baseline_class = baseline_class
+        self.baseline = baseline
 
     @property
     def suffixes(self) -> list[str]:
@@ -86,7 +86,7 @@ class ReformExcelBuilder:
     def build_reform(self, suffix: str) -> "ReformExcel":
         return ReformExcel(
             suffix,
-            self.baseline_class(),
+            self.baseline,
             self.root_name,
             self.get_parameters(suffix),
         )

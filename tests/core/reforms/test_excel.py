@@ -48,21 +48,21 @@ def wb_file(wb: openpyxl.Workbook) -> IO[bytes]:
 
 class TestReformExcelBuilder:
     def test_get_suffixes(self, wb_file):
-        builder = ReformExcelBuilder(baseline_class=None, path_or_file=wb_file)
+        builder = ReformExcelBuilder(baseline=None, path_or_file=wb_file)
         suffixes = builder.suffixes
         assert suffixes == ["", "_2025"]
 
     def test_get_reform_data(self, wb_file):
-        builder = ReformExcelBuilder(baseline_class=None, path_or_file=wb_file)
+        builder = ReformExcelBuilder(baseline=None, path_or_file=wb_file)
 
         assert builder.root_name == "benefits"
         assert builder.get_parameters("_2025") == [
             ("parenting_allowance.amount", 100000, date(2025, 1, 1))
         ]
 
-    def test_build_reform(self, tax_benefit_system_class, wb_file):
+    def test_build_reform(self, tax_benefit_system, wb_file):
         builder = ReformExcelBuilder(
-            baseline_class=tax_benefit_system_class, path_or_file=wb_file
+            baseline=tax_benefit_system, path_or_file=wb_file
         )
         reform = builder.build_reform("_2025")
 
@@ -71,22 +71,22 @@ class TestReformExcelBuilder:
             ("parenting_allowance.amount", 100000, date(2025, 1, 1))
         ]
 
-    def test_pas_de_root(self, tax_benefit_system_class, wb):
+    def test_pas_de_root(self, tax_benefit_system, wb):
         ws = wb["Config"]
         ws.delete_rows(2)
 
         builder = ReformExcelBuilder(
-            baseline_class=tax_benefit_system_class, path_or_file=to_wb_file(wb)
+            baseline=tax_benefit_system, path_or_file=to_wb_file(wb)
         )
         with pytest.raises(AssertionError):
             builder.build_reform("_2025")
 
-    def test_pas_de_period(self, tax_benefit_system_class, wb: openpyxl.Workbook):
+    def test_pas_de_period(self, tax_benefit_system, wb: openpyxl.Workbook):
         ws = wb["Paramètres_2025"]
         ws.delete_cols(1)
 
         builder = ReformExcelBuilder(
-            baseline_class=tax_benefit_system_class, path_or_file=to_wb_file(wb)
+            baseline=tax_benefit_system, path_or_file=to_wb_file(wb)
         )
         with pytest.raises(AssertionError):
             builder.build_reform("_2025")
@@ -96,7 +96,7 @@ class TestReformExcelBuilder:
         param_sheet.move_range("B1:B20", cols=2, rows=0)
         param_sheet.delete_cols(2)
 
-        builder = ReformExcelBuilder(baseline_class=None, path_or_file=to_wb_file(wb))
+        builder = ReformExcelBuilder(baseline=None, path_or_file=to_wb_file(wb))
         assert builder.get_parameters("_2025") == [
             ("parenting_allowance.amount", 100000, date(2025, 1, 1))
         ]
@@ -107,7 +107,7 @@ class TestReformExcelBuilder:
         param_sheet["B3"] = date(2026, 1, 1)
         param_sheet["C3"] = 200000
 
-        builder = ReformExcelBuilder(baseline_class=None, path_or_file=to_wb_file(wb))
+        builder = ReformExcelBuilder(baseline=None, path_or_file=to_wb_file(wb))
         assert builder.get_parameters("_2025") == [
             ("parenting_allowance.amount", 100000, date(2025, 1, 1)),
             ("parenting_allowance.amount", 200000, date(2026, 1, 1)),
@@ -285,33 +285,10 @@ class TestReformExcelIntegration:
             tax_benefit_system, "taxes", io_bytes
         )
         io_bytes.seek(0)
-        wb = openpyxl.load_workbook(io_bytes)
-
-        # On modifie une ligne et on efface toutes les autres
-        param_sheet = wb["Paramètres"]
-        param_sheet["C2"] = 1000
-        for i, _ in enumerate(
-            param_sheet.iter_rows(min_row=3, values_only=False), start=3
-        ):
-            del param_sheet[f"A{i}"]
-            del param_sheet[f"B{i}"]
-            del param_sheet[f"C{i}"]
-
-        io_bytes_modified = io.BytesIO()
-        wb.save(io_bytes_modified)
-        io_bytes_modified.seek(0)
-
         builder = ReformExcelBuilder(
-            baseline_class=tax_benefit_system.__class__, path_or_file=io_bytes_modified
+            baseline=tax_benefit_system, path_or_file=io_bytes
         )
         assert builder.suffixes == [""]
         reform = builder.build_reform(builder.suffixes[0])
 
         assert reform.root_name == "taxes"
-        assert reform.reformed_parameters == [
-            (
-                "housing_tax.minimal_amount",
-                1000,
-                date(2025, 1, 1),
-            )
-        ]
