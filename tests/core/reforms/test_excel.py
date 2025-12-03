@@ -242,7 +242,8 @@ class TestReformExcel:
 
 class TestReformExcelTemplateGenerator:
     def test_generate_parameter_data(self, tax_benefit_system):
-        generator = ReformExcelTemplateGenerator(tax_benefit_system, "benefits")
+        period = datetime(2025, 1, 1)
+        generator = ReformExcelTemplateGenerator(tax_benefit_system, "benefits", period)
         parameters = generator.parameter_data()
         assert parameters == [
             ("basic_income", 600.0),
@@ -253,7 +254,8 @@ class TestReformExcelTemplateGenerator:
 
     def test_generate_parameter_data_with_scale(self, tax_benefit_system):
         root_name = "taxes"
-        generator = ReformExcelTemplateGenerator(tax_benefit_system, root_name)
+        period = datetime(2025, 1, 1)
+        generator = ReformExcelTemplateGenerator(tax_benefit_system, root_name, period)
 
         io_bytes = io.BytesIO()
         generator.save_template_xlsx(io_bytes)
@@ -267,22 +269,22 @@ class TestReformExcelTemplateGenerator:
 
         param_sheet = wb["Paramètres"]
         rows = list(param_sheet.iter_rows(values_only=True))
-        valeur_date = datetime(date.today().year, 1, 1)
         assert rows == [
             ("Nom", "Date", "Valeur"),
-            ("housing_tax.minimal_amount", valeur_date, 200),
-            ("housing_tax.rate", valeur_date, 10),
-            ("income_tax_rate", valeur_date, 0.15),
-            ("social_security_contribution.0.0", valeur_date, 0.02),
-            ("social_security_contribution.12400.0", valeur_date, 0.12),
-            ("social_security_contribution.6000.0", valeur_date, 0.06),
+            ("housing_tax.minimal_amount", period, 200),
+            ("housing_tax.rate", period, 10),
+            ("income_tax_rate", period, 0.15),
+            ("social_security_contribution.0.0", period, 0.02),
+            ("social_security_contribution.12400.0", period, 0.12),
+            ("social_security_contribution.6000.0", period, 0.06),
         ]
 
 
 class TestReformExcelIntegration:
     def test_build_reform_excel_and_generate_template(self, tax_benefit_system):
         root_name = "taxes"
-        generator = ReformExcelTemplateGenerator(tax_benefit_system, root_name)
+        period = datetime(2025, 1, 1)
+        generator = ReformExcelTemplateGenerator(tax_benefit_system, root_name, period)
 
         io_bytes = io.BytesIO()
         generator.save_template_xlsx(io_bytes)

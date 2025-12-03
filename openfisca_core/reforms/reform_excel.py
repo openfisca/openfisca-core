@@ -93,9 +93,12 @@ class ReformExcelBuilder:
 
 
 class ReformExcelTemplateGenerator:
-    def __init__(self, baseline: type[TaxBenefitSystem], root_name: str) -> None:
+    def __init__(
+        self, baseline: type[TaxBenefitSystem], root_name: str, period: datetime.date
+    ) -> None:
         self.baseline = baseline
         self.root_name = root_name
+        self.period = period
 
     def generate_parameter_tree_values(self, parameter) -> list[tuple[str, float]]:
         values = []
@@ -103,7 +106,7 @@ class ReformExcelTemplateGenerator:
             for child in parameter.children.values():
                 values.extend(self.generate_parameter_tree_values(child))
         else:
-            value = parameter.get_at_instant(date(date.today().year, 1, 1).isoformat())
+            value = parameter.get_at_instant(self.period)
             name = parameter.name.removeprefix(self.root_name + ".")
             if type(parameter) is ParameterScale:
                 threshold_values = (
@@ -136,7 +139,7 @@ class ReformExcelTemplateGenerator:
         ws_params.append(["Nom", "Date", "Valeur"])
 
         for name, value in self.parameter_data():
-            ws_params.append([name, date(date.today().year, 1, 1), value])
+            ws_params.append([name, self.period, value])
 
         # Heuristics to adjust to content
         ws_params.column_dimensions["A"].width = 70
