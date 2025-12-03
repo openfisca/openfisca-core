@@ -4,7 +4,7 @@
 
 #### New features
 
-- Add ReformBuilderExcel and ReformExcel to build reform from excel files
+- Add `ReformExcel*` classes to build reform from excel files. Check the last test in `tests/core/reforms/test_excel.py` for more.
 
 ### 43.4.4 [#1343](https://github.com/openfisca/openfisca-core/pull/1343)
 
