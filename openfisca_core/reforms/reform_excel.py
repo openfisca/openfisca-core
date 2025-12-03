@@ -148,7 +148,7 @@ class ReformExcelTemplateGenerator:
         for name, value in ReformExcelTemplateGenerator.parameter_data(
             baseline, root_name
         ):
-            ws_params.append([name, value, date(date.today().year, 1, 1)])
+            ws_params.append([name, date(date.today().year, 1, 1), value])
 
         # Heuristics to adjust to content
         ws_params.column_dimensions["A"].width = 70

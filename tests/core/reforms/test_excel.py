@@ -33,10 +33,10 @@ def wb():
 
     param_sheet = wb.create_sheet("Paramètres_2025")
     param_sheet["A1"] = "Nom"
-    param_sheet["B1"] = "Valeur"
-    param_sheet["C1"] = "Date"
+    param_sheet["B1"] = "Date"
+    param_sheet["C1"] = "Valeur"
 
-    param_sheet.append(["parenting_allowance.amount", 100000, date(2025, 1, 1)])
+    param_sheet.append(["parenting_allowance.amount", date(2025, 1, 1), 100000])
 
     return wb
 
@@ -83,7 +83,7 @@ class TestReformExcelBuilder:
 
     def test_pas_de_period(self, tax_benefit_system_class, wb: openpyxl.Workbook):
         ws = wb["Paramètres_2025"]
-        ws.delete_cols(3)
+        ws.delete_cols(1)
 
         builder = ReformExcelBuilder(
             baseline_class=tax_benefit_system_class, path_or_file=to_wb_file(wb)
@@ -93,13 +93,8 @@ class TestReformExcelBuilder:
 
     def test_get_parameters_shuffled_columns(self, wb):
         param_sheet = wb["Paramètres_2025"]
-        # Shuffle columns
-        for row in param_sheet.iter_rows():
-            row[0].value, row[1].value, row[2].value = (
-                row[1].value,
-                row[2].value,
-                row[0].value,
-            )
+        param_sheet.move_range("B1:B20", cols=2, rows=0)
+        param_sheet.delete_cols(2)
 
         builder = ReformExcelBuilder(baseline_class=None, path_or_file=to_wb_file(wb))
         assert builder.get_parameters("_2025") == [
@@ -109,8 +104,9 @@ class TestReformExcelBuilder:
     def test_get_parameters_with_two_periods(self, wb: openpyxl.Workbook):
         param_sheet = wb["Paramètres_2025"]
         param_sheet["A3"] = param_sheet["A2"].value
-        param_sheet["B3"] = 200000
-        param_sheet["C3"] = date(2026, 1, 1)
+        param_sheet["B3"] = date(2026, 1, 1)
+        param_sheet["C3"] = 200000
+
 
         builder = ReformExcelBuilder(baseline_class=None, path_or_file=to_wb_file(wb))
         assert builder.get_parameters("_2025") == [
@@ -273,13 +269,13 @@ class TestReformExcelTemplateGenerator:
         rows = list(param_sheet.iter_rows(values_only=True))
         valeur_date = datetime(date.today().year, 1, 1)
         assert rows == [
-            ("Nom", "Valeur", "Date"),
-            ("housing_tax.minimal_amount", 200, valeur_date),
-            ("housing_tax.rate", 10, valeur_date),
-            ("income_tax_rate", 0.15, valeur_date),
-            ("social_security_contribution.0.0", 0.02, valeur_date),
-            ("social_security_contribution.12400.0", 0.12, valeur_date),
-            ("social_security_contribution.6000.0", 0.06, valeur_date),
+            ("Nom", "Date", "Valeur"),
+            ("housing_tax.minimal_amount", valeur_date, 200),
+            ("housing_tax.rate", valeur_date, 10),
+            ("income_tax_rate", valeur_date, 0.15),
+            ("social_security_contribution.0.0", valeur_date, 0.02),
+            ("social_security_contribution.12400.0", valeur_date, 0.12),
+            ("social_security_contribution.6000.0", valeur_date, 0.06),
         ]
 
 
@@ -294,7 +290,7 @@ class TestReformExcelIntegration:
 
         # On modifie une ligne et on efface toutes les autres
         param_sheet = wb["Paramètres"]
-        param_sheet["B2"] = 1000
+        param_sheet["C2"] = 1000
         for i, _ in enumerate(
             param_sheet.iter_rows(min_row=3, values_only=False), start=3
         ):
