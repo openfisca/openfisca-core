@@ -35,7 +35,7 @@ class ReformExcelBuilder:
         baseline_class: type[TaxBenefitSystem],
         path_or_file: Path | str | IO[bytes],
     ) -> None:
-        # Le paramètre data_only permet de lire les valeurs calculées des formulas
+        # data_only = True to get the value stored the last time Excel read the sheet
         self.wb = openpyxl.load_workbook(path_or_file, data_only=True)
         self.baseline_class = baseline_class
 
@@ -143,13 +143,17 @@ class ReformExcelTemplateGenerator:
 
         wb.create_sheet(title="Paramètres")
         ws_params = wb["Paramètres"]
-        ws_params.append(["Nom", "Valeur", "Date"])
+        ws_params.append(["Nom", "Date", "Valeur"])
 
         for name, value in ReformExcelTemplateGenerator.parameter_data(
             baseline, root_name
         ):
             ws_params.append([name, value, date(date.today().year, 1, 1)])
+
+        # Heuristics to adjust to content
         ws_params.column_dimensions["A"].width = 70
+        ws_params.column_dimensions["B"].width = 12
+        ws_params.column_dimensions["C"].width = 12
         wb.active = ws_params
 
         wb.save(path_or_file)
@@ -181,10 +185,9 @@ class ReformExcel(Reform):
 
     def apply(self):
         def modify_parameters(local_parameters: ParameterNode) -> ParameterNode:
-            # On récupère le nœud racine des paramètres
+            # Go down the parameter tree to the parameter root of this Excel reform
             root, _ = get_parameter_node(local_parameters, self.root_name)
-            # Dictionnaire temporaire pour stocker les paramètres à échelons
-            # On va le remplir lors du parcours des paramètres de la réforme
+            # Dict to track scale-based multiline parameters
             params_with_thresholds: dict[
                 str, tuple[ParameterScale, list[tuple[float, ParameterScaleBracket]]]
             ] = dict()
