@@ -46,6 +46,10 @@ api_requirements = [
     "Werkzeug >=2.2.3, <4.0",
 ]
 
+excel_requirements = [
+    "openpyxl >=3.1.2, <4.0",
+]
+
 dev_requirements = [
     "black >=24.8.0, <25.0",
     "codespell >=2.3.0, <3.0",
@@ -66,11 +70,12 @@ dev_requirements = [
     "ruff >=0.6.9, <1.0",
     "ruff-lsp >=0.0.57, <1.0",
     *api_requirements,
+    *excel_requirements,
 ]
 
 setup(
     name="OpenFisca-Core",
-    version="43.4.4",
+    version="43.5.0",
     author="OpenFisca Team",
     author_email="contact@openfisca.org",
     classifiers=[
@@ -112,6 +117,7 @@ setup(
             "wheel >=0.40.0, <0.41.0",
         ],
         "tracker": ["OpenFisca-Tracker >=0.4.0, <0.5.0"],
+        "excel": excel_requirements,
     },
     include_package_data=True,  # Will read MANIFEST.in
     install_requires=general_requirements,
