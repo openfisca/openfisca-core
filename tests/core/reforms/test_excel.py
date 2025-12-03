@@ -279,12 +279,16 @@ class TestReformExcelTemplateGenerator:
 class TestReformExcelIntegration:
     def test_build_reform_excel_and_generate_template(self, tax_benefit_system):
         io_bytes = io.BytesIO()
+
+        root_name = "taxes"
         ReformExcelTemplateGenerator.save_template_xlsx(
-            tax_benefit_system, "taxes", io_bytes
+            tax_benefit_system, root_name, io_bytes
         )
+
         io_bytes.seek(0)
+
         builder = ReformExcelBuilder(baseline=tax_benefit_system, path_or_file=io_bytes)
         assert builder.suffixes == [""]
-        reform = builder.build_reform(builder.suffixes[0])
 
-        assert reform.root_name == "taxes"
+        reform = builder.build_reform(builder.suffixes[0])
+        assert reform.root_name == root_name
