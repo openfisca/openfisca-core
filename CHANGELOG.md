@@ -1,5 +1,11 @@
 # Changelog
 
+# 44.0.0 [#1346](https://github.com/openfisca/openfisca-core/pull/1346)
+
+#### Technical changes
+
+- Conditional dependency on Numpy, based on Python version.
+
 ## 43.5.0 [#1344](https://github.com/openfisca/openfisca-core/pull/1344)
 
 #### New features
