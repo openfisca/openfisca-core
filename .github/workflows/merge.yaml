@@ -19,7 +19,7 @@ jobs:
         # the cache key depends on the full Python version. If left unspecified,
         # different patch versions could be allocated between jobs,  and any
         # such difference would lead to a cache not found error.
-        python: [3.11, 3.12, 3.13.9]
+        python: [3.11.14, 3.12.3, 3.13.9]
         include:
         - os: ubuntu-24.04
           activate_command: source venv/bin/activate
@@ -37,7 +37,7 @@ jobs:
     with:
       os: ubuntu-24.04
       numpy: 1.26.4
-      python: 3.11
+      python: 3.11.14
 
   test-pip:
     needs: [setup-pip]
@@ -46,7 +46,7 @@ jobs:
       matrix:
         os: [ubuntu-24.04, windows-2025]
         numpy: [1.26.4]
-        python: [3.11, 3.12, 3.13.9]
+        python: [3.11.14, 3.12.3, 3.13.9]
         include:
         - os: ubuntu-24.04
           activate_command: source venv/bin/activate
@@ -65,7 +65,7 @@ jobs:
     with:
       os: ubuntu-24.04
       numpy: 1.26.4
-      python: 3.11
+      python: 3.11.14
 
   lint-pip:
     needs: [setup-pip]
@@ -73,7 +73,7 @@ jobs:
       fail-fast: true
       matrix:
         numpy: [1.26.4]
-        python: [3.11, 3.12, 3.13.9]
+        python: [3.11.14, 3.12.3, 3.13.9]
     uses: ./.github/workflows/_lint-pip.yaml
     with:
       os: ubuntu-24.04
@@ -86,7 +86,7 @@ jobs:
     uses: ./.github/workflows/_version.yaml
     with:
       os: ubuntu-24.04
-      python: 3.11
+      python: 3.11.14
 
   # GitHub Actions does not have a halt job option, to stop from deploying if
   # no functional changes were found. We build a separate job to substitute the
@@ -107,7 +107,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: 3.11
+        python-version: 3.11.14
 
     - id: stop-early
       # The `check-for-functional-changes` job should always succeed regardless
@@ -135,25 +135,25 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: 3.11
+        python-version: 3.11.14
 
     - name: Cache deps
       uses: actions/cache@v4
       with:
         path: venv
-        key: pip-deps-ubuntu-24.04-np1.26.4-py3.11-${{ hashFiles('setup.py') }}
+        key: pip-deps-ubuntu-24.04-np1.26.4-py3.11.14-${{ hashFiles('setup.py') }}
 
     - name: Cache build
       uses: actions/cache@v4
       with:
         path: venv/**/[oO]pen[fF]isca*
-        key: pip-build-ubuntu-24.04-np1.26.4-py3.11-${{ hashFiles('setup.py') }}-${{ github.sha }}
+        key: pip-build-ubuntu-24.04-np1.26.4-py3.11.14-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
     - name: Cache release
       uses: actions/cache@v4
       with:
         path: dist
-        key: pip-release-ubuntu-24.04-np1.26.4-py3.11-${{ hashFiles('setup.py') }}-${{ github.sha }}
+        key: pip-release-ubuntu-24.04-np1.26.4-py3.11.14-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
     - name: Check package format
       run: |
@@ -199,19 +199,19 @@ jobs:
           /usr/share/miniconda/envs/openfisca
           ~/.conda/envs/openfisca
           .env.yaml
-        key: conda-env-ubuntu-24.04-np1.26.4-py3.11-${{ hashFiles('setup.py') }}
+        key: conda-env-ubuntu-24.04-np1.26.4-py3.11.14-${{ hashFiles('setup.py') }}
 
     - name: Cache conda deps
       uses: actions/cache@v4
       with:
         path: ~/conda_pkgs_dir
-        key: conda-deps-ubuntu-24.04-np1.26.4-py3.11-${{ hashFiles('setup.py') }}
+        key: conda-deps-ubuntu-24.04-np1.26.4-py3.11.14-${{ hashFiles('setup.py') }}
 
     - name: Cache release
       uses: actions/cache@v4
       with:
         path: ~/conda-rel
-        key: conda-release-ubuntu-24.04-np1.26.4-py3.11-${{ hashFiles('setup.py') }}-${{ github.sha }}
+        key: conda-release-ubuntu-24.04-np1.26.4-py3.11.14-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
     - name: Update conda & dependencies
       uses: conda-incubator/setup-miniconda@v3
@@ -241,7 +241,7 @@ jobs:
         auto-update-conda: true
         # See GHA Windows
         # https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
-        python-version: 3.11
+        python-version: 3.11.14
         channels: conda-forge
         activate-environment: true
 
