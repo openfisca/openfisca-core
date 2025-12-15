@@ -18,28 +18,28 @@ jobs:
         # Numpy 2.0.2 supports Python 3.9 to 3.12
         - os: ubuntu-24.04
           numpy: 1.24.2
-          python: 3.10.19
+          python: 3.10.11
           activate_command: source venv/bin/activate
         - os: windows-2025
           numpy: 2.0.2
-          python: 3.10.19
+          python: 3.10.11
           activate_command: .\venv\Scripts\activate
         # Python 3.11+: test both numpy 1.x and 2.x
         - os: ubuntu-24.04
           numpy: 1.26.4
-          python: 3.12.3
+          python: 3.12.10
           activate_command: source venv/bin/activate
         - os: ubuntu-24.04
           numpy: 2.3.0
-          python: 3.12.3
+          python: 3.12.10
           activate_command: source venv/bin/activate
         - os: ubuntu-24.04
           numpy: 2.3.0
-          python: 3.13.9
+          python: 3.13.11
           activate_command: source venv/bin/activate
         - os: windows-2025
           numpy: 2.3.0
-          python: 3.13.9
+          python: 3.13.11
           activate_command: .\venv\Scripts\activate
     uses: ./.github/workflows/_before-pip.yaml
     with:
@@ -65,28 +65,28 @@ jobs:
         # Numpy 2.0.2 supports Python 3.9 to 3.12
         - os: ubuntu-24.04
           numpy: 1.24.2
-          python: 3.10.19
+          python: 3.10.11
           activate_command: source venv/bin/activate
         - os: windows-2025
           numpy: 2.0.2
-          python: 3.10.19
+          python: 3.10.11
           activate_command: .\venv\Scripts\activate
         # Python 3.11+: test both numpy 1.x and 2.x
         - os: ubuntu-24.04
           numpy: 1.26.4
-          python: 3.12.3
+          python: 3.12.10
           activate_command: source venv/bin/activate
         - os: ubuntu-24.04
           numpy: 2.3.0
-          python: 3.12.3
+          python: 3.12.10
           activate_command: source venv/bin/activate
         - os: ubuntu-24.04
           numpy: 2.3.0
-          python: 3.13.9
+          python: 3.13.11
           activate_command: source venv/bin/activate
         - os: windows-2025
           numpy: 2.3.0
-          python: 3.13.9
+          python: 3.13.11
           activate_command: .\venv\Scripts\activate
     uses: ./.github/workflows/_test-pip.yaml
     with:
@@ -112,11 +112,11 @@ jobs:
         # Lint with one version from each numpy series
         # Need to be the same as setup-pip for cache
         - numpy: 1.24.2
-          python: 3.10.19
+          python: 3.10.11
         - numpy: 1.26.4
-          python: 3.12.3
+          python: 3.12.10
         - numpy: 2.3.0
-          python: 3.13.9
+          python: 3.13.11
     uses: ./.github/workflows/_lint-pip.yaml
     with:
       os: ubuntu-24.04
