@@ -84,7 +84,7 @@
 
 #### Technical changes
 
-- Change Github Action matrix test to supports Python 3.12.
+- Change Github Action matrix test to support Python 3.12.
 
 ### 43.3.5 [#1325](https://github.com/openfisca/openfisca-core/pull/1325)
 
