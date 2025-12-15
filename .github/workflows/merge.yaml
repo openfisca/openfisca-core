@@ -13,25 +13,33 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-22.04, windows-2025]
-        numpy: [1.26.4]
-        # Patch version must be specified to avoid any cache confusion, since
-        # the cache key depends on the full Python version. If left unspecified,
-        # different patch versions could be allocated between jobs,  and any
-        # such difference would lead to a cache not found error.
-        python: [3.12.3, 3.9.13]
         include:
-        - os: ubuntu-22.04
-          python: 3.9.13
+        # NumPy 1.24.2 supports Python 3.8 to 3.11
+        # Numpy 2.0.2 supports Python 3.9 to 3.12
+        - os: ubuntu-24.04
           numpy: 1.24.2
+          python: 3.10.11
           activate_command: source venv/bin/activate
         - os: windows-2025
-          python: 3.9.13
-          numpy: 1.24.2
+          numpy: 2.0.2
+          python: 3.10.11
           activate_command: .\venv\Scripts\activate
-        - os: ubuntu-22.04
+        # Python 3.11+: test both numpy 1.x and 2.x
+        - os: ubuntu-24.04
+          numpy: 1.26.4
+          python: 3.12.10
+          activate_command: source venv/bin/activate
+        - os: ubuntu-24.04
+          numpy: 2.3.0
+          python: 3.12.10
+          activate_command: source venv/bin/activate
+        - os: ubuntu-24.04
+          numpy: 2.3.0
+          python: 3.13.11
           activate_command: source venv/bin/activate
         - os: windows-2025
+          numpy: 2.3.0
+          python: 3.13.11
           activate_command: .\venv\Scripts\activate
     uses: ./.github/workflows/_before-pip.yaml
     with:
@@ -43,30 +51,42 @@ jobs:
   setup-conda:
     uses: ./.github/workflows/_before-conda.yaml
     with:
-      os: ubuntu-22.04
+      os: ubuntu-24.04
       numpy: 1.26.4
-      python: 3.10.6
+      python: 3.11.14
 
   test-pip:
     needs: [setup-pip]
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-22.04, windows-2025]
-        numpy: [1.26.4]
-        python: [3.12.3, 3.9.13]
         include:
-        - os: ubuntu-22.04
-          python: 3.9.13
+        # NumPy 1.24.2 supports Python 3.8 to 3.11
+        # Numpy 2.0.2 supports Python 3.9 to 3.12
+        - os: ubuntu-24.04
           numpy: 1.24.2
+          python: 3.10.11
           activate_command: source venv/bin/activate
         - os: windows-2025
-          python: 3.9.13
-          numpy: 1.24.2
+          numpy: 2.0.2
+          python: 3.10.11
           activate_command: .\venv\Scripts\activate
-        - os: ubuntu-22.04
+        # Python 3.11+: test both numpy 1.x and 2.x
+        - os: ubuntu-24.04
+          numpy: 1.26.4
+          python: 3.12.10
+          activate_command: source venv/bin/activate
+        - os: ubuntu-24.04
+          numpy: 2.3.0
+          python: 3.12.10
+          activate_command: source venv/bin/activate
+        - os: ubuntu-24.04
+          numpy: 2.3.0
+          python: 3.13.11
           activate_command: source venv/bin/activate
         - os: windows-2025
+          numpy: 2.3.0
+          python: 3.13.11
           activate_command: .\venv\Scripts\activate
     uses: ./.github/workflows/_test-pip.yaml
     with:
@@ -79,20 +99,27 @@ jobs:
     uses: ./.github/workflows/_test-conda.yaml
     needs: [setup-conda]
     with:
-      os: ubuntu-22.04
+      os: ubuntu-24.04
       numpy: 1.26.4
-      python: 3.10.6
+      python: 3.11.14
 
   lint-pip:
     needs: [setup-pip]
     strategy:
       fail-fast: true
       matrix:
-        numpy: [1.26.4]
-        python: [3.12.3, 3.9.13]
+        include:
+        # Lint with one version from each numpy series
+        # Need to be the same as setup-pip for cache
+        - numpy: 1.24.2
+          python: 3.10.11
+        - numpy: 1.26.4
+          python: 3.12.10
+        - numpy: 2.3.0
+          python: 3.13.11
     uses: ./.github/workflows/_lint-pip.yaml
     with:
-      os: ubuntu-22.04
+      os: ubuntu-24.04
       numpy: ${{ matrix.numpy }}
       python: ${{ matrix.python }}
       activate_command: source venv/bin/activate
@@ -101,15 +128,15 @@ jobs:
     needs: [test-pip, test-conda, lint-pip]
     uses: ./.github/workflows/_version.yaml
     with:
-      os: ubuntu-22.04
-      python: 3.9.13
+      os: ubuntu-24.04
+      python: 3.11.14
 
   # GitHub Actions does not have a halt job option, to stop from deploying if
   # no functional changes were found. We build a separate job to substitute the
   # halt option. The `deploy` job is dependent on the output of the
   # `check-for-functional-changes`job.
   check-for-functional-changes:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     # Last job to run
     needs: [check-version]
     outputs:
@@ -123,7 +150,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: 3.9.13
+        python-version: 3.11.14
 
     - id: stop-early
       # The `check-for-functional-changes` job should always succeed regardless
@@ -136,7 +163,7 @@ jobs:
         "::set-output name=status::success" ; fi
 
   publish-to-pypi:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [check-for-functional-changes]
     if: needs.check-for-functional-changes.outputs.status == 'success'
     env:
@@ -151,25 +178,25 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: 3.9.13
+        python-version: 3.11.14
 
     - name: Cache deps
       uses: actions/cache@v4
       with:
         path: venv
-        key: pip-deps-ubuntu-22.04-np1.24.2-py3.9.13-${{ hashFiles('setup.py') }}
+        key: pip-deps-ubuntu-24.04-np1.26.4-py3.11.14-${{ hashFiles('setup.py') }}
 
     - name: Cache build
       uses: actions/cache@v4
       with:
         path: venv/**/[oO]pen[fF]isca*
-        key: pip-build-ubuntu-22.04-np1.24.2-py3.9.13-${{ hashFiles('setup.py') }}-${{ github.sha }}
+        key: pip-build-ubuntu-24.04-np1.26.4-py3.11.14-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
     - name: Cache release
       uses: actions/cache@v4
       with:
         path: dist
-        key: pip-release-ubuntu-22.04-np1.24.2-py3.9.13-${{ hashFiles('setup.py') }}-${{ github.sha }}
+        key: pip-release-ubuntu-24.04-np1.26.4-py3.11.14-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
     - name: Check package format
       run: |
@@ -198,7 +225,7 @@ jobs:
           -d '{"ref":"main"}'
 
   publish-to-conda:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [publish-to-pypi]
     defaults:
       run:
@@ -215,19 +242,19 @@ jobs:
           /usr/share/miniconda/envs/openfisca
           ~/.conda/envs/openfisca
           .env.yaml
-        key: conda-env-ubuntu-22.04-np1.26.4-py3.10.6-${{ hashFiles('setup.py') }}
+        key: conda-env-ubuntu-24.04-np1.26.4-py3.11.14-${{ hashFiles('setup.py') }}
 
     - name: Cache conda deps
       uses: actions/cache@v4
       with:
         path: ~/conda_pkgs_dir
-        key: conda-deps-ubuntu-22.04-np1.26.4-py3.10.6-${{ hashFiles('setup.py') }}
+        key: conda-deps-ubuntu-24.04-np1.26.4-py3.11.14-${{ hashFiles('setup.py') }}
 
     - name: Cache release
       uses: actions/cache@v4
       with:
         path: ~/conda-rel
-        key: conda-release-ubuntu-22.04-np1.26.4-py3.10.6-${{ hashFiles('setup.py') }}-${{ github.sha }}
+        key: conda-release-ubuntu-24.04-np1.26.4-py3.11.14-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
     - name: Update conda & dependencies
       uses: conda-incubator/setup-miniconda@v3
@@ -257,7 +284,7 @@ jobs:
         auto-update-conda: true
         # See GHA Windows
         # https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
-        python-version: 3.10.6
+        python-version: 3.11.14
         channels: conda-forge
         activate-environment: true
 
