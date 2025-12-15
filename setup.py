@@ -33,7 +33,6 @@ general_requirements = [
     "numexpr >=2.10.1, <3.0",
     # NumPy 1.24.2 supports Python 3.8 to 3.11
     # Numpy 2.0.2 supports Python 3.9 to 3.12
-    "numpy >=1.24.2, <2.1.0; python_version < '3.10'",
     # Numpy 2.1.2 supports Python 3.10 to 3.12
     "numpy >=1.24.2, <2.0; python_version < '3.11'",
     # NumPy 1.26.0 supports Python 3.9 to 3.12
