@@ -5,6 +5,8 @@
 #### Technical changes
 
 - Conditional dependency on Numpy, based on Python version.
+- Add support for Python 3.13.
+- Remove support of deprecated Python version 3.9. It still works, but is not tested anymore.
 
 ## 43.5.0 [#1344](https://github.com/openfisca/openfisca-core/pull/1344)
 
@@ -82,7 +84,7 @@
 
 #### Technical changes
 
-- Change Github Action matrix test to support Python 3.12.
+- Change Github Action matrix test to supports Python 3.12.
 
 ### 43.3.5 [#1325](https://github.com/openfisca/openfisca-core/pull/1325)
 

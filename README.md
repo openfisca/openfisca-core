@@ -18,7 +18,7 @@ This package contains the core features of OpenFisca, which are meant to be used
 
 ## Environment
 
-OpenFisca runs on Python 3.7. More recent versions should work but are not tested.
+OpenFisca runs on Python. See [setup.py](setup.py) for supported versions.
 
 OpenFisca also relies strongly on NumPy. The last four minor versions should work, but only the latest/stable is tested.
 
@@ -32,7 +32,7 @@ To install it locally you can use one of these two options:
 
 ### Installing `openfisca-core` with `pip`
 
-This installation requires [Python](https://www.python.org/downloads/) 3.7+ and [GIT](https://git-scm.com) installations.
+This installation requires [Python](https://www.python.org/downloads/) and [GIT](https://git-scm.com) installations.
 
 To install `openfisca-core` locally in development mode run the following commands in a shell terminal:
 
@@ -57,7 +57,7 @@ Conda is the easiest way to use OpenFisca under Windows as by installing Anacond
 If you are familiar with the command line you could use [Miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/windows.html), which needs very much less disk space than Anaconda.
 
 After installing conda, run these commands in an `Anaconda Powershell Prompt`:
-- `conda create --name openfisca python=3.7` to create an `openfisca` environment.
+- `conda create --name openfisca python=3.11` to create an `openfisca` environment.
 - `conda activate openfisca` to use your new environment.
 
 Then, choose one of the following options according to your use case:
