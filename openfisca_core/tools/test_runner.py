@@ -1,3 +1,5 @@
+# Avoid T201 warning for print statements in this test runner
+# flake8: noqa: T201
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -113,6 +115,222 @@ yaml, Loader = import_yaml()
 _tax_benefit_system_cache: dict = {}
 
 options: Options = Options()
+
+
+def discover_test_files(
+    paths: Sequence[str], name_filter: str | None = None
+) -> list[str]:
+    files = []
+    yaml_exts = {".yaml", ".yml"}
+    for p in paths:
+        p = pathlib.Path(p)
+        if p.is_file():
+            if p.suffix in yaml_exts:
+                files.append(str(p.resolve()))
+            elif p.suffix == ".py":
+                # keep only test_*.py files
+                if p.name.startswith("test_"):
+                    files.append(str(p.resolve()))
+        elif p.is_dir():
+            # collect yaml files
+            for ext in yaml_exts:
+                for f in p.rglob(f"*{ext}"):
+                    files.append(str(f.resolve()))
+            # collect only python test files named test_*.py
+            for f in p.rglob("test_*.py"):
+                files.append(str(f.resolve()))
+    if name_filter:
+        files = [f for f in files if name_filter in pathlib.Path(f).name]
+    return sorted(set(files))
+
+
+def run_tests_in_parallel(tax_benefit_system, paths, options, num_workers, verbose):
+    import json
+    import pty
+    import select
+    import shutil
+    import subprocess
+    import time
+
+    test_files = discover_test_files(paths, options.get("name_filter"))
+
+    if not test_files:
+        print("No test files found")
+        return 0
+
+    if num_workers <= 0:
+        try:
+            import multiprocessing
+
+            num_workers = max(1, multiprocessing.cpu_count() - 1)
+        except Exception:
+            num_workers = 1
+
+    # Limit workers to number of test files
+    num_workers = min(num_workers, len(test_files))
+
+    # Split test files evenly across workers
+    batches = [[] for _ in range(num_workers)]
+    for i, f in enumerate(test_files):
+        batches[i % num_workers].append(f)
+
+    # Remove empty batches
+    batches = [b for b in batches if b]
+    num_workers = len(batches)
+
+    print(f"Running {len(test_files)} test files across {num_workers} workers...")
+
+    # Prepare environment variables for pytest workers
+    env = os.environ.copy()
+    env["PYTHONUNBUFFERED"] = "1"
+    if options.get("country_package"):
+        env["OPENFISCA_COUNTRY_PACKAGE"] = options.get("country_package")
+    env["OPENFISCA_EXTENSIONS"] = json.dumps(options.get("extensions") or [])
+    env["OPENFISCA_REFORMS"] = json.dumps(options.get("reforms") or [])
+    env["OPENFISCA_OPTIONS"] = json.dumps(options)
+
+    # Get python executable with fallback
+    python_bin = sys.executable or shutil.which("python3") or shutil.which("python")
+    if not python_bin:
+        print("Error: Could not find Python executable")
+        return 1
+
+    procs = []
+    fds = []
+    outputs = ["" for _ in range(num_workers)]
+    worker_info = {}
+    start_time = time.time()
+
+    # Launch worker processes
+    for idx, batch in enumerate(batches):
+        if not batch:
+            continue
+        master_fd, slave_fd = pty.openpty()
+        cmd = [
+            python_bin,
+            "-m",
+            "pytest",
+            "-p",
+            "openfisca_core.tools.parallel_plugin",
+            "--maxfail=1",
+            "--disable-warnings",
+        ]
+        if verbose:
+            cmd.append("-vv")
+        cmd.extend(batch)
+        p = subprocess.Popen(
+            cmd, stdout=slave_fd, stderr=subprocess.STDOUT, env=env, close_fds=True
+        )
+        os.close(slave_fd)
+        procs.append((idx, p))
+        fds.append((idx, master_fd))
+
+        # Store worker info
+        file_names = [os.path.basename(f) for f in batch]
+        if len(file_names) <= 3:
+            file_str = ", ".join(file_names)
+        else:
+            file_str = f"{', '.join(file_names[:3])} (+{len(file_names) - 3} more)"
+
+        worker_info[idx] = {
+            "files": file_str,
+            "batch": batch,
+            "start_time": time.time(),
+            "status": "running",
+        }
+        print(f"  Worker {idx}: {file_str}")
+
+    print()
+
+    running = set(i for i, _ in procs)
+    exit_codes = {}
+    last_update = time.time()
+
+    # Monitor workers
+    while running:
+        rlist = [fd for (_, fd) in fds]
+        readable, _, _ = select.select(rlist, [], [], 0.1)
+        for fd in readable:
+            for idx2, mfd in fds:
+                if mfd == fd:
+                    try:
+                        chunk = os.read(fd, 4096).decode("utf-8", "replace")
+                        outputs[idx2] += chunk
+                        if verbose:
+                            print(f"[Worker {idx2}] {chunk}", end="", flush=True)
+                    except OSError:
+                        pass
+
+        # Print progress every 2 seconds
+        current_time = time.time()
+        if current_time - last_update >= 2.0:
+            completed = len(exit_codes)
+            total = num_workers
+            elapsed = current_time - start_time
+            print(
+                f"\rProgress: {completed}/{total} workers completed ({elapsed:.1f}s elapsed)",
+                end="",
+                flush=True,
+            )
+            last_update = current_time
+
+        for idx2, p in procs:
+            if idx2 in running:
+                ret = p.poll()
+                if ret is not None:
+                    exit_codes[idx2] = ret
+                    duration = time.time() - worker_info[idx2]["start_time"]
+                    worker_info[idx2]["status"] = "passed" if ret == 0 else "failed"
+                    worker_info[idx2]["duration"] = duration
+
+                    status_symbol = "✓" if ret == 0 else "✗"
+                    status_color = "\033[32m" if ret == 0 else "\033[31m"
+                    reset_color = "\033[0m"
+                    print(
+                        f"\r{status_color}{status_symbol}{reset_color} Worker {idx2}: {worker_info[idx2]['files']} ({duration:.1f}s)"
+                    )
+
+                    running.remove(idx2)
+                    if ret != 0:
+                        # Stop on first failure - terminate all other workers
+                        for idx3, p2 in procs:
+                            if idx3 in running:
+                                try:
+                                    p2.terminate()
+                                except Exception:
+                                    pass
+                        running.clear()
+                        break
+
+    # Close file descriptors
+    for _, fd in fds:
+        try:
+            os.close(fd)
+        except OSError:
+            pass
+
+    total_duration = time.time() - start_time
+    print()
+
+    # Report failures
+    for idx, code in exit_codes.items():
+        if code != 0:
+            print(f"\n{'=' * 80}")
+            print(f"Worker {idx} FAILED")
+            print(f"{'=' * 80}")
+            print(f"Files: {', '.join(worker_info[idx]['batch'])}")
+            print(f"{'=' * 80}")
+            print(outputs[idx])
+            return 1
+
+    # Success summary
+    print(f"{'=' * 80}")
+    print("✓ All tests passed!")
+    print(
+        f"  {len(test_files)} test files across {num_workers} workers in {total_duration:.2f}s"
+    )
+    print(f"{'=' * 80}")
+    return 0
 
 
 def run_tests(

@@ -134,6 +134,18 @@ def get_parser():
             default=None,
             help="variables to ignore. If specified, do not test the given variables.",
         )
+        parser.add_argument(
+            "--in-parallel",
+            action="store_true",
+            default=False,
+            help="run tests in parallel",
+        )
+        parser.add_argument(
+            "--num-workers",
+            type=int,
+            default=0,
+            help="number of parallel workers (default: CPU count - 1)",
+        )
 
         return parser
 
