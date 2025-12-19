@@ -1,5 +1,11 @@
 # Changelog
 
+### 44.0.1 [#1349](https://github.com/openfisca/openfisca-core/pull/1349)
+
+#### Technical changes
+
+- Add parallel execution of tests to `openfisca test` command line.
+
 # 44.0.0 [#1346](https://github.com/openfisca/openfisca-core/pull/1346)
 
 #### Technical changes
