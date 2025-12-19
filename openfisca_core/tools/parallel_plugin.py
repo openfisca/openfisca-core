@@ -1,9 +1,11 @@
-import os
 import json
+import os
+
 from openfisca_core.scripts import build_tax_benefit_system
 from openfisca_core.tools.test_runner import OpenFiscaPlugin
 
 # pytest hook
+
 
 def pytest_configure(config):
     country = os.environ.get("OPENFISCA_COUNTRY_PACKAGE") or None
