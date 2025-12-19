@@ -12,8 +12,6 @@ import dataclasses
 import json
 import os
 import pathlib
-import pty
-import select
 import shutil
 import subprocess
 import sys
@@ -21,6 +19,14 @@ import textwrap
 import time
 import traceback
 import warnings
+
+# Unix-specific modules for parallel testing (not available on Windows)
+try:
+    import pty
+    import select
+    PARALLEL_AVAILABLE = True
+except ImportError:
+    PARALLEL_AVAILABLE = False
 
 import pytest
 
@@ -310,7 +316,13 @@ def run_tests_in_parallel(tax_benefit_system, paths, options, num_workers, verbo
         - Provides progress updates every 2 seconds
         - Captures and displays output from failed workers
         - Uses PTY to ensure proper output flushing
+        - On Windows, falls back to single-threaded testing
     """
+    if not PARALLEL_AVAILABLE:
+        print("Parallel testing not available on this platform (requires Unix PTY support).")
+        print("Falling back to single-threaded testing...")
+        return run_tests(tax_benefit_system, paths, options)
+
     test_files = discover_test_files(paths, options.get("name_filter"))
 
     if not test_files:
