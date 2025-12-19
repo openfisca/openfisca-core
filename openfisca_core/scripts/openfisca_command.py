@@ -1,6 +1,7 @@
 import argparse
 import sys
 import warnings
+from importlib.metadata import version
 
 from openfisca_core.scripts import add_tax_benefit_system_arguments
 
@@ -11,6 +12,11 @@ from openfisca_core.scripts import add_tax_benefit_system_arguments
 
 def get_parser():
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"OpenFisca-Core {version('OpenFisca-Core')}",
+    )
 
     subparsers = parser.add_subparsers(help="Available commands", dest="command")
     subparsers.required = (
