@@ -24,6 +24,7 @@ import warnings
 try:
     import pty
     import select
+
     PARALLEL_AVAILABLE = True
 except ImportError:
     PARALLEL_AVAILABLE = False
@@ -319,7 +320,9 @@ def run_tests_in_parallel(tax_benefit_system, paths, options, num_workers, verbo
         - On Windows, falls back to single-threaded testing
     """
     if not PARALLEL_AVAILABLE:
-        print("Parallel testing not available on this platform (requires Unix PTY support).")
+        print(
+            "Parallel testing not available on this platform (requires Unix PTY support)."
+        )
         print("Falling back to single-threaded testing...")
         return run_tests(tax_benefit_system, paths, options)
 
