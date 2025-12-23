@@ -129,4 +129,4 @@ jobs:
     uses: ./.github/workflows/_version.yaml
     with:
       os: ubuntu-24.04
-      python: 3.11.14
+      python: 3.12.10
