@@ -1,5 +1,11 @@
 # Changelog
 
+### 44.0.2 [#1351](https://github.com/openfisca/openfisca-core/pull/1351)
+
+#### Technical changes
+
+- Fix cache name mismatch due to conditional dependency #1346
+
 ### 44.0.1 [#1349](https://github.com/openfisca/openfisca-core/pull/1349)
 
 #### Technical changes
