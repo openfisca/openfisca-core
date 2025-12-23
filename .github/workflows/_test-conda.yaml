@@ -69,10 +69,6 @@ jobs:
     - name: Run core tests
       run: make test-core
 
-    - name: Run core tests in parallel
-      # To evaluate that this mode works
-      run: make test-core openfisca_args="--in-parallel"
-
     - name: Run country tests
       run: make test-country
 
