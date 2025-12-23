@@ -87,6 +87,15 @@ To run the entire test suite:
 make test
 ```
 
+If you have many tests, you could run them in parallel :
+```sh
+make test-core openfisca_args="--in-parallel"
+```
+
+You could add an option  `--num-workers=4` to limit to 4 threads. Default is your CPU Core number minus 1.
+
+Be aware that this add overhead so use it only for huge test suite.
+
 To run all the tests defined on a test file:
 
 ```sh

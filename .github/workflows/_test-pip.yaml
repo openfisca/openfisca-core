@@ -53,10 +53,11 @@ jobs:
         path: venv/**/[Oo]pen[Ff]isca*
         key: pip-build-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
 
-    - name: Run Openfisca Core tests
+    - name: Run Openfisca Core tests in parallel
+      # To evaluate that parallel mode works
       run: |
         ${{ inputs.activate_command }}
-        make test-core
+        make test-core openfisca_args="--in-parallel"
 
     - name: Run Country Template tests
       if: ${{ startsWith(inputs.os, 'ubuntu') }}

@@ -1,6 +1,7 @@
 import argparse
 import sys
 import warnings
+from importlib.metadata import version
 
 from openfisca_core.scripts import add_tax_benefit_system_arguments
 
@@ -11,6 +12,11 @@ from openfisca_core.scripts import add_tax_benefit_system_arguments
 
 def get_parser():
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"OpenFisca-Core {version('OpenFisca-Core')}",
+    )
 
     subparsers = parser.add_subparsers(help="Available commands", dest="command")
     subparsers.required = (
@@ -133,6 +139,18 @@ def get_parser():
             nargs="*",
             default=None,
             help="variables to ignore. If specified, do not test the given variables.",
+        )
+        parser.add_argument(
+            "--in-parallel",
+            action="store_true",
+            default=False,
+            help="run tests in parallel",
+        )
+        parser.add_argument(
+            "--num-workers",
+            type=int,
+            default=0,
+            help="number of parallel workers (default: CPU count - 1)",
         )
 
         return parser

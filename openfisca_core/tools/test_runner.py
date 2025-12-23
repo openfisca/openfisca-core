@@ -1,3 +1,5 @@
+# Avoid T201 warning for print statements in this test runner
+# flake8: noqa: T201
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -7,12 +9,25 @@ from typing_extensions import Literal, TypedDict
 from openfisca_core.types import TaxBenefitSystem
 
 import dataclasses
+import json
 import os
 import pathlib
+import shutil
+import subprocess
 import sys
 import textwrap
+import time
 import traceback
 import warnings
+
+# Unix-specific modules for parallel testing (not available on Windows)
+try:
+    import pty
+    import select
+
+    PARALLEL_AVAILABLE = True
+except ImportError:
+    PARALLEL_AVAILABLE = False
 
 import pytest
 
@@ -113,6 +128,361 @@ yaml, Loader = import_yaml()
 _tax_benefit_system_cache: dict = {}
 
 options: Options = Options()
+
+
+def _create_worker_environment(options: Options) -> dict:
+    """Create environment variables for worker processes.
+
+    Args:
+        options: Test options to pass to workers
+
+    Returns:
+        Environment dictionary with OpenFisca configuration
+    """
+    env = os.environ.copy()
+    env["PYTHONUNBUFFERED"] = "1"  # Ensure output is not buffered
+    if options.get("country_package"):
+        env["OPENFISCA_COUNTRY_PACKAGE"] = options.get("country_package")
+    env["OPENFISCA_EXTENSIONS"] = json.dumps(options.get("extensions") or [])
+    env["OPENFISCA_REFORMS"] = json.dumps(options.get("reforms") or [])
+    env["OPENFISCA_OPTIONS"] = json.dumps(options)
+    return env
+
+
+def _spawn_worker(
+    batch: list[str], python_bin: str, env: dict, verbose: bool
+) -> tuple[subprocess.Popen, int]:
+    """Spawn a single worker process with PTY.
+
+    Args:
+        batch: List of test files for this worker
+        python_bin: Path to Python executable
+        env: Environment variables
+        verbose: Whether to enable verbose output
+
+    Returns:
+        Tuple of (subprocess.Popen, master_fd)
+    """
+    # Create PTY (pseudo-terminal) for real-time output capture
+    # PTY ensures output is line-buffered and flushed immediately
+    master_fd, slave_fd = pty.openpty()
+
+    # Build pytest command for this worker
+    cmd = [
+        python_bin,
+        "-m",
+        "pytest",
+        "-p",
+        "openfisca_core.tools.parallel_plugin",  # Load our custom plugin
+        "--maxfail=1",  # Stop on first failure within this worker
+        "--disable-warnings",  # Reduce noise in output
+    ]
+    if verbose:
+        cmd.append("-vv")
+    cmd.extend(batch)  # Add test files for this worker
+
+    # Spawn worker process with PTY output
+    p = subprocess.Popen(
+        cmd, stdout=slave_fd, stderr=subprocess.STDOUT, env=env, close_fds=True
+    )
+    os.close(slave_fd)  # Close slave end in parent process
+    return p, master_fd
+
+
+def _format_file_list(file_names: list[str], max_display: int = 3) -> str:
+    """Format list of files for display.
+
+    Args:
+        file_names: List of file names
+        max_display: Maximum number of files to show before truncating
+
+    Returns:
+        Formatted string of file names
+    """
+    if len(file_names) <= max_display:
+        return ", ".join(file_names)
+    return (
+        f"{', '.join(file_names[:max_display])} (+{len(file_names) - max_display} more)"
+    )
+
+
+def _read_worker_output(
+    readable: list, fd_to_idx: dict, outputs: list[str], verbose: bool
+) -> None:
+    """Read output from workers that have data available.
+
+    Args:
+        readable: List of file descriptors with data available
+        fd_to_idx: Mapping from file descriptor to worker index
+        outputs: List of accumulated outputs per worker
+        verbose: Whether to print output in real-time
+    """
+    for fd in readable:
+        idx = fd_to_idx.get(fd)
+        if idx is not None:
+            try:
+                chunk = os.read(fd, 4096).decode("utf-8", "replace")
+                outputs[idx] += chunk
+                if verbose:
+                    print(f"[Worker {idx}] {chunk}", end="", flush=True)
+            except OSError:
+                pass  # FD closed or error, ignore
+
+
+def _terminate_workers(procs: list, running: set) -> None:
+    """Terminate all running workers.
+
+    Args:
+        procs: List of (worker_id, subprocess.Popen) tuples
+        running: Set of worker IDs still running
+    """
+    for idx, p in procs:
+        if idx in running:
+            try:
+                p.terminate()
+            except (ProcessLookupError, PermissionError):
+                pass  # Process already dead or permission denied
+
+
+def discover_test_files(
+    paths: Sequence[str], name_filter: str | None = None
+) -> list[str]:
+    """Discover all test files (YAML and Python) in the given paths.
+
+    Args:
+        paths: List of file or directory paths to search for test files
+        name_filter: Optional string filter to match against file names
+
+    Returns:
+        Sorted list of unique absolute paths to test files
+
+    Notes:
+        - Accepts .yaml and .yml files
+        - Only accepts Python files starting with 'test_'
+        - Recursively explores directories
+    """
+    files = []
+    yaml_exts = {".yaml", ".yml"}
+    for p in paths:
+        p = pathlib.Path(p)
+        if p.is_file():
+            if p.suffix in yaml_exts:
+                files.append(str(p.resolve()))
+            elif p.suffix == ".py":
+                # keep only test_*.py files
+                if p.name.startswith("test_"):
+                    files.append(str(p.resolve()))
+        elif p.is_dir():
+            # collect yaml files
+            for ext in yaml_exts:
+                for f in p.rglob(f"*{ext}"):
+                    files.append(str(f.resolve()))
+            # collect only python test files named test_*.py
+            for f in p.rglob("test_*.py"):
+                files.append(str(f.resolve()))
+    if name_filter:
+        files = [f for f in files if name_filter in pathlib.Path(f).name]
+    return sorted(set(files))
+
+
+def run_tests_in_parallel(tax_benefit_system, paths, options, num_workers, verbose):
+    """Run OpenFisca tests in parallel across multiple worker processes.
+
+    This function implements parallel test execution by:
+    1. Discovering all test files in the given paths
+    2. Splitting test files into batches for each worker
+    3. Spawning pytest worker processes with the parallel_plugin
+    4. Monitoring worker progress and collecting output
+    5. Stopping all workers on first failure (fail-fast behavior)
+    6. Reporting results with colored output and timing
+
+    Architecture:
+        - Main process: orchestrates workers via subprocess.Popen
+        - Each worker: independent pytest process with parallel_plugin loaded
+        - Communication: PTY for real-time output capture
+        - Configuration: passed via environment variables
+
+    Args:
+        tax_benefit_system: The tax-benefit system to test
+        paths: List of paths containing test files
+        options: Test options dict (name_filter, verbose, etc.)
+        num_workers: Number of parallel workers (0 = auto-detect from CPU count)
+        verbose: If True, print detailed output from each worker
+
+    Returns:
+        Exit code: 0 for success, 1 for failure
+
+    Notes:
+        - Uses fail-fast: stops all workers on first failure
+        - Provides progress updates every 2 seconds
+        - Captures and displays output from failed workers
+        - Uses PTY to ensure proper output flushing
+        - On Windows, falls back to single-threaded testing
+    """
+    if not PARALLEL_AVAILABLE:
+        print(
+            "Parallel testing not available on this platform (requires Unix PTY support)."
+        )
+        print("Falling back to single-threaded testing...")
+        return run_tests(tax_benefit_system, paths, options)
+
+    test_files = discover_test_files(paths, options.get("name_filter"))
+
+    if not test_files:
+        print("No test files found")
+        return 0
+
+    # Auto-detect number of workers based on CPU count
+    if num_workers <= 0:
+        try:
+            import multiprocessing
+
+            # Use N-1 CPUs to leave one for the system
+            num_workers = max(1, multiprocessing.cpu_count() - 1)
+        except (ImportError, NotImplementedError):
+            num_workers = 1
+
+    # Limit workers to number of test files (no point having idle workers)
+    num_workers = min(num_workers, len(test_files))
+
+    # Split test files evenly across workers using round-robin distribution
+    # This ensures balanced workload even with uneven file counts
+    batches = [[] for _ in range(num_workers)]
+    for i, f in enumerate(test_files):
+        batches[i % num_workers].append(f)
+
+    # Remove empty batches and adjust worker count
+    batches = [b for b in batches if b]
+    num_workers = len(batches)
+
+    print(f"Running {len(test_files)} test files across {num_workers} workers...")
+
+    # Prepare environment variables for pytest workers
+    env = _create_worker_environment(options)
+
+    # Get python executable with fallback
+    python_bin = sys.executable or shutil.which("python3") or shutil.which("python")
+    if not python_bin:
+        print("Error: Could not find Python executable")
+        return 1
+
+    # Initialize data structures for worker management
+    procs = []  # List of (worker_id, subprocess.Popen) tuples
+    fds = []  # List of (worker_id, master_fd) tuples for PTY communication
+    outputs = ["" for _ in range(num_workers)]  # Accumulated output from each worker
+    worker_info = {}  # Metadata about each worker (files, timing, status)
+    start_time = time.time()
+
+    # Launch worker processes
+    for idx, batch in enumerate(batches):
+        if not batch:
+            continue
+
+        # Spawn worker process
+        p, master_fd = _spawn_worker(batch, python_bin, env, verbose)
+        procs.append((idx, p))
+        fds.append((idx, master_fd))
+
+        # Store worker metadata for progress reporting
+        file_names = [os.path.basename(f) for f in batch]
+        file_str = _format_file_list(file_names)
+
+        worker_info[idx] = {
+            "files": file_str,
+            "batch": batch,
+            "start_time": time.time(),
+            "status": "running",
+        }
+        print(f"  Worker {idx}: {file_str}")
+
+    print()
+
+    running = set(i for i, _ in procs)  # Set of worker IDs still running
+    exit_codes = {}  # Map of worker_id -> exit_code
+    last_update = time.time()  # For throttling progress updates
+
+    # Create fd -> worker_idx mapping for O(1) lookup
+    fd_to_idx = {fd: idx for idx, fd in fds}
+
+    # Monitor workers until all complete or one fails
+    while running:
+        # Use select() to wait for output from any worker
+        # Timeout of 0.1s allows periodic checking of process status
+        rlist = [fd for (_, fd) in fds]
+        readable, _, _ = select.select(rlist, [], [], 0.1)
+
+        # Read output from any workers that have data available
+        _read_worker_output(readable, fd_to_idx, outputs, verbose)
+
+        # Print progress update every 2 seconds (avoid spamming)
+        current_time = time.time()
+        if current_time - last_update >= 2.0:
+            completed = len(exit_codes)
+            total = num_workers
+            elapsed = current_time - start_time
+            print(
+                f"\rProgress: {completed}/{total} workers completed ({elapsed:.1f}s elapsed)",
+                end="",
+                flush=True,
+            )
+            last_update = current_time
+
+        # Check each worker for completion
+        for idx2, p in procs:
+            if idx2 in running:
+                ret = p.poll()  # Non-blocking check if process finished
+                if ret is not None:
+                    # Worker completed - record exit code and timing
+                    exit_codes[idx2] = ret
+                    duration = time.time() - worker_info[idx2]["start_time"]
+                    worker_info[idx2]["status"] = "passed" if ret == 0 else "failed"
+                    worker_info[idx2]["duration"] = duration
+
+                    # Print completion with colored status indicator
+                    status_symbol = "✓" if ret == 0 else "✗"
+                    status_color = "\033[32m" if ret == 0 else "\033[31m"
+                    reset_color = "\033[0m"
+                    print(
+                        f"\r{status_color}{status_symbol}{reset_color} Worker {idx2}: {worker_info[idx2]['files']} ({duration:.1f}s)"
+                    )
+
+                    running.remove(idx2)
+
+                    # Fail-fast: if any worker fails, terminate all others
+                    if ret != 0:
+                        _terminate_workers(procs, running)
+                        running.clear()
+                        break
+
+    # Close file descriptors
+    for _, fd in fds:
+        try:
+            os.close(fd)
+        except OSError:
+            pass
+
+    total_duration = time.time() - start_time
+    print()
+
+    # Report failures
+    for idx, code in exit_codes.items():
+        if code != 0:
+            print(f"\n{'=' * 80}")
+            print(f"Worker {idx} FAILED")
+            print(f"{'=' * 80}")
+            print(f"Files: {', '.join(worker_info[idx]['batch'])}")
+            print(f"{'=' * 80}")
+            print(outputs[idx])
+            return 1
+
+    # Success summary
+    print(f"{'=' * 80}")
+    print("✓ All tests passed!")
+    print(
+        f"  {len(test_files)} test files across {num_workers} workers in {total_duration:.2f}s"
+    )
+    print(f"{'=' * 80}")
+    return 0
 
 
 def run_tests(
