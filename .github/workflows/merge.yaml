@@ -1,10 +1,8 @@
 name: OpenFisca-Core / Deploy package to PyPi & Conda
-python_version: &upper_pyver 3.13.11
-conda_python_version: &conda_pyver 3.11.14
 
 env:
-  UPPER_PYTHON_VERSION: *upper_pyver
-  CONDA_PYTHON_VERSION: *conda_pyver
+  UPPER_PYTHON_VERSION: &upper_pyver 3.13.11
+  CONDA_PYTHON_VERSION: &conda_pyver 3.11.14
 
 on:
   push:
