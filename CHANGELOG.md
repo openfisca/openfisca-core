@@ -4,7 +4,7 @@
 
 #### Technical changes
 
-- Fix cache name mismatch due to conditional dependency #1346
+- Fix cache name mismatch in CI due to conditional Python version dependency #1346
 
 ### 44.0.1 [#1349](https://github.com/openfisca/openfisca-core/pull/1349)
 
