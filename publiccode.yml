@@ -3,7 +3,7 @@ name: OpenFisca Core
 applicationSuite: OpenFisca
 url: https://github.com/openfisca/openfisca-core/
 landingURL: https://openfisca.org/
-softwareVersion: 44.0.2
+softwareVersion: 44.0.3
 releaseDate: 2025-12-29
 logo: https://openfisca.org/img/logo-openfisca.svg
 platforms:
