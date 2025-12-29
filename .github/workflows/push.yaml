@@ -1,4 +1,10 @@
 name: OpenFisca-Core / Pull request review
+python_version: &upper_pyver 3.13.11
+conda_python_version: &conda_pyver 3.11.14
+
+env:
+  UPPER_PYTHON_VERSION: *upper_pyver
+  CONDA_PYTHON_VERSION: *conda_pyver
 
 on:
   pull_request:
@@ -35,11 +41,11 @@ jobs:
           activate_command: source venv/bin/activate
         - os: ubuntu-24.04
           numpy: 2.3.0
-          python: 3.13.11
+          python: *upper_pyver
           activate_command: source venv/bin/activate
         - os: windows-2025
           numpy: 2.3.0
-          python: 3.13.11
+          python: *upper_pyver
           activate_command: .\venv\Scripts\activate
     uses: ./.github/workflows/_before-pip.yaml
     with:
@@ -53,7 +59,7 @@ jobs:
     with:
       os: ubuntu-24.04
       numpy: 1.26.4
-      python: 3.11.14
+      python: *conda_pyver
 
   test-pip:
     needs: [setup-pip]
@@ -82,11 +88,11 @@ jobs:
           activate_command: source venv/bin/activate
         - os: ubuntu-24.04
           numpy: 2.3.0
-          python: 3.13.11
+          python: *upper_pyver
           activate_command: source venv/bin/activate
         - os: windows-2025
           numpy: 2.3.0
-          python: 3.13.11
+          python: *upper_pyver
           activate_command: .\venv\Scripts\activate
     uses: ./.github/workflows/_test-pip.yaml
     with:
@@ -101,7 +107,7 @@ jobs:
     with:
       os: ubuntu-24.04
       numpy: 1.26.4
-      python: 3.11.14
+      python: *conda_pyver
 
   lint-pip:
     needs: [setup-pip]
@@ -116,7 +122,7 @@ jobs:
         - numpy: 1.26.4
           python: 3.12.10
         - numpy: 2.3.0
-          python: 3.13.11
+          python: *upper_pyver
     uses: ./.github/workflows/_lint-pip.yaml
     with:
       os: ubuntu-24.04
@@ -129,4 +135,4 @@ jobs:
     uses: ./.github/workflows/_version.yaml
     with:
       os: ubuntu-24.04
-      python: 3.12.10
+      python: *upper_pyver
