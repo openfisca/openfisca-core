@@ -86,7 +86,7 @@ outputs:
 about:
   home: https://openfisca.org
   license_family: AGPL
-  license: AGPL-3.0-only
+  license: AGPL-3.0-or-later
   license_file: LICENSE
   summary: "A versatile microsimulation free software"
   doc_url: https://openfisca.org
