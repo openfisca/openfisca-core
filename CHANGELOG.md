@@ -4,7 +4,7 @@
 
 #### Technical changes
 
-- Fix setup.py syntax to allow to publish to PyPi.
+- Fix `setup.py` syntax to restore publishing to PyPI.
 
 ### 44.0.2 [#1351](https://github.com/openfisca/openfisca-core/pull/1351)
 
