@@ -87,6 +87,7 @@ def _dump_entity(population, directory) -> None:
         encoded_roles = numpy.select(
             [population.members_role == role for role in flattened_roles],
             [role.key for role in flattened_roles],
+            default="",
         )
     numpy.save(os.path.join(path, "members_role.npy"), encoded_roles)
 
@@ -112,6 +113,7 @@ def _restore_entity(population, directory):
         population.members_role = numpy.select(
             [encoded_roles == role.key for role in flattened_roles],
             list(flattened_roles),
+            default=None,
         )
     person_count = len(population.members_entity_id)
     population.count = max(population.members_entity_id) + 1

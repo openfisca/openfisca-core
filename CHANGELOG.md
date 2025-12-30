@@ -1,5 +1,12 @@
 # Changelog
 
+### 44.0.4 [#1354](https://github.com/openfisca/openfisca-core/pull/1354)
+
+#### Technical changes
+
+- Add missing unit test in CI
+- Specify the default value in a compatible type in numpy.select for Numpy 2.x.
+
 ### 44.0.3 [#1352](https://github.com/openfisca/openfisca-core/pull/1352)
 
 #### Technical changes

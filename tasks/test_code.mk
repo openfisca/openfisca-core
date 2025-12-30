@@ -45,6 +45,7 @@ test-core: $(shell git ls-files "*test_*.py")
 		openfisca_core/periods \
 		openfisca_core/projectors \
 		${openfisca_args}
+		python -m pytest tests/
 	@$(call print_pass,$@:)
 
 ## Run country-template tests.

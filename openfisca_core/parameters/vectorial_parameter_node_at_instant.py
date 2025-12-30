@@ -48,10 +48,17 @@ class VectorialParameterNodeAtInstant:
     def _get_appropriate_keys(key):
         if isinstance(key, EnumArray):
             enum = key.possible_values
-            return numpy.select(
+            result = numpy.select(
                 [key == item.index for item in enum],
                 [item.name for item in enum],
+                default="",
             )
+            if numpy.any(result == ""):
+                invalid_indices = key[result == ""]
+                enum_name = enum.__name__ if enum is not None else "Unknown"
+                msg = f"Invalid enum index in EnumArray for {enum_name}: {invalid_indices}"
+                raise ValueError(msg)
+            return result
         if key.dtype == object and issubclass(type(key[0]), Enum):
             return key
         return key
