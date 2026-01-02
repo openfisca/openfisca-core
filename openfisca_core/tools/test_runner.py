@@ -72,6 +72,7 @@ class Test:
     keywords: Sequence[str] | None = None
     extensions: Sequence[str] = dataclasses.field(default_factory=list)
     description: str | None = None
+    parameters: dict[str, float | dict[str, float]] | None = None
     max_spiral_loops: int | None = None
 
 
@@ -119,6 +120,7 @@ TEST_KEYWORDS = {
     "only_variables",
     "output",
     "period",
+    "parameters",
     "reforms",
     "relative_error_margin",
 }
@@ -595,6 +597,10 @@ class YamlItem(pytest.Item):
             self.test.reforms,
             self.test.extensions,
         )
+
+        from openfisca_core.reforms.inline_test_reform import InlineTestReform
+        if self.test.parameters:
+            self.tax_benefit_system = InlineTestReform(self.tax_benefit_system, self.test.parameters)
 
         builder = SimulationBuilder()
         input = self.test.input
