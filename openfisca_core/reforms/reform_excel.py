@@ -118,7 +118,7 @@ class ReformExcelTemplateGenerator:
                     values.append((f"{name}.{threshold}", val))
             else:
                 if type(value) == list:
-                    values.append((name, ', '.join(value)))
+                    values.append((name, ", ".join(value)))
                 else:
                     values.append((name, value))
         return sorted(values, key=lambda v: v[0])
@@ -219,7 +219,9 @@ class ReformExcel(Reform):
                         if value is None:
                             leaf.update(start=date_, value=[])
                         else:
-                            values = [p.replace(",", "").strip() for p in value.split(" ")]
+                            values = [
+                                p.replace(",", "").strip() for p in value.split(" ")
+                            ]
                             leaf.update(start=date_, value=[v for v in values if v])
                     else:
                         leaf.update(start=date_, value=value)
