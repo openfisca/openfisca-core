@@ -599,8 +599,11 @@ class YamlItem(pytest.Item):
         )
 
         from openfisca_core.reforms.inline_test_reform import InlineTestReform
+
         if self.test.parameters:
-            self.tax_benefit_system = InlineTestReform(self.tax_benefit_system, self.test.parameters)
+            self.tax_benefit_system = InlineTestReform(
+                self.tax_benefit_system, self.test.parameters
+            )
 
         builder = SimulationBuilder()
         input = self.test.input

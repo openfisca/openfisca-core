@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import IO, Iterator
 
 from openfisca_core.types import TaxBenefitSystem
+
 from openfisca_core.parameters.parameter_node import ParameterNode
 from openfisca_core.reforms import Reform
 
@@ -16,7 +17,7 @@ class InlineTestReform(Reform):
     def __init__(
         self,
         baseline: TaxBenefitSystem,
-        reformed_parameters = None,
+        reformed_parameters=None,
     ) -> None:
         """Initialize the ReformExcel instance.
 
