@@ -117,7 +117,7 @@ class ReformExcelTemplateGenerator:
                 for threshold, val in zip(value.thresholds, threshold_values):
                     values.append((f"{name}.{threshold}", val))
             else:
-                if type(value) == list:
+                if isinstance(value, list):
                     values.append((name, ", ".join(value)))
                 else:
                     values.append((name, value))
