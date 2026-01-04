@@ -32,6 +32,7 @@ except ImportError:
 import pytest
 
 from openfisca_core.errors import SituationParsingError, VariableNotFound
+from openfisca_core.reforms.in_yaml_test_reform import InYamlTestReform
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.tools import assert_near
 from openfisca_core.warnings import LibYAMLWarning
@@ -598,10 +599,8 @@ class YamlItem(pytest.Item):
             self.test.extensions,
         )
 
-        from openfisca_core.reforms.inline_test_reform import InlineTestReform
-
         if self.test.parameters:
-            self.tax_benefit_system = InlineTestReform(
+            self.tax_benefit_system = InYamlTestReform(
                 self.tax_benefit_system, self.test.parameters
             )
 

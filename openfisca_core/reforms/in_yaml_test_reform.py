@@ -1,31 +1,25 @@
 from __future__ import annotations
 
-from typing import IO, Iterator
-
 from openfisca_core.types import TaxBenefitSystem
 
 from openfisca_core.parameters.parameter_node import ParameterNode
 from openfisca_core.reforms import Reform
 
 
-class InlineTestReform(Reform):
-    """A class representing a reform defined in an Excel file.
-
-    This class extends the Reform class to provide functionality specific to reforms defined in Excel format.
-    """
+class InYamlTestReform(Reform):
+    """A class representing a parametric reform directly defined in YAML test files."""
 
     def __init__(
         self,
         baseline: TaxBenefitSystem,
-        reformed_parameters=None,
+        reformed_parameters=dict,
     ) -> None:
         """Initialize the ReformExcel instance.
 
         :param baseline: Baseline TaxBenefitSystem.
-        :param path: Path to the Excel file defining the reform.
-        :param suffix: Suffix to identify the relevant parameters sheet.
+        :param reformed_parameters: Yaml file `parameters` value similar to a parameter tree
         """
-        self.reformed_parameters = reformed_parameters or []
+        self.reformed_parameters = reformed_parameters
         super().__init__(baseline)
 
     def apply(self):
