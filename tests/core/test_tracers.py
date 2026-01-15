@@ -8,6 +8,8 @@ from pytest import approx, fixture, mark, raises
 from openfisca_country_template.variables.housing import HousingOccupancyStatus
 
 from openfisca_core import periods
+from openfisca_core.entities import Entity
+from openfisca_core.periods import DateUnit
 from openfisca_core.simulations import CycleError, Simulation, SpiralError
 from openfisca_core.tracers import (
     FullTracer,
@@ -15,6 +17,7 @@ from openfisca_core.tracers import (
     TraceNode,
     TracingParameterNodeAtInstant,
 )
+from openfisca_core.variables import Variable
 
 from .parameters_fancy_indexing.test_fancy_indexing import parameters
 
@@ -576,3 +579,154 @@ def test_browse_trace() -> None:
     browsed_nodes = [node.name for node in tracer.browse_trace()]
 
     assert browsed_nodes == ["B", "C", "D", "E", "F"]
+
+
+def test_ignore_default_value(tracer) -> None:
+    """Test that variables with default values are filtered when ignore_default is True."""
+
+    # Create a mock tax benefit system with variables
+    class MockTaxBenefitSystem:
+        def __init__(self) -> None:
+            self.variables = {}
+
+        def get_variable(self, variable_name: str):
+            return self.variables.get(variable_name)
+
+    class VariableWithDefault(Variable):
+        value_type = float
+        entity = Entity("person", "persons", None, "")
+        definition_period = DateUnit.MONTH
+        default_value = 0.0
+
+    class VariableWithNonDefault(Variable):
+        value_type = float
+        entity = Entity("person", "persons", None, "")
+        definition_period = DateUnit.MONTH
+        default_value = 0.0
+
+    tax_benefit_system = MockTaxBenefitSystem()
+    var_default = VariableWithDefault()
+    var_non_default = VariableWithNonDefault()
+    tax_benefit_system.variables = {
+        "var_default": var_default,
+        "var_non_default": var_non_default,
+    }
+
+    # Create tracer with calculations (following the same pattern as other tests)
+    tracer._enter_calculation("var_default", 2017)
+    tracer.record_calculation_result(numpy.asarray([0.0]))  # Default value
+    tracer._exit_calculation()
+
+    tracer._enter_calculation("var_non_default", 2017)
+    tracer.record_calculation_result(numpy.asarray([100.0]))  # Non-default value
+    tracer._exit_calculation()
+
+    # Test without ignore_default - both should appear
+    lines_without_filter = tracer.computation_log.lines(
+        ignore_default=False,
+        tax_benefit_system=tax_benefit_system,
+    )
+    assert len(lines_without_filter) == 2
+    assert "var_default" in lines_without_filter[0]
+    assert "var_non_default" in lines_without_filter[1]
+
+    # Test with ignore_default - only non-default should appear
+    lines_with_filter = tracer.computation_log.lines(
+        ignore_default=True,
+        tax_benefit_system=tax_benefit_system,
+    )
+    assert len(lines_with_filter) == 1
+    assert "var_default" not in lines_with_filter[0]
+    assert "var_non_default" in lines_with_filter[0]
+
+
+def test_ignore_default_value_hides_children(tracer) -> None:
+    """Test that when a parent variable has its default value, its children are also hidden."""
+
+    # Create a mock tax benefit system with variables
+    class MockTaxBenefitSystem:
+        def __init__(self) -> None:
+            self.variables = {}
+
+        def get_variable(self, variable_name: str):
+            return self.variables.get(variable_name)
+
+    class ParentWithDefault(Variable):
+        value_type = float
+        entity = Entity("person", "persons", None, "")
+        definition_period = DateUnit.MONTH
+        default_value = 0.0
+
+    class ChildOfDefaultParent(Variable):
+        value_type = float
+        entity = Entity("person", "persons", None, "")
+        definition_period = DateUnit.MONTH
+        default_value = 0.0
+
+    class ParentWithNonDefault(Variable):
+        value_type = float
+        entity = Entity("person", "persons", None, "")
+        definition_period = DateUnit.MONTH
+        default_value = 0.0
+
+    class ChildOfNonDefaultParent(Variable):
+        value_type = float
+        entity = Entity("person", "persons", None, "")
+        definition_period = DateUnit.MONTH
+        default_value = 0.0
+
+    tax_benefit_system = MockTaxBenefitSystem()
+    var_parent_default = ParentWithDefault()
+    var_child_default = ChildOfDefaultParent()
+    var_parent_non_default = ParentWithNonDefault()
+    var_child_non_default = ChildOfNonDefaultParent()
+    tax_benefit_system.variables = {
+        "parent_default": var_parent_default,
+        "child_default": var_child_default,
+        "parent_non_default": var_parent_non_default,
+        "child_non_default": var_child_non_default,
+    }
+
+    # Create tracer with nested calculations
+    # Parent with default value and its child
+    tracer._enter_calculation("parent_default", 2017)
+    tracer.record_calculation_result(numpy.asarray([0.0]))  # Default value
+    tracer._enter_calculation("child_default", 2017)
+    tracer.record_calculation_result(numpy.asarray([50.0]))  # Non-default child
+    tracer._exit_calculation()
+    tracer._exit_calculation()
+
+    # Parent with non-default value and its child
+    tracer._enter_calculation("parent_non_default", 2017)
+    tracer.record_calculation_result(numpy.asarray([100.0]))  # Non-default value
+    tracer._enter_calculation("child_non_default", 2017)
+    tracer.record_calculation_result(numpy.asarray([25.0]))  # Non-default child
+    tracer._exit_calculation()
+    tracer._exit_calculation()
+
+    # Test without ignore_default - all should appear
+    lines_without_filter = tracer.computation_log.lines(
+        ignore_default=False,
+        tax_benefit_system=tax_benefit_system,
+    )
+    assert len(lines_without_filter) == 4
+    assert "parent_default" in lines_without_filter[0]
+    assert "child_default" in lines_without_filter[1]
+    assert "parent_non_default" in lines_without_filter[2]
+    assert "child_non_default" in lines_without_filter[3]
+
+    # Test with ignore_default - parent with default and its child should be hidden
+    lines_with_filter = tracer.computation_log.lines(
+        ignore_default=True,
+        tax_benefit_system=tax_benefit_system,
+    )
+    assert len(lines_with_filter) == 2
+    # Parent with default value should not appear
+    joined_lines = "".join(lines_with_filter)
+    assert "parent_default" not in joined_lines
+    # Child of parent with default value should also not appear
+    assert "child_default" not in joined_lines
+    # Parent with non-default value should appear
+    assert "parent_non_default" in lines_with_filter[0]
+    # Child of parent with non-default value should appear
+    assert "child_non_default" in lines_with_filter[1]
