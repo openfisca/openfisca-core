@@ -79,9 +79,15 @@ class FullTracer:
         self._exit_calculation()
 
     def print_computation_log(
-        self, aggregate: bool = False, max_depth: int = sys.maxsize
+        self,
+        aggregate: bool = False,
+        max_depth: int = sys.maxsize,
+        ignore_default: bool = False,
+        tax_benefit_system: t.TaxBenefitSystem | None = None,
     ) -> None:
-        self.computation_log.print_log(aggregate, max_depth)
+        self.computation_log.print_log(
+            aggregate, max_depth, ignore_default, tax_benefit_system
+        )
 
     def generate_performance_graph(self, dir_path: str) -> None:
         self.performance_log.generate_graph(dir_path)

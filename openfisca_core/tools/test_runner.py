@@ -40,6 +40,7 @@ from openfisca_core.warnings import LibYAMLWarning
 
 class Options(TypedDict, total=False):
     aggregate: bool
+    ignore_default: bool
     ignore_variables: Sequence[str] | None
     max_depth: int
     name_filter: str | None
@@ -636,14 +637,25 @@ class YamlItem(pytest.Item):
         finally:
             tracer = self.simulation.tracer
             if verbose:
-                self.print_computation_log(tracer, aggregate, max_depth)
+                ignore_default = self.options.get("ignore_default", False)
+                self.print_computation_log(
+                    tracer,
+                    aggregate,
+                    max_depth,
+                    ignore_default,
+                    self.tax_benefit_system,
+                )
             if performance_graph:
                 self.generate_performance_graph(tracer)
             if performance_tables:
                 self.generate_performance_tables(tracer)
 
-    def print_computation_log(self, tracer, aggregate, max_depth) -> None:
-        tracer.print_computation_log(aggregate, max_depth)
+    def print_computation_log(
+        self, tracer, aggregate, max_depth, ignore_default, tax_benefit_system
+    ) -> None:
+        tracer.print_computation_log(
+            aggregate, max_depth, ignore_default, tax_benefit_system
+        )
 
     def generate_performance_graph(self, tracer) -> None:
         tracer.generate_performance_graph(".")

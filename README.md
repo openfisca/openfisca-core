@@ -143,10 +143,13 @@ touch .git/hooks/pre-commit
 chmod +x .git/hooks/pre-commit
 
 tee -a .git/hooks/pre-commit << END
-#!/bin/sh
+#!/bin/bash
 #
 # Automatically format your code before committing.
+# Change .venv/bin/activate if your virtual environment is located elsewhere.
+source .venv/bin/activate
 exec make format-style
+exec make check-style
 END
 ```
 
