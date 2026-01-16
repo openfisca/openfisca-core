@@ -117,7 +117,10 @@ class ReformExcelTemplateGenerator:
                 for threshold, val in zip(value.thresholds, threshold_values):
                     values.append((f"{name}.{threshold}", val))
             else:
-                values.append((name, value))
+                if isinstance(value, list):
+                    values.append((name, ", ".join(value)))
+                else:
+                    values.append((name, value))
         return sorted(values, key=lambda v: v[0])
 
     def parameter_data(self) -> list[tuple[str, float]]:
@@ -212,7 +215,16 @@ class ReformExcel(Reform):
                         )
                     )
                 else:
-                    leaf.update(start=date_, value=value)
+                    if "unit" in leaf.metadata and leaf.metadata["unit"] == "list":
+                        if value is None:
+                            leaf.update(start=date_, value=[])
+                        else:
+                            values = [
+                                p.replace(",", "").strip() for p in value.split(" ")
+                            ]
+                            leaf.update(start=date_, value=[v for v in values if v])
+                    else:
+                        leaf.update(start=date_, value=value)
 
             for leaf, threshold in params_with_thresholds.values():
                 sorted_brackets = [v[1] for v in sorted(threshold, key=lambda x: x[0])]
