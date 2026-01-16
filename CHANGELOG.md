@@ -1,10 +1,19 @@
 # Changelog
 
-## 44.1.1 [#1341](https://github.com/openfisca/openfisca-core/pull/1341)
+## 44.2.1 [#1341](https://github.com/openfisca/openfisca-core/pull/1341)
 
 #### Technical changes
 
 - Add a check for creating a simulation when building a test
+
+## 44.2.0
+
+#### New features
+
+- Add `--ignore-default` option to `openfisca test` command
+  - When used with `--verbose`, filters out variables that have their default value from the computation log output
+  - When a variable with its default value is hidden, its children are also hidden, even if they have non-default values
+  - This makes the computation log more readable by focusing on variables with meaningful values
 
 ## 44.1.0 [#1355](https://github.com/openfisca/openfisca-core/pull/1355)
 

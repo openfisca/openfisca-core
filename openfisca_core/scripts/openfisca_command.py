@@ -152,6 +152,12 @@ def get_parser():
             default=0,
             help="number of parallel workers (default: CPU count - 1)",
         )
+        parser.add_argument(
+            "--ignore-default",
+            action="store_true",
+            default=False,
+            help="in verbose mode, do not display variables that have their default value",
+        )
 
         return parser
 
