@@ -62,7 +62,9 @@ description:
       developers, datascientists and researchers. This allows building software
       to help citizens and businesses understand how laws apply to them,
       designing better rules and public policies, debating potential reforms,
-      and scaling economic micro-simulation."
+      and scaling economic micro-simulation. OpenFisca is featured as a standout
+      [solution](https://interoperable-europe.ec.europa.eu/collection/justice-law-and-security/solution/openfisca)
+      in the European Union’s Open Source Solutions Catalogue."
     documentation: https://openfisca.org/doc/
     apiDocumentation: https://openfisca.org/doc/openfisca-web-api/index.html
     features:
