@@ -1,5 +1,11 @@
 # Changelog
 
+## 44.2.2
+
+#### Bug fixes
+
+- Fix enum index overflow for enums with more than 256 members (e.g. NAF). Index arrays were encoded as `uint8` (0-255), causing indices > 255 to be truncated and wrong values in simulations. Encoding now uses `int16` (`ENUM_ARRAY_DTYPE`) consistently.
+
 ## 44.2.1 [#1341](https://github.com/openfisca/openfisca-core/pull/1341)
 
 #### Technical changes
