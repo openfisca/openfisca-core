@@ -26,7 +26,7 @@ class EnumType(t.EnumType):
         ...     TENANT = "Tenant"
 
         >>> Housing.indices
-        array([0, 1], dtype=uint8)
+        array([0, 1], dtype=int16)
 
         >>> Housing.names
         array(['OWNER', 'TENANT'], dtype='<U6')

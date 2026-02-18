@@ -4,13 +4,14 @@ from openfisca_core.types import Array, ArrayLike, DTypeLike, Enum, EnumArray, E
 
 from enum import _EnumDict as EnumDict  # noqa: PLC2701
 
+from .config import ENUM_ARRAY_DTYPE as EnumDType
+
 from numpy import (
     bool_ as BoolDType,
     generic as VarDType,
     int32 as IntDType,
     object_ as ObjDType,
     str_ as StrDType,
-    uint8 as EnumDType,
 )
 
 #: Type for enum indices arrays.

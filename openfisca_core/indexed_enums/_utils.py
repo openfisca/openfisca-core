@@ -39,22 +39,22 @@ def _enum_to_index(value: t.ObjArray | t.ArrayLike[t.Enum]) -> t.IndexArray:
         TypeError: 'Road' object is not iterable
 
         >>> _enum_to_index([Road.AVENUE])
-        array([1], dtype=uint8)
+        array([1], dtype=int16)
 
         >>> _enum_to_index(numpy.array(Road.AVENUE))
         Traceback (most recent call last):
         TypeError: iteration over a 0-d array
 
         >>> _enum_to_index(numpy.array([Road.AVENUE]))
-        array([1], dtype=uint8)
+        array([1], dtype=int16)
 
         >>> value = numpy.array([Road.STREET, Road.AVENUE, Road.STREET])
         >>> _enum_to_index(value)
-        array([0, 1, 0], dtype=uint8)
+        array([0, 1, 0], dtype=int16)
 
         >>> value = numpy.array([Road.AVENUE, Road.AVENUE, Rogue.BOULEVARD])
         >>> _enum_to_index(value)
-        array([1, 1, 0], dtype=uint8)
+        array([1, 1, 0], dtype=int16)
 
     """
     return numpy.array([enum.index for enum in value], t.EnumDType)
@@ -92,28 +92,28 @@ def _int_to_index(
         ...     )
 
         >>> _int_to_index(Road, 1)
-        array([1], dtype=uint8)
+        array([1], dtype=int16)
 
         >>> _int_to_index(Road, [1])
-        array([1], dtype=uint8)
+        array([1], dtype=int16)
 
         >>> _int_to_index(Road, array("B", [1]))
-        array([1], dtype=uint8)
+        array([1], dtype=int16)
 
         >>> _int_to_index(Road, memoryview(array("B", [1])))
-        array([1], dtype=uint8)
+        array([1], dtype=int16)
 
         >>> _int_to_index(Road, numpy.array(1))
-        array([1], dtype=uint8)
+        array([1], dtype=int16)
 
         >>> _int_to_index(Road, numpy.array([1]))
-        array([1], dtype=uint8)
+        array([1], dtype=int16)
 
         >>> _int_to_index(Road, numpy.array([0, 1, 0]))
-        array([0, 1, 0], dtype=uint8)
+        array([0, 1, 0], dtype=int16)
 
         >>> _int_to_index(Road, numpy.array([1, 1, 2]))
-        array([1, 1], dtype=uint8)
+        array([1, 1], dtype=int16)
 
     """
     indices = enum_class.indices
@@ -151,22 +151,22 @@ def _str_to_index(
         ...     )
 
         >>> _str_to_index(Road, "AVENUE")
-        array([1], dtype=uint8)
+        array([1], dtype=int16)
 
         >>> _str_to_index(Road, ["AVENUE"])
-        array([1], dtype=uint8)
+        array([1], dtype=int16)
 
         >>> _str_to_index(Road, numpy.array("AVENUE"))
-        array([1], dtype=uint8)
+        array([1], dtype=int16)
 
         >>> _str_to_index(Road, numpy.array(["AVENUE"]))
-        array([1], dtype=uint8)
+        array([1], dtype=int16)
 
         >>> _str_to_index(Road, numpy.array(["STREET", "AVENUE", "STREET"]))
-        array([0, 1, 0], dtype=uint8)
+        array([0, 1, 0], dtype=int16)
 
         >>> _str_to_index(Road, numpy.array(["AVENUE", "AVENUE", "BOULEVARD"]))
-        array([1, 1], dtype=uint8)
+        array([1, 1], dtype=int16)
 
     """
     values = numpy.asarray(value)
