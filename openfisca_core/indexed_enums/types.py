@@ -10,8 +10,9 @@ from numpy import (
     int32 as IntDType,
     object_ as ObjDType,
     str_ as StrDType,
-    uint8 as EnumDType,
 )
+
+from .config import ENUM_ARRAY_DTYPE as EnumDType
 
 #: Type for enum indices arrays.
 IndexArray: TypeAlias = Array[EnumDType]
