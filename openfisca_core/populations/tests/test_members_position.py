@@ -1,7 +1,6 @@
 """Tests for GroupPopulation.members_position vectorized computation."""
 
 import numpy
-import pytest
 
 
 class TestMembersPosition:
