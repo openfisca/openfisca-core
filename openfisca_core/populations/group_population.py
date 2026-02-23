@@ -39,12 +39,19 @@ class GroupPopulation(Population):
             # We could use self.count and self.members.count , but with the current initialization, we are not sure count will be set before members_position is called
             nb_entities = numpy.max(self.members_entity_id) + 1
             nb_persons = len(self.members_entity_id)
-            self._members_position = numpy.empty_like(self.members_entity_id)
-            counter_by_entity = numpy.zeros(nb_entities)
-            for k in range(nb_persons):
-                entity_index = self.members_entity_id[k]
-                self._members_position[k] = counter_by_entity[entity_index]
-                counter_by_entity[entity_index] += 1
+            # Sort persons by entity to group them
+            order = numpy.argsort(self.members_entity_id, kind="stable")
+            sorted_ids = self.members_entity_id[order]
+            # Compute the start index of each entity's group in the sorted array
+            group_sizes = numpy.bincount(sorted_ids, minlength=nb_entities)
+            group_starts = numpy.empty(nb_entities, dtype=numpy.intp)
+            group_starts[0] = 0
+            numpy.cumsum(group_sizes[:-1], out=group_starts[1:])
+            # Position within group = global sorted index - group start
+            positions_sorted = numpy.arange(nb_persons) - group_starts[sorted_ids]
+            # Scatter back to original order
+            self._members_position = numpy.empty(nb_persons, dtype=numpy.int32)
+            self._members_position[order] = positions_sorted
 
         return self._members_position
 
