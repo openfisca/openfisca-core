@@ -9,12 +9,16 @@ from openfisca_core.simulations import SimulationBuilder
 @pytest.fixture
 def sim():
     person = entities.SingleEntity("person", "persons", "A person", "")
-    household = entities.GroupEntity("household", "households", "A household", "", roles=[{"key": "member"}])
+    household = entities.GroupEntity(
+        "household", "households", "A household", "", roles=[{"key": "member"}]
+    )
 
     mother_link = Many2OneLink("mother", "mother_id", "person")
     person.add_link(mother_link)
 
-    household_link = Many2OneLink("household", "household_id", "household", role_field="household_role")
+    household_link = Many2OneLink(
+        "household", "household_id", "household", role_field="household_role"
+    )
     person.add_link(household_link)
 
     tbs = taxbenefitsystems.TaxBenefitSystem([person, household])

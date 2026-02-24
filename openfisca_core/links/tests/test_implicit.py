@@ -11,7 +11,9 @@ from openfisca_core.simulations import SimulationBuilder
 @pytest.fixture
 def sim():
     person = entities.SingleEntity("person", "persons", "A person", "")
-    household = entities.GroupEntity("household", "households", "A household", "", roles=[{"key": "member"}])
+    household = entities.GroupEntity(
+        "household", "households", "A household", "", roles=[{"key": "member"}]
+    )
 
     tbs = taxbenefitsystems.TaxBenefitSystem([person, household])
 
@@ -28,19 +30,22 @@ def sim():
     for var in [salary, rent]:
         tbs.add_variable(var)
 
-    sim = SimulationBuilder().build_from_dict(tbs, {
-        "persons": {
-            "p0": {"salary": {"2024": 1000.0}},
-            "p1": {"salary": {"2024": 500.0}},
-            "p2": {"salary": {"2024": 2000.0}},
-            "p3": {"salary": {"2024": 100.0}},
+    sim = SimulationBuilder().build_from_dict(
+        tbs,
+        {
+            "persons": {
+                "p0": {"salary": {"2024": 1000.0}},
+                "p1": {"salary": {"2024": 500.0}},
+                "p2": {"salary": {"2024": 2000.0}},
+                "p3": {"salary": {"2024": 100.0}},
+            },
+            "households": {
+                "h0": {"member": ["p0", "p1"], "rent": {"2024": 800.0}},
+                "h1": {"member": ["p2"], "rent": {"2024": 500.0}},
+                "h2": {"member": ["p3"], "rent": {"2024": 100.0}},
+            },
         },
-        "households": {
-            "h0": {"member": ["p0", "p1"], "rent": {"2024": 800.0}},
-            "h1": {"member": ["p2"],       "rent": {"2024": 500.0}},
-            "h2": {"member": ["p3"],       "rent": {"2024": 100.0}},
-        }
-    })
+    )
     return sim
 
 

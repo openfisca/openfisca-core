@@ -64,4 +64,5 @@ class ImplicitOne2ManyLink(One2ManyLink):
         valid = source_rows >= 0
         return source_rows[valid], values[valid]
 
+
 __all__ = ["ImplicitMany2OneLink", "ImplicitOne2ManyLink"]

@@ -618,9 +618,9 @@ class YamlItem(pytest.Item):
         try:
             builder.set_default_period(period)
             self.simulation = builder.build_from_dict(self.tax_benefit_system, input)
-            assert (
-                self.simulation is not None
-            ), "Simulation should be properly initialized, Check your test input"
+            assert self.simulation is not None, (
+                "Simulation should be properly initialized, Check your test input"
+            )
 
         except (VariableNotFound, SituationParsingError, AssertionError):
             raise

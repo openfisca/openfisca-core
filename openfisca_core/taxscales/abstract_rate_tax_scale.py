@@ -36,7 +36,7 @@ class AbstractRateTaxScale(RateTaxScaleLike):
         tax_base: NumericalArray,
         right: bool,
     ) -> typing.NoReturn:
-        msg = "Method 'calc' is not implemented for " f"{self.__class__.__name__}"
+        msg = f"Method 'calc' is not implemented for {self.__class__.__name__}"
         raise NotImplementedError(
             msg,
         )

@@ -53,5 +53,6 @@ class TestLink:
             target_entity_key="unknown",
         )
         import pytest
+
         with pytest.raises(KeyError, match="unknown"):
             link.resolve({"person": object()})

@@ -38,7 +38,10 @@ class One2ManyLink(Link):
         """
         values = self._target_values(variable_name, period)
         source_rows, values = self._apply_filters(
-            period, values, role, condition,
+            period,
+            values,
+            role,
+            condition,
         )
         return numpy.bincount(
             source_rows,
@@ -59,7 +62,10 @@ class One2ManyLink(Link):
         """
         ones = numpy.ones(self._target_population.count)
         source_rows, ones = self._apply_filters(
-            period, ones, role, condition,
+            period,
+            ones,
+            role,
+            condition,
         )
         return numpy.bincount(
             source_rows,
@@ -78,7 +84,10 @@ class One2ManyLink(Link):
         """True if any target member has a truthy value."""
         values = self._target_values(variable_name, period)
         source_rows, values = self._apply_filters(
-            period, values, role, condition,
+            period,
+            values,
+            role,
+            condition,
         )
         result = numpy.zeros(self._source_population.count, dtype=bool)
         numpy.logical_or.at(result, source_rows, values.astype(bool))
@@ -95,7 +104,10 @@ class One2ManyLink(Link):
         """True if all target members have a truthy value."""
         values = self._target_values(variable_name, period)
         source_rows, values = self._apply_filters(
-            period, values, role, condition,
+            period,
+            values,
+            role,
+            condition,
         )
         result = numpy.ones(self._source_population.count, dtype=bool)
         numpy.logical_and.at(result, source_rows, values.astype(bool))
@@ -112,10 +124,15 @@ class One2ManyLink(Link):
         """Minimum target value per source entity."""
         values = self._target_values(variable_name, period)
         source_rows, values = self._apply_filters(
-            period, values, role, condition,
+            period,
+            values,
+            role,
+            condition,
         )
         result = numpy.full(
-            self._source_population.count, numpy.inf, dtype=float,
+            self._source_population.count,
+            numpy.inf,
+            dtype=float,
         )
         numpy.minimum.at(result, source_rows, values.astype(float))
         result[result == numpy.inf] = 0
@@ -132,10 +149,15 @@ class One2ManyLink(Link):
         """Maximum target value per source entity."""
         values = self._target_values(variable_name, period)
         source_rows, values = self._apply_filters(
-            period, values, role, condition,
+            period,
+            values,
+            role,
+            condition,
         )
         result = numpy.full(
-            self._source_population.count, -numpy.inf, dtype=float,
+            self._source_population.count,
+            -numpy.inf,
+            dtype=float,
         )
         numpy.maximum.at(result, source_rows, values.astype(float))
         result[result == -numpy.inf] = 0
@@ -157,11 +179,14 @@ class One2ManyLink(Link):
     # -- internal -----------------------------------------------------------
 
     def _target_values(
-        self, variable_name: str, period,
+        self,
+        variable_name: str,
+        period,
     ) -> numpy.ndarray:
         """Compute the variable on the target entity."""
         return self._target_population.simulation.calculate(
-            variable_name, period,
+            variable_name,
+            period,
         )
 
     def _source_rows(self, period) -> numpy.ndarray:

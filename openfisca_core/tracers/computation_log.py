@@ -168,9 +168,7 @@ class ComputationLog:
             try:
                 formatted_value = str(  # pyright: ignore[reportCallIssue]
                     {
-                        "avg": numpy.mean(
-                            value
-                        ),  # pyright: ignore[reportArgumentType,reportCallIssue]
+                        "avg": numpy.mean(value),  # pyright: ignore[reportArgumentType,reportCallIssue]
                         "max": numpy.max(value),
                         "min": numpy.min(value),
                     },

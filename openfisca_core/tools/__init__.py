@@ -45,28 +45,28 @@ def assert_near(
     value = numpy.array(value).astype(numpy.float32)
     diff = abs(target_value - value)
     if absolute_error_margin is not None:
-        assert (
-            diff <= absolute_error_margin
-        ).all(), f"{message}{value} differs from {target_value} with an absolute margin {diff} > {absolute_error_margin}"
+        assert (diff <= absolute_error_margin).all(), (
+            f"{message}{value} differs from {target_value} with an absolute margin {diff} > {absolute_error_margin}"
+        )
     if relative_error_margin is not None:
-        assert (
-            diff <= abs(relative_error_margin * target_value)
-        ).all(), f"{message}{value} differs from {target_value} with a relative margin {diff} > {abs(relative_error_margin * target_value)}"
+        assert (diff <= abs(relative_error_margin * target_value)).all(), (
+            f"{message}{value} differs from {target_value} with a relative margin {diff} > {abs(relative_error_margin * target_value)}"
+        )
         return None
     return None
 
 
 def assert_datetime_equals(value, target_value, message="") -> None:
-    assert (
-        value == target_value
-    ).all(), f"{message}{value} differs from {target_value}."
+    assert (value == target_value).all(), (
+        f"{message}{value} differs from {target_value}."
+    )
 
 
 def assert_enum_equals(value, target_value, message="") -> None:
     value = value.decode_to_str()
-    assert (
-        value == target_value
-    ).all(), f"{message}{value} differs from {target_value}."
+    assert (value == target_value).all(), (
+        f"{message}{value} differs from {target_value}."
+    )
 
 
 def indent(text):

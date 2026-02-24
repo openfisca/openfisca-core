@@ -85,8 +85,7 @@ class Link:
     @property
     def is_resolved(self) -> bool:
         return (
-            self._source_population is not None
-            and self._target_population is not None
+            self._source_population is not None and self._target_population is not None
         )
 
     def _get_link_ids(self, period) -> numpy.ndarray:
