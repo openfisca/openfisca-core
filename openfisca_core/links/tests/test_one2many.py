@@ -56,7 +56,7 @@ def sim():
 
 
 def test_one2many_aggregations(sim):
-    link = sim.populations["household"].entity.get_link("members")
+    link = sim.populations["household"].links["members"]
 
     res_sum = link.sum("salary", "2024")
     assert numpy.array_equal(res_sum, [1500.0, 2000.0, 0.0, 0.0])
@@ -75,7 +75,7 @@ def test_one2many_aggregations(sim):
 
 
 def test_one2many_any_all(sim):
-    link = sim.populations["household"].entity.get_link("members")
+    link = sim.populations["household"].links["members"]
 
     # Is there a female in each household?
     res_any = link.any("is_female", "2024")
@@ -87,7 +87,7 @@ def test_one2many_any_all(sim):
 
 
 def test_one2many_role_filter(sim):
-    link = sim.populations["household"].entity.get_link("members")
+    link = sim.populations["household"].links["members"]
 
     # Count of role 1 (child)
     # hh 0 has person 1 (role 1)
@@ -100,7 +100,7 @@ def test_one2many_role_filter(sim):
 
 
 def test_one2many_condition_filter(sim):
-    link = sim.populations["household"].entity.get_link("members")
+    link = sim.populations["household"].links["members"]
     condition = sim.calculate("is_female", "2024")
 
     # Sum of salary for females only

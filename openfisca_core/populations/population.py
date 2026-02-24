@@ -24,6 +24,9 @@ class Population(CorePopulation):
         return result
 
     def __getattr__(self, attribute: str) -> projectors.Projector:
+        if hasattr(self, "links") and attribute in self.links:
+            return self.links[attribute]
+
         projector: projectors.Projector | None
         projector = projectors.get_projector_from_shortcut(self, attribute)
 

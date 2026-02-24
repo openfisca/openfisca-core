@@ -97,17 +97,19 @@ class TestLinkResolution:
         sim = SimulationBuilder().build_default_simulation(tbs, count=5)
 
         # The link should be attached to the person population
-        assert mother_link._source_population is not None
-        assert mother_link._target_population is not None
-        assert mother_link.is_resolved
+        bound_link = sim.persons.links["mother"]
+        assert bound_link._source_population is not None
+        assert bound_link._target_population is not None
+        assert bound_link.is_resolved
 
     def test_resolved_link_points_to_correct_population(self):
         tbs, mother_link = self._make_tbs_with_link()
         sim = SimulationBuilder().build_default_simulation(tbs, count=5)
 
         # Source and target should both be the person population
-        assert mother_link._source_population is sim.persons
-        assert mother_link._target_population is sim.persons
+        bound_link = sim.persons.links["mother"]
+        assert bound_link._source_population is sim.persons
+        assert bound_link._target_population is sim.persons
 
     def test_link_on_group_entity(self):
         """A link declared on a GroupEntity gets resolved too."""
@@ -133,9 +135,10 @@ class TestLinkResolution:
         tbs = taxbenefitsystems.TaxBenefitSystem([person, household])
         sim = SimulationBuilder().build_default_simulation(tbs, count=3)
 
-        assert members_link.is_resolved
-        assert members_link._source_population is sim.populations["household"]
-        assert members_link._target_population is sim.persons
+        bound_link = sim.populations["household"].links["members"]
+        assert bound_link.is_resolved
+        assert bound_link._source_population is sim.populations["household"]
+        assert bound_link._target_population is sim.persons
 
 
 # -- Test backward compatibility ------------------------------------------

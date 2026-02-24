@@ -64,7 +64,7 @@ def sim():
 
 def test_many2one_get_intra_entity(sim):
     """Test person -> person lookup (mother)."""
-    link = sim.persons.entity.get_link("mother")
+    link = sim.persons.links["mother"]
     mother_ages = link.get("age", "2024")
 
     # Expected:
@@ -80,7 +80,7 @@ def test_many2one_get_intra_entity(sim):
 
 def test_many2one_get_inter_entity(sim):
     """Test person -> household lookup."""
-    link = sim.persons.entity.get_link("household")
+    link = sim.persons.links["household"]
     h_rents = link.get("rent", "2024")
 
     # Expected:
@@ -93,7 +93,7 @@ def test_many2one_get_inter_entity(sim):
 
 def test_many2one_chaining(sim):
     """Test person.mother.household.rent chaining."""
-    mother_link = sim.persons.entity.get_link("mother")
+    mother_link = sim.persons.links["mother"]
 
     # Expected:
     # person 0 -> mother -1 -> no household -> rent 0.0
@@ -109,7 +109,7 @@ def test_many2one_chaining(sim):
 
 
 def test_many2one_role_helpers(sim):
-    link = sim.persons.entity.get_link("household")
+    link = sim.persons.links["household"]
     roles = link.role
     assert numpy.array_equal(roles, [10, 20, 10, 20])
 

@@ -87,18 +87,46 @@ class Simulation:
     def _resolve_links(self) -> None:
         """Attach and resolve all links declared on every entity.
 
-        For each entity that has links (via ``entity.links``), attach
-        the link to its source population and resolve the target entity
-        key to the actual target population.
+        This also auto-generates implicit links for each GroupEntity:
+        - A Many2One link on the person entity (e.g. ``person.household``)
+        - A One2Many link on the group entity (e.g. ``household.members``)
 
         This is called once at ``__init__`` time, after
         ``link_to_entities_instances`` and ``create_shortcuts``.
         """
+        from openfisca_core.links.implicit import ImplicitMany2OneLink, ImplicitOne2ManyLink
+        from openfisca_core.populations.group_population import GroupPopulation
+
+        person_entity = self.persons.entity
+
+        # Auto-generate implicit links
+        for population in self.populations.values():
+            if not isinstance(population, GroupPopulation):
+                continue
+            group_key = population.entity.key
+
+            # person -> group (Many2One)
+            if not person_entity.get_link(group_key):
+                m2o = ImplicitMany2OneLink(group_key)
+                person_entity.add_link(m2o)
+
+            # group -> persons (One2Many)
+            o2m_name = person_entity.plural
+            if not population.entity.get_link(o2m_name):
+                o2m = ImplicitOne2ManyLink(o2m_name, group_key)
+                population.entity.add_link(o2m)
+
+        from copy import copy
+
+        # Attach and resolve all links, making a simulation-local copy
         for _key, population in self.populations.items():
             entity = population.entity
-            for link in entity.links.values():
-                link.attach(population)
-                link.resolve(self.populations)
+            population.links = {}
+            for name, link in entity.links.items():
+                bound_link = copy(link)
+                bound_link.attach(population)
+                bound_link.resolve(self.populations)
+                population.links[name] = bound_link
 
     @property
     def data_storage_dir(self):

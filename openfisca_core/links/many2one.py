@@ -47,7 +47,7 @@ class Many2OneLink(Link):
         simulation = source_pop.simulation
 
         # 1. Target IDs for each source member
-        target_ids = simulation.calculate(self.link_field, period)
+        target_ids = self._get_target_ids(period)
 
         # 2. Variable values on the target entity
         target_values = simulation.calculate(variable_name, period)
@@ -77,10 +77,16 @@ class Many2OneLink(Link):
         """Chain links: ``person.mother.household``."""
         if name.startswith("_"):
             raise AttributeError(name)
-        target_entity = self._target_population.entity
-        target_link = _find_link(target_entity, name)
-        if target_link is not None:
+
+        target_pop = self._target_population
+        if target_pop is None:
+            raise AttributeError("Link is not bound to a simulation")
+
+        if hasattr(target_pop, "links") and name in target_pop.links:
+            target_link = target_pop.links[name]
             return _ChainedGetter(self, target_link)
+
+        target_entity = target_pop.entity
         msg = (
             f"Entity '{target_entity.key}' has no link named '{name}'"
         )
@@ -107,6 +113,12 @@ class Many2OneLink(Link):
         return r == role_value
 
     # -- ID resolution ------------------------------------------------------
+
+    def _get_target_ids(self, period) -> numpy.ndarray:
+        """Fetch the target IDs from the link_field variable."""
+        return self._source_population.simulation.calculate(
+            self.link_field, period,
+        )
 
     def _resolve_ids(self, target_ids: numpy.ndarray) -> numpy.ndarray:
         """Convert target IDs to row indices.
@@ -169,21 +181,19 @@ class _ChainedGetter:
         """Continue chaining: ``person.mother.household.region``."""
         if name.startswith("_"):
             raise AttributeError(name)
-        target_entity = self._inner._target_population.entity
-        next_link = _find_link(target_entity, name)
-        if next_link is not None:
+
+        target_pop = self._inner._target_population
+        if target_pop is None:
+            raise AttributeError("Link is not bound to a simulation")
+
+        if hasattr(target_pop, "links") and name in target_pop.links:
+            next_link = target_pop.links[name]
             return _ChainedGetter(self._outer, next_link)
+
+        target_entity = target_pop.entity
         raise AttributeError(
             f"Entity '{target_entity.key}' has no link named '{name}'"
         )
-
-
-def _find_link(entity, name: str) -> Link | None:
-    """Look up a link by name on an entity."""
-    links = getattr(entity, "_links", None)
-    if links is None:
-        return None
-    return links.get(name)
 
 
 __all__ = ["Many2OneLink"]
