@@ -47,6 +47,7 @@ class Simulation:
         self.persons = self.populations[tax_benefit_system.person_entity.key]
         self.link_to_entities_instances()
         self.create_shortcuts()
+        self._resolve_links()
 
         self.invalidated_caches = set()
 
@@ -60,6 +61,7 @@ class Simulation:
         self.memory_config = None
         self._data_storage_dir = None
         self.start_computation_period = None
+
 
     @property
     def trace(self):
@@ -81,6 +83,22 @@ class Simulation:
         for population in self.populations.values():
             # create shortcut simulation.person and simulation.household (for instance)
             setattr(self, population.entity.key, population)
+
+    def _resolve_links(self) -> None:
+        """Attach and resolve all links declared on every entity.
+
+        For each entity that has links (via ``entity.links``), attach
+        the link to its source population and resolve the target entity
+        key to the actual target population.
+
+        This is called once at ``__init__`` time, after
+        ``link_to_entities_instances`` and ``create_shortcuts``.
+        """
+        for _key, population in self.populations.items():
+            entity = population.entity
+            for link in entity.links.values():
+                link.attach(population)
+                link.resolve(self.populations)
 
     @property
     def data_storage_dir(self):
