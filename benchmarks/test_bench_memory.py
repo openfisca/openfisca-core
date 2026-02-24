@@ -51,12 +51,13 @@ class TestMembersPositionMemory:
         _, current, peak = _measure_memory(lambda: pop.members_position)
 
         per_person = peak / nb_persons
-        print(  # noqa: T201
+        msg = (
             f"\n  [members_position] N={nb_persons:>10_d}"
             f"  current={_fmt(current)}"
             f"  peak={_fmt(peak)}"
             f"  per_person={per_person:.0f} B"
         )
+        print(msg)  # noqa: T201
 
         # Sanity check: should not use more than 100 bytes per person
         # (the arrays themselves are ~4 bytes each, but intermediates exist)
@@ -86,12 +87,13 @@ class TestSimulationMemory:
         )
 
         per_person = peak / nb_persons
-        print(  # noqa: T201
+        msg = (
             f"\n  [disposable_income] N={nb_persons:>10_d}"
             f"  current={_fmt(current)}"
             f"  peak={_fmt(peak)}"
             f"  per_person={per_person:.0f} B"
         )
+        print(msg)  # noqa: T201
 
     @pytest.mark.parametrize(
         "nb_persons",
@@ -111,13 +113,14 @@ class TestSimulationMemory:
         _, current, peak = _measure_memory(run_12_months)
 
         per_person = peak / nb_persons
-        print(  # noqa: T201
+        msg = (
             f"\n  [12-month simulation] N={nb_persons:>10_d}"
             f"  current={_fmt(current)}"
             f"  peak={_fmt(peak)}"
             f"  per_person={per_person:.0f} B"
             f"  per_person_per_month={per_person / 12:.0f} B"
         )
+        print(msg)  # noqa: T201
 
 
 # ---------------------------------------------------------------------------
@@ -141,9 +144,8 @@ class TestPerVariableMemory:
         ]
 
         print(f"\n  Per-variable memory cost (N={nb_persons:_d}):")  # noqa: T201
-        print(
-            f"  {'Variable':<35s} {'Current':>10s} {'Peak':>10s} {'Marginal':>10s}"
-        )  # noqa: T201
+        msg = f"  {'Variable':<35s} {'Current':>10s} {'Peak':>10s} {'Marginal':>10s}"
+        print(msg)  # noqa: T201
         print(f"  {'-' * 35} {'-' * 10} {'-' * 10} {'-' * 10}")  # noqa: T201
 
         prev_current = 0
@@ -155,12 +157,13 @@ class TestPerVariableMemory:
             tracemalloc.stop()
 
             marginal = current - prev_current
-            print(  # noqa: T201
+            msg = (
                 f"  {var_name:<35s}"
                 f" {_fmt(current):>10s}"
                 f" {_fmt(peak):>10s}"
                 f" {_fmt(marginal):>10s}"
             )
+            print(msg)  # noqa: T201
             prev_current = current
 
 
@@ -179,15 +182,17 @@ class TestScalingAnalysis:
 
         for n in sizes:
             sim = make_simulation(n)
-            _, _, peak = _measure_memory(lambda: sim.calculate("income_tax", "2024-01"))
+            _, _, peak = _measure_memory(
+                lambda sim=sim: sim.calculate("income_tax", "2024-01")
+            )
             peaks.append(peak)
-            print(f"\n  N={n:>6_d}  peak={_fmt(peak)}")
+            print(f"\n  N={n:>6_d}  peak={_fmt(peak)}")  # noqa: T201
 
         # Check roughly linear: ratio should be close to 2
         ratio_1 = peaks[1] / peaks[0]
         ratio_2 = peaks[2] / peaks[1]
-        print(f"\n  Ratio {sizes[1]:_}/{sizes[0]:_} = {ratio_1:.2f}x")
-        print(f"  Ratio {sizes[2]:_}/{sizes[1]:_} = {ratio_2:.2f}x")
+        print(f"\n  Ratio {sizes[1]:_}/{sizes[0]:_} = {ratio_1:.2f}x")  # noqa: T201
+        print(f"  Ratio {sizes[2]:_}/{sizes[1]:_} = {ratio_2:.2f}x")  # noqa: T201
 
         # Allow tolerance for fixed overhead at small sizes
         assert 1.2 < ratio_1 < 3.0, f"Non-linear scaling: {ratio_1:.2f}x"
