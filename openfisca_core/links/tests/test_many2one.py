@@ -104,7 +104,7 @@ def test_many2one_chaining(sim):
     # person 1 -> mother 0 -> hh 0 -> rent 800.0
     # person 2 -> mother 0 -> hh 0 -> rent 800.0
     # person 3 -> mother 1 -> hh 0 -> rent 800.0
-    chained_link = getattr(mother_link, "household")
+    chained_link = mother_link.household
     h_rents = chained_link.get("rent", "2024")
     assert numpy.array_equal(h_rents, [0.0, 800.0, 800.0, 800.0])
 

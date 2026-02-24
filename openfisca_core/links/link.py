@@ -12,12 +12,14 @@ class Link:
     """A named, directed relationship between two entity populations.
 
     A Link is defined by:
+
     - A *name* used to access the link from formulas (e.g. "mother", "household").
     - A *link_field*: the name of the Variable (on the source entity) that holds
       the target entity IDs.
     - A *target_entity_key*: the entity key of the target population.
     - Optionally, a *role_field* and *position_field* to attach OpenFisca-style
       role and position metadata to the relationship.
+
 
     Sub-classes ``Many2OneLink`` and ``One2ManyLink`` add resolution logic.
 

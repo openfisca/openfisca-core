@@ -109,9 +109,9 @@ def switch(
         array([80, 80, 80, 90])
 
     """
-    assert len(value_by_condition) > 0, (
-        "'switch' must be called with at least one value."
-    )
+    assert (
+        len(value_by_condition) > 0
+    ), "'switch' must be called with at least one value."
 
     condlist = [conditions == condition for condition in value_by_condition]
 

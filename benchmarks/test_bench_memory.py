@@ -51,7 +51,7 @@ class TestMembersPositionMemory:
         _, current, peak = _measure_memory(lambda: pop.members_position)
 
         per_person = peak / nb_persons
-        print(
+        print(  # noqa: T201
             f"\n  [members_position] N={nb_persons:>10_d}"
             f"  current={_fmt(current)}"
             f"  peak={_fmt(peak)}"
@@ -86,7 +86,7 @@ class TestSimulationMemory:
         )
 
         per_person = peak / nb_persons
-        print(
+        print(  # noqa: T201
             f"\n  [disposable_income] N={nb_persons:>10_d}"
             f"  current={_fmt(current)}"
             f"  peak={_fmt(peak)}"
@@ -111,7 +111,7 @@ class TestSimulationMemory:
         _, current, peak = _measure_memory(run_12_months)
 
         per_person = peak / nb_persons
-        print(
+        print(  # noqa: T201
             f"\n  [12-month simulation] N={nb_persons:>10_d}"
             f"  current={_fmt(current)}"
             f"  peak={_fmt(peak)}"
@@ -140,9 +140,11 @@ class TestPerVariableMemory:
             "pension",
         ]
 
-        print(f"\n  Per-variable memory cost (N={nb_persons:_d}):")
-        print(f"  {'Variable':<35s} {'Current':>10s} {'Peak':>10s} {'Marginal':>10s}")
-        print(f"  {'-' * 35} {'-' * 10} {'-' * 10} {'-' * 10}")
+        print(f"\n  Per-variable memory cost (N={nb_persons:_d}):")  # noqa: T201
+        print(
+            f"  {'Variable':<35s} {'Current':>10s} {'Peak':>10s} {'Marginal':>10s}"
+        )  # noqa: T201
+        print(f"  {'-' * 35} {'-' * 10} {'-' * 10} {'-' * 10}")  # noqa: T201
 
         prev_current = 0
         for var_name in variables:
@@ -153,7 +155,7 @@ class TestPerVariableMemory:
             tracemalloc.stop()
 
             marginal = current - prev_current
-            print(
+            print(  # noqa: T201
                 f"  {var_name:<35s}"
                 f" {_fmt(current):>10s}"
                 f" {_fmt(peak):>10s}"

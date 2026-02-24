@@ -159,9 +159,9 @@ class Instant(tuple[int, int, int]):
         """
         year, month, _ = self
 
-        assert unit in (DateUnit.isoformat + DateUnit.isocalendar), (
-            f"Invalid unit: {unit} of type {type(unit)}"
-        )
+        assert unit in (
+            DateUnit.isoformat + DateUnit.isocalendar
+        ), f"Invalid unit: {unit} of type {type(unit)}"
 
         if offset == "first-of":
             if unit == DateUnit.YEAR:
