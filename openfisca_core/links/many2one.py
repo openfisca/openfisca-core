@@ -43,7 +43,6 @@ class Many2OneLink(Link):
             (target_id < 0) receive the variable's default value.
         """
         source_pop = self._source_population
-        target_pop = self._target_population
         simulation = source_pop.simulation
 
         # 1. Target IDs for each source member
@@ -87,9 +86,7 @@ class Many2OneLink(Link):
             return _ChainedGetter(self, target_link)
 
         target_entity = target_pop.entity
-        msg = (
-            f"Entity '{target_entity.key}' has no link named '{name}'"
-        )
+        msg = f"Entity '{target_entity.key}' has no link named '{name}'"
         raise AttributeError(msg)
 
     # -- role helpers -------------------------------------------------------
@@ -117,7 +114,8 @@ class Many2OneLink(Link):
     def _get_target_ids(self, period) -> numpy.ndarray:
         """Fetch the target IDs from the link_field variable."""
         return self._source_population.simulation.calculate(
-            self.link_field, period,
+            self.link_field,
+            period,
         )
 
     def _resolve_ids(self, target_ids: numpy.ndarray) -> numpy.ndarray:
@@ -131,7 +129,10 @@ class Many2OneLink(Link):
         target_pop = self._target_population
         rows = numpy.full_like(target_ids, -1, dtype=numpy.intp)
 
-        if hasattr(target_pop, "_id_to_rownum") and target_pop._id_to_rownum is not None:
+        if (
+            hasattr(target_pop, "_id_to_rownum")
+            and target_pop._id_to_rownum is not None
+        ):
             id_to_rownum = target_pop._id_to_rownum
             valid = (target_ids >= 0) & (target_ids < len(id_to_rownum))
             rows[valid] = id_to_rownum[target_ids[valid]]
@@ -145,6 +146,7 @@ class Many2OneLink(Link):
 # ---------------------------------------------------------------------------
 # Chained link getter
 # ---------------------------------------------------------------------------
+
 
 class _ChainedGetter:
     """Intermediate object for link chaining: ``person.mother.household``."""
@@ -160,7 +162,8 @@ class _ChainedGetter:
 
         # 2. Map back through outer link
         target_ids = self._outer._source_population.simulation.calculate(
-            self._outer.link_field, period,
+            self._outer.link_field,
+            period,
         )
         target_rows = self._outer._resolve_ids(target_ids)
 
@@ -191,9 +194,7 @@ class _ChainedGetter:
             return _ChainedGetter(self._outer, next_link)
 
         target_entity = target_pop.entity
-        raise AttributeError(
-            f"Entity '{target_entity.key}' has no link named '{name}'"
-        )
+        raise AttributeError(f"Entity '{target_entity.key}' has no link named '{name}'")
 
 
 __all__ = ["Many2OneLink"]
