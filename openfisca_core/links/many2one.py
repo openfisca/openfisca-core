@@ -141,8 +141,8 @@ class _ChainedGetter:
         self._outer = outer_link
         self._inner = inner_link
 
-    def __call__(self, variable_name: str, period) -> numpy.ndarray:
-        """Resolve ``person.mother.household("rent", period)``."""
+    def get(self, variable_name: str, period) -> numpy.ndarray:
+        """Resolve ``person.mother.household.get("rent", period)``."""
         # 1. Resolve inner link value on inner entity
         inner_values = self._inner.get(variable_name, period)
 
@@ -160,6 +160,10 @@ class _ChainedGetter:
         valid = target_rows >= 0
         result[valid] = inner_values[target_rows[valid]]
         return result
+
+    def __call__(self, variable_name: str, period) -> numpy.ndarray:
+        """Shorthand for get(): ``person.mother.household("rent", period)``."""
+        return self.get(variable_name, period)
 
     def __getattr__(self, name: str):
         """Continue chaining: ``person.mother.household.region``."""
