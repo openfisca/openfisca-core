@@ -57,6 +57,12 @@ class Many2OneLink(Link):
         # 4. Gather with missing-value handling
         variable = simulation.tax_benefit_system.get_variable(variable_name)
         default = variable.default_value if variable else 0
+
+        from openfisca_core.indexed_enums import Enum, EnumArray
+
+        if isinstance(default, Enum):
+            default = default.index
+
         result = numpy.full(
             source_pop.count,
             default,
@@ -64,6 +70,10 @@ class Many2OneLink(Link):
         )
         valid = target_rows >= 0
         result[valid] = target_values[target_rows[valid]]
+
+        if isinstance(target_values, EnumArray):
+            result = EnumArray(result, target_values.possible_values)
+
         return result
 
     # -- syntactic sugar ----------------------------------------------------
@@ -85,9 +95,26 @@ class Many2OneLink(Link):
             target_link = target_pop.links[name]
             return _ChainedGetter(self, target_link)
 
+        target_attr = getattr(target_pop, name, None)
+        if target_attr is not None:
+            if hasattr(target_attr, "projectable"):
+
+                def projector_function(*args, **kwargs):
+                    result = target_attr(*args, **kwargs)
+                    return self._project_result(result)
+
+                return projector_function
+            return target_attr
+
         target_entity = target_pop.entity
         msg = f"Entity '{target_entity.key}' has no link named '{name}'"
         raise AttributeError(msg)
+
+    def _project_result(self, result: numpy.ndarray) -> numpy.ndarray:
+        if hasattr(self, "_project_implicit"):
+            return self._project_implicit(result)
+        msg = "Chained method calls computing arrays on explicit links are not supported because the period cannot be inferred."
+        raise NotImplementedError(msg)
 
     # -- role helpers -------------------------------------------------------
 
