@@ -1,12 +1,10 @@
 """Tests for Phase 2: entity integration and link resolution."""
 
-import numpy
 import pytest
 
 from openfisca_core import entities, periods, taxbenefitsystems, variables
 from openfisca_core.links import Many2OneLink, One2ManyLink
 from openfisca_core.simulations import SimulationBuilder
-
 
 # -- Test CoreEntity.add_link / get_link / links --------------------------
 
@@ -60,7 +58,10 @@ class TestLinkResolution:
     def _make_tbs_with_link(self):
         """Build a minimal TBS with a person entity and a mother link."""
         person = entities.SingleEntity(
-            "person", "persons", "A person", "",
+            "person",
+            "persons",
+            "A person",
+            "",
         )
         household = entities.GroupEntity(
             "household",
@@ -114,7 +115,10 @@ class TestLinkResolution:
     def test_link_on_group_entity(self):
         """A link declared on a GroupEntity gets resolved too."""
         person = entities.SingleEntity(
-            "person", "persons", "A person", "",
+            "person",
+            "persons",
+            "A person",
+            "",
         )
         household = entities.GroupEntity(
             "household",
@@ -165,7 +169,10 @@ class TestBackwardCompatibility:
     def test_no_links_no_problem(self):
         """Entities without links should work as before."""
         person = entities.SingleEntity(
-            "person", "persons", "A person", "",
+            "person",
+            "persons",
+            "A person",
+            "",
         )
         household = entities.GroupEntity(
             "household",

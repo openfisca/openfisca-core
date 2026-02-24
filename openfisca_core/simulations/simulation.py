@@ -62,7 +62,6 @@ class Simulation:
         self._data_storage_dir = None
         self.start_computation_period = None
 
-
     @property
     def trace(self):
         return self._trace
@@ -94,7 +93,10 @@ class Simulation:
         This is called once at ``__init__`` time, after
         ``link_to_entities_instances`` and ``create_shortcuts``.
         """
-        from openfisca_core.links.implicit import ImplicitMany2OneLink, ImplicitOne2ManyLink
+        from openfisca_core.links.implicit import (
+            ImplicitMany2OneLink,
+            ImplicitOne2ManyLink,
+        )
         from openfisca_core.populations.group_population import GroupPopulation
 
         person_entity = self.persons.entity

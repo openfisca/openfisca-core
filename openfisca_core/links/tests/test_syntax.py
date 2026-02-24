@@ -1,5 +1,5 @@
 import numpy
-from openfisca_core.links.tests.test_implicit import sim
+
 
 def test_syntax(sim):
     # person.household string attribute access
