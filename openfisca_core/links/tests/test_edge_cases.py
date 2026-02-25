@@ -352,7 +352,7 @@ class TestGroupPopulationConditionEdgeCases:
 
         assert household.sum(salary, condition=all_false)[0] == 0.0
         assert household.nb_persons(condition=all_false)[0] == 0
-        assert household.any(salary > 0, condition=all_false)[0] == False  # noqa: E712
+        assert not household.any(salary > 0, condition=all_false)[0]
 
     def test_condition_all_true_same_as_none(self, sim):
         household = sim.household
@@ -382,7 +382,7 @@ class TestGroupPopulationConditionEdgeCases:
 
         result = household.all(salary > 9999, condition=no_one)
         # Vacuously true: there is no member for which the predicate is false
-        assert result[0] == True  # noqa: E712
+        assert result[0]
 
 
 # ──────────────────────────────────────────────────────────────
