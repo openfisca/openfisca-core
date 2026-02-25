@@ -21,15 +21,13 @@ from openfisca_core.simulations import SimulationBuilder
 def rich_sim():
     """Simulation with 6 persons and 3 households, various edge cases.
 
-    Households:
-        hh 0: person 0 (role 0, parent, F, salary 1000)
-               person 1 (role 1, child,  M, salary -200)
-               person 2 (role 1, child,  F, salary 300)
-        hh 1: person 3 (role 0, parent, M, salary 5000)
-        hh 2: (empty — no persons assigned)
-
-    Person 4: household_id = -1 (unattached)
-    Person 5: household_id = -1 (unattached)
+    - hh 0: person 0 (role 0, parent, F, salary 1000),
+      person 1 (role 1, child, M, salary -200),
+      person 2 (role 1, child, F, salary 300)
+    - hh 1: person 3 (role 0, parent, M, salary 5000)
+    - hh 2: empty (no persons assigned)
+    - person 4: household_id = -1 (unattached)
+    - person 5: household_id = -1 (unattached)
     """
     person = entities.SingleEntity("person", "persons", "A person", "")
     household = entities.GroupEntity(

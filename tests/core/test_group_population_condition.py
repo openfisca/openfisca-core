@@ -6,7 +6,6 @@ keyword argument and produce correct results when combined with `role`.
 
 from copy import deepcopy
 
-import numpy
 import pytest
 
 from openfisca_core import tools
