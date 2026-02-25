@@ -219,19 +219,20 @@ class One2ManyLink(Link):
     def _apply_filters(self, period, values, role, condition):
         """Apply role and condition filters, return (source_rows, values)."""
         source_rows = self._source_rows(period)
+        mask = numpy.ones(len(source_rows), dtype=bool)
 
         # Role filter
         if role is not None and self.role_field is not None:
             simulation = self._target_population.simulation
             roles = simulation.calculate(self.role_field, "eternity")
-            mask = roles == role
-            source_rows = source_rows[mask]
-            values = values[mask]
+            mask &= roles == role
 
         # Condition filter
         if condition is not None:
-            source_rows = source_rows[condition]
-            values = values[condition]
+            mask &= condition
+
+        source_rows = source_rows[mask]
+        values = values[mask]
 
         # Remove invalid rows
         valid = source_rows >= 0

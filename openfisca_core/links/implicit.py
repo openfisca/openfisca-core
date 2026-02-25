@@ -54,16 +54,17 @@ class ImplicitOne2ManyLink(One2ManyLink):
 
     def _apply_filters(self, period, values, role, condition):
         source_rows = self._source_rows(period)
+        mask = numpy.ones(len(source_rows), dtype=bool)
 
         if role is not None:
             roles = self._source_population.members_role
-            mask = roles == role
-            source_rows = source_rows[mask]
-            values = values[mask]
+            mask &= roles == role
 
         if condition is not None:
-            source_rows = source_rows[condition]
-            values = values[condition]
+            mask &= condition
+
+        source_rows = source_rows[mask]
+        values = values[mask]
 
         valid = source_rows >= 0
         return source_rows[valid], values[valid]

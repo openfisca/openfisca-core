@@ -144,8 +144,9 @@ class TestPerVariableMemory:
         ]
 
         print(f"\n  Per-variable memory cost (N={nb_persons:_d}):")  # noqa: T201
-        msg = f"  {'Variable':<35s} {'Current':>10s} {'Peak':>10s} {'Marginal':>10s}"
-        print(msg)  # noqa: T201
+        print(  # noqa: T201
+            f"  {'Variable':<35s} {'Current':>10s} {'Peak':>10s} {'Marginal':>10s}"
+        )
         print(f"  {'-' * 35} {'-' * 10} {'-' * 10} {'-' * 10}")  # noqa: T201
 
         prev_current = 0
