@@ -47,6 +47,7 @@ def sim(tax_benefit_system):
 
 # -- Tests -------------------------------------------------------------------
 
+
 class TestSumWithCondition:
     def test_sum_condition_only(self, sim):
         household = sim.household
@@ -61,6 +62,7 @@ class TestSumWithCondition:
 
     def test_sum_role_and_condition(self, sim):
         from openfisca_country_template import entities
+
         CHILD = entities.Household.CHILD
 
         household = sim.household
@@ -139,6 +141,7 @@ class TestNbPersonsWithCondition:
 
     def test_nb_persons_role_and_condition(self, sim):
         from openfisca_country_template import entities
+
         CHILD = entities.Household.CHILD
 
         household = sim.household

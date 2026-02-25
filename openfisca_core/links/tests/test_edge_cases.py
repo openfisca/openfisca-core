@@ -40,9 +40,9 @@ def _make_tbs_and_sim(
         "household", "households", "A household", "", roles=[{"key": "member"}]
     )
 
-    for link in (person_links or []):
+    for link in person_links or []:
         person.add_link(link)
-    for link in (household_links or []):
+    for link in household_links or []:
         household.add_link(link)
 
     tbs = taxbenefitsystems.TaxBenefitSystem([person, household])
