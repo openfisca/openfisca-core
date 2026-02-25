@@ -12,7 +12,6 @@ import pytest
 from openfisca_core import tools
 from openfisca_core.simulations import SimulationBuilder
 
-
 # -- Fixtures ---------------------------------------------------------------
 
 TEST_CASE = {

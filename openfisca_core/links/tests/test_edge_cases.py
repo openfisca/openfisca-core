@@ -19,7 +19,6 @@ from openfisca_core.links import Many2OneLink, One2ManyLink
 from openfisca_core.links.implicit import ImplicitOne2ManyLink
 from openfisca_core.simulations import SimulationBuilder
 
-
 # ──────────────────────────────────────────────────────────────
 # Shared fixture builder
 # ──────────────────────────────────────────────────────────────
