@@ -119,3 +119,31 @@ def test_many2one_role_helpers(sim):
 
     has_role_10 = link.has_role(10)
     assert numpy.array_equal(has_role_10, [True, False, True, False])
+
+    # also exercise the new helper
+    parent_rents = link.get_by_role("rent", "2024", role_value=10)
+    assert numpy.array_equal(parent_rents, [800.0, 0.0, 500.0, 0.0])
+
+
+def test_many2one_rank(sim):
+    """Ranking people by age within their household via the link.
+
+    The default ``sim`` fixture uses ``build_default_simulation`` which
+    does not populate ``household.members_entity_id`` correctly, so we
+    patch the group population manually using the input variable.
+    """
+    # ensure household group mappings match the input variable
+    sim.household.members_entity_id = sim.persons("household_id", "2024")
+    # reset any cached position so rank uses updated mapping
+    sim.household._members_position = None
+
+    link = sim.persons.links["household"]
+    ages = sim.persons("age", "2024")  # [50, 25, 20, 5]
+    ranks = link.rank("age", "2024")
+    # households: h0->[50,25] -> ranks [1,0]; h1->[20,5] -> ranks [1,0]
+    assert numpy.array_equal(ranks, [1, 0, 1, 0])
+
+    # chaining should also forward to outer link (no behavioural change)
+    chained = sim.persons.links["mother"].household
+    ranks2 = chained.rank("age", "2024")
+    assert numpy.array_equal(ranks2, ranks)

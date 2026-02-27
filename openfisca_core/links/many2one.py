@@ -129,12 +129,69 @@ class Many2OneLink(Link):
         )
 
     def has_role(self, role_value) -> numpy.ndarray:
-        """Boolean mask: does each source member have the given role?"""
+        """Boolean mask: does each source member have the given role?
+
+        The ``role`` array may contain raw values (ints, strings) or
+        ``Role`` objects depending on how the population was built.  When
+        ``role_value`` is a string we compare against the ``key`` of each
+        element to make the API ergonomic for callers such as
+        ``link.has_role("parent")`` or ``link.get_by_role(..., role_value="foo")``.
+        """
         r = self.role
         if r is None:
             msg = f"Link '{self.name}' has no role_field"
             raise ValueError(msg)
+
+        # if array holds object references, convert to their keys
+        if r.dtype == object:
+            try:
+                keys = numpy.fromiter(
+                    (getattr(x, "key", x) for x in r),
+                    dtype=object,
+                )
+            except Exception:
+                # fallback to direct comparison
+                return r == role_value
+            return keys == role_value
+
+        # numpy will perform elementwise comparison for numeric or string
         return r == role_value
+
+    # -- role-based access --------------------------------------------------
+
+    def get_by_role(
+        self,
+        variable_name: str,
+        period,
+        *,
+        role_value,
+    ) -> numpy.ndarray:
+        """Fetch a variable on the target only for members with a given role.
+
+        Parameters
+        ----------
+        variable_name : str
+            Name of the variable defined on the target entity.
+        period : Period
+            Period for which to calculate the variable.
+        role_value : object
+            The role to filter on (e.g. ``"parent"``).
+
+        Returns
+        -------
+        numpy.ndarray
+            Array of shape ``(n_source,)`` where only members whose
+            ``has_role(role_value)`` return ``True`` keep their computed
+            value; all others receive the variable's default (usually 0).
+        """
+        mask = self.has_role(role_value)
+        result = self.get(variable_name, period)
+        # zero out non-matching rows using dtype-preserving fill
+        if not mask.all():
+            # create a copy to avoid mutating cached results
+            result = result.copy()
+            result[~mask] = 0
+        return result
 
     # -- ID resolution ------------------------------------------------------
 
@@ -168,6 +225,28 @@ class Many2OneLink(Link):
             rows[valid] = target_ids[valid]
 
         return rows
+
+    # -- ranking -----------------------------------------------------------
+
+    def rank(self, variable_name: str, period) -> numpy.ndarray:
+        """Rank each source member within its group by a variable value.
+
+        The rank is computed among all members sharing the same target
+        entity, sorted by the value of ``variable_name`` evaluated on the
+        *source* population.  The lowest value receives rank ``0``.
+
+        This is essentially a thin wrapper around
+        :meth:`~openfisca_core.populations.Population.get_rank`:
+
+        >>> person = simulation.persons
+        >>> person.links['household'].rank('age', period)
+        array([...])
+        """
+        source_pop = self._source_population
+        # criteria on source population
+        criteria = source_pop.simulation.calculate(variable_name, period)
+        # let Population.get_rank handle grouping and sorting
+        return source_pop.get_rank(self, criteria)
 
 
 # ---------------------------------------------------------------------------
@@ -222,6 +301,10 @@ class _ChainedGetter:
 
         target_entity = target_pop.entity
         raise AttributeError(f"Entity '{target_entity.key}' has no link named '{name}'")
+
+    def rank(self, variable_name: str, period) -> numpy.ndarray:
+        # forward to outer link so that chaining keeps semantics
+        return self._outer.rank(variable_name, period)
 
 
 __all__ = ["Many2OneLink"]

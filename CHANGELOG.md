@@ -1,5 +1,20 @@
 # Changelog
 
+## 44.4.0 [#1364](https://github.com/openfisca/openfisca-core/pull/1364)
+
+#### New features
+
+- **Entity links**: role-based and positional accessors, and dynamic population period-index helpers.
+  - `Many2OneLink.get_by_role(variable_name, period, role_value=...)`, `One2ManyLink.get_by_role(...)` and `ImplicitOne2ManyLink.get_by_role(...)`.
+  - `Many2OneLink.rank(variable_name, period)` (and on chained getter, e.g. `person.links["mother"].household.rank("age", period)`).
+  - `One2ManyLink.nth(n, variable_name, period, role=..., condition=...)` for the n-th target member per source.
+  - `has_role(role_value)` now supports `Role` objects (comparison by `.key`) in addition to raw values.
+  - `CorePopulation.snapshot_period(period)` and `get_period_id_to_rownum(period)` for optional dynamic-population period indexing.
+
+#### Technical changes
+
+- Removed unused `openfisca_core.model_api` import in `tests/core/parameters_date_indexing/test_date_indexing.py`.
+
 ## 44.3.0
 
 #### New Features
