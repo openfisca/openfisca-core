@@ -1,5 +1,15 @@
 # Changelog
 
+## 44.4.1
+
+#### Performance improvements
+
+- Fix quadratic reconstruction cost in `as_of` forward simulations.
+  - In the typical GET(M-1) → compute → SET(M) monthly loop, `_set_as_of` was unconditionally clearing the snapshot cursor after each write, forcing the next `get_array(M)` to reconstruct from the base through all M patches — O(N + M·k) per step, quadratic overall.
+  - Root cause: `_reconstruct_at` advanced the snapshot to `instant` during the internal diff computation, so the invalidation guard `snapshot[0] >= instant` triggered on equality even for strictly forward writes.
+  - Fix: when the new patch is appended at the end of the list (forward-sequential SET), the snapshot is updated to the new state instead of being discarded. Retroactive (out-of-order) writes still invalidate the snapshot correctly.
+  - Benchmark (N=1M, forward simulation): 1 yr / 10% change ×1.4, 5 yr / 10% ×4.1, 5 yr / 30% ×5.4.
+
 ## 44.4.0 [#1366](https://github.com/openfisca/openfisca-core/pull/1366)
 
 #### Performance improvements

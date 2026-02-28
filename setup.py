@@ -61,6 +61,7 @@ excel_requirements = [
 
 dev_requirements = [
     "black >=24.8.0, <25.0",
+    "pytest-benchmark >=4.0.0, <5.0",
     "codespell >=2.3.0, <3.0",
     "colorama >=0.4.4, <0.5",
     "darglint >=1.8.1, <2.0",
@@ -84,7 +85,7 @@ dev_requirements = [
 
 setup(
     name="OpenFisca-Core",
-    version="44.4.0",
+    version="44.4.1",
     author="OpenFisca Team",
     author_email="contact@openfisca.org",
     classifiers=[
