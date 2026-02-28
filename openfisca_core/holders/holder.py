@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import OrderedDict
 from collections.abc import Sequence
 from typing import Any
 
@@ -34,16 +35,30 @@ class Holder:
         self._memory_storage = storage.InMemoryStorage(is_eternal=self._eternal)
         if self._as_of:
             # Sparse patch storage.
-            # _as_of_base       : first full array set (read-only).
-            # _as_of_base_instant: Instant at which the base was established.
-            # _as_of_patches    : sorted list of (Instant, idx_array, val_array).
-            # _as_of_patch_instants: parallel list of Instants for bisect.
-            # _as_of_snapshot   : (Instant, array, last_patch_idx) cursor cache.
+            # _as_of_base           : first full array set (read-only).
+            # _as_of_base_instant   : Instant at which the base was established.
+            # _as_of_patches        : sorted list of (Instant, idx_array, val_array).
+            # _as_of_patch_instants : parallel list of Instants for bisect.
+            # _as_of_snapshots      : LRU OrderedDict  instant → (array, patch_idx).
+            # _as_of_max_snapshots  : maximum number of snapshots to keep.
             self._as_of_base = None
             self._as_of_base_instant = None
             self._as_of_patches: list = []
             self._as_of_patch_instants: list = []
-            self._as_of_snapshot = None
+            self._as_of_snapshots: OrderedDict = OrderedDict()
+            # Resolution order: variable.snapshot_count > MemoryConfig.asof_max_snapshots > 3
+            _mc = self.simulation.memory_config if self.simulation else None
+            self._as_of_max_snapshots: int = next(
+                (
+                    v
+                    for v in [
+                        getattr(self.variable, "snapshot_count", None),
+                        getattr(_mc, "asof_max_snapshots", None),
+                    ]
+                    if v is not None
+                ),
+                3,
+            )
             # Instants for which transition_formula has already been applied.
             self._as_of_transition_computed: set = set()
 
@@ -78,7 +93,7 @@ class Holder:
             new_dict["_as_of_patches"] = list(self._as_of_patches)
             new_dict["_as_of_patch_instants"] = list(self._as_of_patch_instants)
             # Snapshots are not cloned: first access will reconstruct cheaply.
-            new_dict["_as_of_snapshot"] = None
+            new_dict["_as_of_snapshots"] = OrderedDict()
             new_dict["_as_of_transition_computed"] = set(
                 self._as_of_transition_computed
             )
@@ -135,12 +150,20 @@ class Holder:
         target = period.start if self._as_of == "start" else period.stop
         return self._reconstruct_at(target)
 
+    def _cache_snapshot(self, instant, array, patch_idx) -> None:
+        """Insert (or refresh) a snapshot in the LRU cache, evicting the least
+        recently used entry if the cache is full."""
+        self._as_of_snapshots[instant] = (array, patch_idx)
+        self._as_of_snapshots.move_to_end(instant)
+        if len(self._as_of_snapshots) > self._as_of_max_snapshots:
+            self._as_of_snapshots.popitem(last=False)  # evict LRU
+
     def _reconstruct_at(self, target_instant):
         """Reconstruct the dense array at target_instant from base + patches.
 
-        Uses a snapshot cursor for O(k) incremental cost on forward-sequential
-        access patterns.  Falls back to O(N + k*P) full reconstruction for
-        backward jumps or first access.
+        Uses a multi-snapshot LRU cache for O(k) incremental cost.
+        Falls back to O(N + k*P) full reconstruction when no usable snapshot
+        exists (e.g. backward jump past all cached snapshots).
 
         Returns None if no base has been set yet, or if target_instant is
         before the base was established.
@@ -152,33 +175,42 @@ class Holder:
         pos = bisect.bisect_right(self._as_of_patch_instants, target_instant)
         last_patch_idx = pos - 1  # -1 means only the base applies
 
-        snapshot = self._as_of_snapshot
-        if snapshot is not None:
-            snap_instant, snap_array, snap_patch_idx = snapshot
+        # Exact cache hit — O(1).
+        if target_instant in self._as_of_snapshots:
+            array, _ = self._as_of_snapshots[target_instant]
+            self._as_of_snapshots.move_to_end(target_instant)
+            return array
 
-            if snap_instant == target_instant:
-                return snap_array  # exact cache hit — O(1)
+        # Find best starting snapshot: latest snap_instant < target_instant.
+        best_instant = None
+        best_array = None
+        best_patch_idx = None
+        for snap_instant, (snap_array, snap_patch_idx) in self._as_of_snapshots.items():
+            if snap_instant < target_instant:
+                if best_instant is None or snap_instant > best_instant:
+                    best_instant = snap_instant
+                    best_array = snap_array
+                    best_patch_idx = snap_patch_idx
 
-            if snap_instant < target_instant and snap_patch_idx <= last_patch_idx:
-                # Forward access: apply only patches added since the snapshot.
-                result = snap_array
-                for i in range(snap_patch_idx + 1, last_patch_idx + 1):
-                    _, idx, vals = self._as_of_patches[i]
-                    if result is snap_array:
-                        result = result.copy()
-                    result[idx] = vals
-                if result is not snap_array:
-                    result.flags.writeable = False
-                self._as_of_snapshot = (target_instant, result, last_patch_idx)
-                return result
+        if best_array is not None:
+            # Incremental forward reconstruction from best snapshot.
+            result = best_array
+            for i in range(best_patch_idx + 1, last_patch_idx + 1):
+                _, idx, vals = self._as_of_patches[i]
+                if result is best_array:
+                    result = result.copy()
+                result[idx] = vals
+            if result is not best_array:
+                result.flags.writeable = False
+        else:
+            # Full reconstruction from base (no usable snapshot).
+            result = self._as_of_base.copy()
+            for i in range(last_patch_idx + 1):
+                _, idx, vals = self._as_of_patches[i]
+                result[idx] = vals
+            result.flags.writeable = False
 
-        # Full reconstruction from base (backward jump or first access).
-        result = self._as_of_base.copy()
-        for i in range(last_patch_idx + 1):
-            _, idx, vals = self._as_of_patches[i]
-            result[idx] = vals
-        result.flags.writeable = False
-        self._as_of_snapshot = (target_instant, result, last_patch_idx)
+        self._cache_snapshot(target_instant, result, last_patch_idx)
         return result
 
     def _set_as_of(self, period, value) -> None:
@@ -192,11 +224,11 @@ class Holder:
         instant = period.start
 
         if self._as_of_base is None:
-            # First set_input: establish the base and seed the snapshot cursor.
+            # First set_input: establish the base and seed the snapshot cache.
             self._as_of_base = value.copy()
             self._as_of_base.flags.writeable = False
             self._as_of_base_instant = instant
-            self._as_of_snapshot = (instant, self._as_of_base, -1)
+            self._cache_snapshot(instant, self._as_of_base, -1)
             return
 
         prev = self._reconstruct_at(instant)
@@ -214,17 +246,17 @@ class Holder:
 
         new_patch_idx = len(self._as_of_patches) - 1
         if pos == new_patch_idx:
-            # Appended at the end (forward-sequential SET): advance the snapshot
-            # to instant so the next GET(instant) is an O(1) cache hit instead
-            # of an O(N + M·k) full reconstruction.
+            # Appended at the end (forward-sequential SET): cache current value
+            # so the next GET(instant) is an O(1) hit.
             new_snap = value.copy()
             new_snap.flags.writeable = False
-            self._as_of_snapshot = (instant, new_snap, new_patch_idx)
+            self._cache_snapshot(instant, new_snap, new_patch_idx)
         else:
-            # Retroactive (out-of-order) SET: invalidate any snapshot that now
-            # includes this instant so it is not silently stale.
-            if self._as_of_snapshot is not None and self._as_of_snapshot[0] >= instant:
-                self._as_of_snapshot = None
+            # Retroactive (out-of-order) SET: evict all snapshots at or after
+            # this instant — they may no longer reflect the inserted patch.
+            to_evict = [k for k in self._as_of_snapshots if k >= instant]
+            for k in to_evict:
+                del self._as_of_snapshots[k]
 
     def _set_as_of_sparse(self, period, idx, vals) -> None:
         """Store a sparse patch directly, without requiring a full N-array.
@@ -253,25 +285,31 @@ class Holder:
 
         new_patch_idx = len(self._as_of_patches) - 1
         if pos == new_patch_idx:
-            # Forward-sequential: update snapshot from current snapshot + patch
-            snapshot = self._as_of_snapshot
-            if snapshot is not None:
-                snap_instant, snap_array, snap_patch_idx = snapshot
+            # Forward-sequential: build new snapshot from best cached snapshot.
+            best_instant = None
+            best_array = None
+            best_patch_idx_snap = None
+            for snap_instant, (snap_array, snap_patch_idx) in self._as_of_snapshots.items():
                 if snap_instant <= instant:
-                    new_snap = (
-                        snap_array.copy()
-                    )  # O(N) — unavoidable for dense snapshot
-                    new_snap[idx] = vals
-                    new_snap.flags.writeable = False
-                    self._as_of_snapshot = (instant, new_snap, new_patch_idx)
-                    return
-            # No usable snapshot: leave it None, next GET will rebuild
-            if self._as_of_snapshot is not None and self._as_of_snapshot[0] >= instant:
-                self._as_of_snapshot = None
+                    if best_instant is None or snap_instant > best_instant:
+                        best_instant = snap_instant
+                        best_array = snap_array
+                        best_patch_idx_snap = snap_patch_idx
+            if best_array is not None:
+                new_snap = best_array.copy()  # O(N) — unavoidable for dense snapshot
+                # Apply any patches between the snapshot and the new one.
+                for i in range(best_patch_idx_snap + 1, new_patch_idx):
+                    _, pidx, pvals = self._as_of_patches[i]
+                    new_snap[pidx] = pvals
+                new_snap[idx] = vals
+                new_snap.flags.writeable = False
+                self._cache_snapshot(instant, new_snap, new_patch_idx)
+            # else: no snapshot yet — next GET will rebuild from base.
         else:
-            # Retroactive insert: invalidate stale snapshot
-            if self._as_of_snapshot is not None and self._as_of_snapshot[0] >= instant:
-                self._as_of_snapshot = None
+            # Retroactive insert: evict all snapshots at or after this instant.
+            to_evict = [k for k in self._as_of_snapshots if k >= instant]
+            for k in to_evict:
+                del self._as_of_snapshots[k]
 
     def set_input_sparse(self, period, idx, vals) -> None:
         """Set new values for only the specified individuals.

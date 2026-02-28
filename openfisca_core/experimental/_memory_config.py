@@ -19,11 +19,15 @@ class MemoryConfig:
     #: Variables to drop.
     variables_to_drop: frozenset[str]
 
+    #: Default number of LRU snapshots for as_of variables (None = use holder default).
+    asof_max_snapshots: int | None
+
     def __init__(
         self,
         max_memory_occupation: str | float,
         priority_variables: Iterable[str] = frozenset(),
         variables_to_drop: Iterable[str] = frozenset(),
+        asof_max_snapshots: int | None = None,
     ) -> None:
         message = [
             "Memory configuration is a feature that is still currently under "
@@ -40,3 +44,4 @@ class MemoryConfig:
         self.max_memory_occupation_pc = self.max_memory_occupation * 100
         self.priority_variables = frozenset(priority_variables)
         self.variables_to_drop = frozenset(variables_to_drop)
+        self.asof_max_snapshots = asof_max_snapshots
