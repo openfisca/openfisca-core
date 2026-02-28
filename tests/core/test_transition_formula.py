@@ -530,3 +530,32 @@ def test_formula_type_none_for_regular_formula():
     tracer.record_calculation_end()
 
     assert tracer.trees[0].formula_type is None
+
+
+def test_computation_log_show_formula_type():
+    """show_formula_type=True adds [initial]/[transition] tags in computation log lines."""
+
+    class Score(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+
+        def initial_formula(person, period):  # noqa: N805
+            return numpy.array([0, 0, 0])
+
+        def transition_formula(person, period):  # noqa: N805
+            return numpy.array([], dtype=numpy.int32), numpy.array([])
+
+    sim = _make_simulation(Score)
+    sim.trace = True
+    sim.calculate("Score", "2024-01")  # initial
+    sim.calculate("Score", "2024-02")  # transition
+
+    lines_with = sim.tracer.computation_log.lines(show_formula_type=True)
+    lines_without = sim.tracer.computation_log.lines(show_formula_type=False)
+
+    assert any("[initial]" in l for l in lines_with)
+    assert any("[transition]" in l for l in lines_with)
+    assert not any("[initial]" in l for l in lines_without)
+    assert not any("[transition]" in l for l in lines_without)
