@@ -470,9 +470,7 @@ class Variable:
         if attribute_name == config.INITIAL_FORMULA_NAME_PREFIX:
             return datetime.date.min
 
-        INITIAL_FORMULA_REGEX = (
-            r"initial_formula_(\d{4})(?:_(\d{2}))?(?:_(\d{2}))?$"
-        )
+        INITIAL_FORMULA_REGEX = r"initial_formula_(\d{4})(?:_(\d{2}))?(?:_(\d{2}))?$"
         match = re.match(INITIAL_FORMULA_REGEX, attribute_name)
         if not match:
             raise_error()

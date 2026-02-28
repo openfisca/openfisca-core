@@ -1,17 +1,47 @@
 # Changelog
 
-## 44.5.0
+## 44.5.0 [#1368](https://github.com/openfisca/openfisca-core/pull/1368)
 
 #### New features
 
-- Add `as_of` attribute to `Variable` for persistent vector variables.
-  - A variable declared with `as_of = True` (or `"start"` / `"end"`) stores its value at a given instant and automatically returns that value for any later period, until a new value is explicitly set — the vectorial analogue of OpenFisca parameters.
-  - `as_of = "start"` (default when `True`): lookup uses the start of the requested period as reference instant.
-  - `as_of = "end"`: lookup uses the end of the requested period (useful for annual variables like income tax).
-  - Lookup is O(log P) via `bisect` on a sorted instants index.
-  - Reference sharing: when consecutive stored values are identical, the same array object is reused, reducing memory usage for stable variables (e.g. `marital_status`, `housing_occupancy_status`).
-  - Stored arrays are read-only (`writeable=False`) to prevent accidental in-place mutation.
-  - Combining `as_of` with `set_input` dispatch helpers raises a `ValueError` at variable definition time.
+- Add `transition_formula` to `Variable` for formula-driven `as_of` forward simulation.
+  - A variable with `transition_formula` computes sparse updates instead of full arrays: the formula returns `(selector, values)` where `selector` is a boolean mask or index array, and `values` is the new values for the selected individuals.
+  - Each call to `get_array` at a new period triggers the transition formula once (guarded by `_as_of_transition_computed`), applies the sparse diff via `set_input_sparse`, and caches the result.
+  - `set_input_sparse` is also exposed as a public method on `Holder` for callers that want to apply sparse patches directly.
+
+- Add `initial_formula` to `Variable` for seeding `as_of` variables without a prior `set_input`.
+  - When a `transition_formula` needs to read the variable at `period - 1` but no base snapshot exists, OpenFisca now calls `initial_formula` instead of raising an error.
+  - `initial_formula` follows the same date-dispatch convention as regular formulas (`initial_formula_YYYY`, `initial_formula_YYYY_MM`, etc.).
+  - Requires `as_of = True` on the same variable; a `ValueError` is raised at definition time otherwise.
+
+- Add multi-snapshot LRU cache to `as_of` variable holders.
+  - Replaces the previous single-entry snapshot cursor with an `OrderedDict`-based LRU cache keeping the K most-recently-used reconstructed snapshots.
+  - Cache size defaults to 3 and is configurable per variable (`Variable.snapshot_count`) or globally (`MemoryConfig.asof_max_snapshots`), with variable-level taking priority.
+  - Retroactive `set_input` (out-of-order writes) evicts all cached snapshots at or after the written instant to preserve correctness.
+
+- Add `formula_type` field to `TraceNode` for `as_of` formula visibility.
+  - When `transition_formula` or `initial_formula` runs, the tracer records `formula_type = "transition"` or `formula_type = "initial"` on the corresponding trace node.
+
+- Add `show_formula_type` option to `computation_log`.
+  - `simulation.tracer.computation_log.print_log(show_formula_type=True)` appends `[transition]` or `[initial]` tags to the relevant lines, making it easy to see which `as_of` formula ran during a simulation.
+
+#### Bug fixes
+
+- Fix false `SpiralError` when a `transition_formula` reads its own variable at the previous period.
+  - The existing spiral detector raised `SpiralError` immediately when the same variable appeared in the call stack at any different period, which always triggers for temporal recursion (`V@P` → `V@P-1` → `V@P-2`).
+  - Fix: in `_calculate_transition`, the cycle check is replaced by `_check_for_strict_cycle`, which only raises `CycleError` for the exact same `(variable, period)` pair. Termination is guaranteed by `_as_of_transition_computed`.
+
+## 44.4.1
+
+#### Performance improvements
+
+- Fix quadratic reconstruction cost in `as_of` forward simulations.
+  - In the typical GET(M-1) → compute → SET(M) monthly loop, `_set_as_of` was unconditionally clearing the snapshot cursor after each write, forcing the next `get_array(M)` to reconstruct from the base through all M patches — O(N + M·k) per step, quadratic overall.
+  - Root cause: `_reconstruct_at` advanced the snapshot to `instant` during the internal diff computation, so the invalidation guard `snapshot[0] >= instant` triggered on equality even for strictly forward writes.
+  - Fix: when the new patch is appended at the end of the list (forward-sequential SET), the snapshot is updated to the new state instead of being discarded. Retroactive (out-of-order) writes still invalidate the snapshot correctly.
+  - Benchmark (N=1M, forward simulation): 1 yr / 10% change ×1.4, 5 yr / 10% ×4.1, 5 yr / 30% ×5.4.
+
+## 44.4.0 [#1366](https://github.com/openfisca/openfisca-core/pull/1366)
 
 #### Performance improvements
 
@@ -22,10 +52,6 @@
   - Retroactive `set_input` (out-of-order patches) is supported with automatic snapshot invalidation.
   - No change to the public API (`set_input`, `get_array`, `Variable.as_of`).
 - Fix quadratic reconstruction cost in `as_of` forward simulations: when the new patch is appended at the end (forward-sequential SET), the snapshot is updated instead of discarded so the next GET does not reconstruct from base through all patches; retroactive writes still invalidate correctly.
-
-#### Technical changes
-
-- Lint: black and flake8 fixes in `tests/core/test_asof_variable.py` and `benchmarks/test_bench_asof.py`.
 
 ## 44.4.0 [#1364](https://github.com/openfisca/openfisca-core/pull/1364)
 
