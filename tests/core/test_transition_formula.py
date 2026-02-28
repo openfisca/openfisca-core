@@ -14,8 +14,7 @@ import numpy
 import pytest
 
 from openfisca_core.entities import Entity
-from openfisca_core.holders import Holder
-from openfisca_core.periods import DateUnit, period
+from openfisca_core.periods import DateUnit
 from openfisca_core.populations import Population
 from openfisca_core.simulations import Simulation
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
@@ -555,7 +554,7 @@ def test_computation_log_show_formula_type():
     lines_with = sim.tracer.computation_log.lines(show_formula_type=True)
     lines_without = sim.tracer.computation_log.lines(show_formula_type=False)
 
-    assert any("[initial]" in l for l in lines_with)
-    assert any("[transition]" in l for l in lines_with)
-    assert not any("[initial]" in l for l in lines_without)
-    assert not any("[transition]" in l for l in lines_without)
+    assert any("[initial]" in line for line in lines_with)
+    assert any("[transition]" in line for line in lines_with)
+    assert not any("[initial]" in line for line in lines_without)
+    assert not any("[transition]" in line for line in lines_without)
