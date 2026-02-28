@@ -198,7 +198,9 @@ def test_asof_no_patch_when_value_unchanged():
     holder.set_input("2024-01", numpy.array([3, 3]))  # base
     holder.set_input("2024-02", numpy.array([3, 3]))  # identical → no patch
 
-    assert len(holder._as_of_patches) == 0, "No patch should be stored for unchanged values"
+    assert (
+        len(holder._as_of_patches) == 0
+    ), "No patch should be stored for unchanged values"
 
 
 def test_asof_patch_stores_only_changed_indices():
@@ -265,7 +267,9 @@ def test_asof_get_array_returns_read_only():
 
     for month in ("2024-01", "2024-03", "2024-05"):
         result = holder.get_array(period(month))
-        assert not result.flags.writeable, f"Returned array for {month} should be read-only"
+        assert (
+            not result.flags.writeable
+        ), f"Returned array for {month} should be read-only"
 
 
 def test_asof_setting_value_does_not_mutate_caller_array():
@@ -332,3 +336,97 @@ def test_as_of_with_set_input_helper_raises():
 
     with pytest.raises(ValueError, match="incompatible"):
         MyVar()
+
+
+# ---------------------------------------------------------------------------
+# 10. set_input_sparse API
+# ---------------------------------------------------------------------------
+
+
+def test_set_input_sparse_basic():
+    """set_input_sparse with (idx, vals) produces the same state as set_input."""
+    holder = _make_holder(_AsOfIntVariable, count=3)
+    holder.set_input("2024-01", numpy.array([1, 2, 3]))  # base
+
+    # Change person 1 from 2 → 9
+    holder.set_input_sparse("2024-04", numpy.array([1]), numpy.array([9]))
+
+    result = holder.get_array(period("2024-04"))
+    numpy.testing.assert_array_equal(result, [1, 9, 3])
+
+
+def test_set_input_sparse_empty():
+    """An empty idx/vals produces no new patch."""
+    holder = _make_holder(_AsOfIntVariable)
+    holder.set_input("2024-01", numpy.array([1, 2]))
+
+    holder.set_input_sparse(
+        "2024-02",
+        numpy.array([], dtype=numpy.int32),
+        numpy.array([], dtype=numpy.int32),
+    )
+
+    assert len(holder._as_of_patches) == 0, "Empty patch should not be stored"
+
+
+def test_set_input_sparse_requires_base():
+    """Calling set_input_sparse before set_input raises ValueError."""
+    holder = _make_holder(_AsOfIntVariable)
+
+    with pytest.raises(ValueError, match="base"):
+        holder.set_input_sparse("2024-01", numpy.array([0]), numpy.array([5]))
+
+
+def test_set_input_sparse_non_asof_raises():
+    """Calling set_input_sparse on a non-as_of variable raises ValueError."""
+    holder = _make_holder(_RegularVariable)
+
+    with pytest.raises(ValueError, match="as_of"):
+        holder.set_input_sparse("2024-01", numpy.array([0]), numpy.array([5]))
+
+
+def test_set_input_sparse_sequential_snapshot():
+    """After sequential set_input_sparse calls the snapshot stays coherent."""
+    holder = _make_holder(_AsOfIntVariable, count=4)
+    holder.set_input("2024-01", numpy.array([1, 2, 3, 4]))  # base
+
+    holder.set_input_sparse("2024-02", numpy.array([0]), numpy.array([10]))
+    holder.set_input_sparse("2024-03", numpy.array([1]), numpy.array([20]))
+
+    # Snapshot should be at 2024-03 after two forward SETs
+    assert holder._as_of_snapshot is not None
+
+    result = holder.get_array(period("2024-03"))
+    numpy.testing.assert_array_equal(result, [10, 20, 3, 4])
+
+    # Values before 2024-02 are unchanged
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-01")), [1, 2, 3, 4])
+
+
+def test_set_input_sparse_vs_set_input_equivalence():
+    """GET results are identical whether set_input or set_input_sparse is used."""
+    count = 5
+    base = numpy.array([1, 2, 3, 4, 5])
+    idx = numpy.array([0, 2])
+    new_vals = numpy.array([10, 30])
+
+    # Dense approach
+    h_dense = _make_holder(_AsOfIntVariable, count=count)
+    h_dense.set_input("2024-01", base.copy())
+    new_full = base.copy()
+    new_full[idx] = new_vals
+    h_dense.set_input("2024-04", new_full)
+
+    # Sparse approach
+    h_sparse = _make_holder(_AsOfIntVariable, count=count)
+    h_sparse.set_input("2024-01", base.copy())
+    h_sparse.set_input_sparse("2024-04", idx, new_vals)
+
+    for month in ("2024-01", "2024-03", "2024-04", "2024-06"):
+        result_dense = h_dense.get_array(period(month))
+        result_sparse = h_sparse.get_array(period(month))
+        numpy.testing.assert_array_equal(
+            result_dense,
+            result_sparse,
+            err_msg=f"Dense and sparse results differ for {month}",
+        )

@@ -105,9 +105,9 @@ class TestAsOfMemory:
             )
 
         if n == 1_000_000:
-            assert ratio > 10, (
-                f"Expected >10× memory gain for N=1M, r=0.5%, P=30; got {ratio:.1f}×"
-            )
+            assert (
+                ratio > 10
+            ), f"Expected >10× memory gain for N=1M, r=0.5%, P=30; got {ratio:.1f}×"
 
 
 # ---------------------------------------------------------------------------
@@ -130,7 +130,9 @@ class TestAsOfCompute:
         # Build the list of period strings that were stored
         self.periods = ["2020-01"]
         for p in range(1, self.N_PATCHES + 1):
-            month = f"2020-{p + 1:02d}" if p < 12 else f"{2020 + p // 12}-{p % 12 + 1:02d}"
+            month = (
+                f"2020-{p + 1:02d}" if p < 12 else f"{2020 + p // 12}-{p % 12 + 1:02d}"
+            )
             self.periods.append(month)
 
     def test_get_sequential(self, benchmark):
@@ -173,7 +175,7 @@ class TestAsOfCompute:
         last = period(self.periods[-1])
 
         def _run():
-            holder.get_array(last)   # forward → builds snapshot
+            holder.get_array(last)  # forward → builds snapshot
             holder.get_array(first)  # backward → full reconstruction
 
         benchmark.pedantic(_run, rounds=5, iterations=1)
@@ -213,10 +215,56 @@ class TestForwardSimulationBench:
         k = max(1, int(N * change_rate))
         all_idx = [rng.choice(N, size=k, replace=False) for _ in range(n_months)]
         all_vals = [
-            rng.integers(0, 10, size=k).astype(numpy.int32)
-            for _ in range(n_months)
+            rng.integers(0, 10, size=k).astype(numpy.int32) for _ in range(n_months)
         ]
 
+        base = rng.integers(0, 10, size=N).astype(numpy.int32)
+        months = ["2020-01"] + [
+            f"{2020 + m // 12}-{m % 12 + 1:02d}" for m in range(1, n_months + 1)
+        ]
+        months_periods = [period(m) for m in months]
+
+        def _run():
+            h = _make_holder(N)
+            h.set_input(months[0], base.copy())
+            for m in range(1, n_months + 1):
+                h.set_input_sparse(months[m], all_idx[m - 1], all_vals[m - 1])
+
+        benchmark.pedantic(_run, rounds=3, iterations=1)
+
+
+# ---------------------------------------------------------------------------
+# set_input_sparse vs set_input comparison
+# ---------------------------------------------------------------------------
+
+
+class TestSetInputSparseVsDense:
+    """Compare set_input (dense O(N) diff) vs set_input_sparse (O(k) + O(N) snapshot).
+
+    Run with:
+        .venv/bin/pytest benchmarks/test_bench_asof.py -v --benchmark-sort=name -k "sparse"
+    """
+
+    N = 1_000_000
+
+    @pytest.mark.parametrize(
+        "n_months,change_rate",
+        [
+            (12, 0.10),
+            (60, 0.10),
+            (60, 0.30),
+        ],
+        ids=["1yr-10%", "5yr-10%", "5yr-30%"],
+    )
+    def test_dense(self, benchmark, n_months, change_rate):
+        """Forward simulation using set_input — O(N) diff + copy per SET."""
+        N = self.N
+        rng = numpy.random.default_rng(42)
+        k = max(1, int(N * change_rate))
+        all_idx = [rng.choice(N, size=k, replace=False) for _ in range(n_months)]
+        all_vals = [
+            rng.integers(0, 10, size=k).astype(numpy.int32) for _ in range(n_months)
+        ]
         base = rng.integers(0, 10, size=N).astype(numpy.int32)
         months = ["2020-01"] + [
             f"{2020 + m // 12}-{m % 12 + 1:02d}" for m in range(1, n_months + 1)
@@ -231,5 +279,36 @@ class TestForwardSimulationBench:
                 new_val = prev.copy()
                 new_val[all_idx[m - 1]] = all_vals[m - 1]
                 h.set_input(months[m], new_val)
+
+        benchmark.pedantic(_run, rounds=3, iterations=1)
+
+    @pytest.mark.parametrize(
+        "n_months,change_rate",
+        [
+            (12, 0.10),
+            (60, 0.10),
+            (60, 0.30),
+        ],
+        ids=["1yr-10%", "5yr-10%", "5yr-30%"],
+    )
+    def test_sparse(self, benchmark, n_months, change_rate):
+        """Forward simulation using set_input_sparse — skips O(N) diff entirely."""
+        N = self.N
+        rng = numpy.random.default_rng(42)
+        k = max(1, int(N * change_rate))
+        all_idx = [rng.choice(N, size=k, replace=False) for _ in range(n_months)]
+        all_vals = [
+            rng.integers(0, 10, size=k).astype(numpy.int32) for _ in range(n_months)
+        ]
+        base = rng.integers(0, 10, size=N).astype(numpy.int32)
+        months = ["2020-01"] + [
+            f"{2020 + m // 12}-{m % 12 + 1:02d}" for m in range(1, n_months + 1)
+        ]
+
+        def _run():
+            h = _make_holder(N)
+            h.set_input(months[0], base.copy())
+            for m in range(1, n_months + 1):
+                h.set_input_sparse(months[m], all_idx[m - 1], all_vals[m - 1])
 
         benchmark.pedantic(_run, rounds=3, iterations=1)

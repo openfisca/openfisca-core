@@ -137,6 +137,10 @@ class Simulation:
 
         self._check_period_consistency(period, variable)
 
+        # Transition formula path: sparse, as_of-only, needs separate cache tracking.
+        if variable.has_transition_formula:
+            return self._calculate_transition(variable, population, holder, period)
+
         # First look for a value already cached
         cached_array = holder.get_array(period)
         if cached_array is not None:
@@ -331,6 +335,76 @@ class Simulation:
             self.tax_benefit_system.get_parameters_at_instant(formula_period),
             self.tracer,
         )
+
+    def _calculate_transition(self, variable, population, holder, period):
+        """Calculation path for as_of variables with transition_formula.
+
+        Runs the formula at most once per instant, stores the sparse patch via
+        _set_as_of_sparse, then returns the reconstructed state.
+        """
+        instant = period.start if variable.as_of == "start" else period.stop
+
+        # Already computed for this instant → return current state.
+        if instant in holder._as_of_transition_computed:
+            result = holder.get_array(period)
+            return result if result is not None else holder.default_array()
+
+        # start_computation_period guard.
+        if self.start_computation_period is not None:
+            if not isinstance(self.start_computation_period, periods.Period):
+                self.start_computation_period = periods.period(
+                    self.start_computation_period
+                )
+            if period < self.start_computation_period:
+                holder._as_of_transition_computed.add(instant)
+                result = holder.get_array(period)
+                return result if result is not None else holder.default_array()
+
+        # No base established yet → return default (set_input not called yet).
+        if holder._as_of_base is None:
+            holder._as_of_transition_computed.add(instant)
+            return holder.default_array()
+
+        formula = variable.get_transition_formula(period)
+        if formula is not None:
+            try:
+                self._check_for_cycle(variable.name, period)
+                result = self._run_transition_formula(formula, population, period)
+
+                if result is not None:
+                    selector, vals = result
+                    if hasattr(selector, "dtype") and selector.dtype == numpy.bool_:
+                        idx = numpy.where(selector)[0].astype(numpy.int32)
+                    else:
+                        idx = numpy.asarray(selector, dtype=numpy.int32)
+                    if numpy.isscalar(vals):
+                        vals = numpy.full(len(idx), vals, dtype=variable.dtype)
+                    else:
+                        vals = numpy.asarray(vals, dtype=variable.dtype)
+                        if len(vals) != len(idx):
+                            raise ValueError(
+                                f'transition_formula of "{variable.name}" returned '
+                                f"{len(vals)} values for {len(idx)} selected indices."
+                            )
+                    holder._set_as_of_sparse(period, idx, vals)
+
+            except errors.SpiralError:
+                pass  # no patch stored, previous state persists
+
+        holder._as_of_transition_computed.add(instant)
+        result = holder.get_array(period)
+        return result if result is not None else holder.default_array()
+
+    def _run_transition_formula(self, formula, population, period):
+        """Call a transition_formula and return its (selector, vals) result."""
+        if self.trace:
+            parameters_at = self.trace_parameters_at_instant
+        else:
+            parameters_at = self.tax_benefit_system.get_parameters_at_instant
+
+        if formula.__code__.co_argcount == 2:
+            return formula(population, period)
+        return formula(population, period, parameters_at)
 
     def _run_formula(self, variable, population, period):
         """Find the ``variable`` formula for the given ``period`` if it exists, and apply it to ``population``."""

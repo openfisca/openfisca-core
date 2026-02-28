@@ -189,11 +189,33 @@ class Variable:
             )
             raise ValueError(msg)
 
+        # Partition transition_formula* first so they don't land in unexpected_attrs.
+        transition_formulas_attr, attr = helpers._partition(
+            attr,
+            lambda name, value: name.startswith(config.TRANSITION_FORMULA_NAME_PREFIX),
+        )
+        self.transition_formulas = self.set_transition_formulas(
+            transition_formulas_attr
+        )
+
+        if self.transition_formulas:
+            if not self.as_of:
+                raise ValueError(
+                    f'Variable "{self.name}" declares transition_formula but not as_of. '
+                    f"transition_formula is reserved for as_of variables."
+                )
+
         formulas_attr, unexpected_attrs = helpers._partition(
             attr,
             lambda name, value: name.startswith(config.FORMULA_NAME_PREFIX),
         )
         self.formulas = self.set_formulas(formulas_attr)
+
+        if self.formulas and self.transition_formulas:
+            raise ValueError(
+                f'Variable "{self.name}" declares both formula and transition_formula. '
+                f"They are mutually exclusive."
+            )
 
         if unexpected_attrs:
             msg = 'Unexpected attributes in definition of variable "{}": {!r}'.format(
@@ -362,6 +384,65 @@ class Variable:
 
         return formulas
 
+    def set_transition_formulas(self, transition_formulas_attr):
+        transition_formulas = sortedcontainers.sorteddict.SortedDict()
+        for formula_name, formula in transition_formulas_attr.items():
+            starting_date = self.parse_transition_formula_name(formula_name)
+
+            if self.end is not None and starting_date > self.end:
+                msg = f'You declared that "{self.name}" ends on "{self.end}", but you wrote a transition_formula from "{starting_date}" ({formula_name}).'
+                raise ValueError(msg)
+
+            transition_formulas[str(starting_date)] = formula
+
+        if self.baseline_variable is not None and hasattr(
+            self.baseline_variable, "transition_formulas"
+        ):
+            first_reform_date = (
+                transition_formulas.peekitem(0)[0] if transition_formulas else None
+            )
+            transition_formulas.update(
+                {
+                    baseline_date: baseline_formula
+                    for baseline_date, baseline_formula in self.baseline_variable.transition_formulas.items()
+                    if first_reform_date is None or baseline_date < first_reform_date
+                }
+            )
+
+        return transition_formulas
+
+    def parse_transition_formula_name(self, attribute_name):
+        """Returns the starting date of a transition_formula based on its name.
+
+        Valid formats: 'transition_formula', 'transition_formula_YYYY',
+        'transition_formula_YYYY_MM', 'transition_formula_YYYY_MM_DD'.
+        """
+
+        def raise_error() -> NoReturn:
+            msg = (
+                f'Unrecognized transition_formula name in variable "{self.name}". '
+                f'Expecting "transition_formula_YYYY" or "transition_formula_YYYY_MM" '
+                f'or "transition_formula_YYYY_MM_DD". Found: "{attribute_name}".'
+            )
+            raise ValueError(msg)
+
+        if attribute_name == config.TRANSITION_FORMULA_NAME_PREFIX:
+            return datetime.date.min
+
+        TRANSITION_FORMULA_REGEX = (
+            r"transition_formula_(\d{4})(?:_(\d{2}))?(?:_(\d{2}))?$"
+        )
+        match = re.match(TRANSITION_FORMULA_REGEX, attribute_name)
+        if not match:
+            raise_error()
+        date_str = "-".join(
+            [match.group(1), match.group(2) or "01", match.group(3) or "01"],
+        )
+        try:
+            return datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            raise_error()
+
     def parse_formula_name(self, attribute_name):
         """Returns the starting date of a formula based on its name.
 
@@ -400,7 +481,7 @@ class Variable:
 
     def is_input_variable(self):
         """Returns True if the variable is an input variable."""
-        return len(self.formulas) == 0
+        return len(self.formulas) == 0 and len(self.transition_formulas) == 0
 
     @classmethod
     def get_introspection_data(cls):
@@ -458,6 +539,44 @@ class Variable:
                 return self.formulas[start_date]
 
         return None
+
+    def get_transition_formula(
+        self,
+        period: None | t.Instant | t.Period | str | int = None,
+    ) -> None | t.Formula:
+        """Returns the transition_formula applicable at the given period."""
+        if not self.transition_formulas:
+            return None
+
+        if period is None:
+            return self.transition_formulas.peekitem(index=0)[1]
+
+        if isinstance(period, Period):
+            instant = period.start
+        else:
+            try:
+                instant = periods.period(period).start
+            except ValueError:
+                instant = periods.instant(period)
+
+        if instant is None:
+            return None
+
+        if self.end and instant.date > self.end:
+            return None
+
+        instant_str = str(instant)
+
+        for start_date in reversed(self.transition_formulas):
+            if start_date <= instant_str:
+                return self.transition_formulas[start_date]
+
+        return None
+
+    @property
+    def has_transition_formula(self) -> bool:
+        """True if the variable uses transition_formula instead of formula."""
+        return bool(self.transition_formulas)
 
     def clone(self):
         return self.__class__()
