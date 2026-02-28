@@ -117,6 +117,10 @@ class Holder:
         value = self._memory_storage.get(period)
         if value is not None:
             return value
+        if self._as_of:
+            value = self._get_as_of(period)
+            if value is not None:
+                return value
         if self._disk_storage:
             return self._disk_storage.get(period)
         return None
@@ -430,10 +434,24 @@ class Holder:
             >= self.simulation.memory_config.max_memory_occupation_pc
         )
 
+        if self._as_of:
+            # Reference sharing: reuse existing array object when value unchanged,
+            # otherwise store a read-only defensive copy so that callers cannot
+            # corrupt stored data by mutating their original array in-place.
+            prev = self._get_as_of(period)
+            if prev is not None and numpy.array_equal(value, prev):
+                value = prev  # prev is already read-only
+            else:
+                value = value.copy()
+                value.flags.writeable = False
+
         if should_store_on_disk:
             self._disk_storage.put(value, period)
         else:
             self._memory_storage.put(value, period)
+
+        if self._as_of:
+            self._register_instant(period)
 
     def put_in_cache(self, value, period) -> None:
         if self._do_not_store:
