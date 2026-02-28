@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any
 
+import bisect
 import os
 import warnings
 
@@ -29,7 +30,10 @@ class Holder:
         self.variable = variable
         self.simulation = population.simulation
         self._eternal = self.variable.definition_period == periods.DateUnit.ETERNITY
+        self._as_of = getattr(self.variable, "as_of", False)
         self._memory_storage = storage.InMemoryStorage(is_eternal=self._eternal)
+        if self._as_of:
+            self._sorted_instants: list = []
 
         # By default, do not activate on-disk storage, or variable dropping
         self._disk_storage = None
@@ -53,6 +57,11 @@ class Holder:
         for key, value in self.__dict__.items():
             if key not in ("population", "formula", "simulation"):
                 new_dict[key] = value
+
+        # _sorted_instants must be an independent copy so that writes to the
+        # clone don't corrupt the original's index.
+        if self._as_of:
+            new_dict["_sorted_instants"] = list(self._sorted_instants)
 
         new_dict["population"] = population
         new_dict["simulation"] = population.simulation
@@ -90,9 +99,51 @@ class Holder:
         value = self._memory_storage.get(period)
         if value is not None:
             return value
+        if self._as_of:
+            value = self._get_as_of(period)
+            if value is not None:
+                return value
         if self._disk_storage:
             return self._disk_storage.get(period)
         return None
+
+    def _get_as_of(self, period):
+        """Return the most recent stored value at or before the reference instant.
+
+        Uses a sorted list of instants + bisect for O(log P) lookup.
+        Falls back to a linear scan if _sorted_instants is not yet initialised
+        (e.g. after clone()).
+        """
+        target = period.start if self._as_of == "start" else period.stop
+        sorted_instants = getattr(self, "_sorted_instants", None)
+
+        if sorted_instants is not None:
+            pos = bisect.bisect_right(sorted_instants, target)
+            if pos == 0:
+                return None
+            best_instant = sorted_instants[pos - 1]
+        else:
+            # Fallback linear scan (e.g. after clone without _sorted_instants)
+            best_instant = None
+            for known_period in self._memory_storage.get_known_periods():
+                start = known_period.start
+                if start <= target:
+                    if best_instant is None or start > best_instant:
+                        best_instant = start
+            if best_instant is None:
+                return None
+
+        for known_period in self._memory_storage.get_known_periods():
+            if known_period.start == best_instant:
+                return self._memory_storage.get(known_period)
+        return None
+
+    def _register_instant(self, period) -> None:
+        """Insert period.start into the sorted instants list (no duplicates)."""
+        instant = period.start
+        pos = bisect.bisect_left(self._sorted_instants, instant)
+        if pos == len(self._sorted_instants) or self._sorted_instants[pos] != instant:
+            self._sorted_instants.insert(pos, instant)
 
     def get_memory_usage(self) -> t.MemoryUsage:
         """Get data about the virtual memory usage of the Holder.
@@ -302,10 +353,24 @@ class Holder:
             >= self.simulation.memory_config.max_memory_occupation_pc
         )
 
+        if self._as_of:
+            # Reference sharing: reuse existing array object when value unchanged,
+            # otherwise store a read-only defensive copy so that callers cannot
+            # corrupt stored data by mutating their original array in-place.
+            prev = self._get_as_of(period)
+            if prev is not None and numpy.array_equal(value, prev):
+                value = prev  # prev is already read-only
+            else:
+                value = value.copy()
+                value.flags.writeable = False
+
         if should_store_on_disk:
             self._disk_storage.put(value, period)
         else:
             self._memory_storage.put(value, period)
+
+        if self._as_of:
+            self._register_instant(period)
 
     def put_in_cache(self, value, period) -> None:
         if self._do_not_store:
