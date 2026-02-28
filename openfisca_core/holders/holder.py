@@ -203,10 +203,19 @@ class Holder:
         self._as_of_patches.insert(pos, (instant, idx, vals))
         self._as_of_patch_instants.insert(pos, instant)
 
-        # Invalidate snapshot if it covers this instant or later
-        # so that a retroactive patch is not silently ignored.
-        if self._as_of_snapshot is not None and self._as_of_snapshot[0] >= instant:
-            self._as_of_snapshot = None
+        new_patch_idx = len(self._as_of_patches) - 1
+        if pos == new_patch_idx:
+            # Appended at the end (forward-sequential SET): advance the snapshot
+            # to instant so the next GET(instant) is an O(1) cache hit instead
+            # of an O(N + M·k) full reconstruction.
+            new_snap = value.copy()
+            new_snap.flags.writeable = False
+            self._as_of_snapshot = (instant, new_snap, new_patch_idx)
+        else:
+            # Retroactive (out-of-order) SET: invalidate any snapshot that now
+            # includes this instant so it is not silently stale.
+            if self._as_of_snapshot is not None and self._as_of_snapshot[0] >= instant:
+                self._as_of_snapshot = None
 
     def get_memory_usage(self) -> t.MemoryUsage:
         """Get data about the virtual memory usage of the Holder.
