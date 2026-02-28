@@ -298,7 +298,9 @@ def test_initial_formula_then_transition():
 
         def transition_formula(person, period):  # noqa: N805
             # First person gains 10 each month.
-            return numpy.array([0]), numpy.array([person("Score", period.last_month)[0] + 10])
+            return numpy.array([0]), numpy.array(
+                [person("Score", period.last_month)[0] + 10]
+            )
 
     sim = _make_simulation(Score)
     sim.calculate("Score", "2024-01")  # seeds: [1, 2, 3]
@@ -463,3 +465,68 @@ def test_transition_formula_true_cycle_raises():
     # with the previous state (no patch applied) rather than crashing.
     result = sim.calculate("Score", "2024-02")
     numpy.testing.assert_array_equal(result, [0, 0, 0])
+
+
+# ---------------------------------------------------------------------------
+# 6. formula_type in trace
+# ---------------------------------------------------------------------------
+
+
+def test_formula_type_initial_recorded_in_trace():
+    """When initial_formula is called, the trace node has formula_type='initial'."""
+
+    class Score(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+
+        def initial_formula(person, period):  # noqa: N805
+            return numpy.array([1, 2, 3])
+
+        def transition_formula(person, period):  # noqa: N805
+            return numpy.array([], dtype=numpy.int32), numpy.array([])
+
+    sim = _make_simulation(Score)
+    sim.trace = True
+    sim.calculate("Score", "2024-01")
+
+    nodes = list(sim.tracer.browse_trace())
+    score_nodes = [n for n in nodes if n.name == "Score"]
+    assert len(score_nodes) == 1
+    assert score_nodes[0].formula_type == "initial"
+
+
+def test_formula_type_transition_recorded_in_trace():
+    """When transition_formula runs, the trace node has formula_type='transition'."""
+
+    class Score(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+
+        def transition_formula(person, period):  # noqa: N805
+            return numpy.array([], dtype=numpy.int32), numpy.array([])
+
+    sim = _make_simulation(Score)
+    sim.set_input("Score", "2024-01", numpy.array([0, 0, 0]))
+    sim.trace = True
+    sim.calculate("Score", "2024-02")
+
+    nodes = list(sim.tracer.browse_trace())
+    score_nodes = [n for n in nodes if n.name == "Score"]
+    assert len(score_nodes) == 1
+    assert score_nodes[0].formula_type == "transition"
+
+
+def test_formula_type_none_for_regular_formula():
+    """Regular formula nodes have formula_type=None."""
+    from openfisca_core.tracers import FullTracer
+
+    tracer = FullTracer()
+    tracer.record_calculation_start("salary", 2024)
+    tracer.record_calculation_result(numpy.array([100]))
+    tracer.record_calculation_end()
+
+    assert tracer.trees[0].formula_type is None

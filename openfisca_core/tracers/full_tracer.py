@@ -69,6 +69,10 @@ class FullTracer:
                 TraceNode(name=parameter, period=period, value=value),
             )
 
+    def record_formula_type(self, formula_type: str) -> None:
+        if self._current_node is not None:
+            self._current_node.formula_type = formula_type
+
     def record_calculation_result(self, value: t.VarArray) -> None:
         if self._current_node is not None:
             self._current_node.value = value
