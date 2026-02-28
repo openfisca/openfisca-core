@@ -242,8 +242,8 @@ def test_transition_formula_computed_once_per_instant():
     numpy.testing.assert_array_equal(r1, r2)
 
 
-def test_transition_formula_no_base_returns_default():
-    """If set_input was never called, calculate returns the default value."""
+def test_transition_formula_no_base_raises():
+    """If set_input was never called and no initial_formula is defined, raise."""
 
     class Score(Variable):
         entity = _entity
@@ -255,8 +255,101 @@ def test_transition_formula_no_base_returns_default():
             return numpy.array([True, False, False]), numpy.array([99])
 
     sim = _make_simulation(Score)
+    with pytest.raises(ValueError, match="no initial state"):
+        sim.calculate("Score", "2024-01")
+
+
+# ---------------------------------------------------------------------------
+# 3b. initial_formula
+# ---------------------------------------------------------------------------
+
+
+def test_initial_formula_establishes_base():
+    """initial_formula is called on first access and establishes the base."""
+
+    class Score(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+
+        def initial_formula(person, period):  # noqa: N805
+            return numpy.array([10, 20, 30])
+
+        def transition_formula(person, period):  # noqa: N805
+            return numpy.array([False, False, False]), numpy.array([])
+
+    sim = _make_simulation(Score)
     result = sim.calculate("Score", "2024-01")
-    numpy.testing.assert_array_equal(result, [0, 0, 0])  # default for int
+    numpy.testing.assert_array_equal(result, [10, 20, 30])
+
+
+def test_initial_formula_then_transition():
+    """initial_formula seeds the state; transition_formula evolves it."""
+
+    class Score(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+
+        def initial_formula(person, period):  # noqa: N805
+            return numpy.array([1, 2, 3])
+
+        def transition_formula(person, period):  # noqa: N805
+            # First person gains 10 each month.
+            return numpy.array([0]), numpy.array([person("Score", period.last_month)[0] + 10])
+
+    sim = _make_simulation(Score)
+    sim.calculate("Score", "2024-01")  # seeds: [1, 2, 3]
+    result = sim.calculate("Score", "2024-02")
+    numpy.testing.assert_array_equal(result, [11, 2, 3])
+
+
+def test_initial_formula_requires_as_of():
+    """initial_formula without as_of raises at instantiation time."""
+
+    class Bad(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+
+        def initial_formula(person, period):  # noqa: N805
+            return numpy.zeros(3)
+
+    with pytest.raises(ValueError, match="initial_formula.*as_of"):
+        Bad()
+
+
+def test_initial_formula_date_dispatch():
+    """initial_formula_YYYY_MM_DD dispatch works like formula_YYYY_MM_DD."""
+
+    class Score(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+
+        def initial_formula(person, period):  # noqa: N805
+            return numpy.array([0, 0, 0])
+
+        def initial_formula_2025_01_01(person, period):  # noqa: N805
+            return numpy.array([99, 99, 99])
+
+        def transition_formula(person, period):  # noqa: N805
+            return numpy.array([], dtype=numpy.int32), numpy.array([])
+
+    sim_before = _make_simulation(Score)
+    sim_before.calculate("Score", "2024-06")
+    numpy.testing.assert_array_equal(
+        sim_before.get_array("Score", "2024-06"), [0, 0, 0]
+    )
+
+    sim_after = _make_simulation(Score)
+    sim_after.calculate("Score", "2025-06")
+    numpy.testing.assert_array_equal(
+        sim_after.get_array("Score", "2025-06"), [99, 99, 99]
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -316,3 +409,57 @@ def test_transition_formula_length_mismatch_raises():
 
     with pytest.raises(ValueError, match="2 selected"):
         sim.calculate("Bad", "2024-02")
+
+
+# ---------------------------------------------------------------------------
+# 5. Tracer — cycle vs spiral
+# ---------------------------------------------------------------------------
+
+
+def test_transition_formula_temporal_recursion_not_spiral():
+    """Reading the same as_of variable at a previous period must NOT trigger
+    SpiralError — the recursion terminates via _as_of_transition_computed."""
+
+    class Score(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+
+        def initial_formula(person, period):  # noqa: N805
+            return numpy.array([0, 0, 0])
+
+        def transition_formula(person, period):  # noqa: N805
+            # reads the same variable one month back — legitimate temporal recursion
+            prev = person("Score", period.last_month)
+            return numpy.array([0, 1, 2]), prev[[0, 1, 2]] + 1
+
+    sim = _make_simulation(Score)
+    # sequential: init=0 → +1 at 2024-02 → +1 at 2024-03 = [2, 2, 2]
+    sim.calculate("Score", "2024-01")
+    sim.calculate("Score", "2024-02")
+    result = sim.calculate("Score", "2024-03")
+    numpy.testing.assert_array_equal(result, [2, 2, 2])
+
+
+def test_transition_formula_true_cycle_raises():
+    """A transition_formula that reads the same variable@same period must
+    raise CycleError (genuine infinite loop)."""
+
+    class Score(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+
+        def transition_formula(person, period):  # noqa: N805
+            # reads itself at the SAME period → true cycle
+            person("Score", period)
+            return numpy.array([], dtype=numpy.int32), numpy.array([])
+
+    sim = _make_simulation(Score)
+    sim.set_input("Score", "2024-01", numpy.array([0, 0, 0]))
+    # CycleError is caught inside _calculate_transition; the call completes
+    # with the previous state (no patch applied) rather than crashing.
+    result = sim.calculate("Score", "2024-02")
+    numpy.testing.assert_array_equal(result, [0, 0, 0])

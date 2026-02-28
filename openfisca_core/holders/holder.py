@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from collections import OrderedDict
 from collections.abc import Sequence
 from typing import Any
 
 import bisect
 import os
 import warnings
+from collections import OrderedDict
 
 import numpy
 import psutil
@@ -289,7 +289,10 @@ class Holder:
             best_instant = None
             best_array = None
             best_patch_idx_snap = None
-            for snap_instant, (snap_array, snap_patch_idx) in self._as_of_snapshots.items():
+            for snap_instant, (
+                snap_array,
+                snap_patch_idx,
+            ) in self._as_of_snapshots.items():
                 if snap_instant <= instant:
                     if best_instant is None or snap_instant > best_instant:
                         best_instant = snap_instant
