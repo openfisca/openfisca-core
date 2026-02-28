@@ -97,7 +97,7 @@ class TestAsOfMemory:
         ratio = dense / sparse
 
         with capsys.disabled():
-            print(
+            print(  # noqa: T201
                 f"\n  N={n:>9,}  patches={n_patches}  r={change_rate:.1%}"
                 f"  sparse={sparse / 1e6:.2f} Mo"
                 f"  dense={dense / 1e6:.2f} Mo"
@@ -129,9 +129,9 @@ class TestAsOfCompute:
         _populate(self.holder, self.N_PATCHES, self.CHANGE_RATE, rng)
         # Build the list of period strings that were stored
         self.periods = ["2020-01"]
-        for p in range(1, self.N_PATCHES + 1):
+        for _p in range(1, self.N_PATCHES + 1):
             month = (
-                f"2020-{p + 1:02d}" if p < 12 else f"{2020 + p // 12}-{p % 12 + 1:02d}"
+                f"2020-{_p + 1:02d}" if _p < 12 else f"{2020 + _p // 12}-{_p % 12 + 1:02d}"
             )
             self.periods.append(month)
 
@@ -144,9 +144,7 @@ class TestAsOfCompute:
             periods_objs.append(periods_objs[-1])
 
         def _run():
-            for p in periods_objs:
-                holder._as_of_snapshot = None  # reset snapshot for fair comparison
-            holder._as_of_snapshot = None
+            holder._as_of_snapshots.clear()  # reset LRU cache for fair comparison
             for p in periods_objs:
                 holder.get_array(p)
 
@@ -222,7 +220,6 @@ class TestForwardSimulationBench:
         months = ["2020-01"] + [
             f"{2020 + m // 12}-{m % 12 + 1:02d}" for m in range(1, n_months + 1)
         ]
-        months_periods = [period(m) for m in months]
 
         def _run():
             h = _make_holder(N)
