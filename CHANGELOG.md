@@ -1,5 +1,36 @@
 # Changelog
 
+## 44.5.0 [#1368](https://github.com/openfisca/openfisca-core/pull/1368)
+
+#### New features
+
+- Add `transition_formula` to `Variable` for formula-driven `as_of` forward simulation.
+  - A variable with `transition_formula` computes sparse updates instead of full arrays: the formula returns `(selector, values)` where `selector` is a boolean mask or index array, and `values` is the new values for the selected individuals.
+  - Each call to `get_array` at a new period triggers the transition formula once (guarded by `_as_of_transition_computed`), applies the sparse diff via `set_input_sparse`, and caches the result.
+  - `set_input_sparse` is also exposed as a public method on `Holder` for callers that want to apply sparse patches directly.
+
+- Add `initial_formula` to `Variable` for seeding `as_of` variables without a prior `set_input`.
+  - When a `transition_formula` needs to read the variable at `period - 1` but no base snapshot exists, OpenFisca now calls `initial_formula` instead of raising an error.
+  - `initial_formula` follows the same date-dispatch convention as regular formulas (`initial_formula_YYYY`, `initial_formula_YYYY_MM`, etc.).
+  - Requires `as_of = True` on the same variable; a `ValueError` is raised at definition time otherwise.
+
+- Add multi-snapshot LRU cache to `as_of` variable holders.
+  - Replaces the previous single-entry snapshot cursor with an `OrderedDict`-based LRU cache keeping the K most-recently-used reconstructed snapshots.
+  - Cache size defaults to 3 and is configurable per variable (`Variable.snapshot_count`) or globally (`MemoryConfig.asof_max_snapshots`), with variable-level taking priority.
+  - Retroactive `set_input` (out-of-order writes) evicts all cached snapshots at or after the written instant to preserve correctness.
+
+- Add `formula_type` field to `TraceNode` for `as_of` formula visibility.
+  - When `transition_formula` or `initial_formula` runs, the tracer records `formula_type = "transition"` or `formula_type = "initial"` on the corresponding trace node.
+
+- Add `show_formula_type` option to `computation_log`.
+  - `simulation.tracer.computation_log.print_log(show_formula_type=True)` appends `[transition]` or `[initial]` tags to the relevant lines, making it easy to see which `as_of` formula ran during a simulation.
+
+#### Bug fixes
+
+- Fix false `SpiralError` when a `transition_formula` reads its own variable at the previous period.
+  - The existing spiral detector raised `SpiralError` immediately when the same variable appeared in the call stack at any different period, which always triggers for temporal recursion (`V@P` → `V@P-1` → `V@P-2`).
+  - Fix: in `_calculate_transition`, the cycle check is replaced by `_check_for_strict_cycle`, which only raises `CycleError` for the exact same `(variable, period)` pair. Termination is guaranteed by `_as_of_transition_computed`.
+
 ## 44.4.1
 
 #### Performance improvements
