@@ -293,7 +293,7 @@ Deux options :
 
 ### Tests
 
-14 tests dans `tests/core/test_asof_variable.py`, sans dépendance à
+18 tests dans `tests/core/test_asof_variable.py`, sans dépendance à
 `openfisca-country-template` :
 
 | Test | Ce qu'il vérifie |
@@ -305,22 +305,71 @@ Deux options :
 | `test_asof_convention_start` | Valeur mi-année invisible pour une période antérieure |
 | `test_asof_convention_end` | Valeur mi-année visible pour un YEAR avec `as_of="end"` |
 | `test_non_asof_variable_unaffected` | Variables sans `as_of` restent inchangées |
-| `test_asof_reference_sharing` | Valeurs identiques partagent le même objet |
-| `test_asof_stored_array_is_read_only` | Arrays stockés ont `writeable=False` |
+| `test_asof_no_patch_when_value_unchanged` | Aucun patch stocké si la valeur ne change pas |
+| `test_asof_patch_stores_only_changed_indices` | Un patch ne stocke que les indices/valeurs modifiés |
+| `test_asof_retroactive_patch` | Un `set_input` rétroactif est reflété dans tous les GETs ultérieurs |
+| `test_asof_snapshot_cursor_no_copy_between_patches` | GETs séquentiels sans patch entre eux réutilisent le même array |
+| `test_asof_base_array_is_read_only` | Le tableau de base a `writeable=False` |
+| `test_asof_get_array_returns_read_only` | `get_array` retourne toujours un array read-only |
 | `test_asof_setting_value_does_not_mutate_caller_array` | Le tableau du caller reste modifiable |
 | `test_as_of_true_normalises_to_start` | `True` → `"start"` |
 | `test_as_of_false_default` | Absence de `as_of` → `False` |
 | `test_as_of_invalid_value_raises` | Valeur inconnue → `ValueError` |
 | `test_as_of_with_set_input_helper_raises` | `as_of` + helper dispatch → `ValueError` |
 
-### Ce qui n'est PAS implémenté
+### Ce qui a été implémenté — v44.4.0
 
-L'implémentation v44.3.0 utilise le **stockage dense** : chaque appel
-`set_input` stocke un tableau plein dans `_memory_storage`. La
-section suivante explique pourquoi c'est insuffisant pour les variables
-à changements individuels dispersés.
+> PR #1366 (branche `feat/as-of-patches`) — remplace le stockage dense de
+> v44.3.0 par un stockage sparse (base + patches) avec snapshot cursor.
 
-## Limite de l'implémentation actuelle : stockage dense
+#### Holder : nouveaux attributs
+
+| Attribut | Type | Description |
+|---|---|---|
+| `_as_of_base` | `ndarray` (read-only) | Premier tableau complet posé via `set_input` |
+| `_as_of_base_instant` | `Instant` | Instant auquel la base a été établie |
+| `_as_of_patches` | `list[(Instant, ndarray[int32], ndarray[dtype])]` | Diffs successifs triés par instant |
+| `_as_of_patch_instants` | `list[Instant]` | Liste parallèle à `_as_of_patches` pour `bisect` |
+| `_as_of_snapshot` | `(Instant, ndarray, int) \| None` | Cursor cache : `(instant, array, last_patch_idx)` |
+
+#### Méthodes
+
+- **`_set_as_of(period, value)`** : 1er appel → base read-only ; appels
+  suivants → diff sparse via `numpy.where`. Les patches sont insérés en
+  position triée (via `bisect`) pour gérer les `set_input` rétroactifs.
+  Le snapshot est invalidé si un patch rétroactif couvre son instant.
+- **`_reconstruct_at(target_instant)`** : bisect + snapshot cursor.
+  - O(1) cache hit si `snap_instant == target_instant`.
+  - O(k) forward si `snap_instant < target_instant` et snapshot valide
+    (`snap_patch_idx <= last_patch_idx`).
+  - O(N + k×P) backward (ou premier accès) : recalcul depuis la base.
+  - Retourne `None` si aucune base ou `target_instant < base_instant`.
+- **`_get_as_of(period)`** : thin wrapper → `_reconstruct_at(period.start)`
+  ou `period.stop` selon la convention `as_of`.
+- **`_set`** : route vers `_set_as_of` si `self._as_of`, court-circuite
+  `_memory_storage` et le disk storage.
+- **`get_array`** : court-circuite vers `_get_as_of` si `self._as_of`.
+- **`clone`** : `_as_of_base` partagée (read-only), listes de patches
+  copiées indépendamment (les arrays idx/vals internes sont read-only),
+  snapshot réinitialisé à `None`.
+
+#### Risques mitigés (mis à jour)
+
+| Risque | Mitigation |
+|---|---|
+| Mutation in-place | ✅ `_as_of_base.flags.writeable = False` ; arrays retournés par `get_array` sont read-only |
+| Retroactive `set_input` | ✅ Patches insérés en position triée ; snapshot invalidé si `snap_instant >= instant` |
+| Interaction `set_input_divide_by_period` | ✅ `ValueError` au chargement |
+| OnDiskStorage | ⚠️ Non traité — `_get_as_of` n'interroge pas le disk storage |
+
+#### Ce qui n'est PAS encore implémenté
+
+- Multi-snapshot LRU (un seul snapshot curseur maintenu par holder)
+- Garbage collection de patches anciens
+- Stratégie de stockage configurable par variable (`storage_strategy`,
+  `max_snapshots`)
+
+## Pourquoi le stockage dense était insuffisant (résolu en v44.4.0)
 
 ### Le problème fondamental
 
@@ -412,7 +461,7 @@ lieu de O(N + k×P) à chaque GET. Voir la section
 
 ### Ce que ça change par rapport à v44.3.0
 
-| | v44.3.0 (dense) | v_next (patches) |
+| | v44.3.0 (dense) | v44.4.0 (patches) ✅ |
 |---|---|---|
 | `_memory_storage` pour `as_of` | Utilisé (tableau plein) | Inutilisé — remplacé par `_as_of_base` + `_as_of_patches` |
 | Mémoire par `set_input` | O(N) | O(k) — k = nb individus changeant |
@@ -420,12 +469,9 @@ lieu de O(N + k×P) à chaque GET. Voir la section
 | Temps GET premier accès | O(1) | O(N) |
 | Reference sharing utile | Seulement si 0 changement | Toujours (patches vides non stockés) |
 | API externe | — | Identique (`set_input`, `get_array`) |
-| Tests à adapter | — | `test_asof_reference_sharing`, `test_asof_stored_array_is_read_only` |
+| Tests adaptés | — | `test_asof_reference_sharing` supprimé, 6 nouveaux tests ajoutés |
 
-La prochaine étape est d'implémenter ce stockage par patches. Les
-sections "Benchmark", "Stratégie de cache intelligent" et "Stratégie
-de stockage par variable" ci-dessous décrivent les chiffres et les
-arbitrages.
+Ce problème est résolu en v44.4.0 — voir section précédente.
 
 ## Convention start / end
 
@@ -450,6 +496,90 @@ Si as_of = "end"   : lookup ≤ 2024-12-31 → MARRIED
 
 Défaut recommandé : `"start"` (cohérent avec le fonctionnement actuel,
 cas le plus fréquent pour les droits sociaux mensuels).
+
+## Interaction formule + as_of
+
+### Cas normal (recommandé) : as_of sans formula
+
+La variable est purement input-driven. Seules les valeurs posées via
+`set_input` sont stockées. `get_array` retourne le dernier état sparse
+reconstruit ; aucune formula n'est jamais invoquée.
+
+### Cas avec formula
+
+La formula s'exécute **uniquement** pour le premier appel dont
+`holder.get_array(period)` retourne `None` (base pas encore établie,
+ou accès avant la base). Une fois la base établie, tous les GETs
+suivants retournent la valeur persistée → **la formula n'est plus
+jamais rappelée**. Ce comportement est intentionnel.
+
+Mécanisme interne :
+
+```python
+# Dans Simulation._calculate (simplifié) :
+cached_array = holder.get_array(period)   # appelle _get_as_of
+if cached_array is not None:
+    return cached_array                   # ← as_of: retourne dès que la base existe
+# Sinon, exécuter la formula…
+result = formula(population, period)
+holder.put_in_cache(result, period)       # → _set_as_of → établit la base
+```
+
+`_reconstruct_at` retourne un résultat dès que la base existe et que
+`target_instant >= base_instant`. La formula n'est donc appelée qu'une
+seule fois (à la première période demandée).
+
+### Cas limite / avertissement
+
+Si la formula est appelée pour une période antérieure à la base
+existante (accès non-séquentiel sans `set_input` préalable),
+`_reconstruct_at` retourne `None` et la formula s'exécute à nouveau.
+Dans ce cas, l'appel à `_set_as_of` dans `put_in_cache` compare la
+nouvelle valeur à l'état reconstruit à cet instant (qui est `None` →
+la valeur entière est comparée à `None` → numpy lève une exception).
+
+**Mitigation** : poser toujours un `set_input` pour la période initiale
+avant de calculer une as_of variable avec formula, ou s'assurer d'un
+accès séquentiel (chronologique).
+
+### Incompatibilité explicite
+
+`as_of` combiné avec un `set_input` helper (ex.
+`set_input_divide_by_period`) lève une `ValueError` dès l'instantiation
+de la variable. Voir `test_as_of_with_set_input_helper_raises`.
+
+## Outil de benchmark
+
+Le script `benchmarks/test_bench_asof.py` mesure la mémoire et le temps
+de la feature as_of avec stockage sparse.
+
+### Lancement
+
+```bash
+# Afficher les résultats mémoire (avec -s pour voir les prints)
+.venv/bin/pytest benchmarks/test_bench_asof.py -v -s -k memory
+
+# Afficher les temps de GET (benchmark compute)
+.venv/bin/pytest benchmarks/test_bench_asof.py -v --benchmark-sort=name -k compute
+```
+
+### Ce qu'il mesure
+
+- **Mémoire** : `_as_of_base.nbytes + Σ(idx.nbytes + vals.nbytes)` vs
+  ce que le stockage dense aurait coûté (`N × dtype.itemsize × P`).
+  Assert que le gain est > 10× pour N=1M, r=0.5%, P=30.
+- **Temps GET séquentiel** : 360 GETs consécutifs sur 1M personnes,
+  30 patches. Mesure le coût amorti du snapshot cursor.
+- **Temps GET backward** : GET au dernier mois puis au premier mois
+  (backward jump sans snapshot valide), pour mesurer le coût O(N+k×P).
+
+### Interprétation
+
+| Résultat | Signification |
+|---|---|
+| Ratio mémoire > 10× | Le sparse storage est efficace (r faible) |
+| GET séquentiel ≈ O(k) par step | Le snapshot cursor fonctionne |
+| GET backward ≈ O(N) | Recalcul depuis la base — attendu |
 
 ## Benchmark : mémoire et temps avec patches
 
@@ -480,6 +610,9 @@ cas le plus fréquent pour les droits sociaux mensuels).
 
 ## Stratégie de cache intelligent (snapshot cursor)
 
+> ✅ Implémenté en v44.4.0 — voir `Holder._reconstruct_at` dans
+> `openfisca_core/holders/holder.py`.
+
 ### Le problème
 
 Avec les patches naïfs, chaque GET applique **tous** les patches depuis
@@ -503,57 +636,50 @@ GET("2024-04") : S₂ + P2 (si P2 ≤ 2024-04)    → snapshot S₃ = résultat
 ...
 ```
 
-### Le mécanisme
+### Le mécanisme (implémentation réelle)
+
+Le snapshot est stocké dans `self._as_of_snapshot` sous la forme d'un
+tuple `(Instant, array, last_patch_idx)`.  La méthode
+`_reconstruct_at(target_instant)` implémente les trois cas :
 
 ```python
-class AsOfHolder:
-    def __init__(self, base):
-        self._base = base
-        self._patches = []           # [(instant, indices, values), ...]
-        self._snapshot = None         # dernier array dense calculé
-        self._snapshot_instant = None # instant du snapshot
-        self._snapshot_patch_idx = -1 # dernier patch appliqué
+def _reconstruct_at(self, target_instant):
+    if self._as_of_base is None or target_instant < self._as_of_base_instant:
+        return None
 
-    def get(self, period):
-        target = period.start
+    # Nombre de patches applicables : bisect sur _as_of_patch_instants
+    pos = bisect.bisect_right(self._as_of_patch_instants, target_instant)
+    last_patch_idx = pos - 1  # -1 = seule la base s'applique
 
-        # Cas 1 : cache hit exact
-        if (self._snapshot is not None
-                and self._snapshot_instant == target):
-            return self._snapshot
+    snapshot = self._as_of_snapshot
+    if snapshot is not None:
+        snap_instant, snap_array, snap_patch_idx = snapshot
 
-        # Cas 2 : advance dans le temps → incrémental
-        if (self._snapshot is not None
-                and self._snapshot_instant < target):
-            result = self._snapshot
-            new_idx = self._snapshot_patch_idx
-            for i in range(self._snapshot_patch_idx + 1, len(self._patches)):
-                p_instant, p_indices, p_values = self._patches[i]
-                if p_instant <= target:
-                    if result is self._snapshot:
-                        result = result.copy()  # copy-on-write
-                    result[p_indices] = p_values
-                    new_idx = i
-                else:
-                    break
-            self._snapshot = result
-            self._snapshot_instant = target
-            self._snapshot_patch_idx = new_idx
-            return self._snapshot
+        # Cas 1 : cache hit exact — O(1)
+        if snap_instant == target_instant:
+            return snap_array
 
-        # Cas 3 : retour en arrière ou premier accès → depuis base
-        result = self._base.copy()
-        last_idx = -1
-        for i, (p_instant, p_indices, p_values) in enumerate(self._patches):
-            if p_instant <= target:
-                result[p_indices] = p_values
-                last_idx = i
-            else:
-                break
-        self._snapshot = result
-        self._snapshot_instant = target
-        self._snapshot_patch_idx = last_idx
-        return self._snapshot
+        # Cas 2 : forward access — O(k) incrémental
+        if snap_instant < target_instant and snap_patch_idx <= last_patch_idx:
+            result = snap_array
+            for i in range(snap_patch_idx + 1, last_patch_idx + 1):
+                _, idx, vals = self._as_of_patches[i]
+                if result is snap_array:
+                    result = result.copy()  # copy-on-write
+                result[idx] = vals
+            if result is not snap_array:
+                result.flags.writeable = False
+            self._as_of_snapshot = (target_instant, result, last_patch_idx)
+            return result
+
+    # Cas 3 : backward jump ou premier accès — O(N + k×P)
+    result = self._as_of_base.copy()
+    for i in range(last_patch_idx + 1):
+        _, idx, vals = self._as_of_patches[i]
+        result[idx] = vals
+    result.flags.writeable = False
+    self._as_of_snapshot = (target_instant, result, last_patch_idx)
+    return result
 ```
 
 ### Analyse des coûts par type d'accès
@@ -600,7 +726,7 @@ Patches naïfs        ███                           35 Mo    ~130 ms
 Le snapshot cursor ajoute **1 array** (~2 Mo pour 1M int16) par rapport
 aux patches naïfs, mais divise le temps par **~25**.
 
-### Variante : multi-snapshot (LRU cache)
+### Variante : multi-snapshot (LRU cache) — pas encore implémenté
 
 Si la simulation fait des accès non-linéaires (ex: formule qui compare
 la valeur à P et P-12), on peut garder les **K derniers snapshots** :

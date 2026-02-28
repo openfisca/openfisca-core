@@ -180,6 +180,12 @@ class Variable:
             setter=self.set_as_of,
         )
 
+        self.snapshot_count = self.set(
+            attr,
+            "snapshot_count",
+            allowed_type=int,
+        )
+
         if self.as_of and self.set_input:
             msg = (
                 f'Variable "{self.name}" declares both as_of and set_input, '

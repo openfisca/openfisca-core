@@ -60,6 +60,27 @@ def _make_holder(variable_class, count=2):
     return Holder(variable_class(), population)
 
 
+def _make_holder_with_memory_config(variable_class, asof_max_snapshots, count=2):
+    """Return a Holder whose simulation carries a MemoryConfig stub."""
+    var = variable_class()
+
+    class _StubMemoryConfig:
+        # Put the variable in priority_variables to skip disk-storage creation.
+        priority_variables: frozenset = frozenset({var.name})
+        variables_to_drop: frozenset = frozenset()
+        asof_max_snapshots = None  # overridden below
+
+    _StubMemoryConfig.asof_max_snapshots = asof_max_snapshots
+
+    class _StubSimulation:
+        memory_config = _StubMemoryConfig()
+
+    population = Population(_entity)
+    population.simulation = _StubSimulation()
+    population.count = count
+    return Holder(var, population)
+
+
 # ---------------------------------------------------------------------------
 # 1. Value persists forward in time
 # ---------------------------------------------------------------------------
@@ -394,7 +415,7 @@ def test_set_input_sparse_sequential_snapshot():
     holder.set_input_sparse("2024-03", numpy.array([1]), numpy.array([20]))
 
     # Snapshot should be at 2024-03 after two forward SETs
-    assert holder._as_of_snapshot is not None
+    assert len(holder._as_of_snapshots) > 0
 
     result = holder.get_array(period("2024-03"))
     numpy.testing.assert_array_equal(result, [10, 20, 3, 4])
@@ -430,3 +451,123 @@ def test_set_input_sparse_vs_set_input_equivalence():
             result_sparse,
             err_msg=f"Dense and sparse results differ for {month}",
         )
+
+
+# ---------------------------------------------------------------------------
+# 9. LRU snapshot configuration
+# ---------------------------------------------------------------------------
+
+
+def test_snapshot_max_defaults_to_3():
+    """_as_of_max_snapshots defaults to 3 when no configuration is provided."""
+    holder = _make_holder(_AsOfIntVariable)
+    assert holder._as_of_max_snapshots == 3
+
+
+def test_snapshot_max_from_variable_attribute():
+    """snapshot_count on the Variable class sets _as_of_max_snapshots."""
+
+    class _HighSnapshotVariable(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+        snapshot_count = 7
+
+    holder = _make_holder(_HighSnapshotVariable)
+    assert holder._as_of_max_snapshots == 7
+
+
+def test_snapshot_max_from_memory_config():
+    """MemoryConfig.asof_max_snapshots is used when the variable has no override."""
+    holder = _make_holder_with_memory_config(_AsOfIntVariable, asof_max_snapshots=5)
+    assert holder._as_of_max_snapshots == 5
+
+
+def test_snapshot_max_variable_overrides_memory_config():
+    """Variable.snapshot_count takes priority over MemoryConfig.asof_max_snapshots."""
+
+    class _OverrideVariable(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+        snapshot_count = 2
+
+    holder = _make_holder_with_memory_config(_OverrideVariable, asof_max_snapshots=9)
+    assert holder._as_of_max_snapshots == 2
+
+
+def test_lru_eviction_respects_max_snapshots():
+    """The cache never holds more than _as_of_max_snapshots entries."""
+
+    class _TinyLRUVariable(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+        snapshot_count = 2
+
+    holder = _make_holder(_TinyLRUVariable, count=3)
+    base = numpy.array([1, 2, 3])
+    holder.set_input("2024-01", base)
+
+    # Each SET adds a snapshot; the cache must stay at max 2.
+    for month in ("2024-02", "2024-03", "2024-04", "2024-05"):
+        holder.set_input(month, base + 1)
+        assert len(holder._as_of_snapshots) <= 2
+
+
+def test_lru_correctness_after_eviction():
+    """GET returns correct values even for instants whose snapshot was evicted."""
+
+    class _SmallLRUVariable(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+        snapshot_count = 1  # only ever keep one snapshot
+
+    holder = _make_holder(_SmallLRUVariable, count=2)
+    holder.set_input("2024-01", numpy.array([1, 10]))
+    holder.set_input("2024-03", numpy.array([3, 30]))
+    holder.set_input("2024-06", numpy.array([6, 60]))
+
+    # Snapshot for 2024-01 and 2024-03 were evicted; full reconstruction needed.
+    numpy.testing.assert_array_equal(
+        holder.get_array(period("2024-02")), [1, 10]
+    )
+    numpy.testing.assert_array_equal(
+        holder.get_array(period("2024-04")), [3, 30]
+    )
+    numpy.testing.assert_array_equal(
+        holder.get_array(period("2024-07")), [6, 60]
+    )
+
+
+def test_lru_multi_snapshot_non_linear_access():
+    """With max_snapshots=3 both P and P-12 are served without full reconstruction."""
+
+    class _MultiSnapVariable(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+        snapshot_count = 3
+
+    holder = _make_holder(_MultiSnapVariable, count=2)
+    holder.set_input("2023-01", numpy.array([0, 0]))
+    holder.set_input("2024-01", numpy.array([1, 10]))
+    holder.set_input("2024-02", numpy.array([2, 20]))
+    holder.set_input("2024-03", numpy.array([3, 30]))
+
+    # Simulate a formula accessing both current and year-ago month.
+    numpy.testing.assert_array_equal(
+        holder.get_array(period("2024-03")), [3, 30]
+    )
+    numpy.testing.assert_array_equal(
+        holder.get_array(period("2023-03")), [0, 0]  # before any patch → base
+    )
+    numpy.testing.assert_array_equal(
+        holder.get_array(period("2024-02")), [2, 20]
+    )
