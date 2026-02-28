@@ -364,6 +364,7 @@ class Simulation:
         if holder._as_of_base is None:
             initial_formula = variable.get_initial_formula(period)
             if initial_formula is not None:
+                self.tracer.record_formula_type("initial")
                 array = self._run_initial_formula(initial_formula, population, period)
                 array = self._cast_formula_result(array, variable)
                 holder.set_input(period, array)
@@ -383,6 +384,7 @@ class Simulation:
                 # as_of variables — termination is guaranteed by
                 # _as_of_transition_computed.  SpiralError is NOT raised here.
                 self._check_for_strict_cycle(variable.name, period)
+                self.tracer.record_formula_type("transition")
                 result = self._run_transition_formula(formula, population, period)
 
                 if result is not None:
