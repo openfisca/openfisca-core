@@ -534,15 +534,9 @@ def test_lru_correctness_after_eviction():
     holder.set_input("2024-06", numpy.array([6, 60]))
 
     # Snapshot for 2024-01 and 2024-03 were evicted; full reconstruction needed.
-    numpy.testing.assert_array_equal(
-        holder.get_array(period("2024-02")), [1, 10]
-    )
-    numpy.testing.assert_array_equal(
-        holder.get_array(period("2024-04")), [3, 30]
-    )
-    numpy.testing.assert_array_equal(
-        holder.get_array(period("2024-07")), [6, 60]
-    )
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-02")), [1, 10])
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-04")), [3, 30])
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-07")), [6, 60])
 
 
 def test_lru_multi_snapshot_non_linear_access():
@@ -562,12 +556,8 @@ def test_lru_multi_snapshot_non_linear_access():
     holder.set_input("2024-03", numpy.array([3, 30]))
 
     # Simulate a formula accessing both current and year-ago month.
-    numpy.testing.assert_array_equal(
-        holder.get_array(period("2024-03")), [3, 30]
-    )
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-03")), [3, 30])
     numpy.testing.assert_array_equal(
         holder.get_array(period("2023-03")), [0, 0]  # before any patch → base
     )
-    numpy.testing.assert_array_equal(
-        holder.get_array(period("2024-02")), [2, 20]
-    )
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-02")), [2, 20])
