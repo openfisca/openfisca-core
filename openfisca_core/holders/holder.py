@@ -44,6 +44,8 @@ class Holder:
             self._as_of_patches: list = []
             self._as_of_patch_instants: list = []
             self._as_of_snapshot = None
+            # Instants for which transition_formula has already been applied.
+            self._as_of_transition_computed: set = set()
 
         # By default, do not activate on-disk storage, or variable dropping
         self._disk_storage = None
@@ -77,6 +79,9 @@ class Holder:
             new_dict["_as_of_patch_instants"] = list(self._as_of_patch_instants)
             # Snapshots are not cloned: first access will reconstruct cheaply.
             new_dict["_as_of_snapshot"] = None
+            new_dict["_as_of_transition_computed"] = set(
+                self._as_of_transition_computed
+            )
 
         new_dict["population"] = population
         new_dict["simulation"] = population.simulation
@@ -220,6 +225,73 @@ class Holder:
             # includes this instant so it is not silently stale.
             if self._as_of_snapshot is not None and self._as_of_snapshot[0] >= instant:
                 self._as_of_snapshot = None
+
+    def _set_as_of_sparse(self, period, idx, vals) -> None:
+        """Store a sparse patch directly, without requiring a full N-array.
+
+        Bypasses the O(N) diff computation of _set_as_of when the caller
+        already knows which elements changed (idx) and their new values (vals).
+
+        idx  : int32 array of changed indices
+        vals : array of new values (same dtype as the variable)
+        """
+        if self._as_of_base is None:
+            raise ValueError(
+                "Cannot call set_input_sparse before the base is established. "
+                "Call set_input first for the initial period."
+            )
+
+        instant = period.start
+
+        if len(idx) == 0:
+            return  # nothing changed
+
+        # Insert at sorted position (handles out-of-order calls)
+        pos = bisect.bisect_right(self._as_of_patch_instants, instant)
+        self._as_of_patches.insert(pos, (instant, idx.astype(numpy.int32), vals.copy()))
+        self._as_of_patch_instants.insert(pos, instant)
+
+        new_patch_idx = len(self._as_of_patches) - 1
+        if pos == new_patch_idx:
+            # Forward-sequential: update snapshot from current snapshot + patch
+            snapshot = self._as_of_snapshot
+            if snapshot is not None:
+                snap_instant, snap_array, snap_patch_idx = snapshot
+                if snap_instant <= instant:
+                    new_snap = (
+                        snap_array.copy()
+                    )  # O(N) — unavoidable for dense snapshot
+                    new_snap[idx] = vals
+                    new_snap.flags.writeable = False
+                    self._as_of_snapshot = (instant, new_snap, new_patch_idx)
+                    return
+            # No usable snapshot: leave it None, next GET will rebuild
+            if self._as_of_snapshot is not None and self._as_of_snapshot[0] >= instant:
+                self._as_of_snapshot = None
+        else:
+            # Retroactive insert: invalidate stale snapshot
+            if self._as_of_snapshot is not None and self._as_of_snapshot[0] >= instant:
+                self._as_of_snapshot = None
+
+    def set_input_sparse(self, period, idx, vals) -> None:
+        """Set new values for only the specified individuals.
+
+        Unlike set_input(), the caller provides the diff directly:
+        - idx  : array of person indices that changed (int)
+        - vals : their new values
+
+        This avoids O(N) diff computation when only k << N individuals change.
+        Requires that set_input() was called at least once to establish the base.
+        """
+        if not self._as_of:
+            raise ValueError(
+                f"set_input_sparse is only valid for as_of variables. "
+                f'"{self.variable.name}" does not declare as_of.'
+            )
+        period = periods.period(period)
+        idx = numpy.asarray(idx, dtype=numpy.int32)
+        vals = numpy.asarray(vals, dtype=self.variable.dtype)
+        self._set_as_of_sparse(period, idx, vals)
 
     def get_memory_usage(self) -> t.MemoryUsage:
         """Get data about the virtual memory usage of the Holder.
