@@ -6,6 +6,8 @@ import os
 import shutil
 
 import numpy
+import zarr
+from numcodecs import Blosc
 
 from openfisca_core import periods
 from openfisca_core.indexed_enums import EnumArray
@@ -305,4 +307,122 @@ class OnDiskStorage:
             shutil.rmtree(parent_dir)
 
 
-__all__ = ["OnDiskStorage"]
+class OnDiskStorageZarr:
+    """Storing and retrieving calculated vectors on disk using zarr."""
+
+    storage_dir: str
+    is_eternal: bool
+    preserve_storage_dir: bool
+    _enums: MutableMapping[str, type[t.Enum]]
+    _files: MutableMapping[t.Period, str]
+
+    def __init__(
+        self,
+        storage_dir: str,
+        is_eternal: bool = False,
+        preserve_storage_dir: bool = False,
+        enums: MutableMapping[str, type[t.Enum]] | None = None,
+        compressor=None,
+    ) -> None:
+        self._files = {}
+        self._enums = {} if enums is None else enums
+        self.is_eternal = is_eternal
+        self.preserve_storage_dir = preserve_storage_dir
+        self.storage_dir = storage_dir
+
+        os.makedirs(self.storage_dir, exist_ok=True)
+        if compressor is None:
+            compressor = Blosc(cname="zstd", clevel=2, shuffle=Blosc.BITSHUFFLE)
+        self.compressor = compressor
+
+    def _decode_file(self, file: str) -> t.Array[t.DTypeGeneric]:
+        enum = self._enums.get(self.storage_dir)
+
+        z = zarr.open(file, mode="r")
+        array: t.Array[t.DTypeGeneric] = z[:]
+
+        if enum is not None:
+            return EnumArray(array, enum)
+
+        return array
+
+    def get(self, period: None | t.Period = None) -> None | t.Array[t.DTypeGeneric]:
+        if self.is_eternal:
+            period = periods.period(DateUnit.ETERNITY)
+        period = periods.period(period)
+
+        values = self._files.get(period)
+        if values is None:
+            return None
+        return self._decode_file(values)
+
+    def put(self, value: t.Array[t.DTypeGeneric], period: None | t.Period) -> None:
+        if self.is_eternal:
+            period = periods.period(DateUnit.ETERNITY)
+        period = periods.period(period)
+
+        filename = str(period)
+        path = os.path.join(self.storage_dir, filename) + ".zarr"
+
+        if os.path.exists(path):
+            shutil.rmtree(path)
+
+        if isinstance(value, EnumArray) and value.possible_values is not None:
+            self._enums[self.storage_dir] = value.possible_values
+            value = value.view(numpy.ndarray)
+
+        z = zarr.open(
+            path,
+            mode="w",
+            shape=value.shape,
+            dtype=value.dtype,
+            chunks=value.shape,
+            compressor=self.compressor,
+        )
+        z[:] = value
+
+        self._files[period] = path
+
+    def delete(self, period: None | t.Period = None) -> None:
+        if period is None:
+            # Optionally remove physical files/directories
+            # for path in self._files.values():
+            #     if os.path.exists(path): shutil.rmtree(path)
+            self._files = {}
+            return
+
+        if self.is_eternal:
+            period = periods.period(DateUnit.ETERNITY)
+        period = periods.period(period)
+
+        # Removed matched item
+        for period_item, path in list(self._files.items()):
+            if period.contains(period_item):
+                del self._files[period_item]
+                if os.path.exists(path):
+                    shutil.rmtree(path)
+
+    def get_known_periods(self) -> KeysView[t.Period]:
+        return self._files.keys()
+
+    def restore(self) -> None:
+        self._files = files = {}
+        for filename in os.listdir(self.storage_dir):
+            if not filename.endswith(".zarr"):
+                continue
+            path = os.path.join(self.storage_dir, filename)
+            filename_core = filename.rsplit(".", 1)[0]
+            period = periods.period(filename_core)
+            files[period] = path
+
+    def __del__(self) -> None:
+        if self.preserve_storage_dir:
+            return
+        if os.path.exists(self.storage_dir):
+            shutil.rmtree(self.storage_dir)
+        parent_dir = os.path.abspath(os.path.join(self.storage_dir, os.pardir))
+        if os.path.exists(parent_dir) and not os.listdir(parent_dir):
+            shutil.rmtree(parent_dir)
+
+
+__all__ = ["OnDiskStorage", "OnDiskStorageZarr"]

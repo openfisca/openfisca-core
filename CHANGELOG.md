@@ -1,8 +1,15 @@
 # Changelog
 
-## 44.5.0 [#1368](https://github.com/openfisca/openfisca-core/pull/1368)
+## 44.6.0
 
 #### New features
+
+- Add `zarr` as an optional backend for `OnDiskStorage`.
+  - The new `OnDiskStorageZarr` class offers significantly better performance for storing massive arrays thanks to dynamic chunking and built-in `Blosc` compression.
+  - The original `OnDiskStorage` class (saving in classic `.npy`) is still available.
+  - The default compressor is `zstd` (level 2 with bitshuffle).
+
+## 44.5.0 [#1368](https://github.com/openfisca/openfisca-core/pull/1368)#### New features
 
 - Add `transition_formula` to `Variable` for formula-driven `as_of` forward simulation.
   - A variable with `transition_formula` computes sparse updates instead of full arrays: the formula returns `(selector, values)` where `selector` is a boolean mask or index array, and `values` is the new values for the selected individuals.

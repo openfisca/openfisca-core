@@ -46,6 +46,8 @@ general_requirements = [
     "pytest >=8.3.3, <9.0",
     "sortedcontainers >=2.4.0, <3.0",
     "typing_extensions >=4.5.0, <5.0",
+    "zarr >=2.12.0, <3.0",
+    "numcodecs >=0.10.0",
 ]
 
 api_requirements = [
@@ -85,7 +87,7 @@ dev_requirements = [
 
 setup(
     name="OpenFisca-Core",
-    version="44.5.0",
+    version="44.6.0",
     author="OpenFisca Team",
     author_email="contact@openfisca.org",
     classifiers=[

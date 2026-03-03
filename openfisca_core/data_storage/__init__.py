@@ -2,6 +2,6 @@
 
 from . import types
 from .in_memory_storage import InMemoryStorage
-from .on_disk_storage import OnDiskStorage
+from .on_disk_storage import OnDiskStorage, OnDiskStorageZarr
 
-__all__ = ["InMemoryStorage", "OnDiskStorage", "types"]
+__all__ = ["InMemoryStorage", "OnDiskStorage", "OnDiskStorageZarr", "types"]
