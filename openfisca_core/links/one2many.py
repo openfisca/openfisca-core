@@ -176,6 +176,70 @@ class One2ManyLink(Link):
         c = self.count(period, role=role, condition=condition)
         return numpy.where(c > 0, s / c, 0)
 
+    # -- positional and role-based accessors --------------------------------
+
+    def nth(
+        self,
+        n: int,
+        variable_name: str,
+        period,
+        *,
+        role=None,
+        condition: numpy.ndarray | None = None,
+    ) -> numpy.ndarray:
+        """Value of the n-th target member for each source entity.
+
+        Parameters mirror :meth:`sum` plus ``n``.  If a source has fewer than
+        ``n+1`` targets the default value ``0`` is returned for that source.
+        The ordering of targets is the same as encountered in the underlying
+        population arrays (i.e. no particular sort).
+        """
+        values = self._target_values(variable_name, period)
+        source_rows, values = self._apply_filters(period, values, role, condition)
+
+        result = numpy.zeros(self._source_population.count, dtype=values.dtype)
+        # collect indices per source and pick the n-th
+        for src in range(self._source_population.count):
+            idxs = numpy.nonzero(source_rows == src)[0]
+            if n < len(idxs):
+                result[src] = values[idxs[n]]
+        return result
+
+    def get_by_role(
+        self,
+        variable_name: str,
+        period,
+        role_value,
+        *,
+        condition: numpy.ndarray | None = None,
+    ) -> numpy.ndarray:
+        """Value of the target having a unique role per source.
+
+        ``role_value`` is compared against the ``role_field`` on the target
+        population.  If multiple targets share the same role for a given source
+        the last encountered value is returned (behaviour mirrors
+        ``GroupPopulation.value_from_person``).
+        """
+        if self.role_field is None:
+            raise ValueError("Link has no role_field")
+
+        values = self._target_values(variable_name, period)
+        source_rows = self._source_rows(period)
+        roles = self._target_population.simulation.calculate(
+            self.role_field,
+            "eternity",
+        )
+
+        result = numpy.zeros(self._source_population.count, dtype=values.dtype)
+        mask = numpy.ones(len(source_rows), dtype=bool)
+        if condition is not None:
+            mask &= condition
+
+        for tgt_idx, src in enumerate(source_rows[mask]):
+            if roles[mask][tgt_idx] == role_value and src >= 0:
+                result[src] = values[mask][tgt_idx]
+        return result
+
     # -- internal -----------------------------------------------------------
 
     def _target_values(

@@ -58,7 +58,19 @@ class ImplicitOne2ManyLink(One2ManyLink):
 
         if role is not None:
             roles = self._source_population.members_role
-            mask &= roles == role
+            # roles may be an object array of Role instances, so compare by key
+            if roles.dtype == object:
+                try:
+                    keys = numpy.fromiter(
+                        (getattr(x, "key", x) for x in roles),
+                        dtype=object,
+                    )
+                except Exception:
+                    mask &= roles == role
+                else:
+                    mask &= keys == role
+            else:
+                mask &= roles == role
 
         if condition is not None:
             mask &= condition
@@ -68,6 +80,32 @@ class ImplicitOne2ManyLink(One2ManyLink):
 
         valid = source_rows >= 0
         return source_rows[valid], values[valid]
+
+    # override to avoid relying on ``role_field`` which is meaningless for
+    # implicit links (the role information is stored on the source population)
+    def get_by_role(
+        self,
+        variable_name: str,
+        period,
+        role_value,
+        *,
+        condition: numpy.ndarray | None = None,
+    ) -> numpy.ndarray:
+        """Fetch value for a specific role value on a one-to-many implicit link.
+
+        This mirrors :meth:`One2ManyLink.get_by_role` but uses
+        ``self._source_population.members_role`` instead of a named role field
+        on the target population.
+        """
+        values = self._target_population.simulation.calculate(variable_name, period)
+        source_rows, values = self._apply_filters(period, values, role_value, condition)
+
+        result = numpy.zeros(self._source_population.count, dtype=values.dtype)
+        # last value wins (same semantics as GroupPopulation.value_from_person)
+        for tgt_idx, src in enumerate(source_rows):
+            if src >= 0:
+                result[src] = values[tgt_idx]
+        return result
 
 
 __all__ = ["ImplicitMany2OneLink", "ImplicitOne2ManyLink"]

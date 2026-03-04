@@ -30,6 +30,7 @@ class _BuildDefaultSimulation:
         ...     .add_count()
         ...     .add_ids()
         ...     .add_members_entity_id()
+        ...     .add_id_to_rownum()
         ... )
 
         >>> builder.count
@@ -119,6 +120,16 @@ class _BuildDefaultSimulation:
         for population in self.populations.values():
             population.ids = numpy.array(range(self.count))
 
+        return self
+
+    def add_id_to_rownum(self) -> Self:
+        """Set identity id_to_rownum mapping on all populations.
+
+        For static simulations, each entity's permanent ID equals its row
+        position, so id_to_rownum is the identity: id_to_rownum[i] = i.
+        """
+        for population in self.populations.values():
+            population._id_to_rownum = numpy.arange(self.count, dtype=numpy.intp)
         return self
 
     def add_members_entity_id(self) -> Self:
