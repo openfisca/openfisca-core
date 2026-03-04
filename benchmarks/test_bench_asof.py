@@ -131,7 +131,9 @@ class TestAsOfCompute:
         self.periods = ["2020-01"]
         for _p in range(1, self.N_PATCHES + 1):
             month = (
-                f"2020-{_p + 1:02d}" if _p < 12 else f"{2020 + _p // 12}-{_p % 12 + 1:02d}"
+                f"2020-{_p + 1:02d}"
+                if _p < 12
+                else f"{2020 + _p // 12}-{_p % 12 + 1:02d}"
             )
             self.periods.append(month)
 
