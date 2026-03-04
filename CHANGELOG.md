@@ -13,6 +13,19 @@
   - Stored arrays are read-only (`writeable=False`) to prevent accidental in-place mutation.
   - Combining `as_of` with `set_input` dispatch helpers raises a `ValueError` at variable definition time.
 
+#### Performance improvements
+
+- Replace dense array storage with sparse patch storage for `as_of` variables.
+  - Instead of storing one full array per `set_input` call, the holder now keeps a single base array and a list of `(instant, changed_indices, changed_values)` patches.
+  - Memory reduction: ~60× for a 0.5% monthly change rate over 120 months (e.g. ~4 MB vs ~240 MB for 1M individuals).
+  - GET performance: a snapshot cursor makes forward-sequential reads O(k) (only new patches applied) instead of O(N); backward jumps degrade gracefully to O(N + k×P).
+  - Retroactive `set_input` (out-of-order patches) is supported with automatic snapshot invalidation.
+  - No change to the public API (`set_input`, `get_array`, `Variable.as_of`).
+
+#### Technical changes
+
+- Lint: black and flake8 fixes in `tests/core/test_asof_variable.py` and `benchmarks/test_bench_asof.py`.
+
 ## 44.4.0 [#1364](https://github.com/openfisca/openfisca-core/pull/1364)
 
 #### New features

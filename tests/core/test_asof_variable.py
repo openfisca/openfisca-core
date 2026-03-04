@@ -1,9 +1,11 @@
 """Tests for the as_of variable feature.
 
 An as_of variable's value, once set at a given instant, persists forward in
-time until explicitly overridden.  The semantics live entirely in
-``Holder.get_array`` / ``_get_as_of``; formulas and aggregations are
-completely unaware of the mechanism.
+time until explicitly overridden.  Values are stored as a base array +
+sparse patches (changed indices/values only); the snapshot cursor makes
+forward-sequential reads incremental.
+
+Formulas and aggregations are completely unaware of the mechanism.
 """
 
 from __future__ import annotations
@@ -92,12 +94,12 @@ def test_asof_no_value_before_first_stored():
 
 
 # ---------------------------------------------------------------------------
-# 3. Exact match still works (takes priority via memory lookup)
+# 3. Exact match returns the correct value (via snapshot cursor)
 # ---------------------------------------------------------------------------
 
 
 def test_asof_exact_match_returns_stored_value():
-    """Exact period lookup hits the fast path and skips _get_as_of."""
+    """get_array for the exact base period returns the base value."""
     holder = _make_holder(_AsOfIntVariable)
     holder.set_input("2024-03", numpy.array([7, 8]))
 
@@ -186,33 +188,88 @@ def test_non_asof_variable_unaffected():
 
 
 # ---------------------------------------------------------------------------
-# 7. Reference sharing: identical consecutive values share the same object
+# 7. Patch storage: only the diff is persisted
 # ---------------------------------------------------------------------------
 
 
-def test_asof_reference_sharing():
-    """When the value does not change, the same array object is stored."""
+def test_asof_no_patch_when_value_unchanged():
+    """When the new value is identical to the current state, no patch is stored."""
     holder = _make_holder(_AsOfIntVariable)
-    holder.set_input("2024-01", numpy.array([3, 3]))
-    holder.set_input("2024-02", numpy.array([3, 3]))  # same values
+    holder.set_input("2024-01", numpy.array([3, 3]))  # base
+    holder.set_input("2024-02", numpy.array([3, 3]))  # identical → no patch
 
-    arr_jan = holder._memory_storage.get(period("2024-01"))
-    arr_feb = holder._memory_storage.get(period("2024-02"))
-    assert arr_jan is arr_feb, "Identical values should share the same array object"
+    assert (
+        len(holder._as_of_patches) == 0
+    ), "No patch should be stored for unchanged values"
+
+
+def test_asof_patch_stores_only_changed_indices():
+    """A patch stores only the indices and values that actually changed."""
+    holder = _make_holder(_AsOfIntVariable, count=3)
+    holder.set_input("2024-01", numpy.array([1, 2, 3]))  # base
+    holder.set_input("2024-04", numpy.array([1, 9, 3]))  # only person 1 changes
+
+    assert len(holder._as_of_patches) == 1
+    _, idx, vals = holder._as_of_patches[0]
+    numpy.testing.assert_array_equal(idx, [1])
+    numpy.testing.assert_array_equal(vals, [9])
+
+
+def test_asof_retroactive_patch():
+    """A set_input for a past instant is correctly reflected in all later GETs."""
+    holder = _make_holder(_AsOfIntVariable)
+    holder.set_input("2024-01", numpy.array([1, 2]))
+    holder.set_input("2024-06", numpy.array([1, 9]))
+    # Retroactively set a change at 2024-03 (before the 2024-06 patch)
+    holder.set_input("2024-03", numpy.array([5, 2]))
+
+    # Before 2024-03 patch: base only
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-02")), [1, 2])
+    # Between 2024-03 and 2024-06: 2024-03 patch applied
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-04")), [5, 2])
+    # After 2024-06: both patches applied
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-07")), [5, 9])
 
 
 # ---------------------------------------------------------------------------
-# 8. Stored arrays are read-only (mutation guard)
+# 8. Snapshot cursor: sequential reads share array objects
 # ---------------------------------------------------------------------------
 
 
-def test_asof_stored_array_is_read_only():
-    """Arrays stored for as_of variables must be read-only."""
+def test_asof_snapshot_cursor_no_copy_between_patches():
+    """Sequential GETs for periods with no patches between them reuse the same array."""
+    holder = _make_holder(_AsOfIntVariable)
+    holder.set_input("2024-01", numpy.array([1, 2]))  # base only, no patches
+
+    r_feb = holder.get_array(period("2024-02"))
+    r_mar = holder.get_array(period("2024-03"))
+    assert r_feb is r_mar, "No patches between months → same snapshot array reused"
+
+
+# ---------------------------------------------------------------------------
+# 9. Stored arrays are read-only (mutation guard)
+# ---------------------------------------------------------------------------
+
+
+def test_asof_base_array_is_read_only():
+    """The base array stored for an as_of variable must be read-only."""
     holder = _make_holder(_AsOfIntVariable)
     holder.set_input("2024-01", numpy.array([1, 2]))
 
-    stored = holder._memory_storage.get(period("2024-01"))
-    assert not stored.flags.writeable, "Stored as_of array should be read-only"
+    assert not holder._as_of_base.flags.writeable, "Base array should be read-only"
+
+
+def test_asof_get_array_returns_read_only():
+    """Arrays returned by get_array for as_of variables must be read-only."""
+    holder = _make_holder(_AsOfIntVariable)
+    holder.set_input("2024-01", numpy.array([1, 2]))
+    holder.set_input("2024-04", numpy.array([3, 2]))  # patch
+
+    for month in ("2024-01", "2024-03", "2024-05"):
+        result = holder.get_array(period(month))
+        assert (
+            not result.flags.writeable
+        ), f"Returned array for {month} should be read-only"
 
 
 def test_asof_setting_value_does_not_mutate_caller_array():
