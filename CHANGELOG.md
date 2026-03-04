@@ -21,6 +21,7 @@
   - GET performance: a snapshot cursor makes forward-sequential reads O(k) (only new patches applied) instead of O(N); backward jumps degrade gracefully to O(N + k×P).
   - Retroactive `set_input` (out-of-order patches) is supported with automatic snapshot invalidation.
   - No change to the public API (`set_input`, `get_array`, `Variable.as_of`).
+- Fix quadratic reconstruction cost in `as_of` forward simulations: when the new patch is appended at the end (forward-sequential SET), the snapshot is updated instead of discarded so the next GET does not reconstruct from base through all patches; retroactive writes still invalidate correctly.
 
 #### Technical changes
 
