@@ -1,5 +1,18 @@
 # Changelog
 
+## 44.5.0
+
+#### New features
+
+- Add `as_of` attribute to `Variable` for persistent vector variables.
+  - A variable declared with `as_of = True` (or `"start"` / `"end"`) stores its value at a given instant and automatically returns that value for any later period, until a new value is explicitly set — the vectorial analogue of OpenFisca parameters.
+  - `as_of = "start"` (default when `True`): lookup uses the start of the requested period as reference instant.
+  - `as_of = "end"`: lookup uses the end of the requested period (useful for annual variables like income tax).
+  - Lookup is O(log P) via `bisect` on a sorted instants index.
+  - Reference sharing: when consecutive stored values are identical, the same array object is reused, reducing memory usage for stable variables (e.g. `marital_status`, `housing_occupancy_status`).
+  - Stored arrays are read-only (`writeable=False`) to prevent accidental in-place mutation.
+  - Combining `as_of` with `set_input` dispatch helpers raises a `ValueError` at variable definition time.
+
 ## 44.4.0 [#1364](https://github.com/openfisca/openfisca-core/pull/1364)
 
 #### New features
@@ -26,14 +39,6 @@
   - Added implicit links directly binding members arrays. This powers the new `population.links` property natively inside `TaxBenefitSystem.instantiate_entities()`.
   - Full capability to chain relationships via python: `person.mother.household.get("rent", period)`.
   - Powerful vectorized declarative aggregations out-of-the-box (e.g., `households.persons.sum("salary", period, condition=is_female)`).
-- Add `as_of` attribute to `Variable` for persistent vector variables.
-  - A variable declared with `as_of = True` (or `"start"` / `"end"`) stores its value at a given instant and automatically returns that value for any later period, until a new value is explicitly set — the vectorial analogue of OpenFisca parameters.
-  - `as_of = "start"` (default when `True`): lookup uses the start of the requested period as reference instant.
-  - `as_of = "end"`: lookup uses the end of the requested period (useful for annual variables like income tax).
-  - Lookup is O(log P) via `bisect` on a sorted instants index.
-  - Reference sharing: when consecutive stored values are identical, the same array object is reused, reducing memory usage for stable variables (e.g. `marital_status`, `housing_occupancy_status`).
-  - Stored arrays are read-only (`writeable=False`) to prevent accidental in-place mutation.
-  - Combining `as_of` with `set_input` dispatch helpers raises a `ValueError` at variable definition time.
 
 #### Technical changes
 
