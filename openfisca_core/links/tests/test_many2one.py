@@ -138,7 +138,7 @@ def test_many2one_rank(sim):
     sim.household._members_position = None
 
     link = sim.persons.links["household"]
-    ages = sim.persons("age", "2024")  # [50, 25, 20, 5]
+    # ages [50, 25, 20, 5] per person
     ranks = link.rank("age", "2024")
     # households: h0->[50,25] -> ranks [1,0]; h1->[20,5] -> ranks [1,0]
     assert numpy.array_equal(ranks, [1, 0, 1, 0])

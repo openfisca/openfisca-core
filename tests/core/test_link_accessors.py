@@ -11,7 +11,10 @@ def simple_sim():
     # two households, variable salaries on persons, roles for persons
     person = entities.SingleEntity("person", "persons", "A person", "")
     household = entities.GroupEntity(
-        "household", "households", "A household", "",
+        "household",
+        "households",
+        "A household",
+        "",
         roles=[{"key": "parent"}, {"key": "child"}],
     )
 
