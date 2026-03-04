@@ -97,7 +97,7 @@ class TestAsOfMemory:
         ratio = dense / sparse
 
         with capsys.disabled():
-            print(
+            print(  # noqa: T201
                 f"\n  N={n:>9,}  patches={n_patches}  r={change_rate:.1%}"
                 f"  sparse={sparse / 1e6:.2f} Mo"
                 f"  dense={dense / 1e6:.2f} Mo"
@@ -105,9 +105,9 @@ class TestAsOfMemory:
             )
 
         if n == 1_000_000:
-            assert ratio > 10, (
-                f"Expected >10× memory gain for N=1M, r=0.5%, P=30; got {ratio:.1f}×"
-            )
+            assert (
+                ratio > 10
+            ), f"Expected >10× memory gain for N=1M, r=0.5%, P=30; got {ratio:.1f}×"
 
 
 # ---------------------------------------------------------------------------
@@ -130,7 +130,9 @@ class TestAsOfCompute:
         # Build the list of period strings that were stored
         self.periods = ["2020-01"]
         for p in range(1, self.N_PATCHES + 1):
-            month = f"2020-{p + 1:02d}" if p < 12 else f"{2020 + p // 12}-{p % 12 + 1:02d}"
+            month = (
+                f"2020-{p + 1:02d}" if p < 12 else f"{2020 + p // 12}-{p % 12 + 1:02d}"
+            )
             self.periods.append(month)
 
     def test_get_sequential(self, benchmark):
@@ -142,7 +144,7 @@ class TestAsOfCompute:
             periods_objs.append(periods_objs[-1])
 
         def _run():
-            for p in periods_objs:
+            for _ in periods_objs:
                 holder._as_of_snapshot = None  # reset snapshot for fair comparison
             holder._as_of_snapshot = None
             for p in periods_objs:
@@ -173,7 +175,7 @@ class TestAsOfCompute:
         last = period(self.periods[-1])
 
         def _run():
-            holder.get_array(last)   # forward → builds snapshot
+            holder.get_array(last)  # forward → builds snapshot
             holder.get_array(first)  # backward → full reconstruction
 
         benchmark.pedantic(_run, rounds=5, iterations=1)
@@ -213,8 +215,7 @@ class TestForwardSimulationBench:
         k = max(1, int(N * change_rate))
         all_idx = [rng.choice(N, size=k, replace=False) for _ in range(n_months)]
         all_vals = [
-            rng.integers(0, 10, size=k).astype(numpy.int32)
-            for _ in range(n_months)
+            rng.integers(0, 10, size=k).astype(numpy.int32) for _ in range(n_months)
         ]
 
         base = rng.integers(0, 10, size=N).astype(numpy.int32)

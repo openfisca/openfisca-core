@@ -198,7 +198,9 @@ def test_asof_no_patch_when_value_unchanged():
     holder.set_input("2024-01", numpy.array([3, 3]))  # base
     holder.set_input("2024-02", numpy.array([3, 3]))  # identical → no patch
 
-    assert len(holder._as_of_patches) == 0, "No patch should be stored for unchanged values"
+    assert (
+        len(holder._as_of_patches) == 0
+    ), "No patch should be stored for unchanged values"
 
 
 def test_asof_patch_stores_only_changed_indices():
@@ -265,7 +267,9 @@ def test_asof_get_array_returns_read_only():
 
     for month in ("2024-01", "2024-03", "2024-05"):
         result = holder.get_array(period(month))
-        assert not result.flags.writeable, f"Returned array for {month} should be read-only"
+        assert (
+            not result.flags.writeable
+        ), f"Returned array for {month} should be read-only"
 
 
 def test_asof_setting_value_does_not_mutate_caller_array():

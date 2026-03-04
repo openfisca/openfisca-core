@@ -22,6 +22,10 @@
   - Retroactive `set_input` (out-of-order patches) is supported with automatic snapshot invalidation.
   - No change to the public API (`set_input`, `get_array`, `Variable.as_of`).
 
+#### Technical changes
+
+- Lint: black and flake8 fixes in `tests/core/test_asof_variable.py` and `benchmarks/test_bench_asof.py`.
+
 ## 44.4.0 [#1364](https://github.com/openfisca/openfisca-core/pull/1364)
 
 #### New features
