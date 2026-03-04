@@ -60,6 +60,27 @@ def _make_holder(variable_class, count=2):
     return Holder(variable_class(), population)
 
 
+def _make_holder_with_memory_config(variable_class, asof_max_snapshots, count=2):
+    """Return a Holder whose simulation carries a MemoryConfig stub."""
+    var = variable_class()
+
+    class _StubMemoryConfig:
+        # Put the variable in priority_variables to skip disk-storage creation.
+        priority_variables: frozenset = frozenset({var.name})
+        variables_to_drop: frozenset = frozenset()
+        asof_max_snapshots = None  # overridden below
+
+    _StubMemoryConfig.asof_max_snapshots = asof_max_snapshots
+
+    class _StubSimulation:
+        memory_config = _StubMemoryConfig()
+
+    population = Population(_entity)
+    population.simulation = _StubSimulation()
+    population.count = count
+    return Holder(var, population)
+
+
 # ---------------------------------------------------------------------------
 # 1. Value persists forward in time
 # ---------------------------------------------------------------------------
@@ -336,3 +357,207 @@ def test_as_of_with_set_input_helper_raises():
 
     with pytest.raises(ValueError, match="incompatible"):
         MyVar()
+
+
+# ---------------------------------------------------------------------------
+# 10. set_input_sparse API
+# ---------------------------------------------------------------------------
+
+
+def test_set_input_sparse_basic():
+    """set_input_sparse with (idx, vals) produces the same state as set_input."""
+    holder = _make_holder(_AsOfIntVariable, count=3)
+    holder.set_input("2024-01", numpy.array([1, 2, 3]))  # base
+
+    # Change person 1 from 2 → 9
+    holder.set_input_sparse("2024-04", numpy.array([1]), numpy.array([9]))
+
+    result = holder.get_array(period("2024-04"))
+    numpy.testing.assert_array_equal(result, [1, 9, 3])
+
+
+def test_set_input_sparse_empty():
+    """An empty idx/vals produces no new patch."""
+    holder = _make_holder(_AsOfIntVariable)
+    holder.set_input("2024-01", numpy.array([1, 2]))
+
+    holder.set_input_sparse(
+        "2024-02",
+        numpy.array([], dtype=numpy.int32),
+        numpy.array([], dtype=numpy.int32),
+    )
+
+    assert len(holder._as_of_patches) == 0, "Empty patch should not be stored"
+
+
+def test_set_input_sparse_requires_base():
+    """Calling set_input_sparse before set_input raises ValueError."""
+    holder = _make_holder(_AsOfIntVariable)
+
+    with pytest.raises(ValueError, match="base"):
+        holder.set_input_sparse("2024-01", numpy.array([0]), numpy.array([5]))
+
+
+def test_set_input_sparse_non_asof_raises():
+    """Calling set_input_sparse on a non-as_of variable raises ValueError."""
+    holder = _make_holder(_RegularVariable)
+
+    with pytest.raises(ValueError, match="as_of"):
+        holder.set_input_sparse("2024-01", numpy.array([0]), numpy.array([5]))
+
+
+def test_set_input_sparse_sequential_snapshot():
+    """After sequential set_input_sparse calls the snapshot stays coherent."""
+    holder = _make_holder(_AsOfIntVariable, count=4)
+    holder.set_input("2024-01", numpy.array([1, 2, 3, 4]))  # base
+
+    holder.set_input_sparse("2024-02", numpy.array([0]), numpy.array([10]))
+    holder.set_input_sparse("2024-03", numpy.array([1]), numpy.array([20]))
+
+    # Snapshot should be at 2024-03 after two forward SETs
+    assert len(holder._as_of_snapshots) > 0
+
+    result = holder.get_array(period("2024-03"))
+    numpy.testing.assert_array_equal(result, [10, 20, 3, 4])
+
+    # Values before 2024-02 are unchanged
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-01")), [1, 2, 3, 4])
+
+
+def test_set_input_sparse_vs_set_input_equivalence():
+    """GET results are identical whether set_input or set_input_sparse is used."""
+    count = 5
+    base = numpy.array([1, 2, 3, 4, 5])
+    idx = numpy.array([0, 2])
+    new_vals = numpy.array([10, 30])
+
+    # Dense approach
+    h_dense = _make_holder(_AsOfIntVariable, count=count)
+    h_dense.set_input("2024-01", base.copy())
+    new_full = base.copy()
+    new_full[idx] = new_vals
+    h_dense.set_input("2024-04", new_full)
+
+    # Sparse approach
+    h_sparse = _make_holder(_AsOfIntVariable, count=count)
+    h_sparse.set_input("2024-01", base.copy())
+    h_sparse.set_input_sparse("2024-04", idx, new_vals)
+
+    for month in ("2024-01", "2024-03", "2024-04", "2024-06"):
+        result_dense = h_dense.get_array(period(month))
+        result_sparse = h_sparse.get_array(period(month))
+        numpy.testing.assert_array_equal(
+            result_dense,
+            result_sparse,
+            err_msg=f"Dense and sparse results differ for {month}",
+        )
+
+
+# ---------------------------------------------------------------------------
+# 9. LRU snapshot configuration
+# ---------------------------------------------------------------------------
+
+
+def test_snapshot_max_defaults_to_3():
+    """_as_of_max_snapshots defaults to 3 when no configuration is provided."""
+    holder = _make_holder(_AsOfIntVariable)
+    assert holder._as_of_max_snapshots == 3
+
+
+def test_snapshot_max_from_variable_attribute():
+    """snapshot_count on the Variable class sets _as_of_max_snapshots."""
+
+    class _HighSnapshotVariable(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+        snapshot_count = 7
+
+    holder = _make_holder(_HighSnapshotVariable)
+    assert holder._as_of_max_snapshots == 7
+
+
+def test_snapshot_max_from_memory_config():
+    """MemoryConfig.asof_max_snapshots is used when the variable has no override."""
+    holder = _make_holder_with_memory_config(_AsOfIntVariable, asof_max_snapshots=5)
+    assert holder._as_of_max_snapshots == 5
+
+
+def test_snapshot_max_variable_overrides_memory_config():
+    """Variable.snapshot_count takes priority over MemoryConfig.asof_max_snapshots."""
+
+    class _OverrideVariable(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+        snapshot_count = 2
+
+    holder = _make_holder_with_memory_config(_OverrideVariable, asof_max_snapshots=9)
+    assert holder._as_of_max_snapshots == 2
+
+
+def test_lru_eviction_respects_max_snapshots():
+    """The cache never holds more than _as_of_max_snapshots entries."""
+
+    class _TinyLRUVariable(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+        snapshot_count = 2
+
+    holder = _make_holder(_TinyLRUVariable, count=3)
+    base = numpy.array([1, 2, 3])
+    holder.set_input("2024-01", base)
+
+    # Each SET adds a snapshot; the cache must stay at max 2.
+    for month in ("2024-02", "2024-03", "2024-04", "2024-05"):
+        holder.set_input(month, base + 1)
+        assert len(holder._as_of_snapshots) <= 2
+
+
+def test_lru_correctness_after_eviction():
+    """GET returns correct values even for instants whose snapshot was evicted."""
+
+    class _SmallLRUVariable(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+        snapshot_count = 1  # only ever keep one snapshot
+
+    holder = _make_holder(_SmallLRUVariable, count=2)
+    holder.set_input("2024-01", numpy.array([1, 10]))
+    holder.set_input("2024-03", numpy.array([3, 30]))
+    holder.set_input("2024-06", numpy.array([6, 60]))
+
+    # Snapshot for 2024-01 and 2024-03 were evicted; full reconstruction needed.
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-02")), [1, 10])
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-04")), [3, 30])
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-07")), [6, 60])
+
+
+def test_lru_multi_snapshot_non_linear_access():
+    """With max_snapshots=3 both P and P-12 are served without full reconstruction."""
+
+    class _MultiSnapVariable(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+        snapshot_count = 3
+
+    holder = _make_holder(_MultiSnapVariable, count=2)
+    holder.set_input("2023-01", numpy.array([0, 0]))
+    holder.set_input("2024-01", numpy.array([1, 10]))
+    holder.set_input("2024-02", numpy.array([2, 20]))
+    holder.set_input("2024-03", numpy.array([3, 30]))
+
+    # Simulate a formula accessing both current and year-ago month.
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-03")), [3, 30])
+    numpy.testing.assert_array_equal(
+        holder.get_array(period("2023-03")), [0, 0]  # before any patch → base
+    )
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-02")), [2, 20])

@@ -185,6 +185,10 @@ class Simulation:
 
         self._check_period_consistency(period, variable)
 
+        # Transition formula path: sparse, as_of-only, needs separate cache tracking.
+        if variable.has_transition_formula:
+            return self._calculate_transition(variable, population, holder, period)
+
         # First look for a value already cached
         cached_array = holder.get_array(period)
         if cached_array is not None:
@@ -380,6 +384,103 @@ class Simulation:
             self.tracer,
         )
 
+    def _calculate_transition(self, variable, population, holder, period):
+        """Calculation path for as_of variables with transition_formula.
+
+        Runs the formula at most once per instant, stores the sparse patch via
+        _set_as_of_sparse, then returns the reconstructed state.
+        """
+        instant = period.start if variable.as_of == "start" else period.stop
+
+        # Already computed for this instant → return current state.
+        if instant in holder._as_of_transition_computed:
+            result = holder.get_array(period)
+            return result if result is not None else holder.default_array()
+
+        # start_computation_period guard.
+        if self.start_computation_period is not None:
+            if not isinstance(self.start_computation_period, periods.Period):
+                self.start_computation_period = periods.period(
+                    self.start_computation_period
+                )
+            if period < self.start_computation_period:
+                holder._as_of_transition_computed.add(instant)
+                result = holder.get_array(period)
+                return result if result is not None else holder.default_array()
+
+        # No base established yet: run initial_formula if defined, else raise.
+        if holder._as_of_base is None:
+            initial_formula = variable.get_initial_formula(period)
+            if initial_formula is not None:
+                self.tracer.record_formula_type("initial")
+                array = self._run_initial_formula(initial_formula, population, period)
+                array = self._cast_formula_result(array, variable)
+                holder.set_input(period, array)
+                holder._as_of_transition_computed.add(instant)
+                return array
+            raise ValueError(
+                f'Variable "{variable.name}" has no initial state for period {period}. '
+                f"Either call set_input() before the simulation starts, "
+                f"or define an initial_formula on the variable."
+            )
+
+        formula = variable.get_transition_formula(period)
+        if formula is not None:
+            try:
+                # Use strict cycle check only: reading the same variable at a
+                # different period (e.g. period.last_month) is legitimate for
+                # as_of variables — termination is guaranteed by
+                # _as_of_transition_computed.  SpiralError is NOT raised here.
+                self._check_for_strict_cycle(variable.name, period)
+                self.tracer.record_formula_type("transition")
+                result = self._run_transition_formula(formula, population, period)
+
+                if result is not None:
+                    selector, vals = result
+                    if hasattr(selector, "dtype") and selector.dtype == numpy.bool_:
+                        idx = numpy.where(selector)[0].astype(numpy.int32)
+                    else:
+                        idx = numpy.asarray(selector, dtype=numpy.int32)
+                    if numpy.isscalar(vals):
+                        vals = numpy.full(len(idx), vals, dtype=variable.dtype)
+                    else:
+                        vals = numpy.asarray(vals, dtype=variable.dtype)
+                        if len(vals) != len(idx):
+                            raise ValueError(
+                                f'transition_formula of "{variable.name}" returned '
+                                f"{len(vals)} values for {len(idx)} selected indices."
+                            )
+                    holder._set_as_of_sparse(period, idx, vals)
+
+            except errors.CycleError:
+                pass  # no patch stored, previous state persists
+
+        holder._as_of_transition_computed.add(instant)
+        result = holder.get_array(period)
+        return result if result is not None else holder.default_array()
+
+    def _run_transition_formula(self, formula, population, period):
+        """Call a transition_formula and return its (selector, vals) result."""
+        if self.trace:
+            parameters_at = self.trace_parameters_at_instant
+        else:
+            parameters_at = self.tax_benefit_system.get_parameters_at_instant
+
+        if formula.__code__.co_argcount == 2:
+            return formula(population, period)
+        return formula(population, period, parameters_at)
+
+    def _run_initial_formula(self, formula, population, period):
+        """Call an initial_formula and return a full dense array."""
+        if self.trace:
+            parameters_at = self.trace_parameters_at_instant
+        else:
+            parameters_at = self.tax_benefit_system.get_parameters_at_instant
+
+        if formula.__code__.co_argcount == 2:
+            return formula(population, period)
+        return formula(population, period, parameters_at)
+
     def _run_formula(self, variable, population, period):
         """Find the ``variable`` formula for the given ``period`` if it exists, and apply it to ``population``."""
         formula = variable.get_formula(period)
@@ -476,6 +577,19 @@ class Simulation:
             self.invalidate_spiral_variables(variable)
             message = f"Quasicircular definition detected on formula {variable}@{period} involving {self.tracer.stack}"
             raise errors.SpiralError(message, variable)
+
+    def _check_for_strict_cycle(self, variable: str, period) -> None:
+        """Raise CycleError if variable@period is already on the stack.
+
+        Unlike _check_for_cycle, this does NOT raise SpiralError for the same
+        variable at different periods.  Used by transition_formula where reading
+        the previous period's value is legitimate and termination is guaranteed
+        by _as_of_transition_computed.
+        """
+        for frame in self.tracer.stack[:-1]:
+            if frame["name"] == variable and frame["period"] == period:
+                msg = f"Circular definition detected on transition_formula {variable}@{period}"
+                raise errors.CycleError(msg)
 
     def invalidate_cache_entry(self, variable: str, period) -> None:
         self.invalidated_caches.add(Cache(variable, period))
