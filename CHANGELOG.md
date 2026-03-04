@@ -1,5 +1,18 @@
 # Changelog
 
+## 44.5.0
+
+#### New features
+
+- Add `as_of` attribute to `Variable` for persistent vector variables.
+  - A variable declared with `as_of = True` (or `"start"` / `"end"`) stores its value at a given instant and automatically returns that value for any later period, until a new value is explicitly set — the vectorial analogue of OpenFisca parameters.
+  - `as_of = "start"` (default when `True`): lookup uses the start of the requested period as reference instant.
+  - `as_of = "end"`: lookup uses the end of the requested period (useful for annual variables like income tax).
+  - Lookup is O(log P) via `bisect` on a sorted instants index.
+  - Reference sharing: when consecutive stored values are identical, the same array object is reused, reducing memory usage for stable variables (e.g. `marital_status`, `housing_occupancy_status`).
+  - Stored arrays are read-only (`writeable=False`) to prevent accidental in-place mutation.
+  - Combining `as_of` with `set_input` dispatch helpers raises a `ValueError` at variable definition time.
+
 ## 44.4.0 [#1364](https://github.com/openfisca/openfisca-core/pull/1364)
 
 #### New features
@@ -17,9 +30,9 @@
 - SimulationBuilder sets `_id_to_rownum` identity mapping for static simulations (`build_default_simulation`, `build_from_dict` / `build_from_entities`), for dynamic-population support.
 - Add `PYTHON` variable to `tasks/lint.mk` so `make lint PYTHON=.venv/bin/python` works; fix style in `test_link_accessors.py` and remove unused variable in `test_many2one.py`.
 
-## 44.3.0
+## 44.3.0 [#1365](https://github.com/openfisca/openfisca-core/pull/1365)
 
-#### New Features
+#### New features
 
 - **Generic Entity Links (Phase 1-6)**: Introduced a new Liam2-inspired generic entity linking system avoiding rigid hierarchies like `Person -> Household`.
   - Added new `Many2OneLink` and `One2ManyLink` models to create powerful inter-entity networks (e.g., `Person -> Employer`).
@@ -27,7 +40,7 @@
   - Full capability to chain relationships via python: `person.mother.household.get("rent", period)`.
   - Powerful vectorized declarative aggregations out-of-the-box (e.g., `households.persons.sum("salary", period, condition=is_female)`).
 
-#### Technical Changes
+#### Technical changes
 
 - Backward compatibility is 100% maintained. Existing syntax via Projectors natively redirects to implicit links via modified `__getattr__`.
 
