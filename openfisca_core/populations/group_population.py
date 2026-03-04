@@ -96,15 +96,41 @@ class GroupPopulation(Population):
             None,
         )
 
+    #  Filtering helpers
+
+    def _build_member_mask(self, role=None, condition=None):
+        """Build a combined boolean mask from role and condition filters.
+
+        Returns None if no filtering is needed (both are None), otherwise
+        returns a boolean array of length ``members.count``.
+        """
+        if role is None and condition is None:
+            return None
+
+        mask = numpy.ones(self.members.count, dtype=bool)
+
+        if role is not None:
+            role_filter = self.members.has_role(role)
+            mask &= role_filter
+
+        if condition is not None:
+            mask &= condition
+
+        return mask
+
     #  Aggregation persons -> entity
 
     @projectors.projectable
-    def sum(self, array, role=None):
+    def sum(self, array, role=None, condition=None):
         """Return the sum of ``array`` for the members of the entity.
 
         ``array`` must have the dimension of the number of persons in the simulation
 
         If ``role`` is provided, only the entity member with the given role are taken into account.
+
+        If ``condition`` is provided (a boolean array of the same size as the
+        person population), only members for whom the condition is ``True`` are
+        taken into account.  ``role`` and ``condition`` can be combined.
 
         Example:
         >>> salaries = household.members(
@@ -116,22 +142,26 @@ class GroupPopulation(Population):
         """
         self.entity.check_role_validity(role)
         self.members.check_array_compatible_with_entity(array)
-        if role is not None:
-            role_filter = self.members.has_role(role)
+        mask = self._build_member_mask(role, condition)
+        if mask is not None:
             return numpy.bincount(
-                self.members_entity_id[role_filter],
-                weights=array[role_filter],
+                self.members_entity_id[mask],
+                weights=array[mask],
                 minlength=self.count,
             )
         return numpy.bincount(self.members_entity_id, weights=array)
 
     @projectors.projectable
-    def any(self, array, role=None):
+    def any(self, array, role=None, condition=None):
         """Return ``True`` if ``array`` is ``True`` for any members of the entity.
 
         ``array`` must have the dimension of the number of persons in the simulation
 
         If ``role`` is provided, only the entity member with the given role are taken into account.
+
+        If ``condition`` is provided (a boolean array of the same size as the
+        person population), only members for whom the condition is ``True`` are
+        taken into account.  ``role`` and ``condition`` can be combined.
 
         Example:
         >>> salaries = household.members(
@@ -141,16 +171,18 @@ class GroupPopulation(Population):
         >>> array([True])
 
         """
-        sum_in_entity = self.sum(array, role=role)
+        sum_in_entity = self.sum(array, role=role, condition=condition)
         return sum_in_entity > 0
 
     @projectors.projectable
-    def reduce(self, array, reducer, neutral_element, role=None):
+    def reduce(self, array, reducer, neutral_element, role=None, condition=None):
         self.members.check_array_compatible_with_entity(array)
         self.entity.check_role_validity(role)
         position_in_entity = self.members_position
-        role_filter = self.members.has_role(role) if role is not None else True
-        filtered_array = numpy.where(role_filter, array, neutral_element)
+        mask = self._build_member_mask(role, condition)
+        if mask is None:
+            mask = True  # scalar True broadcasts; preserves old upcast behavior
+        filtered_array = numpy.where(mask, array, neutral_element)
 
         result = self.filled_array(
             neutral_element,
@@ -167,12 +199,16 @@ class GroupPopulation(Population):
         return result
 
     @projectors.projectable
-    def all(self, array, role=None):
+    def all(self, array, role=None, condition=None):
         """Return ``True`` if ``array`` is ``True`` for all members of the entity.
 
         ``array`` must have the dimension of the number of persons in the simulation
 
         If ``role`` is provided, only the entity member with the given role are taken into account.
+
+        If ``condition`` is provided (a boolean array of the same size as the
+        person population), only members for whom the condition is ``True`` are
+        taken into account.  ``role`` and ``condition`` can be combined.
 
         Example:
         >>> salaries = household.members(
@@ -187,15 +223,20 @@ class GroupPopulation(Population):
             reducer=numpy.logical_and,
             neutral_element=True,
             role=role,
+            condition=condition,
         )
 
     @projectors.projectable
-    def max(self, array, role=None):
+    def max(self, array, role=None, condition=None):
         """Return the maximum value of ``array`` for the entity members.
 
         ``array`` must have the dimension of the number of persons in the simulation
 
         If ``role`` is provided, only the entity member with the given role are taken into account.
+
+        If ``condition`` is provided (a boolean array of the same size as the
+        person population), only members for whom the condition is ``True`` are
+        taken into account.  ``role`` and ``condition`` can be combined.
 
         Example:
         >>> salaries = household.members(
@@ -210,15 +251,20 @@ class GroupPopulation(Population):
             reducer=numpy.maximum,
             neutral_element=-numpy.inf,
             role=role,
+            condition=condition,
         )
 
     @projectors.projectable
-    def min(self, array, role=None):
+    def min(self, array, role=None, condition=None):
         """Return the minimum value of ``array`` for the entity members.
 
         ``array`` must have the dimension of the number of persons in the simulation
 
         If ``role`` is provided, only the entity member with the given role are taken into account.
+
+        If ``condition`` is provided (a boolean array of the same size as the
+        person population), only members for whom the condition is ``True`` are
+        taken into account.  ``role`` and ``condition`` can be combined.
 
         Example:
         >>> salaries = household.members(
@@ -237,13 +283,18 @@ class GroupPopulation(Population):
             reducer=numpy.minimum,
             neutral_element=numpy.inf,
             role=role,
+            condition=condition,
         )
 
     @projectors.projectable
-    def nb_persons(self, role=None):
+    def nb_persons(self, role=None, condition=None):
         """Returns the number of persons contained in the entity.
 
         If ``role`` is provided, only the entity member with the given role are taken into account.
+
+        If ``condition`` is provided (a boolean array of the same size as the
+        person population), only members for whom the condition is ``True`` are
+        counted.  ``role`` and ``condition`` can be combined.
         """
         if role:
             if role.subroles:
@@ -252,7 +303,9 @@ class GroupPopulation(Population):
                 )
             else:
                 role_condition = self.members_role == role
-            return self.sum(role_condition)
+            return self.sum(role_condition, condition=condition)
+        if condition is not None:
+            return self.sum(condition.astype(float)).astype(int)
         return numpy.bincount(self.members_entity_id)
 
     # Projection person -> entity

@@ -266,8 +266,7 @@ class EnumArray(t.EnumArray):
         result: t.ObjArray
         if self.possible_values is None:
             msg = (
-                f"The possible values of the {self.__class__.__name__} are "
-                f"not defined."
+                f"The possible values of the {self.__class__.__name__} are not defined."
             )
             raise TypeError(msg)
         array = self.reshape(1).astype(t.EnumDType) if self.ndim == 0 else self
@@ -301,8 +300,7 @@ class EnumArray(t.EnumArray):
         result: t.StrArray
         if self.possible_values is None:
             msg = (
-                f"The possible values of the {self.__class__.__name__} are "
-                f"not defined."
+                f"The possible values of the {self.__class__.__name__} are not defined."
             )
             raise TypeError(msg)
         array = self.reshape(1).astype(t.EnumDType) if self.ndim == 0 else self

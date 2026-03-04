@@ -36,13 +36,13 @@ class TaxScaleLike(abc.ABC):
         self.thresholds = []
 
     def __eq__(self, _other: object) -> typing.NoReturn:
-        msg = "Method '__eq__' is not implemented for " f"{self.__class__.__name__}"
+        msg = f"Method '__eq__' is not implemented for {self.__class__.__name__}"
         raise NotImplementedError(
             msg,
         )
 
     def __ne__(self, _other: object) -> typing.NoReturn:
-        msg = "Method '__ne__' is not implemented for " f"{self.__class__.__name__}"
+        msg = f"Method '__ne__' is not implemented for {self.__class__.__name__}"
         raise NotImplementedError(
             msg,
         )

@@ -32,7 +32,7 @@ class AbstractTaxScale(TaxScaleLike):
         super().__init__(name, option, unit)
 
     def __repr__(self) -> typing.NoReturn:
-        msg = "Method '__repr__' is not implemented for " f"{self.__class__.__name__}"
+        msg = f"Method '__repr__' is not implemented for {self.__class__.__name__}"
         raise NotImplementedError(
             msg,
         )
@@ -42,7 +42,7 @@ class AbstractTaxScale(TaxScaleLike):
         tax_base: NumericalArray,
         right: bool,
     ) -> typing.NoReturn:
-        msg = "Method 'calc' is not implemented for " f"{self.__class__.__name__}"
+        msg = f"Method 'calc' is not implemented for {self.__class__.__name__}"
         raise NotImplementedError(
             msg,
         )

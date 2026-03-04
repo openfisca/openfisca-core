@@ -1,5 +1,19 @@
 # Changelog
 
+## 44.3.0
+
+#### New Features
+
+- **Generic Entity Links (Phase 1-6)**: Introduced a new Liam2-inspired generic entity linking system avoiding rigid hierarchies like `Person -> Household`.
+  - Added new `Many2OneLink` and `One2ManyLink` models to create powerful inter-entity networks (e.g., `Person -> Employer`).
+  - Added implicit links directly binding members arrays. This powers the new `population.links` property natively inside `TaxBenefitSystem.instantiate_entities()`.
+  - Full capability to chain relationships via python: `person.mother.household.get("rent", period)`.
+  - Powerful vectorized declarative aggregations out-of-the-box (e.g., `households.persons.sum("salary", period, condition=is_female)`).
+
+#### Technical Changes
+
+- Backward compatibility is 100% maintained. Existing syntax via Projectors natively redirects to implicit links via modified `__getattr__`.
+
 ## 44.2.2
 
 #### Bug fixes
