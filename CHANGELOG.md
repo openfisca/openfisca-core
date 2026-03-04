@@ -14,6 +14,8 @@
 #### Technical changes
 
 - Removed unused `openfisca_core.model_api` import in `tests/core/parameters_date_indexing/test_date_indexing.py`.
+- SimulationBuilder sets `_id_to_rownum` identity mapping for static simulations (`build_default_simulation`, `build_from_dict` / `build_from_entities`), for dynamic-population support.
+- Add `PYTHON` variable to `tasks/lint.mk` so `make lint PYTHON=.venv/bin/python` works; fix style in `test_link_accessors.py` and remove unused variable in `test_many2one.py`.
 
 ## 44.3.0
 
