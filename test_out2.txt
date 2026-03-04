@@ -1,0 +1,1 @@
+error: No `project` table found in: `/home/benjello/projects/openfisca-core/pyproject.toml`

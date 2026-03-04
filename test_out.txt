@@ -1,0 +1,1670 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.11, pytest-8.4.1, pluggy-1.6.0
+benchmark: 4.0.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /home/benjello/projects/openfisca-core
+configfile: setup.cfg
+plugins: benchmark-4.0.0, zarr-3.1.5
+collected 10 items
+
+tests/core/test_on_disk_storage.py .F.F.F.F.F                            [100%]
+
+=================================== FAILURES ===================================
+_____________________ test_put_and_get[OnDiskStorageZarr] ______________________
+
+store = StorePath(LocalStore, 'file:///tmp/tmpyxoyy2za/2017.zarr')
+zarr_version = None, zarr_format = None, path = '', storage_options = None
+kwargs = {'chunks': (3,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (3,)}
+mode = 'w'
+store_path = StorePath(LocalStore, 'file:///tmp/tmpyxoyy2za/2017.zarr')
+
+    async def open_array(
+        *,  # note: this is a change from v2
+        store: StoreLike | None = None,
+        zarr_version: ZarrFormat | None = None,  # deprecated
+        zarr_format: ZarrFormat | None = None,
+        path: PathLike = "",
+        storage_options: dict[str, Any] | None = None,
+        **kwargs: Any,  # TODO: type kwargs as valid args to save
+    ) -> AnyAsyncArray:
+        """Open an array using file-mode-like semantics.
+    
+        Parameters
+        ----------
+        store : StoreLike
+            StoreLike object to open. See the
+            [storage documentation in the user guide][user-guide-store-like]
+            for a description of all valid StoreLike values.
+        zarr_version : {2, 3, None}, optional
+            The zarr format to use when saving. Deprecated in favor of zarr_format.
+        zarr_format : {2, 3, None}, optional
+            The zarr format to use when saving.
+        path : str, optional
+            Path in store to array.
+        storage_options : dict
+            If using an fsspec URL to create the store, these will be passed to
+            the backend implementation. Ignored otherwise.
+        **kwargs
+            Any keyword arguments to pass to [`create`][zarr.api.asynchronous.create].
+    
+        Returns
+        -------
+        AsyncArray
+            The opened array.
+        """
+    
+        mode = kwargs.pop("mode", None)
+        store_path = await make_store_path(store, path=path, mode=mode, storage_options=storage_options)
+    
+        zarr_format = _handle_zarr_version_or_format(zarr_version=zarr_version, zarr_format=zarr_format)
+    
+        if "write_empty_chunks" in kwargs:
+            _warn_write_empty_chunks_kwarg()
+    
+        try:
+>           return await AsyncArray.open(store_path, zarr_format=zarr_format)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+_zarr_format = 3
+kwargs     = {'chunks': (3,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (3,)}
+mode       = 'w'
+overwrite  = True
+path       = ''
+storage_options = None
+store      = StorePath(LocalStore, 'file:///tmp/tmpyxoyy2za/2017.zarr')
+store_path = StorePath(LocalStore, 'file:///tmp/tmpyxoyy2za/2017.zarr')
+zarr_format = None
+zarr_version = None
+
+.venv/lib/python3.11/site-packages/zarr/api/asynchronous.py:1282: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib/python3.11/site-packages/zarr/core/array.py:1006: in open
+    metadata_dict = await get_array_metadata(store_path, zarr_format=zarr_format)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        cls        = <class 'zarr.core.array.AsyncArray'>
+        store      = StorePath(LocalStore, 'file:///tmp/tmpyxoyy2za/2017.zarr')
+        store_path = StorePath(LocalStore, 'file:///tmp/tmpyxoyy2za/2017.zarr')
+        zarr_format = None
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store_path = StorePath(LocalStore, 'file:///tmp/tmpyxoyy2za/2017.zarr')
+zarr_format = None
+
+    async def get_array_metadata(
+        store_path: StorePath, zarr_format: ZarrFormat | None = 3
+    ) -> dict[str, JSON]:
+        if zarr_format == 2:
+            zarray_bytes, zattrs_bytes = await gather(
+                (store_path / ZARRAY_JSON).get(prototype=cpu_buffer_prototype),
+                (store_path / ZATTRS_JSON).get(prototype=cpu_buffer_prototype),
+            )
+            if zarray_bytes is None:
+                msg = (
+                    "A Zarr V2 array metadata document was not found in store "
+                    f"{store_path.store!r} at path {store_path.path!r}."
+                )
+                raise ArrayNotFoundError(msg)
+        elif zarr_format == 3:
+            zarr_json_bytes = await (store_path / ZARR_JSON).get(prototype=cpu_buffer_prototype)
+            if zarr_json_bytes is None:
+                msg = (
+                    "A Zarr V3 array metadata document was not found in store "
+                    f"{store_path.store!r} at path {store_path.path!r}."
+                )
+                raise ArrayNotFoundError(msg)
+        elif zarr_format is None:
+            zarr_json_bytes, zarray_bytes, zattrs_bytes = await gather(
+                (store_path / ZARR_JSON).get(prototype=cpu_buffer_prototype),
+                (store_path / ZARRAY_JSON).get(prototype=cpu_buffer_prototype),
+                (store_path / ZATTRS_JSON).get(prototype=cpu_buffer_prototype),
+            )
+            if zarr_json_bytes is not None and zarray_bytes is not None:
+                # warn and favor v3
+                msg = f"Both zarr.json (Zarr format 3) and .zarray (Zarr format 2) metadata objects exist at {store_path}. Zarr v3 will be used."
+                warnings.warn(msg, category=ZarrUserWarning, stacklevel=1)
+            if zarr_json_bytes is None and zarray_bytes is None:
+                msg = (
+                    f"Neither Zarr V3 nor Zarr V2 array metadata documents "
+                    f"were found in store {store_path.store!r} at path {store_path.path!r}."
+                )
+>               raise ArrayNotFoundError(msg)
+E               zarr.errors.ArrayNotFoundError: Neither Zarr V3 nor Zarr V2 array metadata documents were found in store LocalStore('file:///tmp/tmpyxoyy2za/2017.zarr') at path ''.
+
+msg        = "Neither Zarr V3 nor Zarr V2 array metadata documents were found in store LocalStore('file:///tmp/tmpyxoyy2za/2017.zarr') at path ''."
+store_path = StorePath(LocalStore, 'file:///tmp/tmpyxoyy2za/2017.zarr')
+zarr_format = None
+zarr_json_bytes = None
+zarray_bytes = None
+zattrs_bytes = None
+
+.venv/lib/python3.11/site-packages/zarr/core/array.py:254: ArrayNotFoundError
+
+During handling of the above exception, another exception occurred:
+
+storage = <openfisca_core.data_storage.on_disk_storage.OnDiskStorageZarr object at 0x7acec40619d0>
+
+    def test_put_and_get(storage):
+        array = np.array([1, 2, 3])
+        period = periods.Period(("year", periods.Instant((2017, 1, 1)), 1))
+    
+>       storage.put(array, period)
+
+array      = array([1, 2, 3])
+period     = Period(('year', Instant((2017, 1, 1)), 1))
+storage    = <openfisca_core.data_storage.on_disk_storage.OnDiskStorageZarr object at 0x7acec40619d0>
+
+tests/core/test_on_disk_storage.py:29: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+openfisca_core/data_storage/on_disk_storage.py:374: in put
+    z = zarr.open(
+        filename   = '2017'
+        path       = '/tmp/tmpyxoyy2za/2017.zarr'
+        period     = Period(('year', Instant((2017, 1, 1)), 1))
+        self       = <openfisca_core.data_storage.on_disk_storage.OnDiskStorageZarr object at 0x7acec40619d0>
+        value      = array([1, 2, 3])
+.venv/lib/python3.11/site-packages/zarr/api/synchronous.py:216: in open
+    obj = sync(
+        kwargs     = {'chunks': (3,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (3,)}
+        mode       = 'w'
+        path       = None
+        storage_options = None
+        store      = '/tmp/tmpyxoyy2za/2017.zarr'
+        zarr_format = None
+        zarr_version = None
+.venv/lib/python3.11/site-packages/zarr/core/sync.py:159: in sync
+    raise return_result
+        coro       = <coroutine object open at 0x7acec3ffcb80>
+        finished   = {<Future at 0x7acec4162390 state=finished returned ValueError>}
+        future     = <Future at 0x7acec4162390 state=finished returned ValueError>
+        loop       = <_UnixSelectorEventLoop running=True closed=False debug=False>
+        return_result = ValueError('compressor cannot be used for arrays with zarr_format 3. Use bytes-to-bytes codecs instead.')
+        timeout    = None
+        unfinished = set()
+.venv/lib/python3.11/site-packages/zarr/core/sync.py:119: in _runner
+    return await coro
+           ^^^^^^^^^^
+        coro       = <coroutine object open at 0x7acec3ffcb80>
+.venv/lib/python3.11/site-packages/zarr/api/asynchronous.py:396: in open
+    return await open_array(store=store_path, zarr_format=zarr_format, mode=mode, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        kwargs     = {'chunks': (3,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (3,)}
+        mode       = 'w'
+        path       = None
+        storage_options = None
+        store      = '/tmp/tmpyxoyy2za/2017.zarr'
+        store_path = StorePath(LocalStore, 'file:///tmp/tmpyxoyy2za/2017.zarr')
+        zarr_format = None
+        zarr_version = None
+.venv/lib/python3.11/site-packages/zarr/api/asynchronous.py:1287: in open_array
+    return await create(
+        _zarr_format = 3
+        kwargs     = {'chunks': (3,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (3,)}
+        mode       = 'w'
+        overwrite  = True
+        path       = ''
+        storage_options = None
+        store      = StorePath(LocalStore, 'file:///tmp/tmpyxoyy2za/2017.zarr')
+        store_path = StorePath(LocalStore, 'file:///tmp/tmpyxoyy2za/2017.zarr')
+        zarr_format = None
+        zarr_version = None
+.venv/lib/python3.11/site-packages/zarr/api/asynchronous.py:1086: in create
+    return await AsyncArray._create(
+        attributes = None
+        cache_attrs = None
+        cache_metadata = None
+        chunk_key_encoding = None
+        chunk_shape = None
+        chunk_store = None
+        chunks     = (3,)
+        codecs     = None
+        compressor = Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0)
+        config     = None
+        config_parsed = ArrayConfig(order='C', write_empty_chunks=False)
+        dimension_names = None
+        dimension_separator = None
+        dtype      = dtype('int64')
+        fill_value = <zarr.core.array.DefaultFillValue object at 0x7aceccf87f50>
+        filters    = None
+        kwargs     = {}
+        meta_array = None
+        mode       = 'a'
+        object_codec = None
+        order      = None
+        overwrite  = True
+        path       = None
+        read_only  = None
+        shape      = (3,)
+        storage_options = None
+        store      = StorePath(LocalStore, 'file:///tmp/tmpyxoyy2za/2017.zarr')
+        store_path = StorePath(LocalStore, 'file:///tmp/tmpyxoyy2za/2017.zarr')
+        synchronizer = None
+        write_empty_chunks = None
+        zarr_format = 3
+        zarr_version = None
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'zarr.core.array.AsyncArray'>
+store = StorePath(LocalStore, 'file:///tmp/tmpyxoyy2za/2017.zarr')
+
+    @classmethod
+    async def _create(
+        cls,
+        store: StoreLike,
+        *,
+        # v2 and v3
+        shape: ShapeLike,
+        dtype: ZDTypeLike | ZDType[TBaseDType, TBaseScalar],
+        zarr_format: ZarrFormat = 3,
+        fill_value: Any | None = DEFAULT_FILL_VALUE,
+        attributes: dict[str, JSON] | None = None,
+        # v3 only
+        chunk_shape: ShapeLike | None = None,
+        chunk_key_encoding: (
+            ChunkKeyEncodingLike
+            | tuple[Literal["default"], Literal[".", "/"]]
+            | tuple[Literal["v2"], Literal[".", "/"]]
+            | None
+        ) = None,
+        codecs: Iterable[Codec | dict[str, JSON]] | None = None,
+        dimension_names: DimensionNames = None,
+        # v2 only
+        chunks: ShapeLike | None = None,
+        dimension_separator: Literal[".", "/"] | None = None,
+        order: MemoryOrder | None = None,
+        filters: Iterable[dict[str, JSON] | Numcodec] | None = None,
+        compressor: CompressorLike = "auto",
+        # runtime
+        overwrite: bool = False,
+        data: npt.ArrayLike | None = None,
+        config: ArrayConfigLike | None = None,
+    ) -> AnyAsyncArray:
+        """Method to create a new asynchronous array instance.
+        Deprecated in favor of [`zarr.api.asynchronous.create_array`][].
+        """
+    
+        dtype_parsed = parse_dtype(dtype, zarr_format=zarr_format)
+        store_path = await make_store_path(store)
+    
+        shape = parse_shapelike(shape)
+    
+        if chunks is not None and chunk_shape is not None:
+            raise ValueError("Only one of chunk_shape or chunks can be provided.")
+        item_size = 1
+        if isinstance(dtype_parsed, HasItemSize):
+            item_size = dtype_parsed.item_size
+        if chunks:
+            _chunks = normalize_chunks(chunks, shape, item_size)
+        else:
+            _chunks = normalize_chunks(chunk_shape, shape, item_size)
+        config_parsed = parse_array_config(config)
+    
+        result: AnyAsyncArray
+        if zarr_format == 3:
+            if dimension_separator is not None:
+                raise ValueError(
+                    "dimension_separator cannot be used for arrays with zarr_format 3. Use chunk_key_encoding instead."
+                )
+            if filters is not None:
+                raise ValueError(
+                    "filters cannot be used for arrays with zarr_format 3. Use array-to-array codecs instead."
+                )
+            if compressor != "auto":
+>               raise ValueError(
+                    "compressor cannot be used for arrays with zarr_format 3. Use bytes-to-bytes codecs instead."
+                )
+E               ValueError: compressor cannot be used for arrays with zarr_format 3. Use bytes-to-bytes codecs instead.
+
+_chunks    = (3,)
+attributes = None
+chunk_key_encoding = None
+chunk_shape = None
+chunks     = (3,)
+cls        = <class 'zarr.core.array.AsyncArray'>
+codecs     = None
+compressor = Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0)
+config     = ArrayConfig(order='C', write_empty_chunks=False)
+config_parsed = ArrayConfig(order='C', write_empty_chunks=False)
+data       = None
+dimension_names = None
+dimension_separator = None
+dtype      = dtype('int64')
+dtype_parsed = Int64(endianness='little')
+fill_value = <zarr.core.array.DefaultFillValue object at 0x7aceccf87f50>
+filters    = None
+item_size  = 8
+order      = None
+overwrite  = True
+shape      = (3,)
+store      = StorePath(LocalStore, 'file:///tmp/tmpyxoyy2za/2017.zarr')
+store_path = StorePath(LocalStore, 'file:///tmp/tmpyxoyy2za/2017.zarr')
+zarr_format = 3
+
+.venv/lib/python3.11/site-packages/zarr/core/array.py:676: ValueError
+________________________ test_delete[OnDiskStorageZarr] ________________________
+
+store = StorePath(LocalStore, 'file:///tmp/tmpff_vepq4/2017.zarr')
+zarr_version = None, zarr_format = None, path = '', storage_options = None
+kwargs = {'chunks': (3,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (3,)}
+mode = 'w'
+store_path = StorePath(LocalStore, 'file:///tmp/tmpff_vepq4/2017.zarr')
+
+    async def open_array(
+        *,  # note: this is a change from v2
+        store: StoreLike | None = None,
+        zarr_version: ZarrFormat | None = None,  # deprecated
+        zarr_format: ZarrFormat | None = None,
+        path: PathLike = "",
+        storage_options: dict[str, Any] | None = None,
+        **kwargs: Any,  # TODO: type kwargs as valid args to save
+    ) -> AnyAsyncArray:
+        """Open an array using file-mode-like semantics.
+    
+        Parameters
+        ----------
+        store : StoreLike
+            StoreLike object to open. See the
+            [storage documentation in the user guide][user-guide-store-like]
+            for a description of all valid StoreLike values.
+        zarr_version : {2, 3, None}, optional
+            The zarr format to use when saving. Deprecated in favor of zarr_format.
+        zarr_format : {2, 3, None}, optional
+            The zarr format to use when saving.
+        path : str, optional
+            Path in store to array.
+        storage_options : dict
+            If using an fsspec URL to create the store, these will be passed to
+            the backend implementation. Ignored otherwise.
+        **kwargs
+            Any keyword arguments to pass to [`create`][zarr.api.asynchronous.create].
+    
+        Returns
+        -------
+        AsyncArray
+            The opened array.
+        """
+    
+        mode = kwargs.pop("mode", None)
+        store_path = await make_store_path(store, path=path, mode=mode, storage_options=storage_options)
+    
+        zarr_format = _handle_zarr_version_or_format(zarr_version=zarr_version, zarr_format=zarr_format)
+    
+        if "write_empty_chunks" in kwargs:
+            _warn_write_empty_chunks_kwarg()
+    
+        try:
+>           return await AsyncArray.open(store_path, zarr_format=zarr_format)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+_zarr_format = 3
+kwargs     = {'chunks': (3,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (3,)}
+mode       = 'w'
+overwrite  = True
+path       = ''
+storage_options = None
+store      = StorePath(LocalStore, 'file:///tmp/tmpff_vepq4/2017.zarr')
+store_path = StorePath(LocalStore, 'file:///tmp/tmpff_vepq4/2017.zarr')
+zarr_format = None
+zarr_version = None
+
+.venv/lib/python3.11/site-packages/zarr/api/asynchronous.py:1282: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib/python3.11/site-packages/zarr/core/array.py:1006: in open
+    metadata_dict = await get_array_metadata(store_path, zarr_format=zarr_format)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        cls        = <class 'zarr.core.array.AsyncArray'>
+        store      = StorePath(LocalStore, 'file:///tmp/tmpff_vepq4/2017.zarr')
+        store_path = StorePath(LocalStore, 'file:///tmp/tmpff_vepq4/2017.zarr')
+        zarr_format = None
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store_path = StorePath(LocalStore, 'file:///tmp/tmpff_vepq4/2017.zarr')
+zarr_format = None
+
+    async def get_array_metadata(
+        store_path: StorePath, zarr_format: ZarrFormat | None = 3
+    ) -> dict[str, JSON]:
+        if zarr_format == 2:
+            zarray_bytes, zattrs_bytes = await gather(
+                (store_path / ZARRAY_JSON).get(prototype=cpu_buffer_prototype),
+                (store_path / ZATTRS_JSON).get(prototype=cpu_buffer_prototype),
+            )
+            if zarray_bytes is None:
+                msg = (
+                    "A Zarr V2 array metadata document was not found in store "
+                    f"{store_path.store!r} at path {store_path.path!r}."
+                )
+                raise ArrayNotFoundError(msg)
+        elif zarr_format == 3:
+            zarr_json_bytes = await (store_path / ZARR_JSON).get(prototype=cpu_buffer_prototype)
+            if zarr_json_bytes is None:
+                msg = (
+                    "A Zarr V3 array metadata document was not found in store "
+                    f"{store_path.store!r} at path {store_path.path!r}."
+                )
+                raise ArrayNotFoundError(msg)
+        elif zarr_format is None:
+            zarr_json_bytes, zarray_bytes, zattrs_bytes = await gather(
+                (store_path / ZARR_JSON).get(prototype=cpu_buffer_prototype),
+                (store_path / ZARRAY_JSON).get(prototype=cpu_buffer_prototype),
+                (store_path / ZATTRS_JSON).get(prototype=cpu_buffer_prototype),
+            )
+            if zarr_json_bytes is not None and zarray_bytes is not None:
+                # warn and favor v3
+                msg = f"Both zarr.json (Zarr format 3) and .zarray (Zarr format 2) metadata objects exist at {store_path}. Zarr v3 will be used."
+                warnings.warn(msg, category=ZarrUserWarning, stacklevel=1)
+            if zarr_json_bytes is None and zarray_bytes is None:
+                msg = (
+                    f"Neither Zarr V3 nor Zarr V2 array metadata documents "
+                    f"were found in store {store_path.store!r} at path {store_path.path!r}."
+                )
+>               raise ArrayNotFoundError(msg)
+E               zarr.errors.ArrayNotFoundError: Neither Zarr V3 nor Zarr V2 array metadata documents were found in store LocalStore('file:///tmp/tmpff_vepq4/2017.zarr') at path ''.
+
+msg        = "Neither Zarr V3 nor Zarr V2 array metadata documents were found in store LocalStore('file:///tmp/tmpff_vepq4/2017.zarr') at path ''."
+store_path = StorePath(LocalStore, 'file:///tmp/tmpff_vepq4/2017.zarr')
+zarr_format = None
+zarr_json_bytes = None
+zarray_bytes = None
+zattrs_bytes = None
+
+.venv/lib/python3.11/site-packages/zarr/core/array.py:254: ArrayNotFoundError
+
+During handling of the above exception, another exception occurred:
+
+storage = <openfisca_core.data_storage.on_disk_storage.OnDiskStorageZarr object at 0x7acec264f6d0>
+
+    def test_delete(storage):
+        array = np.array([1, 2, 3])
+        period = periods.Period(("year", periods.Instant((2017, 1, 1)), 1))
+    
+>       storage.put(array, period)
+
+array      = array([1, 2, 3])
+period     = Period(('year', Instant((2017, 1, 1)), 1))
+storage    = <openfisca_core.data_storage.on_disk_storage.OnDiskStorageZarr object at 0x7acec264f6d0>
+
+tests/core/test_on_disk_storage.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+openfisca_core/data_storage/on_disk_storage.py:374: in put
+    z = zarr.open(
+        filename   = '2017'
+        path       = '/tmp/tmpff_vepq4/2017.zarr'
+        period     = Period(('year', Instant((2017, 1, 1)), 1))
+        self       = <openfisca_core.data_storage.on_disk_storage.OnDiskStorageZarr object at 0x7acec264f6d0>
+        value      = array([1, 2, 3])
+.venv/lib/python3.11/site-packages/zarr/api/synchronous.py:216: in open
+    obj = sync(
+        kwargs     = {'chunks': (3,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (3,)}
+        mode       = 'w'
+        path       = None
+        storage_options = None
+        store      = '/tmp/tmpff_vepq4/2017.zarr'
+        zarr_format = None
+        zarr_version = None
+.venv/lib/python3.11/site-packages/zarr/core/sync.py:159: in sync
+    raise return_result
+        coro       = <coroutine object open at 0x7acec3ffce00>
+        finished   = {<Future at 0x7acec264d3d0 state=finished returned ValueError>}
+        future     = <Future at 0x7acec264d3d0 state=finished returned ValueError>
+        loop       = <_UnixSelectorEventLoop running=True closed=False debug=False>
+        return_result = ValueError('compressor cannot be used for arrays with zarr_format 3. Use bytes-to-bytes codecs instead.')
+        timeout    = None
+        unfinished = set()
+.venv/lib/python3.11/site-packages/zarr/core/sync.py:119: in _runner
+    return await coro
+           ^^^^^^^^^^
+        coro       = <coroutine object open at 0x7acec3ffce00>
+.venv/lib/python3.11/site-packages/zarr/api/asynchronous.py:396: in open
+    return await open_array(store=store_path, zarr_format=zarr_format, mode=mode, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        kwargs     = {'chunks': (3,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (3,)}
+        mode       = 'w'
+        path       = None
+        storage_options = None
+        store      = '/tmp/tmpff_vepq4/2017.zarr'
+        store_path = StorePath(LocalStore, 'file:///tmp/tmpff_vepq4/2017.zarr')
+        zarr_format = None
+        zarr_version = None
+.venv/lib/python3.11/site-packages/zarr/api/asynchronous.py:1287: in open_array
+    return await create(
+        _zarr_format = 3
+        kwargs     = {'chunks': (3,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (3,)}
+        mode       = 'w'
+        overwrite  = True
+        path       = ''
+        storage_options = None
+        store      = StorePath(LocalStore, 'file:///tmp/tmpff_vepq4/2017.zarr')
+        store_path = StorePath(LocalStore, 'file:///tmp/tmpff_vepq4/2017.zarr')
+        zarr_format = None
+        zarr_version = None
+.venv/lib/python3.11/site-packages/zarr/api/asynchronous.py:1086: in create
+    return await AsyncArray._create(
+        attributes = None
+        cache_attrs = None
+        cache_metadata = None
+        chunk_key_encoding = None
+        chunk_shape = None
+        chunk_store = None
+        chunks     = (3,)
+        codecs     = None
+        compressor = Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0)
+        config     = None
+        config_parsed = ArrayConfig(order='C', write_empty_chunks=False)
+        dimension_names = None
+        dimension_separator = None
+        dtype      = dtype('int64')
+        fill_value = <zarr.core.array.DefaultFillValue object at 0x7aceccf87f50>
+        filters    = None
+        kwargs     = {}
+        meta_array = None
+        mode       = 'a'
+        object_codec = None
+        order      = None
+        overwrite  = True
+        path       = None
+        read_only  = None
+        shape      = (3,)
+        storage_options = None
+        store      = StorePath(LocalStore, 'file:///tmp/tmpff_vepq4/2017.zarr')
+        store_path = StorePath(LocalStore, 'file:///tmp/tmpff_vepq4/2017.zarr')
+        synchronizer = None
+        write_empty_chunks = None
+        zarr_format = 3
+        zarr_version = None
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'zarr.core.array.AsyncArray'>
+store = StorePath(LocalStore, 'file:///tmp/tmpff_vepq4/2017.zarr')
+
+    @classmethod
+    async def _create(
+        cls,
+        store: StoreLike,
+        *,
+        # v2 and v3
+        shape: ShapeLike,
+        dtype: ZDTypeLike | ZDType[TBaseDType, TBaseScalar],
+        zarr_format: ZarrFormat = 3,
+        fill_value: Any | None = DEFAULT_FILL_VALUE,
+        attributes: dict[str, JSON] | None = None,
+        # v3 only
+        chunk_shape: ShapeLike | None = None,
+        chunk_key_encoding: (
+            ChunkKeyEncodingLike
+            | tuple[Literal["default"], Literal[".", "/"]]
+            | tuple[Literal["v2"], Literal[".", "/"]]
+            | None
+        ) = None,
+        codecs: Iterable[Codec | dict[str, JSON]] | None = None,
+        dimension_names: DimensionNames = None,
+        # v2 only
+        chunks: ShapeLike | None = None,
+        dimension_separator: Literal[".", "/"] | None = None,
+        order: MemoryOrder | None = None,
+        filters: Iterable[dict[str, JSON] | Numcodec] | None = None,
+        compressor: CompressorLike = "auto",
+        # runtime
+        overwrite: bool = False,
+        data: npt.ArrayLike | None = None,
+        config: ArrayConfigLike | None = None,
+    ) -> AnyAsyncArray:
+        """Method to create a new asynchronous array instance.
+        Deprecated in favor of [`zarr.api.asynchronous.create_array`][].
+        """
+    
+        dtype_parsed = parse_dtype(dtype, zarr_format=zarr_format)
+        store_path = await make_store_path(store)
+    
+        shape = parse_shapelike(shape)
+    
+        if chunks is not None and chunk_shape is not None:
+            raise ValueError("Only one of chunk_shape or chunks can be provided.")
+        item_size = 1
+        if isinstance(dtype_parsed, HasItemSize):
+            item_size = dtype_parsed.item_size
+        if chunks:
+            _chunks = normalize_chunks(chunks, shape, item_size)
+        else:
+            _chunks = normalize_chunks(chunk_shape, shape, item_size)
+        config_parsed = parse_array_config(config)
+    
+        result: AnyAsyncArray
+        if zarr_format == 3:
+            if dimension_separator is not None:
+                raise ValueError(
+                    "dimension_separator cannot be used for arrays with zarr_format 3. Use chunk_key_encoding instead."
+                )
+            if filters is not None:
+                raise ValueError(
+                    "filters cannot be used for arrays with zarr_format 3. Use array-to-array codecs instead."
+                )
+            if compressor != "auto":
+>               raise ValueError(
+                    "compressor cannot be used for arrays with zarr_format 3. Use bytes-to-bytes codecs instead."
+                )
+E               ValueError: compressor cannot be used for arrays with zarr_format 3. Use bytes-to-bytes codecs instead.
+
+_chunks    = (3,)
+attributes = None
+chunk_key_encoding = None
+chunk_shape = None
+chunks     = (3,)
+cls        = <class 'zarr.core.array.AsyncArray'>
+codecs     = None
+compressor = Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0)
+config     = ArrayConfig(order='C', write_empty_chunks=False)
+config_parsed = ArrayConfig(order='C', write_empty_chunks=False)
+data       = None
+dimension_names = None
+dimension_separator = None
+dtype      = dtype('int64')
+dtype_parsed = Int64(endianness='little')
+fill_value = <zarr.core.array.DefaultFillValue object at 0x7aceccf87f50>
+filters    = None
+item_size  = 8
+order      = None
+overwrite  = True
+shape      = (3,)
+store      = StorePath(LocalStore, 'file:///tmp/tmpff_vepq4/2017.zarr')
+store_path = StorePath(LocalStore, 'file:///tmp/tmpff_vepq4/2017.zarr')
+zarr_format = 3
+
+.venv/lib/python3.11/site-packages/zarr/core/array.py:676: ValueError
+__________________ test_get_known_periods[OnDiskStorageZarr] ___________________
+
+store = StorePath(LocalStore, 'file:///tmp/tmpawddnilc/2017.zarr')
+zarr_version = None, zarr_format = None, path = '', storage_options = None
+kwargs = {'chunks': (3,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (3,)}
+mode = 'w'
+store_path = StorePath(LocalStore, 'file:///tmp/tmpawddnilc/2017.zarr')
+
+    async def open_array(
+        *,  # note: this is a change from v2
+        store: StoreLike | None = None,
+        zarr_version: ZarrFormat | None = None,  # deprecated
+        zarr_format: ZarrFormat | None = None,
+        path: PathLike = "",
+        storage_options: dict[str, Any] | None = None,
+        **kwargs: Any,  # TODO: type kwargs as valid args to save
+    ) -> AnyAsyncArray:
+        """Open an array using file-mode-like semantics.
+    
+        Parameters
+        ----------
+        store : StoreLike
+            StoreLike object to open. See the
+            [storage documentation in the user guide][user-guide-store-like]
+            for a description of all valid StoreLike values.
+        zarr_version : {2, 3, None}, optional
+            The zarr format to use when saving. Deprecated in favor of zarr_format.
+        zarr_format : {2, 3, None}, optional
+            The zarr format to use when saving.
+        path : str, optional
+            Path in store to array.
+        storage_options : dict
+            If using an fsspec URL to create the store, these will be passed to
+            the backend implementation. Ignored otherwise.
+        **kwargs
+            Any keyword arguments to pass to [`create`][zarr.api.asynchronous.create].
+    
+        Returns
+        -------
+        AsyncArray
+            The opened array.
+        """
+    
+        mode = kwargs.pop("mode", None)
+        store_path = await make_store_path(store, path=path, mode=mode, storage_options=storage_options)
+    
+        zarr_format = _handle_zarr_version_or_format(zarr_version=zarr_version, zarr_format=zarr_format)
+    
+        if "write_empty_chunks" in kwargs:
+            _warn_write_empty_chunks_kwarg()
+    
+        try:
+>           return await AsyncArray.open(store_path, zarr_format=zarr_format)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+_zarr_format = 3
+kwargs     = {'chunks': (3,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (3,)}
+mode       = 'w'
+overwrite  = True
+path       = ''
+storage_options = None
+store      = StorePath(LocalStore, 'file:///tmp/tmpawddnilc/2017.zarr')
+store_path = StorePath(LocalStore, 'file:///tmp/tmpawddnilc/2017.zarr')
+zarr_format = None
+zarr_version = None
+
+.venv/lib/python3.11/site-packages/zarr/api/asynchronous.py:1282: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib/python3.11/site-packages/zarr/core/array.py:1006: in open
+    metadata_dict = await get_array_metadata(store_path, zarr_format=zarr_format)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        cls        = <class 'zarr.core.array.AsyncArray'>
+        store      = StorePath(LocalStore, 'file:///tmp/tmpawddnilc/2017.zarr')
+        store_path = StorePath(LocalStore, 'file:///tmp/tmpawddnilc/2017.zarr')
+        zarr_format = None
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store_path = StorePath(LocalStore, 'file:///tmp/tmpawddnilc/2017.zarr')
+zarr_format = None
+
+    async def get_array_metadata(
+        store_path: StorePath, zarr_format: ZarrFormat | None = 3
+    ) -> dict[str, JSON]:
+        if zarr_format == 2:
+            zarray_bytes, zattrs_bytes = await gather(
+                (store_path / ZARRAY_JSON).get(prototype=cpu_buffer_prototype),
+                (store_path / ZATTRS_JSON).get(prototype=cpu_buffer_prototype),
+            )
+            if zarray_bytes is None:
+                msg = (
+                    "A Zarr V2 array metadata document was not found in store "
+                    f"{store_path.store!r} at path {store_path.path!r}."
+                )
+                raise ArrayNotFoundError(msg)
+        elif zarr_format == 3:
+            zarr_json_bytes = await (store_path / ZARR_JSON).get(prototype=cpu_buffer_prototype)
+            if zarr_json_bytes is None:
+                msg = (
+                    "A Zarr V3 array metadata document was not found in store "
+                    f"{store_path.store!r} at path {store_path.path!r}."
+                )
+                raise ArrayNotFoundError(msg)
+        elif zarr_format is None:
+            zarr_json_bytes, zarray_bytes, zattrs_bytes = await gather(
+                (store_path / ZARR_JSON).get(prototype=cpu_buffer_prototype),
+                (store_path / ZARRAY_JSON).get(prototype=cpu_buffer_prototype),
+                (store_path / ZATTRS_JSON).get(prototype=cpu_buffer_prototype),
+            )
+            if zarr_json_bytes is not None and zarray_bytes is not None:
+                # warn and favor v3
+                msg = f"Both zarr.json (Zarr format 3) and .zarray (Zarr format 2) metadata objects exist at {store_path}. Zarr v3 will be used."
+                warnings.warn(msg, category=ZarrUserWarning, stacklevel=1)
+            if zarr_json_bytes is None and zarray_bytes is None:
+                msg = (
+                    f"Neither Zarr V3 nor Zarr V2 array metadata documents "
+                    f"were found in store {store_path.store!r} at path {store_path.path!r}."
+                )
+>               raise ArrayNotFoundError(msg)
+E               zarr.errors.ArrayNotFoundError: Neither Zarr V3 nor Zarr V2 array metadata documents were found in store LocalStore('file:///tmp/tmpawddnilc/2017.zarr') at path ''.
+
+msg        = "Neither Zarr V3 nor Zarr V2 array metadata documents were found in store LocalStore('file:///tmp/tmpawddnilc/2017.zarr') at path ''."
+store_path = StorePath(LocalStore, 'file:///tmp/tmpawddnilc/2017.zarr')
+zarr_format = None
+zarr_json_bytes = None
+zarray_bytes = None
+zattrs_bytes = None
+
+.venv/lib/python3.11/site-packages/zarr/core/array.py:254: ArrayNotFoundError
+
+During handling of the above exception, another exception occurred:
+
+storage = <openfisca_core.data_storage.on_disk_storage.OnDiskStorageZarr object at 0x7acec27a8310>
+
+    def test_get_known_periods(storage):
+        array = np.array([1, 2, 3])
+        period = periods.Period(("year", periods.Instant((2017, 1, 1)), 1))
+    
+>       storage.put(array, period)
+
+array      = array([1, 2, 3])
+period     = Period(('year', Instant((2017, 1, 1)), 1))
+storage    = <openfisca_core.data_storage.on_disk_storage.OnDiskStorageZarr object at 0x7acec27a8310>
+
+tests/core/test_on_disk_storage.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+openfisca_core/data_storage/on_disk_storage.py:374: in put
+    z = zarr.open(
+        filename   = '2017'
+        path       = '/tmp/tmpawddnilc/2017.zarr'
+        period     = Period(('year', Instant((2017, 1, 1)), 1))
+        self       = <openfisca_core.data_storage.on_disk_storage.OnDiskStorageZarr object at 0x7acec27a8310>
+        value      = array([1, 2, 3])
+.venv/lib/python3.11/site-packages/zarr/api/synchronous.py:216: in open
+    obj = sync(
+        kwargs     = {'chunks': (3,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (3,)}
+        mode       = 'w'
+        path       = None
+        storage_options = None
+        store      = '/tmp/tmpawddnilc/2017.zarr'
+        zarr_format = None
+        zarr_version = None
+.venv/lib/python3.11/site-packages/zarr/core/sync.py:159: in sync
+    raise return_result
+        coro       = <coroutine object open at 0x7acec3ffcf40>
+        finished   = {<Future at 0x7acec27ab610 state=finished returned ValueError>}
+        future     = <Future at 0x7acec27ab610 state=finished returned ValueError>
+        loop       = <_UnixSelectorEventLoop running=True closed=False debug=False>
+        return_result = ValueError('compressor cannot be used for arrays with zarr_format 3. Use bytes-to-bytes codecs instead.')
+        timeout    = None
+        unfinished = set()
+.venv/lib/python3.11/site-packages/zarr/core/sync.py:119: in _runner
+    return await coro
+           ^^^^^^^^^^
+        coro       = <coroutine object open at 0x7acec3ffcf40>
+.venv/lib/python3.11/site-packages/zarr/api/asynchronous.py:396: in open
+    return await open_array(store=store_path, zarr_format=zarr_format, mode=mode, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        kwargs     = {'chunks': (3,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (3,)}
+        mode       = 'w'
+        path       = None
+        storage_options = None
+        store      = '/tmp/tmpawddnilc/2017.zarr'
+        store_path = StorePath(LocalStore, 'file:///tmp/tmpawddnilc/2017.zarr')
+        zarr_format = None
+        zarr_version = None
+.venv/lib/python3.11/site-packages/zarr/api/asynchronous.py:1287: in open_array
+    return await create(
+        _zarr_format = 3
+        kwargs     = {'chunks': (3,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (3,)}
+        mode       = 'w'
+        overwrite  = True
+        path       = ''
+        storage_options = None
+        store      = StorePath(LocalStore, 'file:///tmp/tmpawddnilc/2017.zarr')
+        store_path = StorePath(LocalStore, 'file:///tmp/tmpawddnilc/2017.zarr')
+        zarr_format = None
+        zarr_version = None
+.venv/lib/python3.11/site-packages/zarr/api/asynchronous.py:1086: in create
+    return await AsyncArray._create(
+        attributes = None
+        cache_attrs = None
+        cache_metadata = None
+        chunk_key_encoding = None
+        chunk_shape = None
+        chunk_store = None
+        chunks     = (3,)
+        codecs     = None
+        compressor = Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0)
+        config     = None
+        config_parsed = ArrayConfig(order='C', write_empty_chunks=False)
+        dimension_names = None
+        dimension_separator = None
+        dtype      = dtype('int64')
+        fill_value = <zarr.core.array.DefaultFillValue object at 0x7aceccf87f50>
+        filters    = None
+        kwargs     = {}
+        meta_array = None
+        mode       = 'a'
+        object_codec = None
+        order      = None
+        overwrite  = True
+        path       = None
+        read_only  = None
+        shape      = (3,)
+        storage_options = None
+        store      = StorePath(LocalStore, 'file:///tmp/tmpawddnilc/2017.zarr')
+        store_path = StorePath(LocalStore, 'file:///tmp/tmpawddnilc/2017.zarr')
+        synchronizer = None
+        write_empty_chunks = None
+        zarr_format = 3
+        zarr_version = None
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'zarr.core.array.AsyncArray'>
+store = StorePath(LocalStore, 'file:///tmp/tmpawddnilc/2017.zarr')
+
+    @classmethod
+    async def _create(
+        cls,
+        store: StoreLike,
+        *,
+        # v2 and v3
+        shape: ShapeLike,
+        dtype: ZDTypeLike | ZDType[TBaseDType, TBaseScalar],
+        zarr_format: ZarrFormat = 3,
+        fill_value: Any | None = DEFAULT_FILL_VALUE,
+        attributes: dict[str, JSON] | None = None,
+        # v3 only
+        chunk_shape: ShapeLike | None = None,
+        chunk_key_encoding: (
+            ChunkKeyEncodingLike
+            | tuple[Literal["default"], Literal[".", "/"]]
+            | tuple[Literal["v2"], Literal[".", "/"]]
+            | None
+        ) = None,
+        codecs: Iterable[Codec | dict[str, JSON]] | None = None,
+        dimension_names: DimensionNames = None,
+        # v2 only
+        chunks: ShapeLike | None = None,
+        dimension_separator: Literal[".", "/"] | None = None,
+        order: MemoryOrder | None = None,
+        filters: Iterable[dict[str, JSON] | Numcodec] | None = None,
+        compressor: CompressorLike = "auto",
+        # runtime
+        overwrite: bool = False,
+        data: npt.ArrayLike | None = None,
+        config: ArrayConfigLike | None = None,
+    ) -> AnyAsyncArray:
+        """Method to create a new asynchronous array instance.
+        Deprecated in favor of [`zarr.api.asynchronous.create_array`][].
+        """
+    
+        dtype_parsed = parse_dtype(dtype, zarr_format=zarr_format)
+        store_path = await make_store_path(store)
+    
+        shape = parse_shapelike(shape)
+    
+        if chunks is not None and chunk_shape is not None:
+            raise ValueError("Only one of chunk_shape or chunks can be provided.")
+        item_size = 1
+        if isinstance(dtype_parsed, HasItemSize):
+            item_size = dtype_parsed.item_size
+        if chunks:
+            _chunks = normalize_chunks(chunks, shape, item_size)
+        else:
+            _chunks = normalize_chunks(chunk_shape, shape, item_size)
+        config_parsed = parse_array_config(config)
+    
+        result: AnyAsyncArray
+        if zarr_format == 3:
+            if dimension_separator is not None:
+                raise ValueError(
+                    "dimension_separator cannot be used for arrays with zarr_format 3. Use chunk_key_encoding instead."
+                )
+            if filters is not None:
+                raise ValueError(
+                    "filters cannot be used for arrays with zarr_format 3. Use array-to-array codecs instead."
+                )
+            if compressor != "auto":
+>               raise ValueError(
+                    "compressor cannot be used for arrays with zarr_format 3. Use bytes-to-bytes codecs instead."
+                )
+E               ValueError: compressor cannot be used for arrays with zarr_format 3. Use bytes-to-bytes codecs instead.
+
+_chunks    = (3,)
+attributes = None
+chunk_key_encoding = None
+chunk_shape = None
+chunks     = (3,)
+cls        = <class 'zarr.core.array.AsyncArray'>
+codecs     = None
+compressor = Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0)
+config     = ArrayConfig(order='C', write_empty_chunks=False)
+config_parsed = ArrayConfig(order='C', write_empty_chunks=False)
+data       = None
+dimension_names = None
+dimension_separator = None
+dtype      = dtype('int64')
+dtype_parsed = Int64(endianness='little')
+fill_value = <zarr.core.array.DefaultFillValue object at 0x7aceccf87f50>
+filters    = None
+item_size  = 8
+order      = None
+overwrite  = True
+shape      = (3,)
+store      = StorePath(LocalStore, 'file:///tmp/tmpawddnilc/2017.zarr')
+store_path = StorePath(LocalStore, 'file:///tmp/tmpawddnilc/2017.zarr')
+zarr_format = 3
+
+.venv/lib/python3.11/site-packages/zarr/core/array.py:676: ValueError
+_______________________ test_restore[OnDiskStorageZarr] ________________________
+
+store = StorePath(LocalStore, 'file:///tmp/tmpg6kk962y/2017.zarr')
+zarr_version = None, zarr_format = None, path = '', storage_options = None
+kwargs = {'chunks': (3,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (3,)}
+mode = 'w'
+store_path = StorePath(LocalStore, 'file:///tmp/tmpg6kk962y/2017.zarr')
+
+    async def open_array(
+        *,  # note: this is a change from v2
+        store: StoreLike | None = None,
+        zarr_version: ZarrFormat | None = None,  # deprecated
+        zarr_format: ZarrFormat | None = None,
+        path: PathLike = "",
+        storage_options: dict[str, Any] | None = None,
+        **kwargs: Any,  # TODO: type kwargs as valid args to save
+    ) -> AnyAsyncArray:
+        """Open an array using file-mode-like semantics.
+    
+        Parameters
+        ----------
+        store : StoreLike
+            StoreLike object to open. See the
+            [storage documentation in the user guide][user-guide-store-like]
+            for a description of all valid StoreLike values.
+        zarr_version : {2, 3, None}, optional
+            The zarr format to use when saving. Deprecated in favor of zarr_format.
+        zarr_format : {2, 3, None}, optional
+            The zarr format to use when saving.
+        path : str, optional
+            Path in store to array.
+        storage_options : dict
+            If using an fsspec URL to create the store, these will be passed to
+            the backend implementation. Ignored otherwise.
+        **kwargs
+            Any keyword arguments to pass to [`create`][zarr.api.asynchronous.create].
+    
+        Returns
+        -------
+        AsyncArray
+            The opened array.
+        """
+    
+        mode = kwargs.pop("mode", None)
+        store_path = await make_store_path(store, path=path, mode=mode, storage_options=storage_options)
+    
+        zarr_format = _handle_zarr_version_or_format(zarr_version=zarr_version, zarr_format=zarr_format)
+    
+        if "write_empty_chunks" in kwargs:
+            _warn_write_empty_chunks_kwarg()
+    
+        try:
+>           return await AsyncArray.open(store_path, zarr_format=zarr_format)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+_zarr_format = 3
+kwargs     = {'chunks': (3,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (3,)}
+mode       = 'w'
+overwrite  = True
+path       = ''
+storage_options = None
+store      = StorePath(LocalStore, 'file:///tmp/tmpg6kk962y/2017.zarr')
+store_path = StorePath(LocalStore, 'file:///tmp/tmpg6kk962y/2017.zarr')
+zarr_format = None
+zarr_version = None
+
+.venv/lib/python3.11/site-packages/zarr/api/asynchronous.py:1282: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib/python3.11/site-packages/zarr/core/array.py:1006: in open
+    metadata_dict = await get_array_metadata(store_path, zarr_format=zarr_format)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        cls        = <class 'zarr.core.array.AsyncArray'>
+        store      = StorePath(LocalStore, 'file:///tmp/tmpg6kk962y/2017.zarr')
+        store_path = StorePath(LocalStore, 'file:///tmp/tmpg6kk962y/2017.zarr')
+        zarr_format = None
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store_path = StorePath(LocalStore, 'file:///tmp/tmpg6kk962y/2017.zarr')
+zarr_format = None
+
+    async def get_array_metadata(
+        store_path: StorePath, zarr_format: ZarrFormat | None = 3
+    ) -> dict[str, JSON]:
+        if zarr_format == 2:
+            zarray_bytes, zattrs_bytes = await gather(
+                (store_path / ZARRAY_JSON).get(prototype=cpu_buffer_prototype),
+                (store_path / ZATTRS_JSON).get(prototype=cpu_buffer_prototype),
+            )
+            if zarray_bytes is None:
+                msg = (
+                    "A Zarr V2 array metadata document was not found in store "
+                    f"{store_path.store!r} at path {store_path.path!r}."
+                )
+                raise ArrayNotFoundError(msg)
+        elif zarr_format == 3:
+            zarr_json_bytes = await (store_path / ZARR_JSON).get(prototype=cpu_buffer_prototype)
+            if zarr_json_bytes is None:
+                msg = (
+                    "A Zarr V3 array metadata document was not found in store "
+                    f"{store_path.store!r} at path {store_path.path!r}."
+                )
+                raise ArrayNotFoundError(msg)
+        elif zarr_format is None:
+            zarr_json_bytes, zarray_bytes, zattrs_bytes = await gather(
+                (store_path / ZARR_JSON).get(prototype=cpu_buffer_prototype),
+                (store_path / ZARRAY_JSON).get(prototype=cpu_buffer_prototype),
+                (store_path / ZATTRS_JSON).get(prototype=cpu_buffer_prototype),
+            )
+            if zarr_json_bytes is not None and zarray_bytes is not None:
+                # warn and favor v3
+                msg = f"Both zarr.json (Zarr format 3) and .zarray (Zarr format 2) metadata objects exist at {store_path}. Zarr v3 will be used."
+                warnings.warn(msg, category=ZarrUserWarning, stacklevel=1)
+            if zarr_json_bytes is None and zarray_bytes is None:
+                msg = (
+                    f"Neither Zarr V3 nor Zarr V2 array metadata documents "
+                    f"were found in store {store_path.store!r} at path {store_path.path!r}."
+                )
+>               raise ArrayNotFoundError(msg)
+E               zarr.errors.ArrayNotFoundError: Neither Zarr V3 nor Zarr V2 array metadata documents were found in store LocalStore('file:///tmp/tmpg6kk962y/2017.zarr') at path ''.
+
+msg        = "Neither Zarr V3 nor Zarr V2 array metadata documents were found in store LocalStore('file:///tmp/tmpg6kk962y/2017.zarr') at path ''."
+store_path = StorePath(LocalStore, 'file:///tmp/tmpg6kk962y/2017.zarr')
+zarr_format = None
+zarr_json_bytes = None
+zarray_bytes = None
+zattrs_bytes = None
+
+.venv/lib/python3.11/site-packages/zarr/core/array.py:254: ArrayNotFoundError
+
+During handling of the above exception, another exception occurred:
+
+storage = <openfisca_core.data_storage.on_disk_storage.OnDiskStorageZarr object at 0x7acec2625810>
+storage_class = <class 'openfisca_core.data_storage.on_disk_storage.OnDiskStorageZarr'>
+
+    def test_restore(storage, storage_class):
+        array = np.array([1, 2, 3])
+        period = periods.Period(("year", periods.Instant((2017, 1, 1)), 1))
+    
+>       storage.put(array, period)
+
+array      = array([1, 2, 3])
+period     = Period(('year', Instant((2017, 1, 1)), 1))
+storage    = <openfisca_core.data_storage.on_disk_storage.OnDiskStorageZarr object at 0x7acec2625810>
+storage_class = <class 'openfisca_core.data_storage.on_disk_storage.OnDiskStorageZarr'>
+
+tests/core/test_on_disk_storage.py:59: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+openfisca_core/data_storage/on_disk_storage.py:374: in put
+    z = zarr.open(
+        filename   = '2017'
+        path       = '/tmp/tmpg6kk962y/2017.zarr'
+        period     = Period(('year', Instant((2017, 1, 1)), 1))
+        self       = <openfisca_core.data_storage.on_disk_storage.OnDiskStorageZarr object at 0x7acec2625810>
+        value      = array([1, 2, 3])
+.venv/lib/python3.11/site-packages/zarr/api/synchronous.py:216: in open
+    obj = sync(
+        kwargs     = {'chunks': (3,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (3,)}
+        mode       = 'w'
+        path       = None
+        storage_options = None
+        store      = '/tmp/tmpg6kk962y/2017.zarr'
+        zarr_format = None
+        zarr_version = None
+.venv/lib/python3.11/site-packages/zarr/core/sync.py:159: in sync
+    raise return_result
+        coro       = <coroutine object open at 0x7acec3ffd1c0>
+        finished   = {<Future at 0x7acec2624050 state=finished returned ValueError>}
+        future     = <Future at 0x7acec2624050 state=finished returned ValueError>
+        loop       = <_UnixSelectorEventLoop running=True closed=False debug=False>
+        return_result = ValueError('compressor cannot be used for arrays with zarr_format 3. Use bytes-to-bytes codecs instead.')
+        timeout    = None
+        unfinished = set()
+.venv/lib/python3.11/site-packages/zarr/core/sync.py:119: in _runner
+    return await coro
+           ^^^^^^^^^^
+        coro       = <coroutine object open at 0x7acec3ffd1c0>
+.venv/lib/python3.11/site-packages/zarr/api/asynchronous.py:396: in open
+    return await open_array(store=store_path, zarr_format=zarr_format, mode=mode, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        kwargs     = {'chunks': (3,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (3,)}
+        mode       = 'w'
+        path       = None
+        storage_options = None
+        store      = '/tmp/tmpg6kk962y/2017.zarr'
+        store_path = StorePath(LocalStore, 'file:///tmp/tmpg6kk962y/2017.zarr')
+        zarr_format = None
+        zarr_version = None
+.venv/lib/python3.11/site-packages/zarr/api/asynchronous.py:1287: in open_array
+    return await create(
+        _zarr_format = 3
+        kwargs     = {'chunks': (3,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (3,)}
+        mode       = 'w'
+        overwrite  = True
+        path       = ''
+        storage_options = None
+        store      = StorePath(LocalStore, 'file:///tmp/tmpg6kk962y/2017.zarr')
+        store_path = StorePath(LocalStore, 'file:///tmp/tmpg6kk962y/2017.zarr')
+        zarr_format = None
+        zarr_version = None
+.venv/lib/python3.11/site-packages/zarr/api/asynchronous.py:1086: in create
+    return await AsyncArray._create(
+        attributes = None
+        cache_attrs = None
+        cache_metadata = None
+        chunk_key_encoding = None
+        chunk_shape = None
+        chunk_store = None
+        chunks     = (3,)
+        codecs     = None
+        compressor = Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0)
+        config     = None
+        config_parsed = ArrayConfig(order='C', write_empty_chunks=False)
+        dimension_names = None
+        dimension_separator = None
+        dtype      = dtype('int64')
+        fill_value = <zarr.core.array.DefaultFillValue object at 0x7aceccf87f50>
+        filters    = None
+        kwargs     = {}
+        meta_array = None
+        mode       = 'a'
+        object_codec = None
+        order      = None
+        overwrite  = True
+        path       = None
+        read_only  = None
+        shape      = (3,)
+        storage_options = None
+        store      = StorePath(LocalStore, 'file:///tmp/tmpg6kk962y/2017.zarr')
+        store_path = StorePath(LocalStore, 'file:///tmp/tmpg6kk962y/2017.zarr')
+        synchronizer = None
+        write_empty_chunks = None
+        zarr_format = 3
+        zarr_version = None
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'zarr.core.array.AsyncArray'>
+store = StorePath(LocalStore, 'file:///tmp/tmpg6kk962y/2017.zarr')
+
+    @classmethod
+    async def _create(
+        cls,
+        store: StoreLike,
+        *,
+        # v2 and v3
+        shape: ShapeLike,
+        dtype: ZDTypeLike | ZDType[TBaseDType, TBaseScalar],
+        zarr_format: ZarrFormat = 3,
+        fill_value: Any | None = DEFAULT_FILL_VALUE,
+        attributes: dict[str, JSON] | None = None,
+        # v3 only
+        chunk_shape: ShapeLike | None = None,
+        chunk_key_encoding: (
+            ChunkKeyEncodingLike
+            | tuple[Literal["default"], Literal[".", "/"]]
+            | tuple[Literal["v2"], Literal[".", "/"]]
+            | None
+        ) = None,
+        codecs: Iterable[Codec | dict[str, JSON]] | None = None,
+        dimension_names: DimensionNames = None,
+        # v2 only
+        chunks: ShapeLike | None = None,
+        dimension_separator: Literal[".", "/"] | None = None,
+        order: MemoryOrder | None = None,
+        filters: Iterable[dict[str, JSON] | Numcodec] | None = None,
+        compressor: CompressorLike = "auto",
+        # runtime
+        overwrite: bool = False,
+        data: npt.ArrayLike | None = None,
+        config: ArrayConfigLike | None = None,
+    ) -> AnyAsyncArray:
+        """Method to create a new asynchronous array instance.
+        Deprecated in favor of [`zarr.api.asynchronous.create_array`][].
+        """
+    
+        dtype_parsed = parse_dtype(dtype, zarr_format=zarr_format)
+        store_path = await make_store_path(store)
+    
+        shape = parse_shapelike(shape)
+    
+        if chunks is not None and chunk_shape is not None:
+            raise ValueError("Only one of chunk_shape or chunks can be provided.")
+        item_size = 1
+        if isinstance(dtype_parsed, HasItemSize):
+            item_size = dtype_parsed.item_size
+        if chunks:
+            _chunks = normalize_chunks(chunks, shape, item_size)
+        else:
+            _chunks = normalize_chunks(chunk_shape, shape, item_size)
+        config_parsed = parse_array_config(config)
+    
+        result: AnyAsyncArray
+        if zarr_format == 3:
+            if dimension_separator is not None:
+                raise ValueError(
+                    "dimension_separator cannot be used for arrays with zarr_format 3. Use chunk_key_encoding instead."
+                )
+            if filters is not None:
+                raise ValueError(
+                    "filters cannot be used for arrays with zarr_format 3. Use array-to-array codecs instead."
+                )
+            if compressor != "auto":
+>               raise ValueError(
+                    "compressor cannot be used for arrays with zarr_format 3. Use bytes-to-bytes codecs instead."
+                )
+E               ValueError: compressor cannot be used for arrays with zarr_format 3. Use bytes-to-bytes codecs instead.
+
+_chunks    = (3,)
+attributes = None
+chunk_key_encoding = None
+chunk_shape = None
+chunks     = (3,)
+cls        = <class 'zarr.core.array.AsyncArray'>
+codecs     = None
+compressor = Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0)
+config     = ArrayConfig(order='C', write_empty_chunks=False)
+config_parsed = ArrayConfig(order='C', write_empty_chunks=False)
+data       = None
+dimension_names = None
+dimension_separator = None
+dtype      = dtype('int64')
+dtype_parsed = Int64(endianness='little')
+fill_value = <zarr.core.array.DefaultFillValue object at 0x7aceccf87f50>
+filters    = None
+item_size  = 8
+order      = None
+overwrite  = True
+shape      = (3,)
+store      = StorePath(LocalStore, 'file:///tmp/tmpg6kk962y/2017.zarr')
+store_path = StorePath(LocalStore, 'file:///tmp/tmpg6kk962y/2017.zarr')
+zarr_format = 3
+
+.venv/lib/python3.11/site-packages/zarr/core/array.py:676: ValueError
+______________________ test_delete_all[OnDiskStorageZarr] ______________________
+
+store = StorePath(LocalStore, 'file:///tmp/tmpzdqv00wb/2017.zarr')
+zarr_version = None, zarr_format = None, path = '', storage_options = None
+kwargs = {'chunks': (1,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (1,)}
+mode = 'w'
+store_path = StorePath(LocalStore, 'file:///tmp/tmpzdqv00wb/2017.zarr')
+
+    async def open_array(
+        *,  # note: this is a change from v2
+        store: StoreLike | None = None,
+        zarr_version: ZarrFormat | None = None,  # deprecated
+        zarr_format: ZarrFormat | None = None,
+        path: PathLike = "",
+        storage_options: dict[str, Any] | None = None,
+        **kwargs: Any,  # TODO: type kwargs as valid args to save
+    ) -> AnyAsyncArray:
+        """Open an array using file-mode-like semantics.
+    
+        Parameters
+        ----------
+        store : StoreLike
+            StoreLike object to open. See the
+            [storage documentation in the user guide][user-guide-store-like]
+            for a description of all valid StoreLike values.
+        zarr_version : {2, 3, None}, optional
+            The zarr format to use when saving. Deprecated in favor of zarr_format.
+        zarr_format : {2, 3, None}, optional
+            The zarr format to use when saving.
+        path : str, optional
+            Path in store to array.
+        storage_options : dict
+            If using an fsspec URL to create the store, these will be passed to
+            the backend implementation. Ignored otherwise.
+        **kwargs
+            Any keyword arguments to pass to [`create`][zarr.api.asynchronous.create].
+    
+        Returns
+        -------
+        AsyncArray
+            The opened array.
+        """
+    
+        mode = kwargs.pop("mode", None)
+        store_path = await make_store_path(store, path=path, mode=mode, storage_options=storage_options)
+    
+        zarr_format = _handle_zarr_version_or_format(zarr_version=zarr_version, zarr_format=zarr_format)
+    
+        if "write_empty_chunks" in kwargs:
+            _warn_write_empty_chunks_kwarg()
+    
+        try:
+>           return await AsyncArray.open(store_path, zarr_format=zarr_format)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+_zarr_format = 3
+kwargs     = {'chunks': (1,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (1,)}
+mode       = 'w'
+overwrite  = True
+path       = ''
+storage_options = None
+store      = StorePath(LocalStore, 'file:///tmp/tmpzdqv00wb/2017.zarr')
+store_path = StorePath(LocalStore, 'file:///tmp/tmpzdqv00wb/2017.zarr')
+zarr_format = None
+zarr_version = None
+
+.venv/lib/python3.11/site-packages/zarr/api/asynchronous.py:1282: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib/python3.11/site-packages/zarr/core/array.py:1006: in open
+    metadata_dict = await get_array_metadata(store_path, zarr_format=zarr_format)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        cls        = <class 'zarr.core.array.AsyncArray'>
+        store      = StorePath(LocalStore, 'file:///tmp/tmpzdqv00wb/2017.zarr')
+        store_path = StorePath(LocalStore, 'file:///tmp/tmpzdqv00wb/2017.zarr')
+        zarr_format = None
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+store_path = StorePath(LocalStore, 'file:///tmp/tmpzdqv00wb/2017.zarr')
+zarr_format = None
+
+    async def get_array_metadata(
+        store_path: StorePath, zarr_format: ZarrFormat | None = 3
+    ) -> dict[str, JSON]:
+        if zarr_format == 2:
+            zarray_bytes, zattrs_bytes = await gather(
+                (store_path / ZARRAY_JSON).get(prototype=cpu_buffer_prototype),
+                (store_path / ZATTRS_JSON).get(prototype=cpu_buffer_prototype),
+            )
+            if zarray_bytes is None:
+                msg = (
+                    "A Zarr V2 array metadata document was not found in store "
+                    f"{store_path.store!r} at path {store_path.path!r}."
+                )
+                raise ArrayNotFoundError(msg)
+        elif zarr_format == 3:
+            zarr_json_bytes = await (store_path / ZARR_JSON).get(prototype=cpu_buffer_prototype)
+            if zarr_json_bytes is None:
+                msg = (
+                    "A Zarr V3 array metadata document was not found in store "
+                    f"{store_path.store!r} at path {store_path.path!r}."
+                )
+                raise ArrayNotFoundError(msg)
+        elif zarr_format is None:
+            zarr_json_bytes, zarray_bytes, zattrs_bytes = await gather(
+                (store_path / ZARR_JSON).get(prototype=cpu_buffer_prototype),
+                (store_path / ZARRAY_JSON).get(prototype=cpu_buffer_prototype),
+                (store_path / ZATTRS_JSON).get(prototype=cpu_buffer_prototype),
+            )
+            if zarr_json_bytes is not None and zarray_bytes is not None:
+                # warn and favor v3
+                msg = f"Both zarr.json (Zarr format 3) and .zarray (Zarr format 2) metadata objects exist at {store_path}. Zarr v3 will be used."
+                warnings.warn(msg, category=ZarrUserWarning, stacklevel=1)
+            if zarr_json_bytes is None and zarray_bytes is None:
+                msg = (
+                    f"Neither Zarr V3 nor Zarr V2 array metadata documents "
+                    f"were found in store {store_path.store!r} at path {store_path.path!r}."
+                )
+>               raise ArrayNotFoundError(msg)
+E               zarr.errors.ArrayNotFoundError: Neither Zarr V3 nor Zarr V2 array metadata documents were found in store LocalStore('file:///tmp/tmpzdqv00wb/2017.zarr') at path ''.
+
+msg        = "Neither Zarr V3 nor Zarr V2 array metadata documents were found in store LocalStore('file:///tmp/tmpzdqv00wb/2017.zarr') at path ''."
+store_path = StorePath(LocalStore, 'file:///tmp/tmpzdqv00wb/2017.zarr')
+zarr_format = None
+zarr_json_bytes = None
+zarray_bytes = None
+zattrs_bytes = None
+
+.venv/lib/python3.11/site-packages/zarr/core/array.py:254: ArrayNotFoundError
+
+During handling of the above exception, another exception occurred:
+
+storage = <openfisca_core.data_storage.on_disk_storage.OnDiskStorageZarr object at 0x7acec4061890>
+
+    def test_delete_all(storage):
+        period1 = periods.Period(("year", periods.Instant((2017, 1, 1)), 1))
+        period2 = periods.Period(("year", periods.Instant((2018, 1, 1)), 1))
+    
+>       storage.put(np.array([1]), period1)
+
+period1    = Period(('year', Instant((2017, 1, 1)), 1))
+period2    = Period(('year', Instant((2018, 1, 1)), 1))
+storage    = <openfisca_core.data_storage.on_disk_storage.OnDiskStorageZarr object at 0x7acec4061890>
+
+tests/core/test_on_disk_storage.py:75: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+openfisca_core/data_storage/on_disk_storage.py:374: in put
+    z = zarr.open(
+        filename   = '2017'
+        path       = '/tmp/tmpzdqv00wb/2017.zarr'
+        period     = Period(('year', Instant((2017, 1, 1)), 1))
+        self       = <openfisca_core.data_storage.on_disk_storage.OnDiskStorageZarr object at 0x7acec4061890>
+        value      = array([1])
+.venv/lib/python3.11/site-packages/zarr/api/synchronous.py:216: in open
+    obj = sync(
+        kwargs     = {'chunks': (1,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (1,)}
+        mode       = 'w'
+        path       = None
+        storage_options = None
+        store      = '/tmp/tmpzdqv00wb/2017.zarr'
+        zarr_format = None
+        zarr_version = None
+.venv/lib/python3.11/site-packages/zarr/core/sync.py:159: in sync
+    raise return_result
+        coro       = <coroutine object open at 0x7acec3ffd440>
+        finished   = {<Future at 0x7acec40624d0 state=finished returned ValueError>}
+        future     = <Future at 0x7acec40624d0 state=finished returned ValueError>
+        loop       = <_UnixSelectorEventLoop running=True closed=False debug=False>
+        return_result = ValueError('compressor cannot be used for arrays with zarr_format 3. Use bytes-to-bytes codecs instead.')
+        timeout    = None
+        unfinished = set()
+.venv/lib/python3.11/site-packages/zarr/core/sync.py:119: in _runner
+    return await coro
+           ^^^^^^^^^^
+        coro       = <coroutine object open at 0x7acec3ffd440>
+.venv/lib/python3.11/site-packages/zarr/api/asynchronous.py:396: in open
+    return await open_array(store=store_path, zarr_format=zarr_format, mode=mode, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        kwargs     = {'chunks': (1,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (1,)}
+        mode       = 'w'
+        path       = None
+        storage_options = None
+        store      = '/tmp/tmpzdqv00wb/2017.zarr'
+        store_path = StorePath(LocalStore, 'file:///tmp/tmpzdqv00wb/2017.zarr')
+        zarr_format = None
+        zarr_version = None
+.venv/lib/python3.11/site-packages/zarr/api/asynchronous.py:1287: in open_array
+    return await create(
+        _zarr_format = 3
+        kwargs     = {'chunks': (1,), 'compressor': Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0), 'dtype': dtype('int64'), 'shape': (1,)}
+        mode       = 'w'
+        overwrite  = True
+        path       = ''
+        storage_options = None
+        store      = StorePath(LocalStore, 'file:///tmp/tmpzdqv00wb/2017.zarr')
+        store_path = StorePath(LocalStore, 'file:///tmp/tmpzdqv00wb/2017.zarr')
+        zarr_format = None
+        zarr_version = None
+.venv/lib/python3.11/site-packages/zarr/api/asynchronous.py:1086: in create
+    return await AsyncArray._create(
+        attributes = None
+        cache_attrs = None
+        cache_metadata = None
+        chunk_key_encoding = None
+        chunk_shape = None
+        chunk_store = None
+        chunks     = (1,)
+        codecs     = None
+        compressor = Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0)
+        config     = None
+        config_parsed = ArrayConfig(order='C', write_empty_chunks=False)
+        dimension_names = None
+        dimension_separator = None
+        dtype      = dtype('int64')
+        fill_value = <zarr.core.array.DefaultFillValue object at 0x7aceccf87f50>
+        filters    = None
+        kwargs     = {}
+        meta_array = None
+        mode       = 'a'
+        object_codec = None
+        order      = None
+        overwrite  = True
+        path       = None
+        read_only  = None
+        shape      = (1,)
+        storage_options = None
+        store      = StorePath(LocalStore, 'file:///tmp/tmpzdqv00wb/2017.zarr')
+        store_path = StorePath(LocalStore, 'file:///tmp/tmpzdqv00wb/2017.zarr')
+        synchronizer = None
+        write_empty_chunks = None
+        zarr_format = 3
+        zarr_version = None
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'zarr.core.array.AsyncArray'>
+store = StorePath(LocalStore, 'file:///tmp/tmpzdqv00wb/2017.zarr')
+
+    @classmethod
+    async def _create(
+        cls,
+        store: StoreLike,
+        *,
+        # v2 and v3
+        shape: ShapeLike,
+        dtype: ZDTypeLike | ZDType[TBaseDType, TBaseScalar],
+        zarr_format: ZarrFormat = 3,
+        fill_value: Any | None = DEFAULT_FILL_VALUE,
+        attributes: dict[str, JSON] | None = None,
+        # v3 only
+        chunk_shape: ShapeLike | None = None,
+        chunk_key_encoding: (
+            ChunkKeyEncodingLike
+            | tuple[Literal["default"], Literal[".", "/"]]
+            | tuple[Literal["v2"], Literal[".", "/"]]
+            | None
+        ) = None,
+        codecs: Iterable[Codec | dict[str, JSON]] | None = None,
+        dimension_names: DimensionNames = None,
+        # v2 only
+        chunks: ShapeLike | None = None,
+        dimension_separator: Literal[".", "/"] | None = None,
+        order: MemoryOrder | None = None,
+        filters: Iterable[dict[str, JSON] | Numcodec] | None = None,
+        compressor: CompressorLike = "auto",
+        # runtime
+        overwrite: bool = False,
+        data: npt.ArrayLike | None = None,
+        config: ArrayConfigLike | None = None,
+    ) -> AnyAsyncArray:
+        """Method to create a new asynchronous array instance.
+        Deprecated in favor of [`zarr.api.asynchronous.create_array`][].
+        """
+    
+        dtype_parsed = parse_dtype(dtype, zarr_format=zarr_format)
+        store_path = await make_store_path(store)
+    
+        shape = parse_shapelike(shape)
+    
+        if chunks is not None and chunk_shape is not None:
+            raise ValueError("Only one of chunk_shape or chunks can be provided.")
+        item_size = 1
+        if isinstance(dtype_parsed, HasItemSize):
+            item_size = dtype_parsed.item_size
+        if chunks:
+            _chunks = normalize_chunks(chunks, shape, item_size)
+        else:
+            _chunks = normalize_chunks(chunk_shape, shape, item_size)
+        config_parsed = parse_array_config(config)
+    
+        result: AnyAsyncArray
+        if zarr_format == 3:
+            if dimension_separator is not None:
+                raise ValueError(
+                    "dimension_separator cannot be used for arrays with zarr_format 3. Use chunk_key_encoding instead."
+                )
+            if filters is not None:
+                raise ValueError(
+                    "filters cannot be used for arrays with zarr_format 3. Use array-to-array codecs instead."
+                )
+            if compressor != "auto":
+>               raise ValueError(
+                    "compressor cannot be used for arrays with zarr_format 3. Use bytes-to-bytes codecs instead."
+                )
+E               ValueError: compressor cannot be used for arrays with zarr_format 3. Use bytes-to-bytes codecs instead.
+
+_chunks    = (1,)
+attributes = None
+chunk_key_encoding = None
+chunk_shape = None
+chunks     = (1,)
+cls        = <class 'zarr.core.array.AsyncArray'>
+codecs     = None
+compressor = Blosc(cname='zstd', clevel=2, shuffle=BITSHUFFLE, blocksize=0)
+config     = ArrayConfig(order='C', write_empty_chunks=False)
+config_parsed = ArrayConfig(order='C', write_empty_chunks=False)
+data       = None
+dimension_names = None
+dimension_separator = None
+dtype      = dtype('int64')
+dtype_parsed = Int64(endianness='little')
+fill_value = <zarr.core.array.DefaultFillValue object at 0x7aceccf87f50>
+filters    = None
+item_size  = 8
+order      = None
+overwrite  = True
+shape      = (1,)
+store      = StorePath(LocalStore, 'file:///tmp/tmpzdqv00wb/2017.zarr')
+store_path = StorePath(LocalStore, 'file:///tmp/tmpzdqv00wb/2017.zarr')
+zarr_format = 3
+
+.venv/lib/python3.11/site-packages/zarr/core/array.py:676: ValueError
+=========================== short test summary info ============================
+FAILED tests/core/test_on_disk_storage.py::test_put_and_get[OnDiskStorageZarr]
+FAILED tests/core/test_on_disk_storage.py::test_delete[OnDiskStorageZarr] - V...
+FAILED tests/core/test_on_disk_storage.py::test_get_known_periods[OnDiskStorageZarr]
+FAILED tests/core/test_on_disk_storage.py::test_restore[OnDiskStorageZarr] - ...
+FAILED tests/core/test_on_disk_storage.py::test_delete_all[OnDiskStorageZarr]
+=================== 5 failed, 5 passed, 5 warnings in 0.46s ====================
