@@ -59,15 +59,17 @@ def sim():
     for var in [age, rent, mother_id, household_id, household_role]:
         tbs.add_variable(var)
 
-    # persons: 0, 1, 2, 3
-    # households: 0, 1
-    sim = SimulationBuilder().build_default_simulation(tbs, count=4)
+    # persons: 0, 1, 2, 3 in 2 households (0,1 -> hh0; 2,3 -> hh1)
+    sim = SimulationBuilder().build_default_simulation(
+        tbs, count=4, group_members={"household": numpy.array([0, 0, 1, 1])}
+    )
     # Mother of 0 is -1, 1 is 0, 2 is 0, 3 is 1
     sim.set_input("mother_id", "2024", [-1, 0, 0, 1])
     sim.set_input("age", "2024", [50, 25, 20, 5])
     sim.set_input("household_id", "2024", [0, 0, 1, 1])
     sim.set_input("household_role", "2024", [10, 20, 10, 20])
-    sim.set_input("rent", "2024", [800.0, 500.0, 0.0, 0.0])
+    # 2 households: rent per household (hh0=800, hh1=500)
+    sim.set_input("rent", "2024", [800.0, 500.0])
     return sim
 
 
@@ -133,18 +135,9 @@ def test_many2one_role_helpers(sim):
 def test_many2one_rank(sim):
     """Ranking people by age within their household via the link.
 
-    The default ``sim`` fixture uses ``build_default_simulation`` which
-    does not populate ``household.members_entity_id`` correctly, so we
-    patch the group population manually using the input variable.
+    The fixture builds with ``group_members={"household": [0,0,1,1]}`` so
+    the group structure (4 persons → 2 households) is set at build time.
     """
-    # ensure household group mappings match the input variable (4 persons → 2 households)
-    sim.household.members_entity_id = sim.persons("household_id", "2024")
-    sim.household.count = 2  # match number of entities implied by members_entity_id
-    # reset cached caches so rank uses updated mapping (members_position
-    # and ordered_members_map must both be recomputed from new members_entity_id)
-    sim.household._members_position = None
-    sim.household._ordered_members_map = None
-
     link = sim.persons.links["household"]
     # ages [50, 25, 20, 5] per person
     ranks = link.rank("age", "2024")
@@ -249,13 +242,9 @@ def test_get_rank_requires_group_entity_raises(sim):
 
 def test_value_nth_person_inconsistent_group_raises(sim):
     """value_nth_person raises clear ValueError when count != entities from members_entity_id."""
-    # Mistake: patch members_entity_id to 2 entities but leave count=4
-    sim.household.members_entity_id = sim.persons(
-        "household_id", "2024"
-    )  # [0,0,1,1] -> 2 entities
-    sim.household._members_position = None
-    sim.household._ordered_members_map = None
-    # do NOT set sim.household.count = 2
+    # Create inconsistent state: members_entity_id implies 4 entities, count is 2
+    sim.household.set_members_entity_id(numpy.array([0, 1, 2, 3]))
+    sim.household.count = 2
     link = sim.persons.links["household"]
     with pytest.raises(ValueError, match="Group population .* is inconsistent"):
         link.rank("age", "2024")

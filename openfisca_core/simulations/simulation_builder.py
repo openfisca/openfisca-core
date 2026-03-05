@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from numpy.typing import NDArray as Array
 from typing import NoReturn
 
@@ -323,17 +323,28 @@ class SimulationBuilder:
     def build_default_simulation(
         tax_benefit_system: TaxBenefitSystem,
         count: int = 1,
+        group_members: Mapping[str, numpy.ndarray] | None = None,
     ) -> Simulation:
         """Build a default simulation.
 
         Where:
-            - There are ``count`` persons
-            - There are ``count`` of each group entity, containing one person
-            - Every person has, in each entity, the first role
+            - There are ``count`` persons.
+            - By default, there are ``count`` of each group entity (one person per
+              group). Pass ``group_members`` to use a different structure, e.g.
+              ``{"household": numpy.array([0, 0, 1, 1])}`` for 4 persons in 2
+              households.
+            - Every person has, in each entity, the first role.
+
+        Args:
+            tax_benefit_system: The tax and benefit system.
+            count: Number of persons.
+            group_members: Optional mapping from group entity key to a 1D array
+                of group entity id per person (length ``count``). Group ids must
+                be 0-based contiguous.
 
         """
         return (
-            _BuildDefaultSimulation(tax_benefit_system, count)
+            _BuildDefaultSimulation(tax_benefit_system, count, group_members)
             .add_count()
             .add_ids()
             .add_members_entity_id()
