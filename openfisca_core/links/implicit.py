@@ -38,11 +38,11 @@ class ImplicitMany2OneLink(Many2OneLink):
 class ImplicitOne2ManyLink(One2ManyLink):
     """A group → person link using GroupPopulation's internal arrays."""
 
-    def __init__(self, name: str, group_entity_key: str):
+    def __init__(self, name: str, group_entity_key: str, person_entity_key: str):
         super().__init__(
             name=name,
             link_field="",  # Not used
-            target_entity_key="person",  # The target of the O2M is persons
+            target_entity_key=person_entity_key,
         )
         self._group_entity_key = group_entity_key
 

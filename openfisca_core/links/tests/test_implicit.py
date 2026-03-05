@@ -62,7 +62,7 @@ def test_implicit_many2one(sim):
 
 
 def test_implicit_one2many(sim):
-    link = ImplicitOne2ManyLink("persons", "household")
+    link = ImplicitOne2ManyLink("persons", "household", "person")
     link.attach(sim.populations["household"])
     link.resolve(sim.populations)
 

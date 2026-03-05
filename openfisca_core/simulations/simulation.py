@@ -115,7 +115,7 @@ class Simulation:
             # group -> persons (One2Many)
             o2m_name = person_entity.plural
             if not population.entity.get_link(o2m_name):
-                o2m = ImplicitOne2ManyLink(o2m_name, group_key)
+                o2m = ImplicitOne2ManyLink(o2m_name, group_key, person_entity.key)
                 population.entity.add_link(o2m)
 
         from copy import copy
