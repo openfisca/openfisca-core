@@ -13,6 +13,22 @@ if TYPE_CHECKING:
     pass
 
 
+class _CallableProxy:
+    """Callable that proxies other attributes to the wrapped object (e.g. projector)."""
+
+    __slots__ = ("_call", "_wrapped")
+
+    def __init__(self, call, wrapped):
+        self._call = call
+        self._wrapped = wrapped
+
+    def __call__(self, *args, **kwargs):
+        return self._call(*args, **kwargs)
+
+    def __getattr__(self, name: str):
+        return getattr(self._wrapped, name)
+
+
 def _calculate_with_options(simulation, variable_name, period, options):
     """Dispatch to calculate / calculate_add / calculate_divide like CorePopulation."""
     from openfisca_core.populations import types as t
@@ -135,15 +151,17 @@ class Many2OneLink(Link):
         if target_attr is not None:
             # Wrap callables that produce target-level output so we project back to source.
             # This covers both @projectable methods and Projector instances (e.g. .demandeur).
-            if (
-                hasattr(target_attr, "projectable") or callable(target_attr)
-            ) and hasattr(self, "_project_implicit"):
+            if (hasattr(target_attr, "projectable") or callable(target_attr)) and hasattr(
+                self, "_project_implicit"
+            ):
+                link_self = self
 
                 def projector_function(*args, **kwargs):
                     result = target_attr(*args, **kwargs)
-                    return self._project_result(result)
+                    return link_self._project_result(result)
 
-                return projector_function
+                # Preserve attributes (e.g. has_role) so person.famille.demandeur.has_role(...) works
+                return _CallableProxy(projector_function, target_attr)
             return target_attr
 
         target_entity = target_pop.entity
