@@ -31,6 +31,13 @@ class ImplicitMany2OneLink(Many2OneLink):
         return self._target_population.members_role
 
     def _project_implicit(self, result: numpy.ndarray) -> numpy.ndarray:
+        """Project or pass through result so it matches source (person) count.
+
+        - Entity-sized (result.size == target.count): same as old logic — project
+          to source so each person gets their entity's value (e.g. first_person).
+        - Members-sized (result.size == target.members.count): return as-is;
+          result is already one value per person (e.g. members('activite')).
+        """
         target = self._target_population
         if result.size == target.count:
             return target.project(result)
