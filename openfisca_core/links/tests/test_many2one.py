@@ -3,6 +3,8 @@ import pytest
 
 from openfisca_core import entities, periods, taxbenefitsystems, variables
 from openfisca_core.links import Many2OneLink
+from openfisca_core.populations import ADD, DIVIDE
+from openfisca_core.populations._errors import IncompatibleOptionsError
 from openfisca_core.simulations import SimulationBuilder
 
 
@@ -132,10 +134,13 @@ def test_many2one_rank(sim):
     does not populate ``household.members_entity_id`` correctly, so we
     patch the group population manually using the input variable.
     """
-    # ensure household group mappings match the input variable
+    # ensure household group mappings match the input variable (4 persons → 2 households)
     sim.household.members_entity_id = sim.persons("household_id", "2024")
-    # reset any cached position so rank uses updated mapping
+    sim.household.count = 2  # match number of entities implied by members_entity_id
+    # reset cached caches so rank uses updated mapping (members_position
+    # and ordered_members_map must both be recomputed from new members_entity_id)
     sim.household._members_position = None
+    sim.household._ordered_members_map = None
 
     link = sim.persons.links["household"]
     # ages [50, 25, 20, 5] per person
@@ -143,7 +148,72 @@ def test_many2one_rank(sim):
     # households: h0->[50,25] -> ranks [1,0]; h1->[20,5] -> ranks [1,0]
     assert numpy.array_equal(ranks, [1, 0, 1, 0])
 
-    # chaining should also forward to outer link (no behavioural change)
+
+# -- Many2OneLink options (ADD / DIVIDE) -----------------------------------
+
+
+def test_many2one_call_accepts_options_keyword(sim):
+    """Link __call__ accepts options= and forwards to get(); ADD over one year = same as calculate."""
+    link = sim.persons.links["household"]
+    # rent is YEAR; ADD over "2024" (one subperiod) equals plain calculate
+    without_options = link("rent", "2024")
+    with_add = link("rent", "2024", options=[ADD])
+    assert numpy.array_equal(without_options, with_add)
+    assert numpy.array_equal(link.get("rent", "2024", options=None), without_options)
+
+
+def test_many2one_get_with_options_add(sim):
+    """Link.get(..., options=[ADD]) returns same as target population calculate_add projected."""
+    link = sim.persons.links["household"]
+    # Direct get with options
+    result = link.get("rent", "2024", options=[ADD])
+    # Should match household.calculate_add projected to persons via link
+    expected = sim.household("rent", "2024", options=[ADD])
+    person_household_ids = sim.persons("household_id", "2024")
+    expected_per_person = numpy.array(
+        [expected[i] for i in person_household_ids],
+        dtype=expected.dtype,
+    )
+    assert numpy.array_equal(result, expected_per_person)
+
+
+def test_many2one_call_options_incompatible(sim):
+    """Link __call__ with both ADD and DIVIDE raises IncompatibleOptionsError."""
+    link = sim.persons.links["household"]
+    with pytest.raises(IncompatibleOptionsError):
+        link("rent", "2024", options=[ADD, DIVIDE])
+
+
+def test_many2one_chained_call_with_options(sim):
+    """Chained link (person.mother.household) accepts options= in __call__ and get."""
     chained = sim.persons.links["mother"].household
-    ranks2 = chained.rank("age", "2024")
-    assert numpy.array_equal(ranks2, ranks)
+    without_options = chained("rent", "2024")
+    with_add = chained("rent", "2024", options=[ADD])
+    assert numpy.array_equal(without_options, with_add)
+    with_add_get = chained.get("rent", "2024", options=[ADD])
+    assert numpy.array_equal(with_add_get, without_options)
+
+
+# -- User-facing errors for invalid use ---------------------------------------
+
+
+def test_get_rank_requires_group_entity_raises(sim):
+    """get_rank(link to single entity) raises a clear ValueError."""
+    # person.mother is a link to person (single entity); rank requires a group
+    chained = sim.persons.links["mother"].household
+    with pytest.raises(ValueError, match="get_rank requires a group entity"):
+        chained.rank("age", "2024")
+
+
+def test_value_nth_person_inconsistent_group_raises(sim):
+    """value_nth_person raises clear ValueError when count != entities from members_entity_id."""
+    # Mistake: patch members_entity_id to 2 entities but leave count=4
+    sim.household.members_entity_id = sim.persons(
+        "household_id", "2024"
+    )  # [0,0,1,1] -> 2 entities
+    sim.household._members_position = None
+    sim.household._ordered_members_map = None
+    # do NOT set sim.household.count = 2
+    link = sim.persons.links["household"]
+    with pytest.raises(ValueError, match="Group population .* is inconsistent"):
+        link.rank("age", "2024")

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 import numpy
@@ -10,6 +11,25 @@ from .link import Link
 
 if TYPE_CHECKING:
     pass
+
+
+def _calculate_with_options(simulation, variable_name, period, options):
+    """Dispatch to calculate / calculate_add / calculate_divide like CorePopulation."""
+    from openfisca_core.populations import types as t
+    from openfisca_core.populations._errors import (
+        IncompatibleOptionsError,
+        InvalidOptionError,
+    )
+
+    if options is None or not isinstance(options, Sequence):
+        return simulation.calculate(variable_name, period)
+    if t.Option.ADD in options and t.Option.DIVIDE in options:
+        raise IncompatibleOptionsError(variable_name)
+    if t.Option.ADD in options:
+        return simulation.calculate_add(variable_name, period)
+    if t.Option.DIVIDE in options:
+        return simulation.calculate_divide(variable_name, period)
+    raise InvalidOptionError(options[0], variable_name)
 
 
 class Many2OneLink(Link):
@@ -25,7 +45,12 @@ class Many2OneLink(Link):
         result = target_values[target_ids]      # e.g. [800, 800, 650, 900, 800]
     """
 
-    def get(self, variable_name: str, period) -> numpy.ndarray:
+    def get(
+        self,
+        variable_name: str,
+        period,
+        options: None | Sequence = None,
+    ) -> numpy.ndarray:
         """Get a target variable's value for each source member.
 
         Parameters
@@ -34,6 +59,8 @@ class Many2OneLink(Link):
             Name of the variable defined on the target entity.
         period : Period
             The period for which to compute the variable.
+        options : sequence, optional
+            Options for the calculation (e.g. ADD, DIVIDE).
 
         Returns
         -------
@@ -49,7 +76,9 @@ class Many2OneLink(Link):
         target_ids = self._get_target_ids(period)
 
         # 2. Variable values on the target entity
-        target_values = simulation.calculate(variable_name, period)
+        target_values = _calculate_with_options(
+            simulation, variable_name, period, options
+        )
 
         # 3. Resolve IDs to row positions (handles id_to_rownum if needed)
         target_rows = self._resolve_ids(target_ids)
@@ -78,9 +107,16 @@ class Many2OneLink(Link):
 
     # -- syntactic sugar ----------------------------------------------------
 
-    def __call__(self, variable_name: str, period) -> numpy.ndarray:
-        """Shorthand: ``person.mother("age", period)``."""
-        return self.get(variable_name, period)
+    def __call__(
+        self,
+        variable_name: str,
+        period,
+        *,
+        options=None,
+        **kwargs,
+    ) -> numpy.ndarray:
+        """Shorthand: ``person.mother("age", period)`` or with options."""
+        return self.get(variable_name, period, options=options)
 
     def __getattr__(self, name: str):
         """Chain links: ``person.mother.household``."""
@@ -185,7 +221,7 @@ class Many2OneLink(Link):
             value; all others receive the variable's default (usually 0).
         """
         mask = self.has_role(role_value)
-        result = self.get(variable_name, period)
+        result = self.get(variable_name, period, options=None)
         # zero out non-matching rows using dtype-preserving fill
         if not mask.all():
             # create a copy to avoid mutating cached results
@@ -261,10 +297,15 @@ class _ChainedGetter:
         self._outer = outer_link
         self._inner = inner_link
 
-    def get(self, variable_name: str, period) -> numpy.ndarray:
+    def get(
+        self,
+        variable_name: str,
+        period,
+        options=None,
+    ) -> numpy.ndarray:
         """Resolve ``person.mother.household.get("rent", period)``."""
         # 1. Resolve inner link value on inner entity
-        inner_values = self._inner.get(variable_name, period)
+        inner_values = self._inner.get(variable_name, period, options=options)
 
         # 2. Map back through outer link
         target_ids = self._outer._source_population.simulation.calculate(
@@ -282,9 +323,16 @@ class _ChainedGetter:
         result[valid] = inner_values[target_rows[valid]]
         return result
 
-    def __call__(self, variable_name: str, period) -> numpy.ndarray:
+    def __call__(
+        self,
+        variable_name: str,
+        period,
+        *,
+        options=None,
+        **kwargs,
+    ) -> numpy.ndarray:
         """Shorthand for get(): ``person.mother.household("rent", period)``."""
-        return self.get(variable_name, period)
+        return self.get(variable_name, period, options=options)
 
     def __getattr__(self, name: str):
         """Continue chaining: ``person.mother.household.region``."""

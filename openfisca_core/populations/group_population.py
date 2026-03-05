@@ -352,6 +352,14 @@ class GroupPopulation(Population):
         positions = self.members_position
         nb_persons_per_entity = self.nb_persons()
         members_map = self.ordered_members_map
+        nb_entities = len(nb_persons_per_entity)
+        if nb_entities != self.count:
+            raise ValueError(
+                f"Group population '{self.entity.key}' is inconsistent: "
+                f"count is {self.count} but members_entity_id implies "
+                f"{nb_entities} entities (from bincount). "
+                "Ensure count matches the number of entities implied by members_entity_id."
+            )
         result = self.filled_array(default, dtype=array.dtype)
         # For households that have at least n persons, set the result as the value of criteria for the person for which the position is n.
         # The map is needed b/c the order of the nth persons of each household in the persons vector is not necessarily the same than the household order.
