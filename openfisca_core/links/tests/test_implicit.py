@@ -346,7 +346,9 @@ def test_implicit_m2o_role_projector_has_has_role():
     # person.household.demandeur: must be callable (projector) and have has_role
     demandeur_proxy = sim.persons.household.demandeur
     assert callable(demandeur_proxy), "person.household.demandeur must be callable"
-    assert hasattr(demandeur_proxy, "has_role"), "person.household.demandeur must have has_role"
+    assert hasattr(
+        demandeur_proxy, "has_role"
+    ), "person.household.demandeur must have has_role"
 
     # has_role(role) must return a boolean array (one per person)
     demandeur_role = household.DEMANDEUR
@@ -357,7 +359,9 @@ def test_implicit_m2o_role_projector_has_has_role():
 
     # Callable behaviour unchanged: demandeur('age', period) returns ages projected to persons
     age_demandeur = demandeur_proxy("age", "2024")
-    assert age_demandeur.shape == (4,), "Call must return one value per person (projected)"
+    assert age_demandeur.shape == (
+        4,
+    ), "Call must return one value per person (projected)"
     assert numpy.array_equal(age_demandeur, [40, 40, 54, 54])
 
 
@@ -397,11 +401,15 @@ def test_implicit_m2o_sum_returns_person_sized():
 
     # Old impl: target.sum(...) returns entity-sized (2,) — would break when combined with (5,) in formulas
     target_sum = sim.populations["household"].sum(revenu_i, role=household.PARENT)
-    assert target_sum.shape == (2,), "raw target sum is entity-sized (old behavior if used from link)"
+    assert target_sum.shape == (
+        2,
+    ), "raw target sum is entity-sized (old behavior if used from link)"
 
     # New impl: person.household.sum(..., role=parent) returns (5,) so each person gets their household's parent sum
     sum_parent = sim.persons.household.sum(revenu_i, role=household.PARENT)
-    assert sum_parent.shape == (5,), "sum must be projected to person size (5,) not entity size (2,)"
+    assert sum_parent.shape == (
+        5,
+    ), "sum must be projected to person size (5,) not entity size (2,)"
     # h0 parents: p0=100, p1=200 -> sum 300. h1 parents: p2=300 -> sum 300.
     assert numpy.array_equal(sum_parent, [300.0, 300.0, 300.0, 300.0, 300.0])
 
@@ -452,5 +460,7 @@ def test_implicit_m2o_role_projector_chained_get_returns_person_sized():
     # person.household.demandeur('age', period) must return (4,) — callable result projected
     demandeur_proxy = sim.persons.household.demandeur
     age_demandeur = demandeur_proxy("age", "2024")
-    assert age_demandeur.shape == (4,), "demandeur(...) must return person-sized (projected)"
+    assert age_demandeur.shape == (
+        4,
+    ), "demandeur(...) must return person-sized (projected)"
     assert numpy.array_equal(age_demandeur, [40, 40, 54, 54])
