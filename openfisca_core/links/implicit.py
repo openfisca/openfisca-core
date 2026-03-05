@@ -31,18 +31,46 @@ class ImplicitMany2OneLink(Many2OneLink):
         return self._target_population.members_role
 
     def _project_implicit(self, result: numpy.ndarray) -> numpy.ndarray:
-        # Fully compatible with old Projector logic
-        return self._target_population.project(result)
+        """Project or pass through result so it matches source (person) count.
+
+        - Entity-sized (result.size == target.count): same as old logic — project
+          to source so each person gets their entity's value (e.g. first_person).
+        - Members-sized (result.size == target.members.count): return as-is;
+          result is already one value per person (e.g. members('activite')).
+        """
+        target = self._target_population
+        if result.size == target.count:
+            return target.project(result)
+        if result.size == target.members.count:
+            return result
+        raise ValueError(
+            f"Implicit link projection: result size {result.size} does not match "
+            f"target entity count ({target.count}) nor target members count ({target.members.count})."
+        )
+
+    # Explicit aggregation methods so person.famille.sum(...) always returns person-sized
+    # (found by normal attribute lookup before __getattr__ delegates to target).
+    def sum(self, array, role=None, condition=None):
+        result = self._target_population.sum(array, role=role, condition=condition)
+        return self._project_implicit(result)
+
+    def any(self, array, role=None, condition=None):
+        result = self._target_population.any(array, role=role, condition=condition)
+        return self._project_implicit(result)
+
+    def all(self, array, role=None, condition=None):
+        result = self._target_population.all(array, role=role, condition=condition)
+        return self._project_implicit(result)
 
 
 class ImplicitOne2ManyLink(One2ManyLink):
     """A group → person link using GroupPopulation's internal arrays."""
 
-    def __init__(self, name: str, group_entity_key: str):
+    def __init__(self, name: str, group_entity_key: str, person_entity_key: str):
         super().__init__(
             name=name,
             link_field="",  # Not used
-            target_entity_key="person",  # The target of the O2M is persons
+            target_entity_key=person_entity_key,
         )
         self._group_entity_key = group_entity_key
 

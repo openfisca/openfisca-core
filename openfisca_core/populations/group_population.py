@@ -67,6 +67,25 @@ class GroupPopulation(Population):
     def members_entity_id(self, members_entity_id) -> None:
         self._members_entity_id = members_entity_id
 
+    def set_members_entity_id(self, members_entity_id) -> None:
+        """Set group structure from a person-indexed array of group entity ids.
+
+        Updates ``members_entity_id`` and ``count`` (number of distinct groups),
+        and clears internal caches so rank, value_nth_person, etc. use the new
+        structure. Use this instead of assigning to ``members_entity_id`` and
+        clearing private cache attributes manually.
+
+        Args:
+            members_entity_id: 1D array of length ``members.count``; value at
+                index i is the group entity id for person i. Group ids must be
+                0-based contiguous (0 .. K-1 for K groups).
+        """
+        arr = numpy.asarray(members_entity_id, dtype=numpy.int32)
+        self._members_entity_id = arr
+        self.count = int(numpy.max(arr)) + 1
+        self._members_position = None
+        self._ordered_members_map = None
+
     @property
     def members_role(self):
         if self._members_role is None:
@@ -352,6 +371,14 @@ class GroupPopulation(Population):
         positions = self.members_position
         nb_persons_per_entity = self.nb_persons()
         members_map = self.ordered_members_map
+        nb_entities = len(nb_persons_per_entity)
+        if nb_entities != self.count:
+            raise ValueError(
+                f"Group population '{self.entity.key}' is inconsistent: "
+                f"count is {self.count} but members_entity_id implies "
+                f"{nb_entities} entities (from bincount). "
+                "Ensure count matches the number of entities implied by members_entity_id."
+            )
         result = self.filled_array(default, dtype=array.dtype)
         # For households that have at least n persons, set the result as the value of criteria for the person for which the position is n.
         # The map is needed b/c the order of the nth persons of each household in the persons vector is not necessarily the same than the household order.

@@ -52,6 +52,10 @@ We've added guides to help framework users model new relationships:
 - `docs/implementation/links-api.md`: Reference for creating and querying `Many2OneLink` and `One2ManyLink`.
 - `docs/implementation/transition-guide.md`: Migration guide demonstrating how to gradually adopt Links over Legacy Projectors.
 
+## Builder & test clarity
+- **`build_default_simulation(..., group_members=...)`**: Optional `group_members` dict (e.g. `{"household": [0,0,1,1]}`) sets group structure at build time so tests no longer patch private attributes.
+- **`GroupPopulation.set_members_entity_id(array)`**: Public API to set group structure and clear internal caches; tests use this instead of touching `_members_position` / `_ordered_members_map`.
+
 ## Testing
 - 12 new, comprehensive tests covering unit mechanics, system integrations, filtering, chaining, and OpenFisca core lifecycle (`_resolve_links`).
 - All 158 core tests and existing Country Template tests continue to pass locally (`make test-code`).

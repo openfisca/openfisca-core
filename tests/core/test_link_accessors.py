@@ -53,7 +53,7 @@ def simple_sim():
 
 
 def test_nth_accessor(simple_sim):
-    link = ImplicitOne2ManyLink("persons", "household")
+    link = ImplicitOne2ManyLink("persons", "household", "person")
     link.attach(simple_sim.populations["household"])
     link.resolve(simple_sim.populations)
 
@@ -67,7 +67,7 @@ def test_nth_accessor(simple_sim):
 
 
 def test_one2many_get_by_role(simple_sim):
-    link = ImplicitOne2ManyLink("persons", "household")
+    link = ImplicitOne2ManyLink("persons", "household", "person")
     link.attach(simple_sim.populations["household"])
     link.resolve(simple_sim.populations)
 

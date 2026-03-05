@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 import numpy
@@ -10,6 +11,88 @@ from .link import Link
 
 if TYPE_CHECKING:
     pass
+
+
+class _CallableProxy:
+    """Callable that proxies other attributes to the wrapped object (e.g. projector).
+
+    When _projection_link is set (implicit M2O), attributes that have a .get()
+    (e.g. .foyer_fiscal) are wrapped so get() results are projected to source (person) size.
+    """
+
+    __slots__ = ("_call", "_wrapped", "_projection_link")
+
+    def __init__(self, call, wrapped, projection_link=None):
+        self._call = call
+        self._wrapped = wrapped
+        self._projection_link = projection_link
+
+    def __call__(self, *args, **kwargs):
+        return self._call(*args, **kwargs)
+
+    def __getattr__(self, name: str):
+        attr = getattr(self._wrapped, name)
+        if self._projection_link is None or not hasattr(
+            self._projection_link, "_project_implicit"
+        ):
+            return attr
+        # person.famille.demandeur.foyer_fiscal('x', period): result is entity-sized,
+        # project to person-sized. Wrap both links (.get) and callables (e.g. projectors).
+        if callable(getattr(attr, "get", None)):
+            return _LinkGetProjector(attr, self._projection_link)
+        if callable(attr):
+            link = self._projection_link
+
+            def projected_callable(*args, **kwargs):
+                result = attr(*args, **kwargs)
+                if (
+                    isinstance(result, numpy.ndarray)
+                    and result.size == link._target_population.count
+                ):
+                    return link._project_result(result)
+                return result
+
+            return _CallableProxy(projected_callable, attr, None)
+        return attr
+
+
+class _LinkGetProjector:
+    """Wraps a link so get() results are projected to the outer M2O source size."""
+
+    __slots__ = ("_link", "_outer")
+
+    def __init__(self, link, outer_m2o_link):
+        self._link = link
+        self._outer = outer_m2o_link
+
+    def get(self, variable_name: str, period, options=None):
+        result = self._link.get(variable_name, period, options=options)
+        return self._outer._project_result(result)
+
+    def __call__(self, variable_name: str, period, *, options=None, **kwargs):
+        return self.get(variable_name, period, options=options)
+
+    def __getattr__(self, name: str):
+        return getattr(self._link, name)
+
+
+def _calculate_with_options(simulation, variable_name, period, options):
+    """Dispatch to calculate / calculate_add / calculate_divide like CorePopulation."""
+    from openfisca_core.populations import types as t
+    from openfisca_core.populations._errors import (
+        IncompatibleOptionsError,
+        InvalidOptionError,
+    )
+
+    if options is None or not isinstance(options, Sequence):
+        return simulation.calculate(variable_name, period)
+    if t.Option.ADD in options and t.Option.DIVIDE in options:
+        raise IncompatibleOptionsError(variable_name)
+    if t.Option.ADD in options:
+        return simulation.calculate_add(variable_name, period)
+    if t.Option.DIVIDE in options:
+        return simulation.calculate_divide(variable_name, period)
+    raise InvalidOptionError(options[0], variable_name)
 
 
 class Many2OneLink(Link):
@@ -25,7 +108,12 @@ class Many2OneLink(Link):
         result = target_values[target_ids]      # e.g. [800, 800, 650, 900, 800]
     """
 
-    def get(self, variable_name: str, period) -> numpy.ndarray:
+    def get(
+        self,
+        variable_name: str,
+        period,
+        options: None | Sequence = None,
+    ) -> numpy.ndarray:
         """Get a target variable's value for each source member.
 
         Parameters
@@ -34,6 +122,8 @@ class Many2OneLink(Link):
             Name of the variable defined on the target entity.
         period : Period
             The period for which to compute the variable.
+        options : sequence, optional
+            Options for the calculation (e.g. ADD, DIVIDE).
 
         Returns
         -------
@@ -49,7 +139,9 @@ class Many2OneLink(Link):
         target_ids = self._get_target_ids(period)
 
         # 2. Variable values on the target entity
-        target_values = simulation.calculate(variable_name, period)
+        target_values = _calculate_with_options(
+            simulation, variable_name, period, options
+        )
 
         # 3. Resolve IDs to row positions (handles id_to_rownum if needed)
         target_rows = self._resolve_ids(target_ids)
@@ -78,9 +170,16 @@ class Many2OneLink(Link):
 
     # -- syntactic sugar ----------------------------------------------------
 
-    def __call__(self, variable_name: str, period) -> numpy.ndarray:
-        """Shorthand: ``person.mother("age", period)``."""
-        return self.get(variable_name, period)
+    def __call__(
+        self,
+        variable_name: str,
+        period,
+        *,
+        options=None,
+        **kwargs,
+    ) -> numpy.ndarray:
+        """Shorthand: ``person.mother("age", period)`` or with options."""
+        return self.get(variable_name, period, options=options)
 
     def __getattr__(self, name: str):
         """Chain links: ``person.mother.household``."""
@@ -97,13 +196,38 @@ class Many2OneLink(Link):
 
         target_attr = getattr(target_pop, name, None)
         if target_attr is not None:
-            if hasattr(target_attr, "projectable"):
+            # Wrap callables that produce target-level output so we project back to source.
+            # This covers @projectable methods (sum, any, all, etc.), Projector instances
+            # (e.g. .demandeur), and other callables. For bound methods, "projectable" is
+            # on the underlying function, not the method wrapper.
+            _func = getattr(target_attr, "__func__", target_attr)
+            is_projectable = (
+                hasattr(target_attr, "projectable")
+                or getattr(_func, "projectable", False)
+                or name
+                in (
+                    "sum",
+                    "any",
+                    "all",
+                    "count",
+                    "max",
+                    "min",
+                    "nb_persons",
+                    "reduce",
+                )
+            )
+            if (is_projectable or callable(target_attr)) and hasattr(
+                self, "_project_implicit"
+            ):
+                link_self = self
 
                 def projector_function(*args, **kwargs):
                     result = target_attr(*args, **kwargs)
-                    return self._project_result(result)
+                    return link_self._project_result(result)
 
-                return projector_function
+                # Preserve attributes (e.g. has_role); wrap link.get() so person.famille.demandeur.foyer_fiscal(...) is person-sized
+                projection_link = self if hasattr(self, "_project_implicit") else None
+                return _CallableProxy(projector_function, target_attr, projection_link)
             return target_attr
 
         target_entity = target_pop.entity
@@ -185,7 +309,7 @@ class Many2OneLink(Link):
             value; all others receive the variable's default (usually 0).
         """
         mask = self.has_role(role_value)
-        result = self.get(variable_name, period)
+        result = self.get(variable_name, period, options=None)
         # zero out non-matching rows using dtype-preserving fill
         if not mask.all():
             # create a copy to avoid mutating cached results
@@ -261,10 +385,15 @@ class _ChainedGetter:
         self._outer = outer_link
         self._inner = inner_link
 
-    def get(self, variable_name: str, period) -> numpy.ndarray:
+    def get(
+        self,
+        variable_name: str,
+        period,
+        options=None,
+    ) -> numpy.ndarray:
         """Resolve ``person.mother.household.get("rent", period)``."""
         # 1. Resolve inner link value on inner entity
-        inner_values = self._inner.get(variable_name, period)
+        inner_values = self._inner.get(variable_name, period, options=options)
 
         # 2. Map back through outer link
         target_ids = self._outer._source_population.simulation.calculate(
@@ -282,9 +411,16 @@ class _ChainedGetter:
         result[valid] = inner_values[target_rows[valid]]
         return result
 
-    def __call__(self, variable_name: str, period) -> numpy.ndarray:
+    def __call__(
+        self,
+        variable_name: str,
+        period,
+        *,
+        options=None,
+        **kwargs,
+    ) -> numpy.ndarray:
         """Shorthand for get(): ``person.mother.household("rent", period)``."""
-        return self.get(variable_name, period)
+        return self.get(variable_name, period, options=options)
 
     def __getattr__(self, name: str):
         """Continue chaining: ``person.mother.household.region``."""

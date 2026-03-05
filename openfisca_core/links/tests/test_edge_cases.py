@@ -294,7 +294,7 @@ class TestImplicitRoleAndCondition:
         )
 
         # Create and bind implicit link
-        link = ImplicitOne2ManyLink("persons", "household")
+        link = ImplicitOne2ManyLink("persons", "household", "person")
         pop = sim.populations["household"]
         link.attach(pop)
         link.resolve(sim.populations)

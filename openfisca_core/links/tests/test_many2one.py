@@ -1,9 +1,14 @@
 import numpy
 import pytest
 
-from openfisca_core import entities, periods, taxbenefitsystems, variables
+from openfisca_core import entities, periods, taxbenefitsystems, tools, variables
 from openfisca_core.links import Many2OneLink
+from openfisca_core.populations import ADD, DIVIDE
+from openfisca_core.populations._errors import IncompatibleOptionsError
 from openfisca_core.simulations import SimulationBuilder
+
+# Period used for options tests (mirrors test_countries.PERIOD)
+PERIOD = periods.period("2024-01")
 
 
 @pytest.fixture
@@ -54,16 +59,64 @@ def sim():
     for var in [age, rent, mother_id, household_id, household_role]:
         tbs.add_variable(var)
 
-    # persons: 0, 1, 2, 3
-    # households: 0, 1
-    sim = SimulationBuilder().build_default_simulation(tbs, count=4)
+    # persons: 0, 1, 2, 3 in 2 households (0,1 -> hh0; 2,3 -> hh1)
+    sim = SimulationBuilder().build_default_simulation(
+        tbs, count=4, group_members={"household": numpy.array([0, 0, 1, 1])}
+    )
     # Mother of 0 is -1, 1 is 0, 2 is 0, 3 is 1
     sim.set_input("mother_id", "2024", [-1, 0, 0, 1])
     sim.set_input("age", "2024", [50, 25, 20, 5])
     sim.set_input("household_id", "2024", [0, 0, 1, 1])
     sim.set_input("household_role", "2024", [10, 20, 10, 20])
-    sim.set_input("rent", "2024", [800.0, 500.0, 0.0, 0.0])
+    # 2 households: rent per household (hh0=800, hh1=500)
+    sim.set_input("rent", "2024", [800.0, 500.0])
     return sim
+
+
+def test_many2one_get_uses_id_to_rownum():
+    """Many2OneLink.get() uses target population _id_to_rownum when resolving IDs to rows.
+
+    With a non-identity id_to_rownum (e.g. [2, 0, 1]), entity id 0 -> row 2, id 1 -> row 0,
+    id 2 -> row 1. So link.get() must index target values by id_to_rownum[target_id],
+    not by target_id directly.
+    """
+    from openfisca_core import entities, periods, taxbenefitsystems, variables
+    from openfisca_core.links import Many2OneLink
+    from openfisca_core.simulations import SimulationBuilder
+
+    person = entities.SingleEntity("person", "persons", "", "")
+    mother_link = Many2OneLink("mother", "mother_id", "person")
+    person.add_link(mother_link)
+    tbs = taxbenefitsystems.TaxBenefitSystem([person])
+
+    class age(variables.Variable):
+        value_type = int
+        entity = person
+        definition_period = periods.DateUnit.YEAR
+
+    class mother_id(variables.Variable):
+        value_type = int
+        entity = person
+        definition_period = periods.DateUnit.ETERNITY
+        default_value = -1
+
+    tbs.add_variable(age)
+    tbs.add_variable(mother_id)
+
+    sim = SimulationBuilder().build_default_simulation(tbs, count=3)
+    # Ages at rows 0,1,2 = 10, 20, 30
+    sim.set_input("age", "2024", [10, 20, 30])
+    # Person 0 -> mother id 0, person 1 -> mother id 1, person 2 -> mother id 2
+    sim.set_input("mother_id", "2024", [0, 1, 2])
+
+    # Non-identity: entity id 0 -> row 2, id 1 -> row 0, id 2 -> row 1
+    # So id 0 fetches row 2 (age 30), id 1 fetches row 0 (age 10), id 2 fetches row 1 (age 20)
+    sim.persons._id_to_rownum = numpy.array([2, 0, 1], dtype=numpy.intp)
+
+    link = sim.persons.links["mother"]
+    mother_ages = link.get("age", "2024")
+    # Without id_to_rownum we would get [10, 20, 30]; with [2,0,1] we get row 2,0,1 = [30, 10, 20]
+    assert numpy.array_equal(mother_ages, [30.0, 10.0, 20.0])
 
 
 def test_many2one_get_intra_entity(sim):
@@ -128,22 +181,144 @@ def test_many2one_role_helpers(sim):
 def test_many2one_rank(sim):
     """Ranking people by age within their household via the link.
 
-    The default ``sim`` fixture uses ``build_default_simulation`` which
-    does not populate ``household.members_entity_id`` correctly, so we
-    patch the group population manually using the input variable.
+    The fixture builds with ``group_members={"household": [0,0,1,1]}`` so
+    the group structure (4 persons → 2 households) is set at build time.
     """
-    # ensure household group mappings match the input variable
-    sim.household.members_entity_id = sim.persons("household_id", "2024")
-    # reset any cached position so rank uses updated mapping
-    sim.household._members_position = None
-
     link = sim.persons.links["household"]
     # ages [50, 25, 20, 5] per person
     ranks = link.rank("age", "2024")
     # households: h0->[50,25] -> ranks [1,0]; h1->[20,5] -> ranks [1,0]
     assert numpy.array_equal(ranks, [1, 0, 1, 0])
 
-    # chaining should also forward to outer link (no behavioural change)
+
+# -- Many2OneLink options (ADD / DIVIDE) -----------------------------------
+
+
+def test_many2one_call_accepts_options_keyword(sim):
+    """Link __call__ accepts options= and forwards to get(); ADD over one year = same as calculate."""
+    link = sim.persons.links["household"]
+    # rent is YEAR; ADD over "2024" (one subperiod) equals plain calculate
+    without_options = link("rent", "2024")
+    with_add = link("rent", "2024", options=[ADD])
+    assert numpy.array_equal(without_options, with_add)
+    assert numpy.array_equal(link.get("rent", "2024", options=None), without_options)
+
+
+def test_many2one_get_with_options_add(sim):
+    """Link.get(..., options=[ADD]) returns same as target population calculate_add projected."""
+    link = sim.persons.links["household"]
+    # Direct get with options
+    result = link.get("rent", "2024", options=[ADD])
+    # Should match household.calculate_add projected to persons via link
+    expected = sim.household("rent", "2024", options=[ADD])
+    person_household_ids = sim.persons("household_id", "2024")
+    expected_per_person = numpy.array(
+        [expected[i] for i in person_household_ids],
+        dtype=expected.dtype,
+    )
+    assert numpy.array_equal(result, expected_per_person)
+
+
+def test_many2one_call_options_incompatible(sim):
+    """Link __call__ with both ADD and DIVIDE raises IncompatibleOptionsError."""
+    link = sim.persons.links["household"]
+    with pytest.raises(IncompatibleOptionsError):
+        link("rent", "2024", options=[ADD, DIVIDE])
+
+
+def test_many2one_chained_call_with_options(sim):
+    """Chained link (person.mother.household) accepts options= in __call__ and get."""
     chained = sim.persons.links["mother"].household
-    ranks2 = chained.rank("age", "2024")
-    assert numpy.array_equal(ranks2, ranks)
+    without_options = chained("rent", "2024")
+    with_add = chained("rent", "2024", options=[ADD])
+    assert numpy.array_equal(without_options, with_add)
+    with_add_get = chained.get("rent", "2024", options=[ADD])
+    assert numpy.array_equal(with_add_get, without_options)
+
+
+def test_many2one_get_with_options_divide(sim):
+    """Link.get(..., options=[DIVIDE]) matches projector (mirrors test_calculate_divide)."""
+    link = sim.persons.links["household"]
+    # rent is YEAR; DIVIDE over a month gives rent/12 per person (same as test_countries)
+    result = link.get("rent", PERIOD, options=[DIVIDE])
+    expected = sim.household("rent", PERIOD, options=[DIVIDE])
+    person_household_ids = sim.persons("household_id", PERIOD)
+    expected_per_person = numpy.array(
+        [expected[i] for i in person_household_ids],
+        dtype=expected.dtype,
+    )
+    tools.assert_near(
+        result,
+        expected_per_person,
+        absolute_error_margin=0.01,
+    )
+
+
+def test_many2one_divide_option_with_complex_period(sim):
+    """DIVIDE is only supported for a single subperiod; multi-unit period raises (mirrors test_divide_option_with_complex_period).
+
+    This is intentional: DIVIDE gives e.g. yearly_value/12 for one month, not
+    for a quarter. Simulation.calculate_divide enforces period.size == 1 and
+    raises ValueError with a clear message. The link must propagate the same error.
+    """
+    link = sim.persons.links["household"]
+    quarter = PERIOD.last_3_months  # 3 months → period.size > 1
+
+    with pytest.raises(ValueError) as exc_info:
+        link("rent", quarter, options=[DIVIDE])
+
+    error_message = str(exc_info.value)
+    expected_words = ["Can't", "calculate", "month", "year"]
+    for word in expected_words:
+        assert (
+            word in error_message
+        ), f"Expected '{word}' in error message '{error_message}'"
+
+
+# -- User-facing errors for invalid use ---------------------------------------
+
+
+def test_get_rank_requires_group_entity_raises(sim):
+    """get_rank(link to single entity) raises a clear ValueError."""
+    # person.mother is a link to person (single entity); rank requires a group
+    chained = sim.persons.links["mother"].household
+    with pytest.raises(ValueError, match="get_rank requires a group entity"):
+        chained.rank("age", "2024")
+
+
+def test_value_nth_person_inconsistent_group_raises(sim):
+    """value_nth_person raises clear ValueError when count != entities from members_entity_id."""
+    # Create inconsistent state: members_entity_id implies 4 entities, count is 2
+    sim.household.set_members_entity_id(numpy.array([0, 1, 2, 3]))
+    sim.household.count = 2
+    link = sim.persons.links["household"]
+    with pytest.raises(ValueError, match="Group population .* is inconsistent"):
+        link.rank("age", "2024")
+
+
+def test_callable_proxy_preserves_has_role():
+    """_CallableProxy preserves attributes (e.g. has_role) from the wrapped projector.
+
+    Old impl: link returned a bare function, so .demandeur.has_role(...) raised
+    AttributeError. New impl: link returns _CallableProxy(callable, target_attr)
+    so the result is callable and proxies has_role (and other attrs) to the
+    wrapped projector.
+    """
+    from openfisca_core.links.many2one import _CallableProxy
+
+    def call_(*args, **kwargs):
+        return numpy.array([1.0, 2.0, 3.0])
+
+    class MockProjector:
+        def has_role(self, role):
+            return numpy.array([True, False, True])
+
+    wrapped = MockProjector()
+    proxy = _CallableProxy(call_, wrapped)
+
+    assert callable(proxy), "Proxy must be callable"
+    assert hasattr(proxy, "has_role"), "Proxy must expose has_role"
+    out = proxy("age", "2024")
+    assert numpy.array_equal(out, [1.0, 2.0, 3.0])
+    is_role = proxy.has_role(None)
+    assert numpy.array_equal(is_role, [True, False, True])

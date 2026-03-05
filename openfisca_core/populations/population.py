@@ -119,7 +119,16 @@ class Population(CorePopulation):
         elif hasattr(entity, "_target_population"):  # Handle new Link system
             entity = entity._target_population
 
-        positions = entity.members_position
+        try:
+            positions = entity.members_position
+        except AttributeError:
+            entity_key = getattr(entity, "entity", entity)
+            key = getattr(entity_key, "key", str(entity_key))
+            raise ValueError(
+                f"get_rank requires a group entity (with members). "
+                f"'{key}' is a single entity and has no members_position. "
+                "Use a link to a group entity (e.g. person.household), not to another person (e.g. person.mother)."
+            ) from None
         biggest_entity_size = numpy.max(positions) + 1
         filtered_criteria = numpy.where(condition, criteria, numpy.inf)
         ids = entity.members_entity_id
