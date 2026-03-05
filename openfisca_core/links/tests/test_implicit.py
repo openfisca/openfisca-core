@@ -74,3 +74,50 @@ def test_implicit_one2many(sim):
 
     counts = link.count("2024")
     assert numpy.array_equal(counts, [2, 1, 1])
+
+
+def test_implicit_one2many_with_non_default_person_key():
+    """Regression test: entity key != 'person' must not crash.
+
+    openfisca-france uses 'individu' as the person entity key.
+    Before the fix, ImplicitOne2ManyLink hardcoded target_entity_key='person',
+    causing a KeyError during link resolution.
+    """
+    individu = entities.SingleEntity("individu", "individus", "Un individu", "")
+    menage = entities.GroupEntity(
+        "menage",
+        "menages",
+        "Un ménage",
+        "",
+        roles=[{"key": "personne_de_reference"}],
+    )
+
+    tbs = taxbenefitsystems.TaxBenefitSystem([individu, menage])
+
+    class salaire(variables.Variable):
+        value_type = float
+        entity = individu
+        definition_period = periods.DateUnit.YEAR
+
+    tbs.add_variable(salaire)
+
+    sim = SimulationBuilder().build_from_dict(
+        tbs,
+        {
+            "individus": {
+                "i0": {"salaire": {"2024": 1000.0}},
+                "i1": {"salaire": {"2024": 500.0}},
+            },
+            "menages": {
+                "m0": {"personne_de_reference": ["i0", "i1"]},
+            },
+        },
+    )
+
+    # The implicit O2M link should resolve with target_entity_key='individu'
+    link = ImplicitOne2ManyLink("individus", "menage", "individu")
+    link.attach(sim.populations["menage"])
+    link.resolve(sim.populations)  # Would raise KeyError before the fix
+
+    salaires = link.sum("salaire", "2024")
+    assert numpy.array_equal(salaires, [1500.0])

@@ -190,3 +190,53 @@ class TestBackwardCompatibility:
 
         # Simulation should work fine
         assert sim.persons.count == 2
+
+
+# -- Regression test: non-default person entity key -----------------------
+
+
+class TestNonDefaultPersonKey:
+    """Verify that _resolve_links works when person entity key != 'person'.
+
+    This is a regression test for the France API crash where the person
+    entity is named 'individu' instead of 'person'.
+    """
+
+    def test_resolve_links_with_individu_key(self):
+        """Simulation.__init__ must not crash with entity key 'individu'."""
+        individu = entities.SingleEntity("individu", "individus", "Un individu", "")
+        menage = entities.GroupEntity(
+            "menage",
+            "menages",
+            "Un ménage",
+            "",
+            roles=[{"key": "personne_de_reference"}],
+        )
+        tbs = taxbenefitsystems.TaxBenefitSystem([individu, menage])
+        # This line triggered the KeyError before the fix
+        sim = SimulationBuilder().build_default_simulation(tbs, count=3)
+
+        assert sim.persons.count == 3
+        # Implicit links should be auto-generated with correct keys
+        assert "menage" in sim.persons.links  # individu → menage (M2O)
+        assert (
+            "individus" in sim.populations["menage"].links
+        )  # menage → individus (O2M)
+
+    def test_implicit_link_target_uses_actual_person_key(self):
+        """The O2M link target must be 'individu', not 'person'."""
+        individu = entities.SingleEntity("individu", "individus", "Un individu", "")
+        foyer_fiscal = entities.GroupEntity(
+            "foyer_fiscal",
+            "foyers_fiscaux",
+            "Un foyer fiscal",
+            "",
+            roles=[{"key": "declarant"}],
+        )
+        tbs = taxbenefitsystems.TaxBenefitSystem([individu, foyer_fiscal])
+        sim = SimulationBuilder().build_default_simulation(tbs, count=2)
+
+        o2m_link = sim.populations["foyer_fiscal"].links["individus"]
+        assert o2m_link.target_entity_key == "individu"
+        assert o2m_link.is_resolved
+        assert o2m_link._target_population is sim.persons
