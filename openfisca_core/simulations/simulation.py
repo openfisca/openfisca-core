@@ -92,31 +92,47 @@ class Simulation:
 
         This is called once at ``__init__`` time, after
         ``link_to_entities_instances`` and ``create_shortcuts``.
+
+        Backward-compatible: if an entity has no ``links`` or ``get_link``
+        (e.g. older core or country package), link resolution is skipped for
+        that entity so CI and minimal-dependency setups keep working.
         """
-        from openfisca_core.links.implicit import (
-            ImplicitMany2OneLink,
-            ImplicitOne2ManyLink,
-        )
         from openfisca_core.populations.group_population import GroupPopulation
 
         person_entity = self.persons.entity
+        has_links_api = (
+            getattr(person_entity, "get_link", None) is not None
+            and getattr(person_entity, "add_link", None) is not None
+        )
 
-        # Auto-generate implicit links
-        for population in self.populations.values():
-            if not isinstance(population, GroupPopulation):
-                continue
-            group_key = population.entity.key
+        if has_links_api:
+            from openfisca_core.links.implicit import (
+                ImplicitMany2OneLink,
+                ImplicitOne2ManyLink,
+            )
 
-            # person -> group (Many2One)
-            if not person_entity.get_link(group_key):
-                m2o = ImplicitMany2OneLink(group_key)
-                person_entity.add_link(m2o)
+            # Auto-generate implicit links
+            for population in self.populations.values():
+                if not isinstance(population, GroupPopulation):
+                    continue
+                group_key = population.entity.key
+                group_entity = population.entity
+                if (
+                    getattr(group_entity, "get_link", None) is None
+                    or getattr(group_entity, "add_link", None) is None
+                ):
+                    continue
 
-            # group -> persons (One2Many)
-            o2m_name = person_entity.plural
-            if not population.entity.get_link(o2m_name):
-                o2m = ImplicitOne2ManyLink(o2m_name, group_key, person_entity.key)
-                population.entity.add_link(o2m)
+                # person -> group (Many2One)
+                if not person_entity.get_link(group_key):
+                    m2o = ImplicitMany2OneLink(group_key)
+                    person_entity.add_link(m2o)
+
+                # group -> persons (One2Many)
+                o2m_name = person_entity.plural
+                if not group_entity.get_link(o2m_name):
+                    o2m = ImplicitOne2ManyLink(o2m_name, group_key, person_entity.key)
+                    group_entity.add_link(o2m)
 
         from copy import copy
 
@@ -124,7 +140,10 @@ class Simulation:
         for _key, population in self.populations.items():
             entity = population.entity
             population.links = {}
-            for name, link in entity.links.items():
+            entity_links = getattr(entity, "links", None)
+            if entity_links is None:
+                continue
+            for name, link in entity_links.items():
                 bound_link = copy(link)
                 bound_link.attach(population)
                 bound_link.resolve(self.populations)
