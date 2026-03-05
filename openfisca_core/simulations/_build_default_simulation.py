@@ -67,7 +67,7 @@ class _BuildDefaultSimulation:
         self,
         tax_benefit_system: TaxBenefitSystem,
         count: int,
-        group_members: Mapping[str, NDArray[Any]] | None = None,
+        group_members: dict[str, numpy.ndarray] | None = None,
     ) -> None:
         self.count = count
         self.group_members = group_members
