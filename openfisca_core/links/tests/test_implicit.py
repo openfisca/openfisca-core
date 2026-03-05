@@ -299,3 +299,105 @@ def test_implicit_m2o_project_implicit_rejects_wrong_size():
 
     with pytest.raises(ValueError, match="result size .* does not match"):
         link._project_implicit(numpy.array([1.0, 2.0, 3.0]))  # size 3, neither 1 nor 2
+
+
+def test_implicit_m2o_role_projector_has_has_role():
+    """person.group.role_projector must expose has_role (e.g. for .demandeur.has_role(...)).
+
+    When using an implicit M2O link, the wrapped projector (e.g. .demandeur) is
+    returned as _CallableProxy so it remains callable and also exposes attributes
+    from the original projector (e.g. has_role). Regression test for openfisca-france
+    patterns like individu.famille.demandeur.has_role(FoyerFiscal.DECLARANT_PRINCIPAL).
+    """
+    person = entities.SingleEntity("person", "persons", "A person", "")
+    household = entities.GroupEntity(
+        "household",
+        "households",
+        "A household",
+        "",
+        roles=[{"key": "demandeur", "max": 1}, {"key": "member"}],
+    )
+
+    tbs = taxbenefitsystems.TaxBenefitSystem([person, household])
+
+    class age(variables.Variable):
+        value_type = int
+        entity = person
+        definition_period = periods.DateUnit.YEAR
+
+    tbs.add_variable(age)
+
+    sim = SimulationBuilder().build_from_dict(
+        tbs,
+        {
+            "persons": {
+                "p0": {"age": {"2024": 40}},
+                "p1": {"age": {"2024": 37}},
+                "p2": {"age": {"2024": 54}},
+                "p3": {"age": {"2024": 20}},
+            },
+            "households": {
+                "h0": {"demandeur": ["p0"], "member": ["p0", "p1"]},
+                "h1": {"demandeur": ["p2"], "member": ["p2", "p3"]},
+            },
+        },
+    )
+
+    # person.household.demandeur: must be callable (projector) and have has_role
+    demandeur_proxy = sim.persons.household.demandeur
+    assert callable(demandeur_proxy), "person.household.demandeur must be callable"
+    assert hasattr(
+        demandeur_proxy, "has_role"
+    ), "person.household.demandeur must have has_role"
+
+    # has_role(role) must return a boolean array (one per person)
+    demandeur_role = household.DEMANDEUR
+    is_demandeur = demandeur_proxy.has_role(demandeur_role)
+    assert is_demandeur.shape == (4,), "has_role must return one value per person"
+    # p0 and p2 are demandeurs
+    assert numpy.array_equal(is_demandeur, [True, False, True, False])
+
+    # Callable behaviour unchanged: demandeur('age', period) returns ages projected to persons
+    age_demandeur = demandeur_proxy("age", "2024")
+    assert age_demandeur.shape == (
+        4,
+    ), "Call must return one value per person (projected)"
+    assert numpy.array_equal(age_demandeur, [40, 40, 54, 54])
+
+
+def test_implicit_m2o_sum_returns_person_sized():
+    """person.group.sum(array, role=...) must return person-sized array (projected from entity).
+
+    Regression test for openfisca-france: in an Individu formula,
+    individu.famille.sum(revenu_i, role=Famille.PARENT) must have shape (n_persons,)
+    so it can be combined with other person-sized terms (e.g. base_ressources).
+    """
+    person = entities.SingleEntity("person", "persons", "A person", "")
+    household = entities.GroupEntity(
+        "household",
+        "households",
+        "A household",
+        "",
+        roles=[{"key": "parent", "max": 2}, {"key": "child"}],
+    )
+    tbs = taxbenefitsystems.TaxBenefitSystem([person, household])
+    sim = SimulationBuilder().build_from_dict(
+        tbs,
+        {
+            "persons": {"p0": {}, "p1": {}, "p2": {}, "p3": {}, "p4": {}},
+            "households": {
+                "h0": {"parent": ["p0", "p1"], "child": []},
+                "h1": {"parent": ["p2"], "child": ["p3", "p4"]},
+            },
+        },
+    )
+    # 5 persons, 2 households. Person-sized array (e.g. revenu per person)
+    revenu_i = numpy.array([100.0, 200.0, 300.0, 10.0, 20.0])
+    assert revenu_i.shape == (5,)
+    # person.household.sum(..., role=parent) must return (5,) so each person gets their household's parent sum
+    sum_parent = sim.persons.household.sum(revenu_i, role=household.PARENT)
+    assert sum_parent.shape == (
+        5,
+    ), "sum must be projected to person size (5,) not entity size (2,)"
+    # h0 parents: p0=100, p1=200 -> sum 300. h1 parents: p2=300 -> sum 300.
+    assert numpy.array_equal(sum_parent, [300.0, 300.0, 300.0, 300.0, 300.0])

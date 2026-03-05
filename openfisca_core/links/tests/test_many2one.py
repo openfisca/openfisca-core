@@ -259,3 +259,31 @@ def test_value_nth_person_inconsistent_group_raises(sim):
     link = sim.persons.links["household"]
     with pytest.raises(ValueError, match="Group population .* is inconsistent"):
         link.rank("age", "2024")
+
+
+def test_callable_proxy_preserves_has_role():
+    """_CallableProxy preserves attributes (e.g. has_role) from the wrapped projector.
+
+    Old impl: link returned a bare function, so .demandeur.has_role(...) raised
+    AttributeError. New impl: link returns _CallableProxy(callable, target_attr)
+    so the result is callable and proxies has_role (and other attrs) to the
+    wrapped projector.
+    """
+    from openfisca_core.links.many2one import _CallableProxy
+
+    def call_(*args, **kwargs):
+        return numpy.array([1.0, 2.0, 3.0])
+
+    class MockProjector:
+        def has_role(self, role):
+            return numpy.array([True, False, True])
+
+    wrapped = MockProjector()
+    proxy = _CallableProxy(call_, wrapped)
+
+    assert callable(proxy), "Proxy must be callable"
+    assert hasattr(proxy, "has_role"), "Proxy must expose has_role"
+    out = proxy("age", "2024")
+    assert numpy.array_equal(out, [1.0, 2.0, 3.0])
+    is_role = proxy.has_role(None)
+    assert numpy.array_equal(is_role, [True, False, True])

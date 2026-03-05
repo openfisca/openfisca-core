@@ -48,6 +48,20 @@ class ImplicitMany2OneLink(Many2OneLink):
             f"target entity count ({target.count}) nor target members count ({target.members.count})."
         )
 
+    # Explicit aggregation methods so person.famille.sum(...) always returns person-sized
+    # (found by normal attribute lookup before __getattr__ delegates to target).
+    def sum(self, array, role=None, condition=None):
+        result = self._target_population.sum(array, role=role, condition=condition)
+        return self._project_implicit(result)
+
+    def any(self, array, role=None, condition=None):
+        result = self._target_population.any(array, role=role, condition=condition)
+        return self._project_implicit(result)
+
+    def all(self, array, role=None, condition=None):
+        result = self._target_population.all(array, role=role, condition=condition)
+        return self._project_implicit(result)
+
 
 class ImplicitOne2ManyLink(One2ManyLink):
     """A group → person link using GroupPopulation's internal arrays."""

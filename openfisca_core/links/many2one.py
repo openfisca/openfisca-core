@@ -14,19 +14,66 @@ if TYPE_CHECKING:
 
 
 class _CallableProxy:
-    """Callable that proxies other attributes to the wrapped object (e.g. projector)."""
+    """Callable that proxies other attributes to the wrapped object (e.g. projector).
 
-    __slots__ = ("_call", "_wrapped")
+    When _projection_link is set (implicit M2O), attributes that have a .get()
+    (e.g. .foyer_fiscal) are wrapped so get() results are projected to source (person) size.
+    """
 
-    def __init__(self, call, wrapped):
+    __slots__ = ("_call", "_wrapped", "_projection_link")
+
+    def __init__(self, call, wrapped, projection_link=None):
         self._call = call
         self._wrapped = wrapped
+        self._projection_link = projection_link
 
     def __call__(self, *args, **kwargs):
         return self._call(*args, **kwargs)
 
     def __getattr__(self, name: str):
-        return getattr(self._wrapped, name)
+        attr = getattr(self._wrapped, name)
+        if self._projection_link is None or not hasattr(
+            self._projection_link, "_project_implicit"
+        ):
+            return attr
+        # person.famille.demandeur.foyer_fiscal('x', period): result is entity-sized,
+        # project to person-sized. Wrap both links (.get) and callables (e.g. projectors).
+        if callable(getattr(attr, "get", None)):
+            return _LinkGetProjector(attr, self._projection_link)
+        if callable(attr):
+            link = self._projection_link
+
+            def projected_callable(*args, **kwargs):
+                result = attr(*args, **kwargs)
+                if (
+                    isinstance(result, numpy.ndarray)
+                    and result.size == link._target_population.count
+                ):
+                    return link._project_result(result)
+                return result
+
+            return _CallableProxy(projected_callable, attr, None)
+        return attr
+
+
+class _LinkGetProjector:
+    """Wraps a link so get() results are projected to the outer M2O source size."""
+
+    __slots__ = ("_link", "_outer")
+
+    def __init__(self, link, outer_m2o_link):
+        self._link = link
+        self._outer = outer_m2o_link
+
+    def get(self, variable_name: str, period, options=None):
+        result = self._link.get(variable_name, period, options=options)
+        return self._outer._project_result(result)
+
+    def __call__(self, variable_name: str, period, *, options=None, **kwargs):
+        return self.get(variable_name, period, options=options)
+
+    def __getattr__(self, name: str):
+        return getattr(self._link, name)
 
 
 def _calculate_with_options(simulation, variable_name, period, options):
@@ -150,8 +197,26 @@ class Many2OneLink(Link):
         target_attr = getattr(target_pop, name, None)
         if target_attr is not None:
             # Wrap callables that produce target-level output so we project back to source.
-            # This covers both @projectable methods and Projector instances (e.g. .demandeur).
-            if (hasattr(target_attr, "projectable") or callable(target_attr)) and hasattr(
+            # This covers @projectable methods (sum, any, all, etc.), Projector instances
+            # (e.g. .demandeur), and other callables. For bound methods, "projectable" is
+            # on the underlying function, not the method wrapper.
+            _func = getattr(target_attr, "__func__", target_attr)
+            is_projectable = (
+                hasattr(target_attr, "projectable")
+                or getattr(_func, "projectable", False)
+                or name
+                in (
+                    "sum",
+                    "any",
+                    "all",
+                    "count",
+                    "max",
+                    "min",
+                    "nb_persons",
+                    "reduce",
+                )
+            )
+            if (is_projectable or callable(target_attr)) and hasattr(
                 self, "_project_implicit"
             ):
                 link_self = self
@@ -160,8 +225,9 @@ class Many2OneLink(Link):
                     result = target_attr(*args, **kwargs)
                     return link_self._project_result(result)
 
-                # Preserve attributes (e.g. has_role) so person.famille.demandeur.has_role(...) works
-                return _CallableProxy(projector_function, target_attr)
+                # Preserve attributes (e.g. has_role); wrap link.get() so person.famille.demandeur.foyer_fiscal(...) is person-sized
+                projection_link = self if hasattr(self, "_project_implicit") else None
+                return _CallableProxy(projector_function, target_attr, projection_link)
             return target_attr
 
         target_entity = target_pop.entity
