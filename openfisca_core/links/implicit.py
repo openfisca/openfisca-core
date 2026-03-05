@@ -31,8 +31,15 @@ class ImplicitMany2OneLink(Many2OneLink):
         return self._target_population.members_role
 
     def _project_implicit(self, result: numpy.ndarray) -> numpy.ndarray:
-        # Fully compatible with old Projector logic
-        return self._target_population.project(result)
+        target = self._target_population
+        if result.size == target.count:
+            return target.project(result)
+        if result.size == target.members.count:
+            return result
+        raise ValueError(
+            f"Implicit link projection: result size {result.size} does not match "
+            f"target entity count ({target.count}) nor target members count ({target.members.count})."
+        )
 
 
 class ImplicitOne2ManyLink(One2ManyLink):
