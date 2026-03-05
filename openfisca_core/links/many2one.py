@@ -133,7 +133,11 @@ class Many2OneLink(Link):
 
         target_attr = getattr(target_pop, name, None)
         if target_attr is not None:
-            if hasattr(target_attr, "projectable"):
+            # Wrap callables that produce target-level output so we project back to source.
+            # This covers both @projectable methods and Projector instances (e.g. .demandeur).
+            if (
+                hasattr(target_attr, "projectable") or callable(target_attr)
+            ) and hasattr(self, "_project_implicit"):
 
                 def projector_function(*args, **kwargs):
                     result = target_attr(*args, **kwargs)

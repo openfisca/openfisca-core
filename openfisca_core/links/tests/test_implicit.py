@@ -121,3 +121,55 @@ def test_implicit_one2many_with_non_default_person_key():
 
     salaires = link.sum("salaire", "2024")
     assert numpy.array_equal(salaires, [1500.0])
+
+
+def test_implicit_m2o_role_projector_projected_to_persons():
+    """person.group.projector('var', period) must return one value per person (projected).
+
+    When using an implicit M2O link and a projector (e.g. .first_person or
+    .demandeur), the result is at group level. It must be projected back to
+    the source (person) level so each person gets their group's value.
+    Regression test for projection being skipped when the projector has no
+    'projectable' attribute (Projector instances).
+    """
+    person = entities.SingleEntity("person", "persons", "A person", "")
+    household = entities.GroupEntity(
+        "household", "households", "A household", "", roles=[{"key": "member"}]
+    )
+
+    tbs = taxbenefitsystems.TaxBenefitSystem([person, household])
+
+    class age(variables.Variable):
+        value_type = int
+        entity = person
+        definition_period = periods.DateUnit.YEAR
+
+    class rent(variables.Variable):
+        value_type = float
+        entity = household
+        definition_period = periods.DateUnit.YEAR
+
+    for var in [age, rent]:
+        tbs.add_variable(var)
+
+    sim = SimulationBuilder().build_from_dict(
+        tbs,
+        {
+            "persons": {
+                "p0": {"age": {"2024": 40}},
+                "p1": {"age": {"2024": 37}},
+                "p2": {"age": {"2024": 54}},
+                "p3": {"age": {"2024": 20}},
+            },
+            "households": {
+                "h0": {"member": ["p0", "p1"], "rent": {"2024": 800.0}},
+                "h1": {"member": ["p2", "p3"], "rent": {"2024": 500.0}},
+            },
+        },
+    )
+
+    # person.household.first_person('age', period) = first member's age per household,
+    # projected to persons. p0,p1 in h0 (first p0=40) -> [40, 40]; p2,p3 in h1 (first p2=54) -> [54, 54]
+    age_first = sim.persons.household.first_person("age", "2024")
+    assert age_first.shape == (4,), "Result must be projected to person count"
+    assert numpy.array_equal(age_first, [40, 40, 54, 54])
