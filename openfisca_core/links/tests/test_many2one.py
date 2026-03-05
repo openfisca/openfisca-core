@@ -73,6 +73,52 @@ def sim():
     return sim
 
 
+def test_many2one_get_uses_id_to_rownum():
+    """Many2OneLink.get() uses target population _id_to_rownum when resolving IDs to rows.
+
+    With a non-identity id_to_rownum (e.g. [2, 0, 1]), entity id 0 -> row 2, id 1 -> row 0,
+    id 2 -> row 1. So link.get() must index target values by id_to_rownum[target_id],
+    not by target_id directly.
+    """
+    from openfisca_core import entities, periods, taxbenefitsystems, variables
+    from openfisca_core.links import Many2OneLink
+    from openfisca_core.simulations import SimulationBuilder
+
+    person = entities.SingleEntity("person", "persons", "", "")
+    mother_link = Many2OneLink("mother", "mother_id", "person")
+    person.add_link(mother_link)
+    tbs = taxbenefitsystems.TaxBenefitSystem([person])
+
+    class age(variables.Variable):
+        value_type = int
+        entity = person
+        definition_period = periods.DateUnit.YEAR
+
+    class mother_id(variables.Variable):
+        value_type = int
+        entity = person
+        definition_period = periods.DateUnit.ETERNITY
+        default_value = -1
+
+    tbs.add_variable(age)
+    tbs.add_variable(mother_id)
+
+    sim = SimulationBuilder().build_default_simulation(tbs, count=3)
+    # Ages at rows 0,1,2 = 10, 20, 30
+    sim.set_input("age", "2024", [10, 20, 30])
+    # Person 0 -> mother id 0, person 1 -> mother id 1, person 2 -> mother id 2
+    sim.set_input("mother_id", "2024", [0, 1, 2])
+
+    # Non-identity: entity id 0 -> row 2, id 1 -> row 0, id 2 -> row 1
+    # So id 0 fetches row 2 (age 30), id 1 fetches row 0 (age 10), id 2 fetches row 1 (age 20)
+    sim.persons._id_to_rownum = numpy.array([2, 0, 1], dtype=numpy.intp)
+
+    link = sim.persons.links["mother"]
+    mother_ages = link.get("age", "2024")
+    # Without id_to_rownum we would get [10, 20, 30]; with [2,0,1] we get row 2,0,1 = [30, 10, 20]
+    assert numpy.array_equal(mother_ages, [30.0, 10.0, 20.0])
+
+
 def test_many2one_get_intra_entity(sim):
     """Test person -> person lookup (mother)."""
     link = sim.persons.links["mother"]
