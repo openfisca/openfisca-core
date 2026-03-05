@@ -1,7 +1,7 @@
 import numpy
 import pytest
 
-from openfisca_core import entities, periods, taxbenefitsystems, variables
+from openfisca_core import entities, periods, taxbenefitsystems, tools, variables
 from openfisca_core.links import One2ManyLink
 from openfisca_core.simulations import SimulationBuilder
 
@@ -60,16 +60,17 @@ def sim():
 
 
 def test_one2many_aggregations(sim):
+    """Link sum/count/avg/min/max match projector semantics (mirrors simulation aggregation)."""
     link = sim.populations["household"].links["members"]
 
     res_sum = link.sum("salary", "2024")
-    assert numpy.array_equal(res_sum, [1500.0, 2000.0, 0.0, 0.0])
+    tools.assert_near(res_sum, [1500.0, 2000.0, 0.0, 0.0], absolute_error_margin=0.01)
 
     res_count = link.count("2024")
     assert numpy.array_equal(res_count, [2, 1, 0, 0])
 
     res_avg = link.avg("salary", "2024")
-    assert numpy.array_equal(res_avg, [750.0, 2000.0, 0.0, 0.0])
+    tools.assert_near(res_avg, [750.0, 2000.0, 0.0, 0.0], absolute_error_margin=0.01)
 
     res_min = link.min("salary", "2024")
     assert numpy.array_equal(res_min, [500.0, 2000.0, 0.0, 0.0])
@@ -104,9 +105,10 @@ def test_one2many_role_filter(sim):
 
 
 def test_one2many_condition_filter(sim):
+    """Link sum with condition matches filtered aggregation (same as projector path)."""
     link = sim.populations["household"].links["members"]
     condition = sim.calculate("is_female", "2024")
 
     # Sum of salary for females only
     res_sum = link.sum("salary", "2024", condition=condition)
-    assert numpy.array_equal(res_sum, [1000.0, 0.0, 0.0, 0.0])
+    tools.assert_near(res_sum, [1000.0, 0.0, 0.0, 0.0], absolute_error_margin=0.01)

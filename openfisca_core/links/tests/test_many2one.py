@@ -1,11 +1,14 @@
 import numpy
 import pytest
 
-from openfisca_core import entities, periods, taxbenefitsystems, variables
+from openfisca_core import entities, periods, taxbenefitsystems, tools, variables
 from openfisca_core.links import Many2OneLink
 from openfisca_core.populations import ADD, DIVIDE
 from openfisca_core.populations._errors import IncompatibleOptionsError
 from openfisca_core.simulations import SimulationBuilder
+
+# Period used for options tests (mirrors test_countries.PERIOD)
+PERIOD = periods.period("2024-01")
 
 
 @pytest.fixture
@@ -192,6 +195,45 @@ def test_many2one_chained_call_with_options(sim):
     assert numpy.array_equal(without_options, with_add)
     with_add_get = chained.get("rent", "2024", options=[ADD])
     assert numpy.array_equal(with_add_get, without_options)
+
+
+def test_many2one_get_with_options_divide(sim):
+    """Link.get(..., options=[DIVIDE]) matches projector (mirrors test_calculate_divide)."""
+    link = sim.persons.links["household"]
+    # rent is YEAR; DIVIDE over a month gives rent/12 per person (same as test_countries)
+    result = link.get("rent", PERIOD, options=[DIVIDE])
+    expected = sim.household("rent", PERIOD, options=[DIVIDE])
+    person_household_ids = sim.persons("household_id", PERIOD)
+    expected_per_person = numpy.array(
+        [expected[i] for i in person_household_ids],
+        dtype=expected.dtype,
+    )
+    tools.assert_near(
+        result,
+        expected_per_person,
+        absolute_error_margin=0.01,
+    )
+
+
+def test_many2one_divide_option_with_complex_period(sim):
+    """DIVIDE is only supported for a single subperiod; multi-unit period raises (mirrors test_divide_option_with_complex_period).
+
+    This is intentional: DIVIDE gives e.g. yearly_value/12 for one month, not
+    for a quarter. Simulation.calculate_divide enforces period.size == 1 and
+    raises ValueError with a clear message. The link must propagate the same error.
+    """
+    link = sim.persons.links["household"]
+    quarter = PERIOD.last_3_months  # 3 months → period.size > 1
+
+    with pytest.raises(ValueError) as exc_info:
+        link("rent", quarter, options=[DIVIDE])
+
+    error_message = str(exc_info.value)
+    expected_words = ["Can't", "calculate", "month", "year"]
+    for word in expected_words:
+        assert (
+            word in error_message
+        ), f"Expected '{word}' in error message '{error_message}'"
 
 
 # -- User-facing errors for invalid use ---------------------------------------
