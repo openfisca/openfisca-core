@@ -1,5 +1,13 @@
 # Changelog
 
+## 44.5.1 [#1359](https://github.com/openfisca/openfisca-core/pull/1359)
+
+#### Bug fixes
+
+- Fix `InYamlTestReform` constructor typing for `reformed_parameters`.
+  - Replace `reformed_parameters=dict` with a proper type annotation and a safe `None` default.
+  - Clarify in the docstring that YAML test `parameters` replaces the full parameter tree.
+
 ## 44.5.0 [#1368](https://github.com/openfisca/openfisca-core/pull/1368)
 
 #### New features
