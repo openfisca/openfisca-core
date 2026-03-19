@@ -1,5 +1,3 @@
-PYTHON ?= python
-
 ## Lint the codebase.
 lint: check-syntax-errors check-style lint-doc
 	@$(call print_pass,$@:)
@@ -7,15 +5,15 @@ lint: check-syntax-errors check-style lint-doc
 ## Compile python files to check for syntax errors.
 check-syntax-errors: .
 	@$(call print_help,$@:)
-	@$(PYTHON) -m compileall -q $?
+	@python -m compileall -q $?
 	@$(call print_pass,$@:)
 
 ## Run linters to check for syntax and style errors.
 check-style: $(shell git ls-files "*.py" "*.pyi")
 	@$(call print_help,$@:)
-	@$(PYTHON) -m isort --check $?
-	@$(PYTHON) -m black --check $?
-	@$(PYTHON) -m flake8 $?
+	@python -m isort --check $?
+	@python -m black --check $?
+	@python -m flake8 $?
 	@codespell
 	@$(call print_pass,$@:)
 
@@ -37,14 +35,14 @@ lint-doc-%:
 	@## able to integrate documentation improvements progressively.
 	@##
 	@$(call print_help,$(subst $*,%,$@:))
-	@$(PYTHON) -m flake8 --select=D101,D102,D103,DAR openfisca_core/$*
-	@$(PYTHON) -m pylint openfisca_core/$*
+	@python -m flake8 --select=D101,D102,D103,DAR openfisca_core/$*
+	@python -m pylint openfisca_core/$*
 	@$(call print_pass,$@:)
 
 ## Run static type checkers for type errors.
 check-types:
 	@$(call print_help,$@:)
-	@$(PYTHON) -m mypy \
+	@python -m mypy \
 		openfisca_core/commons \
 		openfisca_core/data_storage \
 		openfisca_core/experimental \
@@ -57,7 +55,7 @@ check-types:
 ## Run code formatters to correct style errors.
 format-style: $(shell git ls-files "*.py" "*.pyi")
 	@$(call print_help,$@:)
-	@$(PYTHON) -m isort $?
-	@$(PYTHON) -m black $?
+	@python -m isort $?
+	@python -m black $?
 	@codespell --write-changes
 	@$(call print_pass,$@:)

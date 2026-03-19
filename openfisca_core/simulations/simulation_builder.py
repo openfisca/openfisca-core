@@ -327,7 +327,6 @@ class SimulationBuilder:
             .add_count()
             .add_ids()
             .add_members_entity_id()
-            .add_id_to_rownum()
             .simulation
         )
 
@@ -660,7 +659,6 @@ class SimulationBuilder:
         if plural_key in self.entity_counts:
             population.count = self.get_count(plural_key)
             population.ids = self.get_ids(plural_key)
-            population._id_to_rownum = numpy.arange(population.count, dtype=numpy.intp)
         if plural_key in self.memberships:
             population.members_entity_id = numpy.array(self.get_memberships(plural_key))
             population.members_role = numpy.array(self.get_roles(plural_key))

@@ -51,5 +51,3 @@ VALUE_TYPES = {
 
 
 FORMULA_NAME_PREFIX = "formula"
-INITIAL_FORMULA_NAME_PREFIX = "initial_formula"
-TRANSITION_FORMULA_NAME_PREFIX = "transition_formula"

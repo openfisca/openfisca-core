@@ -42,12 +42,6 @@ class CorePopulation:
 
     #: The :class:`~simulations.Simulation` for which the population is calculated.
     simulation: None | t.Simulation = None
-    # === Dynamic population helpers (optional) ===
-    _dynamic: bool = False
-    _permanent_ids: None | numpy.ndarray = None
-    _id_to_rownum: None | numpy.ndarray = None
-    _next_id: None | int = None
-    _period_index: None | dict = None
 
     def __init__(self, entity: t.CoreEntity, *__args: object, **__kwds: object) -> None:
         self.entity = entity
@@ -456,32 +450,6 @@ class CorePopulation:
             total_nb_bytes=total_memory_usage,
             by_variable=holders_memory_usage,
         )
-
-    # -- Dynamic population period index helpers -------------------------
-
-    def snapshot_period(self, period: t.PeriodLike) -> None:
-        """Save the current ``_id_to_rownum`` mapping for ``period``.
-
-        If no ``_id_to_rownum`` exists yet, a default identity mapping is
-        created (positions == ids) sized to ``self.count``.
-        """
-        if self._period_index is None:
-            self._period_index = {}
-
-        if self._id_to_rownum is None:
-            # Default identity mapping: id -> row (0..count-1)
-            self._id_to_rownum = numpy.arange(self.count, dtype=numpy.intp)
-
-        self._period_index[periods.period(period)] = self._id_to_rownum.copy()
-
-    def get_period_id_to_rownum(self, period: t.PeriodLike) -> None | numpy.ndarray:
-        """Return the saved ``id -> rownum`` mapping for ``period`` or ``None``.
-
-        Returns ``None`` when no index was saved for that period.
-        """
-        if self._period_index is None:
-            return None
-        return self._period_index.get(periods.period(period))
 
 
 __all__ = ["CorePopulation"]
