@@ -4,8 +4,33 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy
+
 if TYPE_CHECKING:
-    import numpy
+    import numpy as np
+
+
+def _role_matches(role_array: np.ndarray, role_value) -> np.ndarray:
+    """Return a boolean mask where role_array matches role_value.
+
+    Supports Role objects (compared by .key) and raw values (compared by ==).
+    """
+    if hasattr(role_value, "key"):
+        role_key = role_value.key
+        return numpy.array(
+            [
+                (r.key == role_key if hasattr(r, "key") else r == role_key)
+                for r in role_array
+            ]
+        )
+    if getattr(role_array, "dtype", None) == object:
+        return numpy.array(
+            [
+                (r.key == role_value if hasattr(r, "key") else r == role_value)
+                for r in role_array
+            ]
+        )
+    return role_array == role_value
 
 
 class Link:
@@ -106,4 +131,4 @@ class Link:
         )
 
 
-__all__ = ["Link"]
+__all__ = ["Link", "_role_matches"]

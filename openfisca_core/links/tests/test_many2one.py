@@ -2,6 +2,7 @@ import numpy
 import pytest
 
 from openfisca_core import entities, periods, taxbenefitsystems, tools, variables
+from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.links import Many2OneLink
 from openfisca_core.populations import ADD, DIVIDE
 from openfisca_core.populations._errors import IncompatibleOptionsError
@@ -146,6 +147,51 @@ def test_many2one_get_inter_entity(sim):
     # 2 -> hh 1 -> rent 500
     # 3 -> hh 1 -> rent 500
     assert numpy.array_equal(h_rents, [800.0, 800.0, 500.0, 500.0])
+
+
+def test_many2one_get_enum_variable_returns_enum_array():
+    """Many2OneLink.get should preserve EnumArray when projecting target enums."""
+    person = entities.SingleEntity("person", "persons", "A person", "")
+    household = entities.GroupEntity(
+        "household", "households", "A household", "", roles=[{"key": "member"}]
+    )
+    household_link = Many2OneLink("household", "household_id", "household")
+    person.add_link(household_link)
+    tbs = taxbenefitsystems.TaxBenefitSystem([person, household])
+
+    class occupancy_status(Enum):
+        tenant = "Tenant"
+        owner = "Owner"
+
+    class household_id(variables.Variable):
+        value_type = int
+        entity = person
+        definition_period = periods.DateUnit.ETERNITY
+        default_value = -1
+
+    class occupancy(variables.Variable):
+        value_type = Enum
+        possible_values = occupancy_status
+        default_value = occupancy_status.tenant
+        entity = household
+        definition_period = periods.DateUnit.YEAR
+
+    tbs.add_variable(household_id)
+    tbs.add_variable(occupancy)
+
+    sim = SimulationBuilder().build_default_simulation(
+        tbs,
+        count=3,
+        group_members={"household": numpy.array([0, 1, 1])},
+    )
+    sim.set_input("household_id", "2024", [0, 1, 1])
+    sim.set_input("occupancy", "2024", ["tenant", "owner"])
+
+    result = sim.persons.links["household"].get("occupancy", "2024")
+    assert isinstance(result, EnumArray)
+    numpy.testing.assert_array_equal(
+        result.decode_to_str(), ["tenant", "owner", "owner"]
+    )
 
 
 def test_many2one_chaining(sim):

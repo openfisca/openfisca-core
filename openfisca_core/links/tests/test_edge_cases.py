@@ -154,6 +154,51 @@ class TestUnresolvedLink:
         with pytest.raises((AttributeError, TypeError)):
             link.get("salary", "2024")
 
+    def test_unresolved_link_missing_target_entity(self):
+        """resolve() should raise a clear KeyError when target entity is absent."""
+        link = Many2OneLink("broken", "mother_id", "unknown_entity")
+        with pytest.raises(KeyError, match="unknown_entity"):
+            link.resolve({})
+
+
+class TestLinkFieldNotFound:
+    def test_many2one_unknown_link_field_raises_clear_error(self):
+        """Unknown link_field should include link name and field in the error."""
+        broken_link = Many2OneLink("mother", "nonexistent_variable", "person")
+        _, sim = _make_tbs_and_sim(n_persons=2, person_links=[broken_link])
+        sim.set_input("salary", "2024", [100.0, 200.0])
+
+        with pytest.raises(Exception) as exc_info:
+            sim.persons.links["mother"].get("salary", "2024")
+
+        message = str(exc_info.value)
+        assert "mother" in message
+        assert "nonexistent_variable" in message
+
+
+class TestIdToRownumPartial:
+    def test_id_to_rownum_valid_mapping(self):
+        """A non-identity id_to_rownum mapping should be applied correctly."""
+        mother_link = Many2OneLink("mother", "mother_id", "person")
+        _, sim = _make_tbs_and_sim(n_persons=3, person_links=[mother_link])
+        sim.set_input("salary", "2024", [10.0, 20.0, 30.0])
+        sim.set_input("mother_id", "2024", [0, 1, 2])
+        sim.persons._id_to_rownum = numpy.array([2, 0, 1], dtype=numpy.intp)
+
+        result = sim.persons.links["mother"].get("salary", "2024")
+        numpy.testing.assert_array_equal(result, [30.0, 10.0, 20.0])
+
+    def test_id_to_rownum_out_of_bounds_uses_default(self):
+        """IDs outside id_to_rownum bounds should resolve to variable default."""
+        mother_link = Many2OneLink("mother", "mother_id", "person")
+        _, sim = _make_tbs_and_sim(n_persons=3, person_links=[mother_link])
+        sim.set_input("salary", "2024", [10.0, 20.0, 30.0])
+        sim.set_input("mother_id", "2024", [0, 99, 2])
+        sim.persons._id_to_rownum = numpy.array([2, 0, 1], dtype=numpy.intp)
+
+        result = sim.persons.links["mother"].get("salary", "2024")
+        numpy.testing.assert_array_equal(result, [30.0, 0.0, 20.0])
+
 
 # ──────────────────────────────────────────────────────────────
 # 4. Condition all-False / all-True

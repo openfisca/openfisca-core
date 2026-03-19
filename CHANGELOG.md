@@ -30,6 +30,21 @@
 - Fix false `SpiralError` when a `transition_formula` reads its own variable at the previous period.
   - The existing spiral detector raised `SpiralError` immediately when the same variable appeared in the call stack at any different period, which always triggers for temporal recursion (`V@P` → `V@P-1` → `V@P-2`).
   - Fix: in `_calculate_transition`, the cycle check is replaced by `_check_for_strict_cycle`, which only raises `CycleError` for the exact same `(variable, period)` pair. Termination is guaranteed by `_as_of_transition_computed`.
+- Post-44.2.2 audit hardening for links, as_of holders, and group population shape handling.
+  - `GroupPopulation.set_members_entity_id` now raises a clear `ValueError` when called with an empty array.
+  - `Many2OneLink._get_target_ids` now preserves original exception type and adds link context (`link` name + `link_field`) to the raised message.
+  - Role matching logic used by `Many2OneLink` and implicit links is now centralized in `links._role_matches` to avoid divergence.
+  - Chained many-to-one getters now support multi-hop composition (e.g. `person.mother.mother.household`).
+
+#### Technical changes
+
+- Clarify as_of snapshot-cache semantics: FIFO eviction (oldest inserted), not LRU.
+- Add regression tests for:
+  - `link_field` not found errors and partial `_id_to_rownum` mappings.
+  - enum variable projection through `Many2OneLink`.
+  - three-level chained links.
+  - FIFO snapshot eviction, retroactive patch invalidation, backward reads after forward reads, and `set_input_sparse` error messaging.
+  - non-contiguous and empty `members_entity_id` handling.
 
 ## 44.4.1
 

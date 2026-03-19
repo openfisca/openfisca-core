@@ -240,3 +240,49 @@ class TestNonDefaultPersonKey:
         assert o2m_link.target_entity_key == "individu"
         assert o2m_link.is_resolved
         assert o2m_link._target_population is sim.persons
+
+
+def test_chained_link_three_levels():
+    """person -> mother -> mother -> household should compose correctly."""
+    person = entities.SingleEntity("person", "persons", "A person", "")
+    household = entities.GroupEntity(
+        "household", "households", "A household", "", roles=[{"key": "member"}]
+    )
+
+    person.add_link(Many2OneLink("mother", "mother_id", "person"))
+    person.add_link(Many2OneLink("household", "household_id", "household"))
+
+    tbs = taxbenefitsystems.TaxBenefitSystem([person, household])
+
+    class mother_id(variables.Variable):
+        value_type = int
+        entity = person
+        definition_period = periods.DateUnit.ETERNITY
+        default_value = -1
+
+    class household_id(variables.Variable):
+        value_type = int
+        entity = person
+        definition_period = periods.DateUnit.ETERNITY
+        default_value = -1
+
+    class rent(variables.Variable):
+        value_type = float
+        entity = household
+        definition_period = periods.DateUnit.YEAR
+
+    tbs.add_variable(mother_id)
+    tbs.add_variable(household_id)
+    tbs.add_variable(rent)
+
+    sim = SimulationBuilder().build_default_simulation(
+        tbs,
+        count=3,
+        group_members={"household": [0, 0, 0]},
+    )
+    sim.set_input("mother_id", "2024", [1, 2, -1])
+    sim.set_input("household_id", "2024", [-1, -1, 0])
+    sim.set_input("rent", "2024", [700.0])
+
+    result = sim.persons.links["mother"].mother.household.get("rent", "2024")
+    assert result[0] == pytest.approx(700.0)

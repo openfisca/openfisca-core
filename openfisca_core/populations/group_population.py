@@ -81,6 +81,10 @@ class GroupPopulation(Population):
                 0-based contiguous (0 .. K-1 for K groups).
         """
         arr = numpy.asarray(members_entity_id, dtype=numpy.int32)
+        if len(arr) == 0:
+            raise ValueError(
+                "members_entity_id cannot be empty — at least one member is required."
+            )
         self._members_entity_id = arr
         self.count = int(numpy.max(arr)) + 1
         self._members_position = None

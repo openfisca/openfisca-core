@@ -39,7 +39,7 @@ class Holder:
             # _as_of_base_instant   : Instant at which the base was established.
             # _as_of_patches        : sorted list of (Instant, idx_array, val_array).
             # _as_of_patch_instants : parallel list of Instants for bisect.
-            # _as_of_snapshots      : LRU OrderedDict  instant → (array, patch_idx).
+            # _as_of_snapshots      : FIFO OrderedDict instant → (array, patch_idx).
             # _as_of_max_snapshots  : maximum number of snapshots to keep.
             self._as_of_base = None
             self._as_of_base_instant = None
@@ -151,17 +151,21 @@ class Holder:
         return self._reconstruct_at(target)
 
     def _cache_snapshot(self, instant, array, patch_idx) -> None:
-        """Insert (or refresh) a snapshot in the LRU cache, evicting the least
-        recently used entry if the cache is full."""
+        """Insert (or refresh) a snapshot in the FIFO cache, evicting the oldest
+        entry if the cache is full.
+
+        Note: eviction is FIFO (oldest inserted), not LRU. This is optimal for
+        forward-sequential simulations where older snapshots are never reused.
+        For backward-access patterns the cache will be less effective.
+        """
         self._as_of_snapshots[instant] = (array, patch_idx)
-        self._as_of_snapshots.move_to_end(instant)
         if len(self._as_of_snapshots) > self._as_of_max_snapshots:
-            self._as_of_snapshots.popitem(last=False)  # evict LRU
+            self._as_of_snapshots.popitem(last=False)  # evict oldest (FIFO)
 
     def _reconstruct_at(self, target_instant):
         """Reconstruct the dense array at target_instant from base + patches.
 
-        Uses a multi-snapshot LRU cache for O(k) incremental cost.
+        Uses a multi-snapshot FIFO snapshot cache for O(k) incremental cost.
         Falls back to O(N + k*P) full reconstruction when no usable snapshot
         exists (e.g. backward jump past all cached snapshots).
 
@@ -178,7 +182,6 @@ class Holder:
         # Exact cache hit — O(1).
         if target_instant in self._as_of_snapshots:
             array, _ = self._as_of_snapshots[target_instant]
-            self._as_of_snapshots.move_to_end(target_instant)
             return array
 
         # Find best starting snapshot: latest snap_instant < target_instant.

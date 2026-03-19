@@ -17,6 +17,8 @@ from openfisca_core.entities import Entity
 from openfisca_core.holders import Holder
 from openfisca_core.periods import DateUnit, period
 from openfisca_core.populations import Population
+from openfisca_core.simulations import Simulation
+from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_core.variables import Variable
 
 # ---------------------------------------------------------------------------
@@ -79,6 +81,19 @@ def _make_holder_with_memory_config(variable_class, asof_max_snapshots, count=2)
     population.simulation = _StubSimulation()
     population.count = count
     return Holder(var, population)
+
+
+def _make_simulation(*variable_classes, count: int = 3) -> Simulation:
+    """Build a minimal Simulation with the given variable classes."""
+    tbs = TaxBenefitSystem([_entity])
+    person_entity = tbs.person_entity
+    for vc in variable_classes:
+        tbs.add_variable(vc)
+    pop = Population(person_entity)
+    pop.count = count
+    pop.ids = [str(i) for i in range(count)]
+    sim = Simulation(tbs, {person_entity.key: pop})
+    return sim
 
 
 # ---------------------------------------------------------------------------
@@ -561,3 +576,127 @@ def test_lru_multi_snapshot_non_linear_access():
         holder.get_array(period("2023-03")), [0, 0]  # before any patch → base
     )
     numpy.testing.assert_array_equal(holder.get_array(period("2024-02")), [2, 20])
+
+
+def test_asof_snapshot_fifo_eviction_order():
+    """Only the two most recently inserted snapshots should remain in cache."""
+
+    class _TinySnapshotVariable(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+        snapshot_count = 2
+
+    holder = _make_holder(_TinySnapshotVariable, count=2)
+    holder.set_input("2024-01", numpy.array([1, 10]))
+    holder.set_input("2024-02", numpy.array([2, 20]))
+    holder.set_input("2024-03", numpy.array([3, 30]))
+    holder.set_input("2024-04", numpy.array([4, 40]))
+    holder.set_input("2024-05", numpy.array([5, 50]))
+
+    cached_instants = list(holder._as_of_snapshots.keys())
+    expected = [period("2024-04").start, period("2024-05").start]
+    assert cached_instants == expected
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-01")), [1, 10])
+
+
+def test_asof_snapshot_eviction_is_fifo_not_lru():
+    """Reading an old snapshot must not protect it from eviction."""
+
+    class _TinySnapshotVariable(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+        snapshot_count = 3
+
+    holder = _make_holder(_TinySnapshotVariable, count=2)
+    holder.set_input("2024-01", numpy.array([1, 10]))
+    holder.set_input("2024-02", numpy.array([2, 20]))
+    holder.set_input("2024-03", numpy.array([3, 30]))
+    assert list(holder._as_of_snapshots.keys()) == [
+        period("2024-01").start,
+        period("2024-02").start,
+        period("2024-03").start,
+    ]
+
+    # Touch the oldest snapshot while it is still cached.
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-01")), [1, 10])
+    holder.set_input("2024-04", numpy.array([4, 40]))
+
+    cached_instants = list(holder._as_of_snapshots.keys())
+    assert period("2024-01").start not in cached_instants
+    assert period("2024-02").start in cached_instants
+
+
+def test_asof_retroactive_patch_evicts_later_snapshots():
+    """A retroactive patch should evict later snapshots that became stale."""
+    holder = _make_holder(_AsOfIntVariable, count=2)
+    holder.set_input("2024-01", numpy.array([10, 20]))  # base
+    holder.set_input("2024-03", numpy.array([10, 30]))  # patch at Mar
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-03")), [10, 30])
+    assert period("2024-03").start in holder._as_of_snapshots
+
+    holder.set_input("2024-02", numpy.array([99, 20]))  # retroactive patch
+    assert period("2024-03").start not in holder._as_of_snapshots
+
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-03")), [99, 30])
+
+
+def test_asof_retroactive_patch_value_correctness():
+    """Values should reflect base + retroactive patch + later patch in order."""
+    holder = _make_holder(_AsOfIntVariable, count=2)
+    holder.set_input("2024-01", numpy.array([10, 20]))  # base
+    holder.set_input("2024-03", numpy.array([10, 30]))  # mar patch
+    holder.set_input("2024-02", numpy.array([99, 20]))  # feb retro patch
+
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-01")), [10, 20])
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-02")), [99, 20])
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-03")), [99, 30])
+
+
+def test_asof_backward_access_after_forward_is_correct():
+    """Backward jump after forward read should still return the base state."""
+    holder = _make_holder(_AsOfIntVariable, count=2)
+    holder.set_input("2024-01", numpy.array([10, 20]))
+    holder.set_input("2024-03", numpy.array([99, 20]))
+
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-03")), [99, 20])
+    numpy.testing.assert_array_equal(holder.get_array(period("2024-01")), [10, 20])
+
+
+def test_set_input_sparse_without_base_raises_clear_error():
+    """set_input_sparse before base should mention set_input requirement."""
+    holder = _make_holder(_AsOfIntVariable)
+    with pytest.raises(ValueError, match="set_input first"):
+        holder.set_input_sparse("2024-01", numpy.array([0]), numpy.array([42]))
+
+
+def test_initial_formula_runs_before_transition_formula():
+    """initial_formula seeds P1; transition_formula is then used on P2/P3."""
+    call_counts = {"initial": 0, "transition": 0}
+
+    class Score(Variable):
+        entity = _entity
+        definition_period = DateUnit.MONTH
+        value_type = int
+        as_of = "start"
+
+        def initial_formula(person, period):  # noqa: N805
+            call_counts["initial"] += 1
+            return numpy.array([100, 100, 100])
+
+        def transition_formula(person, period):  # noqa: N805
+            call_counts["transition"] += 1
+            previous = person("Score", period.last_month)
+            idx = numpy.arange(len(previous))
+            return idx, previous + 1
+
+    sim = _make_simulation(Score)
+    numpy.testing.assert_array_equal(sim.calculate("Score", "2024-01"), [100, 100, 100])
+    numpy.testing.assert_array_equal(sim.calculate("Score", "2024-02"), [101, 101, 101])
+    numpy.testing.assert_array_equal(sim.calculate("Score", "2024-03"), [102, 102, 102])
+
+    assert call_counts["initial"] == 1
+    assert call_counts["transition"] == 2

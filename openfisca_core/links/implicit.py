@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy
 
+from .link import _role_matches
 from .many2one import Many2OneLink
 from .one2many import One2ManyLink
 
@@ -86,19 +87,7 @@ class ImplicitOne2ManyLink(One2ManyLink):
 
         if role is not None:
             roles = self._source_population.members_role
-            # roles may be an object array of Role instances, so compare by key
-            if roles.dtype == object:
-                try:
-                    keys = numpy.fromiter(
-                        (getattr(x, "key", x) for x in roles),
-                        dtype=object,
-                    )
-                except Exception:
-                    mask &= roles == role
-                else:
-                    mask &= keys == role
-            else:
-                mask &= roles == role
+            mask &= _role_matches(roles, role)
 
         if condition is not None:
             mask &= condition

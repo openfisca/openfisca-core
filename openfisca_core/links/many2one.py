@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 import numpy
 
-from .link import Link
+from .link import Link, _role_matches
 
 if TYPE_CHECKING:
     pass
@@ -266,20 +266,7 @@ class Many2OneLink(Link):
             msg = f"Link '{self.name}' has no role_field"
             raise ValueError(msg)
 
-        # if array holds object references, convert to their keys
-        if r.dtype == object:
-            try:
-                keys = numpy.fromiter(
-                    (getattr(x, "key", x) for x in r),
-                    dtype=object,
-                )
-            except Exception:
-                # fallback to direct comparison
-                return r == role_value
-            return keys == role_value
-
-        # numpy will perform elementwise comparison for numeric or string
-        return r == role_value
+        return _role_matches(r, role_value)
 
     # -- role-based access --------------------------------------------------
 
@@ -321,10 +308,17 @@ class Many2OneLink(Link):
 
     def _get_target_ids(self, period) -> numpy.ndarray:
         """Fetch the target IDs from the link_field variable."""
-        return self._source_population.simulation.calculate(
-            self.link_field,
-            period,
-        )
+        try:
+            return self._source_population.simulation.calculate(
+                self.link_field,
+                period,
+            )
+        except Exception as e:
+            e.args = (
+                f"In link '{self.name}': could not resolve link_field "
+                f"'{self.link_field}'. Original error: {e}",
+            )
+            raise
 
     def _resolve_ids(self, target_ids: numpy.ndarray) -> numpy.ndarray:
         """Convert target IDs to row indices.
@@ -381,9 +375,16 @@ class Many2OneLink(Link):
 class _ChainedGetter:
     """Intermediate object for link chaining: ``person.mother.household``."""
 
-    def __init__(self, outer_link: Many2OneLink, inner_link: Link) -> None:
+    def __init__(
+        self,
+        outer_link: Many2OneLink,
+        inner_link: Link,
+        *,
+        chain: list[Link] | None = None,
+    ) -> None:
         self._outer = outer_link
         self._inner = inner_link
+        self._chain = chain if chain is not None else [outer_link, inner_link]
 
     def get(
         self,
@@ -392,23 +393,25 @@ class _ChainedGetter:
         options=None,
     ) -> numpy.ndarray:
         """Resolve ``person.mother.household.get("rent", period)``."""
-        # 1. Resolve inner link value on inner entity
-        inner_values = self._inner.get(variable_name, period, options=options)
+        from openfisca_core.indexed_enums import EnumArray
 
-        # 2. Map back through outer link
-        target_ids = self._outer._source_population.simulation.calculate(
-            self._outer.link_field,
-            period,
-        )
-        target_rows = self._outer._resolve_ids(target_ids)
-
-        result = numpy.full(
-            self._outer._source_population.count,
-            0,
-            dtype=inner_values.dtype,
-        )
-        valid = target_rows >= 0
-        result[valid] = inner_values[target_rows[valid]]
+        result = self._chain[-1].get(variable_name, period, options=options)
+        for link in reversed(self._chain[:-1]):
+            target_ids = link._source_population.simulation.calculate(
+                link.link_field,
+                period,
+            )
+            target_rows = link._resolve_ids(target_ids)
+            mapped = numpy.full(
+                link._source_population.count,
+                0,
+                dtype=result.dtype,
+            )
+            valid = target_rows >= 0
+            mapped[valid] = result[target_rows[valid]]
+            if isinstance(result, EnumArray):
+                mapped = EnumArray(mapped, result.possible_values)
+            result = mapped
         return result
 
     def __call__(
@@ -433,7 +436,11 @@ class _ChainedGetter:
 
         if hasattr(target_pop, "links") and name in target_pop.links:
             next_link = target_pop.links[name]
-            return _ChainedGetter(self._outer, next_link)
+            return _ChainedGetter(
+                self._outer,
+                next_link,
+                chain=self._chain + [next_link],
+            )
 
         target_entity = target_pop.entity
         raise AttributeError(f"Entity '{target_entity.key}' has no link named '{name}'")
