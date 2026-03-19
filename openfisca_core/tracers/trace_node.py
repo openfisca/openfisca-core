@@ -27,11 +27,6 @@ class TraceNode:
     #: The value of the node.
     value: None | t.VarArray = None
 
-    #: The type of formula that produced this node.
-    #: None for regular formulas, "transition" for transition_formula,
-    #: "initial" for initial_formula.
-    formula_type: str | None = None
-
     #: The start time of the node.
     start: t.Time = 0.0
 

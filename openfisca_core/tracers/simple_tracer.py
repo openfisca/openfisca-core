@@ -37,9 +37,6 @@ class SimpleTracer:
         """
         self.stack.append({"name": variable, "period": period})
 
-    def record_formula_type(self, formula_type: str) -> None:
-        """Ignore formula type (no-op for SimpleTracer)."""
-
     def record_calculation_result(self, value: t.ArrayLike[object]) -> None:
         """Ignore calculation result."""
 

@@ -476,9 +476,6 @@ class TraceNode(Protocol):
     def end(self, /) -> Time: ...
 
     @property
-    def formula_type(self, /) -> str | None: ...
-
-    @property
     def name(self, /) -> str: ...
 
     @property

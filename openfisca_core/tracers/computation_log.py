@@ -20,7 +20,6 @@ class ComputationLog:
         max_depth: int = sys.maxsize,
         ignore_default: bool = False,
         tax_benefit_system: t.TaxBenefitSystem | None = None,
-        show_formula_type: bool = False,
     ) -> list[str]:
         """Generate lines for the computation log.
 
@@ -38,13 +37,7 @@ class ComputationLog:
 
         lines_by_tree = [
             self._get_node_log(
-                node,
-                depth,
-                aggregate,
-                max_depth,
-                ignore_default,
-                tax_benefit_system,
-                show_formula_type,
+                node, depth, aggregate, max_depth, ignore_default, tax_benefit_system
             )
             for node in self._full_tracer.trees
         ]
@@ -57,7 +50,6 @@ class ComputationLog:
         max_depth: int = sys.maxsize,
         ignore_default: bool = False,
         tax_benefit_system: t.TaxBenefitSystem | None = None,
-        show_formula_type: bool = False,
     ) -> None:
         """Print the computation log of a simulation.
 
@@ -80,7 +72,7 @@ class ComputationLog:
         its children are also hidden, even if they have non-default values.
         """
         for line in self.lines(
-            aggregate, max_depth, ignore_default, tax_benefit_system, show_formula_type
+            aggregate, max_depth, ignore_default, tax_benefit_system
         ):
             print(line)  # noqa: T201
 
@@ -92,7 +84,6 @@ class ComputationLog:
         max_depth: int = sys.maxsize,
         ignore_default: bool = False,
         tax_benefit_system: t.TaxBenefitSystem | None = None,
-        show_formula_type: bool = False,
     ) -> list[str]:
         if depth > max_depth:
             return []
@@ -102,7 +93,7 @@ class ComputationLog:
             # Don't display this node or its children
             return []
 
-        node_log = [self._print_line(depth, node, aggregate, show_formula_type)]
+        node_log = [self._print_line(depth, node, aggregate)]
 
         children_logs = [
             self._get_node_log(
@@ -112,7 +103,6 @@ class ComputationLog:
                 max_depth,
                 ignore_default,
                 tax_benefit_system,
-                show_formula_type,
             )
             for child in node.children
         ]
@@ -167,13 +157,7 @@ class ComputationLog:
             # If we can't determine, assume not default to be safe
             return False
 
-    def _print_line(
-        self,
-        depth: int,
-        node: t.TraceNode,
-        aggregate: bool,
-        show_formula_type: bool = False,
-    ) -> str:
+    def _print_line(self, depth: int, node: t.TraceNode, aggregate: bool) -> str:
         indent = "  " * depth
         value = node.value
 
@@ -198,12 +182,7 @@ class ComputationLog:
         else:
             formatted_value = self.display(value)
 
-        type_tag = (
-            f" [{node.formula_type}]"
-            if show_formula_type and node.formula_type is not None
-            else ""
-        )
-        return f"{indent}{node.name}<{node.period}>{type_tag} >> {formatted_value}"
+        return f"{indent}{node.name}<{node.period}> >> {formatted_value}"
 
     @staticmethod
     def display(value: t.VarArray, max_depth: int = sys.maxsize) -> str:

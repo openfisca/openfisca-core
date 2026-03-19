@@ -47,9 +47,6 @@ class CoreEntity:
     #: A ``TaxBenefitSystem`` instance.
     _tax_benefit_system: None | t.TaxBenefitSystem = None
 
-    #: Named links to other entities (Many2One, One2Many, etc.).
-    _links: dict
-
     @abc.abstractmethod
     def __init__(self, *__args: object, **__kwargs: object) -> None: ...
 
@@ -59,43 +56,6 @@ class CoreEntity:
     def set_tax_benefit_system(self, tax_benefit_system: t.TaxBenefitSystem) -> None:
         """A ``CoreEntity`` belongs to a ``TaxBenefitSystem``."""
         self._tax_benefit_system = tax_benefit_system
-
-    # -- Link management --------------------------------------------------
-
-    def add_link(self, link) -> None:
-        """Register a named link on this entity.
-
-        Args:
-            link: A ``Link`` instance (Many2OneLink, One2ManyLink, etc.).
-
-        Example::
-
-            from openfisca_core.links import Many2OneLink
-
-            mother = Many2OneLink(
-                name="mother",
-                link_field="mother_id",
-                target_entity_key="person",
-            )
-            person_entity.add_link(mother)
-
-        """
-        if not hasattr(self, "_links") or self._links is None:
-            self._links = {}
-        self._links[link.name] = link
-
-    def get_link(self, name: str):
-        """Retrieve a link by name, or ``None`` if not found."""
-        if not hasattr(self, "_links") or self._links is None:
-            return None
-        return self._links.get(name)
-
-    @property
-    def links(self) -> dict:
-        """All links registered on this entity."""
-        if not hasattr(self, "_links") or self._links is None:
-            self._links = {}
-        return self._links
 
     def get_variable(
         self,

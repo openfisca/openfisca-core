@@ -3,10 +3,8 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any
 
-import bisect
 import os
 import warnings
-from collections import OrderedDict
 
 import numpy
 import psutil
@@ -31,36 +29,7 @@ class Holder:
         self.variable = variable
         self.simulation = population.simulation
         self._eternal = self.variable.definition_period == periods.DateUnit.ETERNITY
-        self._as_of = getattr(self.variable, "as_of", False)
         self._memory_storage = storage.InMemoryStorage(is_eternal=self._eternal)
-        if self._as_of:
-            # Sparse patch storage.
-            # _as_of_base           : first full array set (read-only).
-            # _as_of_base_instant   : Instant at which the base was established.
-            # _as_of_patches        : sorted list of (Instant, idx_array, val_array).
-            # _as_of_patch_instants : parallel list of Instants for bisect.
-            # _as_of_snapshots      : LRU OrderedDict  instant → (array, patch_idx).
-            # _as_of_max_snapshots  : maximum number of snapshots to keep.
-            self._as_of_base = None
-            self._as_of_base_instant = None
-            self._as_of_patches: list = []
-            self._as_of_patch_instants: list = []
-            self._as_of_snapshots: OrderedDict = OrderedDict()
-            # Resolution order: variable.snapshot_count > MemoryConfig.asof_max_snapshots > 3
-            _mc = self.simulation.memory_config if self.simulation else None
-            self._as_of_max_snapshots: int = next(
-                (
-                    v
-                    for v in [
-                        getattr(self.variable, "snapshot_count", None),
-                        getattr(_mc, "asof_max_snapshots", None),
-                    ]
-                    if v is not None
-                ),
-                3,
-            )
-            # Instants for which transition_formula has already been applied.
-            self._as_of_transition_computed: set = set()
 
         # By default, do not activate on-disk storage, or variable dropping
         self._disk_storage = None
@@ -84,19 +53,6 @@ class Holder:
         for key, value in self.__dict__.items():
             if key not in ("population", "formula", "simulation"):
                 new_dict[key] = value
-
-        if self._as_of:
-            # _as_of_base is read-only and can be shared between clones.
-            # Patch lists must be independent so that writes to the clone
-            # don't corrupt the original's list, but the inner arrays (idx/vals)
-            # are read-only and can be shared.
-            new_dict["_as_of_patches"] = list(self._as_of_patches)
-            new_dict["_as_of_patch_instants"] = list(self._as_of_patch_instants)
-            # Snapshots are not cloned: first access will reconstruct cheaply.
-            new_dict["_as_of_snapshots"] = OrderedDict()
-            new_dict["_as_of_transition_computed"] = set(
-                self._as_of_transition_computed
-            )
 
         new_dict["population"] = population
         new_dict["simulation"] = population.simulation
@@ -131,208 +87,12 @@ class Holder:
         """
         if self.variable.is_neutralized:
             return self.default_array()
-        if self._as_of:
-            # Patch-based storage: bypass _memory_storage entirely.
-            return self._get_as_of(period)
         value = self._memory_storage.get(period)
         if value is not None:
             return value
-        if self._as_of:
-            value = self._get_as_of(period)
-            if value is not None:
-                return value
         if self._disk_storage:
             return self._disk_storage.get(period)
         return None
-
-    def _get_as_of(self, period):
-        """Return the reconstructed array as-of the reference instant of period."""
-        target = period.start if self._as_of == "start" else period.stop
-        return self._reconstruct_at(target)
-
-    def _cache_snapshot(self, instant, array, patch_idx) -> None:
-        """Insert (or refresh) a snapshot in the LRU cache, evicting the least
-        recently used entry if the cache is full."""
-        self._as_of_snapshots[instant] = (array, patch_idx)
-        self._as_of_snapshots.move_to_end(instant)
-        if len(self._as_of_snapshots) > self._as_of_max_snapshots:
-            self._as_of_snapshots.popitem(last=False)  # evict LRU
-
-    def _reconstruct_at(self, target_instant):
-        """Reconstruct the dense array at target_instant from base + patches.
-
-        Uses a multi-snapshot LRU cache for O(k) incremental cost.
-        Falls back to O(N + k*P) full reconstruction when no usable snapshot
-        exists (e.g. backward jump past all cached snapshots).
-
-        Returns None if no base has been set yet, or if target_instant is
-        before the base was established.
-        """
-        if self._as_of_base is None or target_instant < self._as_of_base_instant:
-            return None
-
-        # Number of patches that apply: all with instant <= target.
-        pos = bisect.bisect_right(self._as_of_patch_instants, target_instant)
-        last_patch_idx = pos - 1  # -1 means only the base applies
-
-        # Exact cache hit — O(1).
-        if target_instant in self._as_of_snapshots:
-            array, _ = self._as_of_snapshots[target_instant]
-            self._as_of_snapshots.move_to_end(target_instant)
-            return array
-
-        # Find best starting snapshot: latest snap_instant < target_instant.
-        best_instant = None
-        best_array = None
-        best_patch_idx = None
-        for snap_instant, (snap_array, snap_patch_idx) in self._as_of_snapshots.items():
-            if snap_instant < target_instant:
-                if best_instant is None or snap_instant > best_instant:
-                    best_instant = snap_instant
-                    best_array = snap_array
-                    best_patch_idx = snap_patch_idx
-
-        if best_array is not None:
-            # Incremental forward reconstruction from best snapshot.
-            result = best_array
-            for i in range(best_patch_idx + 1, last_patch_idx + 1):
-                _, idx, vals = self._as_of_patches[i]
-                if result is best_array:
-                    result = result.copy()
-                result[idx] = vals
-            if result is not best_array:
-                result.flags.writeable = False
-        else:
-            # Full reconstruction from base (no usable snapshot).
-            result = self._as_of_base.copy()
-            for i in range(last_patch_idx + 1):
-                _, idx, vals = self._as_of_patches[i]
-                result[idx] = vals
-            result.flags.writeable = False
-
-        self._cache_snapshot(target_instant, result, last_patch_idx)
-        return result
-
-    def _set_as_of(self, period, value) -> None:
-        """Store value for an as_of variable using sparse patch storage.
-
-        On the first call: stores the full array as an immutable base.
-        On subsequent calls: computes the diff vs the current state at
-        period.start and stores only (changed_indices, changed_values) as a
-        sparse patch.  If nothing changed, nothing is stored.
-        """
-        instant = period.start
-
-        if self._as_of_base is None:
-            # First set_input: establish the base and seed the snapshot cache.
-            self._as_of_base = value.copy()
-            self._as_of_base.flags.writeable = False
-            self._as_of_base_instant = instant
-            self._cache_snapshot(instant, self._as_of_base, -1)
-            return
-
-        prev = self._reconstruct_at(instant)
-        changed = value != prev
-        if not changed.any():
-            return  # Value unchanged — no storage needed.
-
-        idx = numpy.where(changed)[0].astype(numpy.int32)
-        vals = value[idx].copy()
-
-        # Insert at sorted position (handles out-of-order set_input).
-        pos = bisect.bisect_right(self._as_of_patch_instants, instant)
-        self._as_of_patches.insert(pos, (instant, idx, vals))
-        self._as_of_patch_instants.insert(pos, instant)
-
-        new_patch_idx = len(self._as_of_patches) - 1
-        if pos == new_patch_idx:
-            # Appended at the end (forward-sequential SET): cache current value
-            # so the next GET(instant) is an O(1) hit.
-            new_snap = value.copy()
-            new_snap.flags.writeable = False
-            self._cache_snapshot(instant, new_snap, new_patch_idx)
-        else:
-            # Retroactive (out-of-order) SET: evict all snapshots at or after
-            # this instant — they may no longer reflect the inserted patch.
-            to_evict = [k for k in self._as_of_snapshots if k >= instant]
-            for k in to_evict:
-                del self._as_of_snapshots[k]
-
-    def _set_as_of_sparse(self, period, idx, vals) -> None:
-        """Store a sparse patch directly, without requiring a full N-array.
-
-        Bypasses the O(N) diff computation of _set_as_of when the caller
-        already knows which elements changed (idx) and their new values (vals).
-
-        idx  : int32 array of changed indices
-        vals : array of new values (same dtype as the variable)
-        """
-        if self._as_of_base is None:
-            raise ValueError(
-                "Cannot call set_input_sparse before the base is established. "
-                "Call set_input first for the initial period."
-            )
-
-        instant = period.start
-
-        if len(idx) == 0:
-            return  # nothing changed
-
-        # Insert at sorted position (handles out-of-order calls)
-        pos = bisect.bisect_right(self._as_of_patch_instants, instant)
-        self._as_of_patches.insert(pos, (instant, idx.astype(numpy.int32), vals.copy()))
-        self._as_of_patch_instants.insert(pos, instant)
-
-        new_patch_idx = len(self._as_of_patches) - 1
-        if pos == new_patch_idx:
-            # Forward-sequential: build new snapshot from best cached snapshot.
-            best_instant = None
-            best_array = None
-            best_patch_idx_snap = None
-            for snap_instant, (
-                snap_array,
-                snap_patch_idx,
-            ) in self._as_of_snapshots.items():
-                if snap_instant <= instant:
-                    if best_instant is None or snap_instant > best_instant:
-                        best_instant = snap_instant
-                        best_array = snap_array
-                        best_patch_idx_snap = snap_patch_idx
-            if best_array is not None:
-                new_snap = best_array.copy()  # O(N) — unavoidable for dense snapshot
-                # Apply any patches between the snapshot and the new one.
-                for i in range(best_patch_idx_snap + 1, new_patch_idx):
-                    _, pidx, pvals = self._as_of_patches[i]
-                    new_snap[pidx] = pvals
-                new_snap[idx] = vals
-                new_snap.flags.writeable = False
-                self._cache_snapshot(instant, new_snap, new_patch_idx)
-            # else: no snapshot yet — next GET will rebuild from base.
-        else:
-            # Retroactive insert: evict all snapshots at or after this instant.
-            to_evict = [k for k in self._as_of_snapshots if k >= instant]
-            for k in to_evict:
-                del self._as_of_snapshots[k]
-
-    def set_input_sparse(self, period, idx, vals) -> None:
-        """Set new values for only the specified individuals.
-
-        Unlike set_input(), the caller provides the diff directly:
-        - idx  : array of person indices that changed (int)
-        - vals : their new values
-
-        This avoids O(N) diff computation when only k << N individuals change.
-        Requires that set_input() was called at least once to establish the base.
-        """
-        if not self._as_of:
-            raise ValueError(
-                f"set_input_sparse is only valid for as_of variables. "
-                f'"{self.variable.name}" does not declare as_of.'
-            )
-        period = periods.period(period)
-        idx = numpy.asarray(idx, dtype=numpy.int32)
-        vals = numpy.asarray(vals, dtype=self.variable.dtype)
-        self._set_as_of_sparse(period, idx, vals)
 
     def get_memory_usage(self) -> t.MemoryUsage:
         """Get data about the virtual memory usage of the Holder.
@@ -535,11 +295,6 @@ class Holder:
                     error_message,
                 )
 
-        if self._as_of:
-            # Sparse patch storage — bypass _memory_storage and disk entirely.
-            self._set_as_of(period, value)
-            return
-
         should_store_on_disk = (
             self._on_disk_storable
             and self._memory_storage.get(period) is None
@@ -547,24 +302,10 @@ class Holder:
             >= self.simulation.memory_config.max_memory_occupation_pc
         )
 
-        if self._as_of:
-            # Reference sharing: reuse existing array object when value unchanged,
-            # otherwise store a read-only defensive copy so that callers cannot
-            # corrupt stored data by mutating their original array in-place.
-            prev = self._get_as_of(period)
-            if prev is not None and numpy.array_equal(value, prev):
-                value = prev  # prev is already read-only
-            else:
-                value = value.copy()
-                value.flags.writeable = False
-
         if should_store_on_disk:
             self._disk_storage.put(value, period)
         else:
             self._memory_storage.put(value, period)
-
-        if self._as_of:
-            self._register_instant(period)
 
     def put_in_cache(self, value, period) -> None:
         if self._do_not_store:
