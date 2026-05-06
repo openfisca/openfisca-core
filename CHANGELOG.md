@@ -1,5 +1,14 @@
 # Changelog
 
+## 44.8.0 [#1376](https://github.com/openfisca/openfisca-core/pull/1376)
+
+#### New features
+
+- Introduce `_FactualStore` and `_CounterFactualStore`
+  - Allows for swappable variable storing mechanism supporting counter-factual variable holders
+- Introduce `_LRUCache` and `_FIFOCache`
+  - Allows for swappable variable caching eviction policy, used notably by counter-factual calculations for O(k) reads
+
 ## 44.7.0 [#1357](https://github.com/openfisca/openfisca-core/pull/1357)
 
 #### New features

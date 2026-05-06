@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator, Sequence, Sized
+from collections.abc import Callable, Iterable, Iterator, Sequence, Sized
 from numpy.typing import DTypeLike, NDArray
 from typing import NewType, TypeVar, Union
 from typing_extensions import Protocol, Required, Self, TypeAlias, TypedDict
@@ -8,6 +8,7 @@ from typing_extensions import Protocol, Required, Self, TypeAlias, TypedDict
 import abc
 import enum
 import re
+from enum import _EnumDict as EnumDict
 
 import numpy
 import pendulum
@@ -26,10 +27,12 @@ from numpy import (
 #: Generic covariant type var.
 _T_co = TypeVar("_T_co", covariant=True)
 
+
 # Arrays
 
+
 #: Type var for numpy arrays.
-_N_co = TypeVar("_N_co", covariant=True, bound="DTypeGeneric")
+_N_co = TypeVar("_N_co", covariant=True, bound=numpy.generic)
 
 #: Type representing an numpy array.
 Array: TypeAlias = NDArray[_N_co]
@@ -61,10 +64,18 @@ StrArray: TypeAlias = Array[StrDType]
 #: Type alias for an array of generic objects.
 VarArray: TypeAlias = Array[VarDType]
 
+
 # Arrays-like
+
 
 #: Type var for array-like objects.
 _L = TypeVar("_L")
+
+#: Type var for cache keys.
+_K = TypeVar("_K")
+
+#: Type var for cache values.
+_V = TypeVar("_V")
 
 #: Type representing an array-like object.
 ArrayLike: TypeAlias = Sequence[_L]
@@ -109,10 +120,46 @@ class _SeqIntMeta(type):
         )
 
 
-class SeqInt(list[int], metaclass=_SeqIntMeta): ...  # type: ignore[misc]
+class SeqInt(list[int], metaclass=_SeqIntMeta): ...
+
+
+# Shared
+
+
+Snapshot: TypeAlias = tuple[VarArray, int]
+
+
+class Cache(Protocol[_K, _V]):
+    def put(self, key: _K, value: _V, /) -> None: ...
+
+    def get(self, key: _K, /) -> _V | None: ...
+
+    def __contains__(self, key: object, /) -> bool: ...
+
+    def items(self, /) -> Iterable[tuple[_K, _V]]: ...
+
+    def evict(self, predicate: Callable[[_K], bool], /) -> None: ...
+
+    def clear(self, /) -> None: ...
+
+
+# Data Storage
+
+
+class Storage(Protocol):
+    def get(self, period: Period | None = ..., /) -> Array[DTypeGeneric] | None: ...
+    def put(self, value: Array[DTypeGeneric], period: Period | None, /) -> None: ...
+    def delete(self, period: Period | None = ..., /) -> None: ...
+
+
+class InMemoryStorage(Storage, Protocol): ...
+
+
+class OnDiskStorage(Storage, Protocol): ...
 
 
 # Entities
+
 
 #: For example "person".
 EntityKey = NewType("EntityKey", str)
@@ -168,6 +215,10 @@ class Role(Protocol):
 # Indexed enums
 
 
+class PossibleValues(Protocol):
+    def encode(self, array: VarArray | ArrayLike[object], /) -> EnumArray: ...
+
+
 class EnumType(enum.EnumMeta):
     indices: Array[DTypeEnum]
     names: Array[DTypeStr]
@@ -179,7 +230,9 @@ class Enum(enum.Enum, metaclass=EnumType):
     _member_names_: list[str]
 
 
-class EnumArray(Array[DTypeEnum], metaclass=abc.ABCMeta):
+class EnumArray(
+    numpy.ndarray[tuple[int, ...], numpy.dtype[EnumDType]], metaclass=abc.ABCMeta
+):
     possible_values: None | type[Enum]
 
     @abc.abstractmethod
@@ -191,23 +244,35 @@ class EnumArray(Array[DTypeEnum], metaclass=abc.ABCMeta):
 # Holders
 
 
+class Store(Protocol): ...
+
+
 class Holder(Protocol):
+    variable: Variable
+
     def clone(self, population: CorePopulation, /) -> Holder: ...
 
     def get_memory_usage(self, /) -> MemoryUsage: ...
 
+    def get_array(self, period: Period, /) -> VarArray | None: ...
+
+    def _to_array(self, value: VarArray, /) -> VarArray: ...
+
+    def _set(self, period: Period, value: VarArray, /) -> None: ...
+
 
 class MemoryUsage(TypedDict, total=False):
-    cell_size: int
+    cell_size: float
     dtype: DTypeLike
     nb_arrays: int
     nb_cells_by_array: int
     nb_requests: int
-    nb_requests_by_array: int
+    nb_requests_by_array: float
     total_nb_bytes: Required[int]
 
 
 # Parameters
+
 
 #: A type representing a node of parameters.
 ParameterNode: TypeAlias = Union[
@@ -240,6 +305,7 @@ class VectorialParameterNodeAtInstant(Protocol):
 
 # Periods
 
+
 #: Matches "2015", "2015-01", "2015-01-01" but not "2015-13", "2015-12-32".
 iso_format = re.compile(r"^\d{4}(-(?:0[1-9]|1[0-2])(-(?:0[1-9]|[12]\d|3[01]))?)?$")
 
@@ -258,7 +324,7 @@ class _InstantStrMeta(type):
         return isinstance(arg, (ISOFormatStr, ISOCalendarStr))
 
 
-class InstantStr(str, metaclass=_InstantStrMeta):  # type: ignore[misc]
+class InstantStr(str, metaclass=_InstantStrMeta):
     __slots__ = ()
 
 
@@ -267,7 +333,7 @@ class _ISOFormatStrMeta(type):
         return isinstance(arg, str) and bool(iso_format.match(arg))
 
 
-class ISOFormatStr(str, metaclass=_ISOFormatStrMeta):  # type: ignore[misc]
+class ISOFormatStr(str, metaclass=_ISOFormatStrMeta):
     __slots__ = ()
 
 
@@ -276,7 +342,7 @@ class _ISOCalendarStrMeta(type):
         return isinstance(arg, str) and bool(iso_calendar.match(arg))
 
 
-class ISOCalendarStr(str, metaclass=_ISOCalendarStrMeta):  # type: ignore[misc]
+class ISOCalendarStr(str, metaclass=_ISOCalendarStrMeta):
     __slots__ = ()
 
 
@@ -289,7 +355,7 @@ class _PeriodStrMeta(type):
         )
 
 
-class PeriodStr(str, metaclass=_PeriodStrMeta):  # type: ignore[misc]
+class PeriodStr(str, metaclass=_PeriodStrMeta):
     __slots__ = ()
 
 
@@ -348,10 +414,14 @@ class Period(Indexable[Union[DateUnit, Instant, int]], Protocol):
 #: Type alias for a period-like object.
 PeriodLike: TypeAlias = Union[Period, PeriodStr, PeriodInt]
 
+
 # Populations
 
 
-class CorePopulation(Protocol): ...
+class CorePopulation(Protocol):
+    count: int
+    entity: CoreEntity
+    simulation: Simulation
 
 
 class SinglePopulation(CorePopulation, Protocol):
@@ -366,7 +436,21 @@ class GroupPopulation(CorePopulation, Protocol): ...
 # Simulations
 
 
+class MemoryConfig(Protocol):
+    asof_max_snapshots: int
+    priority_variables: Container[str]
+    variables_to_drop: Container[str]
+    max_memory_occupation_pc: float
+
+
 class Simulation(Protocol):
+    memory_config: MemoryConfig | None
+    data_storage_dir: str
+    trace: bool
+    tracer: FullTracer
+    opt_out_cache: bool
+    tax_benefit_system: TaxBenefitSystem
+
     def calculate(
         self, variable_name: VariableName, period: Period, /
     ) -> Array[DTypeGeneric]: ...
@@ -387,6 +471,7 @@ class Simulation(Protocol):
 
 class TaxBenefitSystem(Protocol):
     person_entity: SingleEntity
+    cache_blacklist: Container[str] | None
 
     def get_variable(
         self,
@@ -397,6 +482,7 @@ class TaxBenefitSystem(Protocol):
 
 
 # Tracers
+
 
 #: A type representing a unit time.
 Time: TypeAlias = float
@@ -503,7 +589,9 @@ class TraceNode(Protocol):
 #: A stack of simple traces.
 SimpleStack: TypeAlias = list[SimpleTraceMap]
 
+
 # Variables
+
 
 #: For example "salary".
 VariableName = NewType("VariableName", str)
@@ -512,6 +600,14 @@ VariableName = NewType("VariableName", str)
 class Variable(Protocol):
     entity: CoreEntity
     name: VariableName
+    definition_period: DateUnit
+    is_neutralized: bool
+    dtype: DTypeLike
+    value_type: type
+    possible_values: PossibleValues | None
+    set_input: Callable[[Holder, Period, VarArray | Sequence[object]], None] | None
+
+    def default_array(self, count: int, /) -> VarArray: ...
 
 
 class Formula(Protocol):
@@ -528,4 +624,4 @@ class Params(Protocol):
     def __call__(self, instant: Instant, /) -> ParameterNodeAtInstant: ...
 
 
-__all__ = ["DTypeLike"]
+__all__ = ["BoolDType", "DTypeLike", "EnumDict", "EnumDType", "ObjDType", "StrDType"]

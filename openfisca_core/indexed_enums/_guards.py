@@ -5,7 +5,7 @@ from typing_extensions import TypeIs
 
 import numpy
 
-from . import types as t
+from openfisca_core import types as t
 
 #: Types for int arrays.
 ints: Final = {

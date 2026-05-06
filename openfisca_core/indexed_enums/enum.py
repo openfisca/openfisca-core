@@ -4,7 +4,8 @@ from collections.abc import Sequence
 
 import numpy
 
-from . import types as t
+from openfisca_core import types as t
+
 from ._enum_type import EnumType
 from ._errors import EnumEncodingError, EnumMemberNotFoundError
 from ._guards import (

@@ -7,14 +7,12 @@ import shutil
 
 import numpy
 
-from openfisca_core import periods
+from openfisca_core import periods, types as t
 from openfisca_core.indexed_enums import EnumArray
 from openfisca_core.periods import DateUnit
 
-from . import types as t
 
-
-class OnDiskStorage:
+class OnDiskStorage(t.OnDiskStorage):
     """Storing and retrieving calculated vectors on disk.
 
     Args:

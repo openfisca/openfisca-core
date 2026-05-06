@@ -1,18 +1,22 @@
 from __future__ import annotations
 
+from typing import TypeVar, cast
+
 import numexpr
 
 from openfisca_core import types as t
 
+_T = TypeVar("_T")
 
-def empty_clone(original: object) -> object:
+
+def empty_clone(original: _T) -> _T:
     """Create an empty instance of the same class of the original object.
 
     Args:
         original: An object to clone.
 
     Returns:
-        object: The cloned, empty, object.
+        _T: The cloned, empty, object.
 
     Examples:
         >>> Foo = type("Foo", (list,), {})
@@ -31,15 +35,11 @@ def empty_clone(original: object) -> object:
 
     def __init__(_: object) -> None: ...
 
-    Dummy = type(
-        "Dummy",
-        (original.__class__,),
-        {"__init__": __init__},
-    )
+    dummy = type("Dummy", (type(original),), {"__init__": __init__})
+    new = dummy()
+    new.__class__ = type(original)
 
-    new = Dummy()
-    new.__class__ = original.__class__
-    return new
+    return cast(_T, new)
 
 
 def stringify_array(array: None | t.VarArray) -> str:
