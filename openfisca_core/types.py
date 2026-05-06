@@ -71,6 +71,12 @@ VarArray: TypeAlias = Array[VarDType]
 #: Type var for array-like objects.
 _L = TypeVar("_L")
 
+#: Type var for cache keys.
+_K = TypeVar("_K")
+
+#: Type var for cache values.
+_V = TypeVar("_V")
+
 #: Type representing an array-like object.
 ArrayLike: TypeAlias = Sequence[_L]
 
@@ -117,10 +123,33 @@ class _SeqIntMeta(type):
 class SeqInt(list[int], metaclass=_SeqIntMeta): ...
 
 
+# Shared
+
+
+Snapshot: TypeAlias = tuple[VarArray, int]
+
+
+class Cache(Protocol[_K, _V]):
+    def put(self, key: _K, value: _V, /) -> None: ...
+
+    def get(self, key: _K, /) -> _V | None: ...
+
+    def __contains__(self, key: object, /) -> bool: ...
+
+    def items(self, /) -> Iterable[tuple[_K, _V]]: ...
+
+    def evict(self, predicate: Callable[[_K], bool], /) -> None: ...
+
+    def clear(self, /) -> None: ...
+
+
 # Data Storage
 
 
-class Storage(Protocol): ...
+class Storage(Protocol):
+    def get(self, period: Period | None = ..., /) -> Array[DTypeGeneric] | None: ...
+    def put(self, value: Array[DTypeGeneric], period: Period | None, /) -> None: ...
+    def delete(self, period: Period | None = ..., /) -> None: ...
 
 
 class InMemoryStorage(Storage, Protocol): ...
@@ -215,7 +244,7 @@ class EnumArray(
 # Holders
 
 
-class AsOf(Protocol): ...
+class Store(Protocol): ...
 
 
 class Holder(Protocol):
