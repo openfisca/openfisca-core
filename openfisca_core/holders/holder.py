@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any
 
 import bisect
 import os
@@ -24,7 +23,7 @@ from openfisca_core import (
 class Holder(t.Holder):
     """A holder keeps tracks of a variable values after they have been calculated, or set as an input."""
 
-    def __init__(self, variable, population) -> None:
+    def __init__(self, variable: t.Variable, population: t.CorePopulation) -> None:
         self.population = population
         self.variable = variable
         self.simulation = population.simulation
@@ -39,11 +38,13 @@ class Holder(t.Holder):
             # _as_of_patch_instants : parallel list of Instants for bisect.
             # _as_of_snapshots      : FIFO OrderedDict instant → (array, patch_idx).
             # _as_of_max_snapshots  : maximum number of snapshots to keep.
-            self._as_of_base = None
-            self._as_of_base_instant = None
-            self._as_of_patches: list = []
-            self._as_of_patch_instants: list = []
-            self._as_of_snapshots: OrderedDict = OrderedDict()
+            self._as_of_base: t.VarArray | None = None
+            self._as_of_base_instant: t.Instant | None = None
+            self._as_of_patches: list[tuple[t.Instant, t.IntArray, t.VarArray]] = []
+            self._as_of_patch_instants: list[t.Instant] = []
+            self._as_of_snapshots: OrderedDict[t.Instant, tuple[t.VarArray, int]] = (
+                OrderedDict()
+            )
             # Resolution order: variable.snapshot_count > MemoryConfig.asof_max_snapshots > 3
             _mc = self.simulation.memory_config if self.simulation else None
             self._as_of_max_snapshots: int = next(
@@ -51,14 +52,14 @@ class Holder(t.Holder):
                     v
                     for v in [
                         getattr(self.variable, "snapshot_count", None),
-                        getattr(_mc, "asof_max_snapshots", None),
+                        _mc.asof_max_snapshots if _mc is not None else None,
                     ]
                     if v is not None
                 ),
                 3,
             )
             # Instants for which transition_formula has already been applied.
-            self._as_of_transition_computed: set = set()
+            self._as_of_transition_computed: set[t.Instant] = set()
 
         # By default, do not activate on-disk storage, or variable dropping
         self._disk_storage = None
@@ -101,7 +102,9 @@ class Holder(t.Holder):
 
         return new
 
-    def create_disk_storage(self, directory=None, preserve=False):
+    def create_disk_storage(
+        self, directory: str | None = None, preserve: bool = False
+    ) -> storage.OnDiskStorage:
         if directory is None:
             directory = self.simulation.data_storage_dir
         storage_dir = os.path.join(directory, self.variable.name)
@@ -113,7 +116,7 @@ class Holder(t.Holder):
             preserve_storage_dir=preserve,
         )
 
-    def delete_arrays(self, period=None) -> None:
+    def delete_arrays(self, period: t.Period | None = None) -> None:
         """If ``period`` is ``None``, remove all known values of the variable.
 
         If ``period`` is not ``None``, only remove all values for any period included in period (e.g. if period is "2017", values for "2017-01", "2017-07", etc. would be removed)
@@ -122,7 +125,7 @@ class Holder(t.Holder):
         if self._disk_storage:
             self._disk_storage.delete(period)
 
-    def get_array(self, period):
+    def get_array(self, period: t.Period) -> t.VarArray | None:
         """Get the value of the variable for the given period.
 
         If the value is not known, return ``None``.
@@ -139,12 +142,14 @@ class Holder(t.Holder):
             return self._disk_storage.get(period)
         return None
 
-    def _get_as_of(self, period):
+    def _get_as_of(self, period: t.Period) -> t.VarArray | None:
         """Return the reconstructed array as-of the reference instant of period."""
         target = period.start if self._as_of == "start" else period.stop
         return self._reconstruct_at(target)
 
-    def _cache_snapshot(self, instant, array, patch_idx) -> None:
+    def _cache_snapshot(
+        self, instant: t.Instant, array: t.VarArray, patch_idx: int
+    ) -> None:
         """Insert (or refresh) a snapshot in the FIFO cache, evicting the oldest
         entry if the cache is full.
 
@@ -156,7 +161,7 @@ class Holder(t.Holder):
         if len(self._as_of_snapshots) > self._as_of_max_snapshots:
             self._as_of_snapshots.popitem(last=False)  # evict oldest (FIFO)
 
-    def _reconstruct_at(self, target_instant):
+    def _reconstruct_at(self, target_instant: t.Instant) -> t.VarArray | None:
         """Reconstruct the dense array at target_instant from base + patches.
 
         Uses a multi-snapshot FIFO snapshot cache for O(k) incremental cost.
@@ -189,7 +194,7 @@ class Holder(t.Holder):
                     best_array = snap_array
                     best_patch_idx = snap_patch_idx
 
-        if best_array is not None:
+        if best_array is not None and best_patch_idx is not None:
             # Incremental forward reconstruction from best snapshot.
             result = best_array
             for i in range(best_patch_idx + 1, last_patch_idx + 1):
@@ -210,7 +215,7 @@ class Holder(t.Holder):
         self._cache_snapshot(target_instant, result, last_patch_idx)
         return result
 
-    def _set_as_of(self, period, value) -> None:
+    def _set_as_of(self, period: t.Period, value: t.VarArray) -> None:
         """Store value for an as_of variable using sparse patch storage.
 
         On the first call: stores the full array as an immutable base.
@@ -255,7 +260,9 @@ class Holder(t.Holder):
             for k in to_evict:
                 del self._as_of_snapshots[k]
 
-    def _set_as_of_sparse(self, period, idx, vals) -> None:
+    def _set_as_of_sparse(
+        self, period: t.Period, idx: t.IntArray, vals: t.VarArray
+    ) -> None:
         """Store a sparse patch directly, without requiring a full N-array.
 
         Bypasses the O(N) diff computation of _set_as_of when the caller
@@ -295,7 +302,7 @@ class Holder(t.Holder):
                         best_instant = snap_instant
                         best_array = snap_array
                         best_patch_idx_snap = snap_patch_idx
-            if best_array is not None:
+            if best_array is not None and best_patch_idx_snap is not None:
                 new_snap = best_array.copy()  # O(N) — unavoidable for dense snapshot
                 # Apply any patches between the snapshot and the new one.
                 for i in range(best_patch_idx_snap + 1, new_patch_idx):
@@ -311,7 +318,12 @@ class Holder(t.Holder):
             for k in to_evict:
                 del self._as_of_snapshots[k]
 
-    def set_input_sparse(self, period, idx, vals) -> None:
+    def set_input_sparse(
+        self,
+        period: t.Period | t.PeriodStr | t.PeriodInt,
+        idx: t.IntArray,
+        vals: t.VarArray,
+    ) -> None:
         """Set new values for only the specified individuals.
 
         Unlike set_input(), the caller provides the diff directly:
@@ -326,10 +338,10 @@ class Holder(t.Holder):
                 f"set_input_sparse is only valid for as_of variables. "
                 f'"{self.variable.name}" does not declare as_of.'
             )
-        period = periods.period(period)
+        _period: t.Period = periods.period(period)
         idx = numpy.asarray(idx, dtype=numpy.int32)
         vals = numpy.asarray(vals, dtype=self.variable.dtype)
-        self._set_as_of_sparse(period, idx, vals)
+        self._set_as_of_sparse(_period, idx, vals)
 
     def get_memory_usage(self) -> t.MemoryUsage:
         """Get data about the virtual memory usage of the Holder.
@@ -373,6 +385,7 @@ class Holder(t.Holder):
 
         """
         usage = t.MemoryUsage(
+            total_nb_bytes=0,
             nb_cells_by_array=self.population.count,
             dtype=self.variable.dtype,
         )
@@ -394,7 +407,7 @@ class Holder(t.Holder):
 
         return usage
 
-    def get_known_periods(self):
+    def get_known_periods(self) -> list[t.Period]:
         """Get the list of periods the variable value is known for."""
         return list(self._memory_storage.get_known_periods()) + list(
             self._disk_storage.get_known_periods() if self._disk_storage else [],
@@ -403,8 +416,8 @@ class Holder(t.Holder):
     def set_input(
         self,
         period: t.Period,
-        array: numpy.ndarray | Sequence[Any],
-    ) -> numpy.ndarray | None:
+        array: numpy.ndarray | Sequence[object],
+    ) -> None:
         """Set a Variable's array of values of a given Period.
 
         Args:
@@ -469,14 +482,16 @@ class Holder(t.Holder):
             )
         if self.variable.is_neutralized:
             warning_message = f"You cannot set a value for the variable {self.variable.name}, as it has been neutralized. The value you provided ({array}) will be ignored."
-            return warnings.warn(warning_message, Warning, stacklevel=2)
+            warnings.warn(warning_message, Warning, stacklevel=2)
+            return
         if self.variable.value_type in (float, int) and isinstance(array, str):
             array = commons.eval_expression(array)
         if self.variable.set_input:
-            return self.variable.set_input(self, period, array)
-        return self._set(period, array)
+            self.variable.set_input(self, period, array)
+            return
+        self._set(period, array)
 
-    def _to_array(self, value):
+    def _to_array(self, value: t.VarArray | Sequence[object]) -> t.VarArray:
         if not isinstance(value, numpy.ndarray):
             value = numpy.asarray(value)
         if value.ndim == 0:
@@ -487,7 +502,10 @@ class Holder(t.Holder):
             raise ValueError(
                 msg,
             )
-        if self.variable.value_type == enums.Enum:
+        if (
+            self.variable.value_type == enums.Enum
+            and self.variable.possible_values is not None
+        ):
             value = self.variable.possible_values.encode(value)
         if value.dtype != self.variable.dtype:
             try:
@@ -499,17 +517,9 @@ class Holder(t.Holder):
                 )
         return value
 
-    def _set(self, period, value) -> None:
+    def _set(self, period: t.Period, value: t.VarArray | Sequence[object]) -> None:
         value = self._to_array(value)
         if not self._eternal:
-            if period is None:
-                msg = (
-                    f"A period must be specified to set values, except for variables with "
-                    f"{periods.DateUnit.ETERNITY.upper()} as as period_definition."
-                )
-                raise ValueError(
-                    msg,
-                )
             if self.variable.definition_period != period.unit or period.size > 1:
                 name = self.variable.name
                 period_size_adj = (
@@ -537,19 +547,21 @@ class Holder(t.Holder):
             self._set_as_of(period, value)
             return
 
-        should_store_on_disk = (
-            self._on_disk_storable
-            and self._memory_storage.get(period) is None
-            and psutil.virtual_memory().percent  # If there is already a value in memory, replace it and don't put a new value in the disk storage
-            >= self.simulation.memory_config.max_memory_occupation_pc
-        )
+        if self._on_disk_storable:
+            # Invariant: _on_disk_storable is only True when simulation and memory_config are set.
+            _mc = self.simulation.memory_config
+            if (
+                _mc is not None
+                and self._disk_storage is not None
+                and self._memory_storage.get(period) is None
+                # Don't offload if the period is already in memory — replace in place.
+                and psutil.virtual_memory().percent >= _mc.max_memory_occupation_pc
+            ):
+                self._disk_storage.put(value, period)
+                return
+        self._memory_storage.put(value, period)
 
-        if should_store_on_disk:
-            self._disk_storage.put(value, period)
-        else:
-            self._memory_storage.put(value, period)
-
-    def put_in_cache(self, value, period) -> None:
+    def put_in_cache(self, value: t.VarArray, period: t.Period) -> None:
         if self._do_not_store:
             return
 
@@ -562,6 +574,6 @@ class Holder(t.Holder):
 
         self._set(period, value)
 
-    def default_array(self):
+    def default_array(self) -> t.VarArray:
         """Return a new array of the appropriate length for the entity, filled with the variable default values."""
         return self.variable.default_array(self.population.count)

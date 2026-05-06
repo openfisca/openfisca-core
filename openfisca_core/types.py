@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator, Sequence, Sized
+from collections.abc import Callable, Iterable, Iterator, Sequence, Sized
 from numpy.typing import DTypeLike, NDArray
 from typing import NewType, TypeVar, Union
 from typing_extensions import Protocol, Required, Self, TypeAlias, TypedDict
@@ -8,6 +8,7 @@ from typing_extensions import Protocol, Required, Self, TypeAlias, TypedDict
 import abc
 import enum
 import re
+from enum import _EnumDict as EnumDict
 
 import numpy
 import pendulum
@@ -185,6 +186,10 @@ class Role(Protocol):
 # Indexed enums
 
 
+class PossibleValues(Protocol):
+    def encode(self, array: VarArray | ArrayLike[object], /) -> EnumArray: ...
+
+
 class EnumType(enum.EnumMeta):
     indices: Array[DTypeEnum]
     names: Array[DTypeStr]
@@ -214,9 +219,17 @@ class AsOf(Protocol): ...
 
 
 class Holder(Protocol):
+    variable: Variable
+
     def clone(self, population: CorePopulation, /) -> Holder: ...
 
     def get_memory_usage(self, /) -> MemoryUsage: ...
+
+    def get_array(self, period: Period, /) -> VarArray | None: ...
+
+    def _to_array(self, value: VarArray, /) -> VarArray: ...
+
+    def _set(self, period: Period, value: VarArray, /) -> None: ...
 
 
 class MemoryUsage(TypedDict, total=False):
@@ -225,7 +238,7 @@ class MemoryUsage(TypedDict, total=False):
     nb_arrays: int
     nb_cells_by_array: int
     nb_requests: int
-    nb_requests_by_array: int
+    nb_requests_by_array: float
     total_nb_bytes: Required[int]
 
 
@@ -376,7 +389,10 @@ PeriodLike: TypeAlias = Union[Period, PeriodStr, PeriodInt]
 # Populations
 
 
-class CorePopulation(Protocol): ...
+class CorePopulation(Protocol):
+    count: int
+    entity: CoreEntity
+    simulation: Simulation
 
 
 class SinglePopulation(CorePopulation, Protocol):
@@ -391,7 +407,21 @@ class GroupPopulation(CorePopulation, Protocol): ...
 # Simulations
 
 
+class MemoryConfig(Protocol):
+    asof_max_snapshots: int
+    priority_variables: Container[str]
+    variables_to_drop: Container[str]
+    max_memory_occupation_pc: float
+
+
 class Simulation(Protocol):
+    memory_config: MemoryConfig | None
+    data_storage_dir: str
+    trace: bool
+    tracer: FullTracer
+    opt_out_cache: bool
+    tax_benefit_system: TaxBenefitSystem
+
     def calculate(
         self, variable_name: VariableName, period: Period, /
     ) -> Array[DTypeGeneric]: ...
@@ -412,6 +442,7 @@ class Simulation(Protocol):
 
 class TaxBenefitSystem(Protocol):
     person_entity: SingleEntity
+    cache_blacklist: Container[str] | None
 
     def get_variable(
         self,
@@ -540,6 +571,14 @@ VariableName = NewType("VariableName", str)
 class Variable(Protocol):
     entity: CoreEntity
     name: VariableName
+    definition_period: DateUnit
+    is_neutralized: bool
+    dtype: DTypeLike
+    value_type: type
+    possible_values: PossibleValues | None
+    set_input: Callable[[Holder, Period, VarArray | Sequence[object]], None] | None
+
+    def default_array(self, count: int, /) -> VarArray: ...
 
 
 class Formula(Protocol):
@@ -556,4 +595,4 @@ class Params(Protocol):
     def __call__(self, instant: Instant, /) -> ParameterNodeAtInstant: ...
 
 
-__all__ = ["DTypeLike"]
+__all__ = ["BoolDType", "DTypeLike", "EnumDict", "EnumDType", "ObjDType", "StrDType"]

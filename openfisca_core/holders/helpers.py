@@ -1,13 +1,17 @@
+from __future__ import annotations
+
 import logging
 
 import numpy
 
-from openfisca_core import periods
+from openfisca_core import periods, types as t
 
 log = logging.getLogger(__name__)
 
 
-def set_input_dispatch_by_period(holder, period, array) -> None:
+def set_input_dispatch_by_period(
+    holder: t.Holder, period: t.Period, array: t.VarArray
+) -> None:
     """This function can be declared as a ``set_input`` attribute of a variable.
 
     In this case, the variable will accept inputs on larger periods that its definition period, and the value for the larger period will be applied to all its subperiods.
@@ -31,19 +35,24 @@ def set_input_dispatch_by_period(holder, period, array) -> None:
     after_instant = period.start.offset(period_size, period_unit)
 
     # Cache the input data, skipping the existing cached months
-    sub_period = periods.Period((cached_period_unit, period.start, 1))
+    sub_period: t.Period = periods.Period((cached_period_unit, period.start, 1))
+
     while sub_period.start < after_instant:
         existing_array = holder.get_array(sub_period)
+
         if existing_array is None:
             holder._set(sub_period, array)
         else:
             # The array of the current sub-period is reused for the next ones.
             # TODO: refactor or document this behavior
             array = existing_array
+
         sub_period = sub_period.offset(1)
 
 
-def set_input_divide_by_period(holder, period, array) -> None:
+def set_input_divide_by_period(
+    holder: t.Holder, period: t.Period, array: t.VarArray
+) -> None:
     """This function can be declared as a ``set_input`` attribute of a variable.
 
     In this case, the variable will accept inputs on larger periods that its definition period, and the value for the larger period will be divided between its subperiods.
@@ -68,14 +77,17 @@ def set_input_divide_by_period(holder, period, array) -> None:
 
     # Count the number of elementary periods to change, and the difference with what is already known.
     remaining_array = array.copy()
-    sub_period = periods.Period((cached_period_unit, period.start, 1))
+    sub_period: t.Period = periods.Period((cached_period_unit, period.start, 1))
     sub_periods_count = 0
+
     while sub_period.start < after_instant:
         existing_array = holder.get_array(sub_period)
+
         if existing_array is not None:
             remaining_array -= existing_array
         else:
             sub_periods_count += 1
+
         sub_period = sub_period.offset(1)
 
     # Cache the input data

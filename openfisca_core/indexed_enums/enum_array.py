@@ -5,7 +5,7 @@ from typing_extensions import Self
 
 import numpy
 
-from . import types as t
+from openfisca_core import types as t
 
 
 class EnumArray(t.EnumArray):

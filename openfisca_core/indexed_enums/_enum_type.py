@@ -4,7 +4,7 @@ from typing import final
 
 import numpy
 
-from . import types as t
+from openfisca_core import types as t
 
 
 @final
@@ -26,7 +26,7 @@ class EnumType(t.EnumType):
         ...     TENANT = "Tenant"
 
         >>> Housing.indices
-        array([0, 1], dtype=int16)
+        array([0, 1], dtype=uint8)
 
         >>> Housing.names
         array(['OWNER', 'TENANT'], dtype='<U6')

@@ -4,14 +4,22 @@ from collections.abc import Iterable
 
 import warnings
 
+from openfisca_core import types as t
+
 from ._errors import MemoryConfigWarning
 
 
-class MemoryConfig:
+class MemoryConfig(t.MemoryConfig):
     """Experimental memory configuration."""
 
     #: Maximum memory occupation allowed.
     max_memory_occupation: float
+
+    #: Maximum memory occupation percentage.
+    max_memory_occupation_pc: float
+
+    #: Maximum number of as_of snapshots to keep.
+    asof_max_snapshots: int
 
     #: Priority variables.
     priority_variables: frozenset[str]
@@ -24,6 +32,7 @@ class MemoryConfig:
         max_memory_occupation: str | float,
         priority_variables: Iterable[str] = frozenset(),
         variables_to_drop: Iterable[str] = frozenset(),
+        asof_max_snapshots: int = 3,
     ) -> None:
         message = [
             "Memory configuration is a feature that is still currently under "
@@ -38,5 +47,6 @@ class MemoryConfig:
             msg = "max_memory_occupation must be <= 1"
             raise ValueError(msg)
         self.max_memory_occupation_pc = self.max_memory_occupation * 100
+        self.asof_max_snapshots = asof_max_snapshots
         self.priority_variables = frozenset(priority_variables)
         self.variables_to_drop = frozenset(variables_to_drop)
