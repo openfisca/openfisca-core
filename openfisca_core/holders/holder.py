@@ -17,13 +17,11 @@ from openfisca_core import (
     errors,
     indexed_enums as enums,
     periods,
-    types,
+    types as t,
 )
 
-from . import types as t
 
-
-class Holder:
+class Holder(t.Holder):
     """A holder keeps tracks of a variable values after they have been calculated, or set as an input."""
 
     def __init__(self, variable, population) -> None:
@@ -404,7 +402,7 @@ class Holder:
 
     def set_input(
         self,
-        period: types.Period,
+        period: t.Period,
         array: numpy.ndarray | Sequence[Any],
     ) -> numpy.ndarray | None:
         """Set a Variable's array of values of a given Period.

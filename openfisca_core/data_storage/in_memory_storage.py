@@ -4,13 +4,11 @@ from collections.abc import KeysView, MutableMapping
 
 import numpy
 
-from openfisca_core import periods
+from openfisca_core import periods, types as t
 from openfisca_core.periods import DateUnit
 
-from . import types as t
 
-
-class InMemoryStorage:
+class InMemoryStorage(t.InMemoryStorage):
     """Storing and retrieving calculated vectors in memory.
 
     Args:

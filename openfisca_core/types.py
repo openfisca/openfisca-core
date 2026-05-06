@@ -26,10 +26,12 @@ from numpy import (
 #: Generic covariant type var.
 _T_co = TypeVar("_T_co", covariant=True)
 
+
 # Arrays
 
+
 #: Type var for numpy arrays.
-_N_co = TypeVar("_N_co", covariant=True, bound="DTypeGeneric")
+_N_co = TypeVar("_N_co", covariant=True, bound=numpy.generic)
 
 #: Type representing an numpy array.
 Array: TypeAlias = NDArray[_N_co]
@@ -61,7 +63,9 @@ StrArray: TypeAlias = Array[StrDType]
 #: Type alias for an array of generic objects.
 VarArray: TypeAlias = Array[VarDType]
 
+
 # Arrays-like
+
 
 #: Type var for array-like objects.
 _L = TypeVar("_L")
@@ -109,10 +113,23 @@ class _SeqIntMeta(type):
         )
 
 
-class SeqInt(list[int], metaclass=_SeqIntMeta): ...  # type: ignore[misc]
+class SeqInt(list[int], metaclass=_SeqIntMeta): ...
+
+
+# Data Storage
+
+
+class Storage(Protocol): ...
+
+
+class InMemoryStorage(Storage, Protocol): ...
+
+
+class OnDiskStorage(Storage, Protocol): ...
 
 
 # Entities
+
 
 #: For example "person".
 EntityKey = NewType("EntityKey", str)
@@ -179,7 +196,9 @@ class Enum(enum.Enum, metaclass=EnumType):
     _member_names_: list[str]
 
 
-class EnumArray(Array[DTypeEnum], metaclass=abc.ABCMeta):
+class EnumArray(
+    numpy.ndarray[tuple[int, ...], numpy.dtype[EnumDType]], metaclass=abc.ABCMeta
+):
     possible_values: None | type[Enum]
 
     @abc.abstractmethod
@@ -191,6 +210,9 @@ class EnumArray(Array[DTypeEnum], metaclass=abc.ABCMeta):
 # Holders
 
 
+class AsOf(Protocol): ...
+
+
 class Holder(Protocol):
     def clone(self, population: CorePopulation, /) -> Holder: ...
 
@@ -198,7 +220,7 @@ class Holder(Protocol):
 
 
 class MemoryUsage(TypedDict, total=False):
-    cell_size: int
+    cell_size: float
     dtype: DTypeLike
     nb_arrays: int
     nb_cells_by_array: int
@@ -208,6 +230,7 @@ class MemoryUsage(TypedDict, total=False):
 
 
 # Parameters
+
 
 #: A type representing a node of parameters.
 ParameterNode: TypeAlias = Union[
@@ -240,6 +263,7 @@ class VectorialParameterNodeAtInstant(Protocol):
 
 # Periods
 
+
 #: Matches "2015", "2015-01", "2015-01-01" but not "2015-13", "2015-12-32".
 iso_format = re.compile(r"^\d{4}(-(?:0[1-9]|1[0-2])(-(?:0[1-9]|[12]\d|3[01]))?)?$")
 
@@ -258,7 +282,7 @@ class _InstantStrMeta(type):
         return isinstance(arg, (ISOFormatStr, ISOCalendarStr))
 
 
-class InstantStr(str, metaclass=_InstantStrMeta):  # type: ignore[misc]
+class InstantStr(str, metaclass=_InstantStrMeta):
     __slots__ = ()
 
 
@@ -267,7 +291,7 @@ class _ISOFormatStrMeta(type):
         return isinstance(arg, str) and bool(iso_format.match(arg))
 
 
-class ISOFormatStr(str, metaclass=_ISOFormatStrMeta):  # type: ignore[misc]
+class ISOFormatStr(str, metaclass=_ISOFormatStrMeta):
     __slots__ = ()
 
 
@@ -276,7 +300,7 @@ class _ISOCalendarStrMeta(type):
         return isinstance(arg, str) and bool(iso_calendar.match(arg))
 
 
-class ISOCalendarStr(str, metaclass=_ISOCalendarStrMeta):  # type: ignore[misc]
+class ISOCalendarStr(str, metaclass=_ISOCalendarStrMeta):
     __slots__ = ()
 
 
@@ -289,7 +313,7 @@ class _PeriodStrMeta(type):
         )
 
 
-class PeriodStr(str, metaclass=_PeriodStrMeta):  # type: ignore[misc]
+class PeriodStr(str, metaclass=_PeriodStrMeta):
     __slots__ = ()
 
 
@@ -348,6 +372,7 @@ class Period(Indexable[Union[DateUnit, Instant, int]], Protocol):
 #: Type alias for a period-like object.
 PeriodLike: TypeAlias = Union[Period, PeriodStr, PeriodInt]
 
+
 # Populations
 
 
@@ -397,6 +422,7 @@ class TaxBenefitSystem(Protocol):
 
 
 # Tracers
+
 
 #: A type representing a unit time.
 Time: TypeAlias = float
@@ -503,7 +529,9 @@ class TraceNode(Protocol):
 #: A stack of simple traces.
 SimpleStack: TypeAlias = list[SimpleTraceMap]
 
+
 # Variables
+
 
 #: For example "salary".
 VariableName = NewType("VariableName", str)
