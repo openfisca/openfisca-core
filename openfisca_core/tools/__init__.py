@@ -40,9 +40,9 @@ def assert_near(
     if isinstance(target_value, list) and isinstance(target_value[0], str):
         return assert_array_equal(value, target_value)
 
-    target_value = numpy.array(target_value).astype(numpy.float32)
+    target_value = numpy.array(target_value).astype(numpy.float64)
 
-    value = numpy.array(value).astype(numpy.float32)
+    value = numpy.array(value).astype(numpy.float64)
     diff = abs(target_value - value)
     if absolute_error_margin is not None:
         assert (
