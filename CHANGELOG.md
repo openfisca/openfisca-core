@@ -1,5 +1,11 @@
 # Changelog
 
+## 47.0.0 [#1378](https://github.com/openfisca/openfisca-core/pull/1378)
+
+#### Technical changes
+
+- Allows calculation for big numbers
+    - Replace `int32 `with `int64 `and `float32 `with `float64`
 
 ## 46.1.0 [#1423](https://github.com/openfisca/openfisca-core/pull/1423)
 
