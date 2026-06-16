@@ -79,7 +79,7 @@ class TestVariable(Variable):
         self.entity = Entity("person", "persons", None, "")
         self.is_neutralized = False
         self.set_input = None
-        self.dtype = numpy.float32
+        self.dtype = numpy.float64
 
 
 @pytest.mark.skip(reason="Deprecated node constructor")
