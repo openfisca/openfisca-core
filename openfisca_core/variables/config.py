@@ -14,14 +14,14 @@ VALUE_TYPES = {
         "is_period_size_independent": True,
     },
     int: {
-        "dtype": numpy.int32,
+        "dtype": numpy.int64,
         "default": 0,
         "json_type": "integer",
         "formatted_value_type": "Int",
         "is_period_size_independent": False,
     },
     float: {
-        "dtype": numpy.float32,
+        "dtype": numpy.float64,
         "default": 0,
         "json_type": "number",
         "formatted_value_type": "Float",
