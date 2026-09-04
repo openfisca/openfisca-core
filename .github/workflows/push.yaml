@@ -41,6 +41,11 @@ jobs:
           numpy: 2.3.0
           python: *upper_pyver
           activate_command: source venv/bin/activate
+        # Newest NumPy allowed by setup.py; guards against regressions like #1379.
+        - os: ubuntu-24.04
+          numpy: 2.5.2
+          python: *upper_pyver
+          activate_command: source venv/bin/activate
         - os: windows-2025
           numpy: 2.3.0
           python: *upper_pyver
@@ -86,6 +91,11 @@ jobs:
           activate_command: source venv/bin/activate
         - os: ubuntu-24.04
           numpy: 2.3.0
+          python: *upper_pyver
+          activate_command: source venv/bin/activate
+        # Newest NumPy allowed by setup.py; guards against regressions like #1379.
+        - os: ubuntu-24.04
+          numpy: 2.5.2
           python: *upper_pyver
           activate_command: source venv/bin/activate
         - os: windows-2025

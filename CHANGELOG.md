@@ -1,5 +1,14 @@
 # Changelog
 
+## 44.7.1 [#1383](https://github.com/openfisca/openfisca-core/pull/1383)
+
+#### Bug fixes
+
+- Fix `TypeError: metaclass conflict` on `import openfisca_core` with NumPy >= 2.5.
+  - NumPy 2.5 redefined `numpy.typing.NDArray` as a [PEP 695](https://peps.python.org/pep-0695/) `typing.TypeAliasType`, which cannot be used as a runtime base class.
+  - `types.EnumArray` now derives from `numpy.ndarray` directly, preserving its `dtype` parametrisation.
+  - Add NumPy 2.5 to the test matrix, which previously stopped at 2.3.0 while `setup.py` allows up to 3.
+
 ## 44.7.0 [#1357](https://github.com/openfisca/openfisca-core/pull/1357)
 
 #### New features

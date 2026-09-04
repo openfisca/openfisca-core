@@ -179,7 +179,9 @@ class Enum(enum.Enum, metaclass=EnumType):
     _member_names_: list[str]
 
 
-class EnumArray(Array[DTypeEnum], metaclass=abc.ABCMeta):
+class EnumArray(
+    numpy.ndarray[tuple[int, ...], numpy.dtype[DTypeEnum]], metaclass=abc.ABCMeta
+):
     possible_values: None | type[Enum]
 
     @abc.abstractmethod
