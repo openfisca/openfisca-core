@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "OpenFisca-Core"
-version = "46.0.0"
+version = "46.0.1"
 description = "A versatile microsimulation free software"
 readme = "README.md"
 authors = [
