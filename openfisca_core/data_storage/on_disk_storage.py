@@ -226,6 +226,65 @@ class OnDiskStorage:
             if not period.contains(period_item)
         }
 
+    def clone(self, storage_dir: str) -> OnDiskStorage:
+        """Copy the storage into ``storage_dir``, making future mutations independent.
+
+        The stored files are copied into ``storage_dir``, so that neither
+        simulation writes into — or deletes — the files of the other.
+
+        Args:
+            storage_dir: Path to store the copied vectors. Must be different
+                from the current storage directory; created if it does not
+                exist yet.
+
+        Returns:
+            OnDiskStorage: A new storage with the same data.
+
+        Raises:
+            ValueError: If ``storage_dir`` is the current storage directory.
+
+        Examples:
+            >>> import tempfile
+
+            >>> import numpy
+
+            >>> from openfisca_core import data_storage, periods
+
+            >>> value = numpy.array([1, 2, 3])
+            >>> period = periods.period("2017")
+
+            >>> with tempfile.TemporaryDirectory() as directory:
+            ...     with tempfile.TemporaryDirectory() as clone_directory:
+            ...         storage = data_storage.OnDiskStorage(
+            ...             directory, preserve_storage_dir=True
+            ...         )
+            ...         storage.put(value, period)
+            ...         clone = storage.clone(clone_directory)
+            ...         clone.delete(period)
+            ...         storage.get(period)
+            array([1, 2, 3])
+
+        """
+        if os.path.abspath(storage_dir) == os.path.abspath(self.storage_dir):
+            msg = (
+                f"A storage cannot be cloned into its own directory ('{storage_dir}')."
+            )
+            raise ValueError(msg)
+        os.makedirs(storage_dir, exist_ok=True)
+        clone = OnDiskStorage(
+            storage_dir,
+            is_eternal=self.is_eternal,
+            preserve_storage_dir=self.preserve_storage_dir,
+        )
+        enum = self._enums.get(self.storage_dir)
+        if enum is not None:
+            clone._enums[storage_dir] = enum
+        for period, file in self._files.items():
+            path = os.path.join(storage_dir, os.path.basename(file))
+            shutil.copy(file, path)
+            clone._files[period] = path
+        return clone
+
     def get_known_periods(self) -> KeysView[t.Period]:
         """List of storage's known periods.
 

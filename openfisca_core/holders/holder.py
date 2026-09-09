@@ -57,6 +57,15 @@ class Holder:
         new_dict["population"] = population
         new_dict["simulation"] = population.simulation
 
+        # Storage must not be shared with the original holder: otherwise any
+        # value set, cached or deleted through one simulation would silently
+        # alter the other one.
+        new_dict["_memory_storage"] = self._memory_storage.clone()
+        if self._disk_storage is not None:
+            new_dict["_disk_storage"] = self._disk_storage.clone(
+                os.path.join(new.simulation.data_storage_dir, self.variable.name),
+            )
+
         return new
 
     def create_disk_storage(self, directory=None, preserve=False):
