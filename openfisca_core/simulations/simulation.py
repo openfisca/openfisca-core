@@ -592,6 +592,11 @@ class Simulation:
             if key not in ("debug", "trace", "tracer"):
                 new_dict[key] = value
 
+        # The clone gets its own on-disk storage directory: sharing it would
+        # make both simulations write and delete each other's files.
+        new_dict["_data_storage_dir"] = None
+        new_dict["invalidated_caches"] = set(self.invalidated_caches)
+
         new.persons = self.persons.clone(new)
         setattr(new, new.persons.entity.key, new.persons)
         new.populations = {new.persons.entity.key: new.persons}

@@ -142,6 +142,37 @@ class InMemoryStorage:
             if not period.contains(period_item)
         }
 
+    def clone(self) -> InMemoryStorage:
+        """Create a copy of the storage whose future mutations are independent.
+
+        The underlying arrays are shared, as they are treated as immutable by
+        the engine; only the period-to-array mapping is copied.
+
+        Returns:
+            InMemoryStorage: A new storage with the same data.
+
+        Examples:
+            >>> import numpy
+
+            >>> from openfisca_core import data_storage, periods
+
+            >>> storage = data_storage.InMemoryStorage()
+            >>> period = periods.period("2017")
+            >>> storage.put(numpy.array([1, 2, 3]), period)
+
+            >>> clone = storage.clone()
+            >>> clone.get(period)
+            array([1, 2, 3])
+
+            >>> clone.delete(period)
+            >>> storage.get(period)
+            array([1, 2, 3])
+
+        """
+        clone = InMemoryStorage(is_eternal=self.is_eternal)
+        clone._arrays = dict(self._arrays)
+        return clone
+
     def get_known_periods(self) -> KeysView[t.Period]:
         """List of storage's known periods.
 
