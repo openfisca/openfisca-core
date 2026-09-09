@@ -165,6 +165,25 @@ class Simulation:
 
         except errors.SpiralError:
             array = holder.default_array()
+            message = [
+                (
+                    f"A circular calculation was detected while computing '{variable.name}' "
+                    f"for period {period}: the formula was not evaluated, and the "
+                    f"variable's default value was returned instead."
+                ),
+                (
+                    "If this is unexpected, rewrite the formula to avoid the recursion "
+                    "(e.g. with a closed-form expression or an explicit check on the "
+                    "requested period), or allow deeper recursion by raising "
+                    f"`simulation.max_spiral_loops` (currently {self.max_spiral_loops}; "
+                    "also settable in YAML tests with the `max_spiral_loops` keyword)."
+                ),
+            ]
+            warnings.warn(
+                " ".join(message),
+                core_warnings.SpiralWarning,
+                stacklevel=2,
+            )
 
         return array
 

@@ -22,4 +22,5 @@
 # See: https://www.python.org/dev/peps/pep-0008/#imports
 
 from .libyaml_warning import LibYAMLWarning  # noqa: F401
+from .spiral_warning import SpiralWarning  # noqa: F401
 from .tempfile_warning import TempfileWarning  # noqa: F401
