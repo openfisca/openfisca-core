@@ -1,5 +1,14 @@
 # Changelog
 
+## 44.7.2
+
+#### Bug fixes
+
+- Fix `restore_simulation` rebuilding entity counts from the members mapping instead of the dumped ids.
+  - A group entity with no member was silently dropped from the restored simulation's `count` (while still listed in `ids`), so subsequent calculations returned arrays with missing entities — or failed with a `ValueError` when a value had been stored for the group entity.
+  - Restoring a simulation whose tax and benefit system has no group entity raised an `UnboundLocalError`.
+  - Each entity's `count` is now restored from its dumped `ids`.
+
 ## 44.7.1 [#1383](https://github.com/openfisca/openfisca-core/pull/1383)
 
 #### Bug fixes
