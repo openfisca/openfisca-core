@@ -1,5 +1,14 @@
 # Changelog
 
+## 45.1.0 [#1386](https://github.com/openfisca/openfisca-core/pull/1386)
+
+#### New features
+
+- Emit a `SpiralWarning` when a circular calculation is detected and a variable's default value is silently returned instead of evaluating its formula (closes [#956](https://github.com/openfisca/openfisca-core/issues/956)).
+  - Previously the substitution was completely silent, so there was no way to know that a formula had not been used.
+  - The warning names the variable and period whose formula was skipped, and explains how to avoid the recursion or raise `max_spiral_loops` (including from YAML tests).
+  - The calculation behaviour is unchanged; users who expect spirals can silence the warning with `warnings.filterwarnings("ignore", category=SpiralWarning)`.
+
 ### 45.0.5 [#1387](https://github.com/openfisca/openfisca-core/pull/1387)
 
 #### Bug fixes
