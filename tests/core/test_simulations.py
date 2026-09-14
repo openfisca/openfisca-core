@@ -106,7 +106,7 @@ def test_clone_members_are_cloned(tax_benefit_system) -> None:
 
     clone = simulation.clone()
 
-    assert clone.household.members is clone.persons
+    assert clone.household.members is clone.person
 
 
 def test_clone_does_not_share_invalidated_caches(tax_benefit_system) -> None:
