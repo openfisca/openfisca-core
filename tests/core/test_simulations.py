@@ -119,7 +119,6 @@ def test_clone_does_not_share_invalidated_caches(tax_benefit_system) -> None:
     assert clone.invalidated_caches is not simulation.invalidated_caches
 
 
-@pytest.mark.filterwarnings("ignore")
 def test_clone_disk_storage_is_isolated(tax_benefit_system) -> None:
     simulation = new_simulation(tax_benefit_system)
     simulation.memory_config = MemoryConfig(max_memory_occupation=0.0)
@@ -146,7 +145,6 @@ def test_clone_disk_storage_is_isolated(tax_benefit_system) -> None:
     assert simulation.calculate("birth", "2017-01") == numpy.datetime64("1987-01-01")
 
 
-@pytest.mark.filterwarnings("ignore")
 def test_clone_disk_storage_preserves_enums(tax_benefit_system) -> None:
     simulation = new_simulation(tax_benefit_system)
     simulation.memory_config = MemoryConfig(max_memory_occupation=0.0)
