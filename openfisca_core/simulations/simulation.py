@@ -44,7 +44,7 @@ class Simulation:
         assert tax_benefit_system is not None
 
         self.populations = populations
-        self.persons = self.populations[tax_benefit_system.person_entity.key]
+        # self.persons = self.populations[tax_benefit_system.person_entity.key]
         self.link_to_entities_instances()
         self.create_shortcuts()
 

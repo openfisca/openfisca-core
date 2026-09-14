@@ -1528,6 +1528,7 @@ dependencies = [
     { name = "numexpr" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "openfisca-country-template" },
     { name = "pendulum" },
     { name = "psutil" },
     { name = "pytest" },
@@ -1610,7 +1611,8 @@ requires-dist = [
     { name = "numpy", marker = "python_full_version >= '3.13'", specifier = ">=2.1.0,<=3" },
     { name = "openapi-spec-validator", marker = "extra == 'dev'", specifier = ">=0.7.1,<0.8.0" },
     { name = "openfisca-core", extras = ["excel", "web-api"], marker = "extra == 'dev'" },
-    { name = "openfisca-country-template", marker = "extra == 'template'" },
+    { name = "openfisca-country-template", editable = "../country-template" },
+    { name = "openfisca-country-template", marker = "extra == 'template'", editable = "../country-template" },
     { name = "openfisca-extension-template", marker = "extra == 'template'" },
     { name = "openfisca-tracker", marker = "extra == 'tracker'", specifier = ">=0.4.0,<0.5.0" },
     { name = "openpyxl", marker = "extra == 'excel'", specifier = ">=3.1.2,<4.0" },
@@ -1635,14 +1637,20 @@ provides-extras = ["dev", "web-api", "excel", "ci", "tracker", "template"]
 [[package]]
 name = "openfisca-country-template"
 version = "8.0.1"
-source = { registry = "https://pypi.org/simple" }
+source = { editable = "../country-template" }
 dependencies = [
     { name = "openfisca-core", extra = ["web-api"] },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a3/64/994a0eda78568ce9fbab437cf086c54eea76481ba8eeca91b311e4e84c0e/openfisca_country_template-8.0.1.tar.gz", hash = "sha256:606703db8665881d08c0e5cdc580bbb2d5227b0dde81aaf340b7ebd271bbccf4", size = 36118, upload-time = "2025-07-11T14:35:31.557Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/2d/e4/034366090fec50c1cf4faf5c0a05f5975b20ba2e94cd66d4706f592d1d13/openfisca_country_template-8.0.1-py3-none-any.whl", hash = "sha256:b3256ee5408a9bcc16f44e87eb67d67c575c8ab7d02988351cab47aabdf5ffda", size = 46114, upload-time = "2025-07-11T14:35:30.238Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "isort", marker = "extra == 'dev'", specifier = ">=5.13.2,<6" },
+    { name = "openfisca-core", extras = ["web-api"], specifier = ">=43" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.6.9,<1" },
+    { name = "ruff-lsp", marker = "extra == 'dev'", specifier = ">=0.0.57,<1" },
+    { name = "yamllint", marker = "extra == 'dev'", specifier = ">=1.35.1" },
 ]
+provides-extras = ["dev"]
 
 [[package]]
 name = "openfisca-extension-template"

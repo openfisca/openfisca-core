@@ -68,7 +68,7 @@ def test_build_default_simulation(tax_benefit_system) -> None:
         tax_benefit_system,
         1,
     )
-    assert one_person_simulation.persons.count == 1
+    assert one_person_simulation.person.count == 1
     assert one_person_simulation.household.count == 1
     assert one_person_simulation.household.members_entity_id == [0]
     assert one_person_simulation.household.members_role == entities.Household.ADULT
@@ -77,7 +77,7 @@ def test_build_default_simulation(tax_benefit_system) -> None:
         tax_benefit_system,
         4,
     )
-    assert several_persons_simulation.persons.count == 4
+    assert several_persons_simulation.person.count == 4
     assert several_persons_simulation.household.count == 4
     assert (
         several_persons_simulation.household.members_entity_id == [0, 1, 2, 3]
@@ -97,10 +97,10 @@ def test_explicit_singular_entities(tax_benefit_system) -> None:
     }
 
 
-def test_add_person_entity(persons) -> None:
+def test_add_entity(persons) -> None:
     persons_json = {"Alicia": {"salary": {}}, "Javier": {}}
     simulation_builder = SimulationBuilder()
-    simulation_builder.add_person_entity(persons, persons_json)
+    simulation_builder.add_entity(persons, persons_json)
     assert simulation_builder.get_count("persons") == 2
     assert simulation_builder.get_ids("persons") == ["Alicia", "Javier"]
 
@@ -108,15 +108,15 @@ def test_add_person_entity(persons) -> None:
 def test_numeric_ids(persons) -> None:
     persons_json = {1: {"salary": {}}, 2: {}}
     simulation_builder = SimulationBuilder()
-    simulation_builder.add_person_entity(persons, persons_json)
+    simulation_builder.add_entity(persons, persons_json)
     assert simulation_builder.get_count("persons") == 2
     assert simulation_builder.get_ids("persons") == ["1", "2"]
 
 
-def test_add_person_entity_with_values(persons) -> None:
+def test_add_entity_with_values(persons) -> None:
     persons_json = {"Alicia": {"salary": {"2018-11": 3000}}, "Javier": {}}
     simulation_builder = SimulationBuilder()
-    simulation_builder.add_person_entity(persons, persons_json)
+    simulation_builder.add_entity(persons, persons_json)
     tools.assert_near(simulation_builder.get_input("salary", "2018-11"), [3000, 0])
 
 
@@ -124,7 +124,7 @@ def test_add_person_values_with_default_period(persons) -> None:
     persons_json = {"Alicia": {"salary": 3000}, "Javier": {}}
     simulation_builder = SimulationBuilder()
     simulation_builder.set_default_period("2018-11")
-    simulation_builder.add_person_entity(persons, persons_json)
+    simulation_builder.add_entity(persons, persons_json)
     tools.assert_near(simulation_builder.get_input("salary", "2018-11"), [3000, 0])
 
 
@@ -132,21 +132,21 @@ def test_add_person_values_with_default_period_old_syntax(persons) -> None:
     persons_json = {"Alicia": {"salary": 3000}, "Javier": {}}
     simulation_builder = SimulationBuilder()
     simulation_builder.set_default_period("month:2018-11")
-    simulation_builder.add_person_entity(persons, persons_json)
+    simulation_builder.add_entity(persons, persons_json)
     tools.assert_near(simulation_builder.get_input("salary", "2018-11"), [3000, 0])
 
 
-def test_add_group_entity(households) -> None:
+def test_add_group_entity(persons, households) -> None:
     simulation_builder = SimulationBuilder()
-    simulation_builder.add_group_entity(
-        "persons",
-        ["Alicia", "Javier", "Sarah", "Tom"],
-        households,
-        {
-            "Household_1": {"adults": ["Alicia", "Javier"]},
-            "Household_2": {"adults": ["Tom"], "children": ["Sarah"]},
-        },
-    )
+    simulation_builder.add_entity(persons,
+        {"Alicia": {}, "Javier": {}, "Sarah": {}, "Tom": {}})
+
+    payload = {
+        "Household_1": {"adults": ["Alicia", "Javier"]},
+        "Household_2": {"adults": ["Tom"], "children": ["Sarah"]},
+    }
+    simulation_builder.add_entity(households, payload)
+    simulation_builder.add_group_entity(households, payload)
     assert simulation_builder.get_count("households") == 2
     assert simulation_builder.get_ids("households") == ["Household_1", "Household_2"]
     assert simulation_builder.get_memberships("households") == [0, 0, 1, 1]
@@ -158,16 +158,19 @@ def test_add_group_entity(households) -> None:
     ]
 
 
-def test_add_group_entity_loose_syntax(households) -> None:
+def test_add_group_entity_loose_syntax(persons, households) -> None:
     simulation_builder = SimulationBuilder()
+    simulation_builder.add_entity(persons,
+        {"Alicia": {}, "Javier": {}, "Sarah": {}, "1": {}})
+
+    payload = {
+        "Household_1": {"adults": ["Alicia", "Javier"]},
+        "Household_2": {"adults": 1, "children": "Sarah"},
+    }
+
+    simulation_builder.add_entity(households, payload)
     simulation_builder.add_group_entity(
-        "persons",
-        ["Alicia", "Javier", "Sarah", "1"],
-        households,
-        {
-            "Household_1": {"adults": ["Alicia", "Javier"]},
-            "Household_2": {"adults": 1, "children": "Sarah"},
-        },
+        households, payload
     )
     assert simulation_builder.get_count("households") == 2
     assert simulation_builder.get_ids("households") == ["Household_1", "Household_2"]
@@ -326,7 +329,7 @@ def test_add_unknown_enum_variable_value(persons, enum_variable) -> None:
 def test_finalize_person_entity(persons) -> None:
     persons_json = {"Alicia": {"salary": {"2018-11": 3000}}, "Javier": {}}
     simulation_builder = SimulationBuilder()
-    simulation_builder.add_person_entity(persons, persons_json)
+    simulation_builder.add_entity(persons, persons_json)
     population = Population(persons)
     simulation_builder.finalize_variables_init(population)
     tools.assert_near(population.get_holder("salary").get_array("2018-11"), [3000, 0])
@@ -337,7 +340,7 @@ def test_finalize_person_entity(persons) -> None:
 def test_canonicalize_period_keys(persons) -> None:
     persons_json = {"Alicia": {"salary": {"year:2018-01": 100}}}
     simulation_builder = SimulationBuilder()
-    simulation_builder.add_person_entity(persons, persons_json)
+    simulation_builder.add_entity(persons, persons_json)
     population = Population(persons)
     simulation_builder.finalize_variables_init(population)
     tools.assert_near(population.get_holder("salary").get_array("2018-12"), [100])
@@ -349,19 +352,21 @@ def test_finalize_households(tax_benefit_system) -> None:
         tax_benefit_system.instantiate_entities(),
     )
     simulation_builder = SimulationBuilder()
-    simulation_builder.add_group_entity(
-        "persons",
-        ["Alicia", "Javier", "Sarah", "Tom"],
-        simulation.household.entity,
-        {
-            "Household_1": {"adults": ["Alicia", "Javier"]},
-            "Household_2": {"adults": ["Tom"], "children": ["Sarah"]},
-        },
-    )
+    simulation_builder.add_entity(simulation.person.entity,
+        {"Alicia": {}, "Javier": {}, "Sarah": {}, "Tom": {}})
+
+    payload = {
+        "Household_1": {"adults": ["Alicia", "Javier"]},
+        "Household_2": {"adults": ["Tom"], "children": ["Sarah"]},
+    }
+
+    simulation_builder.add_entity(simulation.household.entity, payload)
+    simulation_builder.add_group_entity(simulation.household.entity, payload)
+
     simulation_builder.finalize_variables_init(simulation.household)
     tools.assert_near(simulation.household.members_entity_id, [0, 0, 1, 1])
     tools.assert_near(
-        simulation.persons.has_role(entities.Household.ADULT),
+        simulation.person.has_role(entities.Household.ADULT),
         [True, True, False, True],
     )
 
@@ -650,7 +655,7 @@ def test_fully_specified_entities(tax_benefit_system) -> None:
         situation_examples.couple,
     )
     assert simulation.household.count == 1
-    assert simulation.persons.count == 2
+    assert simulation.person.count == 2
 
 
 def test_single_entity_shortcut(tax_benefit_system) -> None:
@@ -684,7 +689,7 @@ def test_order_preserved(tax_benefit_system) -> None:
     data = test_runner.yaml.safe_load(input_yaml)
     simulation = SimulationBuilder().build_from_dict(tax_benefit_system, data)
 
-    assert simulation.persons.ids == ["Javier", "Alicia", "Sarah", "Tom"]
+    assert simulation.person.ids == ["Javier", "Alicia", "Sarah", "Tom"]
 
 
 def test_inconsistent_input(tax_benefit_system) -> None:
