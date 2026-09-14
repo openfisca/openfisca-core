@@ -329,8 +329,6 @@ def test_value_nth_person(tax_benefit_system) -> None:
     age1 = simulation.person("age", period=MONTH)
     age = household.members("age", period=MONTH)
 
-    import pdb; pdb.set_trace()
-
     result0 = household.value_nth_person(0, array, default=-1)
     tools.assert_near(result0, [40, 54])
 
