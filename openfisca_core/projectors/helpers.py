@@ -110,7 +110,7 @@ def get_projector_from_shortcut(
     """
     entity: SingleEntity | GroupEntity = population.entity
 
-    if shortcut in population.simulation.populations:
+    if shortcut in [k.key for k in entity.links]:
         return projectors.EntityToPersonProjector(population.simulation.populations[shortcut], parent)
 
     if shortcut == "first_person":

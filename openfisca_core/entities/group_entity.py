@@ -105,6 +105,7 @@ class GroupEntity(CoreEntity):
         self.roles_description = roles
         self.roles: Iterable[Role] = ()
         self.role_entity: CoreEntity = None
+        self.links = []
         for role_description in roles:
             role = Role(role_description, self)
             setattr(self, role.key.upper(), role)
@@ -126,6 +127,7 @@ class GroupEntity(CoreEntity):
         self.roles_description = roles
         self.roles: Iterable[Role] = ()
         self.role_entity = entity
+        entity.links.append(self)
         for role_description in roles:
             role = Role(role_description, self)
             setattr(self, role.key.upper(), role)
