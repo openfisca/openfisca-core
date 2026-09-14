@@ -597,11 +597,11 @@ class Simulation:
         new_dict["_data_storage_dir"] = None
         new_dict["invalidated_caches"] = set(self.invalidated_caches)
 
-        new.persons = self.persons.clone(new)
-        setattr(new, new.persons.entity.key, new.persons)
-        new.populations = {new.persons.entity.key: new.persons}
+        #new.person = self.persons.clone(new)
+        #setattr(new, new.persons.entity.key, new.persons)
+        #new.populations = {new.persons.entity.key: new.persons}
 
-        for entity in self.tax_benefit_system.group_entities:
+        for entity in self.tax_benefit_system.entities:
             population = self.populations[entity.key].clone(new)
             new.populations[entity.key] = population
             setattr(
