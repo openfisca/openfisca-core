@@ -164,7 +164,7 @@ class Entity(Protocol):
 
 
 class Role(Protocol):
-    entity: GroupEntity
+    entity: Entity
     max: int | None
     subroles: None | Iterable[Role]
 
