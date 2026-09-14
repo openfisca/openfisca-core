@@ -58,7 +58,7 @@ def find_role(
     *,
     total: None | int = None,
 ) -> None | t.Role:
-    """Find a ``Role`` in a ``GroupEntity``.
+    """Find a ``Role`` in a ``Entity``.
 
     Args:
         roles: The roles to search.
