@@ -46,5 +46,5 @@ def households(persons):
     ]
 
     group = TestGroupEntity("household", "households", "", "")
-    group.add_roles(persons, roles)
+    group.add_link(persons, roles)
     return group

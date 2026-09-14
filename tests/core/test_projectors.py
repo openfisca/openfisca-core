@@ -23,7 +23,7 @@ def test_enum_projects_downwards() -> None:
         plural="households",
         label="A household"
     )
-    household.add_roles(person,
+    household.add_link(person,
         roles=[
             {
                 "key": "member",
@@ -93,7 +93,7 @@ def test_enum_projects_upwards() -> None:
         plural="households",
         label="A household",
     )
-    household.add_roles(person,
+    household.add_link(person,
         roles=[
             {
                 "key": "member",

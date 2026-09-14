@@ -157,7 +157,7 @@ def test_add_axis_on_households(persons, households) -> None:
     simulation_builder.add_entity(
         households,
         payload)
-    simulation_builder.add_group_entity(
+    simulation_builder.link_entities(
         households,
         payload)
     simulation_builder.register_variable("rent", households)
@@ -190,7 +190,7 @@ def test_axis_on_group_expands_persons(persons, households) -> None:
     simulation_builder.add_entity(
         households,
         payload)
-    simulation_builder.add_group_entity(
+    simulation_builder.link_entities(
         households,
         payload)
 
@@ -215,7 +215,7 @@ def test_add_axis_distributes_roles(persons, households) -> None:
     simulation_builder.add_entity(
         households,
         payload)
-    simulation_builder.add_group_entity(
+    simulation_builder.link_entities(
         households,
         payload)
 
@@ -247,7 +247,7 @@ def test_add_axis_on_persons_distributes_roles(persons, households) -> None:
     simulation_builder.add_entity(
         households,
         payload)
-    simulation_builder.add_group_entity(
+    simulation_builder.link_entities(
         households,
         payload)
     simulation_builder.register_variable("salary", persons)
@@ -278,7 +278,7 @@ def test_add_axis_distributes_memberships(persons, households) -> None:
     simulation_builder.add_entity(
         households,
         payload)
-    simulation_builder.add_group_entity(
+    simulation_builder.link_entities(
         households,
         payload)
     simulation_builder.register_variable("rent", households)
