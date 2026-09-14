@@ -110,16 +110,8 @@ def get_projector_from_shortcut(
     """
     entity: SingleEntity | GroupEntity = population.entity
 
-    if isinstance(entity, entities.Entity):
-        populations: Mapping[
-            str,
-            Population | GroupPopulation,
-        ] = population.simulation.populations
-
-        if shortcut not in populations:
-            return None
-
-        return projectors.EntityToPersonProjector(populations[shortcut], parent)
+    if shortcut in population.simulation.populations:
+        return projectors.EntityToPersonProjector(population.simulation.populations[shortcut], parent)
 
     if shortcut == "first_person":
         return projectors.FirstPersonToEntityProjector(population, parent)
