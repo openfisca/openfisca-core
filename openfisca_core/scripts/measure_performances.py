@@ -57,7 +57,6 @@ Individu = build_entity(
     key="individu",
     plural="individus",
     label="Individu",
-    is_person=True,
 )
 
 # Input variables
