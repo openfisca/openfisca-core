@@ -20,6 +20,8 @@ class GroupPopulation(Population):
         self._ordered_members_map = None
 
     def clone(self, simulation):
+        # ``simulation.persons`` must already be the cloned persons population,
+        # so that members of the cloned group belong to the new simulation.
         result = GroupPopulation(self.entity, simulation.person)
         result.simulation = simulation
         result._holders = {
