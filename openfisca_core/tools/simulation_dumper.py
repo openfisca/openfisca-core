@@ -41,12 +41,12 @@ def restore_simulation(directory, tax_benefit_system, **kwargs):
 
     entities_dump_dir = os.path.join(directory, "__entities__")
     for population in simulation.populations.values():
-        if population.entity.is_person:
+        if not population.entity.role_entity:
             continue
         person_count = _restore_entity(population, entities_dump_dir)
 
     for population in simulation.populations.values():
-        if not population.entity.is_person:
+        if population.entity.role_entity:
             continue
         _restore_entity(population, entities_dump_dir)
         population.count = person_count
@@ -72,7 +72,7 @@ def _dump_entity(population, directory) -> None:
     os.mkdir(path)
     numpy.save(os.path.join(path, "id.npy"), population.ids)
 
-    if population.entity.is_person:
+    if not population.entity.role_entity:
         return
 
     numpy.save(os.path.join(path, "members_position.npy"), population.members_position)
@@ -97,8 +97,8 @@ def _restore_entity(population, directory):
 
     population.ids = numpy.load(os.path.join(path, "id.npy"))
 
-    if population.entity.is_person:
-        return None
+    if not population.entity.role_entity:
+        return
 
     population.members_position = numpy.load(os.path.join(path, "members_position.npy"))
     population.members_entity_id = numpy.load(
