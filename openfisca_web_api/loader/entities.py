@@ -10,10 +10,9 @@ def build_entity(entity):
         "description": entity.label,
         "documentation": formatted_doc,
     }
-    if not entity.is_person:
-        formatted_entity["roles"] = {
-            role.key: build_role(role) for role in entity.roles
-        }
+    formatted_entity["roles"] = {
+        role.key: build_role(role) for role in entity.roles
+    }
     return formatted_entity
 
 
