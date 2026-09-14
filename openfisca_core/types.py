@@ -127,7 +127,7 @@ RoleKey = NewType("RoleKey", str)
 RolePlural = NewType("RolePlural", str)
 
 
-class CoreEntity(Protocol):
+class Entity(Protocol):
     key: EntityKey
     plural: EntityPlural
 
@@ -146,11 +146,6 @@ class CoreEntity(Protocol):
         /,
     ) -> None | Variable: ...
 
-
-class SingleEntity(CoreEntity, Protocol): ...
-
-
-class GroupEntity(CoreEntity, Protocol): ...
 
 
 class Role(Protocol):

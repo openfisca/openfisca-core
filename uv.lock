@@ -1860,7 +1860,7 @@ dev = [{ name = "ruff", specifier = ">=0.16.7" }]
 
 [[package]]
 name = "openfisca-country-template"
-version = "8.0.1"
+version = "8.0.2"
 source = { editable = "../country-template" }
 dependencies = [
     { name = "openfisca-core", extra = ["web-api"] },
