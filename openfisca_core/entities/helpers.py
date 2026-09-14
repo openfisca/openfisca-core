@@ -3,21 +3,15 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence
 
 from . import types as t
-from .entity import Entity as SingleEntity
-from .group_entity import GroupEntity
-
+from .entity import Entity
 
 def build_entity(
     key: str,
     plural: str,
     label: str,
     doc: str = "",
-    roles: None | Sequence[t.RoleParams] = None,
-    is_person: bool = False,
     *,
-    class_override: object = None,
-    containing_entities: Sequence[str] = (),
-) -> t.SingleEntity | t.GroupEntity:
+) -> t.Entity:
     """Build an ``Entity`` or a ``GroupEntity``.
 
     Args:
@@ -25,13 +19,8 @@ def build_entity(
         plural: The ``key`` pluralised.
         label: A summary description.
         doc: A full description.
-        roles: A list of roles —if it's a ``GroupEntity``.
-        is_person: If is an individual, or not.
-        class_override: ?
-        containing_entities: Keys of contained entities.
 
     Returns:
-        Entity: When ``is_person`` is ``True``.
         GroupEntity: When ``is_person`` is ``False``.
 
     Raises:
@@ -44,36 +33,18 @@ def build_entity(
         ...     "syndicate",
         ...     "syndicates",
         ...     "Banks loaning jointly.",
-        ...     roles=[],
-        ...     containing_entities=(),
         ... )
         >>> entity
-        GroupEntity(syndicate)
+        Entity(syndicate)
 
         >>> entities.build_entity(
         ...     "company",
         ...     "companies",
         ...     "A small or medium company.",
-        ...     is_person=True,
         ... )
         Entity(company)
-
-        >>> role = entities.Role({"key": "key"}, entity)
-
-        >>> entities.build_entity(
-        ...     "syndicate",
-        ...     "syndicates",
-        ...     "Banks loaning jointly.",
-        ...     roles=[role],
-        ... )
-        Traceback (most recent call last):
-        TypeError: 'Role' object is not subscriptable
-
     """
-    if is_person:
-        return SingleEntity(key, plural, label, doc)
-
-    return GroupEntity(
+    return Entity(
         key,
         plural,
         label,
