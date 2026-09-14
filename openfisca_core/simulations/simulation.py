@@ -597,10 +597,6 @@ class Simulation:
         new_dict["_data_storage_dir"] = None
         new_dict["invalidated_caches"] = set(self.invalidated_caches)
 
-        #new.person = self.persons.clone(new)
-        #setattr(new, new.persons.entity.key, new.persons)
-        #new.populations = {new.persons.entity.key: new.persons}
-
         for entity in self.tax_benefit_system.entities:
             population = self.populations[entity.key].clone(new)
             new.populations[entity.key] = population
@@ -609,6 +605,16 @@ class Simulation:
                 entity.key,
                 population,
             )  # create shortcut simulation.household (for instance)
+
+        for entity in self.tax_benefit_system.entities:
+            if entity.role_entity:
+                population = self.populations[entity.key].clone(new)
+                new.populations[entity.key] = population
+                setattr(
+                    new,
+                    entity.key,
+                    population,
+                )  # create shortcut simulation.household (for instance)
 
         new.debug = debug
         new.trace = trace
