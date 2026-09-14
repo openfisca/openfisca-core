@@ -40,6 +40,7 @@ dependencies = [
     "numpy >=2.1.0, <=3; python_version >= '3.13'",
     # NumPy 2.3.2 supports Python 3.11 to 3.14
     # "numpy >=2.3.2, <3; python_version >= '3.14'",
+    "openfisca-country-template",
     "pendulum >=3.0.0, <4.0.0",
     "psutil >=5.9.4, <6.0",
     "pytest >=8.3.3, <9.0",
@@ -119,7 +120,5 @@ ignore-words-list = [
     "treshold",
 ]
 
-[dependency-groups]
-dev = [
-    "ruff>=0.16.7",
-]
+[tool.uv.sources]
+openfisca-country-template = { path = "../country-template", editable = true }

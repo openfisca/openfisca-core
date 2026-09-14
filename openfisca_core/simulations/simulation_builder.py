@@ -208,42 +208,28 @@ class SimulationBuilder:
         # Check for unexpected entities
         helpers.check_unexpected_entities(params, plural)
 
-        person_entity: SingleEntity = tax_benefit_system.person_entity
+        #person_entity: SingleEntity = tax_benefit_system.person_entity
 
-        persons_json = params.get(person_entity.plural, None)
+        #persons_json = params.get(person_entity.plural, None)
 
-        if not persons_json:
-            raise errors.SituationParsingError(
-                [person_entity.plural],
-                f"No {person_entity.key} found. At least one {person_entity.key} must be defined to run a simulation.",
-            )
+        # if not persons_json:
+        #     raise errors.SituationParsingError(
+        #         [person_entity.plural],
+        #         f"No {person_entity.key} found. At least one {person_entity.key} must be defined to run a simulation.",
+        #     )
 
-        persons_ids = self.add_person_entity(simulation.persons.entity, persons_json)
+        # persons_ids = self.add_person_entity(simulation.persons.entity, persons_json)
 
-        for entity_class in tax_benefit_system.group_entities:
+        #for entity_class in tax_benefit_system.group_entities:
+
+        for entity_class in tax_benefit_system.entities:
             instances_json = params.get(entity_class.plural)
+            self.add_entity(entity_class, instances_json or {})
 
-            if instances_json is not None:
-                self.add_group_entity(
-                    self.persons_plural,
-                    persons_ids,
-                    entity_class,
-                    instances_json,
-                )
-
-            elif axes is not None:
-                message = (
-                    f"We could not find any specified {entity_class.plural}. "
-                    "In order to expand over axes, all group entities and roles "
-                    "must be fully specified. For further support, please do "
-                    "not hesitate to take a look at the official documentation: "
-                    "https://openfisca.org/doc/simulate/replicate-simulation-inputs.html."
-                )
-
-                raise errors.SituationParsingError([entity_class.plural], message)
-
-            else:
-                self.add_default_group_entity(persons_ids, entity_class)
+        for entity_class in tax_benefit_system.entities:
+            instances_json = params.get(entity_class.plural)
+            if entity_class.roles:
+                self.add_group_entity(entity_class, instances_json or {})
 
         if axes is not None:
             for axis in axes[0]:
@@ -255,12 +241,7 @@ class SimulationBuilder:
 
             self.expand_axes()
 
-        try:
-            self.finalize_variables_init(simulation.persons)
-        except errors.PeriodMismatchError as e:
-            self.raise_period_mismatch(simulation.persons.entity, persons_json, e)
-
-        for entity_class in tax_benefit_system.group_entities:
+        for entity_class in tax_benefit_system.entities:
             try:
                 population = simulation.populations[entity_class.key]
                 self.finalize_variables_init(population)
@@ -429,13 +410,12 @@ class SimulationBuilder:
 
         return result
 
-    def add_person_entity(self, entity, instances_json):
-        """Add the simulation's instances of the persons entity as described in ``instances_json``."""
+    def add_entity(self, entity, instances_json):
+        """Add the simulation's instances of the entity as described in ``instances_json``."""
         helpers.check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
-        self.persons_plural = entity.plural
-        self.entity_ids[self.persons_plural] = entity_ids
-        self.entity_counts[self.persons_plural] = len(entity_ids)
+        self.entity_ids[entity.plural] = entity_ids
+        self.entity_counts[entity.plural] = len(entity_ids)
 
         for instance_id, instance_object in instances_json.items():
             helpers.check_type(instance_object, dict, [entity.plural, instance_id])
@@ -443,41 +423,20 @@ class SimulationBuilder:
 
         return self.get_ids(entity.plural)
 
-    def add_default_group_entity(
-        self,
-        persons_ids: list[str],
-        entity: GroupEntity,
-    ) -> None:
-        persons_count = len(persons_ids)
-        roles = list(entity.flattened_roles)
-        self.entity_ids[entity.plural] = persons_ids
-        self.entity_counts[entity.plural] = persons_count
-        self.memberships[entity.plural] = list(
-            numpy.arange(0, persons_count, dtype=numpy.int32),
-        )
-        self.roles[entity.plural] = [roles[0]] * persons_count
-
     def add_group_entity(
         self,
-        persons_plural: str,
-        persons_ids: list[str],
-        entity: GroupEntity,
+        entity: Entity,
         instances_json,
     ) -> None:
         """Add all instances of one of the model's entities as described in ``instances_json``."""
-        helpers.check_type(instances_json, dict, [entity.plural])
-        entity_ids = list(map(str, instances_json.keys()))
-
-        self.entity_ids[entity.plural] = entity_ids
-        self.entity_counts[entity.plural] = len(entity_ids)
-
+        persons_plural = entity.role_entity.plural
+        persons_ids = self.get_ids(persons_plural)
         persons_count = len(persons_ids)
         persons_to_allocate = set(persons_ids)
         self.memberships[entity.plural] = numpy.empty(persons_count, dtype=numpy.int32)
         self.roles[entity.plural] = numpy.empty(persons_count, dtype=object)
 
-        self.entity_ids[entity.plural] = entity_ids
-        self.entity_counts[entity.plural] = len(entity_ids)
+        entity_ids = self.get_ids(entity.plural)
 
         for instance_id, instance_object in instances_json.items():
             helpers.check_type(instance_object, dict, [entity.plural, instance_id])
@@ -591,6 +550,12 @@ class SimulationBuilder:
     def init_variable_values(self, entity, instance_object, instance_id) -> None:
         for variable_name, variable_values in instance_object.items():
             path_in_json = [entity.plural, instance_id, variable_name]
+
+            if entity.roles:
+                if variable_name in [r.plural for r in entity.flattened_roles]:
+                    continue
+                # print([r.key for r in entity.flattened_roles])
+                # raise errors.SituationParsingError(path_in_json, f"{variable_name} {entity.key} error")
             try:
                 entity.check_variable_defined_for_entity(variable_name)
             except ValueError as e:  # The variable is defined for another entity

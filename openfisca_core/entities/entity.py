@@ -56,6 +56,7 @@ class Entity(CoreEntity):
         self.plural = t.EntityPlural(plural)
         self.label = label
         self.doc = textwrap.dedent(doc)
+        self.roles = []
 
 
 __all__ = ["Entity"]

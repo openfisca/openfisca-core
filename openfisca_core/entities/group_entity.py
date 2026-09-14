@@ -95,7 +95,7 @@ class GroupEntity(CoreEntity):
         plural: str,
         label: str,
         doc: str,
-        roles: Sequence[t.RoleParams],
+        roles: Sequence[t.RoleParams] = [],
         containing_entities: Iterable[str] = (),
     ) -> None:
         self.key = t.EntityKey(key)
@@ -104,6 +104,7 @@ class GroupEntity(CoreEntity):
         self.doc = textwrap.dedent(doc)
         self.roles_description = roles
         self.roles: Iterable[Role] = ()
+        self.role_entity: CoreEntity = None
         for role_description in roles:
             role = Role(role_description, self)
             setattr(self, role.key.upper(), role)
@@ -120,5 +121,24 @@ class GroupEntity(CoreEntity):
         )
         self.containing_entities = containing_entities
 
+
+    def add_roles(self, entity: CoreEntity, roles: Sequence[t.RoleParams]):
+        self.roles_description = roles
+        self.roles: Iterable[Role] = ()
+        self.role_entity = entity
+        for role_description in roles:
+            role = Role(role_description, self)
+            setattr(self, role.key.upper(), role)
+            self.roles = (*self.roles, role)
+            if subroles := role_description.get("subroles"):
+                role.subroles = ()
+                for subrole_key in subroles:
+                    subrole = Role({"key": subrole_key, "max": 1}, self)
+                    setattr(self, subrole.key.upper(), subrole)
+                    role.subroles = (*role.subroles, subrole)
+                role.max = len(role.subroles)
+        self.flattened_roles = tuple(
+            chain.from_iterable(role.subroles or [role] for role in self.roles),
+        )
 
 __all__ = ["GroupEntity"]

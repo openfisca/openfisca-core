@@ -48,7 +48,6 @@ class Population(CorePopulation):
         """
         if self.simulation is None:
             return None
-
         self.entity.check_role_validity(role)
 
         group_population = self.simulation.get_population(role.entity.plural)

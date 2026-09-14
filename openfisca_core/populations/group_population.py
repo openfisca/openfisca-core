@@ -22,7 +22,7 @@ class GroupPopulation(Population):
     def clone(self, simulation):
         # ``simulation.persons`` must already be the cloned persons population,
         # so that members of the cloned group belong to the new simulation.
-        result = GroupPopulation(self.entity, simulation.persons)
+        result = GroupPopulation(self.entity, simulation.person)
         result.simulation = simulation
         result._holders = {
             variable: holder.clone(result)
