@@ -246,6 +246,7 @@ class SimulationBuilder:
                 population = simulation.populations[entity_class.key]
                 self.finalize_variables_init(population)
             except errors.PeriodMismatchError as e:
+                instances_json = params.get(entity_class.plural)
                 self.raise_period_mismatch(population.entity, instances_json, e)
 
         return simulation
