@@ -66,7 +66,7 @@ class TaxBenefitSystem:
             raise Exception(msg)
         self.entities = [copy.copy(entity) for entity in entities]
         self.group_entities = [
-            entity for entity in self.entities if not entity.is_person
+            entity for entity in self.entities if entity.roles
         ]
         for entity in self.entities:
             entity.set_tax_benefit_system(self)

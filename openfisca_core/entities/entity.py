@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-import abc
+import textwrap
 import os
+from itertools import chain
 
 from . import types as t
 from .role import Role
@@ -17,19 +18,14 @@ class Entity:
         **__kwargs: Any keyword arguments.
 
     Examples:
-        >>> from openfisca_core import entities
         >>> from openfisca_core.entities import types as t
 
-        >>> class Entity(entities.CoreEntity):
-        ...     def __init__(self, key):
-        ...         self.key = t.EntityKey(key)
-
-        >>> Entity("individual")
+        >>> Entity("individual", "individuals", "Individual", "")
         Entity(individual)
 
     """
 
-    #: A key to identify the ``CoreEntity``.
+    #: A key to identify the ``Entity``.
     key: t.EntityKey
 
     #: The ``key`` pluralised.
@@ -44,14 +40,14 @@ class Entity:
     #: A ``TaxBenefitSystem`` instance.
     _tax_benefit_system: None | t.TaxBenefitSystem = None
 
-    def __init__(self, *__args: object, **__kwargs: object) -> None:
+    def __init__(self, key: str, plural: str, label: str, doc: str) -> None:
         self.key = t.EntityKey(key)
         self.plural = t.EntityPlural(plural)
         self.label = label
         self.doc = textwrap.dedent(doc)
         self.roles_description = None
         self.roles: Iterable[Role] = ()
-        self.role_entity: CoreEntity = None
+        self.role_entity: Entity = None
         self.links = []
 
 
@@ -59,7 +55,7 @@ class Entity:
         return f"{self.__class__.__name__}({self.key})"
 
     def set_tax_benefit_system(self, tax_benefit_system: t.TaxBenefitSystem) -> None:
-        """A ``CoreEntity`` belongs to a ``TaxBenefitSystem``."""
+        """An ``Entity`` belongs to a ``TaxBenefitSystem``."""
         self._tax_benefit_system = tax_benefit_system
 
     def get_variable(
@@ -90,8 +86,8 @@ class Entity:
             ...     variables,
             ... )
 
-            >>> this = entities.SingleEntity("this", "", "", "")
-            >>> that = entities.SingleEntity("that", "", "", "")
+            >>> this = entities.Entity("this", "", "", "")
+            >>> that = entities.Entity("that", "", "", "")
 
             >>> this.get_variable("tax")
             Traceback (most recent call last):
@@ -112,10 +108,11 @@ class Entity:
             ...     entity = that
 
             >>> this._tax_benefit_system.add_variable(tax)
-            <openfisca_core.entities._core_entity.tax object at ...>
+            <openfisca_core.entities.entity.tax object at ...>
 
             >>> this.get_variable("tax")
-            <openfisca_core.entities._core_entity.tax object at ...>
+            <openfisca_core.entities.entity.tax object at ...>
+
 
         """
         if self._tax_benefit_system is None:
@@ -143,8 +140,8 @@ class Entity:
             ...     variables,
             ... )
 
-            >>> this = entities.SingleEntity("this", "", "", "")
-            >>> that = entities.SingleEntity("that", "", "", "")
+            >>> this = entities.Entity("this", "", "", "")
+            >>> that = entities.Entity("that", "", "", "")
             >>> tax_benefit_system = taxbenefitsystems.TaxBenefitSystem([that])
             >>> this.set_tax_benefit_system(tax_benefit_system)
 
@@ -158,7 +155,7 @@ class Entity:
             ...     entity = that
 
             >>> this._tax_benefit_system.add_variable(tax)
-            <openfisca_core.entities._core_entity.tax object at ...>
+            <openfisca_core.entities.entity.tax object at ...>
 
             >>> this.check_variable_defined_for_entity("tax")
             Traceback (most recent call last):
@@ -167,12 +164,12 @@ class Entity:
             >>> tax.entity = this
 
             >>> this._tax_benefit_system.update_variable(tax)
-            <openfisca_core.entities._core_entity.tax object at ...>
+            <openfisca_core.entities.entity.tax object at ...>
 
             >>> this.check_variable_defined_for_entity("tax")
 
         """
-        entity: None | t.CoreEntity = None
+        entity: None | t.Entity = None
         variable: None | t.Variable = self.get_variable(
             variable_name,
             check_existence=True,
@@ -220,7 +217,7 @@ class Entity:
             raise ValueError(msg)
 
 
-    def add_roles(self, entity: CoreEntity, roles: Sequence[t.RoleParams]):
+    def add_roles(self, entity: Entity, roles: Sequence[t.RoleParams]):
         self.roles_description = roles
         self.roles: Iterable[Role] = ()
         self.role_entity = entity

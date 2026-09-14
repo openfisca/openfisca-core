@@ -37,21 +37,26 @@ def role(parent: str, first_parent: str, third_parent: str) -> Mapping[str, Any]
 
 
 @pytest.fixture
-def group_entity(role: Mapping[str, Any]) -> entities.GroupEntity:
-    return entities.GroupEntity("key", "label", "plural", "doc", (role,))
+def group_entity(role: Mapping[str, Any]) -> entities.Entity:
+    entity = entities.Entity("key", "label", "plural", "doc")
+    group_entity = entities.Entity("key", "label", "plural", "doc")
+    group_entity.add_roles(entity, [role])
+    return group_entity
 
 
 def test_init_when_doc_indented() -> None:
     """De-indent the ``doc`` attribute if it is passed at initialisation."""
+    entity = entities.Entity("key", "label", "plural", "doc")
     key = "\tkey"
     doc = "\tdoc"
-    group_entity = entities.GroupEntity(key, "label", "plural", doc, ())
+    group_entity = entities.Entity(key, "label", "plural", doc)
+    group_entity.add_roles(entity, [])
     assert group_entity.key == key
     assert group_entity.doc == doc.lstrip()
 
 
 def test_group_entity_with_roles(
-    group_entity: entities.GroupEntity,
+    group_entity: entities.Entity,
     parent: str,
     uncle: str,
 ) -> None:
@@ -61,7 +66,7 @@ def test_group_entity_with_roles(
 
 
 def test_group_entity_with_subroles(
-    group_entity: entities.GroupEntity,
+    group_entity: entities.Entity,
     first_parent: str,
     second_parent: str,
 ) -> None:
