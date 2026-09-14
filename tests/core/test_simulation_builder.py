@@ -146,7 +146,7 @@ def test_add_group_entity(persons, households) -> None:
         "Household_2": {"adults": ["Tom"], "children": ["Sarah"]},
     }
     simulation_builder.add_entity(households, payload)
-    simulation_builder.add_group_entity(households, payload)
+    simulation_builder.link_entities(households, payload)
     assert simulation_builder.get_count("households") == 2
     assert simulation_builder.get_ids("households") == ["Household_1", "Household_2"]
     assert simulation_builder.get_memberships("households") == [0, 0, 1, 1]
@@ -169,7 +169,7 @@ def test_add_group_entity_loose_syntax(persons, households) -> None:
     }
 
     simulation_builder.add_entity(households, payload)
-    simulation_builder.add_group_entity(
+    simulation_builder.link_entities(
         households, payload
     )
     assert simulation_builder.get_count("households") == 2
@@ -361,7 +361,7 @@ def test_finalize_households(tax_benefit_system) -> None:
     }
 
     simulation_builder.add_entity(simulation.household.entity, payload)
-    simulation_builder.add_group_entity(simulation.household.entity, payload)
+    simulation_builder.link_entities(simulation.household.entity, payload)
 
     simulation_builder.finalize_variables_init(simulation.household)
     tools.assert_near(simulation.household.members_entity_id, [0, 0, 1, 1])

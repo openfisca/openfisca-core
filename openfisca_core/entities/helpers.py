@@ -104,7 +104,7 @@ def find_role(
         ...     doc="A Family represents a collection of related persons.",
         ... )
 
-        >>> group_entity.add_roles(
+        >>> group_entity.add_link(
         ...     person_entity,
         ...     roles=[principal, partner, parent],
         ... )

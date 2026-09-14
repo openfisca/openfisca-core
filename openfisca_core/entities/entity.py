@@ -10,6 +10,14 @@ from . import types as t
 from .role import Role
 
 
+class Link:
+    def __init__(self, a: Entity, b: Entity, roles: Sequence[t.RoleParams]):
+        self.a: Entity = a
+        self.b: Entity = b
+        self.roles_description: Sequence[t.RoleParams] = roles
+        self.roles: Iterable[Role]
+
+
 class Entity:
     """Base class to build entities from.
 
@@ -45,9 +53,6 @@ class Entity:
         self.plural = t.EntityPlural(plural)
         self.label = label
         self.doc = textwrap.dedent(doc)
-        self.roles_description = None
-        self.roles: Iterable[Role] = ()
-        self.role_entity: Entity = None
         self.links = []
 
 
@@ -217,15 +222,15 @@ class Entity:
             raise ValueError(msg)
 
 
-    def add_roles(self, entity: Entity, roles: Sequence[t.RoleParams]):
-        self.roles_description = roles
-        self.roles: Iterable[Role] = ()
-        self.role_entity = entity
-        entity.links.append(self)
-        for role_description in roles:
+    def add_link(self, entity: Entity, role_descriptions: Sequence[t.RoleParams]):
+        link = Link(self, entity, role_descriptions)
+        self.links.append(link)
+        entity.links.append(link)
+        roles = []
+        for role_description in role_descriptions:
             role = Role(role_description, self)
             setattr(self, role.key.upper(), role)
-            self.roles = (*self.roles, role)
+            roles.append(role)
             if subroles := role_description.get("subroles"):
                 role.subroles = ()
                 for subrole_key in subroles:
@@ -234,7 +239,7 @@ class Entity:
                     role.subroles = (*role.subroles, subrole)
                 role.max = len(role.subroles)
         self.flattened_roles = tuple(
-            chain.from_iterable(role.subroles or [role] for role in self.roles),
+            chain.from_iterable(role.subroles or [role] for role in roles),
         )
 
 __all__ = ["Entity"]
