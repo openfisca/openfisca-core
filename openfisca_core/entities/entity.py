@@ -56,6 +56,8 @@ class Entity(CoreEntity):
         self.label = label
         self.doc = textwrap.dedent(doc)
         self.roles = []
+        self.links = []
+        """ Inbound role links """
 
 
 __all__ = ["Entity"]
