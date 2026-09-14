@@ -33,6 +33,17 @@ def new_simulation(tax_benefit_system, test_case, period=MONTH):
 
 
 def test_role_index_and_positions(tax_benefit_system) -> None:
+    simulation = new_simulation(tax_benefit_system, {})
+    tools.assert_near(simulation.household.members_entity_id, [0, 0, 0, 0, 1, 1])
+    assert (
+        simulation.household.members_role == [ADULT, ADULT, CHILD, CHILD, ADULT, CHILD]
+    ).all()
+    tools.assert_near(simulation.household.members_position, [0, 1, 2, 3, 0, 1])
+    assert simulation.person.ids == ["ind0", "ind1", "ind2", "ind3", "ind4", "ind5"]
+    assert simulation.household.ids == ["h1", "h2"]
+
+
+def test_role_index_and_positions(tax_benefit_system) -> None:
     simulation = new_simulation(tax_benefit_system, TEST_CASE)
     tools.assert_near(simulation.household.members_entity_id, [0, 0, 0, 0, 1, 1])
     assert (
@@ -190,13 +201,14 @@ def test_set_input_with_constructor(tax_benefit_system) -> None:
 
 def test_has_role(tax_benefit_system) -> None:
     simulation = new_simulation(tax_benefit_system, TEST_CASE)
-    individu = simulation.persons
+    individu = simulation.person
+    tools.assert_near(individu.has_role(ADULT), [True, True, False, False, True, False])
     tools.assert_near(individu.has_role(CHILD), [False, False, True, True, False, True])
 
 
 def test_has_role_with_subrole(tax_benefit_system) -> None:
     simulation = new_simulation(tax_benefit_system, TEST_CASE)
-    individu = simulation.persons
+    individu = simulation.person
     tools.assert_near(
         individu.has_role(ADULT),
         [True, True, False, False, True, False],
@@ -313,6 +325,11 @@ def test_value_nth_person(tax_benefit_system) -> None:
     simulation = new_simulation(tax_benefit_system, test_case)
     household = simulation.household
     array = household.members("age", MONTH)
+
+    age1 = simulation.person("age", period=MONTH)
+    age = household.members("age", period=MONTH)
+
+    import pdb; pdb.set_trace()
 
     result0 = household.value_nth_person(0, array, default=-1)
     tools.assert_near(result0, [40, 54])

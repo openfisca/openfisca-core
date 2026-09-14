@@ -73,17 +73,12 @@ def build_entity(
     if is_person:
         return SingleEntity(key, plural, label, doc)
 
-    if roles is not None:
-        return GroupEntity(
-            key,
-            plural,
-            label,
-            doc,
-            roles,
-            containing_entities=containing_entities,
-        )
-
-    raise NotImplementedError
+    return GroupEntity(
+        key,
+        plural,
+        label,
+        doc,
+    )
 
 
 def find_role(
