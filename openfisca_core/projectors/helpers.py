@@ -126,11 +126,4 @@ def get_projector_from_shortcut(
         if role is not None:
             return projectors.UniqueRoleToEntityProjector(population, role, parent)
 
-        if shortcut in entity.containing_entities:
-            projector: projectors.Projector = getattr(
-                projectors.FirstPersonToEntityProjector(population, parent),
-                shortcut,
-            )
-            return projector
-
     return None
