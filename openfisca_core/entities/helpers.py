@@ -9,19 +9,18 @@ def build_entity(
     key: str,
     plural: str,
     label: str,
-    doc: str = "",
-    *,
+    doc: str = ""
 ) -> t.Entity:
-    """Build an ``Entity`` or a ``GroupEntity``.
+    """Build an ``Entity``.
 
     Args:
-        key: Key to identify the ``Entity`` or ``GroupEntity``.
+        key: Key to identify the ``Entity``.
         plural: The ``key`` pluralised.
         label: A summary description.
         doc: A full description.
 
     Returns:
-        GroupEntity: When ``is_person`` is ``False``.
+        Entity.
 
     Raises:
         NotImplementedError: If ``roles`` is ``None``.
@@ -43,6 +42,7 @@ def build_entity(
         ...     "A small or medium company.",
         ... )
         Entity(company)
+
     """
     return Entity(
         key,
@@ -73,6 +73,8 @@ def find_role(
         >>> from openfisca_core import entities
         >>> from openfisca_core.entities import types as t
 
+        >>> person_entity = entities.build_entity("person", "persons", "Person")
+
         >>> principal = t.RoleParams(
         ...     key="principal",
         ...     label="Principal",
@@ -100,6 +102,10 @@ def find_role(
         ...     plural="families",
         ...     label="Family",
         ...     doc="A Family represents a collection of related persons.",
+        ... )
+
+        >>> group_entity.add_roles(
+        ...     person_entity,
         ...     roles=[principal, partner, parent],
         ... )
 

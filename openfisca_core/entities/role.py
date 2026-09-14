@@ -7,9 +7,9 @@ from ._description import _Description
 
 
 class Role:
-    """The role of an ``Entity`` within a ``GroupEntity``.
+    """The role of an ``Entity`` within another ``Entity``.
 
-    Each ``Entity`` related to a ``GroupEntity`` has a ``Role``. For example,
+    Each ``Entity`` related to another ``Entity`` has a ``Role``. For example,
     if you have a family, its roles could include a parent, a child, and so on.
     Or if you have a tax household, its roles could include the taxpayer, a
     spouse, several dependents, and the like.
@@ -21,7 +21,7 @@ class Role:
     Examples:
         >>> from openfisca_core import entities
 
-        >>> entity = entities.GroupEntity("key", "plural", "label", "doc", [])
+        >>> entity = entities.Entity("key", "plural", "label", "doc")
         >>> role = entities.Role({"key": "parent"}, entity)
 
         >>> repr(entities.Role)
@@ -41,8 +41,8 @@ class Role:
 
     """
 
-    #: The ``GroupEntity`` the Role belongs to.
-    entity: t.GroupEntity
+    #: The ``Entity`` the Role belongs to.
+    entity: t.Entity
 
     #: A description of the ``Role``.
     description: _Description
@@ -75,7 +75,7 @@ class Role:
         """A full description, non-indented."""
         return self.description.doc
 
-    def __init__(self, description: t.RoleParams, entity: t.GroupEntity) -> None:
+    def __init__(self, description: t.RoleParams, entity: t.Entity) -> None:
         self.description = _Description(
             key=description["key"],
             plural=description.get("plural"),

@@ -1,6 +1,6 @@
 import pytest
 
-from openfisca_core.entities import Entity, GroupEntity
+from openfisca_core.entities import Entity
 
 from .variables import TestVariable
 
@@ -19,7 +19,7 @@ class TestEntity(Entity):
         return True
 
 
-class TestGroupEntity(GroupEntity):
+class TestGroupEntity(Entity):
     def get_variable(
         self,
         variable_name: str,

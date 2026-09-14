@@ -352,7 +352,7 @@ class CorePopulation(Protocol): ...
 
 
 class SinglePopulation(CorePopulation, Protocol):
-    entity: SingleEntity
+    entity: Entity
 
     def get_holder(self, variable_name: VariableName, /) -> Holder: ...
 
@@ -383,7 +383,7 @@ class Simulation(Protocol):
 
 
 class TaxBenefitSystem(Protocol):
-    person_entity: SingleEntity
+    person_entity: Entity
 
     def get_variable(
         self,
@@ -507,7 +507,7 @@ VariableName = NewType("VariableName", str)
 
 
 class Variable(Protocol):
-    entity: CoreEntity
+    entity: Entity
     name: VariableName
 
 
