@@ -11,7 +11,7 @@ from .population import Population
 
 
 class GroupPopulation(Population):
-    def __init__(self, entity: t.GroupEntity, members: t.Members) -> None:
+    def __init__(self, entity: t.Entity, members: t.Members) -> None:
         super().__init__(entity)
         self.members = members
         self._members_entity_id = None
@@ -19,10 +19,8 @@ class GroupPopulation(Population):
         self._members_position = None
         self._ordered_members_map = None
 
-    def clone(self, simulation):
-        # ``simulation.persons`` must already be the cloned persons population,
-        # so that members of the cloned group belong to the new simulation.
-        result = GroupPopulation(self.entity, simulation.person)
+    def init_clone(self, simulation):
+        result = GroupPopulation(self.entity, None)
         result.simulation = simulation
         result._holders = {
             variable: holder.clone(result)
@@ -35,6 +33,12 @@ class GroupPopulation(Population):
         result._members_position = self._members_position
         result._ordered_members_map = self._ordered_members_map
         return result
+
+    def finalize_clone(self):
+        for relationship in self.entity.relationships:
+            if relationship.a.key != self.entity.key:
+                continue
+            self.members = self.simulation.populations[relationship.b.key]
 
     @property
     def members_position(self):

@@ -7,7 +7,7 @@ from ._description import _Description
 
 
 class Role:
-    """The role of an ``Entity`` within another ``Entity``.
+    """The role of an ``Entity`` within another ``Entity`` in a ``Relationship``.
 
     Each ``Entity`` related to another ``Entity`` has a ``Role``. For example,
     if you have a family, its roles could include a parent, a child, and so on.

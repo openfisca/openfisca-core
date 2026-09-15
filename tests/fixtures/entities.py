@@ -15,23 +15,6 @@ class TestEntity(Entity):
         result.name = variable_name
         return result
 
-    def check_variable_defined_for_entity(self, variable_name: str) -> bool:
-        return True
-
-
-class TestGroupEntity(Entity):
-    def get_variable(
-        self,
-        variable_name: str,
-        check_existence: bool = False,
-    ) -> TestVariable:
-        result = TestVariable(self)
-        result.name = variable_name
-        return result
-
-    def check_variable_defined_for_entity(self, variable_name: str) -> bool:
-        return True
-
 
 @pytest.fixture
 def persons():
@@ -45,6 +28,6 @@ def households(persons):
         {"key": "child", "plural": "children"},
     ]
 
-    group = TestGroupEntity("household", "households", "", "")
-    group.add_link(persons, roles)
+    group = TestEntity("household", "households", "", "")
+    group.add_relationship(persons, roles)
     return group
