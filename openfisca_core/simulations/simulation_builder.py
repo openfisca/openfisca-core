@@ -26,13 +26,11 @@ from .typing import (
     Entity,
     FullySpecifiedEntities,
     GroupEntities,
-    GroupEntity,
     ImplicitGroupEntities,
     Params,
     ParamsWithoutAxes,
     Population,
     Role,
-    SingleEntity,
     TaxBenefitSystem,
     Variables,
 )
@@ -207,20 +205,6 @@ class SimulationBuilder:
 
         # Check for unexpected entities
         helpers.check_unexpected_entities(params, plural)
-
-        #person_entity: SingleEntity = tax_benefit_system.person_entity
-
-        #persons_json = params.get(person_entity.plural, None)
-
-        # if not persons_json:
-        #     raise errors.SituationParsingError(
-        #         [person_entity.plural],
-        #         f"No {person_entity.key} found. At least one {person_entity.key} must be defined to run a simulation.",
-        #     )
-
-        # persons_ids = self.add_person_entity(simulation.persons.entity, persons_json)
-
-        #for entity_class in tax_benefit_system.group_entities:
 
         for entity_class in tax_benefit_system.entities:
             instances_json = params.get(entity_class.plural)
@@ -429,11 +413,11 @@ class SimulationBuilder:
         instances_json,
     ) -> None:
         """Add all instances of one of the model's entities as described in ``instances_json``."""
-        for link in entity.links:
-            if link.a.key != entity.key:
+        for relationship in entity.relationships:
+            if relationship.a.key != entity.key:
                 continue
 
-            persons_plural = link.b.plural
+            persons_plural = relationship.b.plural
             persons_ids = self.get_ids(persons_plural)
             persons_count = len(persons_ids)
             persons_to_allocate = set(persons_ids)
@@ -452,7 +436,7 @@ class SimulationBuilder:
                     or role.key: helpers.transform_to_strict_syntax(
                         variables_json.pop(role.plural or role.key, []),
                     )
-                    for role in link.roles
+                    for role in entity.flattened_roles
                 }
 
                 for role_id, role_definition in roles_json.items():
@@ -477,7 +461,7 @@ class SimulationBuilder:
                         persons_to_allocate.discard(person_id)
 
                 entity_index = entity_ids.index(instance_id)
-                role_by_plural = {role.plural or role.key: role for role in link.roles}
+                role_by_plural = {role.plural or role.key: role for role in entity.flattened_roles}
 
                 for role_plural, persons_with_role in roles_json.items():
                     role = role_by_plural[role_plural]

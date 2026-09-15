@@ -93,19 +93,6 @@ class Entity(Protocol):
         """Get a variable."""
 
 
-class SingleEntity(Entity, Protocol):
-    """Interface representing a single entity of a simulation."""
-
-
-class GroupEntity(Entity, Protocol):
-    """Interface representing a group entity of a simulation."""
-
-    @property
-    @abstractmethod
-    def flattened_roles(self) -> Iterable[Role[G]]:
-        """Get the flattened roles of the GroupEntity."""
-
-
 class Holder(Protocol[V]):
     """Interface representing a holder of a simulation's computed values."""
 
@@ -141,11 +128,11 @@ class Population(Protocol[E]):
 
 
 class SinglePopulation(Population[E], Protocol):
-    """Interface representing a data vector of a SingleEntity."""
+    """Interface representing a data vector of a Entity."""
 
 
 class GroupPopulation(Population[E], Protocol):
-    """Interface representing a data vector of a GroupEntity."""
+    """Interface representing a data vector of a Entity."""
 
     members_entity_id: Array[String]
 
@@ -162,12 +149,12 @@ class TaxBenefitSystem(Protocol):
 
     @property
     @abstractmethod
-    def person_entity(self) -> SingleEntity:
+    def person_entity(self) -> Entity:
         """Get the person entity of the tax-benefit system."""
 
     @person_entity.setter
     @abstractmethod
-    def person_entity(self, person_entity: SingleEntity) -> None:
+    def person_entity(self, person_entity: Entity) -> None:
         """Set the person entity of the tax-benefit system."""
 
     @property

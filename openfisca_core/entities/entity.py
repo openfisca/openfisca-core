@@ -10,12 +10,25 @@ from . import types as t
 from .role import Role
 
 
-class Link:
-    def __init__(self, a: Entity, b: Entity, roles: Sequence[t.RoleParams]):
+class Relationship:
+    def __init__(self, a: Entity, b: Entity, role_descriptions: Sequence[t.RoleParams]):
         self.a: Entity = a
         self.b: Entity = b
-        self.roles_description: Sequence[t.RoleParams] = roles
-        self.roles: Iterable[Role]
+        self.role_descriptions: Sequence[t.RoleParams] = role_descriptions
+        roles = []
+        for role_description in role_descriptions:
+            role = Role(role_description, self)
+            setattr(a, role.key.upper(), role)
+            roles.append(role)
+            if subroles := role_description.get("subroles"):
+                role.subroles = ()
+                for subrole_key in subroles:
+                    subrole = Role({"key": subrole_key, "max": 1}, self)
+                    setattr(a, subrole.key.upper(), subrole)
+                    role.subroles = (*role.subroles, subrole)
+                role.max = len(role.subroles)
+        self.roles: Iterable[Role] = roles
+
 
 
 class Entity:
@@ -48,12 +61,13 @@ class Entity:
     #: A ``TaxBenefitSystem`` instance.
     _tax_benefit_system: None | t.TaxBenefitSystem = None
 
-    def __init__(self, key: str, plural: str, label: str, doc: str) -> None:
+    def __init__(self, key: str, plural: str, label: str, doc: str = "") -> None:
         self.key = t.EntityKey(key)
         self.plural = t.EntityPlural(plural)
         self.label = label
         self.doc = textwrap.dedent(doc)
-        self.links = []
+        self.relationships = []
+        self.flattened_roles = []
 
 
     def __repr__(self) -> str:
@@ -91,8 +105,8 @@ class Entity:
             ...     variables,
             ... )
 
-            >>> this = entities.Entity("this", "", "", "")
-            >>> that = entities.Entity("that", "", "", "")
+            >>> this = entities.Entity("this", "", "")
+            >>> that = entities.Entity("that", "", "")
 
             >>> this.get_variable("tax")
             Traceback (most recent call last):
@@ -145,8 +159,8 @@ class Entity:
             ...     variables,
             ... )
 
-            >>> this = entities.Entity("this", "", "", "")
-            >>> that = entities.Entity("that", "", "", "")
+            >>> this = entities.Entity("this", "", "")
+            >>> that = entities.Entity("that", "", "")
             >>> tax_benefit_system = taxbenefitsystems.TaxBenefitSystem([that])
             >>> this.set_tax_benefit_system(tax_benefit_system)
 
@@ -222,24 +236,12 @@ class Entity:
             raise ValueError(msg)
 
 
-    def add_link(self, entity: Entity, role_descriptions: Sequence[t.RoleParams]):
-        link = Link(self, entity, role_descriptions)
-        self.links.append(link)
-        entity.links.append(link)
-        roles = []
-        for role_description in role_descriptions:
-            role = Role(role_description, self)
-            setattr(self, role.key.upper(), role)
-            roles.append(role)
-            if subroles := role_description.get("subroles"):
-                role.subroles = ()
-                for subrole_key in subroles:
-                    subrole = Role({"key": subrole_key, "max": 1}, self)
-                    setattr(self, subrole.key.upper(), subrole)
-                    role.subroles = (*role.subroles, subrole)
-                role.max = len(role.subroles)
-        self.flattened_roles = tuple(
-            chain.from_iterable(role.subroles or [role] for role in roles),
+    def add_relationship(self, entity: Entity, role_descriptions: Sequence[t.RoleParams]):
+        relationship = Relationship(self, entity, role_descriptions)
+        self.relationships.append(relationship)
+        entity.relationships.append(relationship)
+        self.flattened_roles = tuple(*self.flattened_roles,
+            chain.from_iterable(role.subroles or [role] for role in relationship.roles),
         )
 
 __all__ = ["Entity"]

@@ -1,6 +1,6 @@
 import numpy
 
-from openfisca_core.entities import build_entity
+from openfisca_core.entities import Entity
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import DateUnit
 from openfisca_core.simulations.simulation_builder import SimulationBuilder
@@ -12,18 +12,18 @@ def test_enum_projects_downwards() -> None:
     """Test that an Enum-type household-level variable projects
     values onto its members correctly.
     """
-    person = build_entity(
+    person = Entity(
         key="person",
         plural="people",
         label="A person"
     )
-    household = build_entity(
+    household = Entity(
         key="household",
         plural="households",
         label="A household"
     )
-    household.add_link(person,
-        roles=[
+    household.add_relationship(person,
+        [
             {
                 "key": "member",
                 "plural": "members",
@@ -82,18 +82,18 @@ def test_enum_projects_upwards() -> None:
     """Test that an Enum-type person-level variable projects
     values onto its household (from the first person) correctly.
     """
-    person = build_entity(
+    person = Entity(
         key="person",
         plural="people",
         label="A person"
     )
-    household = build_entity(
+    household = Entity(
         key="household",
         plural="households",
         label="A household",
     )
-    household.add_link(person,
-        roles=[
+    household.add_relationship(person,
+        [
             {
                 "key": "member",
                 "plural": "members",

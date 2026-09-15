@@ -61,7 +61,7 @@ def get_projector_from_shortcut(
 
         >>> group_entity_1 = entities.Entity("family", "", "", "")
 
-        >>> group_entity_1.add_link(entity, [{"key": "person", "max": 1}])
+        >>> group_entity_1.add_relationship(entity, [{"key": "person", "max": 1}])
 
         >>> roles = [
         ...     {"key": "person", "max": 1},
@@ -70,7 +70,7 @@ def get_projector_from_shortcut(
 
         >>> group_entity_2 = entities.Entity("household", "", "", "")
 
-        >>> group_entity_2.add_link(entity, roles)
+        >>> group_entity_2.add_relationship(entity, roles)
 
         >>> population = populations.Population(entity)
 
@@ -90,14 +90,14 @@ def get_projector_from_shortcut(
 
         >>> simulation = simulations.Simulation(tax_benefit_system, populations)
 
-        >>> get_projector_from_shortcut(group_population_1, "person")
-        <...UniqueRoleToEntityProjector object at ...>
-
         >>> get_projector_from_shortcut(population, "family")
         <...EntityToPersonProjector object at ...>
 
         >>> get_projector_from_shortcut(population, "household")
         <...EntityToPersonProjector object at ...>
+
+        >>> get_projector_from_shortcut(group_population_1, "person")
+        <...UniqueRoleToEntityProjector object at ...>
 
         >>> get_projector_from_shortcut(group_population_2, "first_person")
         <...FirstPersonToEntityProjector object at ...>
@@ -113,17 +113,15 @@ def get_projector_from_shortcut(
 
     """
     entity: Entity = population.entity
-
-    if shortcut in [k.b.key for k in entity.links]:
+    if shortcut in [k.a.key for k in entity.relationships]:
         return projectors.EntityToPersonProjector(population.simulation.populations[shortcut], parent)
 
     if shortcut == "first_person":
         return projectors.FirstPersonToEntityProjector(population, parent)
 
-    if isinstance(entity, entities.Entity):
-        role: Role | None = entities.find_role(entity.flattened_roles, shortcut, total=1)
+    role: Role | None = entities.find_role(entity, shortcut, total=1)
 
-        if role is not None:
-            return projectors.UniqueRoleToEntityProjector(population, role, parent)
+    if role is not None:
+        return projectors.UniqueRoleToEntityProjector(population, role, parent)
 
     return None

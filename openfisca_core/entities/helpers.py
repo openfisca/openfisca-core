@@ -5,55 +5,8 @@ from collections.abc import Iterable, Sequence
 from . import types as t
 from .entity import Entity
 
-def build_entity(
-    key: str,
-    plural: str,
-    label: str,
-    doc: str = ""
-) -> t.Entity:
-    """Build an ``Entity``.
-
-    Args:
-        key: Key to identify the ``Entity``.
-        plural: The ``key`` pluralised.
-        label: A summary description.
-        doc: A full description.
-
-    Returns:
-        Entity.
-
-    Raises:
-        NotImplementedError: If ``roles`` is ``None``.
-
-    Examples:
-        >>> from openfisca_core import entities
-
-        >>> entity = entities.build_entity(
-        ...     "syndicate",
-        ...     "syndicates",
-        ...     "Banks loaning jointly.",
-        ... )
-        >>> entity
-        Entity(syndicate)
-
-        >>> entities.build_entity(
-        ...     "company",
-        ...     "companies",
-        ...     "A small or medium company.",
-        ... )
-        Entity(company)
-
-    """
-    return Entity(
-        key,
-        plural,
-        label,
-        doc,
-    )
-
-
 def find_role(
-    roles: Iterable[t.Role],
+    entity: Entity,
     key: t.RoleKey,
     *,
     total: None | int = None,
@@ -70,10 +23,7 @@ def find_role(
         None: Else ``None``.
 
     Examples:
-        >>> from openfisca_core import entities
-        >>> from openfisca_core.entities import types as t
-
-        >>> person_entity = entities.build_entity("person", "persons", "Person")
+        >>> person_entity = Entity("person", "persons", "Person", "An individual")
 
         >>> principal = t.RoleParams(
         ...     key="principal",
@@ -97,41 +47,44 @@ def find_role(
         ...     subroles=["first_parent", "second_parent"],
         ... )
 
-        >>> group_entity = entities.build_entity(
+        >>> group_entity = Entity(
         ...     key="family",
         ...     plural="families",
         ...     label="Family",
         ...     doc="A Family represents a collection of related persons.",
         ... )
 
-        >>> group_entity.add_link(
+        >>> group_entity.add_relationship(
         ...     person_entity,
-        ...     roles=[principal, partner, parent],
+        ...     [principal, partner, parent],
         ... )
 
-        >>> entities.find_role(group_entity.roles, "principal", total=1)
+        >>> find_role(group_entity, "principal", total=1)
         Role(principal)
 
-        >>> entities.find_role(group_entity.roles, "partner")
+        >>> find_role(group_entity, "partner")
         Role(partner)
 
-        >>> entities.find_role(group_entity.roles, "parent", total=2)
+        >>> find_role(group_entity, "parent", total=2)
         Role(parent)
 
-        >>> entities.find_role(group_entity.roles, "first_parent", total=1)
+        >>> find_role(group_entity, "first_parent", total=1)
         Role(first_parent)
 
     """
-    for role in roles:
-        if role.subroles:
-            for subrole in role.subroles:
-                if (subrole.max == total) and (subrole.key == key):
-                    return subrole
+    for relationship in entity.relationships:
+        if relationship.b == entity:
+            continue
+        for role in relationship.roles:
+            if role.subroles:
+                for subrole in role.subroles:
+                    if (subrole.max == total) and (subrole.key == key):
+                        return subrole
 
-        if (role.max == total) and (role.key == key):
-            return role
+            if (role.max == total) and (role.key == key):
+                return role
 
     return None
 
 
-__all__ = ["build_entity", "find_role"]
+__all__ = ["find_role"]

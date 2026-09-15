@@ -86,9 +86,9 @@ class TaxBenefitSystem:
             entities[entity.key] = Population(entity)
 
         for entity in self.entities:
-            for link in entity.links:
-                if link.a.key == entity.key:
-                    members = entities[link.b.key]
+            for relationship in entity.relationships:
+                if relationship.a.key == entity.key:
+                    members = entities[relationship.b.key]
                     entities[entity.key] = GroupPopulation(entity, members)
 
         return entities

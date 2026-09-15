@@ -33,17 +33,6 @@ def new_simulation(tax_benefit_system, test_case, period=MONTH):
 
 
 def test_role_index_and_positions(tax_benefit_system) -> None:
-    simulation = new_simulation(tax_benefit_system, {})
-    tools.assert_near(simulation.household.members_entity_id, [0, 0, 0, 0, 1, 1])
-    assert (
-        simulation.household.members_role == [ADULT, ADULT, CHILD, CHILD, ADULT, CHILD]
-    ).all()
-    tools.assert_near(simulation.household.members_position, [0, 1, 2, 3, 0, 1])
-    assert simulation.person.ids == ["ind0", "ind1", "ind2", "ind3", "ind4", "ind5"]
-    assert simulation.household.ids == ["h1", "h2"]
-
-
-def test_role_index_and_positions(tax_benefit_system) -> None:
     simulation = new_simulation(tax_benefit_system, TEST_CASE)
     tools.assert_near(simulation.household.members_entity_id, [0, 0, 0, 0, 1, 1])
     assert (
