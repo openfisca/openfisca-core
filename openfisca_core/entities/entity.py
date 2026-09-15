@@ -236,7 +236,13 @@ class Entity:
             raise ValueError(msg)
 
 
-    def add_relationship(self, entity: Entity, role_descriptions: Sequence[t.RoleParams]):
+    def add_relationship(self, entity: Entity, role_descriptions: Sequence[t.RoleParams] = []):
+        if not role_descriptions:
+            role_descriptions = [{
+                "key": entity.key,
+                "plural": entity.plural,
+                "label": entity.label,
+            }]
         relationship = Relationship(self, entity, role_descriptions)
         self.relationships.append(relationship)
         entity.relationships.append(relationship)

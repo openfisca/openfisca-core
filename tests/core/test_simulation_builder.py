@@ -8,10 +8,12 @@ from openfisca_country_template import entities, situation_examples
 
 from openfisca_core import tools
 from openfisca_core.errors import SituationParsingError
+from openfisca_core.entities import Entity
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import DateUnit
 from openfisca_core.populations import Population
 from openfisca_core.simulations import Simulation, SimulationBuilder
+from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_core.tools import test_runner
 from openfisca_core.variables import Variable
 
@@ -705,3 +707,21 @@ def test_inconsistent_input(tax_benefit_system) -> None:
             test_runner.yaml.safe_load(input_yaml),
         )
     assert "its length is 3 while there are 2" in error.value.args[0]
+
+def test_basic_roles() -> None:
+    person = Entity("person", "people", "Person")
+    family = Entity("family", "families", "Family")
+    family.add_relationship(person)
+    household = Entity("household", "households", "Household")
+    household.add_relationship(person)
+
+    entities = [person, family, household]
+
+    tbs = TaxBenefitSystem(entities)
+    payload = {
+        "people": {"Alice": {}},
+        "families": { "Alice's family": {"people": ["Alice"]}},
+       "households": { "Alice's household": {"people": ["Alice"]}},
+    }
+    simulation = SimulationBuilder().build_from_dict(tbs, payload)
+    assert simulation

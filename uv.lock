@@ -1645,7 +1645,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "isort", marker = "extra == 'dev'", specifier = ">=5.13.2,<6" },
-    { name = "openfisca-core", extras = ["web-api"], specifier = ">=43" },
+    { name = "openfisca-core", extras = ["web-api"], editable = "." },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.6.9,<1" },
     { name = "ruff-lsp", marker = "extra == 'dev'", specifier = ">=0.0.57,<1" },
     { name = "yamllint", marker = "extra == 'dev'", specifier = ">=1.35.1" },
