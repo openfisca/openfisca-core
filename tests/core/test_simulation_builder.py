@@ -725,3 +725,26 @@ def test_basic_roles() -> None:
     }
     simulation = SimulationBuilder().build_from_dict(tbs, payload)
     assert simulation
+
+def test_subroles() -> None:
+    person = Entity("person", "people", "Person")
+    family = Entity("family", "families", "Family")
+    family.add_relationship(person, [{
+        "key": "parent",
+        "plural": "parents",
+        "label": "Parents",
+        "subroles": ["parent1", "parent2"]
+        }])
+    household = Entity("household", "households", "Household")
+    household.add_relationship(person, )
+
+    entities = [person, family, household]
+
+    tbs = TaxBenefitSystem(entities)
+    payload = {
+        "people": {"Alice": {}},
+        "families": { "Alice's family": {"parents": ["Alice"]}},
+        "households": { "Alice's household": {"people": ["Alice"]}},
+    }
+    simulation = SimulationBuilder().build_from_dict(tbs, payload)
+    assert simulation

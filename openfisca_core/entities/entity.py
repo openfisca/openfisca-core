@@ -250,4 +250,10 @@ class Entity:
             chain.from_iterable(role.subroles or [role] for role in relationship.roles),
         )
 
+    @property
+    def roles(self) -> Sequence[str]:
+        base = [r.plural or r.key for r in self.flattened_roles]
+        links = [role.plural or role.key for relationship in self.relationships for role in relationship.roles if self.key == relationship.a.key]
+        return base + links
+
 __all__ = ["Entity"]
