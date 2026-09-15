@@ -209,7 +209,7 @@ class SimulationBuilder:
         for entity_class in tax_benefit_system.entities:
             instances_json = params.get(entity_class.plural)
             self.add_entity(entity_class, instances_json or {})
-
+        
         for entity_class in tax_benefit_system.entities:
             instances_json = params.get(entity_class.plural)
             self.link_entities(entity_class, instances_json or {})
@@ -401,6 +401,7 @@ class SimulationBuilder:
         self.entity_ids[entity.plural] = entity_ids
         self.entity_counts[entity.plural] = len(entity_ids)
 
+
         for instance_id, instance_object in instances_json.items():
             helpers.check_type(instance_object, dict, [entity.plural, instance_id])
             self.init_variable_values(entity, instance_object, str(instance_id))
@@ -436,7 +437,7 @@ class SimulationBuilder:
                     or role.key: helpers.transform_to_strict_syntax(
                         variables_json.pop(role.plural or role.key, []),
                     )
-                    for role in entity.flattened_roles
+                    for role in relationship.roles
                 }
 
                 for role_id, role_definition in roles_json.items():
@@ -461,7 +462,7 @@ class SimulationBuilder:
                         persons_to_allocate.discard(person_id)
 
                 entity_index = entity_ids.index(instance_id)
-                role_by_plural = {role.plural or role.key: role for role in entity.flattened_roles}
+                role_by_plural = {role.plural or role.key: role for role in relationship.roles}
 
                 for role_plural, persons_with_role in roles_json.items():
                     role = role_by_plural[role_plural]

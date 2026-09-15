@@ -721,10 +721,13 @@ def test_basic_roles() -> None:
     payload = {
         "people": {"Alice": {}},
         "families": { "Alice's family": {"people": ["Alice"]}},
-       "households": { "Alice's household": {"people": ["Alice"]}},
+        "households": { "Alice's household": {"people": ["Alice"]}},
     }
     simulation = SimulationBuilder().build_from_dict(tbs, payload)
     assert simulation
+    assert simulation.person.count == 1
+    assert simulation.family.count == 1
+    assert simulation.household.count == 1
 
 def test_subroles() -> None:
     person = Entity("person", "people", "Person")
@@ -748,3 +751,6 @@ def test_subroles() -> None:
     }
     simulation = SimulationBuilder().build_from_dict(tbs, payload)
     assert simulation
+    assert simulation.person.count == 1
+    assert simulation.family.count == 1
+    assert simulation.household.count == 1
