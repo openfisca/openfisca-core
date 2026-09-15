@@ -176,3 +176,18 @@ def test_invalidate_cache_when_spiral_error_detected(tax_benefit_system) -> None
         simulation._check_for_cycle("a", periods.period(2016))
 
     assert len(simulation.invalidated_caches) == 3
+
+
+def test_clone_does_not_share_structural_arrays(tax_benefit_system) -> None:
+    simulation = new_simulation(tax_benefit_system)
+    simulation.calculate("housing_tax", "2017")
+
+    clone = simulation.clone()
+
+    assert clone.persons.ids is not simulation.persons.ids
+    assert clone.household.ids is not simulation.household.ids
+    assert (
+        clone.household.members_entity_id is not simulation.household.members_entity_id
+    )
+    assert clone.household.members_role is not simulation.household.members_role
+    assert clone.household.members_position is not simulation.household.members_position
