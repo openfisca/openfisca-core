@@ -2,12 +2,21 @@ from __future__ import annotations
 
 import typing
 
+import copy
+
 import numpy
 
 from openfisca_core import entities, indexed_enums, projectors
 
 from . import types as t
 from .population import Population
+
+
+def _copy_array(value):
+    """Copy an array-like structural attribute, leaving scalars and None untouched."""
+    if isinstance(value, (numpy.ndarray, list)):
+        return copy.copy(value)
+    return value
 
 
 class GroupPopulation(Population):
@@ -20,17 +29,20 @@ class GroupPopulation(Population):
         self._ordered_members_map = None
 
     def clone(self, simulation):
-        result = GroupPopulation(self.entity, self.members)
+        # ``simulation.persons`` must already be the cloned persons population,
+        # so that members of the cloned group belong to the new simulation.
+        result = GroupPopulation(self.entity, simulation.persons)
         result.simulation = simulation
         result._holders = {
-            variable: holder.clone(self) for (variable, holder) in self._holders.items()
+            variable: holder.clone(result)
+            for (variable, holder) in self._holders.items()
         }
         result.count = self.count
-        result.ids = self.ids
-        result._members_entity_id = self._members_entity_id
-        result._members_role = self._members_role
-        result._members_position = self._members_position
-        result._ordered_members_map = self._ordered_members_map
+        result.ids = _copy_array(self.ids)
+        result._members_entity_id = _copy_array(self._members_entity_id)
+        result._members_role = _copy_array(self._members_role)
+        result._members_position = _copy_array(self._members_position)
+        result._ordered_members_map = _copy_array(self._ordered_members_map)
         return result
 
     @property

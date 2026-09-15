@@ -1,5 +1,15 @@
 # Changelog
 
+## 44.7.2 [#1385](https://github.com/openfisca/openfisca-core/pull/1385)
+
+#### Bug fixes
+
+- Fix `Simulation.clone` sharing mutable state with the original simulation (fixes [#1155](https://github.com/openfisca/openfisca-core/issues/1155)).
+  - Cloned holders shared their `InMemoryStorage` and `OnDiskStorage` with the original: setting, caching or deleting a value through one simulation silently altered the other one.
+  - `GroupPopulation.clone` attached the cloned holders to the original population (`holder.clone(self)` instead of `holder.clone(result)`), and kept the original persons population as `members`.
+  - The clone shared `_data_storage_dir` with the original: when both simulations lazily created a holder for the same variable, their on-disk storages wrote `{period}.npy` files into the same directory, so one simulation could read the other's values, and garbage-collecting either simulation deleted the files of the other.
+  - The clone now copies the storages (arrays are still shared, as they are treated as immutable), gets its own data storage directory, binds cloned group holders and members to the cloned populations, and copies `invalidated_caches`.
+
 ## 44.7.1 [#1383](https://github.com/openfisca/openfisca-core/pull/1383)
 
 #### Bug fixes
