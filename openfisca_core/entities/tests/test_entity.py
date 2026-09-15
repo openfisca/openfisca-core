@@ -49,7 +49,7 @@ def role(parent: str, first_parent: str, third_parent: str) -> Mapping[str, Any]
 def group_entity(role: Mapping[str, Any]) -> entities.Entity:
     entity = entities.Entity("key", "label", "plural", "doc")
     group_entity = entities.Entity("key", "label", "plural", "doc")
-    group_entity.add_link(entity, [role])
+    group_entity.add_relationship(entity, [role])
     return group_entity
 
 
@@ -59,7 +59,7 @@ def test_init_when_doc_indented() -> None:
     key = "\tkey"
     doc = "\tdoc"
     group_entity = entities.Entity(key, "label", "plural", doc)
-    group_entity.add_link(entity, [])
+    group_entity.add_relationship(entity, [])
     assert group_entity.key == key
     assert group_entity.doc == doc.lstrip()
 

@@ -600,24 +600,16 @@ class Simulation:
         new.populations = {}
 
         for entity in self.tax_benefit_system.entities:
-            if not entity.role_entity:
-                population = self.populations[entity.key].clone(new)
-                new.populations[entity.key] = population
-                setattr(
-                    new,
-                    entity.key,
-                    population,
-                )  # create shortcut simulation.household (for instance)
+            population = self.populations[entity.key].init_clone(new)
+            new.populations[entity.key] = population
+            setattr(
+                new,
+                entity.key,
+                population,
+            )  # create shortcut simulation.household (for instance)
 
         for entity in self.tax_benefit_system.entities:
-            if entity.role_entity:
-                population = self.populations[entity.key].clone(new)
-                new.populations[entity.key] = population
-                setattr(
-                    new,
-                    entity.key,
-                    population,
-                )  # create shortcut simulation.household (for instance)
+            new.populations[entity.key].finalize_clone()
 
         new.debug = debug
         new.trace = trace

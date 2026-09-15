@@ -21,7 +21,8 @@ class _BuildDefaultSimulation:
 
         >>> role = {"key": "stray", "plural": "stray", "label": "", "doc": ""}
         >>> single_entity = entities.Entity("dog", "dogs", "", "")
-        >>> group_entity = entities.GroupEntity("pack", "packs", "", "", [role])
+        >>> group_entity = entities.Entity("pack", "packs", "", "")
+        >>> group_entity.add_relationship(single_entity, [role])
         >>> test_entities = [single_entity, group_entity]
         >>> tax_benefit_system = taxbenefitsystems.TaxBenefitSystem(test_entities)
         >>> count = 1
@@ -68,7 +69,8 @@ class _BuildDefaultSimulation:
 
             >>> role = {"key": "stray", "plural": "stray", "label": "", "doc": ""}
             >>> single_entity = entities.Entity("dog", "dogs", "", "")
-            >>> group_entity = entities.GroupEntity("pack", "packs", "", "", [role])
+            >>> group_entity = entities.Entity("pack", "packs", "", "")
+            >>> group_entity.add_relationship(single_entity, [role])
             >>> test_entities = [single_entity, group_entity]
             >>> tax_benefit_system = taxbenefitsystems.TaxBenefitSystem(test_entities)
             >>> count = 2
@@ -100,7 +102,8 @@ class _BuildDefaultSimulation:
 
             >>> role = {"key": "stray", "plural": "stray", "label": "", "doc": ""}
             >>> single_entity = entities.Entity("dog", "dogs", "", "")
-            >>> group_entity = entities.GroupEntity("pack", "packs", "", "", [role])
+            >>> group_entity = entities.Entity("pack", "packs", "", "")
+            >>> group_entity.add_relationship(single_entity, [role])
             >>> test_entities = [single_entity, group_entity]
             >>> tax_benefit_system = taxbenefitsystems.TaxBenefitSystem(test_entities)
             >>> count = 2
@@ -124,8 +127,6 @@ class _BuildDefaultSimulation:
     def add_members_entity_id(self) -> Self:
         """Add ???
 
-        Each SingleEntity has its own GroupEntity.
-
         Returns:
             _BuildDefaultSimulation: The builder.
 
@@ -134,7 +135,8 @@ class _BuildDefaultSimulation:
 
             >>> role = {"key": "stray", "plural": "stray", "label": "", "doc": ""}
             >>> single_entity = entities.Entity("dog", "dogs", "", "")
-            >>> group_entity = entities.GroupEntity("pack", "packs", "", "", [role])
+            >>> group_entity = entities.Entity("pack", "packs", "", "")
+            >>> group_entity.add_relationship(single_entity, [role])
             >>> test_entities = [single_entity, group_entity]
             >>> tax_benefit_system = taxbenefitsystems.TaxBenefitSystem(test_entities)
             >>> count = 2

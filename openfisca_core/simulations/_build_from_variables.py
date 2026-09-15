@@ -24,7 +24,8 @@ class _BuildFromVariables:
 
         >>> role = {"key": "stray", "plural": "stray", "label": "", "doc": ""}
         >>> single_entity = entities.Entity("dog", "dogs", "", "")
-        >>> group_entity = entities.GroupEntity("pack", "packs", "", "", [role])
+        >>> group_entity = entities.Entity("pack", "packs", "", "")
+        >>> group_entity.add_relationship(single_entity, [role])
 
         >>> class salary(variables.Variable):
         ...     definition_period = periods.DateUnit.MONTH
@@ -106,7 +107,9 @@ class _BuildFromVariables:
 
             >>> role = {"key": "stray", "plural": "stray", "label": "", "doc": ""}
             >>> single_entity = entities.Entity("dog", "dogs", "", "")
-            >>> group_entity = entities.GroupEntity("pack", "packs", "", "", [role])
+            >>> group_entity = entities.Entity("pack", "packs", "", "")
+            >>> group_entity.add_relationship(single_entity, [role])
+            
 
 
             >>> class salary(variables.Variable):
@@ -160,7 +163,8 @@ class _BuildFromVariables:
 
             >>> role = {"key": "stray", "plural": "stray", "label": "", "doc": ""}
             >>> single_entity = entities.Entity("dog", "dogs", "", "")
-            >>> group_entity = entities.GroupEntity("pack", "packs", "", "", [role])
+            >>> group_entity = entities.Entity("pack", "packs", "", "")
+            >>> group_entity.add_relationship(single_entity, [role])
 
             >>> class salary(variables.Variable):
             ...     definition_period = periods.DateUnit.MONTH
