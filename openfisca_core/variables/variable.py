@@ -10,7 +10,7 @@ import numpy
 import sortedcontainers
 
 from openfisca_core import commons, periods, types as t
-from openfisca_core.entities import Entity, GroupEntity
+from openfisca_core.entities import Entity
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import DateUnit, Period
 
@@ -235,10 +235,10 @@ class Variable:
         return value
 
     def set_entity(self, entity):
-        if not isinstance(entity, (Entity, GroupEntity)):
+        if not isinstance(entity, Entity):
             msg = (
                 f"Invalid value '{entity}' for attribute 'entity' in variable "
-                f"'{self.name}'. Must be an instance of Entity or GroupEntity."
+                f"'{self.name}'. Must be an instance of Entity."
             )
             raise ValueError(
                 msg,

@@ -22,10 +22,10 @@ def post_json(client, data=None, file=None):
 
 
 def check_response(
-    client, data, expected_error_code, path_to_check, content_to_check
+    client, data, expected_error_code, path_to_check=None, content_to_check=None
 ) -> None:
     response = post_json(client, data)
-    assert response.status_code == expected_error_code
+    assert response.status_code == expected_error_code, response.data.decode("utf-8")
     json_response = json.loads(response.data.decode("utf-8"))
     if path_to_check:
         content = dpath.get(json_response, path_to_check)
@@ -37,7 +37,6 @@ def check_response(
     [
         ('{"a" : "x", "b"}', client.BAD_REQUEST, "error", "Invalid JSON"),
         ('["An", "array"]', client.BAD_REQUEST, "error", "Invalid type"),
-        ('{"persons": {}}', client.BAD_REQUEST, "persons", "At least one person"),
         (
             '{"persons": {"bob": {}}, "unknown_entity": {}}',
             client.BAD_REQUEST,
@@ -134,6 +133,8 @@ def check_response(
             "persons/bob/salary/ETERNITY",
             "salary is only defined for months",
         ),
+        ('{"persons": {}}', client.OK),
+        ('{"households": {}}', client.OK),
     ],
 )
 def test_responses(test_client, test) -> None:

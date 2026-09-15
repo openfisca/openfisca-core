@@ -9,10 +9,10 @@ from ._core_population import CorePopulation
 
 
 class Population(CorePopulation):
-    def __init__(self, entity: t.SingleEntity) -> None:
+    def __init__(self, entity: t.Entity) -> None:
         super().__init__(entity)
 
-    def clone(self, simulation: t.Simulation) -> t.CorePopulation:
+    def init_clone(self, simulation: t.Simulation) -> t.CorePopulation:
         result = Population(self.entity)
         result.simulation = simulation
         result._holders = {
@@ -22,6 +22,9 @@ class Population(CorePopulation):
         result.count = self.count
         result.ids = self.ids
         return result
+
+    def finalize_clone(self):
+        pass
 
     def __getattr__(self, attribute: str) -> projectors.Projector:
         projector: projectors.Projector | None
@@ -39,7 +42,7 @@ class Population(CorePopulation):
 
     @projectors.projectable
     def has_role(self, role: t.Role) -> None | t.BoolArray:
-        """Check if a person has a given role within its `GroupEntity`.
+        """Check if a person has a given role within its `Entity`.
 
         Example:
         >>> person.has_role(Household.CHILD)
@@ -48,10 +51,9 @@ class Population(CorePopulation):
         """
         if self.simulation is None:
             return None
-
         self.entity.check_role_validity(role)
 
-        group_population = self.simulation.get_population(role.entity.plural)
+        group_population = self.simulation.get_population(role.entity.a.plural)
 
         if role.subroles:
             return numpy.logical_or.reduce(

@@ -10,10 +10,7 @@ def build_entity(entity):
         "description": entity.label,
         "documentation": formatted_doc,
     }
-    if not entity.is_person:
-        formatted_entity["roles"] = {
-            role.key: build_role(role) for role in entity.roles
-        }
+    formatted_entity["roles"] = {role.key: build_role(role) for relationship in entity.relationships for role in relationship.roles if entity.key == relationship.a.key}
     return formatted_entity
 
 

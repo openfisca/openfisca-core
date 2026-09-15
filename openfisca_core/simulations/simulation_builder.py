@@ -26,13 +26,11 @@ from .typing import (
     Entity,
     FullySpecifiedEntities,
     GroupEntities,
-    GroupEntity,
     ImplicitGroupEntities,
     Params,
     ParamsWithoutAxes,
     Population,
     Role,
-    SingleEntity,
     TaxBenefitSystem,
     Variables,
 )
@@ -208,42 +206,13 @@ class SimulationBuilder:
         # Check for unexpected entities
         helpers.check_unexpected_entities(params, plural)
 
-        person_entity: SingleEntity = tax_benefit_system.person_entity
-
-        persons_json = params.get(person_entity.plural, None)
-
-        if not persons_json:
-            raise errors.SituationParsingError(
-                [person_entity.plural],
-                f"No {person_entity.key} found. At least one {person_entity.key} must be defined to run a simulation.",
-            )
-
-        persons_ids = self.add_person_entity(simulation.persons.entity, persons_json)
-
-        for entity_class in tax_benefit_system.group_entities:
+        for entity_class in tax_benefit_system.entities:
             instances_json = params.get(entity_class.plural)
-
-            if instances_json is not None:
-                self.add_group_entity(
-                    self.persons_plural,
-                    persons_ids,
-                    entity_class,
-                    instances_json,
-                )
-
-            elif axes is not None:
-                message = (
-                    f"We could not find any specified {entity_class.plural}. "
-                    "In order to expand over axes, all group entities and roles "
-                    "must be fully specified. For further support, please do "
-                    "not hesitate to take a look at the official documentation: "
-                    "https://openfisca.org/doc/simulate/replicate-simulation-inputs.html."
-                )
-
-                raise errors.SituationParsingError([entity_class.plural], message)
-
-            else:
-                self.add_default_group_entity(persons_ids, entity_class)
+            self.add_entity(entity_class, instances_json or {})
+        
+        for entity_class in tax_benefit_system.entities:
+            instances_json = params.get(entity_class.plural)
+            self.link_entities(entity_class, instances_json or {})
 
         if axes is not None:
             for axis in axes[0]:
@@ -255,16 +224,12 @@ class SimulationBuilder:
 
             self.expand_axes()
 
-        try:
-            self.finalize_variables_init(simulation.persons)
-        except errors.PeriodMismatchError as e:
-            self.raise_period_mismatch(simulation.persons.entity, persons_json, e)
-
-        for entity_class in tax_benefit_system.group_entities:
+        for entity_class in tax_benefit_system.entities:
             try:
                 population = simulation.populations[entity_class.key]
                 self.finalize_variables_init(population)
             except errors.PeriodMismatchError as e:
+                instances_json = params.get(entity_class.plural)
                 self.raise_period_mismatch(population.entity, instances_json, e)
 
         return simulation
@@ -429,13 +394,13 @@ class SimulationBuilder:
 
         return result
 
-    def add_person_entity(self, entity, instances_json):
-        """Add the simulation's instances of the persons entity as described in ``instances_json``."""
+    def add_entity(self, entity, instances_json):
+        """Add the simulation's instances of the entity as described in ``instances_json``."""
         helpers.check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
-        self.persons_plural = entity.plural
-        self.entity_ids[self.persons_plural] = entity_ids
-        self.entity_counts[self.persons_plural] = len(entity_ids)
+        self.entity_ids[entity.plural] = entity_ids
+        self.entity_counts[entity.plural] = len(entity_ids)
+
 
         for instance_id, instance_object in instances_json.items():
             helpers.check_type(instance_object, dict, [entity.plural, instance_id])
@@ -443,113 +408,94 @@ class SimulationBuilder:
 
         return self.get_ids(entity.plural)
 
-    def add_default_group_entity(
+    def link_entities(
         self,
-        persons_ids: list[str],
-        entity: GroupEntity,
-    ) -> None:
-        persons_count = len(persons_ids)
-        roles = list(entity.flattened_roles)
-        self.entity_ids[entity.plural] = persons_ids
-        self.entity_counts[entity.plural] = persons_count
-        self.memberships[entity.plural] = list(
-            numpy.arange(0, persons_count, dtype=numpy.int32),
-        )
-        self.roles[entity.plural] = [roles[0]] * persons_count
-
-    def add_group_entity(
-        self,
-        persons_plural: str,
-        persons_ids: list[str],
-        entity: GroupEntity,
+        entity: Entity,
         instances_json,
     ) -> None:
         """Add all instances of one of the model's entities as described in ``instances_json``."""
-        helpers.check_type(instances_json, dict, [entity.plural])
-        entity_ids = list(map(str, instances_json.keys()))
+        for relationship in entity.relationships:
+            if relationship.a.key != entity.key:
+                continue
 
-        self.entity_ids[entity.plural] = entity_ids
-        self.entity_counts[entity.plural] = len(entity_ids)
+            persons_plural = relationship.b.plural
+            persons_ids = self.get_ids(persons_plural)
+            persons_count = len(persons_ids)
+            persons_to_allocate = set(persons_ids)
+            self.memberships[entity.plural] = numpy.empty(persons_count, dtype=numpy.int32)
+            self.roles[entity.plural] = numpy.empty(persons_count, dtype=object)
 
-        persons_count = len(persons_ids)
-        persons_to_allocate = set(persons_ids)
-        self.memberships[entity.plural] = numpy.empty(persons_count, dtype=numpy.int32)
-        self.roles[entity.plural] = numpy.empty(persons_count, dtype=object)
+            entity_ids = self.get_ids(entity.plural)
 
-        self.entity_ids[entity.plural] = entity_ids
-        self.entity_counts[entity.plural] = len(entity_ids)
+            for instance_id, instance_object in instances_json.items():
+                helpers.check_type(instance_object, dict, [entity.plural, instance_id])
 
-        for instance_id, instance_object in instances_json.items():
-            helpers.check_type(instance_object, dict, [entity.plural, instance_id])
+                variables_json = instance_object.copy()  # Don't mutate function input
 
-            variables_json = instance_object.copy()  # Don't mutate function input
-
-            roles_json = {
-                role.plural
-                or role.key: helpers.transform_to_strict_syntax(
-                    variables_json.pop(role.plural or role.key, []),
-                )
-                for role in entity.roles
-            }
-
-            for role_id, role_definition in roles_json.items():
-                helpers.check_type(
-                    role_definition,
-                    list,
-                    [entity.plural, instance_id, role_id],
-                )
-                for index, person_id in enumerate(role_definition):
-                    entity_plural = entity.plural
-                    self.check_persons_to_allocate(
-                        persons_plural,
-                        entity_plural,
-                        persons_ids,
-                        person_id,
-                        instance_id,
-                        role_id,
-                        persons_to_allocate,
-                        index,
+                roles_json = {
+                    role.plural
+                    or role.key: helpers.transform_to_strict_syntax(
+                        variables_json.pop(role.plural or role.key, []),
                     )
+                    for role in relationship.roles
+                }
 
-                    persons_to_allocate.discard(person_id)
-
-            entity_index = entity_ids.index(instance_id)
-            role_by_plural = {role.plural or role.key: role for role in entity.roles}
-
-            for role_plural, persons_with_role in roles_json.items():
-                role = role_by_plural[role_plural]
-
-                if role.max is not None and len(persons_with_role) > role.max:
-                    raise errors.SituationParsingError(
-                        [entity.plural, instance_id, role_plural],
-                        f"There can be at most {role.max} {role_plural} in a {entity.key}. {len(persons_with_role)} were declared in '{instance_id}'.",
+                for role_id, role_definition in roles_json.items():
+                    helpers.check_type(
+                        role_definition,
+                        list,
+                        [entity.plural, instance_id, role_id],
                     )
+                    for index, person_id in enumerate(role_definition):
+                        entity_plural = entity.plural
+                        self.check_persons_to_allocate(
+                            persons_plural,
+                            entity_plural,
+                            persons_ids,
+                            person_id,
+                            instance_id,
+                            role_id,
+                            persons_to_allocate,
+                            index,
+                        )
 
-                for index_within_role, person_id in enumerate(persons_with_role):
+                        persons_to_allocate.discard(person_id)
+
+                entity_index = entity_ids.index(instance_id)
+                role_by_plural = {role.plural or role.key: role for role in relationship.roles}
+
+                for role_plural, persons_with_role in roles_json.items():
+                    role = role_by_plural[role_plural]
+
+                    if role.max is not None and len(persons_with_role) > role.max:
+                        raise errors.SituationParsingError(
+                            [entity.plural, instance_id, role_plural],
+                            f"There can be at most {role.max} {role_plural} in a {entity.key}. {len(persons_with_role)} were declared in '{instance_id}'.",
+                        )
+
+                    for index_within_role, person_id in enumerate(persons_with_role):
+                        person_index = persons_ids.index(person_id)
+                        self.memberships[entity.plural][person_index] = entity_index
+                        person_role = (
+                            role.subroles[index_within_role] if role.subroles else role
+                        )
+                        self.roles[entity.plural][person_index] = person_role
+
+            if persons_to_allocate:
+                entity_ids = entity_ids + list(persons_to_allocate)
+                for person_id in persons_to_allocate:
                     person_index = persons_ids.index(person_id)
-                    self.memberships[entity.plural][person_index] = entity_index
-                    person_role = (
-                        role.subroles[index_within_role] if role.subroles else role
+                    self.memberships[entity.plural][person_index] = entity_ids.index(
+                        person_id,
                     )
-                    self.roles[entity.plural][person_index] = person_role
+                    self.roles[entity.plural][person_index] = entity.flattened_roles[0]
+                # Adjust previously computed ids and counts
+                self.entity_ids[entity.plural] = entity_ids
+                self.entity_counts[entity.plural] = len(entity_ids)
 
-            self.init_variable_values(entity, variables_json, instance_id)
-
-        if persons_to_allocate:
-            entity_ids = entity_ids + list(persons_to_allocate)
-            for person_id in persons_to_allocate:
-                person_index = persons_ids.index(person_id)
-                self.memberships[entity.plural][person_index] = entity_ids.index(
-                    person_id,
-                )
-                self.roles[entity.plural][person_index] = entity.flattened_roles[0]
-            # Adjust previously computed ids and counts
-            self.entity_ids[entity.plural] = entity_ids
-            self.entity_counts[entity.plural] = len(entity_ids)
-
-        # Convert back to Python array
-        self.roles[entity.plural] = self.roles[entity.plural].tolist()
-        self.memberships[entity.plural] = self.memberships[entity.plural].tolist()
+            # Convert back to Python array
+            self.roles[entity.plural] = self.roles[entity.plural].tolist()
+            self.memberships[entity.plural] = self.memberships[entity.plural].tolist()
 
     def set_default_period(self, period_str) -> None:
         if period_str:
@@ -591,6 +537,9 @@ class SimulationBuilder:
     def init_variable_values(self, entity, instance_object, instance_id) -> None:
         for variable_name, variable_values in instance_object.items():
             path_in_json = [entity.plural, instance_id, variable_name]
+
+            if variable_name in entity.roles:
+                continue
             try:
                 entity.check_variable_defined_for_entity(variable_name)
             except ValueError as e:  # The variable is defined for another entity

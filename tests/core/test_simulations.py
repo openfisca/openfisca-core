@@ -50,17 +50,15 @@ def test_clone(tax_benefit_system) -> None:
     simulation_clone = simulation.clone()
     assert simulation != simulation_clone
 
-    for entity_id, entity in simulation.populations.items():
-        assert entity != simulation_clone.populations[entity_id]
-
-    assert simulation.persons != simulation_clone.persons
+    for population_id, population in simulation.populations.items():
+        assert population != simulation_clone.populations[population_id]
 
     salary_holder = simulation.person.get_holder("salary")
     salary_holder_clone = simulation_clone.person.get_holder("salary")
 
     assert salary_holder != salary_holder_clone
     assert salary_holder_clone.simulation == simulation_clone
-    assert salary_holder_clone.population == simulation_clone.persons
+    assert salary_holder_clone.population == simulation_clone.person
 
 
 def new_simulation(tax_benefit_system):
@@ -108,7 +106,7 @@ def test_clone_members_are_cloned(tax_benefit_system) -> None:
 
     clone = simulation.clone()
 
-    assert clone.household.members is clone.persons
+    assert clone.household.members is clone.person
 
 
 def test_clone_does_not_share_invalidated_caches(tax_benefit_system) -> None:

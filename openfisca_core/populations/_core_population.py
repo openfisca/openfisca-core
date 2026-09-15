@@ -25,17 +25,17 @@ class CorePopulation:
     """Base class to build populations from.
 
     Args:
-        entity: The :class:`~entities.CoreEntity` of the population.
+        entity: The :class:`~entities.Entity` of the population.
         *__args: Variable length argument list.
         **__kwds: Arbitrary keyword arguments.
 
     """
 
-    #: The number :class:`~entities.CoreEntity` members in the population.
+    #: The number :class:`~entities.Entity` members in the population.
     count: int = 0
 
-    #: The :class:`~entities.CoreEntity` of the population.
-    entity: t.CoreEntity
+    #: The :class:`~entities.Entity` of the population.
+    entity: t.Entity
 
     #: A pseudo index for the members of the population.
     ids: Sequence[str] = []
@@ -43,7 +43,7 @@ class CorePopulation:
     #: The :class:`~simulations.Simulation` for which the population is calculated.
     simulation: None | t.Simulation = None
 
-    def __init__(self, entity: t.CoreEntity, *__args: object, **__kwds: object) -> None:
+    def __init__(self, entity: t.Entity, *__args: object, **__kwds: object) -> None:
         self.entity = entity
         self._holders: t.HolderByVariable = {}
 
