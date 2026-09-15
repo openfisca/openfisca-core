@@ -537,7 +537,7 @@ class SimulationBuilder:
         for variable_name, variable_values in instance_object.items():
             path_in_json = [entity.plural, instance_id, variable_name]
 
-            if variable_name in [r.plural for r in entity.flattened_roles]:
+            if variable_name in [r.plural or r.key for r in entity.flattened_roles]:
                 continue
             try:
                 entity.check_variable_defined_for_entity(variable_name)
