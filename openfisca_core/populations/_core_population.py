@@ -45,6 +45,8 @@ class CorePopulation:
 
     def __init__(self, entity: t.Entity, *__args: object, **__kwds: object) -> None:
         self.entity = entity
+        self._memberships = []
+        self._roles_to_memberships = {}
         self._holders: t.HolderByVariable = {}
 
     def __call__(
@@ -450,6 +452,16 @@ class CorePopulation:
             total_nb_bytes=total_memory_usage,
             by_variable=holders_memory_usage,
         )
+
+    def add_membership(self, membership) -> None:
+        self._memberships.append(membership)
+        for role in membership.relationship.roles:
+            membership.members._roles_to_memberships[role.key] = membership
+            membership.population._roles_to_memberships[role.plural] = membership
+
+    @property
+    def memberships(self) -> Sequence[Memberships]:
+        return self._memberships
 
 
 __all__ = ["CorePopulation"]

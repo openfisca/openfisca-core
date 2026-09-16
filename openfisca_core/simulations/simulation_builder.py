@@ -214,6 +214,8 @@ class SimulationBuilder:
             instances_json = params.get(entity_class.plural)
             self.link_entities(entity_class, instances_json or {})
 
+        self.save_memberships(simulation)
+
         if axes is not None:
             for axis in axes[0]:
                 self.add_parallel_axis(axis)
@@ -422,8 +424,9 @@ class SimulationBuilder:
             persons_ids = self.get_ids(persons_plural)
             persons_count = len(persons_ids)
             persons_to_allocate = set(persons_ids)
-            self.memberships[entity.plural] = numpy.empty(persons_count, dtype=numpy.int32)
-            self.roles[entity.plural] = numpy.empty(persons_count, dtype=object)
+            
+            membership_array = numpy.empty(persons_count, dtype=numpy.int32)
+            roles = numpy.empty(persons_count, dtype=object)
 
             entity_ids = self.get_ids(entity.plural)
 
@@ -475,27 +478,36 @@ class SimulationBuilder:
 
                     for index_within_role, person_id in enumerate(persons_with_role):
                         person_index = persons_ids.index(person_id)
-                        self.memberships[entity.plural][person_index] = entity_index
+                        membership_array[person_index] = entity_index
                         person_role = (
                             role.subroles[index_within_role] if role.subroles else role
                         )
-                        self.roles[entity.plural][person_index] = person_role
+                        roles[person_index] = person_role
 
             if persons_to_allocate:
                 entity_ids = entity_ids + list(persons_to_allocate)
                 for person_id in persons_to_allocate:
                     person_index = persons_ids.index(person_id)
-                    self.memberships[entity.plural][person_index] = entity_ids.index(
+                    membership_array[person_index] = entity_ids.index(
                         person_id,
                     )
-                    self.roles[entity.plural][person_index] = entity.flattened_roles[0]
+                    roles[person_index] = entity.flattened_roles[0]
                 # Adjust previously computed ids and counts
                 self.entity_ids[entity.plural] = entity_ids
                 self.entity_counts[entity.plural] = len(entity_ids)
 
             # Convert back to Python array
-            self.roles[entity.plural] = self.roles[entity.plural].tolist()
-            self.memberships[entity.plural] = self.memberships[entity.plural].tolist()
+            
+            self.memberships[relationship] = membership_array.tolist()
+            self.roles[relationship] = roles.tolist()
+
+    def save_memberships(self, simulation: Simulation) -> None:
+        for (relationship, membership_array) in self.memberships.items():
+            population = simulation.populations[relationship.a.key]
+            membership = [m for m in population.memberships if m.relationship == relationship].pop(0)
+            membership.members_entity_id = numpy.array(membership_array)
+            membership.members_role = numpy.array(self.roles[relationship])
+
 
     def set_default_period(self, period_str) -> None:
         if period_str:
@@ -608,9 +620,6 @@ class SimulationBuilder:
         if plural_key in self.entity_counts:
             population.count = self.get_count(plural_key)
             population.ids = self.get_ids(plural_key)
-        if plural_key in self.memberships:
-            population.members_entity_id = numpy.array(self.get_memberships(plural_key))
-            population.members_role = numpy.array(self.get_roles(plural_key))
         for variable_name in self.input_buffer:
             try:
                 holder = population.get_holder(variable_name)

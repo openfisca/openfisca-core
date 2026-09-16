@@ -24,7 +24,7 @@ from openfisca_core.entities import Entity
 from openfisca_core.errors import VariableNameConflictError, VariableNotFoundError
 from openfisca_core.parameters import ParameterNode
 from openfisca_core.periods import Instant, Period
-from openfisca_core.populations import GroupPopulation, Population
+from openfisca_core.populations import Membership, Population
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.variables import Variable
 
@@ -81,17 +81,19 @@ class TaxBenefitSystem:
         return base_tax_benefit_system
 
     def instantiate_entities(self):
-        entities: dict[Entity.key, Entity] = {}
+        populations: dict[Entity.key, Population] = {}
         for entity in self.entities:
-            entities[entity.key] = Population(entity)
+            populations[entity.key] = Population(entity)
 
         for entity in self.entities:
             for relationship in entity.relationships:
                 if relationship.a.key == entity.key:
-                    members = entities[relationship.b.key]
-                    entities[entity.key] = GroupPopulation(entity, members)
+                    origin = populations[relationship.a.key]
+                    members = populations[relationship.b.key]
+                    membership = Membership(relationship, origin, members)
+                    origin.add_membership(membership)
 
-        return entities
+        return populations
 
     # Deprecated method of constructing simulations, to be phased out in favor of SimulationBuilder
     def new_scenario(self):

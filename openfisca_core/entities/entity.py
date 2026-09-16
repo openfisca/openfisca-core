@@ -36,7 +36,7 @@ class Entity:
 
     Args:
         *__args: Any arguments.
-        **__kwargs: Any keyword arguments.
+        **__kwargs: Any keyword arguments.  
 
     Examples:
         >>> from openfisca_core.entities import types as t
@@ -67,7 +67,7 @@ class Entity:
         self.label = label
         self.doc = textwrap.dedent(doc)
         self.relationships = []
-        self.flattened_roles = []
+        self.flattened_roles = ()
 
 
     def __repr__(self) -> str:
@@ -246,8 +246,8 @@ class Entity:
         relationship = Relationship(self, entity, role_descriptions)
         self.relationships.append(relationship)
         entity.relationships.append(relationship)
-        self.flattened_roles = tuple(*self.flattened_roles,
-            chain.from_iterable(role.subroles or [role] for role in relationship.roles),
+        self.flattened_roles = (*self.flattened_roles,
+            *chain.from_iterable(role.subroles or [role] for role in relationship.roles),
         )
 
     @property

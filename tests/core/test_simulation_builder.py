@@ -72,8 +72,10 @@ def test_build_default_simulation(tax_benefit_system) -> None:
     )
     assert one_person_simulation.person.count == 1
     assert one_person_simulation.household.count == 1
-    assert one_person_simulation.household.members_entity_id == [0]
-    assert one_person_simulation.household.members_role == entities.Household.ADULT
+    assert len(one_person_simulation.household.memberships) == 1
+    membership = one_person_simulation.household.memberships[0]
+    assert membership.members_entity_id == [0]
+    assert membership.members_role == entities.Household.ADULT
 
     several_persons_simulation = SimulationBuilder().build_default_simulation(
         tax_benefit_system,
@@ -81,11 +83,13 @@ def test_build_default_simulation(tax_benefit_system) -> None:
     )
     assert several_persons_simulation.person.count == 4
     assert several_persons_simulation.household.count == 4
+    assert len(one_person_simulation.household.memberships) == 1
+    membership = one_person_simulation.household.memberships[0]
     assert (
-        several_persons_simulation.household.members_entity_id == [0, 1, 2, 3]
+        membership.members_entity_id == [0, 1, 2, 3]
     ).all()
     assert (
-        several_persons_simulation.household.members_role == entities.Household.ADULT
+        membership.members_role == entities.Household.ADULT
     ).all()
 
 
@@ -151,8 +155,10 @@ def test_add_group_entity(persons, households) -> None:
     simulation_builder.link_entities(households, payload)
     assert simulation_builder.get_count("households") == 2
     assert simulation_builder.get_ids("households") == ["Household_1", "Household_2"]
-    assert simulation_builder.get_memberships("households") == [0, 0, 1, 1]
-    assert [role.key for role in simulation_builder.get_roles("households")] == [
+
+    relationship = households.relationships[0]
+    assert simulation_builder.get_memberships(relationship) == [0, 0, 1, 1]
+    assert [role.key for role in simulation_builder.get_roles(relationship)] == [
         "adult",
         "adult",
         "child",
@@ -176,8 +182,9 @@ def test_add_group_entity_loose_syntax(persons, households) -> None:
     )
     assert simulation_builder.get_count("households") == 2
     assert simulation_builder.get_ids("households") == ["Household_1", "Household_2"]
-    assert simulation_builder.get_memberships("households") == [0, 0, 1, 1]
-    assert [role.key for role in simulation_builder.get_roles("households")] == [
+    relationship = households.relationships[0]
+    assert simulation_builder.get_memberships(relationship) == [0, 0, 1, 1]
+    assert [role.key for role in simulation_builder.get_roles(relationship)] == [
         "adult",
         "adult",
         "child",
@@ -348,7 +355,7 @@ def test_canonicalize_period_keys(persons) -> None:
     tools.assert_near(population.get_holder("salary").get_array("2018-12"), [100])
 
 
-def test_finalize_households(tax_benefit_system) -> None:
+def test_household_membership(tax_benefit_system) -> None:
     simulation = Simulation(
         tax_benefit_system,
         tax_benefit_system.instantiate_entities(),
@@ -365,8 +372,8 @@ def test_finalize_households(tax_benefit_system) -> None:
     simulation_builder.add_entity(simulation.household.entity, payload)
     simulation_builder.link_entities(simulation.household.entity, payload)
 
-    simulation_builder.finalize_variables_init(simulation.household)
-    tools.assert_near(simulation.household.members_entity_id, [0, 0, 1, 1])
+    simulation_builder.save_memberships(simulation)
+    tools.assert_near(simulation.household.memberships[0].members_entity_id, [0, 0, 1, 1])
     tools.assert_near(
         simulation.person.has_role(entities.Household.ADULT),
         [True, True, False, True],
@@ -739,7 +746,7 @@ def test_subroles() -> None:
         "subroles": ["parent1", "parent2"]
         }])
     household = Entity("household", "households", "Household")
-    household.add_relationship(person, )
+    household.add_relationship(person)
 
     entities = [person, family, household]
 
@@ -754,3 +761,70 @@ def test_subroles() -> None:
     assert simulation.person.count == 1
     assert simulation.family.count == 1
     assert simulation.household.count == 1
+
+
+def test_self_ref() -> None:
+    person = Entity("person", "people", "Person")
+    person.add_relationship(person)
+
+    entities = [person]
+    tbs = TaxBenefitSystem(entities)
+    payload = {
+        "people": {"Alice": {"people": ["Alice"]}},
+    }
+    simulation = SimulationBuilder().build_from_dict(tbs, payload)
+    assert simulation
+    assert simulation.person.count == 1
+
+
+def test_self_ref_with_group() -> None:
+    person = Entity("person", "people", "Person")
+    person.add_relationship(person)
+    household = Entity("household", "households", "Household")
+    household.add_relationship(person)
+
+    entities = [person, household]
+    tbs = TaxBenefitSystem(entities)
+    payload = {
+        "people": {"Alice": {"people": ["Alice"]}},
+        "households": {"Home": {
+            "people": ["Alice"],
+        }}
+    }
+    simulation = SimulationBuilder().build_from_dict(tbs, payload)
+    assert simulation
+    assert simulation.person.count == 1
+    assert simulation.household.count == 1
+
+def test_multiple_base() -> None:
+    person = Entity("person", "people", "Person")
+    contract = Entity("contract", "contracts", "Contrat")
+    household = Entity("household", "households", "Household")
+    household.add_relationship(person, [{
+        "key": "flatmate",
+        "plural": "flatmates",
+        "label": "Flatmate",
+        }])
+    household.add_relationship(contract)
+
+    entities = [person, contract, household]
+    tbs = TaxBenefitSystem(entities)
+    payload = {
+        "people": {"Alice": {}, "Zohran": {}},
+        "contracts": {"Insurance": {}, "Loan": {}},
+        "households": {
+            "Alice's Home": {
+                "flatmates": ["Alice"],
+                "contracts": ["Loan"],
+            },
+            "Zohran's Home": {
+                "flatmates": ["Zohran"],
+                "contracts": ["Insurance"],
+            },
+        }
+    }
+    simulation = SimulationBuilder().build_from_dict(tbs, payload)
+    assert simulation
+    assert simulation.person.count == 2
+    assert simulation.contract.count == 2
+    assert simulation.household.count == 2

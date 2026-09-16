@@ -37,7 +37,7 @@ from ._errors import (
     InvalidOptionError,
     PeriodValidityError,
 )
-from .group_population import GroupPopulation
+from .group_population import Membership
 from .population import Population
 
 ADD, DIVIDE = types.Option
@@ -49,7 +49,7 @@ __all__ = [
     "CorePopulation",
     "EntityToPersonProjector",
     "FirstPersonToEntityProjector",
-    "GroupPopulation",
+    "Membership",
     "IncompatibleOptionsError",
     "InvalidArraySizeError",
     "InvalidOptionError",
