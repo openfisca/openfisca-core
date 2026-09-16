@@ -33,6 +33,12 @@ class Population(CorePopulation):
         if isinstance(projector, projectors.Projector):
             return projector
 
+        if attribute.startswith("nb_"):
+            role = attribute[3:]
+            import pdb; pdb.set_trace()
+            membership = self._roles_to_memberships[role]
+            return membership.nb_persons()
+
         msg = f"You tried to use the '{attribute}' of '{self.entity.key}' but that is not a known attribute."
         raise AttributeError(
             msg,
@@ -53,14 +59,14 @@ class Population(CorePopulation):
             return None
         self.entity.check_role_validity(role)
 
-        group_population = self.simulation.get_population(role.entity.a.plural)
+        membership = self._roles_to_memberships[role.key]
 
         if role.subroles:
             return numpy.logical_or.reduce(
-                [group_population.members_role == subrole for subrole in role.subroles],
+                [membership.members_role == subrole for subrole in role.subroles],
             )
 
-        return group_population.members_role == role
+        return membership.members_role == role
 
     @projectors.projectable
     def value_from_partner(
