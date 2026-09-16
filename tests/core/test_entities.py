@@ -34,11 +34,12 @@ def new_simulation(tax_benefit_system, test_case, period=MONTH):
 
 def test_role_index_and_positions(tax_benefit_system) -> None:
     simulation = new_simulation(tax_benefit_system, TEST_CASE)
-    tools.assert_near(simulation.household.members_entity_id, [0, 0, 0, 0, 1, 1])
+    membership = simulation.household.memberships[0]
+    tools.assert_near(membership.members_entity_id, [0, 0, 0, 0, 1, 1])
     assert (
-        simulation.household.members_role == [ADULT, ADULT, CHILD, CHILD, ADULT, CHILD]
+        membership.members_role == [ADULT, ADULT, CHILD, CHILD, ADULT, CHILD]
     ).all()
-    tools.assert_near(simulation.household.members_position, [0, 1, 2, 3, 0, 1])
+    tools.assert_near(membership.members_position, [0, 1, 2, 3, 0, 1])
     assert simulation.person.ids == ["ind0", "ind1", "ind2", "ind3", "ind4", "ind5"]
     assert simulation.household.ids == ["h1", "h2"]
 
@@ -70,10 +71,11 @@ def test_entity_structure_with_constructor(tax_benefit_system) -> None:
     )
 
     household = simulation.household
+    membership = household.memberships[0]
 
-    tools.assert_near(household.members_entity_id, [0, 0, 1, 0, 0])
-    assert (household.members_role == [ADULT, ADULT, ADULT, CHILD, CHILD]).all()
-    tools.assert_near(household.members_position, [0, 1, 0, 2, 3])
+    tools.assert_near(membership.members_entity_id, [0, 0, 1, 0, 0])
+    assert (membership.members_role == [ADULT, ADULT, ADULT, CHILD, CHILD]).all()
+    tools.assert_near(membership.members_position, [0, 1, 0, 2, 3])
 
 
 def test_entity_variables_with_constructor(tax_benefit_system) -> None:
@@ -212,11 +214,12 @@ def test_project(tax_benefit_system) -> None:
     household = simulation.household
 
     housing_tax = household("housing_tax", YEAR)
-    projected_housing_tax = household.project(housing_tax)
+    membership = household.memberships[0]
+    projected_housing_tax = membership.project(housing_tax)
 
     tools.assert_near(projected_housing_tax, [20000, 20000, 20000, 20000, 0, 0])
 
-    housing_tax_projected_on_parents = household.project(housing_tax, role=ADULT)
+    housing_tax_projected_on_parents = membership.project(housing_tax, role=ADULT)
     tools.assert_near(housing_tax_projected_on_parents, [20000, 20000, 0, 0, 0, 0])
 
 
@@ -364,7 +367,7 @@ def test_value_from_first_person(tax_benefit_system) -> None:
     tools.assert_near(salary_first_person, [1000, 3000])
 
 
-def test_projectors_methods(tax_benefit_system) -> None:
+def test_praojectors_methods(tax_benefit_system) -> None:
     simulation = SimulationBuilder().build_from_dict(
         tax_benefit_system,
         situation_examples.couple,

@@ -10,24 +10,18 @@ from . import types as t
 from .population import Population
 
 
-class GroupPopulation(Population):
-    def __init__(self, entity: t.Entity, members: t.Members) -> None:
-        super().__init__(entity)
+class Membership:
+    def __init__(self, relationship, population: Population, members: t.Members) -> None:
+        self.population = population
         self.members = members
+        self.relationship = relationship
         self._members_entity_id = None
         self._members_role = None
         self._members_position = None
         self._ordered_members_map = None
 
     def init_clone(self, simulation):
-        result = GroupPopulation(self.entity, None)
-        result.simulation = simulation
-        result._holders = {
-            variable: holder.clone(result)
-            for (variable, holder) in self._holders.items()
-        }
-        result.count = self.count
-        result.ids = self.ids
+        result = Membership(self.relationship)
         result._members_entity_id = self._members_entity_id
         result._members_role = self._members_role
         result._members_position = self._members_position
@@ -39,6 +33,7 @@ class GroupPopulation(Population):
             if relationship.a.key != self.entity.key:
                 continue
             self.members = self.simulation.populations[relationship.b.key]
+
 
     @property
     def members_position(self):
@@ -325,8 +320,8 @@ class GroupPopulation(Population):
     # Projection entity -> person(s)
 
     def project(self, array, role=None):
-        self.check_array_compatible_with_entity(array)
-        self.entity.check_role_validity(role)
+        self.population.check_array_compatible_with_entity(array)
+        self.relationship.a.check_role_validity(role)
         if role is None:
             return array[self.members_entity_id]
         role_condition = self.members.has_role(role)
