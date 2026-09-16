@@ -1832,8 +1832,8 @@ requires-dist = [
     { name = "numpy", marker = "python_full_version >= '3.13'", specifier = ">=2.1.0,<=3" },
     { name = "openapi-spec-validator", marker = "extra == 'dev'", specifier = ">=0.7.1,<0.8.0" },
     { name = "openfisca-core", extras = ["excel", "web-api"], marker = "extra == 'dev'" },
-    { name = "openfisca-country-template", editable = "../country-template" },
-    { name = "openfisca-country-template", marker = "extra == 'template'", editable = "../country-template" },
+    { name = "openfisca-country-template", git = "https://github.com/openfisca/country-template.git" },
+    { name = "openfisca-country-template", marker = "extra == 'template'", git = "https://github.com/openfisca/country-template.git" },
     { name = "openfisca-extension-template", marker = "extra == 'template'" },
     { name = "openfisca-tracker", marker = "extra == 'tracker'", specifier = ">=0.4.0,<0.5.0" },
     { name = "openpyxl", marker = "extra == 'excel'", specifier = ">=3.1.2,<4.0" },
@@ -1860,21 +1860,11 @@ dev = [{ name = "ruff", specifier = ">=0.16.7" }]
 
 [[package]]
 name = "openfisca-country-template"
-version = "8.0.2"
-source = { editable = "../country-template" }
+version = "8.0.3"
+source = { git = "https://github.com/openfisca/country-template.git#3ae7b99eafdd58ebf8a63f8bba5f15a4ae9abcf8" }
 dependencies = [
     { name = "openfisca-core", extra = ["web-api"] },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "isort", marker = "extra == 'dev'", specifier = ">=5.13.2,<6" },
-    { name = "openfisca-core", extras = ["web-api"], editable = "." },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.6.9,<1" },
-    { name = "ruff-lsp", marker = "extra == 'dev'", specifier = ">=0.0.57,<1" },
-    { name = "yamllint", marker = "extra == 'dev'", specifier = ">=1.35.1" },
-]
-provides-extras = ["dev"]
 
 [[package]]
 name = "openfisca-extension-template"
