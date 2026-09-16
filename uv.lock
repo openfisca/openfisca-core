@@ -1744,7 +1744,6 @@ dependencies = [
     { name = "numpy", version = "1.26.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
     { name = "numpy", version = "2.5.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
-    { name = "openfisca-country-template" },
     { name = "pendulum" },
     { name = "psutil" },
     { name = "pytest" },
@@ -1777,6 +1776,7 @@ dev = [
     { name = "isort" },
     { name = "mypy" },
     { name = "openapi-spec-validator" },
+    { name = "openfisca-country-template" },
     { name = "openpyxl" },
     { name = "pylint" },
     { name = "pylint-per-file-ignores" },
@@ -1832,8 +1832,8 @@ requires-dist = [
     { name = "numpy", marker = "python_full_version >= '3.13'", specifier = ">=2.1.0,<=3" },
     { name = "openapi-spec-validator", marker = "extra == 'dev'", specifier = ">=0.7.1,<0.8.0" },
     { name = "openfisca-core", extras = ["excel", "web-api"], marker = "extra == 'dev'" },
-    { name = "openfisca-country-template", git = "https://github.com/openfisca/country-template.git" },
-    { name = "openfisca-country-template", marker = "extra == 'template'", git = "https://github.com/openfisca/country-template.git" },
+    { name = "openfisca-country-template", marker = "extra == 'dev'", git = "https://github.com/openfisca/country-template.git?branch=relationships" },
+    { name = "openfisca-country-template", marker = "extra == 'template'", git = "https://github.com/openfisca/country-template.git?branch=relationships" },
     { name = "openfisca-extension-template", marker = "extra == 'template'" },
     { name = "openfisca-tracker", marker = "extra == 'tracker'", specifier = ">=0.4.0,<0.5.0" },
     { name = "openpyxl", marker = "extra == 'excel'", specifier = ">=3.1.2,<4.0" },
@@ -1860,8 +1860,8 @@ dev = [{ name = "ruff", specifier = ">=0.16.7" }]
 
 [[package]]
 name = "openfisca-country-template"
-version = "8.0.3"
-source = { git = "https://github.com/openfisca/country-template.git#3ae7b99eafdd58ebf8a63f8bba5f15a4ae9abcf8" }
+version = "8.0.1"
+source = { git = "https://github.com/openfisca/country-template.git?branch=relationships#3641cbcde2bfe5a5c4aa2490e8cfcf963c2b3018" }
 dependencies = [
     { name = "openfisca-core", extra = ["web-api"] },
 ]
