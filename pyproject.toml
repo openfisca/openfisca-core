@@ -10,7 +10,7 @@ readme = "README.md"
 authors = [
   {name = "OpenFisca Team", email = "contact@openfisca.org"},
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Operating System :: POSIX",
@@ -117,4 +117,9 @@ ignore-words-list = [
     "fonction",
     "impot",
     "treshold",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.7",
 ]
