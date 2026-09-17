@@ -2,7 +2,6 @@ name: OpenFisca-Core / Pull request review
 
 env:
   UPPER_PYTHON_VERSION: &upper_pyver 3.13.11
-  CONDA_PYTHON_VERSION: &conda_pyver 3.11.14
 
 on:
   pull_request:
@@ -57,13 +56,6 @@ jobs:
       python: ${{ matrix.python }}
       activate_command: ${{ matrix.activate_command }}
 
-  setup-conda:
-    uses: ./.github/workflows/_before-conda.yaml
-    with:
-      os: ubuntu-24.04
-      numpy: 1.26.4
-      python: *conda_pyver
-
   test-pip:
     needs: [setup-pip]
     strategy:
@@ -109,14 +101,6 @@ jobs:
       python: ${{ matrix.python }}
       activate_command: ${{ matrix.activate_command }}
 
-  test-conda:
-    uses: ./.github/workflows/_test-conda.yaml
-    needs: [setup-conda]
-    with:
-      os: ubuntu-24.04
-      numpy: 1.26.4
-      python: *conda_pyver
-
   lint-pip:
     needs: [setup-pip]
     strategy:
@@ -139,7 +123,7 @@ jobs:
       activate_command: source venv/bin/activate
 
   check-version:
-    needs: [test-pip, test-conda, lint-pip]
+    needs: [test-pip, lint-pip]
     uses: ./.github/workflows/_version.yaml
     with:
       os: ubuntu-24.04
