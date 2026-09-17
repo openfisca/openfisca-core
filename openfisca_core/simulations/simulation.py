@@ -44,7 +44,7 @@ class Simulation:
         assert tax_benefit_system is not None
 
         self.populations = populations
-        self.persons = self.populations[tax_benefit_system.person_entity.key]
+        # self.persons = self.populations[tax_benefit_system.person_entity.key]
         self.link_to_entities_instances()
         self.create_shortcuts()
 
@@ -597,18 +597,19 @@ class Simulation:
         new_dict["_data_storage_dir"] = None
         new_dict["invalidated_caches"] = set(self.invalidated_caches)
 
-        new.persons = self.persons.clone(new)
-        setattr(new, new.persons.entity.key, new.persons)
-        new.populations = {new.persons.entity.key: new.persons}
+        new.populations = {}
 
-        for entity in self.tax_benefit_system.group_entities:
-            population = self.populations[entity.key].clone(new)
+        for entity in self.tax_benefit_system.entities:
+            population = self.populations[entity.key].init_clone(new)
             new.populations[entity.key] = population
             setattr(
                 new,
                 entity.key,
                 population,
             )  # create shortcut simulation.household (for instance)
+
+        for entity in self.tax_benefit_system.entities:
+            new.populations[entity.key].finalize_clone()
 
         new.debug = debug
         new.trace = trace

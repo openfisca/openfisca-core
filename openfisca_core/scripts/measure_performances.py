@@ -13,7 +13,7 @@ import numpy
 from numpy.core.defchararray import startswith
 
 from openfisca_core import periods, simulations
-from openfisca_core.entities import build_entity
+from openfisca_core.entities import Entity
 from openfisca_core.periods import DateUnit
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_core.tools import assert_near
@@ -33,11 +33,19 @@ def timeit(method):
 
 # Entities
 
-Famille = build_entity(
+Famille = Entity(
     key="famille",
     plural="familles",
-    label="Famille",
-    roles=[
+    label="Famille")
+
+Individu = Entity(
+    key="individu",
+    plural="individus",
+    label="Individu",
+)
+
+Famille.add_relationship(Individu,
+[
         {
             "key": "parent",
             "plural": "parents",
@@ -50,14 +58,6 @@ Famille = build_entity(
             "label": "Enfants",
         },
     ],
-)
-
-
-Individu = build_entity(
-    key="individu",
-    plural="individus",
-    label="Individu",
-    is_person=True,
 )
 
 # Input variables

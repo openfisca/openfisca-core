@@ -41,15 +41,15 @@ def restore_simulation(directory, tax_benefit_system, **kwargs):
 
     entities_dump_dir = os.path.join(directory, "__entities__")
     for population in simulation.populations.values():
-        if population.entity.is_person:
-            continue
-        person_count = _restore_entity(population, entities_dump_dir)
+        _restore_entity(population, entities_dump_dir)
 
     for population in simulation.populations.values():
-        if not population.entity.is_person:
-            continue
-        _restore_entity(population, entities_dump_dir)
-        population.count = person_count
+        for relationship in population.entity.relationships:
+            if relationship.a.key == population.entity.key:
+                continue
+
+            persons = simulation.populations[relationship.a.key]
+            population.count = len(persons.members_entity_id)
 
     variables_to_restore = (
         variable for variable in os.listdir(directory) if variable != "__entities__"
@@ -72,24 +72,25 @@ def _dump_entity(population, directory) -> None:
     os.mkdir(path)
     numpy.save(os.path.join(path, "id.npy"), population.ids)
 
-    if population.entity.is_person:
-        return
+    for relationship in population.entity.relationships:
+        if relationship.a.key != population.entity.key:
+            continue
 
-    numpy.save(os.path.join(path, "members_position.npy"), population.members_position)
-    numpy.save(
-        os.path.join(path, "members_entity_id.npy"), population.members_entity_id
-    )
-
-    flattened_roles = population.entity.flattened_roles
-    if len(flattened_roles) == 0:
-        encoded_roles = numpy.int16(0)
-    else:
-        encoded_roles = numpy.select(
-            [population.members_role == role for role in flattened_roles],
-            [role.key for role in flattened_roles],
-            default="",
+        numpy.save(os.path.join(path, "members_position.npy"), population.members_position)
+        numpy.save(
+            os.path.join(path, "members_entity_id.npy"), population.members_entity_id
         )
-    numpy.save(os.path.join(path, "members_role.npy"), encoded_roles)
+
+        flattened_roles = population.entity.flattened_roles
+        if len(flattened_roles) == 0:
+            encoded_roles = numpy.int16(0)
+        else:
+            encoded_roles = numpy.select(
+                [population.members_role == role for role in flattened_roles],
+                [role.key for role in flattened_roles],
+                default="",
+            )
+        numpy.save(os.path.join(path, "members_role.npy"), encoded_roles)
 
 
 def _restore_entity(population, directory):
@@ -97,27 +98,28 @@ def _restore_entity(population, directory):
 
     population.ids = numpy.load(os.path.join(path, "id.npy"))
 
-    if population.entity.is_person:
-        return None
+    for relationship in population.entity.relationships:
+        if relationship.a.key != population.entity.key:
+            continue
 
-    population.members_position = numpy.load(os.path.join(path, "members_position.npy"))
-    population.members_entity_id = numpy.load(
-        os.path.join(path, "members_entity_id.npy")
-    )
-    encoded_roles = numpy.load(os.path.join(path, "members_role.npy"))
-
-    flattened_roles = population.entity.flattened_roles
-    if len(flattened_roles) == 0:
-        population.members_role = numpy.int16(0)
-    else:
-        population.members_role = numpy.select(
-            [encoded_roles == role.key for role in flattened_roles],
-            list(flattened_roles),
-            default=None,
+        population.members_position = numpy.load(os.path.join(path, "members_position.npy"))
+        population.members_entity_id = numpy.load(
+            os.path.join(path, "members_entity_id.npy")
         )
-    person_count = len(population.members_entity_id)
-    population.count = max(population.members_entity_id) + 1
-    return person_count
+        encoded_roles = numpy.load(os.path.join(path, "members_role.npy"))
+
+        flattened_roles = population.entity.flattened_roles
+        if len(flattened_roles) == 0:
+            population.members_role = numpy.int16(0)
+        else:
+            population.members_role = numpy.select(
+                [encoded_roles == role.key for role in flattened_roles],
+                list(flattened_roles),
+                default=None,
+            )
+        person_count = len(population.members_entity_id)
+        population.count = max(population.members_entity_id) + 1
+        return person_count
 
 
 def _restore_holder(simulation, variable_name, directory) -> None:

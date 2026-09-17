@@ -65,12 +65,6 @@ class TaxBenefitSystem:
             msg = "A tax and benefit system must have at least an entity."
             raise Exception(msg)
         self.entities = [copy.copy(entity) for entity in entities]
-        self.person_entity = next(
-            entity for entity in self.entities if entity.is_person
-        )
-        self.group_entities = [
-            entity for entity in self.entities if not entity.is_person
-        ]
         for entity in self.entities:
             entity.set_tax_benefit_system(self)
 
@@ -87,12 +81,15 @@ class TaxBenefitSystem:
         return base_tax_benefit_system
 
     def instantiate_entities(self):
-        person = self.person_entity
-        members = Population(person)
-        entities: dict[Entity.key, Entity] = {person.key: members}
+        entities: dict[Entity.key, Entity] = {}
+        for entity in self.entities:
+            entities[entity.key] = Population(entity)
 
-        for entity in self.group_entities:
-            entities[entity.key] = GroupPopulation(entity, members)
+        for entity in self.entities:
+            for relationship in entity.relationships:
+                if relationship.a.key == entity.key:
+                    members = entities[relationship.b.key]
+                    entities[entity.key] = GroupPopulation(entity, members)
 
         return entities
 

@@ -80,6 +80,7 @@ dev = [
     "ruff >=0.6.9, <1.0",
     "ruff-lsp >=0.0.57, <1.0",
     "OpenFisca-Core[excel, web-api]",
+    "openfisca-country-template",
 ]
 
 web-api = [
@@ -119,7 +120,5 @@ ignore-words-list = [
     "treshold",
 ]
 
-[dependency-groups]
-dev = [
-    "ruff>=0.16.7",
-]
+[tool.uv.sources]
+openfisca-country-template = { git = "https://github.com/openfisca/country-template.git", branch = "relationships" }

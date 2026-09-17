@@ -190,13 +190,14 @@ def test_set_input_with_constructor(tax_benefit_system) -> None:
 
 def test_has_role(tax_benefit_system) -> None:
     simulation = new_simulation(tax_benefit_system, TEST_CASE)
-    individu = simulation.persons
+    individu = simulation.person
+    tools.assert_near(individu.has_role(ADULT), [True, True, False, False, True, False])
     tools.assert_near(individu.has_role(CHILD), [False, False, True, True, False, True])
 
 
 def test_has_role_with_subrole(tax_benefit_system) -> None:
     simulation = new_simulation(tax_benefit_system, TEST_CASE)
-    individu = simulation.persons
+    individu = simulation.person
     tools.assert_near(
         individu.has_role(ADULT),
         [True, True, False, False, True, False],
@@ -313,6 +314,9 @@ def test_value_nth_person(tax_benefit_system) -> None:
     simulation = new_simulation(tax_benefit_system, test_case)
     household = simulation.household
     array = household.members("age", MONTH)
+
+    age1 = simulation.person("age", period=MONTH)
+    age = household.members("age", period=MONTH)
 
     result0 = household.value_nth_person(0, array, default=-1)
     tools.assert_near(result0, [40, 54])

@@ -1,6 +1,6 @@
 import numpy
 
-from openfisca_core.entities import build_entity
+from openfisca_core.entities import Entity
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import DateUnit
 from openfisca_core.simulations.simulation_builder import SimulationBuilder
@@ -8,111 +8,22 @@ from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_core.variables import Variable
 
 
-def test_shortcut_to_containing_entity_provided() -> None:
-    """Tests that, when an entity provides a containing entity,
-    the shortcut to that containing entity is provided.
-    """
-    person_entity = build_entity(
-        key="person",
-        plural="people",
-        label="A person",
-        is_person=True,
-    )
-    family_entity = build_entity(
-        key="family",
-        plural="families",
-        label="A family (all members in the same household)",
-        containing_entities=["household"],
-        roles=[
-            {
-                "key": "member",
-                "plural": "members",
-                "label": "Member",
-            },
-        ],
-    )
-    household_entity = build_entity(
-        key="household",
-        plural="households",
-        label="A household, containing one or more families",
-        roles=[
-            {
-                "key": "member",
-                "plural": "members",
-                "label": "Member",
-            },
-        ],
-    )
-
-    entities = [person_entity, family_entity, household_entity]
-
-    system = TaxBenefitSystem(entities)
-    simulation = SimulationBuilder().build_from_dict(system, {})
-    assert simulation.populations["family"].household.entity.key == "household"
-
-
-def test_shortcut_to_containing_entity_not_provided() -> None:
-    """Tests that, when an entity doesn't provide a containing
-    entity, the shortcut to that containing entity is not provided.
-    """
-    person_entity = build_entity(
-        key="person",
-        plural="people",
-        label="A person",
-        is_person=True,
-    )
-    family_entity = build_entity(
-        key="family",
-        plural="families",
-        label="A family (all members in the same household)",
-        containing_entities=[],
-        roles=[
-            {
-                "key": "member",
-                "plural": "members",
-                "label": "Member",
-            },
-        ],
-    )
-    household_entity = build_entity(
-        key="household",
-        plural="households",
-        label="A household, containing one or more families",
-        roles=[
-            {
-                "key": "member",
-                "plural": "members",
-                "label": "Member",
-            },
-        ],
-    )
-
-    entities = [person_entity, family_entity, household_entity]
-
-    system = TaxBenefitSystem(entities)
-    simulation = SimulationBuilder().build_from_dict(system, {})
-    try:
-        simulation.populations["family"].household
-        raise AssertionError
-    except AttributeError:
-        pass
-
-
 def test_enum_projects_downwards() -> None:
     """Test that an Enum-type household-level variable projects
     values onto its members correctly.
     """
-    person = build_entity(
+    person = Entity(
         key="person",
         plural="people",
-        label="A person",
-        is_person=True,
+        label="A person"
     )
-    household = build_entity(
+    household = Entity(
         key="household",
         plural="households",
-        label="A household",
-        roles=[
+        label="A household"
+    )
+    household.add_relationship(person,
+        [
             {
                 "key": "member",
                 "plural": "members",
@@ -143,8 +54,8 @@ def test_enum_projects_downwards() -> None:
         entity = person
         definition_period = DateUnit.ETERNITY
 
-        def formula(self, period):
-            return self.household("household_enum_variable", period)
+        def formula(person, period):
+            return person.household("household_enum_variable", period)
 
     system.add_variables(household_enum_variable, projected_enum_variable)
 
@@ -171,17 +82,18 @@ def test_enum_projects_upwards() -> None:
     """Test that an Enum-type person-level variable projects
     values onto its household (from the first person) correctly.
     """
-    person = build_entity(
+    person = Entity(
         key="person",
         plural="people",
-        label="A person",
-        is_person=True,
+        label="A person"
     )
-    household = build_entity(
+    household = Entity(
         key="household",
         plural="households",
         label="A household",
-        roles=[
+    )
+    household.add_relationship(person,
+        [
             {
                 "key": "member",
                 "plural": "members",
@@ -240,110 +152,5 @@ def test_enum_projects_upwards() -> None:
             "household_projected_variable",
             "2021-01-01",
         ).decode_to_str()
-        == numpy.array(["SECOND_OPTION"])
-    ).all()
-
-
-def test_enum_projects_between_containing_groups() -> None:
-    """Test that an Enum-type person-level variable projects
-    values onto its household (from the first person) correctly.
-    """
-    person_entity = build_entity(
-        key="person",
-        plural="people",
-        label="A person",
-        is_person=True,
-    )
-    family_entity = build_entity(
-        key="family",
-        plural="families",
-        label="A family (all members in the same household)",
-        containing_entities=["household"],
-        roles=[
-            {
-                "key": "member",
-                "plural": "members",
-                "label": "Member",
-            },
-        ],
-    )
-    household_entity = build_entity(
-        key="household",
-        plural="households",
-        label="A household, containing one or more families",
-        roles=[
-            {
-                "key": "member",
-                "plural": "members",
-                "label": "Member",
-            },
-        ],
-    )
-
-    entities = [person_entity, family_entity, household_entity]
-
-    system = TaxBenefitSystem(entities)
-
-    class enum(Enum):
-        FIRST_OPTION = "First option"
-        SECOND_OPTION = "Second option"
-
-    class household_level_variable(Variable):
-        value_type = Enum
-        possible_values = enum
-        default_value = enum.FIRST_OPTION
-        entity = household_entity
-        definition_period = DateUnit.ETERNITY
-
-    class projected_family_level_variable(Variable):
-        value_type = Enum
-        possible_values = enum
-        default_value = enum.FIRST_OPTION
-        entity = family_entity
-        definition_period = DateUnit.ETERNITY
-
-        def formula(self, period):
-            return self.household("household_level_variable", period)
-
-    class decoded_projected_family_level_variable(Variable):
-        value_type = str
-        entity = family_entity
-        definition_period = DateUnit.ETERNITY
-
-        def formula(self, period):
-            return self.household("household_level_variable", period).decode_to_str()
-
-    system.add_variables(
-        household_level_variable,
-        projected_family_level_variable,
-        decoded_projected_family_level_variable,
-    )
-
-    simulation = SimulationBuilder().build_from_dict(
-        system,
-        {
-            "people": {"person1": {}, "person2": {}, "person3": {}},
-            "families": {
-                "family1": {"members": ["person1", "person2"]},
-                "family2": {"members": ["person3"]},
-            },
-            "households": {
-                "household1": {
-                    "members": ["person1", "person2", "person3"],
-                    "household_level_variable": {"eternity": "SECOND_OPTION"},
-                },
-            },
-        },
-    )
-
-    assert (
-        simulation.calculate(
-            "projected_family_level_variable",
-            "2021-01-01",
-        ).decode_to_str()
-        == numpy.array(["SECOND_OPTION"])
-    ).all()
-    assert (
-        simulation.calculate("decoded_projected_family_level_variable", "2021-01-01")
         == numpy.array(["SECOND_OPTION"])
     ).all()
