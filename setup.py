@@ -25,7 +25,6 @@ long_description = (this_directory / "README.md").read_text()
 
 # Please make sure to cap all dependency versions, in order to avoid unwanted
 # functional and integration breaks caused by external code updates.
-# DO NOT add space between '>=' and version number as it break conda build.
 general_requirements = [
     "PyYAML >=6.0, <7.0",
     "StrEnum >=0.4.8, <0.5.0",  # 3.11.x backport
