@@ -1,8 +1,7 @@
 # Changelog
 
 
-# 45.0.0 [#1383](https://github.com/openfisca/openfisca-core/pull/1383)
-
+# 45.0.0 [#1393](https://github.com/openfisca/openfisca-core/pull/1393)
 
 #### Breaking changes
 
