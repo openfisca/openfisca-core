@@ -14,7 +14,7 @@ class InYamlTestReform(Reform):
         baseline: TaxBenefitSystem,
         reformed_parameters=dict,
     ) -> None:
-        """Initialize the ReformExcel instance.
+        """Initialize the instance.
 
         :param baseline: Baseline TaxBenefitSystem.
         :param reformed_parameters: Yaml file `parameters` value similar to a parameter tree
