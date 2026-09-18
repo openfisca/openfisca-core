@@ -1,5 +1,13 @@
 # Changelog
 
+
+# 45.0.0 [#1393](https://github.com/openfisca/openfisca-core/pull/1393)
+
+#### Breaking changes
+
+- Extract `ReformExcel*` in [openfisca-excel-reform](https://pypi.org/project/openfisca-excel-reform/) dedicated package
+  - Rename `ReformExcel*` in `ExcelReform*`
+
 ## 44.7.1 [#1383](https://github.com/openfisca/openfisca-core/pull/1383)
 
 #### Bug fixes
