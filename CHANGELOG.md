@@ -5,8 +5,7 @@
 
 #### Breaking changes
 
-- Extract `ReformExcel*` in [openfisca-excel-reform](https://pypi.org/project/openfisca-excel-reform/) dedicated package
-  - Rename `ReformExcel*` in `ExcelReform*`
+- Move `ReformExcel*` from OpenFisca-Core to `ExcelReform*` in a dedicated package [openfisca-excel-reform](https://pypi.org/project/openfisca-excel-reform/) 
 
 ## 44.7.1 [#1383](https://github.com/openfisca/openfisca-core/pull/1383)
 
