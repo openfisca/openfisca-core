@@ -252,7 +252,7 @@ class TaxBenefitSystem:
             except NameError as e:
                 logging.exception(
                     str(e)
-                    + ": if this code used to work, this error might be due to a major change in OpenFisca-Core. Checkout the changelog to learn more: <https://github.com/openfisca/openfisca-core/blob/master/CHANGELOG.md>",
+                    + ": if this code used to work, this error might be due to a major change in OpenFisca-Core. Checkout the changelog to learn more: <https://github.com/openfisca/openfisca-core/blob/main/CHANGELOG.md>",
                 )
                 raise
             potential_variables = [

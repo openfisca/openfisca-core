@@ -1,8 +1,8 @@
 #! /usr/bin/env bash
 
-if [[ ${GITHUB_REF#refs/heads/} == master ]]
+if [[ ${GITHUB_REF#refs/heads/} == main ]]
 then
-    echo "No need for a version check on master."
+    echo "No need for a version check on main."
     exit 0
 fi
 
@@ -19,7 +19,7 @@ then
     echo "Version $current_version already exists in commit:"
     git --no-pager log -1 $current_version
     echo
-    echo "Update the version number in setup.py before merging this branch into master."
+    echo "Update the version number in setup.py before merging this branch into main."
     echo "Look at the CONTRIBUTING.md file to learn how the version number should be updated."
     exit 1
 fi
@@ -27,7 +27,7 @@ fi
 if ! $(dirname "$BASH_SOURCE")/has-functional-changes.sh | grep --quiet CHANGELOG.md
 then
     echo "CHANGELOG.md has not been modified, while functional changes were made."
-    echo "Explain what you changed before merging this branch into master."
+    echo "Explain what you changed before merging this branch into main."
     echo "Look at the CONTRIBUTING.md file to learn how to write the changelog."
     exit 2
 fi

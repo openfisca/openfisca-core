@@ -21,7 +21,7 @@ class VariableNotFoundError(Exception):
                 f"Are you sure you spelled '{variable_name}' correctly?",
                 "If this code used to work and suddenly does not, this is most probably linked to an update of the tax and benefit system.",
                 "Look at its changelog to learn about renames and removals and update your code. If it is an official package,",
-                f"it is probably available on <https://github.com/openfisca/{country_package_name}/blob/master/CHANGELOG.md>.",
+                f"it is probably available on <https://github.com/openfisca/{country_package_name}/blob/main/CHANGELOG.md>.",
             ],
         )
         self.message = message
