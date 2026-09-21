@@ -1,5 +1,10 @@
 # Changelog
 
+### 45.0.1 [#1393](https://github.com/openfisca/openfisca-core/pull/1393)
+
+#### Technical changes
+
+- Remove Conda support
 
 # 45.0.0 [#1393](https://github.com/openfisca/openfisca-core/pull/1393)
 
@@ -22,7 +27,7 @@
 
 - Manage list parameter in Excel reform
 
-## 44.6.0
+## 44.6.0 [#1374](https://github.com/openfisca/openfisca-core/pull/1374)
 
 #### Technical changes
 
@@ -30,7 +35,7 @@
 - Mark versions `44.3.0`, `44.4.0`, `44.4.1`, and `44.5.0` as yanked.
 - Bump version to `44.6.0` to restore continuous deployment from this reverted baseline.
 
-## 44.2.2
+## 44.2.2 [#1361](https://github.com/openfisca/openfisca-core/pull/1361)
 
 #### Bug fixes
 
@@ -42,7 +47,7 @@
 
 - Add a check for creating a simulation when building a test
 
-## 44.2.0
+## 44.2.0 [#1358](https://github.com/openfisca/openfisca-core/pull/1358)
 
 #### New features
 
