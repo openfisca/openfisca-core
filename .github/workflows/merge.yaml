@@ -1,8 +1,7 @@
-name: OpenFisca-Core / Deploy package to PyPi & Conda
+name: OpenFisca-Core / Deploy package to PyPi
 
 env:
   UPPER_PYTHON_VERSION: &upper_pyver 3.13.11
-  CONDA_PYTHON_VERSION: &conda_pyver 3.11.14
 
 on:
   push:
@@ -57,13 +56,6 @@ jobs:
       python: ${{ matrix.python }}
       activate_command: ${{ matrix.activate_command }}
 
-  setup-conda:
-    uses: ./.github/workflows/_before-conda.yaml
-    with:
-      os: ubuntu-24.04
-      numpy: 1.26.4
-      python: *conda_pyver
-
   test-pip:
     needs: [setup-pip]
     strategy:
@@ -109,14 +101,6 @@ jobs:
       python: ${{ matrix.python }}
       activate_command: ${{ matrix.activate_command }}
 
-  test-conda:
-    uses: ./.github/workflows/_test-conda.yaml
-    needs: [setup-conda]
-    with:
-      os: ubuntu-24.04
-      numpy: 1.26.4
-      python: *conda_pyver
-
   lint-pip:
     needs: [setup-pip]
     strategy:
@@ -139,7 +123,7 @@ jobs:
       activate_command: source venv/bin/activate
 
   check-version:
-    needs: [test-pip, test-conda, lint-pip]
+    needs: [test-pip, lint-pip]
     uses: ./.github/workflows/_version.yaml
     with:
       os: ubuntu-24.04
@@ -155,6 +139,7 @@ jobs:
     needs: [check-version]
     outputs:
       status: ${{ steps.stop-early.outputs.status }}
+      version: ${{ steps.update-version.outputs.version }}
 
     steps:
     - uses: actions/checkout@v4
@@ -223,10 +208,12 @@ jobs:
         twine upload dist/* --username $PYPI_USERNAME --password $PYPI_TOKEN
 
     - name: Update version
+      id: update-version
       run: |
         source venv/bin/activate
         git tag `python setup.py --version`
         git push --tags  # update the repository version
+        echo "version=$(python setup.py --version)" >> $GITHUB_OUTPUT
 
     - name: Update doc
       run: |
@@ -238,75 +225,38 @@ jobs:
           https://api.github.com/repos/openfisca/openfisca-doc/actions/workflows/deploy.yaml/dispatches \
           -d '{"ref":"main"}'
 
-  publish-to-conda:
-    runs-on: ubuntu-24.04
+  test-on-windows:
+    runs-on: windows-2025
     needs: [publish-to-pypi]
     defaults:
       run:
-        shell: bash -l {0}
+        shell: bash
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
 
-    - name: Cache conda env
-      uses: actions/cache@v4
-      with:
-        path: |
-          /usr/share/miniconda/envs/openfisca
-          ~/.conda/envs/openfisca
-          .env.yaml
-        key: conda-env-ubuntu-24.04-np1.26.4-py${{ env.CONDA_PYTHON_VERSION }}-${{ hashFiles('setup.py') }}
-
-    - name: Cache conda deps
-      uses: actions/cache@v4
-      with:
-        path: ~/conda_pkgs_dir
-        key: conda-deps-ubuntu-24.04-np1.26.4-py${{ env.CONDA_PYTHON_VERSION }}-${{ hashFiles('setup.py') }}
-
-    - name: Cache release
-      uses: actions/cache@v4
-      with:
-        path: ~/conda-rel
-        key: conda-release-ubuntu-24.04-np1.26.4-py${{ env.CONDA_PYTHON_VERSION }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
-
-    - name: Update conda & dependencies
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-        activate-environment: openfisca
-        environment-file: .env.yaml
-        miniforge-version: latest
-        use-mamba: true
-
-    - name: Publish to conda
+    - name: Install openfisca-core from PyPi
+      env:
+        VERSION: ${{ needs.publish-to-pypi.outputs.version }}
+      # PyPi's index can lag a few seconds behind an upload, hence the retries.
       run: |
-        rattler-build upload anaconda ~/conda-rel/noarch/*.conda \
-          --force \
-          --owner openfisca \
-          --api-key ${{ secrets.ANACONDA_TOKEN }}
-
-  test-on-windows:
-    runs-on: windows-2025
-    needs: [publish-to-conda]
-    defaults:
-      run:
-        shell: bash -l {0}
-
-    steps:
-    - uses: conda-incubator/setup-miniconda@v3
-      with:
-        auto-update-conda: true
-        # See GHA Windows
-        # https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
-        python-version: *conda_pyver
-        channels: conda-forge
-        activate-environment: true
-
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Install with conda
-      run: conda install -c openfisca openfisca-core
+        uv venv --python ${{ env.UPPER_PYTHON_VERSION }}
+        installed=false
+        for attempt in $(seq 1 5); do
+          if uv pip install "openfisca-core==$VERSION"; then
+            installed=true
+            break
+          fi
+          echo "openfisca-core $VERSION not on PyPi yet, retrying in 30s (attempt $attempt/5)…"
+          sleep 30
+        done
+        if [ "$installed" = false ]; then
+          echo "Could not install openfisca-core $VERSION from PyPi."
+          exit 1
+        fi
 
     - name: Test openfisca
-      run: openfisca --help
+      run: |
+        source .venv/Scripts/activate
+        openfisca --help
