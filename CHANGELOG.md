@@ -1,5 +1,11 @@
 # Changelog
 
+### 45.0.2 [#1394](https://github.com/openfisca/openfisca-core/pull/1394)
+
+#### Technical changes
+
+- Fix git tag push and in cascade missing Windows test on published version
+
 ### 45.0.1 [#1393](https://github.com/openfisca/openfisca-core/pull/1393)
 
 #### Technical changes

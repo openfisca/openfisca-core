@@ -139,7 +139,6 @@ jobs:
     needs: [check-version]
     outputs:
       status: ${{ steps.stop-early.outputs.status }}
-      version: ${{ steps.update-version.outputs.version }}
 
     steps:
     - uses: actions/checkout@v4
@@ -168,6 +167,8 @@ jobs:
     env:
       PYPI_USERNAME: __token__
       PYPI_TOKEN: ${{ secrets.PYPI_TOKEN_OPENFISCA_BOT }}
+    outputs:
+      version: ${{ steps.update-version.outputs.version }}
 
     steps:
     - uses: actions/checkout@v4
@@ -211,6 +212,7 @@ jobs:
       id: update-version
       run: |
         source venv/bin/activate
+        pip install setuptools
         git tag `python setup.py --version`
         git push --tags  # update the repository version
         echo "version=$(python setup.py --version)" >> $GITHUB_OUTPUT
