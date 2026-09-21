@@ -74,7 +74,7 @@ class ComputationLog:
         for line in self.lines(
             aggregate, max_depth, ignore_default, tax_benefit_system
         ):
-            print(line)  # noqa: T201
+            print(line)
 
     def _get_node_log(
         self,
@@ -168,9 +168,7 @@ class ComputationLog:
             try:
                 formatted_value = str(  # pyright: ignore[reportCallIssue]
                     {
-                        "avg": numpy.mean(
-                            value
-                        ),  # pyright: ignore[reportArgumentType,reportCallIssue]
+                        "avg": numpy.mean(value),  # pyright: ignore[reportArgumentType,reportCallIssue]
                         "max": numpy.max(value),
                         "min": numpy.min(value),
                     },

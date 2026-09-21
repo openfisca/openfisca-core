@@ -1,6 +1,5 @@
-from numpy.typing import NDArray
-
 import numpy
+from numpy.typing import NDArray
 
 def evaluate(
     __ex: str,

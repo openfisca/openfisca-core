@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing_extensions import TypeGuard
+from typing import TypeGuard
 
 from .typing import (
     Axes,

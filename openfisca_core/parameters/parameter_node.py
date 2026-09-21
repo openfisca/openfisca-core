@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
-
 import copy
 import os
+from collections.abc import Iterable
 
 from openfisca_core import commons, parameters, tools
 

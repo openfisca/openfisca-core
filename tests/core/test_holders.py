@@ -1,6 +1,5 @@
 import numpy
 import pytest
-
 from openfisca_country_template import situation_examples
 from openfisca_country_template.variables import housing
 

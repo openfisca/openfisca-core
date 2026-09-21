@@ -26,6 +26,8 @@ from .empty_argument_error import EmptyArgumentError
 from .nan_creation_error import NaNCreationError
 from .parameter_not_found_error import (
     ParameterNotFoundError,
+)
+from .parameter_not_found_error import (
     ParameterNotFoundError as ParameterNotFound,
 )
 from .parameter_parsing_error import ParameterParsingError
@@ -34,10 +36,14 @@ from .situation_parsing_error import SituationParsingError
 from .spiral_error import SpiralError
 from .variable_name_config_error import (
     VariableNameConflictError,
+)
+from .variable_name_config_error import (
     VariableNameConflictError as VariableNameConflict,
 )
 from .variable_not_found_error import (
     VariableNotFoundError,
+)
+from .variable_not_found_error import (
     VariableNotFoundError as VariableNotFound,
 )
 

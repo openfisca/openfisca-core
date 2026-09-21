@@ -1,9 +1,7 @@
+import datetime
 from collections.abc import Iterable
 
-import datetime
-
 import pytest
-
 from openfisca_country_template import entities, situation_examples
 
 from openfisca_core import tools

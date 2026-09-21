@@ -85,10 +85,10 @@ Whatever the style you choose, contributors and reusers alike will be more than 
 ```py
 """Short summary of your module.
 
-A longer description of what are your module's motivation, domain, and use 
-cases. For example, if you decide to create a caching system for OpenFisca, 
-consisting on different caching mechanisms, you could say that large operations 
-are expensive for some users, that different caching mechanisms exist, and that 
+A longer description of what are your module's motivation, domain, and use
+cases. For example, if you decide to create a caching system for OpenFisca,
+consisting on different caching mechanisms, you could say that large operations
+are expensive for some users, that different caching mechanisms exist, and that
 this module implements some of them.
 
 You can then give examples on how to use your module:
@@ -120,7 +120,7 @@ __all__ = ["Cache", "Memory", "Disk"]
 class Cache:
     """Implements a new caching system.
 
-    Same as before, you could say this is good because virtuals systems are 
+    Same as before, you could say this is good because virtuals systems are
     great but the need a wrapper to make them work with OpenFisca.
 
     Document the class attributes —different from the initialisation arguments:
@@ -138,7 +138,6 @@ class Cache:
 
     def __init__(self, type: str) -> None:
         pass
-
 ```
 
 4. Finally, when adding methods to your class, or helper functions to your module, it is very important to document their contracts:
@@ -147,7 +146,7 @@ class Cache:
 def get(self, key: str) -> Any:
     """Again, summary description.
 
-    The long description is optional, as long as the code is easy to 
+    The long description is optional, as long as the code is easy to
     understand. However, there are four key elements to help others understand
     what the code does:
 
@@ -198,5 +197,4 @@ def get(self, key: str) -> Any:
     """
 
     pass
-
 ```

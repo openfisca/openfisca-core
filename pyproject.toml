@@ -1,6 +1,3 @@
-[tool.black]
-target-version = [ "py310", "py311", "py312", "py313" ]
-
 [tool.codespell]
 ignore-words-list = [
     "THIRDPARTY",
@@ -12,3 +9,33 @@ ignore-words-list = [
     "treshold",
 ]
 skip = "./venv"
+
+[tool.ruff.lint]
+ignore = [
+    "UP007",
+    "PYI063",
+    "BLE001",
+    "TRY004",
+    "TRY002",
+    "PLR0133",
+    "RUF012",
+    "SIM115",
+    "PLW1510",
+    "PLC0105",
+    "B018",
+    "DTZ007",
+    "ISC004",
+    "PLE1205",
+    "PT031",
+    "PLR1704",
+    "RUF059",
+    "B019",
+    "DTZ012",
+    "SIM102",
+    "S102",
+    "SIM117",
+    "UP045",
+    "LOG015",
+    "C401",
+    "TRY401"
+]

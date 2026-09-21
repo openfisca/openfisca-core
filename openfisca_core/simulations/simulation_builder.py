@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
-from numpy.typing import NDArray as Array
-from typing import NoReturn
-
 import copy
+from collections.abc import Iterable, Sequence
+from typing import NoReturn
 
 import dpath
 import numpy
+from numpy.typing import NDArray as Array
 
 from openfisca_core import entities, errors, periods, populations, variables
 
@@ -485,8 +484,7 @@ class SimulationBuilder:
             variables_json = instance_object.copy()  # Don't mutate function input
 
             roles_json = {
-                role.plural
-                or role.key: helpers.transform_to_strict_syntax(
+                role.plural or role.key: helpers.transform_to_strict_syntax(
                     variables_json.pop(role.plural or role.key, []),
                 )
                 for role in entity.roles

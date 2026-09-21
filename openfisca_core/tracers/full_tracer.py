@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from collections.abc import Iterator
-
 import sys
 import time
+from collections.abc import Iterator
 
 from openfisca_core import types as t
 

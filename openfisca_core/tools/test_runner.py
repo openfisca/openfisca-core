@@ -1,12 +1,5 @@
 # Avoid T201 warning for print statements in this test runner
-# flake8: noqa: T201
 from __future__ import annotations
-
-from collections.abc import Sequence
-from typing import Any
-from typing_extensions import Literal, TypedDict
-
-from openfisca_core.types import TaxBenefitSystem
 
 import dataclasses
 import json
@@ -19,6 +12,12 @@ import textwrap
 import time
 import traceback
 import warnings
+from collections.abc import Sequence
+from typing import Any, Literal
+
+from typing_extensions import TypedDict
+
+from openfisca_core.types import TaxBenefitSystem
 
 # Unix-specific modules for parallel testing (not available on Windows)
 try:
@@ -618,9 +617,9 @@ class YamlItem(pytest.Item):
         try:
             builder.set_default_period(period)
             self.simulation = builder.build_from_dict(self.tax_benefit_system, input)
-            assert (
-                self.simulation is not None
-            ), "Simulation should be properly initialized, Check your test input"
+            assert self.simulation is not None, (
+                "Simulation should be properly initialized, Check your test input"
+            )
 
         except (VariableNotFound, SituationParsingError, AssertionError):
             raise

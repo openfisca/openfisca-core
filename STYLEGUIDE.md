@@ -81,6 +81,7 @@ from copy import deepcopy
 import typing
 import numpy.typing
 
+
 def do(this: typing.List) -> numpy.typing.ArrayLike:
     that = deepcopy(this)
     array = ndarray(that)

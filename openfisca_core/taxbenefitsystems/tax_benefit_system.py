@@ -1,10 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Any
-
-from openfisca_core.types import ParameterNodeAtInstant
-
 import ast
 import copy
 import functools
@@ -18,6 +13,8 @@ import logging
 import os
 import sys
 import traceback
+from collections.abc import Sequence
+from typing import Any
 
 from openfisca_core import commons, periods, variables
 from openfisca_core.entities import Entity
@@ -26,6 +23,7 @@ from openfisca_core.parameters import ParameterNode
 from openfisca_core.periods import Instant, Period
 from openfisca_core.populations import GroupPopulation, Population
 from openfisca_core.simulations import SimulationBuilder
+from openfisca_core.types import ParameterNodeAtInstant
 from openfisca_core.variables import Variable
 
 log = logging.getLogger(__name__)

@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
-from typing import ClassVar
-
 import textwrap
+from collections.abc import Iterable, Sequence
 from itertools import chain
+from typing import ClassVar
 
 from . import types as t
 from ._core_entity import CoreEntity

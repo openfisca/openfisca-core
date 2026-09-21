@@ -1,27 +1,42 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator, Sequence, Sized
-from numpy.typing import DTypeLike, NDArray
-from typing import NewType, TypeVar, Union
-from typing_extensions import Protocol, Required, Self, TypeAlias, TypedDict
-
 import abc
 import enum
 import re
+from collections.abc import Iterable, Iterator, Sequence, Sized
+from typing import NewType, TypeAlias, TypeVar, Union
 
 import numpy
 import pendulum
 from numpy import (
     bool_ as BoolDType,
+)
+from numpy import (
     bytes_ as BytesDType,
+)
+from numpy import (
     datetime64 as DateDType,
+)
+from numpy import (
     float32 as FloatDType,
+)
+from numpy import (
     generic as VarDType,
+)
+from numpy import (
     int32 as IntDType,
+)
+from numpy import (
     object_ as ObjDType,
+)
+from numpy import (
     str_ as StrDType,
+)
+from numpy import (
     uint8 as EnumDType,
 )
+from numpy.typing import DTypeLike, NDArray
+from typing_extensions import Protocol, Required, Self, TypedDict
 
 #: Generic covariant type var.
 _T_co = TypeVar("_T_co", covariant=True)
@@ -217,7 +232,7 @@ ParameterNode: TypeAlias = Union[
 ]
 
 #: A type representing a ???
-ParameterNodeChild: TypeAlias = Union[ParameterNode, ArrayLike[object]]
+ParameterNodeChild: TypeAlias = ParameterNode | ArrayLike[object]
 
 
 class ParameterNodeAtInstant(Protocol):
@@ -348,7 +363,7 @@ class Period(Indexable[Union[DateUnit, Instant, int]], Protocol):
 
 
 #: Type alias for a period-like object.
-PeriodLike: TypeAlias = Union[Period, PeriodStr, PeriodInt]
+PeriodLike: TypeAlias = Period | PeriodStr | PeriodInt
 
 # Populations
 

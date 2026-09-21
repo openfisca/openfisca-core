@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from typing import NoReturn
-
 import datetime
 import functools
+from typing import NoReturn
 
 import pendulum
 

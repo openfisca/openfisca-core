@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import typing
-
 import logging
+import typing
 
 import numpy
 

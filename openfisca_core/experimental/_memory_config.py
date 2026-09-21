@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
-
 import warnings
+from collections.abc import Iterable
 
 from ._errors import MemoryConfigWarning
 

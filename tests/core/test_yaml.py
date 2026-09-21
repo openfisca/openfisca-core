@@ -2,9 +2,8 @@ import os
 import pathlib
 import subprocess
 
-import pytest
-
 import openfisca_extension_template
+import pytest
 
 from openfisca_core.tools.test_runner import run_tests
 from tests.fixtures import yaml_tests

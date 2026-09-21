@@ -2,22 +2,31 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
-from numpy.typing import NDArray as Array
-from typing import Protocol, TypeVar, TypedDict, Union
-from typing_extensions import NotRequired, Required, TypeAlias
-
 import datetime
 from abc import abstractmethod
+from collections.abc import Iterable, Sequence
+from typing import Protocol, TypeAlias, TypedDict, TypeVar
 
 from numpy import (
     bool_ as Bool,
+)
+from numpy import (
     datetime64 as Date,
+)
+from numpy import (
     float32 as Float,
+)
+from numpy import (
     int16 as Enum,
+)
+from numpy import (
     int32 as Int,
+)
+from numpy import (
     str_ as String,
 )
+from numpy.typing import NDArray as Array
+from typing_extensions import NotRequired, Required
 
 #: Generic type variables.
 E = TypeVar("E")
@@ -28,7 +37,7 @@ V = TypeVar("V", covariant=True)
 
 
 #: Type alias for a simulation dictionary defining the roles.
-Roles: TypeAlias = dict[str, Union[str, Iterable[str]]]
+Roles: TypeAlias = dict[str, str | Iterable[str]]
 
 #: Type alias for a simulation dictionary with undated variables.
 UndatedVariable: TypeAlias = dict[str, object]
@@ -37,32 +46,30 @@ UndatedVariable: TypeAlias = dict[str, object]
 DatedVariable: TypeAlias = dict[str, UndatedVariable]
 
 #: Type alias for a simulation dictionary with abbreviated entities.
-Variables: TypeAlias = dict[str, Union[UndatedVariable, DatedVariable]]
+Variables: TypeAlias = dict[str, UndatedVariable | DatedVariable]
 
 #: Type alias for a simulation with fully specified single entities.
 SingleEntities: TypeAlias = dict[str, dict[str, Variables]]
 
 #: Type alias for a simulation dictionary with implicit group entities.
-ImplicitGroupEntities: TypeAlias = dict[str, Union[Roles, Variables]]
+ImplicitGroupEntities: TypeAlias = dict[str, Roles | Variables]
 
 #: Type alias for a simulation dictionary with explicit group entities.
 GroupEntities: TypeAlias = dict[str, ImplicitGroupEntities]
 
 #: Type alias for a simulation dictionary with fully specified entities.
-FullySpecifiedEntities: TypeAlias = Union[SingleEntities, GroupEntities]
+FullySpecifiedEntities: TypeAlias = SingleEntities | GroupEntities
 
 #: Type alias for a simulation dictionary with axes parameters.
 Axes: TypeAlias = dict[str, Iterable[Iterable["Axis"]]]
 
 #: Type alias for a simulation dictionary without axes parameters.
-ParamsWithoutAxes: TypeAlias = Union[
-    Variables,
-    ImplicitGroupEntities,
-    FullySpecifiedEntities,
-]
+ParamsWithoutAxes: TypeAlias = (
+    Variables | ImplicitGroupEntities | FullySpecifiedEntities
+)
 
 #: Type alias for a simulation dictionary with axes parameters.
-ParamsWithAxes: TypeAlias = Union[Axes, ParamsWithoutAxes]
+ParamsWithAxes: TypeAlias = Axes | ParamsWithoutAxes
 
 #: Type alias for a simulation dictionary with all the possible scenarios.
 Params: TypeAlias = ParamsWithAxes

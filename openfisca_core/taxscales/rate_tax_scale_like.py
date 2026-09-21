@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import typing
-
 import abc
 import bisect
 import os
+import typing
 
 import numpy
 
@@ -45,8 +44,8 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
 
     def add_bracket(
         self,
-        threshold: int | float,
-        rate: int | float,
+        threshold: float,
+        rate: float,
     ) -> None:
         if threshold in self.thresholds:
             i = self.thresholds.index(threshold)

@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import typing
-
 import bisect
 import itertools
+import typing
 
 import numpy
 
@@ -88,7 +87,7 @@ class MarginalRateTaxScale(RateTaxScaleLike):
 
     def combine_bracket(
         self,
-        rate: int | float,
+        rate: float,
         threshold_low: int = 0,
         threshold_high: int | bool = False,
     ) -> None:
