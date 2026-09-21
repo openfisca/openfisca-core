@@ -14,6 +14,7 @@ Note:
         openfisca-extension-template = "*"
 
 """
+
 from setuptools import find_packages, setup
 
 setup(

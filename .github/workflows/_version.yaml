@@ -24,7 +24,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@7.0.1
       with:
         # Fetch all the tags
         fetch-depth: 0
