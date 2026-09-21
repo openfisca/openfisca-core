@@ -1,5 +1,11 @@
 # Changelog
 
+### 45.0.3 [#1395](https://github.com/openfisca/openfisca-core/pull/1395)
+
+#### Technical changes
+
+- Migrate from a master branch to a main branch
+
 ### 45.0.2 [#1394](https://github.com/openfisca/openfisca-core/pull/1394)
 
 #### Technical changes
