@@ -502,8 +502,8 @@ class TaxBenefitSystem:
             package_name = module.__package__.split(".")[0]
             distribution = importlib.metadata.distribution(package_name)
             source_metadata = distribution.metadata
-        except Exception as e:
-            log.warning("Unable to load package metadata, exposing default metadata", e)
+        except Exception:
+            log.warning("Unable to load package metadata, exposing default metadata")
             source_metadata = {
                 "Name": self.__class__.__name__,
                 "Version": "0.0.0",
@@ -513,8 +513,8 @@ class TaxBenefitSystem:
         try:
             source_file = inspect.getsourcefile(module)
             location = source_file.split(package_name)[0].rstrip("/")
-        except Exception as e:
-            log.warning("Unable to load package source folder", e)
+        except Exception:
+            log.warning("Unable to load package source folder")
             location = "_unknown_"
 
         repository_url = ""
