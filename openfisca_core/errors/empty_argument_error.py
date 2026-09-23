@@ -22,8 +22,10 @@ class EmptyArgumentError(IndexError):
             f"{arg_value}\n",
             "Here are some hints to help you get this working:\n",
             f"- Check that '{class_name}' isn't empty (see '{class_name}.add_bracket')",
-            f"- Check that '{arg_name}' is being properly assigned "
-            f"('{arg_name}' should be a non empty '{type(arg_value).__name__}')\n",
+            (
+                f"- Check that '{arg_name}' is being properly assigned "
+                f"('{arg_name}' should be a non empty '{type(arg_value).__name__}')\n"
+            ),
             "For further support, please do not hesitate to:\n",
             "- Take a look at the official documentation https://openfisca.org/doc",
             "- Open an issue on https://github.com/openfisca/openfisca-core/issues/new",
