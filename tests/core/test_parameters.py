@@ -39,7 +39,9 @@ def test_param_values(tax_benefit_system) -> None:
 
 def test_param_before_it_is_defined(tax_benefit_system) -> None:
     with pytest.raises(ParameterNotFound):
-        tax_benefit_system.get_parameters_at_instant("1997-12-31").taxes.income_tax_rate
+        _ = tax_benefit_system.get_parameters_at_instant(
+            "1997-12-31"
+        ).taxes.income_tax_rate
 
 
 # The placeholder should have no effect on the parameter computation
@@ -61,7 +63,7 @@ def test_stopped_parameter_before_end_value(tax_benefit_system) -> None:
 
 def test_stopped_parameter_after_end_value(tax_benefit_system) -> None:
     with pytest.raises(ParameterNotFound):
-        tax_benefit_system.get_parameters_at_instant(
+        _ = tax_benefit_system.get_parameters_at_instant(
             "2016-12-01",
         ).benefits.housing_allowance
 
