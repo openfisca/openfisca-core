@@ -16,8 +16,8 @@ OPEN_API_CONFIG_FILE = os.path.join(
 
 def build_openAPI_specification(api_data):
     tax_benefit_system = api_data["tax_benefit_system"]
-    file = open(OPEN_API_CONFIG_FILE)
-    spec = yaml.safe_load(file)
+    with open(OPEN_API_CONFIG_FILE) as file:
+        spec = yaml.safe_load(file)
     country_package_name = api_data["country_package_metadata"]["name"].title()
     country_package_version = api_data["country_package_metadata"]["version"]
     dpath.new(

@@ -542,7 +542,8 @@ class YamlFile(pytest.File):
 
     def collect(self):
         try:
-            tests = yaml.load(open(self.path), Loader=Loader)
+            with open(self.path) as file:
+                tests = yaml.load(file, Loader=Loader)
         except (yaml.scanner.ScannerError, yaml.parser.ParserError, TypeError):
             message = os.linesep.join(
                 [
