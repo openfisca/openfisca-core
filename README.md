@@ -131,7 +131,7 @@ END
 
 OpenFisca’s toolchain checks whether documentation builds correctly and updates it automatically with each contribution to this repository.
 
-In the meantime, please take a look at our [contributing guidelines](CONTRIBUTING.md) for some general tips on how to document your contributions, and at our official documentation's [repository](https://github.com/openfisca/openfisca-doc/blob/master/README.md) to in case you want to know how to build it by yourself —and improve it!
+In the meantime, please take a look at our [contributing guidelines](CONTRIBUTING.md) for some general tips on how to document your contributions, and at our official documentation's [repository](https://github.com/openfisca/openfisca-doc/blob/main/README.md) to in case you want to know how to build it by yourself —and improve it!
 
 ## Serving the API
 

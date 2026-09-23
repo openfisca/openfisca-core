@@ -5,7 +5,7 @@ TL;DR: [GitHub Flow](https://guides.github.com/introduction/flow/), [SemVer](htt
 
 ## Pull requests
 
-We follow the [GitHub Flow](https://guides.github.com/introduction/flow/): all code contributions are submitted via a pull request towards the `master` branch.
+We follow the [GitHub Flow](https://guides.github.com/introduction/flow/): all code contributions are submitted via a pull request towards the `main` branch.
 
 Opening a Pull Request means you want that code to be merged. If you want to only discuss it, send a link to your branch along with your questions through whichever communication channel you prefer.
 
@@ -74,7 +74,7 @@ We strive to deliver great error messages, which means they are:
 
 ## Documentation
 
-OpenFisca does not yet follow a common convention for docstrings, so you'll find [ReStructuredText](https://www.sphinx-doc.org/en/master/usage/restructuredtext/domains.html), [Google](http://google.github.io/styleguide/pyguide.html#Comments), and [NumPy](https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt) style docstrings.
+OpenFisca does not yet follow a common convention for docstrings, so you'll find [ReStructuredText](https://www.sphinx-doc.org/en/master/usage/domains/python.html), [Google](http://google.github.io/styleguide/pyguide.html#Comments), and [NumPy](https://github.com/numpy/numpy/blob/main/doc/HOWTO_DOCUMENT.rst.txt) style docstrings.
 
 Whatever the style you choose, contributors and reusers alike will be more than thankful for the effort you put in documenting your contributions. Here are some general good practices you can follow:
 
