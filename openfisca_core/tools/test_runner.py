@@ -398,7 +398,7 @@ def run_tests_in_parallel(tax_benefit_system, paths, options, num_workers, verbo
 
     print()
 
-    running = set(i for i, _ in procs)  # Set of worker IDs still running
+    running = {i for (i, _) in procs}  # Set of worker IDs still running
     exit_codes = {}  # Map of worker_id -> exit_code
     last_update = time.time()  # For throttling progress updates
 
