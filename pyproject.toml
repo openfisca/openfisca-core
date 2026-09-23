@@ -15,7 +15,6 @@ ignore = [
     "BLE001",
     "TRY004",
     "TRY002",
-    "PLR0133",
     "RUF012",
     "SIM115",
     "PLW1510",
