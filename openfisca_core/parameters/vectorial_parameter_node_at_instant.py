@@ -145,11 +145,11 @@ class VectorialParameterNodeAtInstant:
             first_name = names[0]
             if isinstance(first_node, parameters.ParameterNodeAtInstant):
                 children = extract_named_children(first_node)
-                for node, name in list(zip(nodes, names))[1:]:
-                    if not isinstance(node, parameters.ParameterNodeAtInstant):
+                for subnode, name in list(zip(nodes, names))[1:]:
+                    if not isinstance(subnode, parameters.ParameterNodeAtInstant):
                         raise_type_inhomogeneity_error(first_name, name)
                     first_node_keys = first_node._children.keys()
-                    node_keys = node._children.keys()
+                    node_keys = subnode._children.keys()
                     if first_node_keys != node_keys:
                         missing_keys = set(first_node_keys).difference(node_keys)
                         if missing_keys:  # If the first_node has a key that node hasn't
@@ -163,16 +163,16 @@ class VectorialParameterNodeAtInstant:
                                 set(node_keys).difference(first_node_keys).pop()
                             )
                             raise_key_inhomogeneity_error(name, first_name, missing_key)
-                    children.update(extract_named_children(node))
+                    children.update(extract_named_children(subnode))
                 check_nodes_homogeneous(children)
             elif isinstance(first_node, (float, int, str)):
-                for node, name in list(zip(nodes, names))[1:]:
-                    if isinstance(node, (int, float, str)):
+                for subnode, name in list(zip(nodes, names))[1:]:
+                    if isinstance(subnode, (int, float, str)):
                         pass
-                    elif isinstance(node, parameters.ParameterNodeAtInstant):
+                    elif isinstance(subnode, parameters.ParameterNodeAtInstant):
                         raise_type_inhomogeneity_error(name, first_name)
                     else:
-                        raise_not_implemented(name, type(node).__name__)
+                        raise_not_implemented(name, type(subnode).__name__)
             else:
                 raise_not_implemented(first_name, type(first_node).__name__)
 

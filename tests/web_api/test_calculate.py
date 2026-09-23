@@ -15,8 +15,8 @@ def post_json(client, data=None, file=None):
             "assets",
             file,
         )
-        with open(file_path) as file:
-            data = file.read()
+        with open(file_path) as f:
+            data = f.read()
     return client.post("/calculate", data=data, content_type="application/json")
 
 
