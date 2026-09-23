@@ -93,9 +93,7 @@ class Entity(Protocol):
     plural: str | None
 
     def get_variable(
-        self,
-        __variable_name: str,
-        __check_existence: bool = ...,
+        self, variable_name: str, check_existence: bool = ..., /
     ) -> Variable[T] | None:
         """Get a variable."""
 
@@ -121,13 +119,11 @@ class Holder(Protocol[V]):
     def variable(self) -> Variable[T]:
         """Get the Variable of the Holder."""
 
-    def get_array(self, __period: str) -> Array[T] | None:
+    def get_array(self, period: str, /) -> Array[T] | None:
         """Get the values of the Variable for a given Period."""
 
     def set_input(
-        self,
-        __period: Period,
-        __array: Array[T] | Sequence[U],
+        self, period: Period, array: Array[T] | Sequence[U], /
     ) -> Array[T] | None:
         """Set values for a Variable for a given Period."""
 
@@ -143,7 +139,7 @@ class Population(Protocol[E]):
     entity: E
     ids: Array[String]
 
-    def get_holder(self, __variable_name: str) -> Holder[V]:
+    def get_holder(self, variable_name: str, /) -> Holder[V]:
         """Get the holder of a Variable."""
 
 
@@ -156,7 +152,7 @@ class GroupPopulation(Population[E], Protocol):
 
     members_entity_id: Array[String]
 
-    def nb_persons(self, __role: Role[G] | None = ...) -> int:
+    def nb_persons(self, role: Role[G] | None = ..., /) -> int:
         """Get the number of persons for a given Role."""
 
 
@@ -189,9 +185,7 @@ class TaxBenefitSystem(Protocol):
         """Get the plural form of the entities' keys."""
 
     def get_variable(
-        self,
-        __variable_name: str,
-        __check_existence: bool = ...,
+        self, variable_name: str, check_existence: bool = ..., /
     ) -> V | None:
         """Get a variable."""
 
@@ -206,5 +200,5 @@ class Variable(Protocol[T]):
 
     end: str
 
-    def default_array(self, __array_size: int) -> Array[T]:
+    def default_array(self, array_size: int, /) -> Array[T]:
         """Fill an array with the default value of the Variable."""

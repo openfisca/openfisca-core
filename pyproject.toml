@@ -12,7 +12,6 @@ skip = "./venv"
 
 [tool.ruff.lint]
 ignore = [
-    "PYI063",
     "BLE001",
     "TRY004",
     "TRY002",
