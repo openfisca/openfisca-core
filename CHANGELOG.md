@@ -1,5 +1,11 @@
 # Changelog
 
+### 45.0.4 [#1397](https://github.com/openfisca/openfisca-core/pull/1397)
+
+#### Technical changes
+
+- Replace black, isort, flake8 by ruff
+
 ### 45.0.3 [#1395](https://github.com/openfisca/openfisca-core/pull/1395)
 
 #### Technical changes

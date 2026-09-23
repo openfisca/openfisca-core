@@ -12,6 +12,7 @@ check-syntax-errors: .
 check-style:
 	@$(call print_help,$@:)
 	@ruff check
+	@ruff format --diff
 	@codespell
 	@$(call print_pass,$@:)
 
@@ -31,6 +32,6 @@ check-types:
 ## Run code formatters to correct style errors.
 format-style:
 	@$(call print_help,$@:)
-	@ruff format --fix
+	@ruff format
 	@codespell --write-changes
 	@$(call print_pass,$@:)
