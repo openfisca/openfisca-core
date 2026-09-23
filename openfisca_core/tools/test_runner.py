@@ -269,12 +269,10 @@ def discover_test_files(
     for p in paths:
         p = pathlib.Path(p)
         if p.is_file():
-            if p.suffix in yaml_exts:
+            if (p.suffix in yaml_exts) or (
+                p.name.startswith("test_") and p.suffix == ".py"
+            ):
                 files.append(str(p.resolve()))
-            elif p.suffix == ".py":
-                # keep only test_*.py files
-                if p.name.startswith("test_"):
-                    files.append(str(p.resolve()))
         elif p.is_dir():
             # collect yaml files
             for ext in yaml_exts:
