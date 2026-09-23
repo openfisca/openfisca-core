@@ -8,7 +8,7 @@ from .tax_scale_like import TaxScaleLike
 if typing.TYPE_CHECKING:
     import numpy
 
-    NumericalArray = typing.Union[numpy.int32, numpy.float32]
+    NumericalArray = numpy.int32 | numpy.float32
 
 
 class AbstractTaxScale(TaxScaleLike):

@@ -13,7 +13,7 @@ from openfisca_core.errors import EmptyArgumentError
 from .tax_scale_like import TaxScaleLike
 
 if typing.TYPE_CHECKING:
-    NumericalArray = typing.Union[numpy.int32, numpy.float32]
+    NumericalArray = numpy.int32 | numpy.float32
 
 
 class RateTaxScaleLike(TaxScaleLike, abc.ABC):

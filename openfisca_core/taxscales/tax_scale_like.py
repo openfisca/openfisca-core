@@ -9,7 +9,7 @@ from openfisca_core import commons
 if typing.TYPE_CHECKING:
     import numpy
 
-    NumericalArray = typing.Union[numpy.int32, numpy.float32]
+    NumericalArray = numpy.int32 | numpy.float32
 
 
 class TaxScaleLike(abc.ABC):

@@ -342,7 +342,7 @@ class Instant(Indexable[int], Iterable[int], Sized, Protocol):
     def offset(self, __offset: str | int, __unit: DateUnit, /) -> None | Instant: ...
 
 
-class Period(Indexable[Union[DateUnit, Instant, int]], Protocol):
+class Period(Indexable[DateUnit | Instant | int], Protocol):
     @property
     def unit(self, /) -> DateUnit: ...
 
