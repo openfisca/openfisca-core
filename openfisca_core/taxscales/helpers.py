@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 if typing.TYPE_CHECKING:
     from openfisca_core.parameters import ParameterNodeAtInstant
 
-    TaxScales = typing.Optional[taxscales.MarginalRateTaxScale]
+    TaxScales = taxscales.MarginalRateTaxScale | None
 
 
 def combine_tax_scales(
