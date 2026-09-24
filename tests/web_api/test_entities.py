@@ -16,7 +16,6 @@ def test_response_data(test_client) -> None:
     entities_dict = json.loads(entities_response.data.decode("utf-8"))
     test_documentation = entities.Household.doc.strip()
 
-    print(entities_dict["household"])
     assert entities_dict["household"] == {
         "description": "All the people in a family or group who live together in the same place.",
         "documentation": test_documentation,
