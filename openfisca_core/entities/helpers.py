@@ -58,6 +58,7 @@ def find_role(
         ...     person_entity,
         ...     [principal, partner, parent],
         ... )
+        <openfisca_core.entities.entity.Relationship object at ...>
 
         >>> find_role(group_entity, "principal", total=1)
         Role(principal)

@@ -4,9 +4,9 @@ from .projector import Projector
 class UniqueRoleToEntityProjector(Projector):
     """For instance famille.declarant_principal."""
 
-    def __init__(self, entity, role, parent=None) -> None:
+    def __init__(self, entity, role, parent=None, reference_entity=None) -> None:
         self.target_entity = entity
-        self.reference_entity = entity.members
+        self.reference_entity = reference_entity or entity.members
         self.parent = parent
         self.role = role
 

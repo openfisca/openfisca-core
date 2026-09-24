@@ -37,7 +37,7 @@ from ._errors import (
     InvalidOptionError,
     PeriodValidityError,
 )
-from .group_population import Membership
+from .membership import Membership
 from .population import Population
 
 ADD, DIVIDE = types.Option
