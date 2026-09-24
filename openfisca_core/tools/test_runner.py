@@ -1,12 +1,5 @@
 # Avoid T201 warning for print statements in this test runner
-# flake8: noqa: T201
 from __future__ import annotations
-
-from collections.abc import Sequence
-from typing import Any
-from typing_extensions import Literal, TypedDict
-
-from openfisca_core.types import TaxBenefitSystem
 
 import dataclasses
 import json
@@ -19,6 +12,12 @@ import textwrap
 import time
 import traceback
 import warnings
+from collections.abc import Sequence
+from typing import Any, Literal
+
+from typing_extensions import TypedDict
+
+from openfisca_core.types import TaxBenefitSystem
 
 # Unix-specific modules for parallel testing (not available on Windows)
 try:
@@ -270,12 +269,10 @@ def discover_test_files(
     for p in paths:
         p = pathlib.Path(p)
         if p.is_file():
-            if p.suffix in yaml_exts:
+            if (p.suffix in yaml_exts) or (
+                p.name.startswith("test_") and p.suffix == ".py"
+            ):
                 files.append(str(p.resolve()))
-            elif p.suffix == ".py":
-                # keep only test_*.py files
-                if p.name.startswith("test_"):
-                    files.append(str(p.resolve()))
         elif p.is_dir():
             # collect yaml files
             for ext in yaml_exts:
@@ -401,7 +398,7 @@ def run_tests_in_parallel(tax_benefit_system, paths, options, num_workers, verbo
 
     print()
 
-    running = set(i for i, _ in procs)  # Set of worker IDs still running
+    running = {i for (i, _) in procs}  # Set of worker IDs still running
     exit_codes = {}  # Map of worker_id -> exit_code
     last_update = time.time()  # For throttling progress updates
 
@@ -543,7 +540,8 @@ class YamlFile(pytest.File):
 
     def collect(self):
         try:
-            tests = yaml.load(open(self.path), Loader=Loader)
+            with open(self.path) as file:
+                tests = yaml.load(file, Loader=Loader)
         except (yaml.scanner.ScannerError, yaml.parser.ParserError, TypeError):
             message = os.linesep.join(
                 [
@@ -618,9 +616,9 @@ class YamlItem(pytest.Item):
         try:
             builder.set_default_period(period)
             self.simulation = builder.build_from_dict(self.tax_benefit_system, input)
-            assert (
-                self.simulation is not None
-            ), "Simulation should be properly initialized, Check your test input"
+            assert self.simulation is not None, (
+                "Simulation should be properly initialized, Check your test input"
+            )
 
         except (VariableNotFound, SituationParsingError, AssertionError):
             raise

@@ -1,5 +1,4 @@
 import pytest
-
 from openfisca_country_template.entities import Person
 
 from openfisca_core import periods

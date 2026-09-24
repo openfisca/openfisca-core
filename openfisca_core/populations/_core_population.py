@@ -1,9 +1,8 @@
 from __future__ import annotations
 
+import traceback
 from collections.abc import Sequence
 from typing import TypeVar
-
-import traceback
 
 import numpy
 

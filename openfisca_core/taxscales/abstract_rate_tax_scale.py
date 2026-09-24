@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import typing
-
 import warnings
 
 from .rate_tax_scale_like import RateTaxScaleLike
@@ -9,7 +8,7 @@ from .rate_tax_scale_like import RateTaxScaleLike
 if typing.TYPE_CHECKING:
     import numpy
 
-    NumericalArray = typing.Union[numpy.int32, numpy.float32]
+    NumericalArray = numpy.int32 | numpy.float32
 
 
 class AbstractRateTaxScale(RateTaxScaleLike):
@@ -36,7 +35,7 @@ class AbstractRateTaxScale(RateTaxScaleLike):
         tax_base: NumericalArray,
         right: bool,
     ) -> typing.NoReturn:
-        msg = "Method 'calc' is not implemented for " f"{self.__class__.__name__}"
+        msg = f"Method 'calc' is not implemented for {self.__class__.__name__}"
         raise NotImplementedError(
             msg,
         )

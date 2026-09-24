@@ -1,10 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Any
-
-from openfisca_core.types import ParameterNodeAtInstant
-
 import ast
 import copy
 import functools
@@ -18,6 +13,8 @@ import logging
 import os
 import sys
 import traceback
+from collections.abc import Sequence
+from typing import Any
 
 from openfisca_core import commons, periods, variables
 from openfisca_core.entities import Entity
@@ -26,6 +23,7 @@ from openfisca_core.parameters import ParameterNode
 from openfisca_core.periods import Instant, Period
 from openfisca_core.populations import GroupPopulation, Population
 from openfisca_core.simulations import SimulationBuilder
+from openfisca_core.types import ParameterNodeAtInstant
 from openfisca_core.variables import Variable
 
 log = logging.getLogger(__name__)
@@ -249,10 +247,9 @@ class TaxBenefitSystem:
                 defs = {i.name: i for i in tree.body if isinstance(i, ast.ClassDef)}
                 spec.loader.exec_module(module)
 
-            except NameError as e:
-                logging.exception(
-                    str(e)
-                    + ": if this code used to work, this error might be due to a major change in OpenFisca-Core. Checkout the changelog to learn more: <https://github.com/openfisca/openfisca-core/blob/main/CHANGELOG.md>",
+            except NameError:
+                log.exception(
+                    "if this code used to work, this error might be due to a major change in OpenFisca-Core. Checkout the changelog to learn more: <https://github.com/openfisca/openfisca-core/blob/main/CHANGELOG.md>",
                 )
                 raise
             potential_variables = [
@@ -504,8 +501,8 @@ class TaxBenefitSystem:
             package_name = module.__package__.split(".")[0]
             distribution = importlib.metadata.distribution(package_name)
             source_metadata = distribution.metadata
-        except Exception as e:
-            log.warning("Unable to load package metadata, exposing default metadata", e)
+        except Exception:
+            log.warning("Unable to load package metadata, exposing default metadata")
             source_metadata = {
                 "Name": self.__class__.__name__,
                 "Version": "0.0.0",
@@ -515,8 +512,8 @@ class TaxBenefitSystem:
         try:
             source_file = inspect.getsourcefile(module)
             location = source_file.split(package_name)[0].rstrip("/")
-        except Exception as e:
-            log.warning("Unable to load package source folder", e)
+        except Exception:
+            log.warning("Unable to load package source folder")
             location = "_unknown_"
 
         repository_url = ""

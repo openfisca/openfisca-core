@@ -1,8 +1,7 @@
-import typing
-
 import abc
 import bisect
 import os
+import typing
 
 from openfisca_core import tools
 
@@ -18,7 +17,7 @@ class AmountTaxScaleLike(TaxScaleLike, abc.ABC):
 
     def __init__(
         self,
-        name: typing.Optional[str] = None,
+        name: str | None = None,
         option: typing.Any = None,
         unit: typing.Any = None,
     ) -> None:
@@ -38,7 +37,7 @@ class AmountTaxScaleLike(TaxScaleLike, abc.ABC):
     def add_bracket(
         self,
         threshold: int,
-        amount: typing.Union[int, float],
+        amount: float,
     ) -> None:
         if threshold in self.thresholds:
             i = self.thresholds.index(threshold)

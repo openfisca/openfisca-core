@@ -1,8 +1,26 @@
 from __future__ import annotations
 
+import enum
 from collections.abc import Iterable, MutableMapping, Sequence
-from typing import NamedTuple, Union
-from typing_extensions import TypeAlias, TypedDict
+from typing import NamedTuple, TypeAlias
+
+import strenum
+from numpy import (
+    bool_ as BoolDType,
+)
+from numpy import (
+    float32 as FloatDType,
+)
+from numpy import (
+    generic as VarDType,
+)
+from numpy import (
+    int32 as IntDType,
+)
+from numpy import (
+    str_ as StrDType,
+)
+from typing_extensions import TypedDict
 
 from openfisca_core.types import (
     Array,
@@ -21,17 +39,6 @@ from openfisca_core.types import (
     SingleEntity,
     SinglePopulation,
     VariableName,
-)
-
-import enum
-
-import strenum
-from numpy import (
-    bool_ as BoolDType,
-    float32 as FloatDType,
-    generic as VarDType,
-    int32 as IntDType,
-    str_ as StrDType,
 )
 
 # Commons
@@ -54,7 +61,7 @@ VarArray: TypeAlias = Array[VarDType]
 # Periods
 
 #: Type alias for a period-like object.
-PeriodLike: TypeAlias = Union[Period, PeriodStr, PeriodInt]
+PeriodLike: TypeAlias = Period | PeriodStr | PeriodInt
 
 # Populations
 

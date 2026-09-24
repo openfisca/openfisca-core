@@ -61,9 +61,9 @@ def test_calculate_variable_with_wrong_definition_period(simulation) -> None:
     expected_words = ["period", year, "month", "basic_income", "ADD"]
 
     for word in expected_words:
-        assert (
-            word in error_message
-        ), f"Expected '{word}' in error message '{error_message}'"
+        assert word in error_message, (
+            f"Expected '{word}' in error message '{error_message}'"
+        )
 
 
 @pytest.mark.parametrize("simulation", [({}, PERIOD)], indirect=True)
@@ -77,9 +77,9 @@ def test_divide_option_with_complex_period(simulation) -> None:
     expected_words = ["Can't", "calculate", "month", "year"]
 
     for word in expected_words:
-        assert (
-            word in error_message
-        ), f"Expected '{word}' in error message '{error_message}'"
+        assert word in error_message, (
+            f"Expected '{word}' in error message '{error_message}'"
+        )
 
 
 def test_input_with_wrong_period(tax_benefit_system) -> None:

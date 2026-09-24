@@ -3,7 +3,6 @@ import json
 from http import client
 
 import dpath
-
 from openfisca_country_template.situation_examples import couple, single
 
 

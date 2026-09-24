@@ -51,7 +51,7 @@ def test_legacy_parameter_route(test_client) -> None:
 def test_parameter_values(test_client) -> None:
     response = test_client.get("/parameter/taxes/income_tax_rate")
     parameter = json.loads(response.data)
-    assert sorted(parameter.keys()), [
+    assert sorted(parameter.keys()) == [
         "description",
         "id",
         "metadata",
@@ -73,12 +73,13 @@ def test_parameter_values(test_client) -> None:
     # 'documentation' attribute exists only when a value is defined
     response = test_client.get("/parameter/benefits/housing_allowance")
     parameter = json.loads(response.data)
-    assert sorted(parameter.keys()), [
+    assert sorted(parameter.keys()) == [
         "description",
         "documentation",
         "id",
         "metadata",
-        "source" == "values",
+        "source",
+        "values",
     ]
     assert (
         parameter["documentation"]
@@ -90,12 +91,13 @@ def test_parameter_node(tax_benefit_system, test_client) -> None:
     response = test_client.get("/parameter/benefits")
     assert response.status_code == client.OK
     parameter = json.loads(response.data)
-    assert sorted(parameter.keys()), [
+    assert sorted(parameter.keys()) == [
         "description",
         "documentation",
         "id",
         "metadata",
-        "source" == "subparams",
+        "source",
+        "subparams",
     ]
     assert parameter["documentation"] == (
         "Government support for the citizens and residents of society."
@@ -126,11 +128,12 @@ def test_stopped_parameter_values(test_client) -> None:
 def test_scale(test_client) -> None:
     response = test_client.get("/parameter/taxes/social_security_contribution")
     parameter = json.loads(response.data)
-    assert sorted(parameter.keys()), [
+    assert sorted(parameter.keys()) == [
         "brackets",
         "description",
         "id",
-        "metadata" == "source",
+        "metadata",
+        "source",
     ]
     assert parameter["brackets"] == {
         "2013-01-01": {"0.0": 0.03, "12000.0": 0.10},

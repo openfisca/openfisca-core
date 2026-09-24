@@ -1,6 +1,5 @@
-from typing import NoReturn
-
 import logging
+from typing import NoReturn
 
 log = logging.getLogger("gunicorn.error")
 

@@ -1,16 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
-from typing import NamedTuple
-
-from openfisca_core.types import (
-    CorePopulation as Population,
-    TaxBenefitSystem,
-    Variable,
-)
-
 import tempfile
 import warnings
+from collections.abc import Mapping
+from typing import NamedTuple
 
 import numpy
 
@@ -20,7 +13,16 @@ from openfisca_core import (
     indexed_enums,
     periods,
     tracers,
+)
+from openfisca_core import (
     warnings as core_warnings,
+)
+from openfisca_core.types import (
+    CorePopulation as Population,
+)
+from openfisca_core.types import (
+    TaxBenefitSystem,
+    Variable,
 )
 
 

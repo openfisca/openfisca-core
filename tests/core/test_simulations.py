@@ -1,5 +1,4 @@
 import pytest
-
 from openfisca_country_template.situation_examples import single
 
 from openfisca_core import errors, periods

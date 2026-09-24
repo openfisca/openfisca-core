@@ -1,7 +1,6 @@
 import numpy
-from pytest import approx, fixture
-
 from openfisca_country_template import entities
+from pytest import approx, fixture
 
 from openfisca_core import commons
 from openfisca_core.periods import DateUnit

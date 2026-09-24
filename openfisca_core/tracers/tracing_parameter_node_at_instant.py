@@ -1,23 +1,21 @@
 from __future__ import annotations
 
 import typing
-from typing import Union
 
 import numpy
 
 from openfisca_core import parameters
 
-ParameterNode = Union[
-    parameters.VectorialParameterNodeAtInstant,
-    parameters.ParameterNodeAtInstant,
-]
+ParameterNode = (
+    parameters.VectorialParameterNodeAtInstant | parameters.ParameterNodeAtInstant
+)
 
 if typing.TYPE_CHECKING:
     from numpy.typing import ArrayLike
 
     from openfisca_core import tracers
 
-    Child = Union[ParameterNode, ArrayLike]
+    Child = ParameterNode | ArrayLike
 
 
 class TracingParameterNodeAtInstant:

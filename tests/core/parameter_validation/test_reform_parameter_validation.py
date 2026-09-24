@@ -20,7 +20,6 @@ def test_modify_parameters_must_return_parameter_node(tax_benefit_system):
     def modifier_function_returns_none_explicitly(parameters):
         """A modifier function that explicitly returns None."""
         parameters.benefits.basic_income.update(start="2015-01-01", value=100)
-        return None
 
     def modifier_function_correct(parameters):
         """A modifier function that correctly returns ParameterNode."""

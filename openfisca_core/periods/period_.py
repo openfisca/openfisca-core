@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
-
 import calendar
 import datetime
+from collections.abc import Sequence
 
 import pendulum
 

@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import typing
-
 import abc
 import bisect
 import os
+import typing
 
 import numpy
 
@@ -14,7 +13,7 @@ from openfisca_core.errors import EmptyArgumentError
 from .tax_scale_like import TaxScaleLike
 
 if typing.TYPE_CHECKING:
-    NumericalArray = typing.Union[numpy.int32, numpy.float32]
+    NumericalArray = numpy.int32 | numpy.float32
 
 
 class RateTaxScaleLike(TaxScaleLike, abc.ABC):
@@ -45,8 +44,8 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
 
     def add_bracket(
         self,
-        threshold: int | float,
-        rate: int | float,
+        threshold: float,
+        rate: float,
     ) -> None:
         if threshold in self.thresholds:
             i = self.thresholds.index(threshold)

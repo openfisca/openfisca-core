@@ -2,9 +2,8 @@ import os
 import pathlib
 import subprocess
 
-import pytest
-
 import openfisca_extension_template
+import pytest
 
 from openfisca_core.tools.test_runner import run_tests
 from tests.fixtures import yaml_tests
@@ -99,9 +98,11 @@ def test_shell_script() -> None:
 def test_failing_shell_script() -> None:
     yaml_path = os.path.join(yaml_tests_dir, "test_failure.yaml")
     command = ["openfisca", "test", yaml_path, "-c", "openfisca_dummy_country"]
-    with open(os.devnull, "wb") as devnull:
-        with pytest.raises(subprocess.CalledProcessError):
-            subprocess.check_call(command, stdout=devnull, stderr=devnull)
+    with (
+        open(os.devnull, "wb") as devnull,
+        pytest.raises(subprocess.CalledProcessError),
+    ):
+        subprocess.check_call(command, stdout=devnull, stderr=devnull)
 
 
 def test_shell_script_with_reform() -> None:

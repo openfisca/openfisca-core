@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import typing
-
 import bisect
 import itertools
+import typing
 
 import numpy
 
@@ -12,7 +11,7 @@ from openfisca_core import taxscales
 from .rate_tax_scale_like import RateTaxScaleLike
 
 if typing.TYPE_CHECKING:
-    NumericalArray = typing.Union[numpy.int32, numpy.float32]
+    NumericalArray = numpy.int32 | numpy.float32
 
 
 class MarginalRateTaxScale(RateTaxScaleLike):
@@ -88,7 +87,7 @@ class MarginalRateTaxScale(RateTaxScaleLike):
 
     def combine_bracket(
         self,
-        rate: int | float,
+        rate: float,
         threshold_low: int = 0,
         threshold_high: int | bool = False,
     ) -> None:

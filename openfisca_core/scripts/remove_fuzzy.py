@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # remove_fuzzy.py : Remove the fuzzy attribute in xml files and add END tags.
 # See https://github.com/openfisca/openfisca-core/issues/437
 

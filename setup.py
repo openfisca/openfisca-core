@@ -54,36 +54,18 @@ api_requirements = [
     "Werkzeug >=2.2.3, <4.0",
 ]
 
-excel_requirements = [
-    "openpyxl >=3.1.2, <4.0",
-]
-
 dev_requirements = [
-    "black >=24.8.0, <25.0",
     "codespell >=2.3.0, <3.0",
     "colorama >=0.4.4, <0.5",
-    "darglint >=1.8.1, <2.0",
-    "flake8 >=7.1.1, <8.0.0",
-    "flake8-bugbear >=24.8.19, <25.0",
-    "flake8-docstrings >=1.7.0, <2.0",
-    "flake8-print >=5.0.0, <6.0",
-    "flake8-rst-docstrings >=0.3.0, <0.4.0",
-    "idna >=3.10, <4.0",
-    "isort >=5.13.2, <6.0",
     "mypy >=1.11.2, <2.0",
     "openapi-spec-validator >=0.7.1, <0.8.0",
-    "pylint >=3.3.1, <4.0",
-    "pylint-per-file-ignores >=1.3.2, <2.0",
-    "pyright >=1.1.382, <2.0",
     "ruff >=0.6.9, <1.0",
-    "ruff-lsp >=0.0.57, <1.0",
     *api_requirements,
-    *excel_requirements,
 ]
 
 setup(
     name="OpenFisca-Core",
-    version="45.0.3",
+    version="45.0.4",
     author="OpenFisca Team",
     author_email="contact@openfisca.org",
     classifiers=[
@@ -124,7 +106,6 @@ setup(
             "wheel >=0.40.0, <0.41.0",
         ],
         "tracker": ["OpenFisca-Tracker >=0.4.0, <0.5.0"],
-        "excel": excel_requirements,
     },
     include_package_data=True,  # Will read MANIFEST.in
     install_requires=general_requirements,

@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from typing import NoReturn
-
 import datetime
 import re
 import textwrap
+from typing import NoReturn
 
 import numpy
 import sortedcontainers
 
-from openfisca_core import commons, periods, types as t
+from openfisca_core import commons, periods
+from openfisca_core import types as t
 from openfisca_core.entities import Entity, GroupEntity
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import DateUnit, Period

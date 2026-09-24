@@ -1,5 +1,4 @@
 import pytest
-
 from openfisca_country_template import entities
 
 from openfisca_core import periods, tools

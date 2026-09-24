@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
-
 import warnings
+from collections.abc import Iterable
 
 from ._errors import MemoryConfigWarning
 
@@ -25,13 +24,13 @@ class MemoryConfig:
         priority_variables: Iterable[str] = frozenset(),
         variables_to_drop: Iterable[str] = frozenset(),
     ) -> None:
-        message = [
-            "Memory configuration is a feature that is still currently under "
-            "experimentation. You are very welcome to use it and send us "
-            "precious feedback, but keep in mind that the way it is used might "
+        message = (
+            "Memory configuration is a feature that is still currently under ",
+            "experimentation. You are very welcome to use it and send us ",
+            "precious feedback, but keep in mind that the way it is used might ",
             "change without any major version bump.",
-        ]
-        warnings.warn(" ".join(message), MemoryConfigWarning, stacklevel=2)
+        )
+        warnings.warn(message, MemoryConfigWarning, stacklevel=2)
 
         self.max_memory_occupation = float(max_memory_occupation)
         if self.max_memory_occupation > 1:

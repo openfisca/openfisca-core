@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from typing import ClassVar
-
 import abc
 import os
+from typing import ClassVar
 
 from . import types as t
 from .role import Role

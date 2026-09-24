@@ -77,7 +77,7 @@ def trace(tax_benefit_system, input_data):
     )
     for computation in requested_computations:
         path = computation[0]
-        entity_plural, entity_id, variable_name, period = path.split("/")
+        _entity_plural, _entity_id, variable_name, period = path.split("/")
         requested_calculations.append(f"{variable_name}<{period!s}>")
         simulation.calculate(variable_name, period)
 

@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
-
 import os
+from collections.abc import Iterable
 
 import dpath
 

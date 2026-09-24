@@ -1,4 +1,5 @@
 import numpy
+import pytest
 
 from openfisca_core.entities import build_entity
 from openfisca_core.indexed_enums import Enum
@@ -91,11 +92,8 @@ def test_shortcut_to_containing_entity_not_provided() -> None:
 
     system = TaxBenefitSystem(entities)
     simulation = SimulationBuilder().build_from_dict(system, {})
-    try:
-        simulation.populations["family"].household
-        raise AssertionError
-    except AttributeError:
-        pass
+    with pytest.raises(AttributeError):
+        _ = simulation.populations["family"].household
 
 
 def test_enum_projects_downwards() -> None:

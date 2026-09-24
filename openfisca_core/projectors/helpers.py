@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from openfisca_core.types import GroupEntity, Role, SingleEntity
-
 from openfisca_core import entities, projectors
+from openfisca_core.types import GroupEntity, Role, SingleEntity
 
 from .typing import GroupPopulation, Population
 

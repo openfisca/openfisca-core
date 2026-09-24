@@ -1,16 +1,15 @@
 from __future__ import annotations
 
-import typing
-
 import abc
 import copy
+import typing
 
 from openfisca_core import commons
 
 if typing.TYPE_CHECKING:
     import numpy
 
-    NumericalArray = typing.Union[numpy.int32, numpy.float32]
+    NumericalArray = numpy.int32 | numpy.float32
 
 
 class TaxScaleLike(abc.ABC):
@@ -36,13 +35,13 @@ class TaxScaleLike(abc.ABC):
         self.thresholds = []
 
     def __eq__(self, _other: object) -> typing.NoReturn:
-        msg = "Method '__eq__' is not implemented for " f"{self.__class__.__name__}"
+        msg = f"Method '__eq__' is not implemented for {self.__class__.__name__}"
         raise NotImplementedError(
             msg,
         )
 
     def __ne__(self, _other: object) -> typing.NoReturn:
-        msg = "Method '__ne__' is not implemented for " f"{self.__class__.__name__}"
+        msg = f"Method '__ne__' is not implemented for {self.__class__.__name__}"
         raise NotImplementedError(
             msg,
         )

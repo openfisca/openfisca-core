@@ -7,7 +7,7 @@ import numpy
 from .amount_tax_scale_like import AmountTaxScaleLike
 
 if typing.TYPE_CHECKING:
-    NumericalArray = typing.Union[numpy.int32, numpy.float32]
+    NumericalArray = numpy.int32 | numpy.float32
 
 
 class MarginalAmountTaxScale(AmountTaxScaleLike):

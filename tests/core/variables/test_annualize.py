@@ -1,7 +1,6 @@
 import numpy
-from pytest import fixture
-
 from openfisca_country_template.entities import Person
+from pytest import fixture
 
 from openfisca_core import periods
 from openfisca_core.periods import DateUnit

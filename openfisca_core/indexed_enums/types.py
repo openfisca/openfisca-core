@@ -1,16 +1,23 @@
-from typing_extensions import TypeAlias
-
-from openfisca_core.types import Array, ArrayLike, DTypeLike, Enum, EnumArray, EnumType
-
-from enum import _EnumDict as EnumDict  # noqa: PLC2701
+from enum import _EnumDict as EnumDict
+from typing import TypeAlias
 
 from numpy import (
     bool_ as BoolDType,
+)
+from numpy import (
     generic as VarDType,
+)
+from numpy import (
     int32 as IntDType,
+)
+from numpy import (
     object_ as ObjDType,
+)
+from numpy import (
     str_ as StrDType,
 )
+
+from openfisca_core.types import Array, ArrayLike, DTypeLike, Enum, EnumArray, EnumType
 
 from .config import ENUM_ARRAY_DTYPE as EnumDType
 

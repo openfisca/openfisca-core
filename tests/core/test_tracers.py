@@ -3,9 +3,8 @@ import json
 import os
 
 import numpy
-from pytest import approx, fixture, mark, raises
-
 from openfisca_country_template.variables.housing import HousingOccupancyStatus
+from pytest import approx, fixture, mark, raises
 
 from openfisca_core import periods
 from openfisca_core.entities import Entity

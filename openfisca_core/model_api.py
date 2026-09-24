@@ -2,9 +2,17 @@ from datetime import date
 
 from numpy import (
     logical_not as not_,
+)
+from numpy import (
     maximum as max_,
+)
+from numpy import (
     minimum as min_,
+)
+from numpy import (
     round as round_,
+)
+from numpy import (
     select,
     where,
 )
@@ -30,34 +38,34 @@ from openfisca_core.simulations import calculate_output_add, calculate_output_di
 from openfisca_core.variables import Variable
 
 __all__ = [
-    "date",
-    "not_",
-    "max_",
-    "min_",
-    "round_",
-    "select",
-    "where",
-    "apply_thresholds",
-    "concat",
-    "switch",
-    "set_input_dispatch_by_period",
-    "set_input_divide_by_period",
-    "Enum",
-    "Bracket",
-    "Parameter",
-    "ParameterNode",
-    "Scale",
-    "ValuesHistory",
-    "load_parameter_file",
+    "ADD",
     "DAY",
+    "DIVIDE",
     "ETERNITY",
     "MONTH",
     "YEAR",
-    "period",
-    "ADD",
-    "DIVIDE",
+    "Bracket",
+    "Enum",
+    "Parameter",
+    "ParameterNode",
     "Reform",
+    "Scale",
+    "ValuesHistory",
+    "Variable",
+    "apply_thresholds",
     "calculate_output_add",
     "calculate_output_divide",
-    "Variable",
+    "concat",
+    "date",
+    "load_parameter_file",
+    "max_",
+    "min_",
+    "not_",
+    "period",
+    "round_",
+    "select",
+    "set_input_dispatch_by_period",
+    "set_input_divide_by_period",
+    "switch",
+    "where",
 ]

@@ -1,21 +1,24 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Any
-
 import os
 import warnings
+from collections.abc import Sequence
+from typing import Any
 
 import numpy
 import psutil
 
 from openfisca_core import (
     commons,
-    data_storage as storage,
     errors,
-    indexed_enums as enums,
     periods,
     types,
+)
+from openfisca_core import (
+    data_storage as storage,
+)
+from openfisca_core import (
+    indexed_enums as enums,
 )
 
 from . import types as t

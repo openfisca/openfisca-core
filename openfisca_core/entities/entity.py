@@ -1,6 +1,5 @@
-from typing import ClassVar
-
 import textwrap
+from typing import ClassVar
 
 from . import types as t
 from ._core_entity import CoreEntity
