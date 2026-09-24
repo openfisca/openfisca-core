@@ -49,8 +49,8 @@ def test_add_axis_on_an_existing_variable_with_input(persons) -> None:
     assert simulation_builder.get_input("salary", "2018-11") == pytest.approx(
         [0, 1500, 3000],
     )
-    assert simulation_builder.get_count("persons") == 3
-    assert simulation_builder.get_ids("persons") == ["Alicia0", "Alicia1", "Alicia2"]
+    assert simulation_builder.get_count(persons.key) == 3
+    assert simulation_builder.get_ids(persons.key) == ["Alicia0", "Alicia1", "Alicia2"]
 
 
 # With entities
@@ -67,8 +67,8 @@ def test_add_axis_on_persons(persons) -> None:
     assert simulation_builder.get_input("salary", "2018-11") == pytest.approx(
         [0, 1500, 3000],
     )
-    assert simulation_builder.get_count("persons") == 3
-    assert simulation_builder.get_ids("persons") == ["Alicia0", "Alicia1", "Alicia2"]
+    assert simulation_builder.get_count(persons.key) == 3
+    assert simulation_builder.get_ids(persons.key) == ["Alicia0", "Alicia1", "Alicia2"]
 
 
 def test_add_two_axes(persons) -> None:
@@ -108,8 +108,8 @@ def test_add_axis_with_group(persons) -> None:
         },
     )
     simulation_builder.expand_axes()
-    assert simulation_builder.get_count("persons") == 4
-    assert simulation_builder.get_ids("persons") == [
+    assert simulation_builder.get_count(persons.key) == 4
+    assert simulation_builder.get_ids(persons.key) == [
         "Alicia0",
         "Javier1",
         "Alicia2",
@@ -165,8 +165,8 @@ def test_add_axis_on_households(persons, households) -> None:
         {"count": 2, "name": "rent", "min": 0, "max": 3000, "period": "2018-11"},
     )
     simulation_builder.expand_axes()
-    assert simulation_builder.get_count("households") == 4
-    assert simulation_builder.get_ids("households") == [
+    assert simulation_builder.get_count(households.key) == 4
+    assert simulation_builder.get_ids(households.key) == [
         "housea0",
         "houseb1",
         "housea2",
@@ -199,7 +199,7 @@ def test_axis_on_group_expands_persons(persons, households) -> None:
         {"count": 2, "name": "rent", "min": 0, "max": 3000, "period": "2018-11"},
     )
     simulation_builder.expand_axes()
-    assert simulation_builder.get_count("persons") == 6
+    assert simulation_builder.get_count(persons.key) == 6
 
 
 def test_add_axis_distributes_roles(persons, households) -> None:
@@ -219,12 +219,14 @@ def test_add_axis_distributes_roles(persons, households) -> None:
         households,
         payload)
 
+    relationship = households.relationships[0]
+
     simulation_builder.register_variable("rent", households)
     simulation_builder.add_parallel_axis(
         {"count": 2, "name": "rent", "min": 0, "max": 3000, "period": "2018-11"},
     )
     simulation_builder.expand_axes()
-    assert [role.key for role in simulation_builder.get_roles("households")] == [
+    assert [role.key for role in simulation_builder.get_roles(relationship.name)] == [
         "adult",
         "child",
         "adult",
@@ -255,7 +257,8 @@ def test_add_axis_on_persons_distributes_roles(persons, households) -> None:
         {"count": 2, "name": "salary", "min": 0, "max": 3000, "period": "2018-11"},
     )
     simulation_builder.expand_axes()
-    assert [role.key for role in simulation_builder.get_roles("households")] == [
+    relationship = persons.relationships[0]
+    assert [role.key for role in simulation_builder.get_roles(relationship.name)] == [
         "adult",
         "child",
         "adult",
@@ -286,7 +289,8 @@ def test_add_axis_distributes_memberships(persons, households) -> None:
         {"count": 2, "name": "rent", "min": 0, "max": 3000, "period": "2018-11"},
     )
     simulation_builder.expand_axes()
-    assert simulation_builder.get_memberships("households") == [0, 1, 1, 2, 3, 3]
+    relationship = persons.relationships[0]
+    assert simulation_builder.get_memberships(relationship.name) == [0, 1, 1, 2, 3, 3]
 
 
 def test_add_perpendicular_axes(persons) -> None:

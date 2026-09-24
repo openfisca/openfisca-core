@@ -496,13 +496,13 @@ def test_unordered_persons(tax_benefit_system) -> None:
     tools.assert_near(household.any(salary < 1500, role=ADULT), [True, False])
     tools.assert_near(household.any(salary > 200, role=CHILD), [False, True])
 
-    # nb_persons
+    # nb_members
 
-    tools.assert_near(household.nb_persons(), [4, 2])
-    tools.assert_near(household.nb_persons(role=ADULT), [2, 1])
-    tools.assert_near(household.nb_persons(role=CHILD), [2, 1])
+    tools.assert_near(household.nb_members(), [4, 2])
+    tools.assert_near(household.nb_members(role=ADULT), [2, 1])
+    tools.assert_near(household.nb_members(role=CHILD), [2, 1])
 
-    # Projection entity -> persons
+    # Projection entity -> members
 
     tools.assert_near(
         household.project(accommodation_size),
