@@ -598,18 +598,26 @@ class Simulation:
         new_dict["invalidated_caches"] = set(self.invalidated_caches)
 
         new.populations = {}
-
+        old_to_new = {}
         for entity in self.tax_benefit_system.entities:
-            population = self.populations[entity.key].init_clone(new)
+            population = self.populations[entity.key].clone(new)
+            old_to_new[self.populations[entity.key]] = population
             new.populations[entity.key] = population
             setattr(
                 new,
                 entity.key,
                 population,
-            )  # create shortcut simulation.household (for instance)
+            )
 
         for entity in self.tax_benefit_system.entities:
-            new.populations[entity.key].finalize_clone()
+            population = self.populations[entity.key]
+            for membership in population.memberships:
+                if membership.population != population:
+                    continue
+                new_pop = old_to_new[population]
+                new_members = old_to_new[membership.members]
+                new_membership = membership.clone(membership.relationship, new_pop, new_members)
+                new_pop.add_membership(new_membership)
 
         new.debug = debug
         new.trace = trace

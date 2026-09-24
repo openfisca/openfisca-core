@@ -4,9 +4,10 @@ from .projector import Projector
 class EntityToPersonProjector(Projector):
     """For instance person.family."""
 
-    def __init__(self, entity, parent=None) -> None:
-        self.reference_entity = entity
+    def __init__(self, membership, parent=None) -> None:
+        self.membership = membership
+        self.reference_entity = membership.population
         self.parent = parent
 
     def transform(self, result):
-        return self.reference_entity.project(result)
+        return self.membership.project(result)

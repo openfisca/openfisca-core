@@ -61,7 +61,7 @@ def get_projector_from_shortcut(
 
         >>> group_entity_1 = entities.Entity("family", "", "", "")
 
-        >>> group_entity_1.add_relationship(entity, [{"key": "person", "max": 1}])
+        >>> r1 = group_entity_1.add_relationship(entity, [{"key": "person", "max": 1}])
 
         >>> roles = [
         ...     {"key": "person", "max": 1},
@@ -70,13 +70,17 @@ def get_projector_from_shortcut(
 
         >>> group_entity_2 = entities.Entity("household", "", "", "")
 
-        >>> group_entity_2.add_relationship(entity, roles)
+        >>> r2 = group_entity_2.add_relationship(entity, roles)
 
         >>> population = populations.Population(entity)
+        >>> group_population_1 = populations.Population(group_entity_1)
 
-        >>> group_population_1 = populations.GroupPopulation(group_entity_1, [])
+        >>> m1 = populations.Membership(r1, group_population_1, population)
+        >>> group_population_1.add_membership(m1)
 
-        >>> group_population_2 = populations.GroupPopulation(group_entity_2, [])
+        >>> group_population_2 = populations.Population(group_entity_2)
+        >>> m2 = populations.Membership(r2, group_population_2, population)
+        >>> group_population_2.add_membership(m2)
 
         >>> populations = {
         ...     entity.key: population,
@@ -113,8 +117,10 @@ def get_projector_from_shortcut(
 
     """
     entity: Entity = population.entity
-    if shortcut in [k.a.key for k in entity.relationships]:
-        return projectors.EntityToPersonProjector(population.simulation.populations[shortcut], parent)
+    # import pdb; pdb.set_trace();
+    mm = [membership for membership in population.memberships if shortcut == membership.relationship.a.key]
+    if mm:
+        return projectors.EntityToPersonProjector(mm[0], parent)
 
     if shortcut == "first_person":
         return projectors.FirstPersonToEntityProjector(population, parent)

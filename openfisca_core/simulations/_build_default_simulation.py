@@ -155,7 +155,8 @@ class _BuildDefaultSimulation:
 
         """
         for population in self.populations.values():
-            if hasattr(population, "members_entity_id"):
-                population.members_entity_id = numpy.array(range(self.count))
+            for membership in population.memberships:
+                if population == membership.population:
+                    membership.members_entity_id = numpy.array(range(self.count))
 
         return self

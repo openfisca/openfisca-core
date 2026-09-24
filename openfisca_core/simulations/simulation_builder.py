@@ -41,32 +41,30 @@ class SimulationBuilder:
         self.default_period = (
             None  # Simulation period used for variables when no period is defined
         )
-        self.persons_plural = (
-            None  # Plural name for person entity in current tax and benefits system
-        )
-
         # JSON input - Memory of known input values. Indexed by variable or axis name.
         self.input_buffer: dict[
             variables.Variable.name,
             dict[str(periods.period), numpy.array],
         ] = {}
         self.populations: dict[entities.Entity.key, populations.Population] = {}
-        # JSON input - Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
-        self.entity_counts: dict[entities.Entity.plural, int] = {}
-        # JSON input - List of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_counts``.
-        self.entity_ids: dict[entities.Entity.plural, list[int]] = {}
 
-        # Links entities with persons. For each person index in persons ids list, set entity index in entity ids id. E.g.: self.memberships[entity.plural][person_index] = entity_ids.index(instance_id)
-        self.memberships: dict[entities.Entity.plural, list[int]] = {}
-        self.roles: dict[entities.Entity.plural, list[int]] = {}
+        # JSON input - Number of items of each entity type. Indexed by entities key names. Should be consistent with ``entity_ids``, including axes.
+        self.entity_counts: dict[entities.Entity.key, int] = {}
+        # JSON input - List of items of each entity type. Indexed by entities key names. Should be consistent with ``entity_counts``.
+        self.entity_ids: dict[entities.Entity.key, list[int]] = {}
+
+        # Links entities together
+        self.memberships: dict[entities.Relationship.name, list[int]] = {}
+        self.roles: dict[entities.Relationship, list[int]] = {}
 
         self.variable_entities: dict[variables.Variable.name, entities.Entity] = {}
 
         self.axes = [[]]
-        self.axes_entity_counts: dict[entities.Entity.plural, int] = {}
-        self.axes_entity_ids: dict[entities.Entity.plural, list[int]] = {}
-        self.axes_memberships: dict[entities.Entity.plural, list[int]] = {}
-        self.axes_roles: dict[entities.Entity.plural, list[int]] = {}
+        self.axes_entity_counts: dict[entities.Entity.key, int] = {}
+        self.axes_entity_ids: dict[entities.Entity.key, list[int]] = {}
+        self.axes_memberships: dict[entities.Relationship.name, list[int]] = {}
+        self.axes_roles: dict[entities.Relationship.name, list[int]] = {}
+        self.axes_entity_map: dict[entities.Entity.key, entities.Entity] = {}
 
     def build_from_dict(
         self,
@@ -209,7 +207,7 @@ class SimulationBuilder:
         for entity_class in tax_benefit_system.entities:
             instances_json = params.get(entity_class.plural)
             self.add_entity(entity_class, instances_json or {})
-        
+
         for entity_class in tax_benefit_system.entities:
             instances_json = params.get(entity_class.plural)
             self.link_entities(entity_class, instances_json or {})
@@ -300,13 +298,6 @@ class SimulationBuilder:
     def create_entities(self, tax_benefit_system) -> None:
         self.populations = tax_benefit_system.instantiate_entities()
 
-    def declare_person_entity(self, person_singular, persons_ids: Iterable) -> None:
-        person_instance = self.populations[person_singular]
-        person_instance.ids = numpy.array(list(persons_ids))
-        person_instance.count = len(person_instance.ids)
-
-        self.persons_plural = person_instance.entity.plural
-
     def declare_entity(self, entity_singular, entity_ids: Iterable):
         entity_instance = self.populations[entity_singular]
         entity_instance.ids = numpy.array(list(entity_ids))
@@ -316,29 +307,33 @@ class SimulationBuilder:
     def nb_persons(self, entity_singular, role=None):
         return self.populations[entity_singular].nb_persons(role=role)
 
-    def join_with_persons(
+    def join(
         self,
         group_population,
+        members_population,
         persons_group_assignment,
         roles: Iterable[str],
     ) -> None:
+        # Determine membership
+        membership = group_population.single_membership
+
         # Maps group's identifiers to a 0-based integer range, for indexing into members_roles (see PR#876)
         group_sorted_indices = numpy.unique(
             persons_group_assignment,
             return_inverse=True,
         )[1]
-        group_population.members_entity_id = numpy.argsort(group_population.ids)[
+        membership.members_entity_id = numpy.argsort(group_population.ids)[
             group_sorted_indices
         ]
 
         flattened_roles = group_population.entity.flattened_roles
         roles_array = numpy.array(roles)
         if numpy.issubdtype(roles_array.dtype, numpy.integer):
-            group_population.members_role = numpy.array(flattened_roles)[roles_array]
+            membership.members_role = numpy.array(flattened_roles)[roles_array]
         elif len(flattened_roles) == 0:
-            group_population.members_role = numpy.int16(0)
+            membership.members_role = numpy.int16(0)
         else:
-            group_population.members_role = numpy.select(
+            membership.members_role = numpy.select(
                 [roles_array == role.key for role in flattened_roles],
                 flattened_roles,
             )
@@ -396,19 +391,19 @@ class SimulationBuilder:
 
         return result
 
-    def add_entity(self, entity, instances_json):
+    def add_entity(self, entity: Entity, instances_json):
         """Add the simulation's instances of the entity as described in ``instances_json``."""
         helpers.check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
-        self.entity_ids[entity.plural] = entity_ids
-        self.entity_counts[entity.plural] = len(entity_ids)
-
+        self.entity_ids[entity.key] = entity_ids
+        self.entity_counts[entity.key] = len(entity_ids)
+        self.axes_entity_map[entity.key] = entity
 
         for instance_id, instance_object in instances_json.items():
             helpers.check_type(instance_object, dict, [entity.plural, instance_id])
             self.init_variable_values(entity, instance_object, str(instance_id))
 
-        return self.get_ids(entity.plural)
+        return self.get_ids(entity.key)
 
     def link_entities(
         self,
@@ -420,15 +415,15 @@ class SimulationBuilder:
             if relationship.a.key != entity.key:
                 continue
 
-            persons_plural = relationship.b.plural
-            persons_ids = self.get_ids(persons_plural)
-            persons_count = len(persons_ids)
-            persons_to_allocate = set(persons_ids)
-            
-            membership_array = numpy.empty(persons_count, dtype=numpy.int32)
-            roles = numpy.empty(persons_count, dtype=object)
+            members = relationship.b
+            members_ids = self.get_ids(members.key)
+            members_count = len(members_ids)
+            members_to_allocate = set(members_ids)
 
-            entity_ids = self.get_ids(entity.plural)
+            membership_array = numpy.empty(members_count, dtype=numpy.int32)
+            roles = numpy.empty(members_count, dtype=object)
+
+            entity_ids = self.get_ids(entity.key)
 
             for instance_id, instance_object in instances_json.items():
                 helpers.check_type(instance_object, dict, [entity.plural, instance_id])
@@ -449,64 +444,64 @@ class SimulationBuilder:
                         list,
                         [entity.plural, instance_id, role_id],
                     )
-                    for index, person_id in enumerate(role_definition):
+                    for index, member_id in enumerate(role_definition):
                         entity_plural = entity.plural
-                        self.check_persons_to_allocate(
-                            persons_plural,
+                        self.check_members_to_allocate(
+                            members.plural,
                             entity_plural,
-                            persons_ids,
-                            person_id,
+                            members_ids,
+                            member_id,
                             instance_id,
                             role_id,
-                            persons_to_allocate,
+                            members_to_allocate,
                             index,
                         )
 
-                        persons_to_allocate.discard(person_id)
+                        members_to_allocate.discard(member_id)
 
                 entity_index = entity_ids.index(instance_id)
                 role_by_plural = {role.plural or role.key: role for role in relationship.roles}
 
-                for role_plural, persons_with_role in roles_json.items():
+                for role_plural, members_with_role in roles_json.items():
                     role = role_by_plural[role_plural]
 
-                    if role.max is not None and len(persons_with_role) > role.max:
+                    if role.max is not None and len(members_with_role) > role.max:
                         raise errors.SituationParsingError(
                             [entity.plural, instance_id, role_plural],
-                            f"There can be at most {role.max} {role_plural} in a {entity.key}. {len(persons_with_role)} were declared in '{instance_id}'.",
+                            f"There can be at most {role.max} {role_plural} in a {entity.key}. {len(members_with_role)} were declared in '{instance_id}'.",
                         )
 
-                    for index_within_role, person_id in enumerate(persons_with_role):
-                        person_index = persons_ids.index(person_id)
-                        membership_array[person_index] = entity_index
-                        person_role = (
+                    for index_within_role, member_id in enumerate(members_with_role):
+                        member_index = members_ids.index(member_id)
+                        membership_array[member_index] = entity_index
+                        member_role = (
                             role.subroles[index_within_role] if role.subroles else role
                         )
-                        roles[person_index] = person_role
+                        roles[member_index] = member_role
 
-            if persons_to_allocate:
-                entity_ids = entity_ids + list(persons_to_allocate)
-                for person_id in persons_to_allocate:
-                    person_index = persons_ids.index(person_id)
-                    membership_array[person_index] = entity_ids.index(
-                        person_id,
+            if members_to_allocate:
+                entity_ids = entity_ids + list(members_to_allocate)
+                for member_id in members_to_allocate:
+                    member_index = members_ids.index(member_id)
+                    membership_array[member_index] = entity_ids.index(
+                        member_id,
                     )
-                    roles[person_index] = entity.flattened_roles[0]
+                    roles[member_index] = entity.flattened_roles[0]
                 # Adjust previously computed ids and counts
-                self.entity_ids[entity.plural] = entity_ids
-                self.entity_counts[entity.plural] = len(entity_ids)
+                self.entity_ids[entity.key] = entity_ids
+                self.entity_counts[entity.key] = len(entity_ids)
 
             # Convert back to Python array
-            
-            self.memberships[relationship] = membership_array.tolist()
-            self.roles[relationship] = roles.tolist()
+
+            self.memberships[relationship.name] = membership_array.tolist()
+            self.roles[relationship.name] = roles.tolist()
 
     def save_memberships(self, simulation: Simulation) -> None:
-        for (relationship, membership_array) in self.memberships.items():
-            population = simulation.populations[relationship.a.key]
-            membership = [m for m in population.memberships if m.relationship == relationship].pop(0)
+        for (relationship_name, membership_array) in self.memberships.items():
+            population = [p for n, p in simulation.populations.items() if relationship_name in [r.name for r in p.entity.relationships]].pop(0)
+            membership = [m for m in population.memberships if m.relationship.name == relationship_name].pop(0)
             membership.members_entity_id = numpy.array(membership_array)
-            membership.members_role = numpy.array(self.roles[relationship])
+            membership.members_role = numpy.array(self.roles[relationship_name])
 
 
     def set_default_period(self, period_str) -> None:
@@ -519,31 +514,31 @@ class SimulationBuilder:
 
         return self.input_buffer[variable].get(period_str)
 
-    def check_persons_to_allocate(
+    def check_members_to_allocate(
         self,
-        persons_plural,
+        members_plural,
         entity_plural,
-        persons_ids,
-        person_id,
+        members_ids,
+        member_id,
         entity_id,
         role_id,
-        persons_to_allocate,
+        members_to_allocate,
         index,
     ) -> None:
         helpers.check_type(
-            person_id,
+            member_id,
             str,
             [entity_plural, entity_id, role_id, str(index)],
         )
-        if person_id not in persons_ids:
+        if member_id not in members_ids:
             raise errors.SituationParsingError(
                 [entity_plural, entity_id, role_id],
-                f"Unexpected value: {person_id}. {person_id} has been declared in {entity_id} {role_id}, but has not been declared in {persons_plural}.",
+                f"Unexpected value: {member_id}. {member_id} has been declared in {entity_id} {role_id}, but has not been declared in {members_plural}.",
             )
-        if person_id not in persons_to_allocate:
+        if member_id not in members_to_allocate:
             raise errors.SituationParsingError(
                 [entity_plural, entity_id, role_id],
-                f"{person_id} has been declared more than once in {entity_plural}",
+                f"{member_id} has been declared more than once in {entity_plural}",
             )
 
     def init_variable_values(self, entity, instance_object, instance_id) -> None:
@@ -559,7 +554,7 @@ class SimulationBuilder:
             except errors.VariableNotFoundError as e:  # The variable doesn't exist
                 raise errors.SituationParsingError(path_in_json, str(e), code=404)
 
-            instance_index = self.get_ids(entity.plural).index(instance_id)
+            instance_index = self.get_ids(entity.key).index(instance_id)
 
             if not isinstance(variable_values, dict):
                 if self.default_period is None:
@@ -601,7 +596,7 @@ class SimulationBuilder:
         array = self.get_input(variable.name, str(period_str))
 
         if array is None:
-            array_size = self.get_count(entity.plural)
+            array_size = self.get_count(entity.key)
             array = variable.default_array(array_size)
 
         try:
@@ -616,10 +611,9 @@ class SimulationBuilder:
     def finalize_variables_init(self, population) -> None:
         # Due to set_input mechanism, we must bufferize all inputs, then actually set them,
         # so that the months are set first and the years last.
-        plural_key = population.entity.plural
-        if plural_key in self.entity_counts:
-            population.count = self.get_count(plural_key)
-            population.ids = self.get_ids(plural_key)
+
+        population.count = self.get_count(population.entity.key)
+        population.ids = self.get_ids(population.entity.key)
         for variable_name in self.input_buffer:
             try:
                 holder = population.get_holder(variable_name)
@@ -665,25 +659,25 @@ class SimulationBuilder:
         raise errors.SituationParsingError(path, e.message)
 
     # Returns the total number of instances of this entity, including when there is replication along axes
-    def get_count(self, entity_name: str) -> int:
-        return self.axes_entity_counts.get(entity_name, self.entity_counts[entity_name])
+    def get_count(self, entity_key: entities.Entity.key) -> int:
+        return self.axes_entity_counts.get(entity_key, self.entity_counts[entity_key])
 
     # Returns the ids of instances of this entity, including when there is replication along axes
-    def get_ids(self, entity_name: str) -> list[str]:
-        return self.axes_entity_ids.get(entity_name, self.entity_ids[entity_name])
+    def get_ids(self, entity_key: entities.Entity.key) -> list[str]:
+        return self.axes_entity_ids.get(entity_key, self.entity_ids[entity_key])
 
     # Returns the memberships of individuals in this entity, including when there is replication along axes
-    def get_memberships(self, entity_name):
+    def get_memberships(self, relationship_name: entities.Relationship.name):
         # Return empty array for the "persons" entity
         return self.axes_memberships.get(
-            entity_name,
-            self.memberships.get(entity_name, []),
+            relationship_name,
+            self.memberships.get(relationship_name, []),
         )
 
     # Returns the roles of individuals in this entity, including when there is replication along axes
-    def get_roles(self, entity_name: str) -> Sequence[Role]:
+    def get_roles(self, relationship_name: entities.Relationship.name) -> Sequence[Role]:
         # Return empty array for the "persons" entity
-        return self.axes_roles.get(entity_name, self.roles.get(entity_name, []))
+        return self.axes_roles.get(relationship_name, self.roles.get(relationship_name, []))
 
     def add_parallel_axis(self, axis: Axis) -> None:
         # All parallel axes have the same count and entity.
@@ -705,39 +699,43 @@ class SimulationBuilder:
             cell_count *= axis_count
 
         # Scale the "prototype" situation, repeating it cell_count times
-        for entity_name in self.entity_counts:
+        for entity_key in self.entity_ids:
             # Adjust counts
-            self.axes_entity_counts[entity_name] = (
-                self.get_count(entity_name) * cell_count
+            self.axes_entity_counts[entity_key] = (
+                self.get_count(entity_key) * cell_count
             )
             # Adjust ids
-            original_ids: list[str] = self.get_ids(entity_name) * cell_count
+            original_ids: list[str] = self.get_ids(entity_key) * cell_count
             indices: Array[numpy.int16] = numpy.arange(
                 0,
-                cell_count * self.entity_counts[entity_name],
+                cell_count * self.entity_counts[entity_key],
             )
             adjusted_ids: list[str] = [
                 original_id + str(index)
                 for original_id, index in zip(original_ids, indices)
             ]
-            self.axes_entity_ids[entity_name] = adjusted_ids
+            self.axes_entity_ids[entity_key] = adjusted_ids
 
-            # Adjust roles
-            original_roles = self.get_roles(entity_name)
-            adjusted_roles = original_roles * cell_count
-            self.axes_roles[entity_name] = adjusted_roles
-            # Adjust memberships, for group entities only
-            if entity_name != self.persons_plural:
-                original_memberships = self.get_memberships(entity_name)
+            entity = self.axes_entity_map[entity_key]
+            for relationship in entity.relationships:
+                if relationship.a.key != entity.key:
+                    continue
+                # Adjust roles
+                original_roles = self.get_roles(relationship.name)
+                adjusted_roles = original_roles * cell_count
+                self.axes_roles[relationship.name] = adjusted_roles
+
+                # Adjust memberships, for group entities only
+                original_memberships = self.get_memberships(relationship.name)
                 repeated_memberships = original_memberships * cell_count
                 indices = (
                     numpy.repeat(numpy.arange(0, cell_count), len(original_memberships))
-                    * self.entity_counts[entity_name]
+                    * self.entity_counts[entity_key]
                 )
                 adjusted_memberships = (
                     numpy.array(repeated_memberships) + indices
                 ).tolist()
-                self.axes_memberships[entity_name] = adjusted_memberships
+                self.axes_memberships[relationship.name] = adjusted_memberships
 
         # Now generate input values along the specified axes
         # TODO - factor out the common logic here
@@ -746,7 +744,7 @@ class SimulationBuilder:
             first_axis = parallel_axes[0]
             axis_count: int = first_axis["count"]
             axis_entity = self.get_variable_entity(first_axis["name"])
-            axis_entity_step_size = self.entity_counts[axis_entity.plural]
+            axis_entity_step_size = self.entity_counts[axis_entity.key]
             # Distribute values along axes
             for axis in parallel_axes:
                 axis_index = axis.get("index", 0)
@@ -778,7 +776,7 @@ class SimulationBuilder:
                 first_axis = parallel_axes[0]
                 axis_count = first_axis["count"]
                 axis_entity = self.get_variable_entity(first_axis["name"])
-                axis_entity_step_size = self.entity_counts[axis_entity.plural]
+                axis_entity_step_size = self.entity_counts[axis_entity.key]
                 # Distribute values along the grid
                 for axis in parallel_axes:
                     axis_index = axis.get("index", 0)

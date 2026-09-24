@@ -459,6 +459,8 @@ class CorePopulation:
             membership.members._roles_to_memberships[role.key] = membership
             membership.population._roles_to_memberships[role.plural] = membership
 
+        membership.members._memberships.append(membership)
+
     @property
     def memberships(self) -> Sequence[Memberships]:
         return self._memberships

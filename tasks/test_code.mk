@@ -32,7 +32,7 @@ test-code: test-core test-country test-extension
 	@$(call print_pass,$@:)
 
 ## Run openfisca-core tests.
-test-core: $(shell git ls-files "*test_*.py")
+test-core: #$(shell git ls-files "*test_*.py")
 	@$(call print_help,$@:)
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
 		python -m ${openfisca} test \

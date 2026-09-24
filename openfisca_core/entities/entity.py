@@ -29,6 +29,9 @@ class Relationship:
                 role.max = len(role.subroles)
         self.roles: Iterable[Role] = roles
 
+    @property
+    def name(self):
+        return f"{self.a.key}_{self.b.key}"
 
 
 class Entity:
@@ -68,7 +71,6 @@ class Entity:
         self.doc = textwrap.dedent(doc)
         self.relationships = []
         self.flattened_roles = ()
-
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.key})"
@@ -236,7 +238,7 @@ class Entity:
             raise ValueError(msg)
 
 
-    def add_relationship(self, entity: Entity, role_descriptions: Sequence[t.RoleParams] = []):
+    def add_relationship(self, entity: Entity, role_descriptions: Sequence[t.RoleParams] = []) -> Relationship:
         if not role_descriptions:
             role_descriptions = [{
                 "key": entity.key,
@@ -249,6 +251,7 @@ class Entity:
         self.flattened_roles = (*self.flattened_roles,
             *chain.from_iterable(role.subroles or [role] for role in relationship.roles),
         )
+        return relationship
 
     @property
     def roles(self) -> Sequence[str]:
