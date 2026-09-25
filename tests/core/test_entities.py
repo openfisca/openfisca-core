@@ -367,7 +367,7 @@ def test_value_from_first_person(tax_benefit_system) -> None:
     tools.assert_near(salary_first_person, [1000, 3000])
 
 
-def test_praojectors_methods(tax_benefit_system) -> None:
+def test_projectors_methods(tax_benefit_system) -> None:
     simulation = SimulationBuilder().build_from_dict(
         tax_benefit_system,
         situation_examples.couple,
