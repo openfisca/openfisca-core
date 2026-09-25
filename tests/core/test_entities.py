@@ -1,4 +1,5 @@
 from copy import deepcopy
+from numpy import maximum
 
 from openfisca_country_template import entities, situation_examples
 
@@ -295,6 +296,20 @@ def test_max(tax_benefit_system) -> None:
     tools.assert_near(age_max, [40, 54])
 
     age_max_child = household.max(age, role=CHILD)
+    tools.assert_near(age_max_child, [9, 20])
+
+
+def test_reduce(tax_benefit_system) -> None:
+    test_case = deepcopy(TEST_CASE_AGES)
+    simulation = new_simulation(tax_benefit_system, test_case)
+    household = simulation.household
+
+    age = household.members("age", period=MONTH)
+
+    age_max = household.reduce(age, maximum, 0)
+    tools.assert_near(age_max, [40, 54])
+
+    age_max_child = household.reduce(age, maximum, 0, role=CHILD)
     tools.assert_near(age_max_child, [9, 20])
 
 
