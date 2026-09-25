@@ -459,6 +459,12 @@ class CorePopulation:
             membership.members._roles_to_memberships[role.key] = membership
             membership.population._roles_to_memberships[role.plural] = membership
 
+            if not role.subroles:
+                continue
+            for subrole in role.subroles:
+                membership.members._roles_to_memberships[subrole.key] = membership
+                membership.population._roles_to_memberships[subrole.plural] = membership
+
         membership.members._memberships.append(membership)
 
     @property

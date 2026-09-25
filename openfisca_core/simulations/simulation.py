@@ -603,11 +603,6 @@ class Simulation:
             population = self.populations[entity.key].clone(new)
             old_to_new[self.populations[entity.key]] = population
             new.populations[entity.key] = population
-            setattr(
-                new,
-                entity.key,
-                population,
-            )
 
         for entity in self.tax_benefit_system.entities:
             population = self.populations[entity.key]
@@ -619,6 +614,7 @@ class Simulation:
                 new_membership = membership.clone(membership.relationship, new_pop, new_members)
                 new_pop.add_membership(new_membership)
 
+        new.create_shortcuts()
         new.debug = debug
         new.trace = trace
 

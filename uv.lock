@@ -1636,7 +1636,7 @@ provides-extras = ["dev", "web-api", "excel", "ci", "tracker", "template"]
 
 [[package]]
 name = "openfisca-country-template"
-version = "8.1.0"
+version = "8.2.0"
 source = { editable = "../country-template" }
 dependencies = [
     { name = "openfisca-core", extra = ["web-api"] },

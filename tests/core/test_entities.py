@@ -34,7 +34,7 @@ def new_simulation(tax_benefit_system, test_case, period=MONTH):
 
 def test_role_index_and_positions(tax_benefit_system) -> None:
     simulation = new_simulation(tax_benefit_system, TEST_CASE)
-    membership = simulation.household.memberships[0]
+    membership = simulation.household.single_membership
     tools.assert_near(membership.members_entity_id, [0, 0, 0, 0, 1, 1])
     assert (
         membership.members_role == [ADULT, ADULT, CHILD, CHILD, ADULT, CHILD]
@@ -71,7 +71,7 @@ def test_entity_structure_with_constructor(tax_benefit_system) -> None:
     )
 
     household = simulation.household
-    membership = household.memberships[0]
+    membership = household.single_membership
 
     tools.assert_near(membership.members_entity_id, [0, 0, 1, 0, 0])
     assert (membership.members_role == [ADULT, ADULT, ADULT, CHILD, CHILD]).all()
@@ -214,7 +214,7 @@ def test_project(tax_benefit_system) -> None:
     household = simulation.household
 
     housing_tax = household("housing_tax", YEAR)
-    membership = household.memberships[0]
+    membership = household.single_membership
     projected_housing_tax = membership.project(housing_tax)
 
     tools.assert_near(projected_housing_tax, [20000, 20000, 20000, 20000, 0, 0])

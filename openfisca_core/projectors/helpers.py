@@ -117,7 +117,6 @@ def get_projector_from_shortcut(
 
     """
     entity: Entity = population.entity
-    # import pdb; pdb.set_trace();
     mm = [membership for membership in population.memberships if shortcut == membership.relationship.a.key]
     if mm:
         return projectors.EntityToPersonProjector(mm[0], parent)
@@ -125,9 +124,10 @@ def get_projector_from_shortcut(
     if shortcut == "first_person":
         return projectors.FirstPersonToEntityProjector(population, parent)
 
-    role: Role | None = entities.find_role(entity, shortcut, total=1)
+    role, relationship = entities.find_role(entity, shortcut, total=1)
 
     if role is not None:
-        return projectors.UniqueRoleToEntityProjector(population, role, parent)
+        mm = [membership for membership in population.memberships if membership.relationship == relationship]
+        return projectors.UniqueRoleToEntityProjector(mm[0], role, parent)
 
     return None
