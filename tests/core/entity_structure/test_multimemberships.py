@@ -10,7 +10,7 @@ from openfisca_core.variables import Variable
 
 
 @pytest.fixture
-def entities():
+def multimembership_entities():
     person = Entity(
         key="person",
         plural="people",
@@ -59,8 +59,8 @@ def entities():
     return [person, household, family]
 
 
-def test_has_conflicting_role(entities) -> None:
-    system = TaxBenefitSystem(entities)
+def test_has_conflicting_role(multimembership_entities) -> None:
+    system = TaxBenefitSystem(multimembership_entities)
     simulation = SimulationBuilder().build_from_dict(
         system,
         {
@@ -80,19 +80,19 @@ def test_has_conflicting_role(entities) -> None:
         },
     )
 
-    [person, household, family] = entities
+    [person, household, family] = multimembership_entities
     assert (simulation.person.has_role(household.CHILD) == [False, True, True]).all()
     assert (simulation.person.has_role(family.CHILD) == [False, False, True]).all()
 
 
-def test_get_rank_with_multiple_memberships(entities) -> None:
-    [person, household, family] = entities
+def test_get_rank_with_multiple_memberships(multimembership_entities) -> None:
+    [person, household, family] = multimembership_entities
     class person_int_variable(Variable):
         value_type = int
         entity = person
         definition_period = DateUnit.ETERNITY
 
-    system = TaxBenefitSystem(entities)
+    system = TaxBenefitSystem(multimembership_entities)
     system.add_variables(person_int_variable)
     simulation = SimulationBuilder().build_from_dict(
         system,
