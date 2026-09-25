@@ -34,7 +34,9 @@ class Population(CorePopulation):
         if attribute.startswith("nb_"):
             role = attribute[3:]
             if role in self._roles_to_memberships:
-                membership = self._roles_to_memberships[role]
+                memberships = self._roles_to_memberships[role]
+                assert len(memberships) == 1
+                membership = memberships[0] #  TODO
                 return membership.nb_members(role)
             else:
                 return self.single_membership.nb_members
@@ -59,7 +61,10 @@ class Population(CorePopulation):
             return None
         self.entity.check_role_validity(role)
 
-        membership = self._roles_to_memberships[role.key]
+        membership_candidates = self._roles_to_memberships[role.key]
+        memberships = [m for m in membership_candidates if m.population.entity.key == role.entity.key]
+        assert len(memberships) == 1
+        membership = memberships[0]
 
         if role.subroles:
             return numpy.logical_or.reduce(

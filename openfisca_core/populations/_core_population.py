@@ -46,7 +46,7 @@ class CorePopulation:
     def __init__(self, entity: t.Entity, *__args: object, **__kwds: object) -> None:
         self.entity = entity
         self._memberships = []
-        self._roles_to_memberships = {}
+        self._roles_to_memberships: dict[t.Role.key | t.Role.plural, list[t.Membership]] = {}
         self._holders: t.HolderByVariable = {}
 
     def __call__(
@@ -455,15 +455,20 @@ class CorePopulation:
 
     def add_membership(self, membership) -> None:
         self._memberships.append(membership)
+        def add_membership_to(this, key):
+            if key not in this._roles_to_memberships:
+                this._roles_to_memberships[key] = []
+            this._roles_to_memberships[key].append(membership)
+
         for role in membership.relationship.roles:
-            membership.members._roles_to_memberships[role.key] = membership
-            membership.population._roles_to_memberships[role.plural] = membership
+            add_membership_to(membership.members, role.key)
+            add_membership_to(membership.population, role.plural)
 
             if not role.subroles:
                 continue
             for subrole in role.subroles:
-                membership.members._roles_to_memberships[subrole.key] = membership
-                membership.population._roles_to_memberships[subrole.plural] = membership
+                add_membership_to(membership.members, subrole.key)
+                add_membership_to(membership.population, subrole.plural)
 
         membership.members._memberships.append(membership)
 
