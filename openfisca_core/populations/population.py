@@ -121,6 +121,10 @@ class Population(CorePopulation):
         return self.single_membership.project(array, role)
 
     @projectors.projectable
+    def reduce(self, array, reducer, neutral_element, role=None):
+        return self.single_membership.reduce(array, reducer, neutral_element, role)
+
+    @projectors.projectable
     def get_rank(
         self,
         entity: Population,
