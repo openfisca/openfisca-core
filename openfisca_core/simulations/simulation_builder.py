@@ -212,8 +212,6 @@ class SimulationBuilder:
             instances_json = params.get(entity_class.plural)
             self.link_entities(entity_class, instances_json or {})
 
-        self.save_memberships(simulation)
-
         if axes is not None:
             for axis in axes[0]:
                 self.add_parallel_axis(axis)
@@ -223,6 +221,8 @@ class SimulationBuilder:
                     self.add_perpendicular_axis(axis[0])
 
             self.expand_axes()
+
+        self.save_memberships(simulation)
 
         for entity_class in tax_benefit_system.entities:
             try:
@@ -500,8 +500,8 @@ class SimulationBuilder:
         for (relationship_name, membership_array) in self.memberships.items():
             population = [p for n, p in simulation.populations.items() if relationship_name in [r.name for r in p.entity.relationships]].pop(0)
             membership = [m for m in population.memberships if m.relationship.name == relationship_name].pop(0)
-            membership.members_entity_id = numpy.array(membership_array)
-            membership.members_role = numpy.array(self.roles[relationship_name])
+            membership.members_entity_id = numpy.array(self.get_memberships(relationship_name))
+            membership.members_role = numpy.array(self.get_roles(relationship_name))
 
 
     def set_default_period(self, period_str) -> None:
@@ -796,6 +796,7 @@ class SimulationBuilder:
                         axis_count - 1
                     )
                     self.input_buffer[axis_name][str(axis_period)] = array
+
 
     def get_variable_entity(self, variable_name: str) -> Entity:
         return self.variable_entities[variable_name]
