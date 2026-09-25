@@ -17,13 +17,13 @@ class Relationship:
         self.role_descriptions: Sequence[t.RoleParams] = role_descriptions
         roles = []
         for role_description in role_descriptions:
-            role = Role(role_description, self)
+            role = Role(role_description, a)
             setattr(a, role.key.upper(), role)
             roles.append(role)
             if subroles := role_description.get("subroles"):
                 role.subroles = ()
                 for subrole_key in subroles:
-                    subrole = Role({"key": subrole_key, "max": 1}, self)
+                    subrole = Role({"key": subrole_key, "max": 1}, a)
                     setattr(a, subrole.key.upper(), subrole)
                     role.subroles = (*role.subroles, subrole)
                 role.max = len(role.subroles)
