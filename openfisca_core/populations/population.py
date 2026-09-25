@@ -132,8 +132,12 @@ class Population(CorePopulation):
     @projectors.projectable
     def get_rank(
         self,
-        entity: Population,
+        population: Population,
         criteria: t.FloatArray,
         condition: bool = True,
     ) -> t.IntArray:
-        return self.single_membership.get_rank(entity, criteria, condition)
+        pop = population if not isinstance(population, projectors.Projector) else population.reference_entity
+        membership_candidates = [m for m in self.memberships if pop == m.population]
+        assert len(membership_candidates) == 1
+        membership = membership_candidates[0]
+        return membership.get_rank(population, criteria, condition)
