@@ -118,7 +118,13 @@ def get_projector_from_shortcut(
     entity: Entity = population.entity
     mm = [membership for membership in population.memberships if shortcut == membership.relationship.a.key]
     if mm:
+        assert len(mm) == 1
         return projectors.EntityToPersonProjector(mm[0], parent)
+
+    emm = [membership for membership in population.memberships if shortcut == membership.relationship.b.plural]
+    if emm:
+        assert len(emm) == 1
+        return projectors.MembersToEntityProjector(emm[0], parent)
 
     if shortcut == "first_person":
         return projectors.FirstPersonToEntityProjector(population, parent)

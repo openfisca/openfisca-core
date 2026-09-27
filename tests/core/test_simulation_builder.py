@@ -491,6 +491,51 @@ def test_some_person_without_household(tax_benefit_system) -> None:
     ]  # household member default role is adult
 
 
+def test_one_household_without_person(tax_benefit_system) -> None:
+    period = '2026-09'
+    input_yaml = """
+        persons:
+            Alicia:
+                age: 30
+            Adel:
+                age: 30
+            Kiddo:
+                age: 7
+        households:
+            Alicias:
+                adults: ['Alicia']
+                children: ['Kiddo']
+            Adels:
+                adults: ['Adel']
+            Bobs: {}
+            Shiho: {}
+    """
+    sb = SimulationBuilder()
+    sb.default_period = period
+    simulation = sb.build_from_dict(
+        tax_benefit_system,
+        test_runner.yaml.safe_load(input_yaml),
+    )
+    assert simulation.person.count == 3
+    assert simulation.household.count == 4
+    adults_in_households = simulation.household.nb_persons(
+        role=entities.Household.ADULT,
+    )
+    assert adults_in_households.tolist() == [
+        1,
+        1,
+        0,
+        0,
+    ]
+    parenting_allowance = simulation.calculate("parenting_allowance", period)
+    assert parenting_allowance.tolist() == [
+        600,
+        0,
+        0,
+        0,
+    ]
+
+
 def test_nb_persons_in_households(tax_benefit_system) -> None:
     persons_ids: Iterable = [2, 0, 1, 4, 3]
     households_ids: Iterable = ["c", "a", "b"]

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy
 
-from openfisca_core import projectors
+from openfisca_core import entities, projectors
 
 from . import types as t
 from ._core_population import CorePopulation
@@ -32,11 +32,14 @@ class Population(CorePopulation):
             return projector
 
         if attribute.startswith("nb_"):
-            role = attribute[3:]
-            if role in self._roles_to_memberships:
-                memberships = self._roles_to_memberships[role]
+            role_key = attribute[3:]
+            if role_key in self._roles_to_memberships:
+                memberships = self._roles_to_memberships[role_key]
                 assert len(memberships) == 1
                 membership = memberships[0] #  TODO
+                role, _ = entities.find_role(membership.relationship.a, role_key)
+                if not role:
+                    role, _ = entities.find_role(membership.relationship.a, role_key[:-1])
                 return membership.nb_members(role)
             else:
                 return self.single_membership.nb_members

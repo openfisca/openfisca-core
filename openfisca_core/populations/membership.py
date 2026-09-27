@@ -124,7 +124,7 @@ class Membership:
                 weights=array[role_filter],
                 minlength=self.population.count,
             )
-        return numpy.bincount(self.members_entity_id, weights=array)
+        return numpy.bincount(self.members_entity_id, weights=array, minlength=self.population.count)
 
     @projectors.projectable
     def any(self, array, role=None):
@@ -254,7 +254,7 @@ class Membership:
             else:
                 role_condition = self.members_role == role
             return self.sum(role_condition)
-        return numpy.bincount(self.members_entity_id)
+        return numpy.bincount(self.members_entity_id, minlength=self.population.count)
 
     # Projection person -> entity
     @projectors.projectable
