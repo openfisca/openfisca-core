@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import copy
+
 import numpy
 
 from openfisca_core import projectors
@@ -20,7 +22,7 @@ class Population(CorePopulation):
             for (variable, holder) in self._holders.items()
         }
         result.count = self.count
-        result.ids = self.ids
+        result.ids = copy.copy(self.ids)
         return result
 
     def __getattr__(self, attribute: str) -> projectors.Projector:
