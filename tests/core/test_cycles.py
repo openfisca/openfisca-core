@@ -6,6 +6,7 @@ from openfisca_core.errors import CycleError
 from openfisca_core.periods import DateUnit
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.variables import Variable
+from openfisca_core.warnings import SpiralWarning
 
 
 @pytest.fixture
@@ -122,6 +123,11 @@ def test_pure_cycle(simulation, reference_period) -> None:
 def test_spirals_result_in_default_value(simulation, reference_period) -> None:
     variable3 = simulation.calculate("variable3", period=reference_period)
     tools.assert_near(variable3, [0])
+
+
+def test_spirals_warn_when_defaulting(simulation, reference_period) -> None:
+    with pytest.warns(SpiralWarning, match="variable3"):
+        simulation.calculate("variable3", period=reference_period)
 
 
 def test_spiral_heuristic(simulation, reference_period) -> None:
