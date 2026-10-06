@@ -12,29 +12,46 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  setup:
-    strategy:
-      fail-fast: true
-      matrix: &matrix
-        include:
-        - os: ubuntu-24.04
-          python: 3.10.11
-        - os: windows-2025
-          python: 3.10.11
-        - os: ubuntu-24.04
-          python: 3.12.10
-        - os: ubuntu-24.04
-          python: 3.12.10
-        - os: ubuntu-24.04
-          python: *upper_pyver
-        - os: ubuntu-24.04
-          python: *upper_pyver
-        - os: windows-2025
-          python: *upper_pyver
-    uses: ./.github/workflows/_setup.yaml
-    with:
-      os: ${{ matrix.os }}
-      python: ${{ matrix.python }}
+  integration:
+    runs-on: ubuntu-latest
+    env:
+      # To colorize output of make tasks.
+      TERM: xterm-256color
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7.0.1
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v9.0.0
+      with:
+        python-version: *upper_pyver
+
+    - name: Test
+      run: make test
+  # setup:
+  #   strategy:
+  #     fail-fast: true
+  #     matrix: &matrix
+  #       include:
+  #       - os: ubuntu-24.04
+  #         python: 3.10.11
+  #       - os: windows-2025
+  #         python: 3.10.11
+  #       - os: ubuntu-24.04
+  #         python: 3.12.10
+  #       - os: ubuntu-24.04
+  #         python: 3.12.10
+  #       - os: ubuntu-24.04
+  #         python: *upper_pyver
+  #       - os: ubuntu-24.04
+  #         python: *upper_pyver
+  #       - os: windows-2025
+  #         python: *upper_pyver
+  #   uses: ./.github/workflows/_setup.yaml
+  #   with:
+  #     os: ${{ matrix.os }}
+  #     python: ${{ matrix.python }}
 
   # test-pip:
   #   needs: [setup]

@@ -13,7 +13,7 @@ on:
 jobs:
   deps:
     runs-on: ${{ inputs.os }}
-    name: pip-deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}
+    name: pip-deps-${{ inputs.os }}-py${{ inputs.python }}
     env:
       # To colorize output of make tasks.
       TERM: xterm-256color
@@ -30,7 +30,7 @@ jobs:
   build:
     runs-on: ${{ inputs.os }}
     needs: [deps]
-    name: pip-build-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}
+    name: pip-build-${{ inputs.os }}-py${{ inputs.python }}
     env:
       TERM: xterm-256color
 
@@ -52,22 +52,22 @@ jobs:
       uses: actions/cache@v4
       with:
         path: venv
-        key: pip-deps-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}
+        key: pip-deps-${{ inputs.os }}-py${{ inputs.python }}-${{ hashFiles('pyproject.toml') }}
 
     - name: Cache build
       uses: actions/cache@v4
       with:
         path: venv/**/[Oo]pen[Ff]isca*
-        key: pip-build-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
+        key: pip-build-${{ inputs.os }}-py${{ inputs.python }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}
         restore-keys: |
-          pip-build-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}-
-          pip-build-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-
+          pip-build-${{ inputs.os }}-py${{ inputs.python }}-${{ hashFiles('pyproject.toml') }}-
+          pip-build-${{ inputs.os }}-py${{ inputs.python }}-
 
     - name: Cache release
       uses: actions/cache@v4
       with:
         path: dist
-        key: pip-release-${{ inputs.os }}-np${{ inputs.numpy }}-py${{ inputs.python }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
+        key: pip-release-${{ inputs.os }}-py${{ inputs.python }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}
 
     - name: Build package
       run: |
