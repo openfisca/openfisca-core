@@ -12,7 +12,44 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  test:
+    strategy:
+      fail-fast: true
+      matrix: &matrix
+        include:
+        - os: ubuntu-24.04
+          python: *upper_pyver
+        - os: ubuntu-24.04
+          python: *upper_pyver
+        - os: windows-2025
+          python: *upper_pyver
+    runs-on: ${{ matrix.os }}
+    env:
+      # To colorize output of make tasks.
+      TERM: xterm-256color
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7.0.1
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v9.0.0
+      with:
+        python-version: ${{ matrix.os }}
+
+    - name: Test
+      run: uv run --extra template make test
+
+    - name: Lint
+      run: uv run make lint
+
+    - run: uv build
+
+    - name: Test the built package
+      run: uv run --frozen twine check dist/*
+
   integration:
+    needs: [test]
     runs-on: ubuntu-latest
     env:
       # To colorize output of make tasks.
@@ -26,9 +63,6 @@ jobs:
       uses: astral-sh/setup-uv@v9.0.0
       with:
         python-version: *upper_pyver
-
-    - name: Test
-      run: uv run --extra template make test
 
     - name: Lint
       run: uv run make lint
