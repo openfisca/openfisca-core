@@ -17,11 +17,8 @@ jobs:
       fail-fast: true
       matrix: &matrix
         resolution: [highest, lowest-direct]
-        include:
-        - os: ubuntu-24.04
-          python: *upper_pyver
-        - os: windows-2025
-          python: *upper_pyver
+        os: [ubuntu-24.04, windows-2025]
+        python: [*upper_pyver]
     runs-on: ${{ matrix.os }}
     env:
       # To colorize output of make tasks.
