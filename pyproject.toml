@@ -109,4 +109,5 @@ dev = [
     "ruff>=0.16.7",
     "ruff-lsp >=0.0.57, <1.0",
     "OpenFisca-Core[web-api]",
+    "twine",
 ]
