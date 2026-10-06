@@ -33,6 +33,11 @@ jobs:
     - name: Lint
       run: uv run make lint
 
+    - run: uv build
+
+    - name: Test the built package
+      run: uv run --frozen twine check dist/*
+
   # setup:
   #   strategy:
   #     fail-fast: true
