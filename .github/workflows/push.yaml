@@ -16,9 +16,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix: &matrix
+        resolution: [highest, lowest-direct]
         include:
-        - os: ubuntu-24.04
-          python: *upper_pyver
         - os: ubuntu-24.04
           python: *upper_pyver
         - os: windows-2025
@@ -37,8 +36,19 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
 
-    - name: Test
-      run: uv run --extra template make test
+    - name: Run Openfisca Core tests in parallel
+      # To evaluate that parallel mode works
+      run: uv run --resolution=${{matrix.resolution}} make test-core openfisca_args="--in-parallel"
+
+    - name: Run Country Template tests
+      if: ${{ startsWith(matrix.os, 'ubuntu') }}
+      run: |
+        uv run --resolution=${{matrix.resolution}} --extra templatemake test-country
+
+    - name: Run Extension Template tests
+      if: ${{ startsWith(matrix.os, 'ubuntu') }}
+      run: |
+        uv run --resolution=${{matrix.resolution}} --extra template make test-extension
 
   integration:
     needs: [test]
@@ -64,64 +74,5 @@ jobs:
     - name: Test the built package
       run: uv run --frozen twine check dist/*
 
-  # setup:
-  #   strategy:
-  #     fail-fast: true
-  #     matrix: &matrix
-  #       include:
-  #       - os: ubuntu-24.04
-  #         python: 3.10.11
-  #       - os: windows-2025
-  #         python: 3.10.11
-  #       - os: ubuntu-24.04
-  #         python: 3.12.10
-  #       - os: ubuntu-24.04
-  #         python: 3.12.10
-  #       - os: ubuntu-24.04
-  #         python: *upper_pyver
-  #       - os: ubuntu-24.04
-  #         python: *upper_pyver
-  #       - os: windows-2025
-  #         python: *upper_pyver
-  #   uses: ./.github/workflows/_setup.yaml
-  #   with:
-  #     os: ${{ matrix.os }}
-  #     python: ${{ matrix.python }}
-
-  # test-pip:
-  #   needs: [setup]
-  #   strategy:
-  #     fail-fast: false
-  #     matrix: *matrix
-  #   uses: ./.github/workflows/_test-pip.yaml
-  #   with:
-  #     os: ${{ matrix.os }}
-  #     numpy: ${{ matrix.numpy }}
-  #     python: ${{ matrix.python }}
-
-  # lint-pip:
-  #   needs: [setup-pip]
-  #   strategy:
-  #     fail-fast: true
-  #     matrix:
-  #       include:
-  #       # Lint with one version from each numpy series
-  #       # Need to be the same as setup-pip for cache
-  #       - numpy: 1.24.2
-  #         python: 3.10.11
-  #       - numpy: 1.26.4
-  #         python: 3.12.10
-  #       - numpy: 2.3.0
-  #         python: *upper_pyver
-  #   uses: ./.github/workflows/_lint-pip.yaml
-  #   with:
-  #     os: ubuntu-24.04
-  #     numpy: ${{ matrix.numpy }}
-  #     python: ${{ matrix.python }}
-
-  # check-version:
-  #   needs: [test-pip, lint-pip]
-  #   uses: ./.github/workflows/_version.yaml
-  #   with:
-  #     os: ubuntu-24.04
-  #     python: *upper_pyver
+    - name: Check version number has been properly updated
+      run: ${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh
