@@ -38,12 +38,12 @@ jobs:
 
     - name: Run Openfisca Core tests in parallel
       # To evaluate that parallel mode works
-      run: uv run --resolution=${{matrix.resolution}} make test-core openfisca_args="--in-parallel"
+      run: uv run --resolution=${{matrix.resolution}} --extra template make test-core openfisca_args="--in-parallel"
 
     - name: Run Country Template tests
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
       run: |
-        uv run --resolution=${{matrix.resolution}} --extra templatemake test-country
+        uv run --resolution=${{matrix.resolution}} --extra template make test-country
 
     - name: Run Extension Template tests
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
