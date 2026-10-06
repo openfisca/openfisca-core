@@ -33,5 +33,4 @@ all: test
 # test: clean lint test-code
 # 	@$(call print_pass,$@:)
 
-test:
-	uv run --dev --extra template make test-code
+test: test-code

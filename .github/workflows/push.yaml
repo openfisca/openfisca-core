@@ -28,10 +28,10 @@ jobs:
         python-version: *upper_pyver
 
     - name: Test
-      run: make test
+      run: uv run --extra template make test
 
     - name: Lint
-      run: make lint
+      run: uv run make lint
 
   # setup:
   #   strategy:
