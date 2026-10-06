@@ -24,7 +24,7 @@ OpenFisca also relies strongly on NumPy. The last four minor versions should wor
 
 If you're developing your own country package, you don't need to explicitly install OpenFisca-Core. It just needs to appear [in your package dependencies](https://github.com/openfisca/openfisca-france/blob/100.0.0/setup.py#L60).
 If you want to contribute to OpenFisca-Core itself, welcome!
-To install it locally we recommand to use [uv](https://docs.astral.sh/uv/getting-started/).
+To install it locally we recommend to use [uv](https://docs.astral.sh/uv/getting-started/).
 
 ### Installing `openfisca-core` with `uv`
 

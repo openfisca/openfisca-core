@@ -76,7 +76,10 @@ ignore-words-list = [
     "impot",
     "treshold",
 ]
-skip = "./venv"
+skip = [
+"*.egg-info",
+"./venv",
+]
 
 [tool.ruff.lint]
 ignore = [
