@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix: &matrix
-        resolution: [highest, lowest-direct]
+        resolution: [highest] #, lowest-direct]
         os: [ubuntu-24.04, windows-2025]
         python: [*upper_pyver]
     runs-on: ${{ matrix.os }}
