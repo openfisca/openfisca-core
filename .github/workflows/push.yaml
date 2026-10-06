@@ -35,7 +35,7 @@ jobs:
     - name: Install uv
       uses: astral-sh/setup-uv@v9.0.0
       with:
-        python-version: ${{ matrix.os }}
+        python-version: ${{ matrix.python }}
 
     - name: Test
       run: uv run --extra template make test
