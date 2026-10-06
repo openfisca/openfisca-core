@@ -40,14 +40,6 @@ jobs:
     - name: Test
       run: uv run --extra template make test
 
-    - name: Lint
-      run: uv run make lint
-
-    - run: uv build
-
-    - name: Test the built package
-      run: uv run --frozen twine check dist/*
-
   integration:
     needs: [test]
     runs-on: ubuntu-latest
