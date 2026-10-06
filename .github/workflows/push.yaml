@@ -14,7 +14,7 @@ concurrency:
 jobs:
   test:
     strategy:
-      fail-fast: true
+      #fail-fast: true
       matrix: &matrix
         resolution: [highest] #, lowest-direct]
         os: [ubuntu-24.04, windows-2025]
