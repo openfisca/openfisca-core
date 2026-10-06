@@ -17,20 +17,16 @@ jobs:
       fail-fast: true
       matrix: &matrix
         include:
-        # NumPy 1.24.2 supports Python 3.8 to 3.11
-        # Numpy 2.0.2 supports Python 3.9 to 3.12
         - os: ubuntu-24.04
           python: 3.10.11
         - os: windows-2025
           python: 3.10.11
-        # Python 3.11+: test both numpy 1.x and 2.x
         - os: ubuntu-24.04
           python: 3.12.10
         - os: ubuntu-24.04
           python: 3.12.10
         - os: ubuntu-24.04
           python: *upper_pyver
-        # Newest NumPy allowed by setup.py; guards against regressions like #1379.
         - os: ubuntu-24.04
           python: *upper_pyver
         - os: windows-2025
@@ -38,7 +34,6 @@ jobs:
     uses: ./.github/workflows/_setup.yaml
     with:
       os: ${{ matrix.os }}
-      numpy: ${{ matrix.numpy }}
       python: ${{ matrix.python }}
 
   # test-pip:
