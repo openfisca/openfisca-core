@@ -107,4 +107,3 @@ dev = [
     "ruff-lsp >=0.0.57, <1.0",
     "OpenFisca-Core[web-api]",
 ]
-
