@@ -1,7 +1,8 @@
 """This module contains the _BuildDefaultSimulation class."""
 
+from typing import Self
+
 import numpy
-from typing_extensions import Self
 
 from .simulation import Simulation
 from .typing import Entity, Population, TaxBenefitSystem

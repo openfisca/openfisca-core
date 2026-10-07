@@ -5,7 +5,7 @@ from __future__ import annotations
 import datetime
 from abc import abstractmethod
 from collections.abc import Iterable, Sequence
-from typing import Protocol, TypeAlias, TypedDict, TypeVar
+from typing import NotRequired, Protocol, Required, TypeAlias, TypedDict, TypeVar
 
 from numpy import (
     bool_ as Bool,
@@ -26,7 +26,6 @@ from numpy import (
     str_ as String,
 )
 from numpy.typing import NDArray as Array
-from typing_extensions import NotRequired, Required
 
 #: Generic type variables.
 E = TypeVar("E")
