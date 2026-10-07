@@ -19,8 +19,6 @@ jobs:
     needs:
       - integration
     runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.save-version.outputs.version }}
     environment:
       name: pypi
     permissions:
@@ -39,11 +37,6 @@ jobs:
 
       - name: Publish
         run: uv publish
-
-      - name: Save version
-        id: save-version
-        run: |
-          echo "version=$(uv version --short)" >> $GITHUB_OUTPUT
 
   # push-tag:
   #   needs:
@@ -77,7 +70,7 @@ jobs:
 
   test-on-windows:
     runs-on: windows-2025
-    needs: [publish-to-pypi]
+    needs: [integration, publish-to-pypi]
     defaults:
       run:
         shell: bash
@@ -88,7 +81,7 @@ jobs:
 
     - name: Install openfisca-core from PyPi
       env:
-        VERSION: ${{ needs.publish-to-pypi.outputs.version }}
+        VERSION: ${{ needs.integration.outputs.version }}
       # PyPi's index can lag a few seconds behind an upload, hence the retries.
       run: |
         uv venv --python ${{ env.UPPER_PYTHON_VERSION }}

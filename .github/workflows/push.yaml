@@ -57,7 +57,8 @@ jobs:
     env:
       # To colorize output of make tasks.
       TERM: xterm-256color
-
+    outputs:
+      version: ${{ steps.save-version.outputs.version }}
     steps:
     - name: Checkout
       uses: actions/checkout@v7.0.1
@@ -82,6 +83,11 @@ jobs:
 
     - name: Check version number has been properly updated
       run: uv run ${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh
+
+    - name: Save version
+      id: save-version
+      run: |
+        echo "version=$(uv version --short)" >> $GITHUB_OUTPUT
 
     - name: Upload distributions as artifacts
       uses: actions/upload-artifact@v7.0.1
