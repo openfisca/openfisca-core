@@ -19,6 +19,7 @@ concurrency:
 
 jobs:
   test:
+    if: ${{ !always() }}
     strategy:
       # Default is true but it is nice to have a shortcut here
       # to disable it and test the full matrix
