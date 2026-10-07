@@ -45,8 +45,8 @@ license="AGPL-3.0-or-later"
 license-files=["LICENSE"]
 
 [project.scripts]
-openfisca="openfisca_core_test.scripts.openfisca_command:main"
-openfisca-run-test="openfisca_core_test.scripts.openfisca_command:main"
+openfisca="openfisca_core.scripts.openfisca_command:main"
+openfisca-run-test="openfisca_core.scripts.openfisca_command:main"
 
 [project.urls]
 Homepage = "https://github.com/openfisca/openfisca-core"
