@@ -109,7 +109,6 @@ dev = [
     "openapi-spec-validator >=0.7.1, <0.8.0",
     "pyright >=1.1.382, <2.0",
     "ruff>=0.16.7",
-    "ruff-lsp >=0.0.57, <1.0",
     "OpenFisca-Core[web-api]",
     "twine",
 ]
