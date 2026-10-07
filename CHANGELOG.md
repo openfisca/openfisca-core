@@ -5,12 +5,16 @@
 #### Breaking changes
 
 - Remove Python 3.10 support
+- Remove extras
+  - `ci` and `dev` are merged and moved to `[dependency-groups]/dev` in `pyproject.toml`
+  - `tracker` as it is not maintained nor used
 
 #### Technical changes
 
 - Move from `pip` to `uv` for package management
-- Reduce Makefile tasks, CI and CD complexity
 - Rely on `uv` `--resolution=[highest, lowest-direct]` in CI to ensure a large test coverage on multiple `numpy` versions
+- Reduce Makefile tasks, CI and CD complexity
+  - Lint is only run in one python-version context
 
 ### 45.0.5 [#1387](https://github.com/openfisca/openfisca-core/pull/1387)
 

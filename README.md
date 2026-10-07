@@ -54,7 +54,7 @@ make test
 
 If you have many tests, you could run them in parallel :
 ```sh
-uv run --extra template make test-core openfisca_args="--in-parallel"
+uv run make test-core openfisca_args="--in-parallel"
 ```
 
 You could add an option  `--num-workers=4` to limit to 4 threads. Default is your CPU Core number minus 1.
@@ -64,13 +64,13 @@ Be aware that this add overhead so use it only for huge test suite.
 To run all the tests defined on a test file:
 
 ```sh
-uv run --extra template pytest tests/core/test_parameters.py
+uv run pytest tests/core/test_parameters.py
 ```
 
 To run a single test:
 
 ```sh
-uv run --extra template pytest tests/core/test_parameters.py -k test_parameter_for_period
+uv run pytest tests/core/test_parameters.py -k test_parameter_for_period
 ```
 
 ## Types

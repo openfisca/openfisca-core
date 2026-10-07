@@ -1,3 +1,4 @@
+---
 name: OpenFisca-Core / Pull request review
 
 env:
@@ -19,7 +20,9 @@ concurrency:
 jobs:
   test:
     strategy:
-      fail-fast: true # Default is true but it is nice to have a shortcut here to disable it and test the full matrix
+      # Default is true but it is nice to have a shortcut here
+      # to disable it and test the full matrix
+      fail-fast: true
       matrix:
         resolution: [highest, lowest-direct]
         os: [ubuntu-24.04, windows-2025]
@@ -33,27 +36,31 @@ jobs:
       TERM: xterm-256color
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v7.0.1
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v9.0.0
-      with:
-        python-version: ${{ matrix.python }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          python-version: ${{ matrix.python }}
 
-    - name: Run Openfisca Core tests in parallel
-      # To evaluate that parallel mode works
-      run: uv run --frozen --resolution=${{matrix.resolution}} --extra template make test-core openfisca_args="--in-parallel"
+      - name: Run Openfisca Core tests in parallel
+        # To evaluate that parallel mode works
+        run: |
+          uv run --frozen --resolution=${{matrix.resolution}} \
+          make test-core openfisca_args="--in-parallel"
 
-    - name: Run Country Template tests
-      if: ${{ startsWith(matrix.os, 'ubuntu') }}
-      run: |
-        uv run --frozen --resolution=${{matrix.resolution}} --extra template make test-country
+      - name: Run Country Template tests
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: |
+          uv run --frozen --resolution=${{matrix.resolution}} \
+          make test-country
 
-    - name: Run Extension Template tests
-      if: ${{ startsWith(matrix.os, 'ubuntu') }}
-      run: |
-        uv run --frozen --resolution=${{matrix.resolution}} --extra template make test-extension
+      - name: Run Extension Template tests
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: |
+          uv run --frozen --resolution=${{matrix.resolution}} \
+          make test-extension
 
   integration:
     needs: [test]
@@ -64,37 +71,37 @@ jobs:
     outputs:
       version: ${{ steps.save-version.outputs.version }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v7.0.1
-      with:
-        fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v9.0.0
-      with:
-        python-version: *upper_pyver
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          python-version: *upper_pyver
 
-    - name: Install the project
-      run: uv sync --locked --dev
+      - name: Install the project
+        run: uv sync --locked --dev
 
-    - name: Lint
-      run: uv run make lint
+      - name: Lint
+        run: uv run make lint
 
-    - run: uv build
+      - run: uv build
 
-    - name: Test the built package
-      run: uv run --frozen twine check dist/*
+      - name: Test the built package
+        run: uv run --frozen twine check dist/*
 
-    - name: Check version number has been properly updated
-      run: uv run ${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh
+      - name: Check version number has been properly updated
+        run: uv run ${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh
 
-    - name: Save version
-      id: save-version
-      run: |
-        echo "version=$(uv version --short)" >> $GITHUB_OUTPUT
+      - name: Save version
+        id: save-version
+        run: |
+          echo "version=$(uv version --short)" >> $GITHUB_OUTPUT
 
-    - name: Upload distributions as artifacts
-      uses: actions/upload-artifact@v7.0.1
-      with:
-        name: dist
-        path: dist/
+      - name: Upload distributions as artifacts
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: dist
+          path: dist/

@@ -61,11 +61,6 @@ web-api = [
     "Werkzeug >=2.2.3, <4.0",
 ]
 
-template=[
-    "openfisca-country-template >=8, <9",
-    "openfisca-extension-template >=2.0.7, <3"
-]
-
 [tool.black]
 target-version = [ "py311", "py312", "py313" ]
 
@@ -111,5 +106,7 @@ dev = [
     "pyright >=1.1.382, <2.0",
     "ruff>=0.16.7",
     "OpenFisca-Core[web-api]",
+    "openfisca-country-template >=8, <9",
+    "openfisca-extension-template >=2.0.7, <3",
     "twine",
 ]
