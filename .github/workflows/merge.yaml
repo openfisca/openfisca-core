@@ -17,7 +17,7 @@ jobs:
 
   publish-to-pypi:
     needs:
-      - integration
+      - push-jobs
     runs-on: ubuntu-latest
     environment:
       name: pypi
