@@ -14,12 +14,12 @@ concurrency:
 jobs:
   test:
     strategy:
-      fail-fast: false
+      fail-fast: false # Default is true but it is nice to have a shortcut here to disable it and test the full matrix
       matrix: &matrix
         resolution: [highest, lowest-direct]
         os: [ubuntu-24.04, windows-2025]
         python:
-          - 3.10.11
+          - 3.11
           - 3.12.10
           - *upper_pyver
     runs-on: ${{ matrix.os }}

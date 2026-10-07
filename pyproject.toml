@@ -10,12 +10,11 @@ readme = "README.md"
 authors = [
   {name = "OpenFisca Team", email = "contact@openfisca.org"},
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Operating System :: POSIX",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
@@ -67,7 +66,7 @@ template=[
 ]
 
 [tool.black]
-target-version = [ "py310", "py311", "py312", "py313" ]
+target-version = [ "py311", "py312", "py313" ]
 
 [tool.codespell]
 ignore-words-list = [
