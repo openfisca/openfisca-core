@@ -1,0 +1,27 @@
+name: OpenFisca-Core / Pull request review
+
+env:
+  UPPER_PYTHON_VERSION: &upper_pyver 3.13.11
+
+on:
+  pull_request:
+    types: [assigned, opened, reopened, synchronize, ready_for_review]
+  workflow_call:
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    env:
+      # To colorize output of make tasks.
+      TERM: xterm-256color
+    outputs:
+      version: ${{ steps.save-version.outputs.version }}
+    steps:
+    - name: Save version
+      id: save-version
+      run: |
+        echo "version=46.0.2" >> $GITHUB_OUTPUT
