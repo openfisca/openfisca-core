@@ -6,7 +6,7 @@ env:
 
 on:
   push:
-    branches: [main]
+    branches: [xp_uv]
 
 concurrency:
   group: merge-${{ github.ref }}
