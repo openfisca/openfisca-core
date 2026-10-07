@@ -13,64 +13,64 @@ concurrency:
 
 jobs:
   push-jobs:
-    uses: $/.github/workflows/save.yaml
+    uses: $/.github/workflows/push.yaml
 
-  # publish-to-pypi:
-  #   needs:
-  #     - integration
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: pypi
-  #   permissions:
-  #     id-token: write
-  #   steps:
-  #     - name: Install uv
-  #       uses: astral-sh/setup-uv@v9.0.0
-  #       with:
-  #         enable-cache: false
+  publish-to-pypi:
+    needs:
+      - integration
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+    permissions:
+      id-token: write
+    steps:
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: false
 
-  #     - name: Download distributions artifact
-  #       uses: actions/download-artifact@v8.0.1
-  #       with:
-  #         name: dist
-  #         path: dist/
+      - name: Download distributions artifact
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: dist
+          path: dist/
 
-  #     - name: Publish
-  #       run: uv publish
+      - name: Publish
+        run: uv publish
 
-  # push-tag:
-  #   needs:
-  #     - publish
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v7.0.1
-  #       with:
-  #         fetch-depth: 0
+  push-tag:
+    needs:
+      - publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
 
-  #     - name: Install uv
-  #       uses: astral-sh/setup-uv@v9.0.0
-  #       with:
-  #         enable-cache: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: false
 
-  #     - name: Add tag on GitHub
-  #       run: |
-  #         uv version --short
-  #         git tag `uv version --short`
-  #         git push --tags
+      - name: Add tag on GitHub
+        run: |
+          uv version --short
+          git tag `uv version --short`
+          git push --tags
 
-  #     - name: Update doc
-  #       run: |
-  #         curl -L \
-  #           -X POST \
-  #           -H "Accept: application/vnd.github+json" \
-  #           -H "Authorization: Bearer ${{ secrets.OPENFISCADOC_BOT_ACCESS_TOKEN }}" \
-  #           -H "X-GitHub-Api-Version: 2022-11-28" \
-  #           https://api.github.com/repos/openfisca/openfisca-doc/actions/workflows/deploy.yaml/dispatches \
-  #           -d '{"ref":"main"}'
+      - name: Update doc
+        run: |
+          curl -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.OPENFISCADOC_BOT_ACCESS_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/openfisca/openfisca-doc/actions/workflows/deploy.yaml/dispatches \
+            -d '{"ref":"main"}'
 
   test-on-windows:
     runs-on: windows-2025
-    needs: [push-jobs] #, publish-to-pypi]
+    needs: [push-jobs, publish-to-pypi]
     defaults:
       run:
         shell: bash
@@ -82,28 +82,24 @@ jobs:
     - name: Install openfisca-core from PyPi
       env:
         VERSION: ${{ needs.push-jobs.outputs.version }}
-        VERSION_2: ${{ needs.push-jobs.integration.outputs.version }}
       # PyPi's index can lag a few seconds behind an upload, hence the retries.
       run: |
-        echo $VERSION_2
-        echo $VERSION
-        echo ${{ needs }}
-    #     uv venv --python ${{ env.UPPER_PYTHON_VERSION }}
-    #     installed=false
-    #     for attempt in $(seq 1 5); do
-    #       if uv pip install "openfisca-core-test==$VERSION"; then
-    #         installed=true
-    #         break
-    #       fi
-    #       echo "openfisca-core $VERSION not on PyPi yet, retrying in 30s (attempt $attempt/5)…"
-    #       sleep 30
-    #     done
-    #     if [ "$installed" = false ]; then
-    #       echo "Could not install openfisca-core $VERSION from PyPi."
-    #       exit 1
-    #     fi
+        uv venv --python ${{ env.UPPER_PYTHON_VERSION }}
+        installed=false
+        for attempt in $(seq 1 5); do
+          if uv pip install "openfisca-core-test==$VERSION"; then
+            installed=true
+            break
+          fi
+          echo "openfisca-core $VERSION not on PyPi yet, retrying in 30s (attempt $attempt/5)…"
+          sleep 30
+        done
+        if [ "$installed" = false ]; then
+          echo "Could not install openfisca-core $VERSION from PyPi."
+          exit 1
+        fi
 
-    # - name: Test openfisca
-    #   run: |
-    #     source .venv/Scripts/activate
-    #     openfisca --help
+    - name: Test openfisca
+      run: |
+        source .venv/Scripts/activate
+        openfisca --help
