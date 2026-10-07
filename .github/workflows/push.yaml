@@ -63,7 +63,7 @@ jobs:
           make test-extension
 
   integration:
-    needs: [test]
+    # needs: [test]
     runs-on: ubuntu-latest
     env:
       # To colorize output of make tasks.
