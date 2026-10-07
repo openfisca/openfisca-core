@@ -35,7 +35,7 @@ To install `openfisca-core` locally in development mode run the following comman
 ```bash
 git clone https://github.com/openfisca/openfisca-core.git
 cd openfisca-core
-make test
+uv run make test
 ```
 
 ## Testing
@@ -49,7 +49,7 @@ make test
 To run the entire test suite:
 
 ```sh
-make test
+uv run make test
 ```
 
 If you have many tests, you could run them in parallel :
