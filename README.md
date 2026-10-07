@@ -40,12 +40,6 @@ make test
 
 ## Testing
 
-Install the test dependencies:
-
-```
-make install-deps install-edit install-test
-```
-
 > For integration testing purposes, `openfisca-core` relies on
 > [country-template](https://github.com/openfisca/country-template.git) and
 > [extension-template](https://github.com/openfisca/extension-template.git).
@@ -60,7 +54,7 @@ make test
 
 If you have many tests, you could run them in parallel :
 ```sh
-make test-core openfisca_args="--in-parallel"
+uv run --extra template make test-core openfisca_args="--in-parallel"
 ```
 
 You could add an option  `--num-workers=4` to limit to 4 threads. Default is your CPU Core number minus 1.
@@ -70,13 +64,13 @@ Be aware that this add overhead so use it only for huge test suite.
 To run all the tests defined on a test file:
 
 ```sh
-pytest tests/core/test_parameters.py
+uv run --extra template pytest tests/core/test_parameters.py
 ```
 
 To run a single test:
 
 ```sh
-pytest tests/core/test_parameters.py -k test_parameter_for_period
+uv run --extra template pytest tests/core/test_parameters.py -k test_parameter_for_period
 ```
 
 ## Types

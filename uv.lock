@@ -1249,37 +1249,7 @@ wheels = [
 
 [[package]]
 name = "openfisca-core"
-version = "44.7.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "dpath" },
-    { name = "numexpr" },
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
-    { name = "numpy", version = "2.5.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
-    { name = "pendulum" },
-    { name = "psutil" },
-    { name = "pytest" },
-    { name = "pyyaml" },
-    { name = "sortedcontainers" },
-    { name = "strenum" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/02/07/bbbe0f42adb3e09173b077de79669029dce8659a138da52823e4c1d8a893/openfisca_core-44.7.1.tar.gz", hash = "sha256:3062c6808e1241f37619e638412b64ec2b7d2fcedb14a39ee6a74eebba6f6a6e", size = 209977, upload-time = "2026-09-04T07:00:45.94Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/70/29/c50f81ec3fe5eb912140e8fd304828f9d85fd9e9618e7c349abf78167c85/openfisca_core-44.7.1-py3-none-any.whl", hash = "sha256:770e3465ca3999c39d331242a4d273ffba1e75aa205e8a16849b2b6a4a20c116", size = 270645, upload-time = "2026-09-04T07:00:44.047Z" },
-]
-
-[package.optional-dependencies]
-web-api = [
-    { name = "flask" },
-    { name = "flask-cors" },
-    { name = "gunicorn" },
-    { name = "werkzeug" },
-]
-
-[[package]]
-name = "openfisca-core-test"
-version = "46.0.3"
+version = "46.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "dpath" },

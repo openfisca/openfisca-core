@@ -3,8 +3,8 @@ requires = ["setuptools >= 77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name="OpenFisca-Core-test"
-version="46.0.3"
+name="OpenFisca-Core"
+version="46.0.0"
 description="A versatile microsimulation free software"
 readme = "README.md"
 authors = [
@@ -45,8 +45,8 @@ license="AGPL-3.0-or-later"
 license-files=["LICENSE"]
 
 [project.scripts]
-openfisca="openfisca_core.scripts.openfisca_command:main"
-openfisca-run-test="openfisca_core.scripts.openfisca_command:main"
+openfisca="openfisca_core_test.scripts.openfisca_command:main"
+openfisca-run-test="openfisca_core_test.scripts.openfisca_command:main"
 
 [project.urls]
 Homepage = "https://github.com/openfisca/openfisca-core"
