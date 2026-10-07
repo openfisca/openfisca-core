@@ -32,9 +32,8 @@ jobs:
     env:
       # To colorize output of make tasks.
       TERM: xterm-256color
-      env:
-        VERSION: ${{ needs.integration.outputs.version }}
-        VERSION_2: ${{ needs.integration.outputs.version }}
+      VERSION: ${{ needs.integration.outputs.version }}
+      VERSION_2: ${{ needs.integration.outputs.version }}
       # PyPi's index can lag a few seconds behind an upload, hence the retries.
       run: |
         echo $VERSION_2

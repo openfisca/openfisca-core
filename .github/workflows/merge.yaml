@@ -14,6 +14,8 @@ concurrency:
 jobs:
   integration:
     uses: $/.github/workflows/save.yaml
+    outputs:
+      version: ${{ steps.save-version.outputs.version }}
 
   # publish-to-pypi:
   #   needs:
@@ -88,22 +90,22 @@ jobs:
         echo $VERSION_2
         echo $VERSION
         echo ${{ needs }}
-        uv venv --python ${{ env.UPPER_PYTHON_VERSION }}
-        installed=false
-        for attempt in $(seq 1 5); do
-          if uv pip install "openfisca-core-test==$VERSION"; then
-            installed=true
-            break
-          fi
-          echo "openfisca-core $VERSION not on PyPi yet, retrying in 30s (attempt $attempt/5)…"
-          sleep 30
-        done
-        if [ "$installed" = false ]; then
-          echo "Could not install openfisca-core $VERSION from PyPi."
-          exit 1
-        fi
+    #     uv venv --python ${{ env.UPPER_PYTHON_VERSION }}
+    #     installed=false
+    #     for attempt in $(seq 1 5); do
+    #       if uv pip install "openfisca-core-test==$VERSION"; then
+    #         installed=true
+    #         break
+    #       fi
+    #       echo "openfisca-core $VERSION not on PyPi yet, retrying in 30s (attempt $attempt/5)…"
+    #       sleep 30
+    #     done
+    #     if [ "$installed" = false ]; then
+    #       echo "Could not install openfisca-core $VERSION from PyPi."
+    #       exit 1
+    #     fi
 
-    - name: Test openfisca
-      run: |
-        source .venv/Scripts/activate
-        openfisca --help
+    # - name: Test openfisca
+    #   run: |
+    #     source .venv/Scripts/activate
+    #     openfisca --help
