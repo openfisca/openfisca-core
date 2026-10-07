@@ -48,23 +48,26 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
+      - name: Install package in specific context
+        run: |
+          uv sync --frozen --resolution=${{matrix.resolution}}
+
       - name: Run Openfisca Core tests in parallel
         # To evaluate that parallel mode works
         run: |
-          uv run --frozen --resolution=${{matrix.resolution}} \
-          make test-core openfisca_args="--in-parallel"
+          uv run --frozen make test-core openfisca_args="--in-parallel"
 
       - name: Run Country Template tests
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
-          uv run --frozen --resolution=${{matrix.resolution}} \
-          make test-country
+          uv run --frozen make test-country
 
       - name: Run Extension Template tests
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
-          uv run --frozen --resolution=${{matrix.resolution}} \
-          make test-extension
+          uv run --frozen make test-extension
+
+      - run: uv pip list
 
   integration:
     needs: [test]
@@ -74,7 +77,8 @@ jobs:
       TERM: xterm-256color
     outputs:
       version: ${{ steps.save-version.outputs.version }}
-      has-functional-changes: ${{ steps.stop-early.outputs.has-functional-changes }}
+      has-functional-changes: |
+        ${{ steps.stop-early.outputs.has-functional-changes }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
