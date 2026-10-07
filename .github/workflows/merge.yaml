@@ -8,7 +8,7 @@ on:
     branches: [xp_uv]
 
 concurrency:
-  group: ${{ github.ref }}
+  group: merge-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
