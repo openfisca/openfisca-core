@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  push-tasks:
+  push-jobs:
     uses: $/.github/workflows/save.yaml
 
   # publish-to-pypi:
@@ -70,7 +70,7 @@ jobs:
 
   test-on-windows:
     runs-on: windows-2025
-    needs: [push-tasks] #, publish-to-pypi]
+    needs: [push-jobs] #, publish-to-pypi]
     defaults:
       run:
         shell: bash
@@ -81,8 +81,8 @@ jobs:
 
     - name: Install openfisca-core from PyPi
       env:
-        VERSION: ${{ needs.push-tasks.outputs.version }}
-        VERSION_2: ${{ needs.push-tasks.integration.outputs.version }}
+        VERSION: ${{ needs.push-jobs.outputs.version }}
+        VERSION_2: ${{ needs.push-jobs.integration.outputs.version }}
       # PyPi's index can lag a few seconds behind an upload, hence the retries.
       run: |
         echo $VERSION_2

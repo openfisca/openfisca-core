@@ -7,6 +7,10 @@ on:
   pull_request:
     types: [assigned, opened, reopened, synchronize, ready_for_review]
   workflow_call:
+    outputs:
+      version:
+        description: "Package version"
+        value: ${{ jobs.integration.outputs.version }}
 
 concurrency:
   group: ${{ github.ref }}
