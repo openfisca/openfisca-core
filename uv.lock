@@ -1279,7 +1279,7 @@ web-api = [
 
 [[package]]
 name = "openfisca-core-test"
-version = "46.0.5"
+version = "46.0.6"
 source = { editable = "." }
 dependencies = [
     { name = "dpath" },
