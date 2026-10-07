@@ -28,7 +28,5 @@ all: test
 	@$(call print_pass,$@:)
 
 ## Run all lints and tests.
-# test: clean lint test-code
-# 	@$(call print_pass,$@:)
-
-test: test-code
+test: lint test-code
+	@$(call print_pass,$@:)
