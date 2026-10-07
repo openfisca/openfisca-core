@@ -12,6 +12,10 @@ on:
       version:
         description: "Package version"
         value: ${{ jobs.integration.outputs.version }}
+      has-functional-changes:
+        description: "Status on functional changes presence"
+        value: ${{ jobs.integration.outputs.has-functional-changes }}
+
 
 concurrency:
   group: ${{ github.ref }}
@@ -70,6 +74,7 @@ jobs:
       TERM: xterm-256color
     outputs:
       version: ${{ steps.save-version.outputs.version }}
+      has-functional-changes: ${{ steps.stop-early.outputs.has-functional-changes }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
@@ -94,6 +99,19 @@ jobs:
 
       - name: Check version number has been properly updated
         run: uv run ${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh
+
+      - id: stop-early
+        # The `check-for-functional-changes` job should always succeed
+        # regardless of the `has-functional-changes` script's exit code.
+        # Consequently, we do not use that exit code to trigger deploy,
+        # but rather a dedicated output variable `status`, to avoid a job
+        # failure if the exit code is different from 0. Conversely,
+        # if the job fails the entire workflow would be marked as `failed`
+        # which is disturbing for contributors.
+        run: |
+          if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then
+            echo "has-functional-changes=yes" >> $GITHUB_OUTPUT
+          fi
 
       - name: Save version
         id: save-version
