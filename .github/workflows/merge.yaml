@@ -13,30 +13,30 @@ concurrency:
 
 jobs:
   integration:
-    uses: $/.github/workflows/push.yaml
+    uses: $/.github/workflows/save.yaml
 
-  publish-to-pypi:
-    needs:
-      - integration
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-    permissions:
-      id-token: write
-    steps:
-      - name: Install uv
-        uses: astral-sh/setup-uv@v9.0.0
-        with:
-          enable-cache: false
+  # publish-to-pypi:
+  #   needs:
+  #     - integration
+  #   runs-on: ubuntu-latest
+  #   environment:
+  #     name: pypi
+  #   permissions:
+  #     id-token: write
+  #   steps:
+  #     - name: Install uv
+  #       uses: astral-sh/setup-uv@v9.0.0
+  #       with:
+  #         enable-cache: false
 
-      - name: Download distributions artifact
-        uses: actions/download-artifact@v8.0.1
-        with:
-          name: dist
-          path: dist/
+  #     - name: Download distributions artifact
+  #       uses: actions/download-artifact@v8.0.1
+  #       with:
+  #         name: dist
+  #         path: dist/
 
-      - name: Publish
-        run: uv publish
+  #     - name: Publish
+  #       run: uv publish
 
   # push-tag:
   #   needs:
@@ -70,7 +70,7 @@ jobs:
 
   test-on-windows:
     runs-on: windows-2025
-    needs: [integration, publish-to-pypi]
+    needs: [integration] #, publish-to-pypi]
     defaults:
       run:
         shell: bash
@@ -82,8 +82,12 @@ jobs:
     - name: Install openfisca-core from PyPi
       env:
         VERSION: ${{ needs.integration.outputs.version }}
+        VERSION_2: ${{ needs.integration.integration.outputs.version }}
       # PyPi's index can lag a few seconds behind an upload, hence the retries.
       run: |
+        echo $VERSION_2
+        echo $VERSION
+        echo ${{ needs }}
         uv venv --python ${{ env.UPPER_PYTHON_VERSION }}
         installed=false
         for attempt in $(seq 1 5); do
