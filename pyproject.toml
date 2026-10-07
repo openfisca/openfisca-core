@@ -3,8 +3,8 @@ requires = ["setuptools >= 77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name="OpenFisca-Core-test"
-version="46.0.7"
+name="OpenFisca-Core"
+version="46.0.0"
 description="A versatile microsimulation free software"
 readme = "README.md"
 authors = [
