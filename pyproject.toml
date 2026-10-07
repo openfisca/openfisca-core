@@ -27,7 +27,8 @@ keywords= ["benefit", "microsimulation", "social", "tax"]
 # DO NOT add space between '>=' and version number as it break conda build.
 dependencies = [
     "PyYAML >=6.0.1, <7.0",
-    "StrEnum >=0.4.8, <0.5.0", # 3.11.x backport
+    "PyYAML >=6.0.2, <7.0 ; python_version >= \"3.13\"",
+    "StrEnum >=0.4.8, <0.5.0",
     "dpath >=2.2.0, <3.0",
     "numexpr >=2.10.1, <3.0",
     "numpy >=1.24.2, <=3 ; python_version < \"3.12\"",
@@ -60,8 +61,8 @@ web-api = [
 ]
 
 template=[
-    "openfisca-country-template",
-    "openfisca-extension-template >=2.0.6, <3"
+    "openfisca-country-template >=8, <9",
+    "openfisca-extension-template >=2.0.7, <3"
 ]
 
 [tool.black]
