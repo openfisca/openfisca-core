@@ -22,52 +22,52 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # test:
-  #   strategy:
-  #     # Default is true but it is nice to have a shortcut here
-  #     # to disable it and test the full matrix
-  #     fail-fast: true
-  #     matrix:
-  #       resolution: [highest, lowest-direct]
-  #       os: [ubuntu-24.04, windows-2025]
-  #       python:
-  #         - 3.11
-  #         - 3.12.10
-  #         - *upper_pyver
-  #   runs-on: ${{ matrix.os }}
-  #   env:
-  #     # To colorize output of make tasks.
-  #     TERM: xterm-256color
+  test:
+    strategy:
+      # Default is true but it is nice to have a shortcut here
+      # to disable it and test the full matrix
+      fail-fast: true
+      matrix:
+        resolution: [highest, lowest-direct]
+        os: [ubuntu-24.04, windows-2025]
+        python:
+          - 3.11
+          - 3.12.10
+          - *upper_pyver
+    runs-on: ${{ matrix.os }}
+    env:
+      # To colorize output of make tasks.
+      TERM: xterm-256color
 
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v7.0.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
 
-  #     - name: Install uv
-  #       uses: astral-sh/setup-uv@v9.0.0
-  #       with:
-  #         python-version: ${{ matrix.python }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          python-version: ${{ matrix.python }}
 
-  #     - name: Run Openfisca Core tests in parallel
-  #       # To evaluate that parallel mode works
-  #       run: |
-  #         uv run --frozen --resolution=${{matrix.resolution}} \
-  #         make test-core openfisca_args="--in-parallel"
+      - name: Run Openfisca Core tests in parallel
+        # To evaluate that parallel mode works
+        run: |
+          uv run --frozen --resolution=${{matrix.resolution}} \
+          make test-core openfisca_args="--in-parallel"
 
-  #     - name: Run Country Template tests
-  #       if: ${{ startsWith(matrix.os, 'ubuntu') }}
-  #       run: |
-  #         uv run --frozen --resolution=${{matrix.resolution}} \
-  #         make test-country
+      - name: Run Country Template tests
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: |
+          uv run --frozen --resolution=${{matrix.resolution}} \
+          make test-country
 
-  #     - name: Run Extension Template tests
-  #       if: ${{ startsWith(matrix.os, 'ubuntu') }}
-  #       run: |
-  #         uv run --frozen --resolution=${{matrix.resolution}} \
-  #         make test-extension
+      - name: Run Extension Template tests
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: |
+          uv run --frozen --resolution=${{matrix.resolution}} \
+          make test-extension
 
   integration:
-    # needs: [test]
+    needs: [test]
     runs-on: ubuntu-latest
     env:
       # To colorize output of make tasks.
