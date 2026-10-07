@@ -12,10 +12,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  integration:
+  push-tasks:
     uses: $/.github/workflows/save.yaml
-    outputs:
-      version: ${{ steps.save-version.outputs.version }}
 
   # publish-to-pypi:
   #   needs:
