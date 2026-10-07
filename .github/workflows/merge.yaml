@@ -70,7 +70,7 @@ jobs:
 
   test-on-windows:
     runs-on: windows-2025
-    needs: [integration] #, publish-to-pypi]
+    needs: [push-tasks] #, publish-to-pypi]
     defaults:
       run:
         shell: bash
