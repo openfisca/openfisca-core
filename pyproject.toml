@@ -27,6 +27,7 @@ keywords= ["benefit", "microsimulation", "social", "tax"]
 # DO NOT add space between '>=' and version number as it break conda build.
 dependencies = [
     "PyYAML >=6.0.1, <7.0",
+    # https://github.com/yaml/pyyaml/pull/808
     "PyYAML >=6.0.2, <7.0 ; python_version >= \"3.13\"",
     "StrEnum >=0.4.8, <0.5.0",
     "dpath >=2.2.0, <3.0",
