@@ -13,12 +13,38 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check-for-functional-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.stop-early.outputs.status }}
+
+    steps:
+    - uses: actions/checkout@v7.0.1
+      with:
+        fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          python-version: *upper_pyver
+
+    - id: stop-early
+      # The `check-for-functional-changes` job should always succeed regardless
+      # of the `has-functional-changes` script's exit code. Consequently, we do
+      # not use that exit code to trigger deploy, but rather a dedicated output
+      # variable `status`, to avoid a job failure if the exit code is different
+      # from 0. Conversely, if the job fails the entire workflow would be
+      # marked as `failed` which is disturbing for contributors.
+      run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo
+        "::set-output name=status::success" ; fi
+
   push-jobs:
+    needs: [check-for-functional-changes]
+    if: needs.check-for-functional-changes.outputs.status == 'success'
     uses: $/.github/workflows/push.yaml
 
   publish-to-pypi:
-    needs:
-      - push-jobs
+    needs: [push-jobs]
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -51,8 +77,7 @@ jobs:
             -d '{"ref":"main"}'
 
   push-tag:
-    needs:
-      - publish-to-pypi
+    needs: [publish-to-pypi]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
