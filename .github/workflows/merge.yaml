@@ -38,9 +38,19 @@ jobs:
       - name: Publish
         run: uv publish
 
+      - name: Update doc
+        run: |
+          curl -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.OPENFISCADOC_BOT_ACCESS_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/openfisca/openfisca-doc/actions/workflows/deploy.yaml/dispatches \
+            -d '{"ref":"main"}'
+
   push-tag:
     needs:
-      - publish
+      - publish-to-pypi
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
@@ -57,16 +67,6 @@ jobs:
           uv version --short
           git tag `uv version --short`
           git push --tags
-
-      - name: Update doc
-        run: |
-          curl -L \
-            -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.OPENFISCADOC_BOT_ACCESS_TOKEN }}" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/openfisca/openfisca-doc/actions/workflows/deploy.yaml/dispatches \
-            -d '{"ref":"main"}'
 
   test-on-windows:
     runs-on: windows-2025
