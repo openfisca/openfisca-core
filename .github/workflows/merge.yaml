@@ -81,8 +81,8 @@ jobs:
 
     - name: Install openfisca-core from PyPi
       env:
-        VERSION: ${{ needs.integration.outputs.version }}
-        VERSION_2: ${{ needs.integration.integration.outputs.version }}
+        VERSION: ${{ needs.push-tasks.outputs.version }}
+        VERSION_2: ${{ needs.push-tasks.integration.outputs.version }}
       # PyPi's index can lag a few seconds behind an upload, hence the retries.
       run: |
         echo $VERSION_2
