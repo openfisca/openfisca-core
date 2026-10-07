@@ -67,7 +67,7 @@ jobs:
         python-version: *upper_pyver
 
     - name: Install the project
-      run: uv sync --locked --all-extras --dev
+      run: uv sync --locked --dev
 
     - name: Lint
       run: uv run make lint
@@ -79,3 +79,9 @@ jobs:
 
     - name: Check version number has been properly updated
       run: uv run ${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh
+
+    - name: Upload distributions as artifacts
+      uses: actions/upload-artifact@v7.0.1
+      with:
+        name: dist
+        path: dist/

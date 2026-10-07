@@ -12,7 +12,7 @@ then
     exit 0
 fi
 
-current_version=`python setup.py --version`
+current_version=$(grep '^version =' pyproject.toml | cut -d '"' -f 2)  # parsing with tomllib is complicated, see https://github.com/python-poetry/poetry/issues/273
 
 if git rev-parse --verify --quiet $current_version
 then

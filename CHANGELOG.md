@@ -1,5 +1,17 @@
 # Changelog
 
+# 46.0.0 [#1396](https://github.com/openfisca/openfisca-core/pull/1396)
+
+#### Breaking changes
+
+- Remove Python 3.10 support
+
+#### Technical changes
+
+- Move from `pip` to `uv` for package management
+- Reduce Makefile tasks, CI and CD complexity
+- Rely on `uv` `--resolution=[highest, lowest-direct]` in CI to ensure a large test coverage on multiple `numpy` versions
+
 ### 45.0.5 [#1387](https://github.com/openfisca/openfisca-core/pull/1387)
 
 #### Bug fixes
