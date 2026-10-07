@@ -35,7 +35,8 @@ jobs:
       VERSION: ${{ needs.integration.outputs.version }}
       VERSION_2: ${{ needs.integration.outputs.version }}
       # PyPi's index can lag a few seconds behind an upload, hence the retries.
-      run: |
+    steps:
+    - run: |
         echo $VERSION_2
         echo $VERSION
         echo ${{ needs }}
