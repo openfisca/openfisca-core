@@ -6,7 +6,7 @@
 
 - Remove Python 3.10 support
 - Remove extras
-  - `ci` and `dev` are merged and moved to `[dependency-groups]/dev` in `pyproject.toml`
+  - `dev` is moved to `[dependency-groups]/dev` in `pyproject.toml`
   - `tracker` as it is not maintained nor used
 
 #### Technical changes

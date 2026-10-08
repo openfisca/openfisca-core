@@ -61,6 +61,13 @@ web-api = [
     "Werkzeug >=2.2.3, <4.0",
 ]
 
+ci = [
+    "openapi-spec-validator >=0.7.1, <0.8.0",
+    "OpenFisca-Core[web-api]",
+    "openfisca-country-template >=8, <9",
+    "openfisca-extension-template >=2.0.7, <3",
+]
+
 [tool.black]
 target-version = [ "py311", "py312", "py313" ]
 
@@ -102,11 +109,8 @@ dev = [
     "idna >=3.10, <4.0",
     "isort >=5.13.2, <6.0",
     "mypy >=1.11.2, <2.0",
-    "openapi-spec-validator >=0.7.1, <0.8.0",
     "pyright >=1.1.382, <2.0",
     "ruff >=0.16.7",
-    "OpenFisca-Core[web-api]",
-    "openfisca-country-template >=8, <9",
-    "openfisca-extension-template >=2.0.7, <3",
+    "OpenFisca-Core[ci]",
     "twine",
 ]
