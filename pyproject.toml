@@ -46,6 +46,21 @@ dependencies = [
 license = "AGPL-3.0-or-later"
 license-files = ["LICENSE"]
 
+[dependency-groups]
+dev = [
+    "codespell >=2.3.0, <3.0",
+    "colorama >=0.4.4, <0.5",
+    "darglint >=1.8.1, <2.0",
+    "docutils >=0.23",
+    "idna >=3.10, <4.0",
+    "isort >=5.13.2, <6.0",
+    "mypy >=1.11.2, <2.0",
+    "pyright >=1.1.382, <2.0",
+    "ruff >=0.16.7",
+    "OpenFisca-Core[ci]",
+    "twine >1",
+]
+
 [project.scripts]
 openfisca = "openfisca_core.scripts.openfisca_command:main"
 openfisca-run-test = "openfisca_core.scripts.openfisca_command:main"
@@ -69,12 +84,6 @@ ci = [
     "openfisca-country-template >=8, <9",
     "openfisca-extension-template >=2.0.7, <3",
 ]
-
-[tool.setuptools.packages.find]
-exclude = ["tests*"]
-
-[tool.black]
-target-version = [ "py311", "py312", "py313" ]
 
 [tool.codespell]
 ignore-words-list = [
@@ -115,8 +124,8 @@ module = "openfisca_core.*.tests.*"
 ignore_errors = true
 
 [tool.pytest]
-addopts = "--disable-pytest-warnings --doctest-modules --showlocals"
-doctest_optionflags = "ELLIPSIS IGNORE_EXCEPTION_DETAIL NUMBER NORMALIZE_WHITESPACE"
+addopts = ["--disable-pytest-warnings", "--doctest-modules", "--showlocals"]
+doctest_optionflags = ["ELLIPSIS", "IGNORE_EXCEPTION_DETAIL", "NUMBER", "NORMALIZE_WHITESPACE"]
 python_files = "**/*.py"
 testpaths = "tests"
 
@@ -134,17 +143,5 @@ ignore = [
     "S102",
 ]
 
-[dependency-groups]
-dev = [
-    "codespell >=2.3.0, <3.0",
-    "colorama >=0.4.4, <0.5",
-    "darglint >=1.8.1, <2.0",
-    "docutils >=0.23",
-    "idna >=3.10, <4.0",
-    "isort >=5.13.2, <6.0",
-    "mypy >=1.11.2, <2.0",
-    "pyright >=1.1.382, <2.0",
-    "ruff >=0.16.7",
-    "OpenFisca-Core[ci]",
-    "twine >1",
-]
+[tool.setuptools.packages.find]
+exclude = ["tests*"]
