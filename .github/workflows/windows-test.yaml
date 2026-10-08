@@ -1,0 +1,45 @@
+---
+name: OpenFisca-Core / Windows install from PyPi
+
+env:
+  UPPER_PYTHON_VERSION: &upper_pyver 3.13.11
+
+on:
+  push:
+    tags:
+
+jobs:
+  test-on-windows:
+    runs-on: windows-2025
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+
+      - name: Install openfisca-core from PyPi
+        # PyPi's index can lag a few seconds behind an upload,
+        # hence the retries.
+        run: |
+          uv venv --python ${{ env.UPPER_PYTHON_VERSION }}
+          installed=false
+          for attempt in $(seq 1 5); do
+            if uv pip install "openfisca-core==$GITHUB_REF_NAME"; then
+              installed=true
+              break
+            fi
+            echo "openfisca-core $GITHUB_REF_NAME not on PyPi yet,"
+            echo "retrying in 30s (attempt $attempt/5)…"
+            sleep 30
+          done
+          if [ "$installed" = false ]; then
+            echo "Could not install openfisca-core $GITHUB_REF_NAME from PyPi."
+            exit 1
+          fi
+
+      - name: Test openfisca
+        run: |
+          source .venv/Scripts/activate
+          openfisca --help
