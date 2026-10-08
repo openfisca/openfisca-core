@@ -13,6 +13,7 @@
 
 - Move from `pip` to `uv` for package management
 - Rely on `uv` `--resolution=[highest, lowest-direct]` in CI to ensure a large test coverage on multiple `numpy` versions
+- Remove `setup.py` and `setup.cfg` and move logic to `pyproject.toml`
 - Reduce Makefile tasks, CI and CD complexity
   - Lint is only run with a single version of Python
 
