@@ -70,6 +70,9 @@ ci = [
     "openfisca-extension-template >=2.0.7, <3",
 ]
 
+[tool.setuptools.packages.find]
+exclude = ["tests*"]
+
 [tool.black]
 target-version = [ "py311", "py312", "py313" ]
 
@@ -87,6 +90,35 @@ skip = [
 "*.egg-info",
 "./venv",
 ]
+
+[tool.mypy]
+check_untyped_defs = false
+disallow_any_decorated = false
+disallow_any_explicit = false
+disallow_any_expr = false
+disallow_any_unimported = false
+follow_imports = "skip"
+ignore_missing_imports = true
+implicit_reexport = false
+install_types = true
+mypy_path = "stubs"
+non_interactive = true
+plugins = "numpy.typing.mypy_plugin"
+pretty = true
+python_version = 3.10
+strict = false
+warn_no_return = true
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+module = "openfisca_core.*.tests.*"
+ignore_errors = true
+
+[tool.pytest]
+addopts = "--disable-pytest-warnings --doctest-modules --showlocals"
+doctest_optionflags = "ELLIPSIS IGNORE_EXCEPTION_DETAIL NUMBER NORMALIZE_WHITESPACE"
+python_files = "**/*.py"
+testpaths = "tests"
 
 [tool.ruff.lint]
 ignore = [
