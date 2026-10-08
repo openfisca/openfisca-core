@@ -72,7 +72,7 @@ jobs:
       - run: uv build --resolution=${{matrix.resolution}}
 
       - name: Smoke test (wheel)
-        run: uv run --isolated --no-project --with dist/*.whl make test
+        run: uv run --isolated --no-project --with dist/*.whl make test-code
       # - name: Smoke test (source distribution)
       #   run: uv run --isolated --no-project --with dist/*.tar.gz tests/smoke_test.py
 
