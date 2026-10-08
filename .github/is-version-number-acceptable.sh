@@ -14,6 +14,12 @@ fi
 
 current_version=$(grep '^version =' pyproject.toml | cut -d '"' -f 2)  # parsing with tomllib is complicated, see https://github.com/python-poetry/poetry/issues/273
 
+if [[ $current_version == "" ]]
+then
+    echo "The current version number was not fetched from pyproject. Exiting…"
+    exit 1
+fi
+
 if git rev-parse --verify --quiet $current_version
 then
     echo "Version $current_version already exists in commit:"

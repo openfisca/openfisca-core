@@ -3,15 +3,15 @@ requires = ["setuptools >= 77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name="OpenFisca-Core"
-version="46.0.0"
-description="A versatile microsimulation free software"
+name = "OpenFisca-Core"
+version = "46.0.0"
+description = "A versatile microsimulation free software"
 readme = "README.md"
 authors = [
   {name = "OpenFisca Team", email = "contact@openfisca.org"},
 ]
 requires-python = ">=3.11"
-classifiers=[
+classifiers = [
         "Development Status :: 5 - Production/Stable",
         "Operating System :: POSIX",
         "Programming Language :: Python",
@@ -20,7 +20,7 @@ classifiers=[
         "Programming Language :: Python :: 3.13",
         "Topic :: Scientific/Engineering :: Information Analysis",
     ]
-keywords= ["benefit", "microsimulation", "social", "tax"]
+keywords = ["benefit", "microsimulation", "social", "tax"]
 # Please make sure to cap all dependency versions, in order to avoid unwanted
 # functional and integration breaks caused by external code updates.
 # DO NOT add space between '>=' and version number as it break conda build.
@@ -41,12 +41,12 @@ dependencies = [
     "typing_extensions >=4.16.0, <5.0",
 ]
 
-license="AGPL-3.0-or-later"
-license-files=["LICENSE"]
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE"]
 
 [project.scripts]
-openfisca="openfisca_core.scripts.openfisca_command:main"
-openfisca-run-test="openfisca_core.scripts.openfisca_command:main"
+openfisca = "openfisca_core.scripts.openfisca_command:main"
+openfisca-run-test = "openfisca_core.scripts.openfisca_command:main"
 
 [project.urls]
 Homepage = "https://github.com/openfisca/openfisca-core"
@@ -104,7 +104,7 @@ dev = [
     "mypy >=1.11.2, <2.0",
     "openapi-spec-validator >=0.7.1, <0.8.0",
     "pyright >=1.1.382, <2.0",
-    "ruff>=0.16.7",
+    "ruff >=0.16.7",
     "OpenFisca-Core[web-api]",
     "openfisca-country-template >=8, <9",
     "openfisca-extension-template >=2.0.7, <3",
