@@ -50,7 +50,7 @@ jobs:
 
       - name: Install package in specific context
         run: |
-          uv sync --frozen --resolution=${{matrix.resolution}}
+          uv sync --resolution=${{matrix.resolution}}
 
       - name: Run Openfisca Core tests in parallel
         # To evaluate that parallel mode works
@@ -68,6 +68,14 @@ jobs:
           uv run --frozen make test-extension
 
       - run: uv pip list
+
+      - run: uv build --resolution=${{matrix.resolution}}
+
+      - name: Smoke test (wheel)
+        run: uv run --isolated --no-project --with dist/*.whl make test
+      # - name: Smoke test (source distribution)
+      #   run: uv run --isolated --no-project --with dist/*.tar.gz tests/smoke_test.py
+
 
   integration:
     needs: [test]
