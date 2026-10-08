@@ -1,3 +1,4 @@
+---
 name: OpenFisca-Core / Deploy package to PyPi
 
 env:
@@ -8,257 +9,62 @@ on:
     branches: [main]
 
 concurrency:
-  group: ${{ github.ref }}
+  group: merge-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  setup-pip:
-    strategy:
-      fail-fast: true
-      matrix:
-        include:
-        # NumPy 1.24.2 supports Python 3.8 to 3.11
-        # Numpy 2.0.2 supports Python 3.9 to 3.12
-        - os: ubuntu-24.04
-          numpy: 1.24.2
-          python: 3.10.11
-          activate_command: source venv/bin/activate
-        - os: windows-2025
-          numpy: 2.0.2
-          python: 3.10.11
-          activate_command: .\venv\Scripts\activate
-        # Python 3.11+: test both numpy 1.x and 2.x
-        - os: ubuntu-24.04
-          numpy: 1.26.4
-          python: 3.12.10
-          activate_command: source venv/bin/activate
-        - os: ubuntu-24.04
-          numpy: 2.3.0
-          python: 3.12.10
-          activate_command: source venv/bin/activate
-        - os: ubuntu-24.04
-          numpy: 2.3.0
-          python: *upper_pyver
-          activate_command: source venv/bin/activate
-        # Newest NumPy allowed by setup.py; guards against regressions like #1379.
-        - os: ubuntu-24.04
-          numpy: 2.5.2
-          python: *upper_pyver
-          activate_command: source venv/bin/activate
-        - os: windows-2025
-          numpy: 2.3.0
-          python: *upper_pyver
-          activate_command: .\venv\Scripts\activate
-    uses: ./.github/workflows/_before-pip.yaml
-    with:
-      os: ${{ matrix.os }}
-      numpy: ${{ matrix.numpy }}
-      python: ${{ matrix.python }}
-      activate_command: ${{ matrix.activate_command }}
-
-  test-pip:
-    needs: [setup-pip]
-    strategy:
-      fail-fast: true
-      matrix:
-        include:
-        # NumPy 1.24.2 supports Python 3.8 to 3.11
-        # Numpy 2.0.2 supports Python 3.9 to 3.12
-        - os: ubuntu-24.04
-          numpy: 1.24.2
-          python: 3.10.11
-          activate_command: source venv/bin/activate
-        - os: windows-2025
-          numpy: 2.0.2
-          python: 3.10.11
-          activate_command: .\venv\Scripts\activate
-        # Python 3.11+: test both numpy 1.x and 2.x
-        - os: ubuntu-24.04
-          numpy: 1.26.4
-          python: 3.12.10
-          activate_command: source venv/bin/activate
-        - os: ubuntu-24.04
-          numpy: 2.3.0
-          python: 3.12.10
-          activate_command: source venv/bin/activate
-        - os: ubuntu-24.04
-          numpy: 2.3.0
-          python: *upper_pyver
-          activate_command: source venv/bin/activate
-        # Newest NumPy allowed by setup.py; guards against regressions like #1379.
-        - os: ubuntu-24.04
-          numpy: 2.5.2
-          python: *upper_pyver
-          activate_command: source venv/bin/activate
-        - os: windows-2025
-          numpy: 2.3.0
-          python: *upper_pyver
-          activate_command: .\venv\Scripts\activate
-    uses: ./.github/workflows/_test-pip.yaml
-    with:
-      os: ${{ matrix.os }}
-      numpy: ${{ matrix.numpy }}
-      python: ${{ matrix.python }}
-      activate_command: ${{ matrix.activate_command }}
-
-  lint-pip:
-    needs: [setup-pip]
-    strategy:
-      fail-fast: true
-      matrix:
-        include:
-        # Lint with one version from each numpy series
-        # Need to be the same as setup-pip for cache
-        - numpy: 1.24.2
-          python: 3.10.11
-        - numpy: 1.26.4
-          python: 3.12.10
-        - numpy: 2.3.0
-          python: *upper_pyver
-    uses: ./.github/workflows/_lint-pip.yaml
-    with:
-      os: ubuntu-24.04
-      numpy: ${{ matrix.numpy }}
-      python: ${{ matrix.python }}
-      activate_command: source venv/bin/activate
-
-  check-version:
-    needs: [test-pip, lint-pip]
-    uses: ./.github/workflows/_version.yaml
-    with:
-      os: ubuntu-24.04
-      python: *upper_pyver
-
-  # GitHub Actions does not have a halt job option, to stop from deploying if
-  # no functional changes were found. We build a separate job to substitute the
-  # halt option. The `deploy` job is dependent on the output of the
-  # `check-for-functional-changes`job.
-  check-for-functional-changes:
-    runs-on: ubuntu-24.04
-    # Last job to run
-    needs: [check-version]
-    outputs:
-      status: ${{ steps.stop-early.outputs.status }}
-
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: *upper_pyver
-
-    - id: stop-early
-      # The `check-for-functional-changes` job should always succeed regardless
-      # of the `has-functional-changes` script's exit code. Consequently, we do
-      # not use that exit code to trigger deploy, but rather a dedicated output
-      # variable `status`, to avoid a job failure if the exit code is different
-      # from 0. Conversely, if the job fails the entire workflow would be
-      # marked as `failed` which is disturbing for contributors.
-      run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo
-        "::set-output name=status::success" ; fi
+  push-jobs:
+    uses: $/.github/workflows/push.yaml
 
   publish-to-pypi:
-    runs-on: ubuntu-24.04
-    needs: [check-for-functional-changes]
-    if: needs.check-for-functional-changes.outputs.status == 'success'
-    env:
-      PYPI_USERNAME: __token__
-      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN_OPENFISCA_BOT }}
-    outputs:
-      version: ${{ steps.update-version.outputs.version }}
-
+    needs: [push-jobs]
+    if: needs.push-jobs.outputs.has-functional-changes == 'yes'
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+    permissions:
+      id-token: write
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: false
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: *upper_pyver
+      - name: Download distributions artifact
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: dist
+          path: dist/
 
-    - name: Cache deps
-      uses: actions/cache@v4
-      with:
-        path: venv
-        key: pip-deps-ubuntu-24.04-np2.3.0-py${{ env.UPPER_PYTHON_VERSION }}-${{ hashFiles('setup.py') }}
+      - name: Publish
+        run: uv publish
 
-    - name: Cache build
-      uses: actions/cache@v4
-      with:
-        path: venv/**/[oO]pen[fF]isca*
-        key: pip-build-ubuntu-24.04-np2.3.0-py${{ env.UPPER_PYTHON_VERSION }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
+      - name: Update doc
+        run: |
+          curl -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer \
+              ${{ secrets.OPENFISCADOC_BOT_ACCESS_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -d '{"ref":"main"}' \
+            https://api.github.com/repos/openfisca/openfisca-doc/actions/workflows/deploy.yaml/dispatches
 
-    - name: Cache release
-      uses: actions/cache@v4
-      with:
-        path: dist
-        key: pip-release-ubuntu-24.04-np2.3.0-py${{ env.UPPER_PYTHON_VERSION }}-${{ hashFiles('setup.py') }}-${{ github.sha }}
-
-    - name: Check package format
-      run: |
-        source venv/bin/activate
-        twine check dist/*
-
-    - name: Upload package to PyPi
-      run: |
-        source venv/bin/activate
-        twine upload dist/* --username $PYPI_USERNAME --password $PYPI_TOKEN
-
-    - name: Update version
-      id: update-version
-      run: |
-        source venv/bin/activate
-        pip install setuptools
-        git tag `python setup.py --version`
-        git push --tags  # update the repository version
-        echo "version=$(python setup.py --version)" >> $GITHUB_OUTPUT
-
-    - name: Update doc
-      run: |
-        curl -L \
-          -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.OPENFISCADOC_BOT_ACCESS_TOKEN }}" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          https://api.github.com/repos/openfisca/openfisca-doc/actions/workflows/deploy.yaml/dispatches \
-          -d '{"ref":"main"}'
-
-  test-on-windows:
-    runs-on: windows-2025
+  push-tag:
     needs: [publish-to-pypi]
-    defaults:
-      run:
-        shell: bash
-
+    runs-on: ubuntu-latest
     steps:
-    - name: Install uv
-      uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
 
-    - name: Install openfisca-core from PyPi
-      env:
-        VERSION: ${{ needs.publish-to-pypi.outputs.version }}
-      # PyPi's index can lag a few seconds behind an upload, hence the retries.
-      run: |
-        uv venv --python ${{ env.UPPER_PYTHON_VERSION }}
-        installed=false
-        for attempt in $(seq 1 5); do
-          if uv pip install "openfisca-core==$VERSION"; then
-            installed=true
-            break
-          fi
-          echo "openfisca-core $VERSION not on PyPi yet, retrying in 30s (attempt $attempt/5)…"
-          sleep 30
-        done
-        if [ "$installed" = false ]; then
-          echo "Could not install openfisca-core $VERSION from PyPi."
-          exit 1
-        fi
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: false
 
-    - name: Test openfisca
-      run: |
-        source .venv/Scripts/activate
-        openfisca --help
+      - name: Add tag on GitHub
+        run: |
+          uv version --short
+          git tag `uv version --short`
+          git push --tags

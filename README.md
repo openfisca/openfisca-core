@@ -16,7 +16,7 @@ This package contains the core features of OpenFisca, which are meant to be used
 
 ## Environment
 
-OpenFisca runs on Python. See [setup.py](setup.py) for supported versions.
+OpenFisca runs on Python. See [pyproject.toml](pyproject.toml) for supported versions.
 
 OpenFisca also relies strongly on NumPy. The last four minor versions should work, but only the latest/stable is tested.
 
@@ -24,10 +24,9 @@ OpenFisca also relies strongly on NumPy. The last four minor versions should wor
 
 If you're developing your own country package, you don't need to explicitly install OpenFisca-Core. It just needs to appear [in your package dependencies](https://github.com/openfisca/openfisca-france/blob/100.0.0/setup.py#L60).
 If you want to contribute to OpenFisca-Core itself, welcome!
-To install it locally you can use one of these two options:
-* or standard Python [pip](https://packaging.python.org/en/latest/key_projects/#pip) package manager.
+To install it locally we recommend to use [uv](https://docs.astral.sh/uv/getting-started/).
 
-### Installing `openfisca-core` with `pip`
+### Installing `openfisca-core` with `uv`
 
 This installation requires [Python](https://www.python.org/downloads/) and [GIT](https://git-scm.com) installations.
 
@@ -36,18 +35,10 @@ To install `openfisca-core` locally in development mode run the following comman
 ```bash
 git clone https://github.com/openfisca/openfisca-core.git
 cd openfisca-core
-python3 -m venv .venv
-source .venv/bin/activate
-make install-deps install-edit
+uv run make test
 ```
 
 ## Testing
-
-Install the test dependencies:
-
-```
-make install-deps install-edit install-test
-```
 
 > For integration testing purposes, `openfisca-core` relies on
 > [country-template](https://github.com/openfisca/country-template.git) and
@@ -58,12 +49,12 @@ make install-deps install-edit install-test
 To run the entire test suite:
 
 ```sh
-make test
+uv run make test
 ```
 
 If you have many tests, you could run them in parallel :
 ```sh
-make test-core openfisca_args="--in-parallel"
+uv run make test-core openfisca_args="--in-parallel"
 ```
 
 You could add an option  `--num-workers=4` to limit to 4 threads. Default is your CPU Core number minus 1.
@@ -73,13 +64,13 @@ Be aware that this add overhead so use it only for huge test suite.
 To run all the tests defined on a test file:
 
 ```sh
-pytest tests/core/test_parameters.py
+uv run pytest tests/core/test_parameters.py
 ```
 
 To run a single test:
 
 ```sh
-pytest tests/core/test_parameters.py -k test_parameter_for_period
+uv run pytest tests/core/test_parameters.py -k test_parameter_for_period
 ```
 
 ## Types
@@ -153,30 +144,3 @@ You can test that the API is running by executing the command:
 curl http://localhost:2000/parameters
 ```
 For more information about endpoints and input formatting, see the [official documentation](https://openfisca.org/doc/openfisca-web-api).
-
-### Tracker
-
-The OpenFisca Web API comes with an [optional tracker](https://github.com/openfisca/tracker) which allows you to measure the usage of the API.
-
-#### Tracker installation
-
-The tracker is not installed by default. To install it, run:
-
-```sh
-pip install openfisca_core[tracker] --use-deprecated=legacy-resolver # Or `pip install --editable ".[tracker]"` for an editable installation
-```
-
-
-#### Tracker configuration
-
-The tracker is activated when these two options are set:
-
-* `--tracker-url`: An URL ending with `piwik.php`. It defines the Piwik instance that will receive the tracking information. To use the main OpenFisca Piwik instance, use `https://stats.data.gouv.fr/piwik.php`.
-* `--tracker-idsite`: An integer. It defines the identifier of the tracked site on your Piwik instance. To use the main OpenFisca piwik instance, use `4`.
-* `--tracker-token`: A string. It defines the Piwik API Authentication token to differentiate API calls based on the user IP. Otherwise, all API calls will seem to come from your server. The Piwik API Authentication token can be found in your Piwik interface when you are logged in.
-
-For instance, to run the Web API with the mock country package `openfisca_country_template` and the tracker activated, run:
-
-```sh
-openfisca serve --country-package openfisca_country_template --port 5000 --tracker-url https://stats.data.gouv.fr/piwik.php --tracker-idsite 4 --tracker-token $TRACKER_TOKEN
-```

@@ -1,6 +1,4 @@
-include tasks/install.mk
 include tasks/lint.mk
-include tasks/publish.mk
 include tasks/serve.mk
 include tasks/test_code.mk
 
@@ -30,5 +28,5 @@ all: test
 	@$(call print_pass,$@:)
 
 ## Run all lints and tests.
-test: clean lint test-code
+test: lint test-code
 	@$(call print_pass,$@:)

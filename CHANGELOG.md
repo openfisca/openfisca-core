@@ -1,5 +1,22 @@
 # Changelog
 
+# 46.0.0 [#1396](https://github.com/openfisca/openfisca-core/pull/1396)
+
+#### Breaking changes
+
+- Remove Python 3.10 support
+- Remove extras
+  - `dev` is moved to `[dependency-groups]/dev` in `pyproject.toml`
+  - `tracker` as it is not maintained nor used
+
+#### Technical changes
+
+- Move from `pip` to `uv` for package management
+- Rely on `uv` `--resolution=[highest, lowest-direct]` in CI to ensure a large test coverage on multiple `numpy` versions
+- Remove `setup.py` and `setup.cfg` and move logic to `pyproject.toml`
+- Reduce Makefile tasks, CI and CD complexity
+  - Lint is only run with a single version of Python
+
 ### 45.0.5 [#1387](https://github.com/openfisca/openfisca-core/pull/1387)
 
 #### Bug fixes

@@ -1,3 +1,4 @@
+---
 name: OpenFisca-Core / Pull request review
 
 env:
@@ -6,125 +7,131 @@ env:
 on:
   pull_request:
     types: [assigned, opened, reopened, synchronize, ready_for_review]
+  workflow_call:
+    outputs:
+      version:
+        description: "Package version"
+        value: ${{ jobs.integration.outputs.version }}
+      has-functional-changes:
+        description: "Status on functional changes presence"
+        value: ${{ jobs.integration.outputs.has-functional-changes }}
+
 
 concurrency:
   group: ${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  setup-pip:
+  test:
     strategy:
+      # Default is true but it is nice to have a shortcut here
+      # to disable it and test the full matrix
       fail-fast: true
       matrix:
-        include:
-        # NumPy 1.24.2 supports Python 3.8 to 3.11
-        # Numpy 2.0.2 supports Python 3.9 to 3.12
-        - os: ubuntu-24.04
-          numpy: 1.24.2
-          python: 3.10.11
-          activate_command: source venv/bin/activate
-        - os: windows-2025
-          numpy: 2.0.2
-          python: 3.10.11
-          activate_command: .\venv\Scripts\activate
-        # Python 3.11+: test both numpy 1.x and 2.x
-        - os: ubuntu-24.04
-          numpy: 1.26.4
-          python: 3.12.10
-          activate_command: source venv/bin/activate
-        - os: ubuntu-24.04
-          numpy: 2.3.0
-          python: 3.12.10
-          activate_command: source venv/bin/activate
-        - os: ubuntu-24.04
-          numpy: 2.3.0
-          python: *upper_pyver
-          activate_command: source venv/bin/activate
-        # Newest NumPy allowed by setup.py; guards against regressions like #1379.
-        - os: ubuntu-24.04
-          numpy: 2.5.2
-          python: *upper_pyver
-          activate_command: source venv/bin/activate
-        - os: windows-2025
-          numpy: 2.3.0
-          python: *upper_pyver
-          activate_command: .\venv\Scripts\activate
-    uses: ./.github/workflows/_before-pip.yaml
-    with:
-      os: ${{ matrix.os }}
-      numpy: ${{ matrix.numpy }}
-      python: ${{ matrix.python }}
-      activate_command: ${{ matrix.activate_command }}
+        resolution: [highest, lowest-direct]
+        os: [ubuntu-24.04, windows-2025]
+        python:
+          - 3.11
+          - 3.12.10
+          - *upper_pyver
+    runs-on: ${{ matrix.os }}
+    env:
+      # To colorize output of make tasks.
+      TERM: xterm-256color
 
-  test-pip:
-    needs: [setup-pip]
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-        # NumPy 1.24.2 supports Python 3.8 to 3.11
-        # Numpy 2.0.2 supports Python 3.9 to 3.12
-        - os: ubuntu-24.04
-          numpy: 1.24.2
-          python: 3.10.11
-          activate_command: source venv/bin/activate
-        - os: windows-2025
-          numpy: 2.0.2
-          python: 3.10.11
-          activate_command: .\venv\Scripts\activate
-        # Python 3.11+: test both numpy 1.x and 2.x
-        - os: ubuntu-24.04
-          numpy: 1.26.4
-          python: 3.12.10
-          activate_command: source venv/bin/activate
-        - os: ubuntu-24.04
-          numpy: 2.3.0
-          python: 3.12.10
-          activate_command: source venv/bin/activate
-        - os: ubuntu-24.04
-          numpy: 2.3.0
-          python: *upper_pyver
-          activate_command: source venv/bin/activate
-        # Newest NumPy allowed by setup.py; guards against regressions like #1379.
-        - os: ubuntu-24.04
-          numpy: 2.5.2
-          python: *upper_pyver
-          activate_command: source venv/bin/activate
-        - os: windows-2025
-          numpy: 2.3.0
-          python: *upper_pyver
-          activate_command: .\venv\Scripts\activate
-    uses: ./.github/workflows/_test-pip.yaml
-    with:
-      os: ${{ matrix.os }}
-      numpy: ${{ matrix.numpy }}
-      python: ${{ matrix.python }}
-      activate_command: ${{ matrix.activate_command }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
 
-  lint-pip:
-    needs: [setup-pip]
-    strategy:
-      fail-fast: true
-      matrix:
-        include:
-        # Lint with one version from each numpy series
-        # Need to be the same as setup-pip for cache
-        - numpy: 1.24.2
-          python: 3.10.11
-        - numpy: 1.26.4
-          python: 3.12.10
-        - numpy: 2.3.0
-          python: *upper_pyver
-    uses: ./.github/workflows/_lint-pip.yaml
-    with:
-      os: ubuntu-24.04
-      numpy: ${{ matrix.numpy }}
-      python: ${{ matrix.python }}
-      activate_command: source venv/bin/activate
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          python-version: ${{ matrix.python }}
 
-  check-version:
-    needs: [test-pip, lint-pip]
-    uses: ./.github/workflows/_version.yaml
-    with:
-      os: ubuntu-24.04
-      python: *upper_pyver
+      - name: Install package in specific context
+        run: |
+          uv sync --resolution=${{matrix.resolution}}
+
+      - run: uv pip list
+
+      - name: Run Openfisca Core tests in parallel
+        # To evaluate that parallel mode works
+        run: |
+          uv run --frozen make test-core openfisca_args="--in-parallel"
+
+      - name: Run Country Template tests
+        if: ${{ !startsWith(matrix.os, 'windows') }}
+        run: |
+          uv run --frozen make test-country
+
+      - name: Run Extension Template tests
+        if: ${{ !startsWith(matrix.os, 'windows') }}
+        run: |
+          uv run --frozen make test-extension
+
+      - run: uv build --resolution=${{matrix.resolution}}
+
+      - name: Smoke test (wheel)
+        if: ${{ !startsWith(matrix.os, 'windows') }}
+        run: |
+          WHEEL_PATH=$(ls dist/openfisca_core-*.whl)
+          uv run --isolated --no-project --with $WHEEL_PATH'[ci]' make test-code
+
+  integration:
+    needs: [test]
+    runs-on: ubuntu-latest
+    env:
+      # To colorize output of make tasks.
+      TERM: xterm-256color
+    outputs:
+      version: ${{ steps.save-version.outputs.version }}
+      has-functional-changes: |
+        ${{ steps.stop-early.outputs.has-functional-changes }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          python-version: *upper_pyver
+
+      - name: Install the project
+        run: uv sync --locked --dev
+
+      - name: Lint
+        run: uv run make lint
+
+      - run: uv build
+
+      - name: Test the built package
+        run: uv run --frozen twine check dist/*
+
+      - name: Check version number has been properly updated
+        run: uv run ${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh
+
+      - id: stop-early
+        # The `check-for-functional-changes` job should always succeed
+        # regardless of the `has-functional-changes` script's exit code.
+        # Consequently, we do not use that exit code to trigger deploy,
+        # but rather a dedicated output variable `status`, to avoid a job
+        # failure if the exit code is different from 0. Conversely,
+        # if the job fails the entire workflow would be marked as `failed`
+        # which is disturbing for contributors.
+        run: |
+          if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then
+            echo "has-functional-changes=yes" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Save version
+        id: save-version
+        run: |
+          echo "version=$(uv version --short)" >> $GITHUB_OUTPUT
+
+      - name: Upload distributions as artifacts
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: dist
+          path: dist/
