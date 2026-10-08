@@ -52,6 +52,8 @@ jobs:
         run: |
           uv sync --resolution=${{matrix.resolution}}
 
+      - run: uv pip list
+
       - name: Run Openfisca Core tests in parallel
         # To evaluate that parallel mode works
         run: |
@@ -66,8 +68,6 @@ jobs:
         if: ${{ !startsWith(matrix.os, 'windows') }}
         run: |
           uv run --frozen make test-extension
-
-      - run: uv pip list
 
       - run: uv build --resolution=${{matrix.resolution}}
 
