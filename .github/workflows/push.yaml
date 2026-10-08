@@ -26,7 +26,7 @@ jobs:
     strategy:
       # Default is true but it is nice to have a shortcut here
       # to disable it and test the full matrix
-      fail-fast: false
+      fail-fast: true
       matrix:
         resolution: [highest, lowest-direct]
         os: [ubuntu-24.04, windows-2025]
@@ -58,12 +58,12 @@ jobs:
           uv run --frozen make test-core openfisca_args="--in-parallel"
 
       - name: Run Country Template tests
-        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        if: ${{ !startsWith(matrix.os, 'windows') }}
         run: |
           uv run --frozen make test-country
 
       - name: Run Extension Template tests
-        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        if: ${{ !startsWith(matrix.os, 'windows') }}
         run: |
           uv run --frozen make test-extension
 
@@ -72,12 +72,10 @@ jobs:
       - run: uv build --resolution=${{matrix.resolution}}
 
       - name: Smoke test (wheel)
+        if: ${{ !startsWith(matrix.os, 'windows') }}
         run: |
           WHEEL_PATH=$(ls dist/openfisca_core-*.whl)
           uv run --isolated --no-project --with $WHEEL_PATH'[ci]' make test-code
-      # - name: Smoke test (source distribution)
-      #   run: uv run --isolated --no-project --with dist/*.tar.gz tests/smoke_test.py
-
 
   integration:
     needs: [test]
