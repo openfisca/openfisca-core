@@ -7,6 +7,7 @@ env:
 on:
   push:
     tags:
+      - *
 
 jobs:
   test-on-windows:
