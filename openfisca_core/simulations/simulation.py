@@ -46,7 +46,7 @@ class Simulation:
         assert tax_benefit_system is not None
 
         self.populations = populations
-        self.persons = self.populations[tax_benefit_system.person_entity.key]
+        # self.persons = self.populations[tax_benefit_system.person_entity.key]
         self.link_to_entities_instances()
         self.create_shortcuts()
 
@@ -594,19 +594,31 @@ class Simulation:
             if key not in ("debug", "trace", "tracer"):
                 new_dict[key] = value
 
-        new.persons = self.persons.clone(new)
-        setattr(new, new.persons.entity.key, new.persons)
-        new.populations = {new.persons.entity.key: new.persons}
+        # The clone gets its own on-disk storage directory: sharing it would
+        # make both simulations write and delete each other's files.
+        new_dict["_data_storage_dir"] = None
+        new_dict["invalidated_caches"] = set(self.invalidated_caches)
 
-        for entity in self.tax_benefit_system.group_entities:
+        new.populations = {}
+        old_to_new = {}
+        for entity in self.tax_benefit_system.entities:
             population = self.populations[entity.key].clone(new)
+            old_to_new[self.populations[entity.key]] = population
             new.populations[entity.key] = population
-            setattr(
-                new,
-                entity.key,
-                population,
-            )  # create shortcut simulation.household (for instance)
 
+        for entity in self.tax_benefit_system.entities:
+            population = self.populations[entity.key]
+            for membership in population.memberships:
+                if membership.population != population:
+                    continue
+                new_pop = old_to_new[population]
+                new_members = old_to_new[membership.members]
+                new_membership = membership.clone(
+                    membership.relationship, new_pop, new_members
+                )
+                new_pop.add_membership(new_membership)
+
+        new.create_shortcuts()
         new.debug = debug
         new.trace = trace
 

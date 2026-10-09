@@ -3,14 +3,12 @@ from typing import Required
 from typing_extensions import TypedDict
 
 from openfisca_core.types import (
-    CoreEntity,
+    Entity,
     EntityKey,
     EntityPlural,
-    GroupEntity,
     Role,
     RoleKey,
     RolePlural,
-    SingleEntity,
     TaxBenefitSystem,
     Variable,
     VariableName,
@@ -29,15 +27,13 @@ class RoleParams(TypedDict, total=False):
 
 
 __all__ = [
-    "CoreEntity",
+    "Entity",
     "EntityKey",
     "EntityPlural",
-    "GroupEntity",
     "Role",
     "RoleKey",
     "RoleParams",
     "RolePlural",
-    "SingleEntity",
     "TaxBenefitSystem",
     "Variable",
     "VariableName",

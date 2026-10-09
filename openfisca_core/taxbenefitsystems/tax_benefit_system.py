@@ -21,7 +21,7 @@ from openfisca_core.entities import Entity
 from openfisca_core.errors import VariableNameConflictError, VariableNotFoundError
 from openfisca_core.parameters import ParameterNode
 from openfisca_core.periods import Instant, Period
-from openfisca_core.populations import GroupPopulation, Population
+from openfisca_core.populations import Membership, Population
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.types import ParameterNodeAtInstant
 from openfisca_core.variables import Variable
@@ -63,12 +63,6 @@ class TaxBenefitSystem:
             msg = "A tax and benefit system must have at least an entity."
             raise Exception(msg)
         self.entities = [copy.copy(entity) for entity in entities]
-        self.person_entity = next(
-            entity for entity in self.entities if entity.is_person
-        )
-        self.group_entities = [
-            entity for entity in self.entities if not entity.is_person
-        ]
         for entity in self.entities:
             entity.set_tax_benefit_system(self)
 
@@ -85,14 +79,19 @@ class TaxBenefitSystem:
         return base_tax_benefit_system
 
     def instantiate_entities(self):
-        person = self.person_entity
-        members = Population(person)
-        entities: dict[Entity.key, Entity] = {person.key: members}
+        populations: dict[Entity.key, Population] = {}
+        for entity in self.entities:
+            populations[entity.key] = Population(entity)
 
-        for entity in self.group_entities:
-            entities[entity.key] = GroupPopulation(entity, members)
+        for entity in self.entities:
+            for relationship in entity.relationships:
+                if relationship.a.key == entity.key:
+                    origin = populations[relationship.a.key]
+                    members = populations[relationship.b.key]
+                    membership = Membership(relationship, origin, members)
+                    origin.add_membership(membership)
 
-        return entities
+        return populations
 
     # Deprecated method of constructing simulations, to be phased out in favor of SimulationBuilder
     def new_scenario(self):

@@ -24,17 +24,17 @@ class CorePopulation:
     """Base class to build populations from.
 
     Args:
-        entity: The :class:`~entities.CoreEntity` of the population.
+        entity: The :class:`~entities.Entity` of the population.
         *__args: Variable length argument list.
         **__kwds: Arbitrary keyword arguments.
 
     """
 
-    #: The number :class:`~entities.CoreEntity` members in the population.
+    #: The number :class:`~entities.Entity` members in the population.
     count: int = 0
 
-    #: The :class:`~entities.CoreEntity` of the population.
-    entity: t.CoreEntity
+    #: The :class:`~entities.Entity` of the population.
+    entity: t.Entity
 
     #: A pseudo index for the members of the population.
     ids: Sequence[str] = []
@@ -42,8 +42,12 @@ class CorePopulation:
     #: The :class:`~simulations.Simulation` for which the population is calculated.
     simulation: None | t.Simulation = None
 
-    def __init__(self, entity: t.CoreEntity, *__args: object, **__kwds: object) -> None:
+    def __init__(self, entity: t.Entity, *__args: object, **__kwds: object) -> None:
         self.entity = entity
+        self._memberships = []
+        self._roles_to_memberships: dict[
+            t.Role.key | t.Role.plural, list[t.Membership]
+        ] = {}
         self._holders: t.HolderByVariable = {}
 
     def __call__(
@@ -449,6 +453,30 @@ class CorePopulation:
             total_nb_bytes=total_memory_usage,
             by_variable=holders_memory_usage,
         )
+
+    def add_membership(self, membership) -> None:
+        self._memberships.append(membership)
+
+        def add_membership_to(this, key):
+            if key not in this._roles_to_memberships:
+                this._roles_to_memberships[key] = []
+            this._roles_to_memberships[key].append(membership)
+
+        for role in membership.relationship.roles:
+            add_membership_to(membership.members, role.key)
+            add_membership_to(membership.population, role.plural)
+
+            if not role.subroles:
+                continue
+            for subrole in role.subroles:
+                add_membership_to(membership.members, subrole.key)
+                add_membership_to(membership.population, subrole.plural)
+
+        membership.members._memberships.append(membership)
+
+    @property
+    def memberships(self) -> Sequence[t.Membership]:
+        return self._memberships
 
 
 __all__ = ["CorePopulation"]

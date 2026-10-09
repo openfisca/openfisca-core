@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
-
 from openfisca_core import entities, projectors
-from openfisca_core.types import GroupEntity, Role, SingleEntity
 
-from .typing import GroupPopulation, Population
+from .typing import Entity, GroupPopulation, Population
 
 
 def projectable(function):
@@ -32,7 +29,7 @@ def get_projector_from_shortcut(
     - from a group to an individual with a unique role
 
     For example, if there are two entities, person (Entity) and household
-    (GroupEntity), on which calculations can be run (Population and
+    (Entity), on which calculations can be run (Population and
     GroupPopulation respectively), and there is a Variable "rent" defined for
     the household entity, then `person.household("rent")` will assign a rent to
     every person within that household.
@@ -58,20 +55,28 @@ def get_projector_from_shortcut(
 
         >>> entity = entities.Entity("person", "", "", "")
 
-        >>> group_entity_1 = entities.GroupEntity("family", "", "", "", [])
+        >>> group_entity_1 = entities.Entity("family", "", "", "")
+
+        >>> r1 = group_entity_1.add_relationship(entity, [{"key": "person", "max": 1}])
 
         >>> roles = [
         ...     {"key": "person", "max": 1},
         ...     {"key": "animal", "subroles": ["cat", "dog"]},
         ... ]
 
-        >>> group_entity_2 = entities.GroupEntity("household", "", "", "", roles)
+        >>> group_entity_2 = entities.Entity("household", "", "", "")
+
+        >>> r2 = group_entity_2.add_relationship(entity, roles)
 
         >>> population = populations.Population(entity)
+        >>> group_population_1 = populations.Population(group_entity_1)
 
-        >>> group_population_1 = populations.GroupPopulation(group_entity_1, [])
+        >>> m1 = populations.Membership(r1, group_population_1, population)
+        >>> group_population_1.add_membership(m1)
 
-        >>> group_population_2 = populations.GroupPopulation(group_entity_2, [])
+        >>> group_population_2 = populations.Population(group_entity_2)
+        >>> m2 = populations.Membership(r2, group_population_2, population)
+        >>> group_population_2.add_membership(m2)
 
         >>> populations = {
         ...     entity.key: population,
@@ -85,14 +90,14 @@ def get_projector_from_shortcut(
 
         >>> simulation = simulations.Simulation(tax_benefit_system, populations)
 
-        >>> get_projector_from_shortcut(population, "person")
-        <...EntityToPersonProjector object at ...>
-
         >>> get_projector_from_shortcut(population, "family")
         <...EntityToPersonProjector object at ...>
 
         >>> get_projector_from_shortcut(population, "household")
         <...EntityToPersonProjector object at ...>
+
+        >>> get_projector_from_shortcut(group_population_1, "person")
+        <...UniqueRoleToEntityProjector object at ...>
 
         >>> get_projector_from_shortcut(group_population_2, "first_person")
         <...FirstPersonToEntityProjector object at ...>
@@ -107,33 +112,36 @@ def get_projector_from_shortcut(
         <...UniqueRoleToEntityProjector object at ...>
 
     """
-    entity: SingleEntity | GroupEntity = population.entity
+    entity: Entity = population.entity
+    mm = [
+        membership
+        for membership in population.memberships
+        if shortcut == membership.relationship.a.key
+    ]
+    if mm:
+        assert len(mm) == 1
+        return projectors.EntityToPersonProjector(mm[0], parent)
 
-    if isinstance(entity, entities.Entity):
-        populations: Mapping[
-            str,
-            Population | GroupPopulation,
-        ] = population.simulation.populations
-
-        if shortcut not in populations:
-            return None
-
-        return projectors.EntityToPersonProjector(populations[shortcut], parent)
+    emm = [
+        membership
+        for membership in population.memberships
+        if shortcut == membership.relationship.b.plural
+    ]
+    if emm:
+        assert len(emm) == 1
+        return projectors.MembersToEntityProjector(emm[0], parent)
 
     if shortcut == "first_person":
         return projectors.FirstPersonToEntityProjector(population, parent)
 
-    if isinstance(entity, entities.GroupEntity):
-        role: Role | None = entities.find_role(entity.roles, shortcut, total=1)
+    role, relationship = entities.find_role(entity, shortcut, total=1)
 
-        if role is not None:
-            return projectors.UniqueRoleToEntityProjector(population, role, parent)
-
-        if shortcut in entity.containing_entities:
-            projector: projectors.Projector = getattr(
-                projectors.FirstPersonToEntityProjector(population, parent),
-                shortcut,
-            )
-            return projector
+    if role is not None:
+        mm = [
+            membership
+            for membership in population.memberships
+            if membership.relationship == relationship
+        ]
+        return projectors.UniqueRoleToEntityProjector(mm[0], role, parent)
 
     return None

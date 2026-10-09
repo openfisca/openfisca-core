@@ -26,7 +26,7 @@ jobs:
     strategy:
       # Default is true but it is nice to have a shortcut here
       # to disable it and test the full matrix
-      fail-fast: true
+      fail-fast: false
       matrix:
         resolution: [highest, lowest-direct]
         os: [ubuntu-24.04, windows-2025]
@@ -75,7 +75,7 @@ jobs:
         if: ${{ !startsWith(matrix.os, 'windows') }}
         run: |
           WHEEL_PATH=$(ls dist/openfisca_core-*.whl)
-          uv run --isolated --no-project --with $WHEEL_PATH'[ci]' make test-code
+          uv run --isolated --no-project --with $WHEEL_PATH'[ci]' --with 'git+https://github.com/openfisca/country-template@more_relationships' make test-code
 
   integration:
     needs: [test]

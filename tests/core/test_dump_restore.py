@@ -28,16 +28,16 @@ def test_dump(tax_benefit_system) -> None:
     testing.assert_array_equal(simulation.household.ids, simulation_2.household.ids)
     testing.assert_array_equal(simulation.household.count, simulation_2.household.count)
     testing.assert_array_equal(
-        simulation.household.members_position,
-        simulation_2.household.members_position,
+        simulation.household.single_membership.members_position,
+        simulation_2.household.single_membership.members_position,
     )
     testing.assert_array_equal(
-        simulation.household.members_entity_id,
-        simulation_2.household.members_entity_id,
+        simulation.household.single_membership.members_entity_id,
+        simulation_2.household.single_membership.members_entity_id,
     )
     testing.assert_array_equal(
-        simulation.household.members_role,
-        simulation_2.household.members_role,
+        simulation.household.single_membership.members_role,
+        simulation_2.household.single_membership.members_role,
     )
 
     # Check calculated values are in cache
@@ -88,6 +88,6 @@ def test_dump_restore_without_group_entity() -> None:
         person_only_tax_benefit_system,
     )
 
-    assert simulation_2.persons.count == 2
+    assert simulation_2.person.count == 2
 
     shutil.rmtree(directory)
