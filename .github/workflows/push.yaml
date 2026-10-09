@@ -75,7 +75,7 @@ jobs:
         if: ${{ !startsWith(matrix.os, 'windows') }}
         run: |
           WHEEL_PATH=$(ls dist/openfisca_core-*.whl)
-          uv run --isolated --no-project --with $WHEEL_PATH'[ci]' --with 'git+https://github.com/openfisca/country-template@more_relationships' test-code
+          uv run --isolated --no-project --with $WHEEL_PATH'[ci]' --with 'git+https://github.com/openfisca/country-template@more_relationships' make test-code
 
   integration:
     needs: [test]
