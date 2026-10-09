@@ -88,6 +88,6 @@ def test_dump_restore_without_group_entity() -> None:
         person_only_tax_benefit_system,
     )
 
-    assert simulation_2.persons.count == 2
+    assert simulation_2.person.count == 2
 
     shutil.rmtree(directory)

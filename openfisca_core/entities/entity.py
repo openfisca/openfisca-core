@@ -1,15 +1,18 @@
-from itertools import chain
+import os
 import textwrap
-from typing import ClassVar
+from collections.abc import Iterable, Sequence
+from itertools import chain
 
 from . import types as t
 from .role import Role
 
 
 class Relationship:
-    def __init__(self, a: Entity, b: Entity, role_descriptions: Sequence[t.RoleParams]):
-        self.a: Entity = a
-        self.b: Entity = b
+    def __init__(
+        self, a: t.Entity, b: t.Entity, role_descriptions: Sequence[t.RoleParams]
+    ):
+        self.a: t.Entity = a
+        self.b: t.Entity = b
         self.role_descriptions: Sequence[t.RoleParams] = role_descriptions
         roles = []
         for role_description in role_descriptions:
@@ -35,7 +38,7 @@ class Entity:
 
     Args:
         *__args: Any arguments.
-        **__kwargs: Any keyword arguments.  
+        **__kwargs: Any keyword arguments.
 
     Examples:
         >>> from openfisca_core.entities import types as t
@@ -233,26 +236,38 @@ class Entity:
             msg = f"{role} is not a valid role"
             raise ValueError(msg)
 
-
-    def add_relationship(self, entity: Entity, role_descriptions: Sequence[t.RoleParams] = []) -> Relationship:
+    def add_relationship(
+        self, entity: t.Entity, role_descriptions: Sequence[t.RoleParams] = []
+    ) -> Relationship:
         if not role_descriptions:
-            role_descriptions = [{
-                "key": entity.key,
-                "plural": entity.plural,
-                "label": entity.label,
-            }]
+            role_descriptions = [
+                {
+                    "key": entity.key,
+                    "plural": entity.plural,
+                    "label": entity.label,
+                }
+            ]
         relationship = Relationship(self, entity, role_descriptions)
         self.relationships.append(relationship)
         entity.relationships.append(relationship)
-        self.flattened_roles = (*self.flattened_roles,
-            *chain.from_iterable(role.subroles or [role] for role in relationship.roles),
+        self.flattened_roles = (
+            *self.flattened_roles,
+            *chain.from_iterable(
+                role.subroles or [role] for role in relationship.roles
+            ),
         )
         return relationship
 
     @property
     def roles(self) -> Sequence[str]:
         base = [r.plural or r.key for r in self.flattened_roles]
-        links = [role.plural or role.key for relationship in self.relationships for role in relationship.roles if self.key == relationship.a.key]
+        links = [
+            role.plural or role.key
+            for relationship in self.relationships
+            for role in relationship.roles
+            if self.key == relationship.a.key
+        ]
         return base + links
+
 
 __all__ = ["Entity"]

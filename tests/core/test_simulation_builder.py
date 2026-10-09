@@ -5,8 +5,8 @@ import pytest
 from openfisca_country_template import entities, situation_examples
 
 from openfisca_core import tools
-from openfisca_core.errors import SituationParsingError
 from openfisca_core.entities import Entity
+from openfisca_core.errors import SituationParsingError
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import DateUnit
 from openfisca_core.populations import Population
@@ -83,12 +83,8 @@ def test_build_default_simulation(tax_benefit_system) -> None:
     assert several_persons_simulation.household.count == 4
     assert len(several_persons_simulation.household.memberships) == 1
     membership = several_persons_simulation.household.memberships[0]
-    assert (
-        membership.members_entity_id == [0, 1, 2, 3]
-    ).all()
-    assert (
-        membership.members_role == entities.Household.ADULT
-    ).all()
+    assert (membership.members_entity_id == [0, 1, 2, 3]).all()
+    assert (membership.members_role == entities.Household.ADULT).all()
 
 
 def test_explicit_singular_entities(tax_benefit_system) -> None:
@@ -142,8 +138,9 @@ def test_add_person_values_with_default_period_old_syntax(persons) -> None:
 
 def test_add_group_entity(persons, households) -> None:
     simulation_builder = SimulationBuilder()
-    simulation_builder.add_entity(persons,
-        {"Alicia": {}, "Javier": {}, "Sarah": {}, "Tom": {}})
+    simulation_builder.add_entity(
+        persons, {"Alicia": {}, "Javier": {}, "Sarah": {}, "Tom": {}}
+    )
 
     payload = {
         "Household_1": {"adults": ["Alicia", "Javier"]},
@@ -166,8 +163,9 @@ def test_add_group_entity(persons, households) -> None:
 
 def test_add_group_entity_loose_syntax(persons, households) -> None:
     simulation_builder = SimulationBuilder()
-    simulation_builder.add_entity(persons,
-        {"Alicia": {}, "Javier": {}, "Sarah": {}, "1": {}})
+    simulation_builder.add_entity(
+        persons, {"Alicia": {}, "Javier": {}, "Sarah": {}, "1": {}}
+    )
 
     payload = {
         "Household_1": {"adults": ["Alicia", "Javier"]},
@@ -175,9 +173,7 @@ def test_add_group_entity_loose_syntax(persons, households) -> None:
     }
 
     simulation_builder.add_entity(households, payload)
-    simulation_builder.link_entities(
-        households, payload
-    )
+    simulation_builder.link_entities(households, payload)
     assert simulation_builder.get_count(households.key) == 2
     assert simulation_builder.get_ids(households.key) == ["Household_1", "Household_2"]
     relationship = households.relationships[0]
@@ -361,8 +357,9 @@ def test_household_membership(tax_benefit_system) -> None:
     assert simulation.person.entity in tax_benefit_system.entities
 
     simulation_builder = SimulationBuilder()
-    simulation_builder.add_entity(simulation.person.entity,
-        {"Alicia": {}, "Javier": {}, "Sarah": {}, "Tom": {}})
+    simulation_builder.add_entity(
+        simulation.person.entity, {"Alicia": {}, "Javier": {}, "Sarah": {}, "Tom": {}}
+    )
 
     payload = {
         "Household_1": {"adults": ["Alicia", "Javier"]},
@@ -371,7 +368,9 @@ def test_household_membership(tax_benefit_system) -> None:
     simulation_builder.add_entity(simulation.household.entity, payload)
     simulation_builder.link_entities(simulation.household.entity, payload)
     simulation_builder.save_memberships(simulation)
-    tools.assert_near(simulation.household.memberships[0].members_entity_id, [0, 0, 1, 1])
+    tools.assert_near(
+        simulation.household.memberships[0].members_entity_id, [0, 0, 1, 1]
+    )
     tools.assert_near(
         simulation.person.has_role(entities.Household.ADULT),
         [True, True, False, True],
@@ -492,7 +491,7 @@ def test_some_person_without_household(tax_benefit_system) -> None:
 
 
 def test_one_household_without_person(tax_benefit_system) -> None:
-    period = '2026-09'
+    period = "2026-09"
     input_yaml = """
         persons:
             Alicia:
@@ -763,6 +762,7 @@ def test_inconsistent_input(tax_benefit_system) -> None:
         )
     assert "its length is 3 while there are 2" in error.value.args[0]
 
+
 def test_basic_roles() -> None:
     person = Entity("person", "people", "Person")
     family = Entity("family", "families", "Family")
@@ -775,8 +775,8 @@ def test_basic_roles() -> None:
     tbs = TaxBenefitSystem(entities)
     payload = {
         "people": {"Alice": {}},
-        "families": { "Alice's family": {"people": ["Alice"]}},
-        "households": { "Alice's household": {"people": ["Alice"]}},
+        "families": {"Alice's family": {"people": ["Alice"]}},
+        "households": {"Alice's household": {"people": ["Alice"]}},
     }
     simulation = SimulationBuilder().build_from_dict(tbs, payload)
     assert simulation
@@ -784,15 +784,21 @@ def test_basic_roles() -> None:
     assert simulation.family.count == 1
     assert simulation.household.count == 1
 
+
 def test_subroles() -> None:
     person = Entity("person", "people", "Person")
     family = Entity("family", "families", "Family")
-    family.add_relationship(person, [{
-        "key": "parent",
-        "plural": "parents",
-        "label": "Parents",
-        "subroles": ["parent1", "parent2"]
-        }])
+    family.add_relationship(
+        person,
+        [
+            {
+                "key": "parent",
+                "plural": "parents",
+                "label": "Parents",
+                "subroles": ["parent1", "parent2"],
+            }
+        ],
+    )
     household = Entity("household", "households", "Household")
     household.add_relationship(person)
 
@@ -801,8 +807,8 @@ def test_subroles() -> None:
     tbs = TaxBenefitSystem(entities)
     payload = {
         "people": {"Alice": {}},
-        "families": { "Alice's family": {"parents": ["Alice"]}},
-        "households": { "Alice's household": {"people": ["Alice"]}},
+        "families": {"Alice's family": {"parents": ["Alice"]}},
+        "households": {"Alice's household": {"people": ["Alice"]}},
     }
     simulation = SimulationBuilder().build_from_dict(tbs, payload)
     assert simulation
@@ -835,24 +841,32 @@ def test_self_ref_with_group() -> None:
     tbs = TaxBenefitSystem(entities)
     payload = {
         "people": {"Alice": {"people": ["Alice"]}},
-        "households": {"Home": {
-            "people": ["Alice"],
-        }}
+        "households": {
+            "Home": {
+                "people": ["Alice"],
+            }
+        },
     }
     simulation = SimulationBuilder().build_from_dict(tbs, payload)
     assert simulation
     assert simulation.person.count == 1
     assert simulation.household.count == 1
 
+
 def test_multiple_base() -> None:
     person = Entity("person", "people", "Person")
     contract = Entity("contract", "contracts", "Contrat")
     household = Entity("household", "households", "Household")
-    household.add_relationship(person, [{
-        "key": "flatmate",
-        "plural": "flatmates",
-        "label": "Flatmate",
-        }])
+    household.add_relationship(
+        person,
+        [
+            {
+                "key": "flatmate",
+                "plural": "flatmates",
+                "label": "Flatmate",
+            }
+        ],
+    )
     household.add_relationship(contract)
 
     entities = [person, contract, household]
@@ -869,7 +883,7 @@ def test_multiple_base() -> None:
                 "flatmates": ["Zohran"],
                 "contracts": ["Insurance"],
             },
-        }
+        },
     }
     simulation = SimulationBuilder().build_from_dict(tbs, payload)
     assert simulation

@@ -45,7 +45,9 @@ class CorePopulation:
     def __init__(self, entity: t.Entity, *__args: object, **__kwds: object) -> None:
         self.entity = entity
         self._memberships = []
-        self._roles_to_memberships: dict[t.Role.key | t.Role.plural, list[t.Membership]] = {}
+        self._roles_to_memberships: dict[
+            t.Role.key | t.Role.plural, list[t.Membership]
+        ] = {}
         self._holders: t.HolderByVariable = {}
 
     def __call__(
@@ -454,6 +456,7 @@ class CorePopulation:
 
     def add_membership(self, membership) -> None:
         self._memberships.append(membership)
+
         def add_membership_to(this, key):
             if key not in this._roles_to_memberships:
                 this._roles_to_memberships[key] = []
@@ -472,7 +475,7 @@ class CorePopulation:
         membership.members._memberships.append(membership)
 
     @property
-    def memberships(self) -> Sequence[Memberships]:
+    def memberships(self) -> Sequence[t.Membership]:
         return self._memberships
 
 

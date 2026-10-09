@@ -430,8 +430,7 @@ class SimulationBuilder:
                 variables_json = instance_object.copy()  # Don't mutate function input
 
                 roles_json = {
-                    role.plural
-                    or role.key: helpers.transform_to_strict_syntax(
+                    role.plural or role.key: helpers.transform_to_strict_syntax(
                         variables_json.pop(role.plural or role.key, []),
                     )
                     for role in relationship.roles
@@ -459,7 +458,9 @@ class SimulationBuilder:
                         members_to_allocate.discard(member_id)
 
                 entity_index = entity_ids.index(instance_id)
-                role_by_plural = {role.plural or role.key: role for role in relationship.roles}
+                role_by_plural = {
+                    role.plural or role.key: role for role in relationship.roles
+                }
 
                 for role_plural, members_with_role in roles_json.items():
                     role = role_by_plural[role_plural]
@@ -496,12 +497,21 @@ class SimulationBuilder:
             self.roles[relationship.name] = roles.tolist()
 
     def save_memberships(self, simulation: Simulation) -> None:
-        for (relationship_name, membership_array) in self.memberships.items():
-            population = [p for n, p in simulation.populations.items() if relationship_name in [r.name for r in p.entity.relationships]].pop(0)
-            membership = [m for m in population.memberships if m.relationship.name == relationship_name].pop(0)
-            membership.members_entity_id = numpy.array(self.get_memberships(relationship_name))
+        for relationship_name in self.memberships:
+            population = next(
+                p
+                for n, p in simulation.populations.items()
+                if relationship_name in [r.name for r in p.entity.relationships]
+            )
+            membership = next(
+                m
+                for m in population.memberships
+                if m.relationship.name == relationship_name
+            )
+            membership.members_entity_id = numpy.array(
+                self.get_memberships(relationship_name)
+            )
             membership.members_role = numpy.array(self.get_roles(relationship_name))
-
 
     def set_default_period(self, period_str) -> None:
         if period_str:
@@ -674,9 +684,13 @@ class SimulationBuilder:
         )
 
     # Returns the roles of individuals in this entity, including when there is replication along axes
-    def get_roles(self, relationship_name: entities.Relationship.name) -> Sequence[Role]:
+    def get_roles(
+        self, relationship_name: entities.Relationship.name
+    ) -> Sequence[Role]:
         # Return empty array for the "persons" entity
-        return self.axes_roles.get(relationship_name, self.roles.get(relationship_name, []))
+        return self.axes_roles.get(
+            relationship_name, self.roles.get(relationship_name, [])
+        )
 
     def add_parallel_axis(self, axis: Axis) -> None:
         # All parallel axes have the same count and entity.
@@ -795,7 +809,6 @@ class SimulationBuilder:
                         axis_count - 1
                     )
                     self.input_buffer[axis_name][str(axis_period)] = array
-
 
     def get_variable_entity(self, variable_name: str) -> Entity:
         return self.variable_entities[variable_name]

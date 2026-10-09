@@ -21,7 +21,8 @@ from openfisca_core.variables import Variable
 from .parameters_fancy_indexing.test_fancy_indexing import parameters
 
 
-class TestException(Exception): ...
+class TestException(Exception):
+    __test__ = False
 
 
 class StubSimulation(Simulation):

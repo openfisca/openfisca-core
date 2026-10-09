@@ -1,8 +1,6 @@
-import numpy
 import pytest
 
 from openfisca_core.entities import Entity
-from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import DateUnit
 from openfisca_core.simulations.simulation_builder import SimulationBuilder
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
@@ -11,17 +9,10 @@ from openfisca_core.variables import Variable
 
 @pytest.fixture
 def multimembership_entities():
-    person = Entity(
-        key="person",
-        plural="people",
-        label="A person"
-    )
-    household = Entity(
-        key="household",
-        plural="households",
-        label="A household"
-    )
-    household.add_relationship(person,
+    person = Entity(key="person", plural="people", label="A person")
+    household = Entity(key="household", plural="households", label="A household")
+    household.add_relationship(
+        person,
         [
             {
                 "key": "adult",
@@ -40,13 +31,14 @@ def multimembership_entities():
         plural="families",
         label="A family",
     )
-    family.add_relationship(person,
+    family.add_relationship(
+        person,
         [
             {
                 "key": "parent",
                 "plural": "parents",
                 "label": "Parent",
-                "subroles": ["parent1", "parent2"]
+                "subroles": ["parent1", "parent2"],
             },
             {
                 "key": "child",
@@ -80,13 +72,14 @@ def test_has_conflicting_role(multimembership_entities) -> None:
         },
     )
 
-    [person, household, family] = multimembership_entities
+    [_person, household, family] = multimembership_entities
     assert (simulation.person.has_role(household.CHILD) == [False, True, True]).all()
     assert (simulation.person.has_role(family.CHILD) == [False, False, True]).all()
 
 
 def test_get_rank_with_multiple_memberships(multimembership_entities) -> None:
-    [person, household, family] = multimembership_entities
+    [person, _household, _family] = multimembership_entities
+
     class person_int_variable(Variable):
         value_type = int
         entity = person
@@ -100,11 +93,13 @@ def test_get_rank_with_multiple_memberships(multimembership_entities) -> None:
             "people": {
                 "person1": {
                     "person_int_variable": {"ETERNITY": 3},
-                }, "person2": {
+                },
+                "person2": {
                     "person_int_variable": {"ETERNITY": 2},
-                }, "person3": {
+                },
+                "person3": {
                     "person_int_variable": {"ETERNITY": 1},
-                }
+                },
             },
             "households": {
                 "household1": {

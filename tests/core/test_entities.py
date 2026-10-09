@@ -1,6 +1,6 @@
 from copy import deepcopy
-from numpy import maximum
 
+from numpy import maximum
 from openfisca_country_template import entities, situation_examples
 
 from openfisca_core import tools
@@ -37,9 +37,7 @@ def test_role_index_and_positions(tax_benefit_system) -> None:
     simulation = new_simulation(tax_benefit_system, TEST_CASE)
     membership = simulation.household.single_membership
     tools.assert_near(membership.members_entity_id, [0, 0, 0, 0, 1, 1])
-    assert (
-        membership.members_role == [ADULT, ADULT, CHILD, CHILD, ADULT, CHILD]
-    ).all()
+    assert (membership.members_role == [ADULT, ADULT, CHILD, CHILD, ADULT, CHILD]).all()
     tools.assert_near(membership.members_position, [0, 1, 2, 3, 0, 1])
     assert simulation.person.ids == ["ind0", "ind1", "ind2", "ind3", "ind4", "ind5"]
     assert simulation.household.ids == ["h1", "h2"]
@@ -333,8 +331,8 @@ def test_value_nth_person(tax_benefit_system) -> None:
     household = simulation.household
     array = household.members("age", MONTH)
 
-    age1 = simulation.person("age", period=MONTH)
-    age = household.members("age", period=MONTH)
+    _age1 = simulation.person("age", period=MONTH)
+    _age = household.members("age", period=MONTH)
 
     result0 = household.value_nth_person(0, array, default=-1)
     tools.assert_near(result0, [40, 54])

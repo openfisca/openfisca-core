@@ -2,7 +2,7 @@
 
 import numpy
 
-from openfisca_core.populations.membership import positions, Membership
+from openfisca_core.populations.membership import Membership, positions
 
 
 class TestMembersPosition:

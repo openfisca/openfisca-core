@@ -109,7 +109,7 @@ class _BuildFromVariables:
             >>> single_entity = entities.Entity("dog", "dogs", "", "")
             >>> group_entity = entities.Entity("pack", "packs", "", "")
             >>> group_entity.add_relationship(single_entity, [role])
-            
+
 
 
             >>> class salary(variables.Variable):
