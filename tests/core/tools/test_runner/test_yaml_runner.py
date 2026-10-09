@@ -56,6 +56,8 @@ class Simulation:
 
 
 class TestFile(YamlFile):
+    __test__ = False
+
     def __init__(self) -> None:
         self.config = None
         self.session = None
@@ -63,6 +65,8 @@ class TestFile(YamlFile):
 
 
 class TestItem(YamlItem):
+    __test__ = False
+
     def __init__(self, test) -> None:
         super().__init__("", TestFile(), TaxBenefitSystem(), test, {})
 
@@ -71,6 +75,7 @@ class TestItem(YamlItem):
 
 
 class TestVariable(Variable):
+    __test__ = False
     definition_period = DateUnit.ETERNITY
     value_type = float
 

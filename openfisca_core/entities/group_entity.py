@@ -121,7 +121,6 @@ class GroupEntity(CoreEntity):
         )
         self.containing_entities = containing_entities
 
-
     def add_roles(self, entity: CoreEntity, roles: Sequence[t.RoleParams]):
         self.roles_description = roles
         self.roles: Iterable[Role] = ()
@@ -141,5 +140,6 @@ class GroupEntity(CoreEntity):
         self.flattened_roles = tuple(
             chain.from_iterable(role.subroles or [role] for role in self.roles),
         )
+
 
 __all__ = ["GroupEntity"]

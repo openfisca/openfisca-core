@@ -1,6 +1,5 @@
 import pytest
 
-from openfisca_core import errors
 from openfisca_core.simulations import SimulationBuilder
 from openfisca_core.tools import test_runner
 
@@ -154,12 +153,8 @@ def test_add_axis_on_households(persons, households) -> None:
         "housea": {"adults": ["Alicia", "Javier"]},
         "houseb": {"adults": ["Tom"]},
     }
-    simulation_builder.add_entity(
-        households,
-        payload)
-    simulation_builder.link_entities(
-        households,
-        payload)
+    simulation_builder.add_entity(households, payload)
+    simulation_builder.link_entities(households, payload)
     simulation_builder.register_variable("rent", households)
     simulation_builder.add_parallel_axis(
         {"count": 2, "name": "rent", "min": 0, "max": 3000, "period": "2018-11"},
@@ -187,12 +182,8 @@ def test_axis_on_group_expands_persons(persons, households) -> None:
         "housea": {"adults": ["Alicia", "Javier"]},
         "houseb": {"adults": ["Tom"]},
     }
-    simulation_builder.add_entity(
-        households,
-        payload)
-    simulation_builder.link_entities(
-        households,
-        payload)
+    simulation_builder.add_entity(households, payload)
+    simulation_builder.link_entities(households, payload)
 
     simulation_builder.register_variable("rent", households)
     simulation_builder.add_parallel_axis(
@@ -212,12 +203,8 @@ def test_add_axis_distributes_roles(persons, households) -> None:
         "housea": {"adults": ["Alicia"]},
         "houseb": {"adults": ["Tom"], "children": ["Javier"]},
     }
-    simulation_builder.add_entity(
-        households,
-        payload)
-    simulation_builder.link_entities(
-        households,
-        payload)
+    simulation_builder.add_entity(households, payload)
+    simulation_builder.link_entities(households, payload)
 
     relationship = households.relationships[0]
 
@@ -246,12 +233,8 @@ def test_add_axis_on_persons_distributes_roles(persons, households) -> None:
         "housea": {"adults": ["Alicia"]},
         "houseb": {"adults": ["Tom"], "children": ["Javier"]},
     }
-    simulation_builder.add_entity(
-        households,
-        payload)
-    simulation_builder.link_entities(
-        households,
-        payload)
+    simulation_builder.add_entity(households, payload)
+    simulation_builder.link_entities(households, payload)
     simulation_builder.register_variable("salary", persons)
     simulation_builder.add_parallel_axis(
         {"count": 2, "name": "salary", "min": 0, "max": 3000, "period": "2018-11"},
@@ -278,12 +261,8 @@ def test_add_axis_distributes_memberships(persons, households) -> None:
         "housea": {"adults": ["Alicia"]},
         "houseb": {"adults": ["Tom"], "children": ["Javier"]},
     }
-    simulation_builder.add_entity(
-        households,
-        payload)
-    simulation_builder.link_entities(
-        households,
-        payload)
+    simulation_builder.add_entity(households, payload)
+    simulation_builder.link_entities(households, payload)
     simulation_builder.register_variable("rent", households)
     simulation_builder.add_parallel_axis(
         {"count": 2, "name": "rent", "min": 0, "max": 3000, "period": "2018-11"},
@@ -378,7 +357,9 @@ def test_simulation_with_axes(tax_benefit_system) -> None:
         [0, 0, 0, 0],
     )
 
+
 # Test for missing group entities with build_from_entities()
+
 
 def test_simulation_with_axes_missing_entities(tax_benefit_system) -> None:
     input_yaml = """
@@ -395,7 +376,7 @@ def test_simulation_with_axes_missing_entities(tax_benefit_system) -> None:
                   period: 2018-11
     """
     data = test_runner.yaml.safe_load(input_yaml)
-    #with pytest.raises(errors.SituationParsingError) as error:
+    # with pytest.raises(errors.SituationParsingError) as error:
     SimulationBuilder().build_from_dict(tax_benefit_system, data)
     #    assert "In order to expand over axes" in error.value()
     #    assert "all group entities and roles must be fully specified" in error.value()

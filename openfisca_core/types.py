@@ -162,7 +162,6 @@ class Entity(Protocol):
     ) -> None | Variable: ...
 
 
-
 class Role(Protocol):
     entity: Entity
     max: int | None

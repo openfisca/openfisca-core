@@ -23,7 +23,6 @@ class Population(CorePopulation):
         result.ids = self.ids
         return result
 
-
     def __getattr__(self, attribute: str) -> projectors.Projector:
         projector: projectors.Projector | None
         projector = projectors.get_projector_from_shortcut(self, attribute)
@@ -36,10 +35,12 @@ class Population(CorePopulation):
             if role_key in self._roles_to_memberships:
                 memberships = self._roles_to_memberships[role_key]
                 assert len(memberships) == 1
-                membership = memberships[0] #  TODO
+                membership = memberships[0]  #  TODO
                 role, _ = entities.find_role(membership.relationship.a, role_key)
                 if not role:
-                    role, _ = entities.find_role(membership.relationship.a, role_key[:-1])
+                    role, _ = entities.find_role(
+                        membership.relationship.a, role_key[:-1]
+                    )
                 return membership.nb_members(role)
             else:
                 return self.single_membership.nb_members
@@ -65,7 +66,11 @@ class Population(CorePopulation):
         self.entity.check_role_validity(role)
 
         membership_candidates = self._roles_to_memberships[role.key]
-        memberships = [m for m in membership_candidates if m.population.entity.key == role.entity.key]
+        memberships = [
+            m
+            for m in membership_candidates
+            if m.population.entity.key == role.entity.key
+        ]
         assert len(memberships) == 1
         membership = memberships[0]
 
@@ -139,7 +144,11 @@ class Population(CorePopulation):
         criteria: t.FloatArray,
         condition: bool = True,
     ) -> t.IntArray:
-        pop = population if not isinstance(population, projectors.Projector) else population.reference_entity
+        pop = (
+            population
+            if not isinstance(population, projectors.Projector)
+            else population.reference_entity
+        )
         membership_candidates = [m for m in self.memberships if pop == m.population]
         assert len(membership_candidates) == 1
         membership = membership_candidates[0]

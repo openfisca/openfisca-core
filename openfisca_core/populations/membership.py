@@ -93,7 +93,11 @@ class Membership:
 
     def get_role(self, role_name):
         return next(
-            (role for role in self.relationship.a.flattened_roles if role.key == role_name),
+            (
+                role
+                for role in self.relationship.a.flattened_roles
+                if role.key == role_name
+            ),
             None,
         )
 
@@ -124,7 +128,9 @@ class Membership:
                 weights=array[role_filter],
                 minlength=self.population.count,
             )
-        return numpy.bincount(self.members_entity_id, weights=array, minlength=self.population.count)
+        return numpy.bincount(
+            self.members_entity_id, weights=array, minlength=self.population.count
+        )
 
     @projectors.projectable
     def any(self, array, role=None):
@@ -349,7 +355,7 @@ class Membership:
             [self.has_role(subrole_1), self.has_role(subrole_2)],
             [value_subrole_2, value_subrole_1],
         )
-    
+
     @projectors.projectable
     def get_rank(
         self,

@@ -33,10 +33,7 @@ def timeit(method):
 
 # Entities
 
-Famille = Entity(
-    key="famille",
-    plural="familles",
-    label="Famille")
+Famille = Entity(key="famille", plural="familles", label="Famille")
 
 Individu = Entity(
     key="individu",
@@ -44,8 +41,9 @@ Individu = Entity(
     label="Individu",
 )
 
-Famille.add_relationship(Individu,
-[
+Famille.add_relationship(
+    Individu,
+    [
         {
             "key": "parent",
             "plural": "parents",

@@ -70,9 +70,13 @@ def _dump_entity(population, directory) -> None:
         membership_path = os.path.join(path, membership.relationship.name)
         os.mkdir(membership_path)
 
-        numpy.save(os.path.join(membership_path, "members_position.npy"), membership.members_position)
         numpy.save(
-            os.path.join(membership_path, "members_entity_id.npy"), membership.members_entity_id
+            os.path.join(membership_path, "members_position.npy"),
+            membership.members_position,
+        )
+        numpy.save(
+            os.path.join(membership_path, "members_entity_id.npy"),
+            membership.members_entity_id,
         )
 
         flattened_roles = membership.population.entity.flattened_roles
@@ -100,7 +104,9 @@ def _restore_entity(population, directory) -> None:
             continue
         membership_path = os.path.join(path, membership.relationship.name)
 
-        membership.members_position = numpy.load(os.path.join(membership_path, "members_position.npy"))
+        membership.members_position = numpy.load(
+            os.path.join(membership_path, "members_position.npy")
+        )
         membership.members_entity_id = numpy.load(
             os.path.join(membership_path, "members_entity_id.npy")
         )

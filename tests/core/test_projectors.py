@@ -1,5 +1,4 @@
 import numpy
-import pytest
 
 from openfisca_core.entities import Entity
 from openfisca_core.indexed_enums import Enum
@@ -13,17 +12,10 @@ def test_enum_projects_downwards() -> None:
     """Test that an Enum-type household-level variable projects
     values onto its members correctly.
     """
-    person = Entity(
-        key="person",
-        plural="people",
-        label="A person"
-    )
-    household = Entity(
-        key="household",
-        plural="households",
-        label="A household"
-    )
-    household.add_relationship(person,
+    person = Entity(key="person", plural="people", label="A person")
+    household = Entity(key="household", plural="households", label="A household")
+    household.add_relationship(
+        person,
         [
             {
                 "key": "member",
@@ -83,17 +75,14 @@ def test_enum_projects_upwards() -> None:
     """Test that an Enum-type person-level variable projects
     values onto its household (from the first person) correctly.
     """
-    person = Entity(
-        key="person",
-        plural="people",
-        label="A person"
-    )
+    person = Entity(key="person", plural="people", label="A person")
     household = Entity(
         key="household",
         plural="households",
         label="A household",
     )
-    household.add_relationship(person,
+    household.add_relationship(
+        person,
         [
             {
                 "key": "member",
@@ -161,23 +150,20 @@ def test_enum_projects_unique_role_upwards() -> None:
     """Test that an Enum-type person-level variable projects
     values onto its household (from the first person) correctly.
     """
-    person = Entity(
-        key="person",
-        plural="people",
-        label="A person"
-    )
+    person = Entity(key="person", plural="people", label="A person")
     family = Entity(
         key="family",
         plural="families",
         label="A family",
     )
-    family.add_relationship(person,
+    family.add_relationship(
+        person,
         [
             {
                 "key": "parent",
                 "plural": "parents",
                 "label": "Parent",
-                "subroles": ["parent1", "parent2"]
+                "subroles": ["parent1", "parent2"],
             },
             {
                 "key": "child",
@@ -236,6 +222,4 @@ def test_enum_projects_unique_role_upwards() -> None:
         "2021-01-01",
     ).decode_to_str()
     assert len(result) == 1
-    assert (
-        result == numpy.array(["SECOND_OPTION"])
-    ).all()
+    assert (result == numpy.array(["SECOND_OPTION"])).all()

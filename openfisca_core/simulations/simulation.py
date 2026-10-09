@@ -613,7 +613,9 @@ class Simulation:
                     continue
                 new_pop = old_to_new[population]
                 new_members = old_to_new[membership.members]
-                new_membership = membership.clone(membership.relationship, new_pop, new_members)
+                new_membership = membership.clone(
+                    membership.relationship, new_pop, new_members
+                )
                 new_pop.add_membership(new_membership)
 
         new.create_shortcuts()

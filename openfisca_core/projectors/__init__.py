@@ -32,8 +32,8 @@ from .unique_role_to_entity_projector import UniqueRoleToEntityProjector
 __all__ = [
     "EntityToPersonProjector",
     "FirstPersonToEntityProjector",
-    "Projector",
     "MembersToEntityProjector",
+    "Projector",
     "UniqueRoleToEntityProjector",
     "get_projector_from_shortcut",
     "projectable",

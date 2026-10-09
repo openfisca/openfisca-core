@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
-
 from openfisca_core import entities, projectors
-from openfisca_core.types import GroupEntity, Role, SingleEntity
 
-from .typing import GroupPopulation, Population
+from .typing import Entity, GroupPopulation, Population
 
 
 def projectable(function):
@@ -116,12 +113,20 @@ def get_projector_from_shortcut(
 
     """
     entity: Entity = population.entity
-    mm = [membership for membership in population.memberships if shortcut == membership.relationship.a.key]
+    mm = [
+        membership
+        for membership in population.memberships
+        if shortcut == membership.relationship.a.key
+    ]
     if mm:
         assert len(mm) == 1
         return projectors.EntityToPersonProjector(mm[0], parent)
 
-    emm = [membership for membership in population.memberships if shortcut == membership.relationship.b.plural]
+    emm = [
+        membership
+        for membership in population.memberships
+        if shortcut == membership.relationship.b.plural
+    ]
     if emm:
         assert len(emm) == 1
         return projectors.MembersToEntityProjector(emm[0], parent)
@@ -132,7 +137,11 @@ def get_projector_from_shortcut(
     role, relationship = entities.find_role(entity, shortcut, total=1)
 
     if role is not None:
-        mm = [membership for membership in population.memberships if membership.relationship == relationship]
+        mm = [
+            membership
+            for membership in population.memberships
+            if membership.relationship == relationship
+        ]
         return projectors.UniqueRoleToEntityProjector(mm[0], role, parent)
 
     return None
