@@ -2,7 +2,7 @@
 
 from . import types
 from .entity import Entity
-from .helpers import find_role
+from .helpers import build_entity, find_role
 from .role import Role
 
 check_role_validity = Entity.check_role_validity

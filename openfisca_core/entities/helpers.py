@@ -1,7 +1,62 @@
 from __future__ import annotations
 
+import warnings
+from collections.abc import Sequence
+
 from . import types as t
 from .entity import Entity
+
+
+class DeprecatedEntityManager:
+    def __init__(self):
+        super(DeprecatedEntityManager).__init__()
+        self.group_entities_with_roles = []
+        self.person_entity = None
+
+    def add_entity(
+        self: DeprecatedEntityManager,
+        key: str,
+        plural: str,
+        label: str,
+        doc: str = "",
+        roles: None | Sequence[t.RoleParams] = None,
+        is_person: bool = False,
+    ):
+        new_entity = Entity(key, plural, label, doc)
+
+        if is_person:
+            if self.person_entity:
+                raise ValueError(
+                    "Only one entity can be defined with is_person. Exiting…"
+                )
+            self.person_entity = new_entity
+
+            for entity, entity_roles in self.group_entities_with_roles:
+                if entity_roles:
+                    entity.add_relationship(self.person_entity, entity_roles)
+        else:
+            self.group_entities_with_roles.append((new_entity, roles))
+            if roles and self.person_entity:
+                new_entity.add_relationship(self.person_entity, roles)
+
+        return new_entity
+
+
+default_manager = DeprecatedEntityManager()
+
+
+def build_entity(
+    key: str,
+    plural: str,
+    label: str,
+    doc: str = "",
+    roles: None | Sequence[t.RoleParams] = None,
+    is_person: bool = False,
+) -> t.Entity:
+    message = """build_entity has been deprecated in 47.0.0. It will be removed in the future."""
+    warnings.warn(" ".join(message), DeprecationWarning, stacklevel=2)
+
+    return default_manager.add_entity(key, plural, label, doc, roles, is_person)
 
 
 def find_role(
@@ -87,4 +142,11 @@ def find_role(
     return None, None
 
 
-__all__ = ["find_role"]
+def reset_entity_manager():
+    global default_manager
+    default_manager = DeprecatedEntityManager()
+
+
+build_entity.reset_entity_manager = reset_entity_manager
+
+__all__ = ["build_entity", "find_role"]
