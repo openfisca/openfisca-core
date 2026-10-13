@@ -10,6 +10,7 @@ check_role_validity = Entity.check_role_validity
 __all__ = [
     "Entity",
     "Role",
+    "build_entity",
     "check_role_validity",
     "find_role",
     "types",
