@@ -1,10 +1,48 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
+import warnings
+from collections.abc import Sequence
 
 from . import types as t
-from .entity import Entity as SingleEntity
-from .group_entity import GroupEntity
+from .entity import Entity
+
+
+class DeprecatedEntityManager:
+    def __init__(self):
+        super(DeprecatedEntityManager).__init__()
+        self.group_entities_with_roles = []
+        self.person_entity = None
+
+    def add_entity(
+        self: DeprecatedEntityManager,
+        key: str,
+        plural: str,
+        label: str,
+        doc: str = "",
+        roles: None | Sequence[t.RoleParams] = None,
+        is_person: bool = False,
+    ):
+        new_entity = Entity(key, plural, label, doc)
+
+        if is_person:
+            if self.person_entity:
+                raise ValueError(
+                    "Only one entity can be defined with is_person. Exiting…"
+                )
+            self.person_entity = new_entity
+
+            for entity, entity_roles in self.group_entities_with_roles:
+                if entity_roles:
+                    entity.add_relationship(self.person_entity, entity_roles)
+        else:
+            self.group_entities_with_roles.append((new_entity, roles))
+            if roles and self.person_entity:
+                new_entity.add_relationship(self.person_entity, roles)
+
+        return new_entity
+
+
+default_manager = DeprecatedEntityManager()
 
 
 def build_entity(
@@ -14,85 +52,20 @@ def build_entity(
     doc: str = "",
     roles: None | Sequence[t.RoleParams] = None,
     is_person: bool = False,
-    *,
-    class_override: object = None,
-    containing_entities: Sequence[str] = (),
-) -> t.SingleEntity | t.GroupEntity:
-    """Build an ``Entity`` or a ``GroupEntity``.
+) -> t.Entity:
+    message = """build_entity has been deprecated in 47.0.0. It will be removed in the future."""
+    warnings.warn(" ".join(message), DeprecationWarning, stacklevel=2)
 
-    Args:
-        key: Key to identify the ``Entity`` or ``GroupEntity``.
-        plural: The ``key`` pluralised.
-        label: A summary description.
-        doc: A full description.
-        roles: A list of roles —if it's a ``GroupEntity``.
-        is_person: If is an individual, or not.
-        class_override: ?
-        containing_entities: Keys of contained entities.
-
-    Returns:
-        Entity: When ``is_person`` is ``True``.
-        GroupEntity: When ``is_person`` is ``False``.
-
-    Raises:
-        NotImplementedError: If ``roles`` is ``None``.
-
-    Examples:
-        >>> from openfisca_core import entities
-
-        >>> entity = entities.build_entity(
-        ...     "syndicate",
-        ...     "syndicates",
-        ...     "Banks loaning jointly.",
-        ...     roles=[],
-        ...     containing_entities=(),
-        ... )
-        >>> entity
-        GroupEntity(syndicate)
-
-        >>> entities.build_entity(
-        ...     "company",
-        ...     "companies",
-        ...     "A small or medium company.",
-        ...     is_person=True,
-        ... )
-        Entity(company)
-
-        >>> role = entities.Role({"key": "key"}, entity)
-
-        >>> entities.build_entity(
-        ...     "syndicate",
-        ...     "syndicates",
-        ...     "Banks loaning jointly.",
-        ...     roles=[role],
-        ... )
-        Traceback (most recent call last):
-        TypeError: 'Role' object is not subscriptable
-
-    """
-    if is_person:
-        return SingleEntity(key, plural, label, doc)
-
-    if roles is not None:
-        return GroupEntity(
-            key,
-            plural,
-            label,
-            doc,
-            roles,
-            containing_entities=containing_entities,
-        )
-
-    raise NotImplementedError
+    return default_manager.add_entity(key, plural, label, doc, roles, is_person)
 
 
 def find_role(
-    roles: Iterable[t.Role],
+    entity: Entity,
     key: t.RoleKey,
     *,
     total: None | int = None,
 ) -> None | t.Role:
-    """Find a ``Role`` in a ``GroupEntity``.
+    """Find a ``Role`` in a ``Entity``.
 
     Args:
         roles: The roles to search.
@@ -104,8 +77,7 @@ def find_role(
         None: Else ``None``.
 
     Examples:
-        >>> from openfisca_core import entities
-        >>> from openfisca_core.entities import types as t
+        >>> person_entity = Entity("person", "persons", "Person", "An individual")
 
         >>> principal = t.RoleParams(
         ...     key="principal",
@@ -129,37 +101,52 @@ def find_role(
         ...     subroles=["first_parent", "second_parent"],
         ... )
 
-        >>> group_entity = entities.build_entity(
+        >>> group_entity = Entity(
         ...     key="family",
         ...     plural="families",
         ...     label="Family",
         ...     doc="A Family represents a collection of related persons.",
-        ...     roles=[principal, partner, parent],
         ... )
 
-        >>> entities.find_role(group_entity.roles, "principal", total=1)
-        Role(principal)
+        >>> group_entity.add_relationship(
+        ...     person_entity,
+        ...     [principal, partner, parent],
+        ... )
+        <openfisca_core.entities.entity.Relationship object at ...>
 
-        >>> entities.find_role(group_entity.roles, "partner")
-        Role(partner)
+        >>> find_role(group_entity, "principal", total=1)
+        (Role(principal), <openfisca_core.entities.entity.Relationship object at ...>)
 
-        >>> entities.find_role(group_entity.roles, "parent", total=2)
-        Role(parent)
+        >>> find_role(group_entity, "partner")
+        (Role(partner), <openfisca_core.entities.entity.Relationship object at ...>)
 
-        >>> entities.find_role(group_entity.roles, "first_parent", total=1)
-        Role(first_parent)
+        >>> find_role(group_entity, "parent", total=2)
+        (Role(parent), <openfisca_core.entities.entity.Relationship object at ...>)
+
+        >>> find_role(group_entity, "first_parent", total=1)
+        (Role(first_parent), <openfisca_core.entities.entity.Relationship object at ...>)
 
     """
-    for role in roles:
-        if role.subroles:
-            for subrole in role.subroles:
-                if (subrole.max == total) and (subrole.key == key):
-                    return subrole
+    for relationship in entity.relationships:
+        if relationship.b == entity:
+            continue
+        for role in relationship.roles:
+            if role.subroles:
+                for subrole in role.subroles:
+                    if (subrole.max == total) and (subrole.key == key):
+                        return subrole, relationship
 
-        if (role.max == total) and (role.key == key):
-            return role
+            if (role.max == total) and (role.key == key):
+                return role, relationship
 
-    return None
+    return None, None
 
+
+def reset_entity_manager():
+    global default_manager
+    default_manager = DeprecatedEntityManager()
+
+
+build_entity.reset_entity_manager = reset_entity_manager
 
 __all__ = ["build_entity", "find_role"]

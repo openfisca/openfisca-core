@@ -10,23 +10,40 @@ from . import types as t
 from .population import Population
 
 
-class GroupPopulation(Population):
-    def __init__(self, entity: t.GroupEntity, members: t.Members) -> None:
-        super().__init__(entity)
+def positions(members_entity_id):
+    # We could use self.count and self.members.count , but with the current initialization, we are not sure count will be set before members_position is called
+    nb_entities = numpy.max(members_entity_id) + 1
+    nb_members = len(members_entity_id)
+    # Sort persons by entity to group them
+    order = numpy.argsort(members_entity_id, kind="stable")
+    sorted_ids = members_entity_id[order]
+    # Compute the start index of each entity's group in the sorted array
+    group_sizes = numpy.bincount(sorted_ids, minlength=nb_entities)
+    group_starts = numpy.empty(nb_entities, dtype=numpy.intp)
+    group_starts[0] = 0
+    numpy.cumsum(group_sizes[:-1], out=group_starts[1:])
+    # Position within group = global sorted index - group start
+    positions_sorted = numpy.arange(nb_members) - group_starts[sorted_ids]
+    # Scatter back to original order
+    members_position = numpy.empty(nb_members, dtype=numpy.int32)
+    members_position[order] = positions_sorted
+    return members_position
+
+
+class Membership:
+    def __init__(
+        self, relationship, population: Population, members: t.Members
+    ) -> None:
+        self.population = population
         self.members = members
+        self.relationship = relationship
         self._members_entity_id = None
         self._members_role = None
         self._members_position = None
         self._ordered_members_map = None
 
-    def clone(self, simulation):
-        result = GroupPopulation(self.entity, self.members)
-        result.simulation = simulation
-        result._holders = {
-            variable: holder.clone(self) for (variable, holder) in self._holders.items()
-        }
-        result.count = self.count
-        result.ids = self.ids
+    def clone(self, relationship, population, members):
+        result = Membership(relationship, population, members)
         result._members_entity_id = self._members_entity_id
         result._members_role = self._members_role
         result._members_position = self._members_position
@@ -36,23 +53,7 @@ class GroupPopulation(Population):
     @property
     def members_position(self):
         if self._members_position is None and self.members_entity_id is not None:
-            # We could use self.count and self.members.count , but with the current initialization, we are not sure count will be set before members_position is called
-            nb_entities = numpy.max(self.members_entity_id) + 1
-            nb_persons = len(self.members_entity_id)
-            # Sort persons by entity to group them
-            order = numpy.argsort(self.members_entity_id, kind="stable")
-            sorted_ids = self.members_entity_id[order]
-            # Compute the start index of each entity's group in the sorted array
-            group_sizes = numpy.bincount(sorted_ids, minlength=nb_entities)
-            group_starts = numpy.empty(nb_entities, dtype=numpy.intp)
-            group_starts[0] = 0
-            numpy.cumsum(group_sizes[:-1], out=group_starts[1:])
-            # Position within group = global sorted index - group start
-            positions_sorted = numpy.arange(nb_persons) - group_starts[sorted_ids]
-            # Scatter back to original order
-            self._members_position = numpy.empty(nb_persons, dtype=numpy.int32)
-            self._members_position[order] = positions_sorted
-
+            self._members_position = positions(self.members_entity_id)
         return self._members_position
 
     @members_position.setter
@@ -70,7 +71,7 @@ class GroupPopulation(Population):
     @property
     def members_role(self):
         if self._members_role is None:
-            default_role = self.entity.flattened_roles[0]
+            default_role = self.relationship.a.flattened_roles[0]
             self._members_role = numpy.repeat(default_role, len(self.members_entity_id))
         return self._members_role
 
@@ -92,7 +93,11 @@ class GroupPopulation(Population):
 
     def get_role(self, role_name):
         return next(
-            (role for role in self.entity.flattened_roles if role.key == role_name),
+            (
+                role
+                for role in self.relationship.a.flattened_roles
+                if role.key == role_name
+            ),
             None,
         )
 
@@ -114,16 +119,18 @@ class GroupPopulation(Population):
         >>> array([3500])
 
         """
-        self.entity.check_role_validity(role)
+        self.relationship.a.check_role_validity(role)
         self.members.check_array_compatible_with_entity(array)
         if role is not None:
             role_filter = self.members.has_role(role)
             return numpy.bincount(
                 self.members_entity_id[role_filter],
                 weights=array[role_filter],
-                minlength=self.count,
+                minlength=self.population.count,
             )
-        return numpy.bincount(self.members_entity_id, weights=array)
+        return numpy.bincount(
+            self.members_entity_id, weights=array, minlength=self.population.count
+        )
 
     @projectors.projectable
     def any(self, array, role=None):
@@ -147,12 +154,12 @@ class GroupPopulation(Population):
     @projectors.projectable
     def reduce(self, array, reducer, neutral_element, role=None):
         self.members.check_array_compatible_with_entity(array)
-        self.entity.check_role_validity(role)
+        self.relationship.a.check_role_validity(role)
         position_in_entity = self.members_position
         role_filter = self.members.has_role(role) if role is not None else True
         filtered_array = numpy.where(role_filter, array, neutral_element)
 
-        result = self.filled_array(
+        result = self.population.filled_array(
             neutral_element,
         )  # Neutral value that will be returned if no one with the given role exists.
 
@@ -240,7 +247,7 @@ class GroupPopulation(Population):
         )
 
     @projectors.projectable
-    def nb_persons(self, role=None):
+    def nb_members(self, role=None):
         """Returns the number of persons contained in the entity.
 
         If ``role`` is provided, only the entity member with the given role are taken into account.
@@ -253,10 +260,9 @@ class GroupPopulation(Population):
             else:
                 role_condition = self.members_role == role
             return self.sum(role_condition)
-        return numpy.bincount(self.members_entity_id)
+        return numpy.bincount(self.members_entity_id, minlength=self.population.count)
 
     # Projection person -> entity
-
     @projectors.projectable
     def value_from_person(self, array, role, default=0):
         """Get the value of ``array`` for the person with the unique role ``role``.
@@ -267,7 +273,7 @@ class GroupPopulation(Population):
 
         The result is a vector which dimension is the number of entities
         """
-        self.entity.check_role_validity(role)
+        self.relationship.a.check_role_validity(role)
         if role.max != 1:
             msg = f"You can only use value_from_person with a role that is unique in {self.key}. Role {role.key} is not unique."
             raise Exception(
@@ -275,7 +281,7 @@ class GroupPopulation(Population):
             )
         self.members.check_array_compatible_with_entity(array)
         members_map = self.ordered_members_map
-        result = self.filled_array(default, dtype=array.dtype)
+        result = self.population.filled_array(default, dtype=array.dtype)
         if isinstance(array, indexed_enums.EnumArray):
             result = indexed_enums.EnumArray(result, array.possible_values)
         role_filter = self.members.has_role(role)
@@ -297,12 +303,12 @@ class GroupPopulation(Population):
         """
         self.members.check_array_compatible_with_entity(array)
         positions = self.members_position
-        nb_persons_per_entity = self.nb_persons()
+        nb_members_per_entity = self.nb_members()
         members_map = self.ordered_members_map
-        result = self.filled_array(default, dtype=array.dtype)
+        result = self.population.filled_array(default, dtype=array.dtype)
         # For households that have at least n persons, set the result as the value of criteria for the person for which the position is n.
         # The map is needed b/c the order of the nth persons of each household in the persons vector is not necessarily the same than the household order.
-        result[nb_persons_per_entity > n] = array[members_map][
+        result[nb_members_per_entity > n] = array[members_map][
             positions[members_map] == n
         ]
 
@@ -318,9 +324,90 @@ class GroupPopulation(Population):
     # Projection entity -> person(s)
 
     def project(self, array, role=None):
-        self.check_array_compatible_with_entity(array)
-        self.entity.check_role_validity(role)
+        self.population.check_array_compatible_with_entity(array)
+        self.relationship.a.check_role_validity(role)
         if role is None:
             return array[self.members_entity_id]
         role_condition = self.members.has_role(role)
         return numpy.where(role_condition, array[self.members_entity_id], 0)
+
+    @projectors.projectable
+    def value_from_partner(
+        self,
+        array: t.FloatArray,
+        entity: projectors.Projector,
+        role: t.Role,
+    ) -> None | t.FloatArray:
+        self.check_array_compatible_with_entity(array)
+        self.entity.check_role_validity(role)
+
+        if not role.subroles or len(role.subroles) != 2:
+            msg = "Projection to partner is only implemented for roles having exactly two subroles."
+            raise Exception(
+                msg,
+            )
+
+        [subrole_1, subrole_2] = role.subroles
+        value_subrole_1 = entity.value_from_person(array, subrole_1)
+        value_subrole_2 = entity.value_from_person(array, subrole_2)
+
+        return numpy.select(
+            [self.has_role(subrole_1), self.has_role(subrole_2)],
+            [value_subrole_2, value_subrole_1],
+        )
+
+    @projectors.projectable
+    def get_rank(
+        self,
+        population: Population,
+        criteria: t.FloatArray,
+        condition: bool = True,
+    ) -> t.IntArray:
+        """Get the rank of a person within an population according to a criteria.
+        The person with rank 0 has the minimum value of criteria.
+        If condition is specified, then the persons who don't respect it are not taken into account and their rank is -1.
+
+        Example:
+        >>> age = person("age", period)  # e.g [32, 34, 2, 8, 1]
+        >>> person.get_rank(household, age)
+        >>> [3, 4, 0, 2, 1]
+
+        >>> is_child = person.has_role(
+        ...     Household.CHILD
+        ... )  # [False, False, True, True, True]
+        >>> person.get_rank(
+        ...     household, -age, condition=is_child
+        ... )  # Sort in reverse order so that the eldest child gets the rank 0.
+        >>> [-1, -1, 1, 0, 2]
+
+        """
+        # If population is for instance 'person.household', we get the reference population 'household' behind the projector
+        population = (
+            population
+            if not isinstance(population, projectors.Projector)
+            else population.reference_entity
+        )
+
+        positions = self.members_position
+        biggest_entity_size = numpy.max(positions) + 1
+        filtered_criteria = numpy.where(condition, criteria, numpy.inf)
+        ids = self.members_entity_id
+
+        # Matrix: the value in line i and column j is the value of criteria for the jth person of the ith entity
+        matrix = numpy.asarray(
+            [
+                population.value_nth_person(k, filtered_criteria, default=numpy.inf)
+                for k in range(biggest_entity_size)
+            ],
+        ).transpose()
+
+        # We double-argsort all lines of the matrix.
+        # Double-argsorting gets the rank of each value once sorted
+        # For instance, if x = [3,1,6,4,0], y =  numpy.argsort(x) is [4, 1, 0, 3, 2] (because the value with index 4 is the smallest one, the value with index 1 the second smallest, etc.) and z =  numpy.argsort(y) is [2, 1, 4, 3, 0], the rank of each value.
+        sorted_matrix = numpy.argsort(numpy.argsort(matrix))
+
+        # Build the result vector by taking for each person the value in the right line (corresponding to its household id) and the right column (corresponding to its position)
+        result = sorted_matrix[ids, positions]
+
+        # Return -1 for the persons who don't respect the condition
+        return numpy.where(condition, result, -1)
