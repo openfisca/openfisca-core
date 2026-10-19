@@ -41,6 +41,12 @@ jobs:
       - name: Publish
         run: uv publish
 
+  update-doc:
+    needs: [publish-to-pypi]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+    steps:
       - name: Update doc
         env:
           OPENFISCADOC_BOT_ACCESS_TOKEN: >-
