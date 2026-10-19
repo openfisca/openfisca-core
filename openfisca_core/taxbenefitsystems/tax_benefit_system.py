@@ -10,6 +10,7 @@ import importlib.util
 import inspect
 import linecache
 import logging
+import numpy as np
 import os
 import sys
 import traceback
@@ -19,7 +20,7 @@ from typing import Any
 from openfisca_core import commons, periods, variables
 from openfisca_core.entities import Entity
 from openfisca_core.errors import VariableNameConflictError, VariableNotFoundError
-from openfisca_core.parameters import ParameterNode
+from openfisca_core.parameters import ParameterNode, VectorialParameterNodeAtInstant
 from openfisca_core.periods import Instant, Period
 from openfisca_core.populations import Membership, Population
 from openfisca_core.simulations import SimulationBuilder
@@ -438,6 +439,15 @@ class TaxBenefitSystem:
             return self.get_parameters_at_instant(instant)
         return baseline._get_baseline_parameters_at_instant(instant)
 
+    def get_parameters_at(self, key: str | int | Period | Instant | [str | int | Period | Instant]):
+        if isinstance(key, (list| np.ndarray)):
+            name = self.parameters.name
+            instant_str = key
+            vector = [self.get_parameters_at_instant(periods.instant(str(i))) for i in key]
+            return VectorialParameterNodeAtInstant(vector, name, instant_str)
+
+        return self.get_parameters_at_instant(key)
+
     @functools.lru_cache
     def get_parameters_at_instant(
         self,
@@ -454,7 +464,7 @@ class TaxBenefitSystem:
         """
         key: Instant | None
         msg: str
-
+        
         if isinstance(instant, Instant):
             key = instant
 
@@ -463,8 +473,8 @@ class TaxBenefitSystem:
 
         elif isinstance(instant, (str, int)):
             key = periods.instant(instant)
-
         else:
+            key = instant
             msg = f"Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {key}."
             raise AssertionError(msg)
 

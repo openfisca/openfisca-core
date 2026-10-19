@@ -343,7 +343,7 @@ class Simulation:
         if self.trace:
             parameters_at = self.trace_parameters_at_instant
         else:
-            parameters_at = self.tax_benefit_system.get_parameters_at_instant
+            parameters_at = self.tax_benefit_system.get_parameters_at
 
         if formula.__code__.co_argcount == 2:
             array = formula(population, period)

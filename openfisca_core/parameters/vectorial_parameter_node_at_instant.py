@@ -1,10 +1,38 @@
-from typing import NoReturn
-
 import numpy
+import typing
+
+from typing import NoReturn
 
 from openfisca_core import parameters
 from openfisca_core.indexed_enums import Enum, EnumArray
+from openfisca_core.taxscales import TaxScaleLike
 
+
+NumericalArray = numpy.int32 | numpy.float32
+
+
+class VectorialTaxScale(TaxScaleLike):
+    def __init__(self, vector, name, instant_str) -> None:
+        self.vector = vector
+        self._name = name
+        self._instant_str = instant_str
+
+    def __repr__(self) -> str:
+        return "VectorialTaxScale"
+
+    def calc(
+        self,
+        tax_base: NumericalArray,
+        right: bool = False,
+    ) -> numpy.float32:
+        r = [scale.calc([value])[0] for (scale, value) in zip(self.vector, tax_base)]
+        return numpy.array(r)
+
+    def to_dict(self) -> dict:
+        raise NotImplementedError()
+
+    def copy(self) -> typing.Any:
+        raise NotImplementedError()
 
 class VectorialParameterNodeAtInstant:
     def __init__(self, vector, name, instant_str) -> None:
@@ -77,6 +105,8 @@ class VectorialParameterNodeAtInstant:
     def build_from_nodes(node, nodes):
         if isinstance(nodes[0], parameters.ParameterNodeAtInstant):
             return VectorialParameterNodeAtInstant(nodes, node._name, node._instant_str)
+        if isinstance(nodes[0], TaxScaleLike):
+            return VectorialTaxScale(nodes, node._name, node._instant_str)
         return numpy.array(nodes)
 
     def __getattr__(self, attribute):

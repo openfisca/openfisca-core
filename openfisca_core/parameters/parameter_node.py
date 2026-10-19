@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import os
+import numpy
 from collections.abc import Iterable
 
 from openfisca_core import commons, parameters, tools
@@ -173,4 +174,8 @@ class ParameterNode(AtInstantLike):
         return clone
 
     def _get_at_instant(self, instant):
+        if isinstance(instant, numpy.ndarray):
+            return parameters.VectorialParameterNodeAtInstant.build_from_node_name(
+                self, key
+            )
         return ParameterNodeAtInstant(self.name, self, instant)
