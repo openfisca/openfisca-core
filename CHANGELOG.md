@@ -1,5 +1,12 @@
 # Changelog
 
+### 46.0.1 [#](https://github.com/openfisca/openfisca-core/pull/)
+
+#### Technical changes
+
+- Update dependencies with `uv sync --upgrade`
+- Bump `gunicorn` version constraints
+
 # 46.0.0 [#1396](https://github.com/openfisca/openfisca-core/pull/1396)
 
 #### Breaking changes
