@@ -4,7 +4,7 @@
 
 #### Technical changes
 
-- In continuous deployment, ensure git tag creation independently from documention updates
+- In continuous deployment, ensure git tag creation independently from documentation updates
 - Update dependencies with `uv sync --upgrade`
 - Change upper constraints for `gunicorn`, `openapi-spec-validator` and `psutil`
 
