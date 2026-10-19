@@ -82,7 +82,7 @@ As NumPy introduced the `typing` module in 1.20.0, to ensure type hints do not b
 Type checking is already run with `make test`. To run the type checker alone:
 
 ```sh
-make check-types
+uv run make check-types
 ```
 
 ## Style
@@ -92,13 +92,13 @@ This repository adheres to a [certain coding style](STYLEGUIDE.md), and we invit
 Style checking is already run with `make test`. To run the style checker alone:
 
 ```sh
-make check-style
+uv run make check-style
 ```
 
 To automatically style-format your code changes:
 
 ```sh
-make format-style
+uv run make format-style
 ```
 
 To automatically style-format your code changes each time you commit:
