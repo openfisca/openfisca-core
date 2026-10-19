@@ -1,5 +1,13 @@
 # Changelog
 
+### 46.0.1 [#1407](https://github.com/openfisca/openfisca-core/pull/1407)
+
+#### Technical changes
+
+- In continuous deployment, ensure git tag creation independently from documentation updates
+- Update dependencies with `uv sync --upgrade`
+- Change upper constraints for `gunicorn`, `openapi-spec-validator` and `psutil`
+
 # 46.0.0 [#1396](https://github.com/openfisca/openfisca-core/pull/1396)
 
 #### Breaking changes
