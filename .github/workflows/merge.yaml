@@ -70,11 +70,3 @@ jobs:
           uv version --short
           git tag `uv version --short`
           git push --tags
-
-  # The tag pushed above uses GITHUB_TOKEN, which does not trigger other
-  # workflows: the Windows install check must be called explicitly.
-  test-on-windows:
-    needs: [push-jobs, push-tag]
-    uses: $/.github/workflows/windows-test.yaml
-    with:
-      version: ${{ needs.push-jobs.outputs.version }}

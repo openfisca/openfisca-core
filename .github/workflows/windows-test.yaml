@@ -5,30 +5,16 @@ env:
   UPPER_PYTHON_VERSION: &upper_pyver 3.13.11
 
 on:
-  # Called by merge.yaml once the release tag is pushed: a tag pushed with
-  # GITHUB_TOKEN does not trigger the `push: tags` event below.
-  workflow_call:
-    inputs:
-      version:
-        description: "Version of openfisca-core to install from PyPi"
-        required: true
-        type: string
-  # Tags pushed by a maintainer (with their own credentials).
-  push:
-    tags:
-      - "*"
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Version of openfisca-core to install from PyPi"
-        required: true
-        type: string
+  workflow_run:
+    workflows: [OpenFisca-Core / Deploy package to PyPi]
+    types: [completed]
 
 jobs:
   test-on-windows:
     runs-on: windows-2025
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     env:
-      OPENFISCA_VERSION: ${{ inputs.version || github.ref_name }}
+      OPENFISCA_VERSION: ${{ github.ref_name }}
     defaults:
       run:
         shell: bash
