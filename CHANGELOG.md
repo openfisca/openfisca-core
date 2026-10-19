@@ -5,7 +5,7 @@
 #### Technical changes
 
 - Update dependencies with `uv sync --upgrade`
-- Bump `gunicorn` version constraints
+- Change upper constraints for `gunicorn`, `openapi-spec-validator` and `psutil`
 
 # 46.0.0 [#1396](https://github.com/openfisca/openfisca-core/pull/1396)
 
