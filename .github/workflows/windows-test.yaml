@@ -6,6 +6,7 @@ env:
 
 on:
   workflow_run:
+    # From merge.yaml workflow name
     workflows: [OpenFisca-Core / Deploy package to PyPi]
     types: [completed]
 

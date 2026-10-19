@@ -1,4 +1,6 @@
 ---
+# Exact-name match in "windows-test.yaml"
+# In case you edit the name, please report it there
 name: OpenFisca-Core / Deploy package to PyPi
 
 env:
