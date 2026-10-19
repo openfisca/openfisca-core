@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from typing import NoReturn
+from typing import NoReturn, Self
 
 import numpy
-from typing_extensions import Self
 
 from . import types as t
 

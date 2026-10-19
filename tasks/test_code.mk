@@ -7,14 +7,11 @@ country = $(shell python -c "import pathlib, $(1); print(pathlib.Path($(1).__pat
 ## The path to the extension template tests.
 extension = $(shell python -c "import pathlib, $(1); print(pathlib.Path($(1).__path__[0]) / '..' / 'tests' / '$(1)')")
 
-## Run all tasks required for testing.
-install: install-deps install-edit install-test
-
-## Enable regression testing with template repositories.
-install-test:
+## Install the project, its dev dependencies and the template repositories.
+install:
 	@$(call print_help,$@:)
-	@python -m pip install --no-deps --upgrade --no-binary :all: \
-		openfisca-country-template openfisca-extension-template
+	@uv sync
+	@$(call print_pass,$@:)
 
 ## Run openfisca-core & country/extension template tests.
 test-code: test-core test-country test-extension

@@ -1,4 +1,6 @@
-from typing_extensions import Required, TypedDict
+from typing import Required
+
+from typing_extensions import TypedDict
 
 from openfisca_core.types import (
     CoreEntity,

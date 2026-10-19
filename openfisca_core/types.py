@@ -4,7 +4,7 @@ import abc
 import enum
 import re
 from collections.abc import Iterable, Iterator, Sequence, Sized
-from typing import NewType, TypeAlias, TypeVar, Union
+from typing import NewType, Required, Self, TypeAlias, TypeVar, Union
 
 import numpy
 import pendulum
@@ -36,7 +36,7 @@ from numpy import (
     uint8 as EnumDType,
 )
 from numpy.typing import DTypeLike, NDArray
-from typing_extensions import Protocol, Required, Self, TypedDict
+from typing_extensions import Protocol, TypedDict
 
 #: Generic covariant type var.
 _T_co = TypeVar("_T_co", covariant=True)
