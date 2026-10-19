@@ -1318,14 +1318,14 @@ dev = [
 
 [[package]]
 name = "openfisca-country-template"
-version = "8.1.0"
+version = "8.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "openfisca-core", extra = ["web-api"] },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e1/3d/048ab4f5db47b8e219876ef7a834f9a59fa3ee36ba42984783ac20f1838e/openfisca_country_template-8.1.0.tar.gz", hash = "sha256:6b465dad0dede21769bda2f8c5d47e15f73efb8a8c2595604d3a78c55ff48f67", size = 138451, upload-time = "2026-09-17T17:27:21.405Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/83/db/7db49c14f553e39fcf4c01a48910df3525951ee0a1b0c210f47b75558e5f/openfisca_country_template-8.2.0.tar.gz", hash = "sha256:e7ac6a2abfbfd7b6e025af876f013fc757213cfbcca3f063b431ff33c8ff1063", size = 169098, upload-time = "2026-10-09T10:51:03.067Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c8/be/f1ab7476fd6ae4fc217ea3207958843f1b79adaf5075ada6cc79e1022aae/openfisca_country_template-8.1.0-py3-none-any.whl", hash = "sha256:0ccfaa4632e21ca567767314635be4ed2b7b24171b1f86bfa92cb84ac2b17a7c", size = 46469, upload-time = "2026-09-17T17:27:20.366Z" },
+    { url = "https://files.pythonhosted.org/packages/38/34/6a67c1ccdeb06792415765a7675f9fda477bf0aa78cad4cca7916f7ba8c1/openfisca_country_template-8.2.0-py3-none-any.whl", hash = "sha256:ef98877a2b443d96cd2e64216a5f571972ab7f977dc57881ee252f7e6565d032", size = 47363, upload-time = "2026-10-09T10:51:01.638Z" },
 ]
 
 [[package]]
