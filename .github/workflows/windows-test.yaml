@@ -5,13 +5,30 @@ env:
   UPPER_PYTHON_VERSION: &upper_pyver 3.13.11
 
 on:
+  # Called by merge.yaml once the release tag is pushed: a tag pushed with
+  # GITHUB_TOKEN does not trigger the `push: tags` event below.
+  workflow_call:
+    inputs:
+      version:
+        description: "Version of openfisca-core to install from PyPi"
+        required: true
+        type: string
+  # Tags pushed by a maintainer (with their own credentials).
   push:
     tags:
       - "*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version of openfisca-core to install from PyPi"
+        required: true
+        type: string
 
 jobs:
   test-on-windows:
     runs-on: windows-2025
+    env:
+      OPENFISCA_VERSION: ${{ inputs.version || github.ref_name }}
     defaults:
       run:
         shell: bash
@@ -27,16 +44,16 @@ jobs:
           uv venv --python ${{ env.UPPER_PYTHON_VERSION }}
           installed=false
           for attempt in $(seq 1 5); do
-            if uv pip install "openfisca-core==$GITHUB_REF_NAME"; then
+            if uv pip install "openfisca-core==$OPENFISCA_VERSION"; then
               installed=true
               break
             fi
-            echo "openfisca-core $GITHUB_REF_NAME not on PyPi yet,"
+            echo "openfisca-core $OPENFISCA_VERSION not on PyPi yet,"
             echo "retrying in 30s (attempt $attempt/5)…"
             sleep 30
           done
           if [ "$installed" = false ]; then
-            echo "Could not install openfisca-core $GITHUB_REF_NAME from PyPi."
+            echo "Could not install openfisca-core $OPENFISCA_VERSION from PyPi."
             exit 1
           fi
 

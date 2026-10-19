@@ -85,7 +85,7 @@ jobs:
       TERM: xterm-256color
     outputs:
       version: ${{ steps.save-version.outputs.version }}
-      has-functional-changes: |
+      has-functional-changes: >-
         ${{ steps.stop-early.outputs.has-functional-changes }}
     steps:
       - name: Checkout

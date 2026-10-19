@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   push-jobs:
-    uses: $/.github/workflows/push.yaml
+    uses: ./.github/workflows/push.yaml
 
   publish-to-pypi:
     needs: [push-jobs]
@@ -40,12 +40,14 @@ jobs:
         run: uv publish
 
       - name: Update doc
+        env:
+          OPENFISCADOC_BOT_ACCESS_TOKEN: >-
+            ${{ secrets.OPENFISCADOC_BOT_ACCESS_TOKEN }}
         run: |
-          curl -L \
+          curl -L --fail-with-body \
             -X POST \
             -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer \
-              ${{ secrets.OPENFISCADOC_BOT_ACCESS_TOKEN }}" \
+            -H "Authorization: Bearer ${OPENFISCADOC_BOT_ACCESS_TOKEN}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             -d '{"ref":"main"}' \
             https://api.github.com/repos/openfisca/openfisca-doc/actions/workflows/deploy.yaml/dispatches
@@ -68,3 +70,11 @@ jobs:
           uv version --short
           git tag `uv version --short`
           git push --tags
+
+  # The tag pushed above uses GITHUB_TOKEN, which does not trigger other
+  # workflows: the Windows install check must be called explicitly.
+  test-on-windows:
+    needs: [push-jobs, push-tag]
+    uses: ./.github/workflows/windows-test.yaml
+    with:
+      version: ${{ needs.push-jobs.outputs.version }}
