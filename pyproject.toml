@@ -79,7 +79,7 @@ web-api = [
 ]
 
 ci = [
-    "openapi-spec-validator >=0.7.1, <0.8.0",
+    "openapi-spec-validator>=0.7.1,<0.10.0",
     "OpenFisca-Core[web-api]",
     "openfisca-country-template >=8, <9",
     "openfisca-extension-template >=2.0.7, <3",
