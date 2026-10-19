@@ -16,6 +16,7 @@
 - Remove `setup.py` and `setup.cfg` and move logic to `pyproject.toml`
 - Reduce Makefile tasks, CI and CD complexity
   - Lint is only run with a single version of Python
+- Allow `pytest` 9 (`pytest >=8.3.3, <10.0`)
 
 ### 45.0.5 [#1387](https://github.com/openfisca/openfisca-core/pull/1387)
 

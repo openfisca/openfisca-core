@@ -1313,7 +1313,7 @@ requires-dist = [
     { name = "openfisca-extension-template", marker = "extra == 'ci'", specifier = ">=2.0.7,<3" },
     { name = "pendulum", specifier = ">=3.0.0,<4.0.0" },
     { name = "psutil", specifier = ">=5.9.4,<6.0" },
-    { name = "pytest", specifier = ">=8.3.3,<9.0" },
+    { name = "pytest", specifier = ">=8.3.3,<10.0" },
     { name = "pyyaml", specifier = ">=6.0.1,<7.0" },
     { name = "pyyaml", marker = "python_full_version >= '3.13'", specifier = ">=6.0.2,<7.0" },
     { name = "sortedcontainers", specifier = ">=2.4.0,<3.0" },
