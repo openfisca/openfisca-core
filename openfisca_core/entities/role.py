@@ -20,7 +20,6 @@ class Role:
 
     Examples:
         >>> from openfisca_core import entities
-
         >>> entity = entities.Entity("entity", "plural", "label", "doc")
         >>> role = entities.Role({"key": "parent"}, entity)
 

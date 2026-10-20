@@ -11,13 +11,7 @@ from .role import Role
 class Entity:
     """Base class to build entities from.
 
-    Args:
-        *__args: Any arguments.
-        **__kwargs: Any keyword arguments.
-
     Examples:
-        >>> from openfisca_core.entities import types as t
-
         >>> Entity("individual", "individuals", "Individual", "")
         Entity(individual)
 
