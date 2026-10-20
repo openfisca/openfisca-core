@@ -24,11 +24,10 @@ from typing_extensions import TypedDict
 
 from openfisca_core.types import (
     Array,
-    CoreEntity,
     CorePopulation,
     DTypeLike,
+    Entity,
     EntityKey,
-    GroupEntity,
     Holder,
     MemoryUsage,
     Period,
@@ -36,7 +35,6 @@ from openfisca_core.types import (
     PeriodStr,
     Role,
     Simulation,
-    SingleEntity,
     SinglePopulation,
     VariableName,
 )
@@ -93,17 +91,15 @@ class MemoryUsageByVariable(TypedDict, total=False):
 
 
 __all__ = [
-    "CoreEntity",
     "CorePopulation",
     "DTypeLike",
+    "Entity",
     "EntityKey",
-    "GroupEntity",
     "Holder",
     "MemoryUsage",
     "Period",
     "Role",
     "Simulation",
-    "SingleEntity",
     "SinglePopulation",
     "VarDType",
     "VariableName",

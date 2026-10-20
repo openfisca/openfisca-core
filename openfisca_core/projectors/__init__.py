@@ -25,12 +25,14 @@ from . import typing
 from .entity_to_person_projector import EntityToPersonProjector
 from .first_person_to_entity_projector import FirstPersonToEntityProjector
 from .helpers import get_projector_from_shortcut, projectable
+from .members_to_entity_projector import MembersToEntityProjector
 from .projector import Projector
 from .unique_role_to_entity_projector import UniqueRoleToEntityProjector
 
 __all__ = [
     "EntityToPersonProjector",
     "FirstPersonToEntityProjector",
+    "MembersToEntityProjector",
     "Projector",
     "UniqueRoleToEntityProjector",
     "get_projector_from_shortcut",

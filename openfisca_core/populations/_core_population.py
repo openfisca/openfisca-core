@@ -24,17 +24,17 @@ class CorePopulation:
     """Base class to build populations from.
 
     Args:
-        entity: The :class:`~entities.CoreEntity` of the population.
+        entity: The :class:`~entities.Entity` of the population.
         *__args: Variable length argument list.
         **__kwds: Arbitrary keyword arguments.
 
     """
 
-    #: The number :class:`~entities.CoreEntity` members in the population.
+    #: The number :class:`~entities.Entity` members in the population.
     count: int = 0
 
-    #: The :class:`~entities.CoreEntity` of the population.
-    entity: t.CoreEntity
+    #: The :class:`~entities.Entity` of the population.
+    entity: t.Entity
 
     #: A pseudo index for the members of the population.
     ids: Sequence[str] = []
@@ -42,9 +42,19 @@ class CorePopulation:
     #: The :class:`~simulations.Simulation` for which the population is calculated.
     simulation: None | t.Simulation = None
 
-    def __init__(self, entity: t.CoreEntity, *__args: object, **__kwds: object) -> None:
+    def __init__(self, entity: t.Entity, *__args: object, **__kwds: object) -> None:
         self.entity = entity
+        self._memberships = []
+        self._roles_to_membership_as_source: dict[
+            t.Role.key | t.Role.plural, t.Membership
+        ] = {}
+        self._roles_to_membership_as_target: dict[
+            t.Role.key | t.Role.plural, t.Membership
+        ] = {}
         self._holders: t.HolderByVariable = {}
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.entity.key})"
 
     def __call__(
         self,
@@ -449,6 +459,10 @@ class CorePopulation:
             total_nb_bytes=total_memory_usage,
             by_variable=holders_memory_usage,
         )
+
+    @property
+    def memberships(self) -> Sequence[t.Membership]:
+        return self._memberships
 
 
 __all__ = ["CorePopulation"]

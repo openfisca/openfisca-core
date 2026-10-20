@@ -142,7 +142,7 @@ RoleKey = NewType("RoleKey", str)
 RolePlural = NewType("RolePlural", str)
 
 
-class CoreEntity(Protocol):
+class Entity(Protocol):
     key: EntityKey
     plural: EntityPlural
 
@@ -162,14 +162,8 @@ class CoreEntity(Protocol):
     ) -> None | Variable: ...
 
 
-class SingleEntity(CoreEntity, Protocol): ...
-
-
-class GroupEntity(CoreEntity, Protocol): ...
-
-
 class Role(Protocol):
-    entity: GroupEntity
+    entity: Entity
     max: int | None
     subroles: None | Iterable[Role]
 
@@ -372,7 +366,7 @@ class CorePopulation(Protocol): ...
 
 
 class SinglePopulation(CorePopulation, Protocol):
-    entity: SingleEntity
+    entity: Entity
 
     def get_holder(self, variable_name: VariableName, /) -> Holder: ...
 
@@ -403,7 +397,7 @@ class Simulation(Protocol):
 
 
 class TaxBenefitSystem(Protocol):
-    person_entity: SingleEntity
+    person_entity: Entity
 
     def get_variable(
         self,
@@ -527,7 +521,7 @@ VariableName = NewType("VariableName", str)
 
 
 class Variable(Protocol):
-    entity: CoreEntity
+    entity: Entity
     name: VariableName
 
 

@@ -1,5 +1,16 @@
 # Changelog
 
+# 47.0.0.0 [#1399](https://github.com/openfisca/openfisca-core/pull/1399)
+
+#### Breaking changes
+
+- Drop containing_entity support
+- Drop is_person but keep build_entity
+
+#### New features
+
+- relational entity graph
+
 ### 46.0.1 [#1407](https://github.com/openfisca/openfisca-core/pull/1407)
 
 #### Technical changes
