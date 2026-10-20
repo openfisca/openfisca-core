@@ -3,8 +3,8 @@ import textwrap
 from collections.abc import Sequence
 from itertools import chain
 
-from .relationship import Relationship
 from . import types as t
+from .relationship import Relationship
 from .role import Role
 
 
