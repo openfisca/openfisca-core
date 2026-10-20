@@ -96,16 +96,16 @@ def test_has_multiple_members(multimembers_entities) -> None:
         definition_period = DateUnit.ETERNITY
 
         def formula(firm, period):
-            nb = firm.employees.membership.nb_members()
+            nb = firm.employees.nb_members()
 
-            # end goal
+            # end goal?
             # amounts = firm.expenses.sum("amount", period)
             # values = firm.contracts.sum("value", period)
 
             amounts_i = firm.expenses("amount", period)
-            amounts = firm.expenses.membership.sum(amounts_i)
+            amounts = firm.expenses.sum(amounts_i)
             values_i = firm.contracts("value", period)
-            values = firm.contracts.membership.sum(values_i)
+            values = firm.contracts.sum(values_i)
 
             return numpy.maximum(0, nb * 100 - 0.5 * amounts - values)
 
