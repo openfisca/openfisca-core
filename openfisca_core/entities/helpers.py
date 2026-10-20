@@ -112,19 +112,19 @@ def find_role(
         ...     person_entity,
         ...     [principal, partner, parent],
         ... )
-        <openfisca_core.entities.entity.Relationship object at ...>
+        <openfisca_core.entities.relationship.Relationship object at ...>
 
         >>> find_role(group_entity, "principal", total=1)
-        (Role(principal), <openfisca_core.entities.entity.Relationship object at ...>)
+        (Role(principal), <openfisca_core.entities.relationship.Relationship object at ...>)
 
         >>> find_role(group_entity, "partner")
-        (Role(partner), <openfisca_core.entities.entity.Relationship object at ...>)
+        (Role(partner), <openfisca_core.entities.relationship.Relationship object at ...>)
 
         >>> find_role(group_entity, "parent", total=2)
-        (Role(parent), <openfisca_core.entities.entity.Relationship object at ...>)
+        (Role(parent), <openfisca_core.entities.relationship.Relationship object at ...>)
 
         >>> find_role(group_entity, "first_parent", total=1)
-        (Role(first_parent), <openfisca_core.entities.entity.Relationship object at ...>)
+        (Role(first_parent), <openfisca_core.entities.relationship.Relationship object at ...>)
 
     """
     for relationship in entity.relationships:

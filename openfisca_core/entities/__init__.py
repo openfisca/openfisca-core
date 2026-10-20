@@ -3,12 +3,14 @@
 from . import types
 from .entity import Entity
 from .helpers import build_entity, find_role
+from .relationship import Relationship
 from .role import Role
 
 check_role_validity = Entity.check_role_validity
 
 __all__ = [
     "Entity",
+    "Relationship",
     "Role",
     "build_entity",
     "check_role_validity",
