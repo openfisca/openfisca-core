@@ -115,16 +115,16 @@ def find_role(
         <openfisca_core.entities.relationship.Relationship object at ...>
 
         >>> find_role(group_entity, "principal", total=1)
-        (Role(principal), <openfisca_core.entities.relationship.Relationship object at ...>)
+        Role(principal@family)
 
         >>> find_role(group_entity, "partner")
-        (Role(partner), <openfisca_core.entities.relationship.Relationship object at ...>)
+        Role(partner@family)
 
         >>> find_role(group_entity, "parent", total=2)
-        (Role(parent), <openfisca_core.entities.relationship.Relationship object at ...>)
+        Role(parent@family)
 
         >>> find_role(group_entity, "first_parent", total=1)
-        (Role(first_parent), <openfisca_core.entities.relationship.Relationship object at ...>)
+        Role(first_parent@family)
 
     """
     for relationship in entity.relationships:
@@ -134,12 +134,12 @@ def find_role(
             if role.subroles:
                 for subrole in role.subroles:
                     if (subrole.max == total) and (subrole.key == key):
-                        return subrole, relationship
+                        return subrole
 
             if (role.max == total) and (role.key == key):
-                return role, relationship
+                return role
 
-    return None, None
+    return None
 
 
 def reset_entity_manager():

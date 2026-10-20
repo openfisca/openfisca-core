@@ -21,20 +21,20 @@ class Role:
     Examples:
         >>> from openfisca_core import entities
 
-        >>> entity = entities.Entity("key", "plural", "label", "doc")
+        >>> entity = entities.Entity("entity", "plural", "label", "doc")
         >>> role = entities.Role({"key": "parent"}, entity)
 
         >>> repr(entities.Role)
         "<class 'openfisca_core.entities.role.Role'>"
 
         >>> repr(role)
-        'Role(parent)'
+        'Role(parent@entity)'
 
         >>> str(role)
-        'Role(parent)'
+        'Role(parent@entity)'
 
         >>> {role}
-        {Role(parent)}
+        {Role(parent@entity)}
 
         >>> role.key
         'parent'
@@ -86,7 +86,7 @@ class Role:
         self.max = description.get("max")
 
     def __repr__(self) -> str:
-        return f"Role({self.key})"
+        return f"Role({self.key}@{self.entity.key})"
 
 
 __all__ = ["Role"]

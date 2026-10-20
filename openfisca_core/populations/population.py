@@ -31,16 +31,10 @@ class Population(CorePopulation):
             return projector
 
         if attribute.startswith("nb_"):
-            role_key = attribute[3:]
-            if role_key in self._roles_to_memberships:
-                memberships = self._roles_to_memberships[role_key]
-                assert len(memberships) == 1
-                membership = memberships[0]  #  TODO
-                role, _ = entities.find_role(membership.relationship.a, role_key)
-                if not role:
-                    role, _ = entities.find_role(
-                        membership.relationship.a, role_key[:-1]
-                    )
+            role_key = attribute[3:-1]  # singular
+            role = entities.find_role(self.entity, role_key)
+            if role in self._roles_to_membership_as_source:
+                membership = self._roles_to_membership_as_source[role]
                 return membership.nb_members(role)
             else:
                 return self.single_membership.nb_members
@@ -65,15 +59,8 @@ class Population(CorePopulation):
             return None
         self.entity.check_role_validity(role)
 
-        membership_candidates = self._roles_to_memberships[role.key]
-        memberships = [
-            m
-            for m in membership_candidates
-            if m.population.entity.key == role.entity.key
-        ]
-        assert len(memberships) == 1
-        membership = memberships[0]
-
+        # import pdb; pdb.set_trace()
+        membership = self._roles_to_membership_as_target[role]
         if role.subroles:
             return numpy.logical_or.reduce(
                 [membership.members_role == subrole for subrole in role.subroles],
@@ -89,6 +76,8 @@ class Population(CorePopulation):
     def single_membership(self):
         if len(self._memberships) > 1:
             raise ValueError("Too many memberships")
+        if len(self._memberships) == 0:
+            raise ValueError("No memberships")
 
         return self._memberships[0]
 

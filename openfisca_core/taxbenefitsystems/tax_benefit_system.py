@@ -88,9 +88,7 @@ class TaxBenefitSystem:
                 if relationship.a.key == entity.key:
                     origin = populations[relationship.a.key]
                     members = populations[relationship.b.key]
-                    membership = Membership(relationship, origin, members)
-                    origin.add_membership(membership)
-
+                    Membership(relationship, origin, members)
         return populations
 
     # Deprecated method of constructing simulations, to be phased out in favor of SimulationBuilder

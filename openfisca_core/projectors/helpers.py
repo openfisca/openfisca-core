@@ -53,11 +53,11 @@ def get_projector_from_shortcut(
         ...     taxbenefitsystems,
         ... )
 
-        >>> entity = entities.Entity("person", "", "", "")
+        >>> person_entity = entities.Entity("person", "people", "", "")
 
         >>> group_entity_1 = entities.Entity("family", "", "", "")
 
-        >>> r1 = group_entity_1.add_relationship(entity, [{"key": "person", "max": 1}])
+        >>> r1 = group_entity_1.add_relationship(person_entity, [{"key": "person", "max": 1}])
 
         >>> roles = [
         ...     {"key": "person", "max": 1},
@@ -66,29 +66,30 @@ def get_projector_from_shortcut(
 
         >>> group_entity_2 = entities.Entity("household", "", "", "")
 
-        >>> r2 = group_entity_2.add_relationship(entity, roles)
+        >>> r2 = group_entity_2.add_relationship(person_entity, roles)
 
-        >>> population = populations.Population(entity)
+        >>> population = populations.Population(person_entity)
         >>> group_population_1 = populations.Population(group_entity_1)
 
         >>> m1 = populations.Membership(r1, group_population_1, population)
-        >>> group_population_1.add_membership(m1)
 
         >>> group_population_2 = populations.Population(group_entity_2)
         >>> m2 = populations.Membership(r2, group_population_2, population)
-        >>> group_population_2.add_membership(m2)
 
         >>> populations = {
-        ...     entity.key: population,
+        ...     person_entity.key: population,
         ...     group_entity_1.key: group_population_1,
         ...     group_entity_2.key: group_population_2,
         ... }
 
         >>> tax_benefit_system = taxbenefitsystems.TaxBenefitSystem(
-        ...     [entity, group_entity_1, group_entity_2]
+        ...     [person_entity, group_entity_1, group_entity_2]
         ... )
 
         >>> simulation = simulations.Simulation(tax_benefit_system, populations)
+
+        # >>> get_projector_from_shortcut(group_population_1, "people")
+        # <...MembersToEntityProjector object at ...>
 
         >>> get_projector_from_shortcut(population, "family")
         <...EntityToPersonProjector object at ...>
@@ -113,35 +114,24 @@ def get_projector_from_shortcut(
 
     """
     entity: Entity = population.entity
-    mm = [
-        membership
-        for membership in population.memberships
-        if shortcut == membership.relationship.a.key
-    ]
-    if mm:
-        assert len(mm) == 1
-        return projectors.EntityToPersonProjector(mm[0], parent)
-
-    emm = [
-        membership
-        for membership in population.memberships
-        if shortcut == membership.relationship.b.plural
-    ]
-    if emm:
-        assert len(emm) == 1
-        return projectors.MembersToEntityProjector(emm[0], parent)
-
     if shortcut == "first_person":
         return projectors.FirstPersonToEntityProjector(population, parent)
 
-    role, relationship = entities.find_role(entity, shortcut, total=1)
+    role = entities.find_role(entity, shortcut, total=1)
 
-    if role is not None:
-        mm = [
-            membership
-            for membership in population.memberships
-            if membership.relationship == relationship
-        ]
-        return projectors.UniqueRoleToEntityProjector(mm[0], role, parent)
+    if role in population._roles_to_membership_as_source:
+        m = population._roles_to_membership_as_source[role]
+        if role.max == 1:
+            return projectors.UniqueRoleToEntityProjector(m, role, parent)
+        else:
+            return projectors.MembersToEntityProjector(m, parent)
+
+    if shortcut in population._roles_to_membership_as_target:
+        m = population._roles_to_membership_as_target[shortcut]
+        return projectors.EntityToPersonProjector(m, parent)
+
+    if shortcut in population._roles_to_membership_as_source:
+        m = population._roles_to_membership_as_source[shortcut]
+        return projectors.MembersToEntityProjector(m, parent)
 
     return None

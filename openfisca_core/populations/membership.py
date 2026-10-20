@@ -42,6 +42,22 @@ class Membership:
         self._members_position = None
         self._ordered_members_map = None
 
+        members._memberships.append(self)
+        members._roles_to_membership_as_target[relationship.a.key] = self
+
+        population._memberships.append(self)
+        population._roles_to_membership_as_source[relationship.b.plural] = self
+
+        for role in relationship.roles:
+            members._roles_to_membership_as_target[role] = self
+            population._roles_to_membership_as_source[role] = self
+
+            if not role.subroles:
+                continue
+            for subrole in role.subroles:
+                population._roles_to_membership_as_source[subrole] = self
+                members._roles_to_membership_as_target[subrole] = self
+
     def clone(self, relationship, population, members):
         result = Membership(relationship, population, members)
         result._members_entity_id = self._members_entity_id
