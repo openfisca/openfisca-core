@@ -1,5 +1,13 @@
 # Changelog
 
+### 46.0.2 [#1408](https://github.com/openfisca/openfisca-core/pull/1408)
+
+#### Technical changes
+
+- Bump Certifi for RHSB-2026-012 Certificate compromise - eMudhra
+- Remove uv.lock from functional changes detection
+- Update uv.lock revision from 3 to 5
+
 ### 46.0.1 [#1407](https://github.com/openfisca/openfisca-core/pull/1407)
 
 #### Technical changes

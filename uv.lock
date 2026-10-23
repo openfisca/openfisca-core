@@ -1273,7 +1273,7 @@ wheels = [
 
 [[package]]
 name = "openfisca-core"
-version = "46.0.1"
+version = "46.0.2"
 source = { editable = "." }
 dependencies = [
     { name = "dpath" },
