@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-IGNORE_DIFF_ON="README.md CONTRIBUTING.md Makefile .gitignore LICENSE* .github/* tests/* openfisca_tasks/*.mk tasks/*.mk publiccode.yml"
+IGNORE_DIFF_ON="README.md CONTRIBUTING.md Makefile .gitignore LICENSE* .github/* tests/* openfisca_tasks/*.mk tasks/*.mk publiccode.yml uv.lock"
 
 last_tagged_commit=`git describe --tags --abbrev=0 --first-parent`  # --first-parent ensures we don't follow tags not published in main through an unlikely intermediary merge commit
 

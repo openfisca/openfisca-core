@@ -90,8 +90,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
-        with:
-          fetch-depth: 0
 
       - name: Install uv
         uses: astral-sh/setup-uv@v9.0.0
@@ -108,6 +106,27 @@ jobs:
 
       - name: Test the built package
         run: uv run --frozen twine check dist/*
+
+  version-check:
+    needs: [integration]
+    runs-on: ubuntu-latest
+    env:
+      # To colorize output of make tasks.
+      TERM: xterm-256color
+    outputs:
+      version: ${{ steps.save-version.outputs.version }}
+      has-functional-changes: >-
+        ${{ steps.stop-early.outputs.has-functional-changes }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          python-version: *upper_pyver
 
       - name: Check version number has been properly updated
         run: uv run ${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh
