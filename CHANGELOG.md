@@ -5,6 +5,7 @@
 #### Technical changes
 
 - Bump Certifi for RHSB-2026-012 Certificate compromise - eMudhra
+- Move CI version check in its own job to distinguish test failures from missing version update
 - Remove uv.lock from functional changes detection
 - Update uv.lock revision from 3 to 5
 
