@@ -1,5 +1,19 @@
 # Changelog
 
+### 46.0.3 [#1409](https://github.com/openfisca/openfisca-core/pull/1409)
+
+#### Bug fixes
+
+- Return a `400` instead of a `500` when a variable is requested from `/calculate` or `/trace` for a period that doesn't match its definition period
+  - For example a monthly variable for `2017` or `ETERNITY`, or a yearly variable for `2017-01`
+  - The message is set under the requested key: `{"persons": {"bill": {"salary": {"2017": "Unable to compute variable 'salary' for period 2017: ..."}}}}`
+  - A mismatch raised from inside a formula still returns a `500`
+  - Closes [#916](https://github.com/openfisca/openfisca-core/issues/916)
+- `Simulation.calculate` raises `PeriodMismatchError`, a subclass of `ValueError`, for these mismatches
+- Keep numeric keys such as years as object keys in `SituationParsingError`
+  - `dpath` turned them into list indexes, so errors on a year held about 2,000 `null` values
+  - Integer path items, like positions in a role, are still array indexes
+
 ### 46.0.2 [#1408](https://github.com/openfisca/openfisca-core/pull/1408)
 
 #### Technical changes

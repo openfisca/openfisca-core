@@ -5,7 +5,12 @@ from http import client
 
 import dpath
 import pytest
+from openfisca_country_template import entities
 from openfisca_country_template.situation_examples import couple
+
+from openfisca_core.periods import DateUnit
+from openfisca_core.variables import Variable
+from openfisca_web_api import app
 
 
 def post_json(client, data=None, file=None):
@@ -449,6 +454,88 @@ def test_handle_period_mismatch_error(test_client) -> None:
     assert message in error
 
 
+def test_handle_period_mismatch_error_for_a_year(test_client) -> None:
+    variable = "basic_income"
+    period = "2017"
+
+    simulation_json = json.dumps(
+        {
+            "persons": {"bill": {variable: {period: 600}}},
+            "households": {"_": {"adults": ["bill"]}},
+        },
+    )
+
+    response = post_json(test_client, simulation_json)
+    assert response.status_code == client.BAD_REQUEST
+
+    error = json.loads(response.data)["persons"]["bill"][variable][period]
+    message = f'Unable to set a value for variable "{variable}" for year-long period "{period}"'
+    assert message in error
+
+
+@pytest.mark.parametrize(
+    ("entity", "entity_id", "variable", "period", "expected"),
+    [
+        ("households", "_", "housing_tax", "2017-01", "for a whole year"),
+        ("persons", "bill", "salary", "2017", "for a whole month"),
+        ("persons", "bill", "salary", "ETERNITY", "for a whole month"),
+        ("persons", "bill", "salary", "month:2017-01:3", "for a whole month"),
+    ],
+)
+def test_handle_period_mismatch_error_on_calculation(
+    test_client,
+    entity,
+    entity_id,
+    variable,
+    period,
+    expected,
+) -> None:
+    situation = {"persons": {"bill": {}}, "households": {"_": {"adults": ["bill"]}}}
+    situation[entity][entity_id][variable] = {period: None}
+
+    response = post_json(test_client, json.dumps(situation))
+    assert response.status_code == client.BAD_REQUEST
+
+    # Not dpath.get: it would also accept a list.
+    error = json.loads(response.data)[entity][entity_id][variable][period]
+    assert f"Unable to compute variable '{variable}' for period {period}" in error
+    assert f"'{variable}' must be computed {expected}" in error
+
+
+@pytest.mark.parametrize("endpoint", ["/calculate", "/trace"])
+def test_period_mismatch_raised_by_a_formula_is_a_server_error(
+    isolated_tax_benefit_system,
+    endpoint,
+) -> None:
+    class salary_of_the_year(Variable):
+        value_type = float
+        entity = entities.Person
+        definition_period = DateUnit.MONTH
+        label = "Wrongly asks a monthly variable for a whole year"
+
+        def formula(person, period):
+            return person("salary", period.this_year)
+
+    isolated_tax_benefit_system.add_variable(salary_of_the_year)
+    app_client = app.create_app(isolated_tax_benefit_system).test_client()
+    simulation_json = json.dumps(
+        {
+            "persons": {"bill": {"salary_of_the_year": {"2017-01": None}}},
+            "households": {"_": {"adults": ["bill"]}},
+        },
+    )
+
+    response = app_client.post(
+        endpoint,
+        data=simulation_json,
+        content_type="application/json",
+    )
+    assert response.status_code == client.INTERNAL_SERVER_ERROR
+
+    error = json.loads(response.data)["error"]
+    assert "'salary' must be computed for a whole month" in error
+
+
 def test_gracefully_handle_unexpected_errors(test_client) -> None:
     """Context.
     =======
@@ -471,7 +558,7 @@ def test_gracefully_handle_unexpected_errors(test_client) -> None:
     The API is not expecting this, but she should handle the situation nonetheless.
     """
     variable = "housing_tax"
-    period = "1234-05-06"
+    period = "1234"
 
     simulation_json = json.dumps(
         {
@@ -493,4 +580,4 @@ def test_gracefully_handle_unexpected_errors(test_client) -> None:
     assert response.status_code == client.INTERNAL_SERVER_ERROR
 
     error = json.loads(response.data)["error"]
-    assert f"Unable to compute variable '{variable}' for period {period}" in error
+    assert "The parameter 'taxes.housing_tax[rate]' was not found" in error

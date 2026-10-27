@@ -1,7 +1,20 @@
 import dpath
 
+from openfisca_core import periods
+from openfisca_core.errors import PeriodMismatchError, SituationParsingError
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.simulations import SimulationBuilder
+
+
+def _calculate_requested(simulation, path: str, variable_name: str, period: str):
+    """Calculate a requested variable, raising a period mismatch as a SituationParsingError."""
+    try:
+        return simulation.calculate(variable_name, period)
+    except PeriodMismatchError as e:
+        # Raised from inside a formula: a country package bug, keep the 500.
+        if e.variable_name != variable_name or e.period != periods.period(period):
+            raise
+        raise SituationParsingError(path.split("/"), e.message) from e
 
 
 def calculate(tax_benefit_system, input_data: dict) -> dict:
@@ -20,7 +33,7 @@ def calculate(tax_benefit_system, input_data: dict) -> dict:
         ]  # format: entity_plural/entity_instance_id/openfisca_variable_name/period
         entity_plural, entity_id, variable_name, period = path.split("/")
         variable = tax_benefit_system.get_variable(variable_name)
-        result = simulation.calculate(variable_name, period)
+        result = _calculate_requested(simulation, path, variable_name, period)
         population = simulation.get_population(entity_plural)
         entity_index = population.get_index(entity_id)
 
@@ -79,7 +92,7 @@ def trace(tax_benefit_system, input_data):
         path = computation[0]
         _entity_plural, _entity_id, variable_name, period = path.split("/")
         requested_calculations.append(f"{variable_name}<{period!s}>")
-        simulation.calculate(variable_name, period)
+        _calculate_requested(simulation, path, variable_name, period)
 
     trace = simulation.tracer.get_serialized_flat_trace()
 

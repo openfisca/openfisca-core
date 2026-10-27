@@ -131,3 +131,21 @@ def test_trace_parameters(test_client) -> None:
         "trace/housing_tax<2017>/parameters/taxes.housing_tax.minimal_amount<2017-01-01>",
     )
     assert taxes__housing_tax__minimal_amount == 200
+
+
+def test_trace_period_mismatch_error(test_client) -> None:
+    simulation_json = json.dumps(
+        {
+            "persons": {"bill": {"salary": {"2017": None}}},
+            "households": {"_": {"adults": ["bill"]}},
+        },
+    )
+    response = test_client.post(
+        "/trace",
+        data=simulation_json,
+        content_type="application/json",
+    )
+    assert response.status_code == client.BAD_REQUEST
+
+    error = json.loads(response.data)["persons"]["bill"]["salary"]["2017"]
+    assert "'salary' must be computed for a whole month" in error
