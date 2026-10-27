@@ -1,8 +1,10 @@
 import pytest
+from openfisca_country_template import entities
 from openfisca_country_template.situation_examples import single
 
 from openfisca_core import errors, periods
 from openfisca_core.simulations import SimulationBuilder
+from openfisca_core.variables import Variable
 
 
 def test_calculate_full_tracer(tax_benefit_system) -> None:
@@ -78,3 +80,39 @@ def test_invalidate_cache_when_spiral_error_detected(tax_benefit_system) -> None
         simulation._check_for_cycle("a", periods.period(2016))
 
     assert len(simulation.invalidated_caches) == 3
+
+
+class weekly_variable(Variable):
+    value_type = int
+    entity = entities.Person
+    definition_period = periods.DateUnit.WEEK
+
+
+@pytest.mark.parametrize(
+    ("variable_name", "period", "expected"),
+    [
+        ("housing_tax", "2017-01", "must be computed for a whole year"),
+        ("salary", "2017", "must be computed for a whole month"),
+        ("salary", "ETERNITY", "must be computed for a whole month"),
+        ("weekly_variable", "2017-01", "must be computed for a whole week"),
+        ("salary", "month:2017-01:3", "must be computed for a whole month"),
+    ],
+)
+def test_calculate_period_mismatch_raises_period_mismatch_error(
+    isolated_tax_benefit_system,
+    variable_name,
+    period,
+    expected,
+) -> None:
+    isolated_tax_benefit_system.add_variable(weekly_variable)
+    simulation = SimulationBuilder().build_default_simulation(
+        isolated_tax_benefit_system,
+    )
+
+    # Still a ValueError for existing callers.
+    with pytest.raises(ValueError, match=expected) as error:
+        simulation.calculate(variable_name, period)
+
+    assert isinstance(error.value, errors.PeriodMismatchError)
+    assert error.value.variable_name == variable_name
+    assert error.value.period == periods.period(period)

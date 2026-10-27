@@ -2,7 +2,7 @@ import logging
 import os
 import traceback
 
-from openfisca_core.errors import PeriodMismatchError, SituationParsingError
+from openfisca_core.errors import SituationParsingError
 from openfisca_web_api import handlers
 from openfisca_web_api.errors import handle_import_error
 from openfisca_web_api.loader import build_data
@@ -165,7 +165,7 @@ def create_app(
         input_data = request.get_json()
         try:
             result = handlers.calculate(tax_benefit_system, input_data)
-        except (SituationParsingError, PeriodMismatchError) as e:
+        except SituationParsingError as e:
             abort(make_response(jsonify(e.error), e.code or 400))
         except (UnicodeEncodeError, UnicodeDecodeError) as e:
             abort(
@@ -183,7 +183,7 @@ def create_app(
         input_data = request.get_json()
         try:
             result = handlers.trace(tax_benefit_system, input_data)
-        except (SituationParsingError, PeriodMismatchError) as e:
+        except SituationParsingError as e:
             abort(make_response(jsonify(e.error), e.code or 400))
         return jsonify(result)
 

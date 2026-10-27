@@ -573,7 +573,7 @@ class SimulationBuilder:
         helpers.check_type(
             person_id,
             str,
-            [entity_plural, entity_id, role_id, str(index)],
+            [entity_plural, entity_id, role_id, index],
         )
         if person_id not in persons_ids:
             raise errors.SituationParsingError(

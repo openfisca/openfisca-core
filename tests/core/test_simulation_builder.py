@@ -237,6 +237,30 @@ def test_fail_on_wrong_data(persons) -> None:
     }
 
 
+def test_fail_on_wrong_data_for_a_year(persons) -> None:
+    salary = persons.get_variable("salary")
+    simulation_builder = SimulationBuilder()
+    simulation_builder.entity_counts["persons"] = 1
+    with pytest.raises(SituationParsingError) as excinfo:
+        simulation_builder.add_variable_value(
+            persons,
+            salary,
+            0,
+            "Alicia",
+            "2018",
+            "alicia",
+        )
+    assert excinfo.value.error == {
+        "persons": {
+            "Alicia": {
+                "salary": {
+                    "2018": "Can't deal with value: expected type number, received 'alicia'.",
+                },
+            },
+        },
+    }
+
+
 def test_fail_on_ill_formed_expression(persons) -> None:
     salary = persons.get_variable("salary")
     instance_index = 0
@@ -383,6 +407,35 @@ def test_check_persons_to_allocate() -> None:
         persons_to_allocate,
         index,
     )
+
+
+def test_allocate_person_of_wrong_type() -> None:
+    entity_plural = "familles"
+    persons_plural = "individus"
+    person_id = {}
+    entity_id = "famille1"
+    role_id = "adults"
+    persons_to_allocate = ["Alicia"]
+    persons_ids = ["Alicia"]
+    index = 1
+    with pytest.raises(SituationParsingError) as exception:
+        SimulationBuilder().check_persons_to_allocate(
+            persons_plural,
+            entity_plural,
+            persons_ids,
+            person_id,
+            entity_id,
+            role_id,
+            persons_to_allocate,
+            index,
+        )
+    assert exception.value.error == {
+        "familles": {
+            "famille1": {
+                "adults": [None, "Invalid type: must be of type 'String'."],
+            },
+        },
+    }
 
 
 def test_allocate_undeclared_person() -> None:

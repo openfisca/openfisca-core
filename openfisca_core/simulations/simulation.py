@@ -362,7 +362,10 @@ class Simulation:
             and period.unit != periods.DateUnit.YEAR
         ):
             msg = f"Unable to compute variable '{variable.name}' for period {period}: '{variable.name}' must be computed for a whole year. You can use the DIVIDE option to get an estimate of {variable.name} by dividing the yearly value by 12, or change the requested period to 'period.this_year'."
-            raise ValueError(
+            raise errors.PeriodMismatchError(
+                variable.name,
+                period,
+                variable.definition_period,
                 msg,
             )
 
@@ -371,7 +374,10 @@ class Simulation:
             and period.unit != periods.DateUnit.MONTH
         ):
             msg = f"Unable to compute variable '{variable.name}' for period {period}: '{variable.name}' must be computed for a whole month. You can use the ADD option to sum '{variable.name}' over the requested period, or change the requested period to 'period.first_month'."
-            raise ValueError(
+            raise errors.PeriodMismatchError(
+                variable.name,
+                period,
+                variable.definition_period,
                 msg,
             )
 
@@ -380,13 +386,19 @@ class Simulation:
             and period.unit != periods.DateUnit.WEEK
         ):
             msg = f"Unable to compute variable '{variable.name}' for period {period}: '{variable.name}' must be computed for a whole week. You can use the ADD option to sum '{variable.name}' over the requested period, or change the requested period to 'period.first_week'."
-            raise ValueError(
+            raise errors.PeriodMismatchError(
+                variable.name,
+                period,
+                variable.definition_period,
                 msg,
             )
 
         if period.size != 1:
             msg = f"Unable to compute variable '{variable.name}' for period {period}: '{variable.name}' must be computed for a whole {variable.definition_period}. You can use the ADD option to sum '{variable.name}' over the requested period."
-            raise ValueError(
+            raise errors.PeriodMismatchError(
+                variable.name,
+                period,
+                variable.definition_period,
                 msg,
             )
 
