@@ -85,3 +85,15 @@ def test_to_marginal() -> None:
         [0.1, 0.25, 0.4, 0.5],
         absolute_error_margin=0,
     )
+
+
+def test_calc() -> None:
+    tax_base = numpy.array([500, 1000, 1500, 2000, 3000])
+    tax_scale = taxscales.LinearAverageRateTaxScale()
+    tax_scale.add_bracket(0, 0)
+    tax_scale.add_bracket(1000, 0.1)
+    tax_scale.add_bracket(2000, 0.2)
+
+    result = tax_scale.calc(tax_base)
+
+    tools.assert_near(result, [25, 100, 225, 400, 600], absolute_error_margin=1e-10)

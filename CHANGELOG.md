@@ -1,5 +1,12 @@
 # Changelog
 
+### 46.0.3 [#1410](https://github.com/openfisca/openfisca-core/pull/1410)
+
+#### Bug fixes
+
+- Fix `LinearAverageRateTaxScale.calc` returning 0 for bases at or above the highest threshold.
+  - The last average rate now applies above the highest threshold, as in `to_marginal()`.
+
 ### 46.0.2 [#1408](https://github.com/openfisca/openfisca-core/pull/1408)
 
 #### Technical changes

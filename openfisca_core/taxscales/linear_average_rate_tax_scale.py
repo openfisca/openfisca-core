@@ -24,15 +24,23 @@ class LinearAverageRateTaxScale(RateTaxScaleLike):
         if len(self.rates) == 1:
             return tax_base * self.rates[0]
 
-        tiled_base = numpy.tile(tax_base, (len(self.thresholds) - 1, 1)).T
-        tiled_thresholds = numpy.tile(self.thresholds, (len(tax_base), 1))
+        thresholds = self.thresholds
+        rates = self.rates
+
+        # The last average rate applies above the highest threshold.
+        if thresholds[-1] != float("Inf"):
+            thresholds = [*thresholds, float("Inf")]
+            rates = [*rates, rates[-1]]
+
+        tiled_base = numpy.tile(tax_base, (len(thresholds) - 1, 1)).T
+        tiled_thresholds = numpy.tile(thresholds, (len(tax_base), 1))
 
         bracket_dummy = (tiled_base >= tiled_thresholds[:, :-1]) * (
             +tiled_base < tiled_thresholds[:, 1:]
         )
 
-        rates_array = numpy.array(self.rates)
-        thresholds_array = numpy.array(self.thresholds)
+        rates_array = numpy.array(rates)
+        thresholds_array = numpy.array(thresholds)
 
         rate_slope = (rates_array[1:] - rates_array[:-1]) / (
             +thresholds_array[1:] - thresholds_array[:-1]
