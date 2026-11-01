@@ -54,7 +54,7 @@ dev = [
     "docutils >=0.23",
     "idna >=3.10, <4.0",
     "isort >=5.13.2, <6.0",
-    "mypy >=1.11.2, <2.0",
+    "mypy>=1.11.2,<3.0",
     "pyright >=1.1.382, <2.0",
     "ruff >=0.16.7",
     "OpenFisca-Core[ci]",
