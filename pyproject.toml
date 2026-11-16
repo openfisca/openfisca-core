@@ -144,6 +144,3 @@ ignore = [
 
 [tool.setuptools.packages.find]
 exclude = ["tests*"]
-
-[tool.uv.sources]
-openfisca-country-template = { path = "../country-template", editable = true }

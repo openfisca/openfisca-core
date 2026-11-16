@@ -135,7 +135,7 @@ class VectorialParameterNodeAtInstant:
 
         def extract_named_children(node):
             result = {}
-            for key, value in node._node.children.items():
+            for key in node._node.children:
                 try:
                     result[f"{node._name}.{key}"] = node[key]
                 except ParameterNotFoundError as _:

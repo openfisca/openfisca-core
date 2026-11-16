@@ -55,7 +55,9 @@ class ParameterNodeAtInstant:
     def __repr__(self) -> str:
         return os.linesep.join(
             [
-                os.linesep.join(["{}:", "{}"]).format(name, tools.indent(repr(value._get_at_instant(self._instant_str))))
+                os.linesep.join(["{}:", "{}"]).format(
+                    name, tools.indent(repr(value._get_at_instant(self._instant_str)))
+                )
                 for name, value in self._node.children.items()
             ],
         )
