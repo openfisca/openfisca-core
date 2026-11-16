@@ -152,4 +152,4 @@ jobs:
 
       - name: Show GITHUB_OUTPUT
         run: |
-          echo $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
