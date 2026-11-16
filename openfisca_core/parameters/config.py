@@ -6,7 +6,7 @@ import yaml
 from openfisca_core.warnings import LibYAMLWarning
 
 try:
-    from yaml import CLoader as Loader
+    from yaml import CSafeLoader as Loader
 except ImportError:
     message = [
         "libyaml is not installed in your environment.",
@@ -16,7 +16,7 @@ except ImportError:
     ]
     warnings.warn(" ".join(message), LibYAMLWarning, stacklevel=2)
     from yaml import (  # (see https://github.com/python/mypy/issues/1153#issuecomment-455802270)
-        Loader,
+        SafeLoader as Loader,
     )
 
 # 'unit' and 'reference' are only listed here for backward compatibility.
