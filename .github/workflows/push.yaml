@@ -149,9 +149,9 @@ jobs:
           echo version=$VERSION >> $GITHUB_OUTPUT
           if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then
             echo "has-functional-changes=yes" >> $GITHUB_OUTPUT
-            echo "should-publish=yes"
+            echo "should-publish=yes" >> $GITHUB_OUTPUT
           elif ! git describe --tag $VERSION ; then
-            echo "should-publish=yes"
+            echo "should-publish=yes" >> $GITHUB_OUTPUT
           fi
 
       - name: Show outputs
