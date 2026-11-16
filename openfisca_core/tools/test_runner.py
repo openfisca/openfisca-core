@@ -96,7 +96,7 @@ def import_yaml():
     import yaml
 
     try:
-        from yaml import CLoader as Loader
+        from yaml import CSafeLoader as Loader
     except ImportError:
         message = [
             "libyaml is not installed in your environment.",
@@ -540,7 +540,7 @@ class YamlFile(pytest.File):
 
     def collect(self):
         try:
-            with open(self.path) as file:
+            with open(self.path, encoding="utf-8") as file:
                 tests = yaml.load(file, Loader=Loader)
         except (yaml.scanner.ScannerError, yaml.parser.ParserError, TypeError):
             message = os.linesep.join(
