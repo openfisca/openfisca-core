@@ -20,7 +20,6 @@ class ParameterNodeAtInstant:
         self._instant_str = instant_str
         self._children = {}
         self._node = node
-        self._resolved = False
 
     def add_child(self, child_name, child_at_instant) -> None:
         self._children[child_name] = child_at_instant
@@ -38,19 +37,9 @@ class ParameterNodeAtInstant:
         param_name = helpers._compose_name(self._name, item_name=key)
         raise ParameterNotFoundError(param_name, self._instant_str)
 
-    def _resolve(self):
-        if self._resolved:
-            return
-        for child_name, child in self._node.children.items():
-            child_at_instant = child._get_at_instant(self._instant_str)
-            if child_at_instant is not None:
-                self.add_child(child_name, child_at_instant)
-        self._resolved = True
-
     def __getitem__(self, key):
         # If fancy indexing is used, cast to a vectorial node
         if isinstance(key, numpy.ndarray):
-            self._resolve()
             return parameters.VectorialParameterNodeAtInstant.build_from_node_name(
                 self, key
             )

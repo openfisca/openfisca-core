@@ -3,6 +3,7 @@ from typing import NoReturn
 import numpy
 
 from openfisca_core import parameters
+from openfisca_core.errors import ParameterNotFoundError
 from openfisca_core.indexed_enums import Enum, EnumArray
 
 
@@ -133,9 +134,13 @@ class VectorialParameterNodeAtInstant:
             raise NotImplementedError(message)
 
         def extract_named_children(node):
-            return {
-                f"{node._name}.{key}": value for key, value in node._children.items()
-            }
+            result = {}
+            for key, value in node._node.children.items():
+                try:
+                    result[f"{node._name}.{key}"] = node[key]
+                except ParameterNotFoundError as _:
+                    pass
+            return result
 
         def check_nodes_homogeneous(named_nodes) -> None:
             """Check than several nodes (or parameters, or baremes) have the same structure."""
@@ -148,10 +153,8 @@ class VectorialParameterNodeAtInstant:
                 for subnode, name in list(zip(nodes, names))[1:]:
                     if not isinstance(subnode, parameters.ParameterNodeAtInstant):
                         raise_type_inhomogeneity_error(first_name, name)
-                    first_node._resolve()
-                    first_node_keys = first_node._children.keys()
-                    subnode._resolve()
-                    node_keys = subnode._children.keys()
+                    first_node_keys = first_node._node.children.keys()
+                    node_keys = subnode._node.children.keys()
                     if first_node_keys != node_keys:
                         missing_keys = set(first_node_keys).difference(node_keys)
                         if missing_keys:  # If the first_node has a key that node hasn't
