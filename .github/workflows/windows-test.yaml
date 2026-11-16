@@ -7,15 +7,15 @@ env:
 on:
   pull_request:
     types: [assigned, opened, reopened, synchronize, ready_for_review]
-  workflow_run:
-    # From merge.yaml workflow name
-    workflows: [OpenFisca-Core / Deploy package to PyPi]
-    types: [completed]
+  # workflow_run:
+  #   # From merge.yaml workflow name
+  #   workflows: [OpenFisca-Core / Deploy package to PyPi]
+  #   types: [completed]
 
 jobs:
   test-on-windows:
     runs-on: windows-2025
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
     defaults:
       run:
         shell: bash
