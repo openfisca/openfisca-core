@@ -61,7 +61,6 @@ def test_assign_amounts_on_creation(data) -> None:
     scale = parameters.Scale("amount_scale", data, "")
     first_jan = periods.Instant((2017, 11, 1))
     scale_at_instant = scale.get_at_instant(first_jan)
-
     result = scale_at_instant.amounts
 
     assert result == [6]

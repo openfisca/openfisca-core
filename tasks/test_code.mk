@@ -41,7 +41,8 @@ test-core: $(shell git ls-files "*test_*.py")
 		openfisca_core/indexed_enums \
 		openfisca_core/periods \
 		openfisca_core/projectors \
-		${openfisca_args}
+		--country-package openfisca_country_template
+		${openfisca_args} \
 		python -m pytest tests/
 	@$(call print_pass,$@:)
 

@@ -2,7 +2,7 @@ import copy
 import os
 
 from openfisca_core import commons, parameters, tools
-from openfisca_core.errors import ParameterParsingError
+from openfisca_core.errors import ParameterNotFoundError, ParameterParsingError
 from openfisca_core.parameters import AtInstantLike, config, helpers
 from openfisca_core.taxscales import (
     LinearAverageRateTaxScale,
@@ -86,36 +86,43 @@ class ParameterScale(AtInstantLike):
         if self.metadata.get("type") == "single_amount":
             scale = SingleAmountTaxScale()
             for bracket in brackets:
-                if "amount" in bracket._children and "threshold" in bracket._children:
+                try:
                     amount = bracket.amount
                     threshold = bracket.threshold
                     scale.add_bracket(threshold, amount)
+                except ParameterNotFoundError as _:
+                    pass
             return scale
-        if any("amount" in bracket._children for bracket in brackets):
+
+        if any("amount" in bracket._node.children for bracket in brackets):
             scale = MarginalAmountTaxScale()
             for bracket in brackets:
-                if "amount" in bracket._children and "threshold" in bracket._children:
+                try:
                     amount = bracket.amount
                     threshold = bracket.threshold
                     scale.add_bracket(threshold, amount)
+                except ParameterNotFoundError as _:
+                    pass
             return scale
-        if any("average_rate" in bracket._children for bracket in brackets):
+
+        if any("average_rate" in bracket._node.children for bracket in brackets):
             scale = LinearAverageRateTaxScale()
 
             for bracket in brackets:
-                if (
-                    "average_rate" in bracket._children
-                    and "threshold" in bracket._children
-                ):
+                try:
                     average_rate = bracket.average_rate
                     threshold = bracket.threshold
                     scale.add_bracket(threshold, average_rate)
+                except ParameterNotFoundError as _:
+                    pass
             return scale
-        scale = MarginalRateTaxScale()
 
+        scale = MarginalRateTaxScale()
         for bracket in brackets:
-            if "rate" in bracket._children and "threshold" in bracket._children:
+            try:
                 rate = bracket.rate
                 threshold = bracket.threshold
                 scale.add_bracket(threshold, rate)
+            except ParameterNotFoundError as _:
+                pass
         return scale

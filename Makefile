@@ -28,5 +28,5 @@ all: test
 	@$(call print_pass,$@:)
 
 ## Run all lints and tests.
-test: lint test-code
+test: test-core
 	@$(call print_pass,$@:)

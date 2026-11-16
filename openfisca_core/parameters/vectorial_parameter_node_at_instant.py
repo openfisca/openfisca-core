@@ -148,7 +148,9 @@ class VectorialParameterNodeAtInstant:
                 for subnode, name in list(zip(nodes, names))[1:]:
                     if not isinstance(subnode, parameters.ParameterNodeAtInstant):
                         raise_type_inhomogeneity_error(first_name, name)
+                    first_node._resolve()
                     first_node_keys = first_node._children.keys()
+                    subnode._resolve()
                     node_keys = subnode._children.keys()
                     if first_node_keys != node_keys:
                         missing_keys = set(first_node_keys).difference(node_keys)
