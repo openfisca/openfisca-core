@@ -1,5 +1,12 @@
 # Changelog
 
+### 46.0.4 [#1416](https://github.com/openfisca/openfisca-core/pull/1416)
+
+#### Technical changes
+
+- Upgrades dependencies (upper version constraint update for `mypy` and `gunicorn` in `pyproject.toml`).
+- Removes unused dev dependency `isort` replaced by `ruff` in 45.0.4 [#1397](https://github.com/openfisca/openfisca-core/pull/1397)
+
 ### 46.0.3 [#1385](https://github.com/openfisca/openfisca-core/pull/1385)
 
 #### Bug fixes
