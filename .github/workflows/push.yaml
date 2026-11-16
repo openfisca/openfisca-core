@@ -11,11 +11,13 @@ on:
     outputs:
       version:
         description: "Package version"
-        value: ${{ jobs.integration.outputs.version }}
+        value: ${{ jobs.version-check.outputs.version }}
       has-functional-changes:
         description: "Status on functional changes presence"
-        value: ${{ jobs.integration.outputs.has-functional-changes }}
-
+        value: ${{ jobs.version-check.outputs.has-functional-changes }}
+      should-publish:
+        description: "Status on the need of a package publication"
+        value: ${{ jobs.version-check.outputs.should-publish }}
 
 concurrency:
   group: ${{ github.ref }}
@@ -83,10 +85,6 @@ jobs:
     env:
       # To colorize output of make tasks.
       TERM: xterm-256color
-    outputs:
-      version: ${{ steps.save-version.outputs.version }}
-      has-functional-changes: >-
-        ${{ steps.stop-early.outputs.has-functional-changes }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
@@ -107,6 +105,12 @@ jobs:
       - name: Test the built package
         run: uv run --frozen twine check dist/*
 
+      - name: Upload distributions as artifacts
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: dist
+          path: dist/
+
   version-check:
     needs: [integration]
     runs-on: ubuntu-latest
@@ -114,9 +118,10 @@ jobs:
       # To colorize output of make tasks.
       TERM: xterm-256color
     outputs:
-      version: ${{ steps.save-version.outputs.version }}
       has-functional-changes: >-
         ${{ steps.stop-early.outputs.has-functional-changes }}
+      version: ${{ steps.stop-early.outputs.version }}
+      should-publish: ${{ steps.stop-early.outputs.should-publish }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
@@ -140,17 +145,17 @@ jobs:
         # if the job fails the entire workflow would be marked as `failed`
         # which is disturbing for contributors.
         run: |
+          VERSION=$(uv version --short)
+          echo version=$VERSION >> $GITHUB_OUTPUT
           if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then
             echo "has-functional-changes=yes" >> $GITHUB_OUTPUT
+            echo "should-publish=yes" >> $GITHUB_OUTPUT
+          elif ! git describe --tag $VERSION ; then
+            echo "should-publish=yes" >> $GITHUB_OUTPUT
           fi
 
-      - name: Save version
-        id: save-version
+      - name: Show outputs
         run: |
-          echo "version=$(uv version --short)" >> $GITHUB_OUTPUT
-
-      - name: Upload distributions as artifacts
-        uses: actions/upload-artifact@v7.0.1
-        with:
-          name: dist
-          path: dist/
+          echo has-functional-changes=${{ steps.stop-early.outputs.has-functional-changes }}
+          echo version=${{ steps.stop-early.outputs.version }}
+          echo should-publish=${{ steps.stop-early.outputs.should-publish }}

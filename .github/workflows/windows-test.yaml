@@ -14,13 +14,14 @@ jobs:
   test-on-windows:
     runs-on: windows-2025
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    env:
-      OPENFISCA_VERSION: ${{ github.ref_name }}
     defaults:
       run:
         shell: bash
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
       - name: Install uv
         uses: astral-sh/setup-uv@v9.0.0
 
@@ -29,6 +30,7 @@ jobs:
         # hence the retries.
         run: |
           uv venv --python ${{ env.UPPER_PYTHON_VERSION }}
+          OPENFISCA_VERSION=$(git describe --tags HEAD)
           installed=false
           for attempt in $(seq 1 5); do
             if uv pip install "openfisca-core==$OPENFISCA_VERSION"; then
