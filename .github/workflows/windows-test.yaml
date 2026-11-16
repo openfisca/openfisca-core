@@ -5,6 +5,8 @@ env:
   UPPER_PYTHON_VERSION: &upper_pyver 3.13.11
 
 on:
+  pull_request:
+    types: [assigned, opened, reopened, synchronize, ready_for_review]
   workflow_run:
     # From merge.yaml workflow name
     workflows: [OpenFisca-Core / Deploy package to PyPi]
