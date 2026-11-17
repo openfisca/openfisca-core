@@ -1,5 +1,11 @@
 # Changelog
 
+## 46.1.0 [#1420](https://github.com/openfisca/openfisca-core/pull/1420)
+
+#### Technical changes
+
+- Implement lazy loading of ParameterNode and more generally AtInstantLike objects to speed up computations.
+
 ### 46.0.4 [#1416](https://github.com/openfisca/openfisca-core/pull/1416)
 
 #### Technical changes
