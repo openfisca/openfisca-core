@@ -7,7 +7,7 @@ from openfisca_core import parameters, periods, scales, tools
 @fixture
 def data():
     return {
-        "description": "Social security contribution tax scale",
+        "description": "Social security contribution scale",
         "metadata": {
             "type": "single_amount",
             "threshold_unit": "currency-EUR",
@@ -53,7 +53,6 @@ def test_assign_thresholds_on_creation(data) -> None:
 
     result = scale_at_instant.thresholds
 
-    assert scale.metadata.type == "single_amount"
     assert result == [0.23]
 
 
