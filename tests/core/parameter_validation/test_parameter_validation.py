@@ -57,9 +57,9 @@ def check_fails_with_message(file_name, keywords) -> None:
         ("wrong_type_in_bracket", {"must be of type object"}),
         ("missing_value", {"missing", "value"}),
         ("duplicate_key", {"duplicate"}),
-        # TODO
-        # ("mixed_scale_types", {"can't mix amount, rate and average_rate"}),
-        ("no_value_scale", {"an amount, a rate or an average_rate"}),
+        ("mixed_scale_types", {"Unexpected property 'amount'"}),
+        ("multiple_value_key_in_bracket", {"Unexpected property 'amount'"}),
+        ("no_value_scale", {"an amount, a rate, an average_rate or"}),
     ],
 )
 def test_parsing_errors(test) -> None:
