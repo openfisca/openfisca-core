@@ -5,11 +5,11 @@ from openfisca_core import commons, tools
 from openfisca_core.errors import ParameterParsingError
 from openfisca_core.parameters import AtInstantLike, config, helpers
 from openfisca_core.parameters.parameter_scale_brackets import (
+    LegacyParameterSingleAmountScaleBracket,
     ParameterAverageRateScaleBracket,
     ParameterMarginalAmountScaleBracket,
     ParameterMarginalRateScaleBracket,
     ParameterSingleAmountScaleBracket,
-    LegacyParameterSingleAmountScaleBracket,
 )
 from openfisca_core.scales import (
     AverageRateScale,
@@ -82,10 +82,9 @@ class ParameterScale(AtInstantLike):
         self._type = inferred_type
         BracketType = BRACKET_TYPES[self._type]
         self.ScaleType = SCALE_TYPES[self._type]
-        if self._type != self.metadata.get("type"):
-            if self.metadata.get("type") == "single_amount":
-                BracketType = LegacyParameterSingleAmountScaleBracket
-                self.ScaleType = SingleAmountScale
+        if self._type != self.metadata.get("type") and self.metadata.get("type") == "single_amount":
+            BracketType = LegacyParameterSingleAmountScaleBracket
+            self.ScaleType = SingleAmountScale
         self._bracket_value_key = BracketType._value_key
 
         brackets = []

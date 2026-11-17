@@ -1,5 +1,7 @@
 import warnings
+
 from openfisca_core.parameters import ParameterNode
+
 
 class ParameterAverageRateScaleBracket(ParameterNode):
     _value_key = "average_rate"
