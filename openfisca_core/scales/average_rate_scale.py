@@ -5,9 +5,9 @@ import typing
 
 import numpy
 
-from openfisca_core import taxscales
+from openfisca_core import scales
 
-from .rate_tax_scale_like import RateTaxScaleLike
+from .rate_scale_like import RateScaleLike
 
 log = logging.getLogger(__name__)
 
@@ -15,17 +15,17 @@ if typing.TYPE_CHECKING:
     NumericalArray = numpy.int32 | numpy.float32
 
 
-class LinearAverageRateTaxScale(RateTaxScaleLike):
+class AverageRateScale(RateScaleLike):
     def calc(
         self,
-        tax_base: NumericalArray,
+        base: NumericalArray,
         right: bool = False,
     ) -> numpy.float32:
         if len(self.rates) == 1:
-            return tax_base * self.rates[0]
+            return base * self.rates[0]
 
-        tiled_base = numpy.tile(tax_base, (len(self.thresholds) - 1, 1)).T
-        tiled_thresholds = numpy.tile(self.thresholds, (len(tax_base), 1))
+        tiled_base = numpy.tile(base, (len(self.thresholds) - 1, 1)).T
+        tiled_thresholds = numpy.tile(self.thresholds, (len(base), 1))
 
         bracket_dummy = (tiled_base >= tiled_thresholds[:, :-1]) * (
             +tiled_base < tiled_thresholds[:, 1:]
@@ -46,13 +46,13 @@ class LinearAverageRateTaxScale(RateTaxScaleLike):
         log.info(f"bracket_average_start_rate :  {bracket_average_start_rate}")
         log.info(f"average_rate_slope:  {average_rate_slope}")
 
-        return tax_base * (
+        return base * (
             +bracket_average_start_rate
-            + (tax_base - bracket_threshold) * average_rate_slope
+            + (base - bracket_threshold) * average_rate_slope
         )
 
-    def to_marginal(self) -> taxscales.MarginalRateTaxScale:
-        marginal_tax_scale = taxscales.MarginalRateTaxScale(
+    def to_marginal(self) -> scales.MarginalRateScale:
+        marginal_scale = scales.MarginalRateScale(
             name=self.name,
             option=self.option,
             unit=self.unit,
@@ -64,13 +64,13 @@ class LinearAverageRateTaxScale(RateTaxScaleLike):
         for threshold, rate in zip(self.thresholds[1:], self.rates[1:]):
             if threshold != float("Inf"):
                 i = rate * threshold
-                marginal_tax_scale.add_bracket(
+                marginal_scale.add_bracket(
                     previous_threshold,
                     (i - previous_i) / (threshold - previous_threshold),
                 )
                 previous_i = i
                 previous_threshold = threshold
 
-        marginal_tax_scale.add_bracket(previous_threshold, rate)
+        marginal_scale.add_bracket(previous_threshold, rate)
 
-        return marginal_tax_scale
+        return marginal_scale

@@ -4,11 +4,11 @@ import os
 from openfisca_core import commons, parameters, tools
 from openfisca_core.errors import ParameterParsingError
 from openfisca_core.parameters import AtInstantLike, config, helpers
-from openfisca_core.taxscales import (
-    LinearAverageRateTaxScale,
-    MarginalAmountTaxScale,
-    MarginalRateTaxScale,
-    SingleAmountTaxScale,
+from openfisca_core.scales import (
+    AverageRateScale,
+    MarginalAmountScale,
+    MarginalRateScale,
+    SingleAmountScale,
 )
 
 
@@ -43,10 +43,31 @@ class ParameterScale(AtInstantLike):
                 self.file_path,
             )
 
+        inferred_type = "marginal_rate"
+        for bracket in data.get("brackets", []):
+            if "amount" in bracket:
+                inferred_type = "marginal_amount"
+            elif "rate" in bracket:
+                inferred_type = "marginal_rate"
+            elif "average_rate" in bracket:
+                inferred_type = "average_rate"
+            else:
+                msg = f"Brackets of scale '{self.name}' must have a threshold and either an amount, a rate or an average_rate"
+                raise ParameterParsingError(msg, self.file_path)
+
+        self._type = self.metadata.get("type", inferred_type)
+        bracket_types = {
+            "average_rate": parameters.ParameterAverageRateScaleBracket,
+            "marginal_rate": parameters.ParameterMarginalRateScaleBracket,
+            "marginal_amount": parameters.ParameterAmountScaleBracket,
+            "single_amount": parameters.ParameterAmountScaleBracket,
+        }
+        BracketType = bracket_types[self._type]
+
         brackets = []
         for i, bracket_data in enumerate(data.get("brackets", [])):
             bracket_name = helpers._compose_name(name, item_name=i)
-            bracket = parameters.ParameterScaleBracket(
+            bracket = BracketType(
                 name=bracket_name,
                 data=bracket_data,
                 file_path=file_path,
@@ -84,7 +105,7 @@ class ParameterScale(AtInstantLike):
         brackets = [bracket.get_at_instant(instant) for bracket in self.brackets]
 
         if self.metadata.get("type") == "single_amount":
-            scale = SingleAmountTaxScale()
+            scale = SingleAmountScale()
             for bracket in brackets:
                 if "amount" in bracket._children and "threshold" in bracket._children:
                     amount = bracket.amount
@@ -92,7 +113,7 @@ class ParameterScale(AtInstantLike):
                     scale.add_bracket(threshold, amount)
             return scale
         if any("amount" in bracket._children for bracket in brackets):
-            scale = MarginalAmountTaxScale()
+            scale = MarginalAmountScale()
             for bracket in brackets:
                 if "amount" in bracket._children and "threshold" in bracket._children:
                     amount = bracket.amount
@@ -100,8 +121,7 @@ class ParameterScale(AtInstantLike):
                     scale.add_bracket(threshold, amount)
             return scale
         if any("average_rate" in bracket._children for bracket in brackets):
-            scale = LinearAverageRateTaxScale()
-
+            scale = AverageRateScale()
             for bracket in brackets:
                 if (
                     "average_rate" in bracket._children
@@ -111,8 +131,8 @@ class ParameterScale(AtInstantLike):
                     threshold = bracket.threshold
                     scale.add_bracket(threshold, average_rate)
             return scale
-        scale = MarginalRateTaxScale()
 
+        scale = MarginalRateScale()
         for bracket in brackets:
             if "rate" in bracket._children and "threshold" in bracket._children:
                 rate = bracket.rate

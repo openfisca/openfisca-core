@@ -10,15 +10,15 @@ import numpy
 from openfisca_core import tools
 from openfisca_core.errors import EmptyArgumentError
 
-from .tax_scale_like import TaxScaleLike
+from .scale_like import ScaleLike
 
 if typing.TYPE_CHECKING:
     NumericalArray = numpy.int32 | numpy.float32
 
 
-class RateTaxScaleLike(TaxScaleLike, abc.ABC):
+class RateScaleLike(ScaleLike, abc.ABC):
     """Base class for various types of rate-based tax scales: marginal rate,
-    linear average rate...
+    average rate...
     """
 
     rates: list
@@ -61,7 +61,7 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
         factor: float,
         inplace: bool = True,
         new_name: str | None = None,
-    ) -> RateTaxScaleLike:
+    ) -> RateScaleLike:
         if inplace:
             assert new_name is None
 
@@ -70,17 +70,17 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
 
             return self
 
-        new_tax_scale = self.__class__(
+        new_scale = self.__class__(
             new_name or self.name,
             option=self.option,
             unit=self.unit,
         )
 
         for threshold, rate in zip(self.thresholds, self.rates):
-            new_tax_scale.thresholds.append(threshold)
-            new_tax_scale.rates.append(rate * factor)
+            new_scale.thresholds.append(threshold)
+            new_scale.rates.append(rate * factor)
 
-        return new_tax_scale
+        return new_scale
 
     def multiply_thresholds(
         self,
@@ -88,7 +88,7 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
         decimals: int | None = None,
         inplace: bool = True,
         new_name: str | None = None,
-    ) -> RateTaxScaleLike:
+    ) -> RateScaleLike:
         if inplace:
             assert new_name is None
 
@@ -104,7 +104,7 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
 
             return self
 
-        new_tax_scale = self.__class__(
+        new_scale = self.__class__(
             new_name or self.name,
             option=self.option,
             unit=self.unit,
@@ -112,25 +112,25 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
 
         for threshold, rate in zip(self.thresholds, self.rates):
             if decimals is not None:
-                new_tax_scale.thresholds.append(
+                new_scale.thresholds.append(
                     numpy.around(threshold * factor, decimals=decimals),
                 )
             else:
-                new_tax_scale.thresholds.append(threshold * factor)
+                new_scale.thresholds.append(threshold * factor)
 
-            new_tax_scale.rates.append(rate)
+            new_scale.rates.append(rate)
 
-        return new_tax_scale
+        return new_scale
 
     def bracket_indices(
         self,
-        tax_base: NumericalArray,
+        base: NumericalArray,
         factor: float = 1.0,
         round_decimals: int | None = None,
     ) -> numpy.int32:
         """Compute the relevant bracket indices for the given tax bases.
 
-        :param ndarray tax_base: Array of the tax bases.
+        :param ndarray base: Array of the tax bases.
         :param float factor: Factor to apply to the thresholds.
         :param int round_decimals: Decimals to keep when rounding thresholds.
 
@@ -139,11 +139,11 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
 
         For instance:
 
-        >>> tax_scale = LinearAverageRateTaxScale()
-        >>> tax_scale.add_bracket(0, 0)
-        >>> tax_scale.add_bracket(100, 0.1)
-        >>> tax_base = array([0, 150])
-        >>> tax_scale.bracket_indices(tax_base)
+        >>> scale = AverageRateScale()
+        >>> scale.add_bracket(0, 0)
+        >>> scale.add_bracket(100, 0.1)
+        >>> base = array([0, 150])
+        >>> scale.bracket_indices(base)
         [0, 1]
         """
         if not numpy.size(numpy.array(self.thresholds)):
@@ -154,16 +154,16 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
                 self.thresholds,
             )
 
-        if not numpy.size(numpy.asarray(tax_base)):
+        if not numpy.size(numpy.asarray(base)):
             raise EmptyArgumentError(
                 self.__class__.__name__,
                 "bracket_indices",
-                "tax_base",
-                tax_base,
+                "base",
+                base,
             )
 
-        base1 = numpy.tile(tax_base, (len(self.thresholds), 1)).T
-        factor = numpy.ones(len(tax_base)) * factor
+        base1 = numpy.tile(base, (len(self.thresholds), 1)).T
+        factor = numpy.ones(len(base)) * factor
 
         # To avoid the creation of:
         #
@@ -182,13 +182,13 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
 
         return (base1 - thresholds1 >= 0).sum(axis=1) - 1
 
-    def threshold_from_tax_base(
+    def threshold_from_base(
         self,
-        tax_base: NumericalArray,
+        base: NumericalArray,
     ) -> NumericalArray:
         """Compute the relevant thresholds for the given tax bases.
 
-        :param: ndarray tax_base: Array of the tax bases.
+        :param: ndarray base: Array of the tax bases.
 
         :returns: Floating array with relevant thresholds
                   for the given tax bases.
@@ -196,16 +196,16 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
         For instance:
 
         >>> import numpy
-        >>> from openfisca_core import taxscales
-        >>> tax_scale = taxscales.MarginalRateTaxScale()
-        >>> tax_scale.add_bracket(0, 0)
-        >>> tax_scale.add_bracket(200, 0.1)
-        >>> tax_scale.add_bracket(500, 0.25)
-        >>> tax_base = numpy.array([450, 1_150, 10])
-        >>> tax_scale.threshold_from_tax_base(tax_base)
+        >>> from openfisca_core import scales
+        >>> scale = scales.MarginalRateScale()
+        >>> scale.add_bracket(0, 0)
+        >>> scale.add_bracket(200, 0.1)
+        >>> scale.add_bracket(500, 0.25)
+        >>> base = numpy.array([450, 1_150, 10])
+        >>> scale.threshold_from_base(base)
         array([200, 500,   0])
         """
-        return numpy.array(self.thresholds)[self.bracket_indices(tax_base)]
+        return numpy.array(self.thresholds)[self.bracket_indices(base)]
 
     def to_dict(self) -> dict:
         return {

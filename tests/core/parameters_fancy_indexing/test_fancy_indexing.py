@@ -167,7 +167,7 @@ def test_with_bareme() -> None:
     with pytest.raises(NotImplementedError) as e:
         P_3[city_code]
     assert re.findall(
-        r"'bareme.7501\d' is a 'MarginalRateTaxScale'",
+        r"'bareme.7501\d' is a 'MarginalRateScale'",
         get_message(e.value),
     )
     assert "has not been implemented" in get_message(e.value)

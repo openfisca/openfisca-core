@@ -38,11 +38,19 @@ from .parameter_node import ParameterNode
 from .parameter_node_at_instant import ParameterNodeAtInstant
 from .parameter_scale import ParameterScale
 from .parameter_scale import ParameterScale as Scale
-from .parameter_scale_bracket import (
-    ParameterScaleBracket,
+from .parameter_scale_brackets import (
+    ParameterAmountScaleBracket,
+    ParameterAverageRateScaleBracket,
+    ParameterMarginalRateScaleBracket,
 )
-from .parameter_scale_bracket import (
-    ParameterScaleBracket as Bracket,
+from .parameter_scale_brackets import (
+    ParameterAmountScaleBracket as AmountScaleBracket,
+)
+from .parameter_scale_brackets import (
+    ParameterAverageRateScaleBracket as AverageRateScaleBracket,
+)
+from .parameter_scale_brackets import (
+    ParameterMarginalRateScaleBracket as MarginalRateScaleBracket,
 )
 from .values_history import ValuesHistory
 from .vectorial_parameter_node_at_instant import VectorialParameterNodeAtInstant
@@ -51,16 +59,20 @@ __all__ = [
     "ALLOWED_PARAM_TYPES",
     "COMMON_KEYS",
     "FILE_EXTENSIONS",
+    "AmountScaleBracket",
     "AtInstantLike",
-    "Bracket",
+    "AverageRateScaleBracket",
+    "MarginalRateScaleBracket",
     "Parameter",
+    "ParameterAmountScaleBracket",
     "ParameterAtInstant",
+    "ParameterAverageRateScaleBracket",
+    "ParameterMarginalRateScaleBracket",
     "ParameterNode",
     "ParameterNodeAtInstant",
     "ParameterNotFound",
     "ParameterParsingError",
     "ParameterScale",
-    "ParameterScaleBracket",
     "Scale",
     "ValuesHistory",
     "VectorialParameterNodeAtInstant",

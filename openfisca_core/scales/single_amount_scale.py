@@ -4,16 +4,16 @@ import typing
 
 import numpy
 
-from openfisca_core.taxscales import AmountTaxScaleLike
+from openfisca_core.scales import AmountScaleLike
 
 if typing.TYPE_CHECKING:
     NumericalArray = numpy.int32 | numpy.float32
 
 
-class SingleAmountTaxScale(AmountTaxScaleLike):
+class SingleAmountScale(AmountScaleLike):
     def calc(
         self,
-        tax_base: NumericalArray,
+        base: NumericalArray,
         right: bool = False,
     ) -> numpy.float32:
         """Matches the input amount to a set of brackets and returns the single
@@ -22,7 +22,7 @@ class SingleAmountTaxScale(AmountTaxScaleLike):
         guarded_thresholds = numpy.array([-numpy.inf, *self.thresholds, numpy.inf])
 
         bracket_indices = numpy.digitize(
-            tax_base,
+            base,
             guarded_thresholds,
             right=right,
         )

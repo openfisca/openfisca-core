@@ -24,7 +24,9 @@ from openfisca_core.holders import (
 )
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.parameters import (
-    Bracket,
+    AmountScaleBracket,
+    AverageRateScaleBracket,
+    MarginalRateScaleBracket,
     Parameter,
     ParameterNode,
     Scale,
@@ -44,8 +46,10 @@ __all__ = [
     "ETERNITY",
     "MONTH",
     "YEAR",
-    "Bracket",
+    "AmountScaleBracket",
+    "AverageRateScaleBracket",
     "Enum",
+    "MarginalRateScaleBracket",
     "Parameter",
     "ParameterNode",
     "Reform",
