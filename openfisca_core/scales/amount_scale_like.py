@@ -5,11 +5,11 @@ import typing
 
 from openfisca_core import tools
 
-from .tax_scale_like import TaxScaleLike
+from .scale_like import ScaleLike
 
 
-class AmountTaxScaleLike(TaxScaleLike, abc.ABC):
-    """Base class for various types of amount-based tax scales: single amount,
+class AmountScaleLike(ScaleLike, abc.ABC):
+    """Base class for various types of amount-based scales: single amount,
     marginal amount...
     """
 
