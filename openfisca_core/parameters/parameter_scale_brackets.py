@@ -28,13 +28,13 @@ class LegacyParameterSingleAmountScaleBracket(ParameterNode):
     _allowed_keys = {"threshold", _value_key}
 
     def __init__(self, name="", directory_path=None, data=None, file_path=None) -> None:
+        super().__init__(name, directory_path, data, file_path)
         message = [
             "The 'amount' bracket should be replaced by 'single_amount'.",
             "Relying on metadata.type is deprecated since version 47.0.0",
             "and will be removed in the future.",
         ]
         warnings.warn(" ".join(message), DeprecationWarning, stacklevel=2)
-        super().__init__(name, directory_path, data, file_path)
 
 
 def ParameterScaleBracket(name="", directory_path=None, data=None, file_path=None):
