@@ -29,8 +29,43 @@ class LegacyParameterSingleAmountScaleBracket(ParameterNode):
 
     def __init__(self, name="", directory_path=None, data=None, file_path=None) -> None:
         message = [
-            "The 'amount' bracket should be replaced by 'single_amount'",
-            "version XXX, and will be removed in the future.",
+            "The 'amount' bracket should be replaced by 'single_amount'.",
+            "Relying on metadata.type is deprecated since version 47.0.0",
+            "and will be removed in the future.",
         ]
         warnings.warn(" ".join(message), DeprecationWarning, stacklevel=2)
         super().__init__(name, directory_path, data, file_path)
+
+
+def ParameterScaleBracket(name="", directory_path=None, data=None, file_path=None):
+    generic_message = [
+        "ParameterScaleBracket is deprecated since version 47.0.0",
+        "and will be removed in the future.",
+        "ParameterScaleBracket should be replaced by specific bracket classes Parameter*Bracket.",
+    ]
+    if "rate" in data:
+        message = [
+            *generic_message,
+            "In the specific call by 'ParameterMarginalRateScaleBracket'.",
+        ]
+        warnings.warn(" ".join(message), DeprecationWarning, stacklevel=2)
+        return ParameterMarginalRateScaleBracket(name, directory_path, data, file_path)
+    elif "average_rate" in data:
+        message = [
+            *generic_message,
+            "In the specific call by 'ParameterAverageRateScaleBracket'.",
+        ]
+        warnings.warn(" ".join(message), DeprecationWarning, stacklevel=2)
+        return ParameterAverageRateScaleBracket(name, directory_path, data, file_path)
+    elif "amount" in data:
+        message = [
+            *generic_message,
+            "In the specific call by 'ParameterMarginalAmountScaleBracket'.",
+        ]
+        warnings.warn(" ".join(message), DeprecationWarning, stacklevel=2)
+        return ParameterMarginalAmountScaleBracket(
+            name, directory_path, data, file_path
+        )
+
+    msg = "The relevant ParameterScaleBracket class could not be determined from the provided data."
+    raise ValueError(msg)

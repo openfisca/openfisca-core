@@ -42,6 +42,7 @@ from .parameter_scale_brackets import (
     ParameterAverageRateScaleBracket,
     ParameterMarginalAmountScaleBracket,
     ParameterMarginalRateScaleBracket,
+    ParameterScaleBracket,
     ParameterSingleAmountScaleBracket,
 )
 from .parameter_scale_brackets import (
@@ -78,6 +79,7 @@ __all__ = [
     "ParameterNotFound",
     "ParameterParsingError",
     "ParameterScale",
+    "ParameterScaleBracket",
     "ParameterSingleAmountScaleBracket",
     "Scale",
     "SingleAmountScaleBracket",

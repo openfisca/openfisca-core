@@ -82,7 +82,10 @@ class ParameterScale(AtInstantLike):
         self._type = inferred_type
         BracketType = BRACKET_TYPES[self._type]
         self.ScaleType = SCALE_TYPES[self._type]
-        if self._type != self.metadata.get("type") and self.metadata.get("type") == "single_amount":
+        if (
+            self._type != self.metadata.get("type")
+            and self.metadata.get("type") == "single_amount"
+        ):
             BracketType = LegacyParameterSingleAmountScaleBracket
             self.ScaleType = SingleAmountScale
         self._bracket_value_key = BracketType._value_key
@@ -129,7 +132,10 @@ class ParameterScale(AtInstantLike):
 
         scale = self.ScaleType()
         for bracket in brackets:
-            if self._bracket_value_key in bracket._children and "threshold" in bracket._children:
+            if (
+                self._bracket_value_key in bracket._children
+                and "threshold" in bracket._children
+            ):
                 value = bracket[self._bracket_value_key]
                 threshold = bracket.threshold
                 scale.add_bracket(threshold, value)
