@@ -8,5 +8,9 @@ from .scales.rate_scale_like import RateScaleLike as RateScalTaxeLike  # noqa: F
 from .scales.scale_like import ScaleLike as ScalTaxeLike  # noqa: F401
 from .scales.single_amount_scale import SingleAmountScale  # noqa: F401
 
-message = ["taxscales submodule is deprecated, please use scales."]
+message = [
+    "taxscales submodule is deprecated since",
+    "version 47.0.0, and will be removed in the future",
+    "Please use scales.",
+]
 warnings.warn(" ".join(message), DeprecationWarning)
