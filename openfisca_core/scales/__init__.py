@@ -23,13 +23,11 @@
 
 from openfisca_core.errors import EmptyArgumentError  # noqa: F401
 
-from .abstract_rate_tax_scale import AbstractRateTaxScale  # noqa: F401
-from .abstract_tax_scale import AbstractTaxScale  # noqa: F401
-from .amount_tax_scale_like import AmountTaxScaleLike  # noqa: F401
-from .helpers import combine_tax_scales  # noqa: F401
-from .linear_average_rate_tax_scale import LinearAverageRateTaxScale  # noqa: F401
-from .marginal_amount_tax_scale import MarginalAmountTaxScale  # noqa: F401
-from .marginal_rate_tax_scale import MarginalRateTaxScale  # noqa: F401
-from .rate_tax_scale_like import RateTaxScaleLike  # noqa: F401
-from .single_amount_tax_scale import SingleAmountTaxScale  # noqa: F401
-from .tax_scale_like import TaxScaleLike  # noqa: F401
+from .amount_scale_like import AmountScaleLike  # noqa: F401
+from .average_rate_scale import AverageRateScale  # noqa: F401
+from .helpers import combine_scales  # noqa: F401
+from .marginal_amount_scale import MarginalAmountScale  # noqa: F401
+from .marginal_rate_scale import MarginalRateScale  # noqa: F401
+from .rate_scale_like import RateScaleLike  # noqa: F401
+from .scale_like import ScaleLike  # noqa: F401
+from .single_amount_scale import SingleAmountScale  # noqa: F401

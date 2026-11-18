@@ -57,6 +57,15 @@ def check_fails_with_message(file_name, keywords) -> None:
         ("wrong_type_in_bracket", {"must be of type object"}),
         ("missing_value", {"missing", "value"}),
         ("duplicate_key", {"duplicate"}),
+        (
+            "mixed_scale_types",
+            {"Unexpected property 'amount' in 'mixed_scale_types[1]'"},
+        ),
+        (
+            "multiple_value_key_in_bracket",
+            {"Unexpected property 'amount' in 'multiple_value_key_in_bracket[0]'"},
+        ),
+        ("no_value_scale", {"an amount, a rate, an average_rate or"}),
     ],
 )
 def test_parsing_errors(test) -> None:

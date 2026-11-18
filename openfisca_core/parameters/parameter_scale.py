@@ -1,15 +1,36 @@
 import copy
 import os
 
-from openfisca_core import commons, parameters, tools
+from openfisca_core import commons, tools
 from openfisca_core.errors import ParameterParsingError
 from openfisca_core.parameters import AtInstantLike, config, helpers
-from openfisca_core.taxscales import (
-    LinearAverageRateTaxScale,
-    MarginalAmountTaxScale,
-    MarginalRateTaxScale,
-    SingleAmountTaxScale,
+from openfisca_core.parameters.parameter_scale_brackets import (
+    LegacyParameterSingleAmountScaleBracket,
+    ParameterAverageRateScaleBracket,
+    ParameterMarginalAmountScaleBracket,
+    ParameterMarginalRateScaleBracket,
+    ParameterSingleAmountScaleBracket,
 )
+from openfisca_core.scales import (
+    AverageRateScale,
+    MarginalAmountScale,
+    MarginalRateScale,
+    SingleAmountScale,
+)
+
+BRACKET_TYPES = {
+    "average_rate": ParameterAverageRateScaleBracket,
+    "marginal_amount": ParameterMarginalAmountScaleBracket,
+    "marginal_rate": ParameterMarginalRateScaleBracket,
+    "single_amount": ParameterSingleAmountScaleBracket,
+}
+
+SCALE_TYPES = {
+    "average_rate": AverageRateScale,
+    "marginal_amount": MarginalAmountScale,
+    "marginal_rate": MarginalRateScale,
+    "single_amount": SingleAmountScale,
+}
 
 
 class ParameterScale(AtInstantLike):
@@ -43,16 +64,42 @@ class ParameterScale(AtInstantLike):
                 self.file_path,
             )
 
+        inferred_type = "marginal_rate"
+        for bracket in data.get("brackets", []):
+            if "rate" in bracket:
+                inferred_type = "marginal_rate"
+            elif "average_rate" in bracket:
+                inferred_type = "average_rate"
+            elif "amount" in bracket:
+                inferred_type = "marginal_amount"
+            elif "single_amount" in bracket:
+                inferred_type = "single_amount"
+            else:
+                msg = f"Brackets of scale '{self.name}' must have a threshold and either an amount, a rate, an average_rate or a single_amount"
+                raise ParameterParsingError(msg, self.file_path)
+            break
+
+        self._type = inferred_type
+        BracketType = BRACKET_TYPES[self._type]
+        self.ScaleType = SCALE_TYPES[self._type]
+        if (
+            self._type != self.metadata.get("type")
+            and self.metadata.get("type") == "single_amount"
+        ):
+            BracketType = LegacyParameterSingleAmountScaleBracket
+            self.ScaleType = SingleAmountScale
+        self._bracket_value_key = BracketType._value_key
+
         brackets = []
         for i, bracket_data in enumerate(data.get("brackets", [])):
             bracket_name = helpers._compose_name(name, item_name=i)
-            bracket = parameters.ParameterScaleBracket(
+            bracket = BracketType(
                 name=bracket_name,
                 data=bracket_data,
                 file_path=file_path,
             )
             brackets.append(bracket)
-        self.brackets: list[parameters.ParameterScaleBracket] = brackets
+        self.brackets: list[BracketType] = brackets
 
     def __getitem__(self, key):
         if isinstance(key, int) and key < len(self.brackets):
@@ -83,39 +130,13 @@ class ParameterScale(AtInstantLike):
     def _get_at_instant(self, instant):
         brackets = [bracket.get_at_instant(instant) for bracket in self.brackets]
 
-        if self.metadata.get("type") == "single_amount":
-            scale = SingleAmountTaxScale()
-            for bracket in brackets:
-                if "amount" in bracket._children and "threshold" in bracket._children:
-                    amount = bracket.amount
-                    threshold = bracket.threshold
-                    scale.add_bracket(threshold, amount)
-            return scale
-        if any("amount" in bracket._children for bracket in brackets):
-            scale = MarginalAmountTaxScale()
-            for bracket in brackets:
-                if "amount" in bracket._children and "threshold" in bracket._children:
-                    amount = bracket.amount
-                    threshold = bracket.threshold
-                    scale.add_bracket(threshold, amount)
-            return scale
-        if any("average_rate" in bracket._children for bracket in brackets):
-            scale = LinearAverageRateTaxScale()
-
-            for bracket in brackets:
-                if (
-                    "average_rate" in bracket._children
-                    and "threshold" in bracket._children
-                ):
-                    average_rate = bracket.average_rate
-                    threshold = bracket.threshold
-                    scale.add_bracket(threshold, average_rate)
-            return scale
-        scale = MarginalRateTaxScale()
-
+        scale = self.ScaleType()
         for bracket in brackets:
-            if "rate" in bracket._children and "threshold" in bracket._children:
-                rate = bracket.rate
+            if (
+                self._bracket_value_key in bracket._children
+                and "threshold" in bracket._children
+            ):
+                value = bracket[self._bracket_value_key]
                 threshold = bracket.threshold
-                scale.add_bracket(threshold, rate)
+                scale.add_bracket(threshold, value)
         return scale

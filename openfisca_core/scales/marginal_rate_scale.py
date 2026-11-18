@@ -6,41 +6,41 @@ import typing
 
 import numpy
 
-from openfisca_core import taxscales
+from openfisca_core import scales
 
-from .rate_tax_scale_like import RateTaxScaleLike
+from .rate_scale_like import RateScaleLike
 
 if typing.TYPE_CHECKING:
     NumericalArray = numpy.int32 | numpy.float32
 
 
-class MarginalRateTaxScale(RateTaxScaleLike):
-    def add_tax_scale(self, tax_scale: RateTaxScaleLike) -> None:
+class MarginalRateScale(RateScaleLike):
+    def add_scale(self, scale: RateScaleLike) -> None:
         # So as not to have problems with empty scales
-        if len(tax_scale.thresholds) > 0:
+        if len(scale.thresholds) > 0:
             for threshold_low, threshold_high, rate in zip(
-                tax_scale.thresholds[:-1],
-                tax_scale.thresholds[1:],
-                tax_scale.rates,
+                scale.thresholds[:-1],
+                scale.thresholds[1:],
+                scale.rates,
             ):
                 self.combine_bracket(rate, threshold_low, threshold_high)
 
             # To process the last threshold
             self.combine_bracket(
-                tax_scale.rates[-1],
-                tax_scale.thresholds[-1],
+                scale.rates[-1],
+                scale.thresholds[-1],
             )
 
     def calc(
         self,
-        tax_base: NumericalArray,
+        base: NumericalArray,
         factor: float = 1.0,
         round_base_decimals: int | None = None,
     ) -> numpy.float32:
-        """Compute the tax amount for the given tax bases by applying a taxscale.
+        """Compute the tax amount for the given tax bases by applying a scale.
 
-        :param ndarray tax_base: Array of the tax bases.
-        :param float factor: Factor to apply to the thresholds of the taxscale.
+        :param ndarray base: Array of the tax bases.
+        :param float factor: Factor to apply to the thresholds of the scale.
         :param int round_base_decimals: Decimals to keep when rounding
                                         thresholds.
 
@@ -48,15 +48,15 @@ class MarginalRateTaxScale(RateTaxScaleLike):
 
         For instance:
 
-        >>> tax_scale = MarginalRateTaxScale()
-        >>> tax_scale.add_bracket(0, 0)
-        >>> tax_scale.add_bracket(100, 0.1)
-        >>> tax_base = array([0, 150])
-        >>> tax_scale.calc(tax_base)
+        >>> scale = MarginalRateScale()
+        >>> scale.add_bracket(0, 0)
+        >>> scale.add_bracket(100, 0.1)
+        >>> base = array([0, 150])
+        >>> scale.calc(base)
         [0.0, 5.0]
         """
-        base1 = numpy.tile(tax_base, (len(self.thresholds), 1)).T
-        factor = numpy.ones(len(tax_base)) * factor
+        base1 = numpy.tile(base, (len(self.thresholds), 1)).T
+        factor = numpy.ones(len(base)) * factor
 
         # To avoid the creation of:
         #
@@ -81,7 +81,7 @@ class MarginalRateTaxScale(RateTaxScaleLike):
         if round_base_decimals is None:
             return numpy.dot(self.rates, a.T)
 
-        r = numpy.tile(self.rates, (len(tax_base), 1))
+        r = numpy.tile(self.rates, (len(base), 1))
         b = numpy.round(a, round_base_decimals)
         return numpy.round(r * b, round_base_decimals).sum(axis=1)
 
@@ -115,13 +115,13 @@ class MarginalRateTaxScale(RateTaxScaleLike):
 
     def marginal_rates(
         self,
-        tax_base: NumericalArray,
+        base: NumericalArray,
         factor: float = 1.0,
         round_base_decimals: int | None = None,
     ) -> numpy.float32:
         """Compute the marginal tax rates relevant for the given tax bases.
 
-        :param ndarray tax_base: Array of the tax bases.
+        :param ndarray base: Array of the tax bases.
         :param float factor: Factor to apply to the thresholds of a tax scale.
         :param int round_base_decimals: Decimals to keep when rounding
                                         thresholds.
@@ -131,15 +131,15 @@ class MarginalRateTaxScale(RateTaxScaleLike):
 
         For instance:
 
-        >>> tax_scale = MarginalRateTaxScale()
-        >>> tax_scale.add_bracket(0, 0)
-        >>> tax_scale.add_bracket(100, 0.1)
-        >>> tax_base = array([0, 150])
-        >>> tax_scale.marginal_rates(tax_base)
+        >>> scale = MarginalRateScale()
+        >>> scale.add_bracket(0, 0)
+        >>> scale.add_bracket(100, 0.1)
+        >>> base = array([0, 150])
+        >>> scale.marginal_rates(base)
         [0.0, 0.1]
         """
         bracket_indices = self.bracket_indices(
-            tax_base,
+            base,
             factor,
             round_base_decimals,
         )
@@ -160,13 +160,13 @@ class MarginalRateTaxScale(RateTaxScaleLike):
         For instance:
 
         >>> import numpy
-        >>> tax_scale = MarginalRateTaxScale()
-        >>> tax_scale.add_bracket(0, 0)
-        >>> tax_scale.add_bracket(200, 0.1)
-        >>> tax_scale.add_bracket(500, 0.25)
-        >>> tax_base = numpy.array([50, 1_000, 250])
-        >>> bracket_indice = tax_scale.bracket_indices(tax_base)
-        >>> tax_scale.rate_from_bracket_indice(bracket_indice)
+        >>> scale = MarginalRateScale()
+        >>> scale.add_bracket(0, 0)
+        >>> scale.add_bracket(200, 0.1)
+        >>> scale.add_bracket(500, 0.25)
+        >>> base = numpy.array([50, 1_000, 250])
+        >>> bracket_indice = scale.bracket_indices(base)
+        >>> scale.rate_from_bracket_indice(bracket_indice)
         array([0.  , 0.25, 0.1 ])
         """
         if bracket_indice.max() > len(self.rates) - 1:
@@ -182,13 +182,13 @@ class MarginalRateTaxScale(RateTaxScaleLike):
 
         return numpy.array(self.rates)[bracket_indice]
 
-    def rate_from_tax_base(
+    def rate_from_base(
         self,
-        tax_base: NumericalArray,
+        base: NumericalArray,
     ) -> numpy.float32:
         """Compute the relevant tax rates for the given tax bases.
 
-        :param: ndarray tax_base: Array of the tax bases.
+        :param: ndarray base: Array of the tax bases.
 
         :returns: Floating array with relevant tax rates
                   for the given tax bases.
@@ -196,29 +196,29 @@ class MarginalRateTaxScale(RateTaxScaleLike):
         For instance:
 
         >>> import numpy
-        >>> tax_scale = MarginalRateTaxScale()
-        >>> tax_scale.add_bracket(0, 0)
-        >>> tax_scale.add_bracket(200, 0.1)
-        >>> tax_scale.add_bracket(500, 0.25)
-        >>> tax_base = numpy.array([1_000, 50, 450])
-        >>> tax_scale.rate_from_tax_base(tax_base)
+        >>> scale = MarginalRateScale()
+        >>> scale.add_bracket(0, 0)
+        >>> scale.add_bracket(200, 0.1)
+        >>> scale.add_bracket(500, 0.25)
+        >>> base = numpy.array([1_000, 50, 450])
+        >>> scale.rate_from_base(base)
         array([0.25, 0.  , 0.1 ])
         """
-        return self.rate_from_bracket_indice(self.bracket_indices(tax_base))
+        return self.rate_from_bracket_indice(self.bracket_indices(base))
 
-    def inverse(self) -> MarginalRateTaxScale:
-        """Returns a new instance of MarginalRateTaxScale.
+    def inverse(self) -> MarginalRateScale:
+        """Returns a new instance of MarginalRateScale.
 
-        Invert a taxscale:
+        Invert a scale:
 
-            Assume tax_scale composed of bracket whose thresholds are expressed
+            Assume scale composed of bracket whose thresholds are expressed
             in terms of gross revenue.
 
-            The inverse is another MarginalRateTaxScale whose thresholds are
+            The inverse is another MarginalRateScale whose thresholds are
             expressed in terms of net revenue.
 
-            If net = gross_revenue - tax_scale.calc(gross_revenue)
-            Then gross = tax_scale.inverse().calc(net)
+            If net = gross_revenue - scale.calc(gross_revenue)
+            Then gross = scale.inverse().calc(net)
         """
         # Threshold of net revenue.
         net_threshold: int = 0
@@ -252,19 +252,19 @@ class MarginalRateTaxScale(RateTaxScaleLike):
 
         return inverse
 
-    def scale_tax_scales(self, factor: float) -> MarginalRateTaxScale:
-        """Scale all the MarginalRateTaxScales in the node."""
-        scaled_tax_scale = self.copy()
-        return scaled_tax_scale.multiply_thresholds(factor)
+    def scale_scales(self, factor: float) -> MarginalRateScale:
+        """Scale all the MarginalRateScales in the node."""
+        scaled_scale = self.copy()
+        return scaled_scale.multiply_thresholds(factor)
 
-    def to_average(self) -> taxscales.LinearAverageRateTaxScale:
-        average_tax_scale = taxscales.LinearAverageRateTaxScale(
+    def to_average(self) -> scales.AverageRateScale:
+        average_scale = scales.AverageRateScale(
             name=self.name,
             option=self.option,
             unit=self.unit,
         )
 
-        average_tax_scale.add_bracket(0, 0)
+        average_scale.add_bracket(0, 0)
 
         if self.thresholds:
             i = 0
@@ -277,10 +277,10 @@ class MarginalRateTaxScale(RateTaxScaleLike):
                 None,
             ):
                 i += previous_rate * (threshold - previous_threshold)
-                average_tax_scale.add_bracket(threshold, i / threshold)
+                average_scale.add_bracket(threshold, i / threshold)
                 previous_threshold = threshold
                 previous_rate = rate
 
-            average_tax_scale.add_bracket(float("Inf"), rate)
+            average_scale.add_bracket(float("Inf"), rate)
 
-        return average_tax_scale
+        return average_scale

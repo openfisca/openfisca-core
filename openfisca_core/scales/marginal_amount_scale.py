@@ -4,26 +4,26 @@ import typing
 
 import numpy
 
-from .amount_tax_scale_like import AmountTaxScaleLike
+from .amount_scale_like import AmountScaleLike
 
 if typing.TYPE_CHECKING:
     NumericalArray = numpy.int32 | numpy.float32
 
 
-class MarginalAmountTaxScale(AmountTaxScaleLike):
+class MarginalAmountScale(AmountScaleLike):
     def calc(
         self,
-        tax_base: NumericalArray,
+        base: NumericalArray,
         right: bool = False,
     ) -> numpy.float32:
         """Matches the input amount to a set of brackets and returns the sum of
         cell values from the lowest bracket to the one containing the input.
         """
-        base1 = numpy.tile(tax_base, (len(self.thresholds), 1)).T
+        base1 = numpy.tile(base, (len(self.thresholds), 1)).T
 
         thresholds1 = numpy.tile(
             numpy.hstack((self.thresholds, numpy.inf)),
-            (len(tax_base), 1),
+            (len(base), 1),
         )
 
         a = numpy.maximum(
