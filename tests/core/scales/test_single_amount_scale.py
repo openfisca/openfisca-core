@@ -45,33 +45,12 @@ def test_to_dict() -> None:
     assert result == {"6": 0.23, "9": 0.29}
 
 
-# TODO: move, as we're testing Scale, not SingleAmountScale
-def test_assign_thresholds_on_creation(data) -> None:
-    scale = parameters.Scale("amount_scale", data, "")
-    first_jan = periods.Instant((2017, 11, 1))
-    scale_at_instant = scale.get_at_instant(first_jan)
-
-    result = scale_at_instant.thresholds
-
-    assert result == [0.23]
-
-
-# TODO: move, as we're testing Scale, not SingleAmountScale
-def test_assign_amounts_on_creation(data) -> None:
-    scale = parameters.Scale("amount_scale", data, "")
-    first_jan = periods.Instant((2017, 11, 1))
-    scale_at_instant = scale.get_at_instant(first_jan)
-
-    result = scale_at_instant.amounts
-
-    assert result == [6]
-
-
-# TODO: move, as we're testing Scale, not SingleAmountScale
 def test_dispatch_scale_type_on_creation(data) -> None:
     scale = parameters.Scale("amount_scale", data, "")
     first_jan = periods.Instant((2017, 11, 1))
 
-    result = scale.get_at_instant(first_jan)
+    scale_at_instant = scale.get_at_instant(first_jan)
 
-    assert isinstance(result, scales.SingleAmountScale)
+    assert isinstance(scale_at_instant, scales.SingleAmountScale)
+    assert scale_at_instant.thresholds == [0.23]
+    assert scale_at_instant.amounts == [6]

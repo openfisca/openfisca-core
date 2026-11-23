@@ -31,11 +31,9 @@ def test_calc() -> None:
     tools.assert_near(result, [0, 0.23, 0.52])
 
 
-# TODO: move, as we're testing Scale, not MarginalAmountScale
 def test_dispatch_scale_type_on_creation(data) -> None:
     scale = parameters.Scale("amount_scale", data, "")
     first_jan = periods.Instant((2017, 11, 1))
 
     result = scale.get_at_instant(first_jan)
-
     assert isinstance(result, scales.MarginalAmountScale)
