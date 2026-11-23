@@ -1,5 +1,13 @@
 # Changelog
 
+
+## 46.1.0 [#1423](https://github.com/openfisca/openfisca-core/pull/1423)
+
+#### Technical changes
+
+- Update dependency constraints to be compatible with Python 3.14 and 3.15
+- Add tests in CI for 3.14 and 3.15 so tests are ran from 3.11 to 3.15
+
 ### 46.0.4 [#1416](https://github.com/openfisca/openfisca-core/pull/1416)
 
 #### Technical changes
