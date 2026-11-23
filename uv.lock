@@ -2,8 +2,10 @@ version = 1
 revision = 5
 requires-python = ">=3.11"
 resolution-markers = [
-    "python_full_version >= '3.15'",
-    "python_full_version == '3.14.*'",
+    "python_full_version >= '3.15' and sys_platform == 'win32'",
+    "python_full_version >= '3.15' and sys_platform != 'win32'",
+    "python_full_version == '3.14.*' and sys_platform == 'win32'",
+    "python_full_version == '3.14.*' and sys_platform != 'win32'",
     "python_full_version == '3.13.*'",
     "python_full_version == '3.12.*'",
     "python_full_version < '3.12'",
@@ -1265,8 +1267,10 @@ name = "numpy"
 version = "2.5.5"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.15'",
-    "python_full_version == '3.14.*'",
+    "python_full_version >= '3.15' and sys_platform == 'win32'",
+    "python_full_version >= '3.15' and sys_platform != 'win32'",
+    "python_full_version == '3.14.*' and sys_platform == 'win32'",
+    "python_full_version == '3.14.*' and sys_platform != 'win32'",
     "python_full_version == '3.13.*'",
     "python_full_version == '3.12.*'",
 ]
@@ -1433,6 +1437,7 @@ requires-dist = [
     { name = "numpy", marker = "python_full_version >= '3.11'", specifier = ">=1.25,<=3" },
     { name = "numpy", marker = "python_full_version >= '3.12'", specifier = ">=1.26,<=3" },
     { name = "numpy", marker = "python_full_version >= '3.13'", specifier = ">=2.1,<=3" },
+    { name = "numpy", marker = "python_full_version >= '3.14' and sys_platform == 'win32'", specifier = ">=2.3.2,<=3" },
     { name = "openapi-spec-validator", marker = "extra == 'ci'", specifier = ">=0.7.1,<0.10.0" },
     { name = "openfisca-core", extras = ["web-api"], marker = "extra == 'ci'" },
     { name = "openfisca-country-template", marker = "extra == 'ci'", specifier = ">=8,<9" },
@@ -1443,7 +1448,7 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0.1,<7.0" },
     { name = "pyyaml", marker = "python_full_version >= '3.13'", specifier = ">=6.0.2,<7.0" },
     { name = "sortedcontainers", specifier = ">=2.4.0,<3.0" },
-    { name = "strenum", specifier = ">=0.4.8,<0.5.0" },
+    { name = "strenum", specifier = ">=0.4.8,<0.5.1" },
     { name = "typing-extensions", specifier = ">=4.16.0,<5.0" },
     { name = "werkzeug", marker = "extra == 'web-api'", specifier = ">=2.2.3,<4.0" },
 ]
@@ -2235,11 +2240,11 @@ wheels = [
 
 [[package]]
 name = "strenum"
-version = "0.4.15"
+version = "0.5.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/85/ad/430fb60d90e1d112a62ff57bdd1f286ec73a2a0331272febfddd21f330e1/StrEnum-0.4.15.tar.gz", hash = "sha256:878fb5ab705442070e4dd1929bb5e2249511c0bcf2b0eeacf3bcd80875c82eff", size = 23384, upload-time = "2023-06-29T22:02:58.399Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/80/c6/08eb36e25f318037c93ae16f75e515e95ebf2801e42428d10b7ff332f9dd/strenum-0.5.0.tar.gz", hash = "sha256:9c50a5ce647c0a625ac25c1b719039e745466b6a04bd001aee6376381d8cdce7", size = 148156, upload-time = "2026-10-31T20:37:54.911Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/81/69/297302c5f5f59c862faa31e6cb9a4cd74721cd1e052b38e464c5b402df8b/StrEnum-0.4.15-py3-none-any.whl", hash = "sha256:a30cda4af7cc6b5bf52c8055bc4bf4b2b6b14a93b574626da33df53cf7740659", size = 8851, upload-time = "2023-06-29T22:02:56.947Z" },
+    { url = "https://files.pythonhosted.org/packages/04/94/598975013306c83df1820bf6cf7424da43c98eff190d528b733be615e8c6/strenum-0.5.0-py3-none-any.whl", hash = "sha256:f23a35daa03c948885d616463f75ebb0f179cb13acd17c3ac3b2394bfc343967", size = 9101, upload-time = "2026-10-31T20:37:53.712Z" },
 ]
 
 [[package]]
