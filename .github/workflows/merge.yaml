@@ -4,7 +4,7 @@
 name: OpenFisca-Core / Deploy package to PyPi
 
 env:
-  UPPER_PYTHON_VERSION: &upper_pyver 3.14.9
+  UPPER_PYTHON_VERSION: &upper_pyver 3.15.2
 
 on:
   push:

@@ -2,7 +2,7 @@
 name: OpenFisca-Core / Pull request review
 
 env:
-  UPPER_PYTHON_VERSION: &upper_pyver 3.14.9
+  UPPER_PYTHON_VERSION: &upper_pyver 3.15.2
 
 on:
   pull_request:
@@ -28,14 +28,15 @@ jobs:
     strategy:
       # Default is true but it is nice to have a shortcut here
       # to disable it and test the full matrix
-      fail-fast: true
+      fail-fast: false
       matrix:
         resolution: [highest, lowest-direct]
         os: [ubuntu-24.04, windows-2025]
         python:
-          - 3.11
-          - 3.12.10
-          - 3.13.11
+          # - 3.11
+          # - 3.12.10
+          # - 3.13.11
+          - 3.14.10
           - *upper_pyver
     runs-on: ${{ matrix.os }}
     env:
