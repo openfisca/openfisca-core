@@ -1447,6 +1447,8 @@ requires-dist = [
     { name = "pytest", specifier = ">=8.3.3,<10.0" },
     { name = "pyyaml", specifier = ">=6.0.1,<7.0" },
     { name = "pyyaml", marker = "python_full_version >= '3.13'", specifier = ">=6.0.2,<7.0" },
+    { name = "pyyaml", marker = "python_full_version >= '3.14'", specifier = ">=6.0.3,<7.0" },
+    { name = "pyyaml", marker = "python_full_version >= '3.15'", specifier = ">=6.0.4,<7.0" },
     { name = "sortedcontainers", specifier = ">=2.4.0,<3.0" },
     { name = "strenum", specifier = ">=0.4.8,<0.5.1" },
     { name = "typing-extensions", specifier = ">=4.16.0,<5.0" },
