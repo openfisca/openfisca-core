@@ -2,7 +2,7 @@
 name: OpenFisca-Core / Pull request review
 
 env:
-  UPPER_PYTHON_VERSION: &upper_pyver 3.13.11
+  UPPER_PYTHON_VERSION: &upper_pyver 3.15.2
 
 on:
   pull_request:
@@ -35,6 +35,8 @@ jobs:
         python:
           - 3.11
           - 3.12.10
+          - 3.13.11
+          - 3.14.10
           - *upper_pyver
     runs-on: ${{ matrix.os }}
     env:
