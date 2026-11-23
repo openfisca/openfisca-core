@@ -144,10 +144,10 @@ def test_get_memory_usage(single) -> None:
     salary_holder.set_input(periods.period(2017), numpy.asarray([30000]))
     memory_usage = salary_holder.get_memory_usage()
     assert memory_usage["nb_cells_by_array"] == 1
-    assert memory_usage["cell_size"] == 4  # float 32
+    assert memory_usage["cell_size"] == 8  # float 64
     assert memory_usage["nb_cells_by_array"] == 1  # one person
     assert memory_usage["nb_arrays"] == 12  # 12 months
-    assert memory_usage["total_nb_bytes"] == 4 * 12 * 1
+    assert memory_usage["total_nb_bytes"] == 8 * 12 * 1
 
 
 def test_get_memory_usage_with_trace(single) -> None:

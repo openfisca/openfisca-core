@@ -14,7 +14,7 @@ from numpy import (
     datetime64 as Date,
 )
 from numpy import (
-    float32 as Float,
+    float64 as Float,
 )
 from numpy import (
     int16 as Enum,

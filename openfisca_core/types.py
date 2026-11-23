@@ -18,13 +18,13 @@ from numpy import (
     datetime64 as DateDType,
 )
 from numpy import (
-    float32 as FloatDType,
+    float64 as FloatDType,
 )
 from numpy import (
     generic as VarDType,
 )
 from numpy import (
-    int32 as IntDType,
+    int64 as IntDType,
 )
 from numpy import (
     object_ as ObjDType,
@@ -88,10 +88,10 @@ ArrayLike: TypeAlias = Sequence[_L]
 DTypeBool: TypeAlias = numpy.bool_
 
 #: Type for int arrays.
-DTypeInt: TypeAlias = numpy.int32
+DTypeInt: TypeAlias = numpy.int64
 
 #: Type for float arrays.
-DTypeFloat: TypeAlias = numpy.float32
+DTypeFloat: TypeAlias = numpy.float64
 
 #: Type for string arrays.
 DTypeStr: TypeAlias = numpy.str_

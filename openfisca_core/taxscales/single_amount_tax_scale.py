@@ -7,7 +7,7 @@ import numpy
 from openfisca_core.taxscales import AmountTaxScaleLike
 
 if typing.TYPE_CHECKING:
-    NumericalArray = numpy.int32 | numpy.float32
+    NumericalArray = numpy.int64 | numpy.float64
 
 
 class SingleAmountTaxScale(AmountTaxScaleLike):
@@ -15,7 +15,7 @@ class SingleAmountTaxScale(AmountTaxScaleLike):
         self,
         tax_base: NumericalArray,
         right: bool = False,
-    ) -> numpy.float32:
+    ) -> numpy.float64:
         """Matches the input amount to a set of brackets and returns the single
         cell value that fits within that bracket.
         """

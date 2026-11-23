@@ -24,7 +24,7 @@ def apply_thresholds(
         choices: A list of the possible values to choose from.
 
     Returns:
-        ndarray[float32]: A list of the values chosen.
+        ndarray: A list of the values chosen.
 
     Examples:
         >>> input = numpy.array([4, 5, 6, 7, 8])
@@ -100,7 +100,7 @@ def switch(
         value_by_condition: Values to replace for each condition.
 
     Returns:
-        ndarray[float32]: An array with the replaced values.
+        ndarray: An array with the replaced values.
 
     Examples:
         >>> conditions = numpy.array([1, 1, 1, 2])

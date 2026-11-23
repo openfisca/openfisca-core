@@ -141,7 +141,7 @@ class Holder:
 
             >>> pprint(holder.get_memory_usage(), indent=3)
             {  'cell_size': nan,
-               'dtype': <class 'numpy.int32'>,
+               'dtype': <class 'numpy.int64'>,
                'nb_arrays': 0,
                'nb_cells_by_array': 0,
                'total_nb_bytes': 0...
@@ -213,11 +213,11 @@ class Holder:
             >>> holder = Holder(variable, population)
             >>> holder.set_input("2018", numpy.array([12.5, 14]))
             >>> holder.get_array("2018")
-            array([12.5, 14. ], dtype=float32)
+            array([12.5, 14. ])
 
             >>> holder.set_input("2018", [12.5, 14])
             >>> holder.get_array("2018")
-            array([12.5, 14. ], dtype=float32)
+            array([12.5, 14. ])
 
         .. _documentation:
             https://openfisca.org/doc/coding-the-legislation/35_periods.html#set-input-automatically-process-variable-inputs-defined-for-periods-not-matching-the-definition-period

@@ -41,7 +41,6 @@ def assert_near(
         return assert_array_equal(value, target_value)
 
     target_value = numpy.array(target_value).astype(numpy.float64)
-
     value = numpy.array(value).astype(numpy.float64)
     diff = abs(target_value - value)
     if absolute_error_margin is not None:

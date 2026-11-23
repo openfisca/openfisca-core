@@ -57,17 +57,9 @@ def test_float32_precision():
 
     period = "2020-01"
     sb = SimulationBuilder()
-    sim = sb.build_from_dict(tbs, {
-        "persons": {
-            "p1": {
-                "value": {period: 524709269}
-            }
-        }
-    })
+    sim = sb.build_from_dict(tbs, {"persons": {"p1": {"value": {period: 524709269}}}})
 
     result = sim.calculate("total", period)
     expected = 68212205.0
 
     assert result[0] == expected, f"Expected {expected}, got {result[0]}"
-
-

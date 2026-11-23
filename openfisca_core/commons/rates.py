@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy
 
 from openfisca_core import types as t
+from openfisca_core.variables.config import VALUE_TYPES
 
 
 def average_rate(
@@ -25,7 +26,7 @@ def average_rate(
         trim: The lower and upper bounds of the average rate.
 
     Returns:
-        ndarray[float32]: The average rate for each target. When ``trim``
+        ndarray: The average rate for each target. When ``trim``
             is provided, values that are out of the provided bounds are
             replaced by :obj:`numpy.nan`.
 
@@ -38,7 +39,7 @@ def average_rate(
 
     """
     if not isinstance(varying, numpy.ndarray):
-        varying = numpy.array(varying, dtype=numpy.float32)
+        varying = numpy.array(varying, dtype=VALUE_TYPES[float]["dtype"])
 
     average_rate = 1 - target / varying
 
@@ -78,7 +79,7 @@ def marginal_rate(
         trim: The lower and upper bounds of the marginal rate.
 
     Returns:
-        ndarray[float32]: The marginal rate for each target. When ``trim``
+        ndarray: The marginal rate for each target. When ``trim``
             is provided, values that are out of the provided bounds are
             replaced by :class:`numpy.nan`.
 
@@ -91,7 +92,7 @@ def marginal_rate(
 
     """
     if not isinstance(varying, numpy.ndarray):
-        varying = numpy.array(varying, dtype=numpy.float32)
+        varying = numpy.array(varying, dtype=VALUE_TYPES.float.dtype)
 
     marginal_rate = +1 - (target[:-1] - target[1:]) / (varying[:-1] - varying[1:])
 
