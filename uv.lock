@@ -3,7 +3,8 @@ revision = 5
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.15'",
-    "python_full_version >= '3.13' and python_full_version < '3.15'",
+    "python_full_version == '3.14.*'",
+    "python_full_version == '3.13.*'",
     "python_full_version == '3.12.*'",
     "python_full_version < '3.12'",
 ]
@@ -1265,7 +1266,8 @@ version = "2.5.5"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15'",
-    "python_full_version >= '3.13' and python_full_version < '3.15'",
+    "python_full_version == '3.14.*'",
+    "python_full_version == '3.13.*'",
     "python_full_version == '3.12.*'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/4e/3a/8770c288c47f0b5c2a786d3c20e79f66fd245f2d42cd232d7cd5e00e83e5/numpy-2.5.5.tar.gz", hash = "sha256:5cddc243c75114ba845f01b1f87aca1572dbf7b6c2d88636ed3e1d2bccd7f1bf", size = 20873892, upload-time = "2026-11-15T21:32:28.607Z" }
@@ -1423,6 +1425,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "dpath", specifier = ">=2.2.0,<3.0" },
+    { name = "flask", marker = "python_full_version >= '3.14' and extra == 'web-api'", specifier = ">=2.3.3,<4.0" },
     { name = "flask", marker = "extra == 'web-api'", specifier = ">=2.2.3,<4.0" },
     { name = "flask-cors", marker = "extra == 'web-api'", specifier = ">=3.0.10,<4.0" },
     { name = "gunicorn", marker = "extra == 'web-api'", specifier = ">=21.0,<28.0" },

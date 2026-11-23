@@ -72,6 +72,7 @@ Repository = "https://github.com/openfisca/openfisca-core.git"
 [project.optional-dependencies]
 web-api = [
     "Flask >=2.2.3, <4.0",
+    "Flask >=2.3.3, <4.0 ; python_version >= \"3.14\"",
     "Flask-Cors >=3.0.10, <4.0",
     "gunicorn>=21.0,<28.0",
     "Werkzeug >=2.2.3, <4.0",

@@ -2,7 +2,7 @@
 name: OpenFisca-Core / Pull request review
 
 env:
-  UPPER_PYTHON_VERSION: &upper_pyver 3.14.10
+  UPPER_PYTHON_VERSION: &upper_pyver 3.14.9
 
 on:
   pull_request:
