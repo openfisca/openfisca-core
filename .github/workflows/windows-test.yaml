@@ -2,7 +2,7 @@
 name: OpenFisca-Core / Windows install from PyPi
 
 env:
-  UPPER_PYTHON_VERSION: &upper_pyver 3.15.2
+  UPPER_PYTHON_VERSION: &upper_pyver 3.14.10
 
 on:
   workflow_run:
