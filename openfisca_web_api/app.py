@@ -202,10 +202,8 @@ def create_app(
         if tracker:
             if request.headers.get("dnt"):
                 source_ip = ""
-            elif request.headers.get("X-Forwarded-For"):
-                source_ip = request.headers["X-Forwarded-For"].split(", ")[0]
             else:
-                source_ip = request.remote_addr
+                source_ip = request.remote_addr or ""
 
             api_version = "{}-{}".format(
                 data["country_package_metadata"]["name"],
@@ -218,7 +216,8 @@ def create_app(
     @app.errorhandler(500)
     def internal_server_error(e: werkzeug.exceptions.InternalServerError):
         message = getattr(e, "original_exception", e.description)
-        response = jsonify({"error": "Internal server error: " + str(message)})
+        log.error("Internal server error: %s", message)
+        response = jsonify({"error": "Internal server error"})
         response.status_code = 500
 
         return response
