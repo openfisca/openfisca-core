@@ -103,8 +103,8 @@ class TestMembersPosition:
         second = pop.members_position
         assert first is second  # Same object, not recomputed
 
-    def test_dtype_is_int32(self):
-        """Result should be int32 for consistency."""
+    def test_dtype_is_int64(self):
+        """Result should be int64 for consistency."""
         from openfisca_core.populations.group_population import GroupPopulation
 
         pop = GroupPopulation.__new__(GroupPopulation)
@@ -113,4 +113,4 @@ class TestMembersPosition:
         pop._ordered_members_map = None
 
         result = pop.members_position
-        assert result.dtype == numpy.int32
+        assert result.dtype == numpy.int64

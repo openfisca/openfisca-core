@@ -13,7 +13,7 @@ from openfisca_core.errors import EmptyArgumentError
 from .tax_scale_like import TaxScaleLike
 
 if typing.TYPE_CHECKING:
-    NumericalArray = numpy.int32 | numpy.float32
+    NumericalArray = numpy.int64 | numpy.float64
 
 
 class RateTaxScaleLike(TaxScaleLike, abc.ABC):
@@ -127,7 +127,7 @@ class RateTaxScaleLike(TaxScaleLike, abc.ABC):
         tax_base: NumericalArray,
         factor: float = 1.0,
         round_decimals: int | None = None,
-    ) -> numpy.int32:
+    ) -> numpy.int64:
         """Compute the relevant bracket indices for the given tax bases.
 
         :param ndarray tax_base: Array of the tax bases.

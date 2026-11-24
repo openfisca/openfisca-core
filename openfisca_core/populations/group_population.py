@@ -61,7 +61,7 @@ class GroupPopulation(Population):
             # Position within group = global sorted index - group start
             positions_sorted = numpy.arange(nb_persons) - group_starts[sorted_ids]
             # Scatter back to original order
-            self._members_position = numpy.empty(nb_persons, dtype=numpy.int32)
+            self._members_position = numpy.empty(nb_persons, dtype=numpy.int64)
             self._members_position[order] = positions_sorted
 
         return self._members_position

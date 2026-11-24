@@ -8,7 +8,7 @@ from .rate_tax_scale_like import RateTaxScaleLike
 if typing.TYPE_CHECKING:
     import numpy
 
-    NumericalArray = numpy.int32 | numpy.float32
+    NumericalArray = numpy.int64 | numpy.float64
 
 
 class AbstractRateTaxScale(RateTaxScaleLike):

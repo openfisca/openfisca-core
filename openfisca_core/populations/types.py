@@ -9,13 +9,13 @@ from numpy import (
     bool_ as BoolDType,
 )
 from numpy import (
-    float32 as FloatDType,
+    float64 as FloatDType,
 )
 from numpy import (
     generic as VarDType,
 )
 from numpy import (
-    int32 as IntDType,
+    int64 as IntDType,
 )
 from numpy import (
     str_ as StrDType,

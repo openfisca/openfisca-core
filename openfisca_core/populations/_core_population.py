@@ -101,7 +101,7 @@ class CorePopulation:
             <openfisca_core.populations._core_population.Salary object at...
 
             >>> population(Salary().name, period)
-            array([0, 0, 0], dtype=int32)
+            array([0, 0, 0])
 
             >>> class Tax(Salary):
             ...     default_value = 100.0
@@ -113,7 +113,7 @@ class CorePopulation:
             <openfisca_core.populations._core_population.Tax object at...
 
             >>> population(Tax().name, period)
-            array([100., 100., 100.], dtype=float32)
+            array([100., 100., 100.])
 
             >>> population(Tax().name, period, [populations.ADD])
             Traceback (most recent call last):
@@ -171,7 +171,7 @@ class CorePopulation:
         """Return an empty array.
 
         Returns:
-            ndarray[float32]: An empty array.
+            ndarray[float64]: An empty array.
 
         Examples:
             >>> import numpy
@@ -182,11 +182,11 @@ class CorePopulation:
 
             >>> population = Population(None)
             >>> population.empty_array()
-            array([], dtype=float32)
+            array([], dtype=float64)
 
             >>> population.count = 3
             >>> population.empty_array()
-            array([0., 0., 0.], dtype=float32)
+            array([0., 0., 0.])
 
         """
         return numpy.zeros(self.count, dtype=t.FloatDType)
@@ -215,8 +215,8 @@ class CorePopulation:
             >>> population.filled_array(1)
             array([1, 1, 1])
 
-            >>> population.filled_array(numpy.float32(1))
-            array([1., 1., 1.], dtype=float32)
+            >>> population.filled_array(1.0)
+            array([1., 1., 1.])
 
             >>> population.filled_array(1, dtype=str)
             array(['1', '1', '1'], dtype='<U1')

@@ -8,7 +8,7 @@ from numpy import (
     generic as VarDType,
 )
 from numpy import (
-    int32 as IntDType,
+    int64 as IntDType,
 )
 from numpy import (
     object_ as ObjDType,
