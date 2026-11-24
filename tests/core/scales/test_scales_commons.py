@@ -1,6 +1,6 @@
 import pytest
 
-from openfisca_core import parameters, taxscales, tools
+from openfisca_core import parameters, scales, tools
 
 
 @pytest.fixture
@@ -24,8 +24,8 @@ def node():
     )(2015)
 
 
-def test_combine_tax_scales(node) -> None:
-    result = taxscales.combine_tax_scales(node)
+def test_combine_scales(node) -> None:
+    result = scales.combine_scales(node)
 
     tools.assert_near(result.thresholds, [0, 2000, 3000])
     tools.assert_near(result.rates, [0.07, 0.12, 0.14], 1e-13)

@@ -12,9 +12,9 @@ if typing.TYPE_CHECKING:
     NumericalArray = numpy.int32 | numpy.float32
 
 
-class TaxScaleLike(abc.ABC):
-    """Base class for various types of tax scales: amount-based tax scales,
-    rate-based tax scales...
+class ScaleLike(abc.ABC):
+    """Base class for various types of scales: amount-based scales,
+    rate-based scales...
     """
 
     name: str | None
@@ -29,7 +29,7 @@ class TaxScaleLike(abc.ABC):
         option: typing.Any = None,
         unit: typing.Any = None,
     ) -> None:
-        self.name = name or "Untitled TaxScale"
+        self.name = name or "Untitled Scale"
         self.option = option
         self.unit = unit
         self.thresholds = []
@@ -52,7 +52,7 @@ class TaxScaleLike(abc.ABC):
     @abc.abstractmethod
     def calc(
         self,
-        tax_base: NumericalArray,
+        base: NumericalArray,
         right: bool,
     ) -> numpy.float32: ...
 

@@ -1,5 +1,23 @@
 # Changelog
 
+# 47.0.0 [#1421](https://github.com/openfisca/openfisca-core/pull/1421)
+
+#### Breaking changes
+
+- Remove classes `AbstractRateTaxScale` and `AbstractTaxScale` deprecated a while ago
+- Remove `/Tax/` from classes names, in documentation and variable names
+- Rename `LinearAverageRateTaxScale` in `AverageRateScale`
+
+#### New features
+
+- Additional checks in ParameterScale constructor
+
+#### Deprecations
+
+- `openfisca_core.taxscales` still exists to avoid breaking too many setups but using it raises a deprecation warning
+  - It should be replaced by `openfisca_core.scales` with adjustments in class name references
+- Deprecate SingleAmountScale logic based on metadata.type == "single_amount"
+  - The functionality is now provided by value key in bracket `single_amount` instead of the ambiguous `amount` (used in marginal and single amount scales).
 
 ## 46.1.0 [#1423](https://github.com/openfisca/openfisca-core/pull/1423)
 
