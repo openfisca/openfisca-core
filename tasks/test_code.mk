@@ -51,7 +51,6 @@ test-country:
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
 		python -m ${openfisca} test \
 		$(call country,"openfisca_country_template") \
-		--country-package openfisca_country_template \
 		${openfisca_args}
 	@$(call print_pass,$@:)
 
@@ -61,7 +60,6 @@ test-extension:
 	@PYTEST_ADDOPTS="$${PYTEST_ADDOPTS} ${pytest_args}" \
 		python -m ${openfisca} test \
 		$(call extension,"openfisca_extension_template") \
-		--country-package openfisca_country_template \
 		--extensions openfisca_extension_template \
 		${openfisca_args}
 	@$(call print_pass,$@:)

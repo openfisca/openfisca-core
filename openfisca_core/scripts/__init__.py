@@ -90,6 +90,13 @@ def detect_country_package():
                 raise ImportError(message)
             if hasattr(module, "CountryTaxBenefitSystem"):
                 installed_country_packages.append(module_name)
+            elif "finder" in module_name and hasattr(
+                module, "MAPPING"
+            ):  # Manage editable in uv and raw venv
+                for submodule_name in module.MAPPING:
+                    submodule = importlib.import_module(submodule_name)
+                    if hasattr(submodule, "CountryTaxBenefitSystem"):
+                        installed_country_packages.append(submodule_name)
 
     if len(installed_country_packages) == 0:
         msg = "No country package has been detected on your environment. If your country package is installed but not detected, please use the --country-package option."
