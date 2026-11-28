@@ -1,5 +1,11 @@
 # Changelog
 
+### 46.1.1 [#1423](https://github.com/openfisca/openfisca-core/pull/1423)
+
+#### Technical changes
+
+- Fix country package detection when added in editable mode (may rely on private API)
+- Remove explicit country template package usage in CI tests to
 
 ## 46.1.0 [#1423](https://github.com/openfisca/openfisca-core/pull/1423)
 
